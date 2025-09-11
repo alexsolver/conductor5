@@ -32,8 +32,10 @@ import {
   CreditCard,
   Building,
   Save,
-  X
+  X,
+  Users
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface EditMemberDialogProps {
   open: boolean;
@@ -47,7 +49,9 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  
+
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+
   // ✅ Verificar se usuário é tenant_admin para editar emails seguindo 1qa.md
   const canEditEmail = user?.role === 'tenant_admin' || user?.role === 'saas_admin';
 
@@ -65,7 +69,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       timeZone: 'America/Sao_Paulo',
       vehicleType: 'nenhum',
       cpfCnpj: '',
-      
+
       // Endereço
       cep: '',
       country: 'Brasil',
@@ -76,7 +80,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       houseNumber: '',
       complement: '',
       neighborhood: '',
-      
+
       // Dados RH
       employeeCode: '',
       pis: '',
@@ -86,7 +90,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       admissionDate: '',
       costCenter: '',
       employmentType: 'clt',
-      
+
       // Sistema
       role: '',
       groupIds: []
@@ -96,12 +100,11 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   // Fetch available groups
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
-    enabled: open,
-  });
-
-  // Fetch available roles
-  const { data: rolesData } = useQuery({
-    queryKey: ['/api/team-management/roles'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/user-management/groups');
+      if (!res.ok) throw new Error('Erro ao buscar grupos');
+      return res.json();
+    },
     enabled: open,
   });
 
@@ -111,18 +114,18 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     queryFn: async () => {
       if (!member?.id) return null;
       console.log('EditMemberDialog - Fetching complete member details for:', member.id);
-      
+
       // Try multiple endpoints to get complete user data
       try {
         const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
         console.log('EditMemberDialog - Got complete member details:', response);
-        
+
         // If the response is empty object or doesn't have essential fields, use member data
         if (!response || Object.keys(response).length === 0 || !response.email) {
           console.log('EditMemberDialog - API returned empty/invalid data, using member data:', member);
           return member;
         }
-        
+
         return response;
       } catch (error) {
         console.log('EditMemberDialog - API error, fallback to basic member data:', member);
@@ -132,12 +135,31 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     enabled: open && !!member?.id,
   });
 
+  // Fetch member's current groups
+  const { data: memberGroupsData } = useQuery({
+    queryKey: ['/api/user-management/users', member?.id, 'groups'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/user-management/users/${member.id}/groups`);
+      if (!res.ok) throw new Error('Erro ao buscar grupos do usuário');
+      return res.json();
+    },
+    enabled: open && !!member?.id,
+  });
+
+  // Update selected groups when member groups data changes
+  useEffect(() => {
+    if (memberGroupsData?.groups) {
+      setSelectedGroups(memberGroupsData.groups.map((g: any) => g.id));
+    }
+  }, [memberGroupsData]);
+
+
   // Reset form when member details are loaded
   useEffect(() => {
     if (open && member && !memberLoading) {
       // Use member data as source since API returns empty object
       const sourceData = member;
-      
+
       console.log('EditMemberDialog - Setting form data for member:', sourceData);
       console.log('EditMemberDialog - Available data keys:', Object.keys(sourceData));
 
@@ -158,7 +180,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         timeZone: sourceData.timeZone || sourceData.time_zone || 'America/Sao_Paulo',
         vehicleType: sourceData.vehicleType || sourceData.vehicle_type || 'nenhum',
         cpfCnpj: sourceData.cpfCnpj || sourceData.cpf_cnpj || '',
-        
+
         // Endereço
         cep: sourceData.cep || '',
         country: sourceData.country || 'Brasil',
@@ -169,7 +191,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         houseNumber: sourceData.houseNumber || sourceData.house_number || '',
         complement: sourceData.complement || '',
         neighborhood: sourceData.neighborhood || '',
-        
+
         // Dados RH
         employeeCode: sourceData.employeeCode || sourceData.employee_code || '',
         pis: sourceData.pis || '',
@@ -180,7 +202,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           new Date(sourceData.admissionDate || sourceData.admission_date).toISOString().split('T')[0] : '',
         costCenter: sourceData.costCenter || sourceData.cost_center || '',
         employmentType: sourceData.employmentType || sourceData.employment_type || 'clt',
-        
+
         // Sistema
         role: sourceData.role || '',
         groupIds: sourceData.groupIds || sourceData.group_ids || []
@@ -195,12 +217,12 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('EditMemberDialog - Updating member with data:', data);
-      const response = await apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
+      const response = await apiRequest('PUT', `/api/user-management/users/${member.id}`, data);
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/members'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/team/members'] });
       queryClient.invalidateQueries({ queryKey: ['/api/team-management/stats'] });
 
       toast({
@@ -220,12 +242,42 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     },
   });
 
+  const updateGroupsMutation = useMutation({
+    mutationFn: async (groupIds: string[]) => {
+      return apiRequest("PUT", `/api/user-management/users/${member.id}/groups`, { groupIds });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team-management/members"] });
+      toast({
+        title: "Grupos atualizados",
+        description: "Os grupos do membro foram atualizados com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar grupos",
+        description: error?.message || "Falha ao atualizar os grupos do membro.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = async (data: any) => {
     console.log('EditMemberDialog - Form submitted with data:', data);
     setIsSubmitting(true);
 
     try {
       await updateMemberMutation.mutateAsync(data);
+
+      // Also update group memberships if they changed
+      const currentGroupIds = memberGroupsData?.groups?.map((g: any) => g.id) || [];
+      if (JSON.stringify(selectedGroups.sort()) !== JSON.stringify(currentGroupIds.sort())) {
+        await updateGroupsMutation.mutateAsync(selectedGroups);
+      }
+      
+      onOpenChange(false); // Close dialog only after both mutations succeed
     } catch (error) {
       console.error('EditMemberDialog - Submit error:', error);
     } finally {
@@ -236,6 +288,14 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const handleCancel = () => {
     form.reset();
     onOpenChange(false);
+  };
+
+  const handleGroupToggle = (groupId: string) => {
+    setSelectedGroups(prev => 
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
   };
 
   if (!member) {
@@ -418,7 +478,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   </p>
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="role">Papel no Sistema</Label>
                 <Select 
@@ -592,53 +652,51 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           </Card>
 
           {/* Groups */}
-          {Array.isArray(groupsData?.groups) && groupsData.groups.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <Building className="h-4 w-4" />
-                  <span>Grupos</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Label>Grupos Associados</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                  {(groupsData?.groups || []).filter(Boolean).map((group: any) => {
-                    const isSelected = form.watch('groupIds')?.includes(group.id);
-                    return (
-                      <div
-                        key={group.id}
-                        className={`p-2 border rounded cursor-pointer transition-colors ${
-                          isSelected 
-                            ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700' 
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                        }`}
-                        onClick={() => {
-                          const currentGroups = form.watch('groupIds') || [];
-                          const newGroups = isSelected 
-                            ? currentGroups.filter(id => id !== group.id)
-                            : [...currentGroups, group.id];
-                          form.setValue('groupIds', newGroups);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{group.name}</span>
-                          {isSelected && (
-                            <Badge variant="default" className="text-xs">
-                              Selecionado
-                            </Badge>
-                          )}
-                        </div>
-                        {group.description && (
-                          <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Users className="h-4 w-4" />
+                <span>Grupos</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Label>Grupos Associados</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                {(groupsData?.groups || []).filter(Boolean).map((group: any) => {
+                  const isSelected = selectedGroups.includes(group.id);
+                  return (
+                    <div
+                      key={group.id}
+                      className={`p-2 border rounded cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700' 
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                      onClick={() => {
+                        handleGroupToggle(group.id);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{group.name}</span>
+                        {isSelected && (
+                          <Badge variant="default" className="text-xs">
+                            Selecionado
+                          </Badge>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                      {group.description && (
+                        <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {(!groupsData?.groups || groupsData.groups.length === 0) && (
+                <p className="text-sm text-gray-500 text-center py-4">Nenhum grupo disponível</p>
+              )}
+            </CardContent>
+          </Card>
+
 
           <DialogFooter>
             <Button
@@ -652,10 +710,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || updateMemberMutation.isPending}
+              disabled={isSubmitting || updateMemberMutation.isPending || updateGroupsMutation.isPending}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {isSubmitting || updateMemberMutation.isPending ? (
+              {isSubmitting || updateMemberMutation.isPending || updateGroupsMutation.isPending ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Salvando...

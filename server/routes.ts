@@ -98,7 +98,7 @@ console.log(
 );
 
 // ✅ CLEAN ARCHITECTURE ONLY - per 1qa.md specifications
-// Legacy imports removed per analysis
+// Legacy imports removed per 1qa.md
 import ticketRelationshipsRoutes from "./modules/ticket-relationships/routes";
 
 // 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
@@ -566,7 +566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "🏗️ [NOTIFICATIONS-ALERTS] Initializing Notifications & Alerts Clean Architecture module...",
   );
   app.use("/api", notificationRoutes);
-  
+
   // ✅ 1QA.MD COMPLIANCE: Technical Skills Clean Architecture Routes
   app.use("/api/technical-skills", technicalSkillsRoutes);
   console.log(
