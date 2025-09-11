@@ -240,6 +240,165 @@ router.get(
   },
 );
 
+// Update user by ID - following 1qa.md patterns
+router.put(
+  "/users/:userId",
+  jwtAuth,
+  requirePermission("tenant", "manage_users"),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { userId } = req.params;
+      const tenantId = req.user!.tenantId;
+      const userData = req.body;
+
+      console.log("🔍 [USER-UPDATE] Received update data:", {
+        userId,
+        tenantId,
+        dataKeys: Object.keys(userData),
+      });
+
+      // Validate tenant access
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID is required" });
+      }
+
+      // Check if user exists and belongs to tenant
+      const existingUser = await db
+        .select()
+        .from(usersTable)
+        .where(and(eq(usersTable.id, userId), eq(usersTable.tenantId, tenantId)))
+        .limit(1);
+
+      if (existingUser.length === 0) {
+        console.log(`❌ [USER-UPDATE] User ${userId} not found for tenant ${tenantId}`);
+        return res.status(404).json({ message: "User not found or access denied" });
+      }
+
+      // Prepare update data following existing patterns
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      // Map frontend fields to database fields following existing patterns
+      if (userData.firstName !== undefined) updateData.firstName = userData.firstName || "";
+      if (userData.lastName !== undefined) updateData.lastName = userData.lastName || "";
+      if (userData.email !== undefined) updateData.email = userData.email?.toLowerCase();
+      if (userData.role !== undefined) updateData.role = userData.role;
+      if (userData.isActive !== undefined) updateData.isActive = userData.isActive;
+      
+      // HR/Personal data following CREATE pattern
+      if (userData.integrationCode !== undefined) updateData.integrationCode = userData.integrationCode || null;
+      if (userData.alternativeEmail !== undefined) updateData.alternativeEmail = userData.alternativeEmail || null;
+      if (userData.cellPhone !== undefined) updateData.cellPhone = userData.cellPhone || null;
+      if (userData.phone !== undefined) updateData.phone = userData.phone || null;
+      if (userData.ramal !== undefined) updateData.ramal = userData.ramal || null;
+      if (userData.timeZone !== undefined) updateData.timeZone = userData.timeZone || "America/Sao_Paulo";
+      if (userData.vehicleType !== undefined) updateData.vehicleType = userData.vehicleType || null;
+      if (userData.cpfCnpj !== undefined) updateData.cpfCnpj = userData.cpfCnpj || null;
+      
+      // Address data
+      if (userData.cep !== undefined) updateData.cep = userData.cep || null;
+      if (userData.country !== undefined) updateData.country = userData.country || "Brasil";
+      if (userData.state !== undefined) updateData.state = userData.state || null;
+      if (userData.city !== undefined) updateData.city = userData.city || null;
+      if (userData.streetAddress !== undefined) updateData.streetAddress = userData.streetAddress || null;
+      if (userData.houseType !== undefined) updateData.houseType = userData.houseType || null;
+      if (userData.houseNumber !== undefined) updateData.houseNumber = userData.houseNumber || null;
+      if (userData.complement !== undefined) updateData.complement = userData.complement || null;
+      if (userData.neighborhood !== undefined) updateData.neighborhood = userData.neighborhood || null;
+      
+      // HR specific data  
+      if (userData.employeeCode !== undefined) updateData.employeeCode = userData.employeeCode || null;
+      if (userData.pis !== undefined) updateData.pis = userData.pis || null;
+      if (userData.cargo !== undefined) updateData.cargo = userData.cargo || null;
+      if (userData.ctps !== undefined) updateData.ctps = userData.ctps || null;
+      if (userData.serieNumber !== undefined) updateData.serieNumber = userData.serieNumber || null;
+      if (userData.costCenter !== undefined) updateData.costCenter = userData.costCenter || null;
+      if (userData.employmentType !== undefined) updateData.employmentType = userData.employmentType || "clt";
+      
+      // Handle admission date
+      if (userData.admissionDate !== undefined) {
+        updateData.admissionDate = userData.admissionDate ? new Date(userData.admissionDate) : null;
+      }
+
+      console.log("🔍 [USER-UPDATE] Final update data:", {
+        userId,
+        updateFields: Object.keys(updateData),
+        tenantId
+      });
+
+      // Perform update
+      const updatedUser = await db
+        .update(usersTable)
+        .set(updateData)
+        .where(and(eq(usersTable.id, userId), eq(usersTable.tenantId, tenantId)))
+        .returning();
+
+      if (updatedUser.length === 0) {
+        return res.status(500).json({ message: "Failed to update user" });
+      }
+
+      console.log(`✅ [USER-UPDATE] User ${userId} updated successfully for tenant ${tenantId}`);
+
+      // Return updated user data formatted for frontend
+      const formattedUser = {
+        id: updatedUser[0].id,
+        email: updatedUser[0].email,
+        firstName: updatedUser[0].firstName,
+        lastName: updatedUser[0].lastName,
+        name: `${updatedUser[0].firstName || ""} ${updatedUser[0].lastName || ""}`.trim() || updatedUser[0].email,
+        role: updatedUser[0].role,
+        isActive: updatedUser[0].isActive,
+        createdAt: updatedUser[0].createdAt,
+        updatedAt: updatedUser[0].updatedAt,
+        tenantId: updatedUser[0].tenantId,
+        profileImageUrl: updatedUser[0].profileImageUrl,
+        department: updatedUser[0].cargo || "",
+        position: updatedUser[0].cargo || "",
+        // Include updated HR data
+        integrationCode: updatedUser[0].integrationCode,
+        alternativeEmail: updatedUser[0].alternativeEmail,
+        cellPhone: updatedUser[0].cellPhone,
+        phone: updatedUser[0].phone,
+        ramal: updatedUser[0].ramal,
+        timeZone: updatedUser[0].timeZone,
+        vehicleType: updatedUser[0].vehicleType,
+        cpfCnpj: updatedUser[0].cpfCnpj,
+        cep: updatedUser[0].cep,
+        country: updatedUser[0].country,
+        state: updatedUser[0].state,
+        city: updatedUser[0].city,
+        streetAddress: updatedUser[0].streetAddress,
+        houseType: updatedUser[0].houseType,
+        houseNumber: updatedUser[0].houseNumber,
+        complement: updatedUser[0].complement,
+        neighborhood: updatedUser[0].neighborhood,
+        employeeCode: updatedUser[0].employeeCode,
+        pis: updatedUser[0].pis,
+        cargo: updatedUser[0].cargo,
+        ctps: updatedUser[0].ctps,
+        serieNumber: updatedUser[0].serieNumber,
+        admissionDate: updatedUser[0].admissionDate,
+        costCenter: updatedUser[0].costCenter,
+        employmentType: updatedUser[0].employmentType,
+      };
+
+      res.json({
+        success: true,
+        message: "User updated successfully",
+        user: formattedUser,
+      });
+    } catch (error) {
+      console.error("❌ [USER-UPDATE] Error updating user:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update user",
+        error: error.message,
+      });
+    }
+  },
+);
+
 // ============= USER GROUPS ROUTES =============
 
 // Get user groups with role-based access control
