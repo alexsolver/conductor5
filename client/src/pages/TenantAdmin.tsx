@@ -15,6 +15,7 @@ import { z } from "zod";
 import { Plus, Users, Settings, BarChart3, Shield, Building, Mail } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { TenantTemplateApplicator } from '../components/TenantTemplateApplicator';
 
 const createUserSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -158,7 +159,7 @@ export default function TenantAdmin() {
             Gerencie usuários e configurações do seu workspace
           </p>
         </div>
-        
+
         <div className="flex space-x-2">
           <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
             <DialogTrigger asChild>
@@ -428,6 +429,21 @@ export default function TenantAdmin() {
           )}
         </CardContent>
       </Card>
+
+      {/* Template Configuration Section */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold mb-4">Configuração de Template</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Caso as configurações padrão não tenham sido aplicadas automaticamente durante a criação do tenant,
+          você pode aplicá-las manualmente usando o botão abaixo.
+        </p>
+        <TenantTemplateApplicator
+          onTemplateApplied={() => {
+            // Refresh tenant data after template application
+            window.location.reload();
+          }}
+        />
+      </div>
     </div>
   );
 }

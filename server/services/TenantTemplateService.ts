@@ -418,14 +418,38 @@ export class TenantTemplateService {
    */
   static async isTemplateApplied(pool: any, schemaName: string, tenantId: string): Promise<boolean> {
     try {
-      const query = `
+      // Check for default company
+      const companyQuery = `
         SELECT COUNT(*) as count 
         FROM "${schemaName}".customer_companies 
-        WHERE id = $1 AND tenant_id = $2
+        WHERE tenant_id = $1
       `;
+      const companyResult = await pool.query(companyQuery, [tenantId]);
+      const hasCompany = parseInt(companyResult.rows[0].count) > 0;
 
-      const result = await pool.query(query, [DEFAULT_COMPANY_TEMPLATE.company.id, tenantId]);
-      return parseInt(result.rows[0].count) > 0;
+      // Check for ticket field options
+      const optionsQuery = `
+        SELECT COUNT(*) as count 
+        FROM "${schemaName}".ticket_field_options 
+        WHERE tenant_id = $1
+      `;
+      const optionsResult = await pool.query(optionsQuery, [tenantId]);
+      const hasOptions = parseInt(optionsResult.rows[0].count) > 0;
+
+      // Check for categories
+      const categoriesQuery = `
+        SELECT COUNT(*) as count 
+        FROM "${schemaName}".ticket_categories 
+        WHERE tenant_id = $1
+      `;
+      const categoriesResult = await pool.query(categoriesQuery, [tenantId]);
+      const hasCategories = parseInt(categoriesResult.rows[0].count) > 0;
+
+      const isApplied = hasCompany && hasOptions && hasCategories;
+      
+      console.log(`[TENANT-TEMPLATE] Template check for ${tenantId}: company=${hasCompany}, options=${hasOptions}, categories=${hasCategories}, applied=${isApplied}`);
+      
+      return isApplied;
     } catch (error) {
       console.error(`[TENANT-TEMPLATE] Error checking template status:`, error);
       return false;

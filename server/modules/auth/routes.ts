@@ -334,25 +334,87 @@ authRouter.post(
 
       // If tenant was created, apply default company template after user creation
       if (userData.companyName && userData.workspaceName && userData.tenantId) {
+        const { db } = await import("../../db");
+        const { tenants } = await import("@shared/schema");
+        const { eq } = await import("drizzle-orm");
+        const { schemaManager } = await import("../../db");
+        const schemaName = `tenant_${userData.tenantId.replace(/-/g, "_")}`;
+
+        // Fetch the created tenant record to get its ID and other details
+        const savedTenant = await db.query.tenants.findFirst({
+          where: eq(tenants.id, userData.tenantId),
+        });
+
+        // Fetch the newly created user
+        const newUser = result.user;
+
+        if (!savedTenant) {
+          console.error(`❌ [REGISTER] Tenant record not found after creation: ${userData.tenantId}`);
+          throw new Error("Tenant record not found after creation.");
+        }
+        if (!newUser) {
+          console.error(`❌ [REGISTER] User record not found after creation for tenant: ${userData.tenantId}`);
+          throw new Error("User record not found after creation.");
+        }
+
+        // Apply template for the new tenant
         try {
           const { TenantTemplateService } = await import("../../services/TenantTemplateService");
-          const { schemaManager } = await import("../../db");
-          const schemaName = `tenant_${userData.tenantId.replace(/-/g, "_")}`;
-          
-          await TenantTemplateService.applyCustomizedDefaultTemplate(
-            userData.tenantId,
-            result.user.id, // Use the actual created user ID
+
+          console.log(`🎯 [REGISTER] Applying default template for tenant: ${savedTenant.id}`);
+
+          // Verify if template was already applied
+          const isTemplateApplied = await TenantTemplateService.isTemplateApplied(
             schemaManager.pool,
             schemaName,
-            {
-              companyName: userData.companyName,
-            }
+            savedTenant.id
           );
-          
-          console.log(`✅ [REGISTER] Default company '${userData.companyName}' created for tenant: ${userData.tenantId}`);
+
+          if (!isTemplateApplied) {
+            // Apply customized template with company name
+            await TenantTemplateService.applyCustomizedDefaultTemplate(
+              savedTenant.id,
+              newUser.id,
+              schemaManager.pool,
+              schemaName,
+              {
+                companyName: userData.companyName || userData.workspaceName || "Default Company",
+                companyEmail: userData.email,
+                industry: "Geral"
+              }
+            );
+
+            console.log(`✅ [REGISTER] Template applied successfully for tenant: ${savedTenant.id}`);
+          } else {
+            console.log(`ℹ️ [REGISTER] Template already applied for tenant: ${savedTenant.id}`);
+          }
+
+          // Validate that template was applied correctly
+          const validationResult = await TenantTemplateService.isTemplateApplied(
+            schemaManager.pool,
+            schemaName,
+            savedTenant.id
+          );
+
+          if (!validationResult) {
+            throw new Error("Template validation failed after application");
+          }
+
         } catch (templateError) {
-          console.error("❌ [REGISTER] Failed to apply default template:", templateError);
-          // Don't fail registration if template application fails
+          console.error(`❌ [REGISTER] Template application failed for tenant ${savedTenant.id}:`, templateError);
+          // Don't fail the registration, but log the error and try to apply basic template
+          try {
+            const { TenantTemplateService } = await import("../../services/TenantTemplateService");
+            await TenantTemplateService.applyDefaultCompanyTemplate(
+              savedTenant.id,
+              newUser.id,
+              schemaManager.pool,
+              schemaName
+            );
+            console.log(`✅ [REGISTER] Basic template applied as fallback for tenant: ${savedTenant.id}`);
+          } catch (fallbackError) {
+            console.error(`❌ [REGISTER] Even fallback template failed for tenant ${savedTenant.id}:`, fallbackError);
+          }
         }
       }
 

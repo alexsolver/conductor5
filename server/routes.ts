@@ -2351,6 +2351,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // ========================================
+  // MANUAL TENANT TEMPLATE APPLICATION
+  // ========================================
+  
+  app.post(
+    "/api/tenant/apply-template",
+    jwtAuth,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.user?.tenantId;
+        const userId = req.user?.id;
+        
+        if (!tenantId || !userId) {
+          return res.status(400).json({
+            success: false,
+            message: "Tenant ID and User ID are required"
+          });
+        }
+
+        const { TenantTemplateService } = await import("./services/TenantTemplateService");
+        
+        const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
+        
+        // Check if template is already applied
+        const isTemplateApplied = await TenantTemplateService.isTemplateApplied(
+          schemaManager.pool,
+          schemaName,
+          tenantId
+        );
+
+        if (isTemplateApplied) {
+          return res.json({
+            success: true,
+            message: "Template already applied",
+            data: {
+              tenantId,
+              templateStatus: "already_applied"
+            }
+          });
+        }
+
+        // Get tenant info for company name
+        const tenantQuery = `SELECT name, subdomain FROM public.tenants WHERE id = $1`;
+        const tenantResult = await schemaManager.pool.query(tenantQuery, [tenantId]);
+        
+        const tenantData = tenantResult.rows[0];
+        const companyName = tenantData?.name || tenantData?.subdomain || "Default Company";
+
+        // Apply the template
+        await TenantTemplateService.applyCustomizedDefaultTemplate(
+          tenantId,
+          userId,
+          schemaManager.pool,
+          schemaName,
+          {
+            companyName,
+            companyEmail: req.user?.email,
+            industry: "Geral"
+          }
+        );
+
+        // Validate application
+        const validationResult = await TenantTemplateService.isTemplateApplied(
+          schemaManager.pool,
+          schemaName,
+          tenantId
+        );
+
+        if (!validationResult) {
+          throw new Error("Template validation failed after manual application");
+        }
+
+        res.json({
+          success: true,
+          message: "Template applied successfully",
+          data: {
+            tenantId,
+            companyName,
+            templateStatus: "applied",
+            totalItemsCreated: {
+              company: 1,
+              ticketFieldOptions: 19,
+              categories: 4,
+              subcategories: 12,
+              actions: 36,
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error("Error applying template manually:", error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to apply template",
+          error: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    }
+  );
+
+  // ========================================
   // TENANT DEPLOYMENT TEMPLATEROUTES
   // ========================================
 
