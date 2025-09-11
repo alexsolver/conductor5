@@ -141,7 +141,7 @@ export default function TeamManagement() {
   const teamOverview = {
     totalMembers: Array.isArray(membersData) ? membersData.length : 0,
     activeMembers: Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0,
-    departments: Array.isArray(membersData) ? [...new Set(membersData.map(m => m.department).filter(Boolean))].length : 0,
+    departments: Array.isArray(membersData) ? Array.from(new Set(membersData.map(m => m.department).filter(Boolean))).length : 0,
     recentActivity: []
   };
   const overviewLoading = isLoadingMembers;
@@ -247,7 +247,7 @@ export default function TeamManagement() {
 
     // Group filter - handle different group data structures
     const matchesGroup = filterGroup === "all" || 
-                        (Array.isArray(member.groupIds) && member.groupIds.some(groupId => 
+                        (Array.isArray(member.groupIds) && member.groupIds.some((groupId: string) => 
                           String(groupId) === String(filterGroup)
                         )) ||
                         (member.groupId && String(member.groupId) === String(filterGroup));
@@ -330,7 +330,7 @@ export default function TeamManagement() {
 
     try {
       // Prepare data for export
-      const exportData = filteredMembers.map(member => ({
+      const exportData = filteredMembers.map((member: any) => ({
         Nome: member.name,
         Email: member.email,
         Posição: member.position,
@@ -347,7 +347,7 @@ export default function TeamManagement() {
       const headers = Object.keys(exportData[0]).join(',');
       const csvContent = [
         headers,
-        ...exportData.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+        ...exportData.map((row: any) => Object.values(row).map(value => `"${value}"`).join(','))
       ].join('\n');
 
       // Create and download file
@@ -576,7 +576,7 @@ export default function TeamManagement() {
                     ))}
                   </div>
                 ) : (
-                  Array.isArray(teamOverview?.recentActivities) ? teamOverview.recentActivities.map((activity: any, index: number) => (
+                  Array.isArray(teamOverview?.recentActivity) ? teamOverview.recentActivity.map((activity: any, index: number) => (
                     <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
                       <Activity className="h-4 w-4 text-blue-500" />
                       <div className="flex-1">
@@ -1443,13 +1443,11 @@ export default function TeamManagement() {
       <CreateUserDialog 
         open={showCreateUser} 
         onOpenChange={setShowCreateUser}
-        onSuccess={handleUserCreated}
         tenantAdmin={true}
       />
       <InviteUserDialog 
         open={showInviteUser} 
         onOpenChange={setShowInviteUser}
-        onSuccess={handleUserInvited}
         tenantAdmin={true}
       />
       <EditMemberDialog
