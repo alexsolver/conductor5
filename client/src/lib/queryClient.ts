@@ -45,7 +45,7 @@ export const apiRequest = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
-  
+
   // 🔍 Debug tokens for POST requests
   if (method === 'POST') {
     console.log('🔍 [API-REQUEST-DEBUG] POST request details:', {
@@ -72,7 +72,7 @@ export const apiRequest = async (
   }
 
   console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
-  
+
   return fetch(url, config);
 };
 
@@ -87,7 +87,7 @@ export const getQueryFn: <T>(options: {
 
     // ✅ Para HTTP-only cookies, não verificamos localStorage
     // O browser gerencia automaticamente os cookies com credentials: 'include'
-    
+
     const endpoint = queryKey.join("/");
     let res = await fetch(endpoint, {
       headers,
@@ -119,29 +119,49 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    
+
     // ✅ Verificar se há conteúdo para parse JSON (evitar erro em DELETE 204)
     const contentType = res.headers.get('content-type');
     const contentLength = res.headers.get('content-length');
-    
+
     if (res.status === 204 || contentLength === '0' || !contentType?.includes('application/json')) {
       return null; // ✅ Retornar null para respostas sem conteúdo (mais seguro que {})
     }
-    
+
     return await res.json();
   };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "returnNull" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401/403 errors (authentication issues)
+        if (error?.status === 401 || error?.status === 403) {
+          console.log('❌ [QUERY-CLIENT] Authentication error detected, not retrying');
+          return false;
+        }
+        // Don't retry on 400 errors (bad requests)
+        if (error?.status === 400) {
+          console.log('❌ [QUERY-CLIENT] Bad request error, not retrying');
+          return false;
+        }
+        // Retry up to 3 times for other errors
+        return failureCount < 3;
+      },
+      onError: (error: any) => {
+        if (error?.status === 401) {
+          console.error('❌ [QUERY-CLIENT] Token refresh failed');
+        }
+      },
     },
     mutations: {
       retry: false,
+      onError: (error: any) => {
+        if (error?.status === 401) {
+          console.error('❌ [QUERY-CLIENT] Mutation failed due to authentication');
+        }
+      },
     },
   },
 });

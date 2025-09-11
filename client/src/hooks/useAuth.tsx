@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect } from 'react';
+import React, { createContext, ReactNode, useContext, useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -53,6 +53,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  // Improved logout function
+  const logout = useCallback(async () => {
+    try {
+      console.log('🔐 [LOGOUT] Logging out user...');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('❌ [LOGOUT] Logout error:', error);
+    } finally {
+      console.log('🧹 [LOGOUT] Cleaning up user session...');
+      setUser(null);
+      queryClient.clear();
+      // Clear any stored tenant info
+      localStorage.removeItem('tenantId');
+      // Clear any other auth-related data
+      localStorage.removeItem('authState');
+      // Redirect to login
+      console.log('🔄 [LOGOUT] Redirecting to auth page...');
+      window.location.href = '/auth';
+    }
+  }, [queryClient]);
+
   // Function to check authentication status
   const checkAuth = async () => {
     try {
@@ -87,6 +111,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
       } else {
         console.log('❌ [AUTH] Token validation failed');
+        // If validation fails, attempt to refresh the token
+        const refreshSuccess = await refreshToken();
+        if (refreshSuccess) {
+          // If refresh was successful, re-fetch user data
+          console.log('🔄 [AUTH] Token refreshed, re-fetching user data...');
+          await checkAuth(); // Re-run checkAuth to get updated user data
+          return;
+        } else {
+          // If refresh also failed, clear session and redirect
+          console.log('❌ [AUTH] Token refresh failed, logging out...');
+          await logout();
+        }
         setIsAuthenticated(false);
         setUser(null);
         // Clear invalid token by setting an expired cookie
@@ -242,7 +278,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Mutation for logout
+  // Mutation for logout (used by refreshToken if it fails)
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
@@ -281,6 +317,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Refactored token refresh logic
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    try {
+      console.log('🔄 [REFRESH] Attempting token refresh via HTTP-only cookies...');
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include', // Include HTTP-only cookies
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ [REFRESH] Token refreshed successfully via HTTP-only cookies');
+        return true;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
+
+        // If refresh token is expired/invalid, logout user
+        if (response.status === 401 || response.status === 400) {
+          console.log('🔄 [REFRESH] Refresh token expired, logging out user...');
+          await logout();
+        }
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ [REFRESH] Token refresh error:', error);
+      // On network errors, also logout to force re-authentication
+      console.log('🔄 [REFRESH] Network error during refresh, logging out user...');
+      await logout();
+      return false;
+    }
+  }, [logout]);
+
+
   // Combine all states and mutations into the context value
   const value = {
     user: user ?? null, // Ensure user is null if not loaded or logged out
@@ -288,7 +362,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error: null, // Error state is handled within mutations/checkAuth, keeping this for interface compatibility
     isAuthenticated,
     loginMutation,
-    logoutMutation,
+    logoutMutation, // Pass logoutMutation to the context
     registerMutation,
   };
 

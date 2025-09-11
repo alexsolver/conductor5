@@ -28,22 +28,50 @@ authRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { refreshToken } = req.body;
+      const cookieRefreshToken = req.cookies?.refreshToken;
 
-      if (!refreshToken) {
-        return res.status(400).json({ message: "Refresh token required" });
+      // Check for refresh token in body or cookies
+      const tokenToUse = refreshToken || cookieRefreshToken;
+
+      if (!tokenToUse) {
+        console.log("❌ [REFRESH] No refresh token provided");
+        return res.status(400).json({ 
+          success: false,
+          message: "Refresh token required" 
+        });
       }
 
       const userRepository = container.userRepository;
 
       // Simple token verification
-      const payload = tokenManager.verifyRefreshToken(refreshToken);
+      const payload = tokenManager.verifyRefreshToken(tokenToUse);
       if (!payload) {
-        return res.status(401).json({ message: "Invalid refresh token" });
+        console.log("❌ [REFRESH] Invalid refresh token");
+        // Clear the invalid refresh token cookie
+        res.clearCookie("refreshToken", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
+        return res.status(401).json({ 
+          success: false,
+          message: "Invalid refresh token" 
+        });
       }
 
       const user = await userRepository.findById(payload.userId);
       if (!user || !user.active) {
-        return res.status(401).json({ message: "User not found or inactive" });
+        console.log("❌ [REFRESH] User not found or inactive");
+        // Clear the refresh token cookie for inactive users
+        res.clearCookie("refreshToken", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
+        return res.status(401).json({ 
+          success: false,
+          message: "User not found or inactive" 
+        });
       }
 
       const accessToken = tokenManager.generateAccessToken({
@@ -52,6 +80,8 @@ authRouter.post(
         role: user.role,
         tenantId: user.tenantId,
       });
+
+      console.log("✅ [REFRESH] Token refreshed successfully for user:", user.email);
 
       res.json({
         success: true,
@@ -63,8 +93,17 @@ authRouter.post(
         },
       });
     } catch (error) {
-      console.error("Token refresh error:", error);
-      res.status(401).json({ message: "Token refresh failed" });
+      console.error("❌ [REFRESH] Token refresh error:", error);
+      // Clear the refresh token cookie on error
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      res.status(401).json({ 
+        success: false,
+        message: "Token refresh failed" 
+      });
     }
   },
 );
