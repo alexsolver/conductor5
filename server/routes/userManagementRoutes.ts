@@ -384,23 +384,22 @@ router.post(
       const descOrNull =
         description && String(description).trim() ? String(description).trim() : null;
 
-      const insertQuery = `
-      INSERT INTO "${schemaName}".user_groups 
-      (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, tenant_id, name, description, is_active, created_at
-    `;
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.raw(`"${schemaName}".user_groups`)} 
+          (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
+        VALUES (
+          ${groupId}, 
+          ${tenantId}, 
+          ${name.trim()}, 
+          ${descOrNull}, 
+          ${true}, 
+          ${userId}, 
+          ${now}, 
+          ${now}
+        )
+        RETURNING id, tenant_id, name, description, is_active, created_at
+      `);
 
-      const result = await db.execute(sql.raw(insertQuery, [
-        groupId,
-        tenantId,
-        name.trim(),
-        description?.trim() || null,
-        true,
-        userId,
-        now,
-        now
-      ]));
 
       if (result.rows.length === 0) {
         return res.status(500).json({
