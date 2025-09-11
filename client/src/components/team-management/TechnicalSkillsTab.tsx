@@ -201,15 +201,19 @@ export default function TechnicalSkillsTab() {
   });
 
   // Fetch team members
-  const { data: teamMembers } = useQuery<TeamMember[]>({
+  const { data: teamMembersResponse } = useQuery({
     queryKey: ['/api/team/members'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/team/members');
       if (!res.ok) throw new Error('Erro ao buscar membros da equipe');
-      const data = await res.json();
-      return data.members || [];
+      return res.json();
     },
   });
+
+  // Extract team members array from response
+  const teamMembers = Array.isArray(teamMembersResponse) 
+    ? teamMembersResponse 
+    : (teamMembersResponse?.members || teamMembersResponse?.data || []);
 
   // Extract data from responses
   const skills = skillsResponse?.data || [];
