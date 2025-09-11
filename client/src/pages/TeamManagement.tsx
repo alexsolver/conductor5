@@ -217,7 +217,7 @@ export default function TeamManagement() {
   const { data: rolesData } = useQuery({
     queryKey: ['/api/user-management/roles'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/team-management/roles');
+      const res = await apiRequest('GET', '/api/user-management/roles');
       if (!res.ok) throw new Error('Erro ao buscar papéis');
       return res.json(); // esperado: { roles: [...] }
     },
@@ -484,8 +484,8 @@ export default function TeamManagement() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-10">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center space-x-1">
             <BarChart3 className="h-3 w-3" />
             <span className="text-xs">Visão Geral</span>
@@ -498,33 +498,21 @@ export default function TeamManagement() {
             <Building className="h-3 w-3" />
             <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="roles" className="flex items-center space-x-1">
+          <TabsTrigger value="permissões" className="flex items-center space-x-1">
             <Shield className="h-3 w-3" />
             <span className="text-xs">Permissões</span>
-          </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center space-x-1">
-            <Mail className="h-3 w-3" />
-            <span className="text-xs">Convites</span>
-          </TabsTrigger>
-          <TabsTrigger value="sessions" className="flex items-center space-x-1">
-            <Monitor className="h-3 w-3" />
-            <span className="text-xs">Sessões</span>
           </TabsTrigger>
           <TabsTrigger value="activity" className="flex items-center space-x-1">
             <Activity className="h-3 w-3" />
             <span className="text-xs">Atividade</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center space-x-1">
-            <Target className="h-3 w-3" />
-            <span className="text-xs">Performance</span>
+          <TabsTrigger value="sessions" className="flex items-center space-x-1">
+            <Monitor className="h-3 w-3" />
+            <span className="text-xs">Sessões</span>
           </TabsTrigger>
           <TabsTrigger value="skills" className="flex items-center space-x-1">
             <Award className="h-3 w-3" />
             <span className="text-xs">Habilidades</span>
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center space-x-1">
-            <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1043,13 +1031,323 @@ export default function TeamManagement() {
         </TabsContent>
 
         {/* Sessions Tab */}
-        <TabsContent value="sessions" className="space-y-4">
-          <UserSessions tenantAdmin={true} />
+        <TabsContent value="sessions" className="space-y-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Sessões Ativas dos Usuários</h3>
+              <div className="flex space-x-2">
+                <Select value={filterRole} onValueChange={setFilterRole}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrar por papel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Papéis</SelectItem>
+                    <SelectItem value="tenant_admin">Admin do Tenant</SelectItem>
+                    <SelectItem value="agent">Agente</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="user">Usuário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Monitor className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Sessões Ativas</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
+                          new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Globe className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Sessões Hoje</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
+                          new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Clock className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Tempo Médio</p>
+                      <p className="text-2xl font-bold text-gray-900">2.5h</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <User className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Usuários Únicos</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin).length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Detalhes das Sessões</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.isArray(membersData) && membersData.length > 0 ? (
+                    membersData
+                      .filter(member => filterRole === "all" || member.role === filterRole)
+                      .filter(member => member.lastLogin)
+                      .sort((a, b) => new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime())
+                      .slice(0, 15)
+                      .map((member, index) => {
+                        const lastLogin = new Date(member.lastLogin);
+                        const now = new Date();
+                        const timeDiff = now.getTime() - lastLogin.getTime();
+                        const isOnline = timeDiff < 30 * 60 * 1000; // 30 minutos
+                        const isRecentlyActive = timeDiff < 24 * 60 * 60 * 1000; // 24 horas
+
+                        return (
+                          <div key={member.id || index} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center space-x-4">
+                              <div className="relative">
+                                <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
+                                  {(member.firstName || member.name || member.email || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                  isOnline ? 'bg-green-500' : isRecentlyActive ? 'bg-yellow-500' : 'bg-gray-400'
+                                }`}></div>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">
+                                  {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário Desconhecido'}
+                                </h4>
+                                <p className="text-sm text-gray-600">{member.email}</p>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {member.role || 'Sem papel'}
+                                  </Badge>
+                                  {isOnline && (
+                                    <Badge variant="default" className="text-xs bg-green-500">
+                                      Online
+                                    </Badge>
+                                  )}
+                                  {!isOnline && isRecentlyActive && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Recente
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">
+                                {lastLogin.toLocaleString('pt-BR')}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {timeDiff < 60 * 1000 ? 
+                                  'Agora mesmo' :
+                                  timeDiff < 60 * 60 * 1000 ? 
+                                    `${Math.floor(timeDiff / (60 * 1000))} min atrás` :
+                                    timeDiff < 24 * 60 * 60 * 1000 ?
+                                      `${Math.floor(timeDiff / (60 * 60 * 1000))} h atrás` :
+                                      `${Math.floor(timeDiff / (24 * 60 * 60 * 1000))} dias atrás`
+                                }
+                              </p>
+                              <div className="flex items-center space-x-1 mt-1">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  isOnline ? 'bg-green-500' : isRecentlyActive ? 'bg-yellow-500' : 'bg-gray-400'
+                                }`}></div>
+                                <span className="text-xs text-gray-500">
+                                  {isOnline ? 'Ativo' : isRecentlyActive ? 'Recente' : 'Inativo'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Monitor className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nenhuma sessão encontrada</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Activity Tab */}
-        <TabsContent value="activity" className="space-y-4">
-          <UserActivity tenantAdmin={true} />
+        <TabsContent value="activity" className="space-y-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Atividade da Equipe</h3>
+              <div className="flex space-x-2">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Activity className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Usuários Online</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
+                          new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Clock className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Últimas 24h</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
+                          new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Users className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total de Membros</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {Array.isArray(membersData) ? membersData.length : 0}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividade Recente dos Membros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.isArray(membersData) && membersData.length > 0 ? (
+                    membersData
+                      .filter(member => filterStatus === "all" || 
+                        (filterStatus === "active" && member.isActive) ||
+                        (filterStatus === "inactive" && !member.isActive))
+                      .sort((a, b) => new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime())
+                      .slice(0, 20)
+                      .map((member, index) => (
+                        <div key={member.id || index} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
+                              {(member.firstName || member.name || member.email || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h4 className="font-medium">
+                                {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário Desconhecido'}
+                              </h4>
+                              <p className="text-sm text-gray-600">{member.email}</p>
+                              <p className="text-xs text-gray-500">{member.role || 'Sem papel definido'}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center space-x-2">
+                              {member.isActive ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-500" />
+                              )}
+                              <span className={`text-sm ${member.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                                {member.isActive ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              {member.lastLogin ? 
+                                `Último acesso: ${new Date(member.lastLogin).toLocaleString('pt-BR')}` : 
+                                'Nunca acessou'}
+                            </p>
+                            {member.groups && member.groups.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {member.groups.slice(0, 2).map((group: any, idx: number) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {group.name}
+                                  </Badge>
+                                ))}
+                                {member.groups.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{member.groups.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Nenhuma atividade encontrada</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Schedules Tab */}
@@ -1134,46 +1432,6 @@ export default function TeamManagement() {
           </Card>
         </TabsContent>
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics Avançados de RH</CardTitle>
-                <CardDescription>Métricas e insights da equipe</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    Dashboard de analytics em desenvolvimento
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Incluirá métricas de produtividade, turnover, satisfação e retenção
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Compliance e Auditoria</CardTitle>
-                <CardDescription>Status de conformidade da equipe</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center py-8">
-                  <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    Sistema de compliance em desenvolvimento
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Tracking de conformidade, auditoria e riscos
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* User Management Dialogs */}
