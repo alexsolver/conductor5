@@ -222,6 +222,7 @@ router.post(
 router.get(
   "/users/:userId",
   jwtAuth,
+  requirePermission("tenant", "manage_users"),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { userId } = req.params;
@@ -229,10 +230,14 @@ router.get(
       const user = await userManagementService.getUserById(userId, tenantId);
 
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ 
+          success: false,
+          message: "User not found" 
+        });
       }
 
-      res.json({ user });
+      // Return user directly to match frontend expectations
+      res.json(user);
     } catch (error) {
       console.error("Error fetching user by ID:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -240,7 +245,7 @@ router.get(
   },
 );
 
-// Update user by ID - following 1qa.md patterns
+// Update user by ID - following 1qa.md patterns with Zod validation and Clean Architecture
 router.put(
   "/users/:userId",
   jwtAuth,
@@ -249,138 +254,84 @@ router.put(
     try {
       const { userId } = req.params;
       const tenantId = req.user!.tenantId;
-      const userData = req.body;
 
       console.log("🔍 [USER-UPDATE] Received update data:", {
         userId,
         tenantId,
-        dataKeys: Object.keys(userData),
+        dataKeys: Object.keys(req.body),
       });
 
       // Validate tenant access
       if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID is required" });
+        return res.status(400).json({ 
+          success: false,
+          message: "Tenant ID is required" 
+        });
       }
 
-      // Check if user exists and belongs to tenant
-      const existingUser = await db
-        .select()
-        .from(usersTable)
-        .where(and(eq(usersTable.id, userId), eq(usersTable.tenantId, tenantId)))
-        .limit(1);
-
-      if (existingUser.length === 0) {
-        console.log(`❌ [USER-UPDATE] User ${userId} not found for tenant ${tenantId}`);
-        return res.status(404).json({ message: "User not found or access denied" });
+      // Validate request body using Zod schema
+      const { updateUserSchema } = await import("@shared/schema");
+      const validationResult = updateUserSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        console.log("❌ [USER-UPDATE] Validation failed:", validationResult.error.errors);
+        return res.status(400).json({
+          success: false,
+          message: "Invalid request data",
+          errors: validationResult.error.errors,
+        });
       }
 
-      // Prepare update data following existing patterns
-      const updateData: any = {
-        updatedAt: new Date(),
-      };
+      const validatedData = validationResult.data;
 
-      // Map frontend fields to database fields following existing patterns
-      if (userData.firstName !== undefined) updateData.firstName = userData.firstName || "";
-      if (userData.lastName !== undefined) updateData.lastName = userData.lastName || "";
-      if (userData.email !== undefined) updateData.email = userData.email?.toLowerCase();
-      if (userData.role !== undefined) updateData.role = userData.role;
-      if (userData.isActive !== undefined) updateData.isActive = userData.isActive;
-      
-      // HR/Personal data following CREATE pattern
-      if (userData.integrationCode !== undefined) updateData.integrationCode = userData.integrationCode || null;
-      if (userData.alternativeEmail !== undefined) updateData.alternativeEmail = userData.alternativeEmail || null;
-      if (userData.cellPhone !== undefined) updateData.cellPhone = userData.cellPhone || null;
-      if (userData.phone !== undefined) updateData.phone = userData.phone || null;
-      if (userData.ramal !== undefined) updateData.ramal = userData.ramal || null;
-      if (userData.timeZone !== undefined) updateData.timeZone = userData.timeZone || "America/Sao_Paulo";
-      if (userData.vehicleType !== undefined) updateData.vehicleType = userData.vehicleType || null;
-      if (userData.cpfCnpj !== undefined) updateData.cpfCnpj = userData.cpfCnpj || null;
-      
-      // Address data
-      if (userData.cep !== undefined) updateData.cep = userData.cep || null;
-      if (userData.country !== undefined) updateData.country = userData.country || "Brasil";
-      if (userData.state !== undefined) updateData.state = userData.state || null;
-      if (userData.city !== undefined) updateData.city = userData.city || null;
-      if (userData.streetAddress !== undefined) updateData.streetAddress = userData.streetAddress || null;
-      if (userData.houseType !== undefined) updateData.houseType = userData.houseType || null;
-      if (userData.houseNumber !== undefined) updateData.houseNumber = userData.houseNumber || null;
-      if (userData.complement !== undefined) updateData.complement = userData.complement || null;
-      if (userData.neighborhood !== undefined) updateData.neighborhood = userData.neighborhood || null;
-      
-      // HR specific data  
-      if (userData.employeeCode !== undefined) updateData.employeeCode = userData.employeeCode || null;
-      if (userData.pis !== undefined) updateData.pis = userData.pis || null;
-      if (userData.cargo !== undefined) updateData.cargo = userData.cargo || null;
-      if (userData.ctps !== undefined) updateData.ctps = userData.ctps || null;
-      if (userData.serieNumber !== undefined) updateData.serieNumber = userData.serieNumber || null;
-      if (userData.costCenter !== undefined) updateData.costCenter = userData.costCenter || null;
-      if (userData.employmentType !== undefined) updateData.employmentType = userData.employmentType || "clt";
-      
-      // Handle admission date
-      if (userData.admissionDate !== undefined) {
-        updateData.admissionDate = userData.admissionDate ? new Date(userData.admissionDate) : null;
-      }
-
-      console.log("🔍 [USER-UPDATE] Final update data:", {
-        userId,
-        updateFields: Object.keys(updateData),
-        tenantId
-      });
-
-      // Perform update
-      const updatedUser = await db
-        .update(usersTable)
-        .set(updateData)
-        .where(and(eq(usersTable.id, userId), eq(usersTable.tenantId, tenantId)))
-        .returning();
-
-      if (updatedUser.length === 0) {
-        return res.status(500).json({ message: "Failed to update user" });
-      }
-
-      console.log(`✅ [USER-UPDATE] User ${userId} updated successfully for tenant ${tenantId}`);
+      // Use userManagementService following Clean Architecture
+      const updatedUser = await userManagementService.updateUser(
+        userId, 
+        tenantId, 
+        validatedData
+      );
 
       // Return updated user data formatted for frontend
       const formattedUser = {
-        id: updatedUser[0].id,
-        email: updatedUser[0].email,
-        firstName: updatedUser[0].firstName,
-        lastName: updatedUser[0].lastName,
-        name: `${updatedUser[0].firstName || ""} ${updatedUser[0].lastName || ""}`.trim() || updatedUser[0].email,
-        role: updatedUser[0].role,
-        isActive: updatedUser[0].isActive,
-        createdAt: updatedUser[0].createdAt,
-        updatedAt: updatedUser[0].updatedAt,
-        tenantId: updatedUser[0].tenantId,
-        profileImageUrl: updatedUser[0].profileImageUrl,
-        department: updatedUser[0].cargo || "",
-        position: updatedUser[0].cargo || "",
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        name: `${updatedUser.firstName || ""} ${updatedUser.lastName || ""}`.trim() || updatedUser.email,
+        role: updatedUser.role,
+        isActive: updatedUser.isActive,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
+        tenantId: updatedUser.tenantId,
+        profileImageUrl: updatedUser.profileImageUrl,
+        department: updatedUser.cargo || "",
+        position: updatedUser.cargo || "",
         // Include updated HR data
-        integrationCode: updatedUser[0].integrationCode,
-        alternativeEmail: updatedUser[0].alternativeEmail,
-        cellPhone: updatedUser[0].cellPhone,
-        phone: updatedUser[0].phone,
-        ramal: updatedUser[0].ramal,
-        timeZone: updatedUser[0].timeZone,
-        vehicleType: updatedUser[0].vehicleType,
-        cpfCnpj: updatedUser[0].cpfCnpj,
-        cep: updatedUser[0].cep,
-        country: updatedUser[0].country,
-        state: updatedUser[0].state,
-        city: updatedUser[0].city,
-        streetAddress: updatedUser[0].streetAddress,
-        houseType: updatedUser[0].houseType,
-        houseNumber: updatedUser[0].houseNumber,
-        complement: updatedUser[0].complement,
-        neighborhood: updatedUser[0].neighborhood,
-        employeeCode: updatedUser[0].employeeCode,
-        pis: updatedUser[0].pis,
-        cargo: updatedUser[0].cargo,
-        ctps: updatedUser[0].ctps,
-        serieNumber: updatedUser[0].serieNumber,
-        admissionDate: updatedUser[0].admissionDate,
-        costCenter: updatedUser[0].costCenter,
-        employmentType: updatedUser[0].employmentType,
+        integrationCode: updatedUser.integrationCode,
+        alternativeEmail: updatedUser.alternativeEmail,
+        cellPhone: updatedUser.cellPhone,
+        phone: updatedUser.phone,
+        ramal: updatedUser.ramal,
+        timeZone: updatedUser.timeZone,
+        vehicleType: updatedUser.vehicleType,
+        cpfCnpj: updatedUser.cpfCnpj,
+        cep: updatedUser.cep,
+        country: updatedUser.country,
+        state: updatedUser.state,
+        city: updatedUser.city,
+        streetAddress: updatedUser.streetAddress,
+        houseType: updatedUser.houseType,
+        houseNumber: updatedUser.houseNumber,
+        complement: updatedUser.complement,
+        neighborhood: updatedUser.neighborhood,
+        employeeCode: updatedUser.employeeCode,
+        pis: updatedUser.pis,
+        cargo: updatedUser.cargo,
+        ctps: updatedUser.ctps,
+        serieNumber: updatedUser.serieNumber,
+        admissionDate: updatedUser.admissionDate,
+        costCenter: updatedUser.costCenter,
+        employmentType: updatedUser.employmentType,
       };
 
       res.json({
@@ -388,8 +339,26 @@ router.put(
         message: "User updated successfully",
         user: formattedUser,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ [USER-UPDATE] Error updating user:", error);
+      
+      // Handle specific error types
+      if (error.message?.includes("not found")) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found or access denied",
+        });
+      }
+
+      // Handle unique constraint violation (duplicate email)
+      if (error.code === "23505" || error.constraint?.includes("email")) {
+        return res.status(409).json({
+          success: false,
+          message: "Email address is already in use by another user",
+          error: "DUPLICATE_EMAIL",
+        });
+      }
+
       res.status(500).json({
         success: false,
         message: "Failed to update user",

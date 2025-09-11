@@ -150,7 +150,13 @@ export const updateUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
   lastLoginAt: true,
   lastActiveAt: true,
-}).partial();
+}).partial().transform((data) => {
+  // Normalize email to lowercase if provided
+  if (data.email) {
+    data.email = data.email.toLowerCase();
+  }
+  return data;
+});
 
 // Types
 export type Tenant = typeof tenants.$inferSelect;
