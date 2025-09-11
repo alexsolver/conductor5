@@ -26,15 +26,15 @@ import { InviteUserDialog } from "@/components/user-management/InviteUserDialog"
 import { EditMemberDialog } from "@/components/user-management/EditMemberDialog";
 // Import technical skills component
 import TechnicalSkillsTab from "@/components/team-management/TechnicalSkillsTab";
-import { 
-  Users, 
-  UserCheck, 
+import {
+  Users,
+  UserCheck,
   UserX,
   Edit,
-  Clock, 
-  Calendar, 
-  Award, 
-  TrendingUp, 
+  Clock,
+  Calendar,
+  Award,
+  TrendingUp,
   AlertTriangle,
   MapPin,
   Settings,
@@ -146,7 +146,7 @@ export default function TeamManagement() {
   };
   const overviewLoading = isLoadingMembers;
 
-  // Fetch team stats - using working endpoint  
+  // Fetch team stats - using working endpoint
   const { data: tenantStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
     queryFn: async () => {
@@ -230,24 +230,24 @@ export default function TeamManagement() {
     const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
     const displayName = member.name || fullName || member.email || 'Unknown User';
 
-    const matchesSearch = searchTerm === "" || 
+    const matchesSearch = searchTerm === "" ||
                          displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesDepartment = filterDepartment === "all" || 
+    const matchesDepartment = filterDepartment === "all" ||
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
 
-    const matchesStatus = filterStatus === "all" || 
-                         member.status === filterStatus || 
+    const matchesStatus = filterStatus === "all" ||
+                         member.status === filterStatus ||
                          (member.isActive && filterStatus === "active") ||
                          (!member.isActive && filterStatus === "inactive");
 
     const matchesRole = filterRole === "all" || member.role === filterRole;
 
     // Group filter - handle different group data structures
-    const matchesGroup = filterGroup === "all" || 
-                        (Array.isArray(member.groupIds) && member.groupIds.some((groupId: string) => 
+    const matchesGroup = filterGroup === "all" ||
+                        (Array.isArray(member.groupIds) && member.groupIds.some((groupId: string) =>
                           String(groupId) === String(filterGroup)
                         )) ||
                         (member.groupId && String(member.groupId) === String(filterGroup));
@@ -258,8 +258,8 @@ export default function TeamManagement() {
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({
     mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
-      return apiRequest('PUT', `/api/user-management/users/${memberId}`, { 
-        isActive: newStatus === 'active' 
+      return apiRequest('PUT', `/api/user-management/users/${memberId}`, {
+        isActive: newStatus === 'active'
       });
     },
     onSuccess: () => {
@@ -399,21 +399,21 @@ export default function TeamManagement() {
           <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
+          <Button
             onClick={() => setShowCreateUser(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             <UserPlus className="mr-2 h-4 w-4" />
             Criar Usuário
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => setShowInviteUser(true)}
           >
             <Mail className="mr-2 h-4 w-4" />
             Convidar Usuário
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={handleExportTeamData}
             disabled={!membersData || membersData.length === 0}
@@ -642,8 +642,8 @@ export default function TeamManagement() {
                 <CardDescription>Módulos integrados do sistema</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start"
                   onClick={() => setActiveTab("skills")}
                   data-testid="button-quick-skills"
@@ -850,14 +850,14 @@ export default function TeamManagement() {
                       {/* Status */}
                       <div className="col-span-1 flex items-center">
                         <div className="flex items-center space-x-2">
-                          <Badge 
+                          <Badge
                             variant={
-                              (member.status === 'active' || member.isActive) ? 'default' : 
+                              (member.status === 'active' || member.isActive) ? 'default' :
                               (member.status === 'inactive' || !member.isActive) ? 'destructive' : 'secondary'
                             }
                             className="text-xs"
                           >
-                            {(member.status === 'active' || member.isActive) ? 'Ativo' : 
+                            {(member.status === 'active' || member.isActive) ? 'Ativo' :
                              (member.status === 'inactive' || !member.isActive) ? 'Inativo' : 'Pendente'}
                           </Badge>
                           {(member.status === 'active' || member.isActive) && (
@@ -875,13 +875,12 @@ export default function TeamManagement() {
                       {/* Actions */}
                       <div className="col-span-2 flex items-center justify-end space-x-2">
                         <Button
+                          variant="ghost"
                           size="sm"
-                          variant="outline"
                           onClick={() => handleEditMember(member)}
-                          className="h-8"
+                          disabled={!member?.id}
                         >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Editar
+                          <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
@@ -911,7 +910,7 @@ export default function TeamManagement() {
                         Nenhum membro encontrado
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {membersData && membersData.length === 0 
+                        {membersData && membersData.length === 0
                           ? "Nenhum membro foi adicionado à equipe ainda."
                           : "Ajuste os filtros para encontrar membros da equipe."
                         }
@@ -1066,7 +1065,7 @@ export default function TeamManagement() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Sessões Ativas</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
+                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin &&
                           new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
                       </p>
                     </div>
@@ -1083,7 +1082,7 @@ export default function TeamManagement() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Sessões Hoje</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
+                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin &&
                           new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
                       </p>
                     </div>
@@ -1179,9 +1178,9 @@ export default function TeamManagement() {
                                 {lastLogin.toLocaleString('pt-BR')}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {timeDiff < 60 * 1000 ? 
+                                {timeDiff < 60 * 1000 ?
                                   'Agora mesmo' :
-                                  timeDiff < 60 * 60 * 1000 ? 
+                                  timeDiff < 60 * 60 * 1000 ?
                                     `${Math.floor(timeDiff / (60 * 1000))} min atrás` :
                                     timeDiff < 24 * 60 * 60 * 1000 ?
                                       `${Math.floor(timeDiff / (60 * 60 * 1000))} h atrás` :
@@ -1241,7 +1240,7 @@ export default function TeamManagement() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Usuários Online</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
+                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin &&
                           new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
                       </p>
                     </div>
@@ -1258,7 +1257,7 @@ export default function TeamManagement() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Últimas 24h</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
+                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin &&
                           new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
                       </p>
                     </div>
@@ -1291,7 +1290,7 @@ export default function TeamManagement() {
                 <div className="space-y-4">
                   {Array.isArray(membersData) && membersData.length > 0 ? (
                     membersData
-                      .filter(member => filterStatus === "all" || 
+                      .filter(member => filterStatus === "all" ||
                         (filterStatus === "active" && member.isActive) ||
                         (filterStatus === "inactive" && !member.isActive))
                       .sort((a, b) => new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime())
@@ -1322,8 +1321,8 @@ export default function TeamManagement() {
                               </span>
                             </div>
                             <p className="text-xs text-gray-500">
-                              {member.lastLogin ? 
-                                `Último acesso: ${new Date(member.lastLogin).toLocaleString('pt-BR')}` : 
+                              {member.lastLogin ?
+                                `Último acesso: ${new Date(member.lastLogin).toLocaleString('pt-BR')}` :
                                 'Nunca acessou'}
                             </p>
                             {member.groups && member.groups.length > 0 && (
@@ -1439,21 +1438,42 @@ export default function TeamManagement() {
 
       </Tabs>
 
+      {/* Edit Member Dialog */}
+      {showEditDialog && editingMember && (
+        <EditMemberDialog
+          member={editingMember}
+          isOpen={showEditDialog}
+          onClose={() => {
+            console.log('TeamManagement - Closing edit dialog');
+            setShowEditDialog(false);
+            setEditingMember(null);
+          }}
+          onSuccess={() => {
+            console.log('TeamManagement - Edit member success');
+            setShowEditDialog(false);
+            setEditingMember(null);
+            // Invalidate queries to refresh data
+            queryClientInstance.invalidateQueries({ queryKey: ['/api/user-management/users'] });
+            queryClientInstance.invalidateQueries({ queryKey: ['/api/team/members'] });
+            queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
+            toast({
+              title: "Sucesso",
+              description: "Membro atualizado com sucesso.",
+            });
+          }}
+        />
+      )}
+
       {/* User Management Dialogs */}
-      <CreateUserDialog 
-        open={showCreateUser} 
+      <CreateUserDialog
+        open={showCreateUser}
         onOpenChange={setShowCreateUser}
         tenantAdmin={true}
       />
-      <InviteUserDialog 
-        open={showInviteUser} 
+      <InviteUserDialog
+        open={showInviteUser}
         onOpenChange={setShowInviteUser}
         tenantAdmin={true}
-      />
-      <EditMemberDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        member={editingMember}
       />
     </div>
   );
