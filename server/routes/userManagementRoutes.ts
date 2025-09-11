@@ -725,10 +725,6 @@ router.post('/groups/:groupId/members',
       const { userId } = req.body;
       const tenantId = req.user!.tenantId;
 
-      if (!userId) {
-        return res.status(400).json({ message: 'userId is required' });
-      }
-
       // Verificar se o grupo existe - removendo tenantId pois usa schema per-tenant
       const group = await db.select().from(userGroups)
         .where(and(
@@ -811,6 +807,28 @@ router.post('/groups/:groupId/members',
   }
 );
 
+// Add user to group
+        const membershipId = crypto.randomUUID();
+        const insertQuery = `
+          INSERT INTO "${schemaName}".user_group_memberships 
+          (id, tenant_id, user_id, group_id, role, added_by_id, added_at, is_active, created_at, updated_at)
+          VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6::uuid, $7, $8, $9, $10)
+        `;
+
+        const now = new Date();
+        await db.execute(sql.raw(insertQuery, [
+          membershipId,
+          tenantId,
+          userId,
+          groupId,
+          'member',
+          req.user!.id,
+          now,
+          true,
+          now,
+          now
+        ]));
+
 // Add multiple users to group (bulk operation)
 router.post(
   '/groups/:groupId/members/bulk',
@@ -821,127 +839,105 @@ router.post(
       const { groupId } = req.params;
       const { userIds } = req.body;
       const tenantId = req.user!.tenantId;
-
-      if (!Array.isArray(userIds) || userIds.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'userIds must be a non-empty array',
-        });
-      }
-
-      // 🔑 Schema dinâmico
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const userGroupsTable = sql.raw(`"${schemaName}".user_groups`);
-      const membershipsTable = sql.raw(`"${schemaName}".user_group_memberships`);
 
-      // Deduplicar
-      const uniqueUserIds = Array.from(new Set(userIds));
+      console.log(`👥 [TENANT-GROUPS] Adding ${userIds?.length || 0} members to group ${groupId} in schema ${schemaName}`);
 
-      console.log(
-        `👥 [TENANT-GROUPS] Adding ${uniqueUserIds.length} members to group ${groupId} in schema ${schemaName}`
-      );
+      // Validate input
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: 'userIds array is required and cannot be empty' });
+      }
 
-      // 1️⃣ Verificar se o grupo existe e pertence ao tenant
-      const groupQuery = sql`
-        SELECT id
-        FROM ${sql.raw(`"${schemaName}".user_groups`)}
-        WHERE id = ${groupId}
-          AND is_active = true
-        LIMIT 1
+      // Check if group exists and belongs to tenant
+      const groupQuery = `
+        SELECT id FROM "${schemaName}".user_groups 
+        WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
       `;
-      const group = await db.execute(groupQuery);
+      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
-      if (group.rows.length === 0) {
-        return res.status(404).json({ success: false, message: 'Group not found' });
+      if (!groupResult.rows.length) {
+        console.log(`Group ${groupId} not found for tenant ${tenantId}`);
+        return res.status(404).json({ message: 'Group not found' });
       }
 
-      // 2️⃣ Validar usuários do tenant
-      const idsList = uniqueUserIds.map(id => `'${id}'`).join(', ');
-
-      const validUsersQuery = sql`
-        SELECT id
-        FROM ${sql.raw(`"${schemaName}".users`)}
-        WHERE id = ANY(ARRAY[${sql.raw(idsList)}])
-          AND is_active = true
-      `;
-
-      const validUsers = await db.execute(validUsersQuery);
-
-      const validUserIds = validUsers.rows.map((u) => u.id);
-      if (validUserIds.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'No valid users found for this tenant',
-        });
-      }
-
-      // 3️⃣ Buscar membros já existentes
-      const existingMemberships = await db.execute(sql`
-        SELECT user_id
-        FROM ${membershipsTable}
-        WHERE group_id = ${groupId}
-          AND is_active = true
-      `);
-
-      const existingUserIds = new Set(existingMemberships.rows.map((m) => m.user_id));
-      const newUserIds = validUserIds.filter((id) => !existingUserIds.has(id));
-
-      if (newUserIds.length === 0) {
-        return res.status(409).json({
-          success: false,
-          message: 'All selected users are already members of this group',
-        });
-      }
-
-      // 4️⃣ Inserção em lote
+      const results = [];
       const now = new Date();
-      const membershipData = newUserIds.map((uid) => [
-        uid,
-        groupId,
-        'member',
-        req.user!.id,
-        true,
-        now,
-        now,
-      ]);
 
-      const insertQuery = sql`
-        INSERT INTO ${membershipsTable}
-          (user_id, group_id, role, added_by_id, is_active, created_at, updated_at, tenant_id)
-        VALUES ${sql.join(
-          membershipData.map(
-            (row) =>
-              sql`(${row[0]}, ${row[1]}, ${row[2]}, ${row[3]}, ${row[4]}, ${row[5]}, ${row[6]}, ${te})`
-          ),
-          sql`, `
-        )}
-        RETURNING *
-      `;
+      for (const userId of userIds) {
+        try {
+          // Check if user exists and belongs to tenant
+          const userQuery = `
+            SELECT id FROM public.users 
+            WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
+          `;
+          const userResult = await db.execute(sql.raw(userQuery, [userId, tenantId]));
 
-      const result = await db.execute(insertQuery);
+          if (!userResult.rows.length) {
+            results.push({ userId, success: false, error: 'User not found' });
+            continue;
+          }
 
-      return res.status(201).json({
+          // Check if membership already exists
+          const existingQuery = `
+            SELECT id FROM "${schemaName}".user_group_memberships 
+            WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
+          `;
+          const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
+
+          if (existingResult.rows.length > 0) {
+            results.push({ userId, success: false, error: 'User is already a member' });
+            continue;
+          }
+
+          // Add user to group
+          const membershipId = crypto.randomUUID();
+          const insertQuery = `
+            INSERT INTO "${schemaName}".user_group_memberships 
+            (id, tenant_id, user_id, group_id, role, added_by_id, added_at, is_active, created_at, updated_at)
+            VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5, $6::uuid, $7, $8, $9, $10)
+          `;
+
+          await db.execute(sql.raw(insertQuery, [
+            membershipId,
+            tenantId,
+            userId,
+            groupId,
+            'member',
+            req.user!.id,
+            now,
+            true,
+            now,
+            now
+          ]));
+
+          results.push({ userId, success: true, membershipId });
+        } catch (error) {
+          console.error(`Error adding user ${userId} to group:`, error);
+          results.push({ userId, success: false, error: error.message });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      console.log(`✅ [TENANT-GROUPS] Successfully added ${successCount}/${userIds.length} users to group ${groupId}`);
+
+      res.json({
         success: true,
-        message: `Added ${result.rows.length} users to group`,
-        memberships: result.rows,
-        added: result.rows.length,
-        skipped: uniqueUserIds.length - result.rows.length,
+        message: `Added ${successCount} users to group`,
+        results
       });
     } catch (error) {
       console.error('❌ Error in bulk add:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
-        message: 'Failed to add members to group',
-        error: error?.message || 'Unknown error',
+        message: 'Failed to add users to group',
+        error: error?.message || 'Unknown error occurred'
       });
     }
   }
 );
 
-
-
 // Remove user from group
-router.delete('/groups/:groupId/members/:userId', 
+router.delete('/:groupId/members/:userId', 
   jwtAuth, 
   requirePermission('tenant', 'manage_users'), 
   async (req: AuthenticatedRequest, res) => {
@@ -949,48 +945,44 @@ router.delete('/groups/:groupId/members/:userId',
       const { groupId, userId } = req.params;
       const tenantId = req.user!.tenantId;
 
-      // Verificar se o grupo existe - removendo tenantId
-      const group = await db.select().from(userGroups)
-        .where(and(
-          eq(userGroups.id, groupId),
-          eq(userGroups.isActive, true)
-        ))
-        .limit(1);
+      // Check if group exists and belongs to tenant
+    const groupQuery = `
+      SELECT id FROM "${schemaName}".user_groups 
+      WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
+    `;
+    const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
-      if (!group.length) {
+      if (!groupResult.rows.length) {
+        console.log(`Group ${groupId} not found for tenant ${tenantId}`);
         return res.status(404).json({ message: 'Group not found' });
       }
 
-      // Verificar se a associação existe - removendo tenantId
-      const existingMembership = await db.select().from(userGroupMemberships)
-        .where(and(
-          eq(userGroupMemberships.userId, userId),
-          eq(userGroupMemberships.groupId, groupId),
-          eq(userGroupMemberships.isActive, true)
-        ))
-        .limit(1);
+      // Check if active membership exists
+    const existingQuery = `
+      SELECT id FROM "${schemaName}".user_group_memberships 
+      WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
+    `;
+    const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
-      if (!existingMembership.length) {
-        return res.status(404).json({ message: 'User is not a member of this group' });
+    if (!existingResult.rows.length) {
+      console.log(`Active membership not found for user ${userId} in group ${groupId}`);
+      return res.status(404).json({ message: 'User is not a member of this group' });
+    }
+
+    // Remove user from group (only active memberships)
+    const deleteQuery = `
+      DELETE FROM "${schemaName}".user_group_memberships 
+      WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
+    `;
+    const result = await db.execute(sql.raw(deleteQuery, [userId, groupId]));
+
+      if (result.rowCount === 0) {
+        return res.status(500).json({ message: 'Failed to remove user from group' });
       }
-
-      // Remover a associação (soft delete)
-      const [removedMembership] = await db.update(userGroupMemberships)
-        .set({
-          isActive: false
-        })
-        .where(and(
-          eq(userGroupMemberships.userId, userId),
-          eq(userGroupMemberships.groupId, groupId)
-        ))
-        .returning();
 
       console.log(`Successfully removed user ${userId} from group ${groupId} for tenant ${tenantId}`);
 
-      res.json({ 
-        message: 'User removed from group successfully',
-        membership: removedMembership
-      });
+      res.json({ message: 'User removed from group successfully' });
     } catch (error) {
       console.error('Error removing user from group:', error);
       res.status(500).json({ message: 'Failed to remove user from group' });
