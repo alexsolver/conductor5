@@ -9,7 +9,8 @@ export interface AuthenticatedRequest extends Request {
     id: string;
     email: string;
     role: string;
-    tenantId: string | null;
+    tenantId: string;
+    roles: string[];
     permissions: any[];
     attributes: Record<string, any>;
   };
@@ -70,12 +71,13 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       
       // ✅ CRITICAL FIX - JSON response
       res.setHeader('Content-Type', 'application/json');
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Invalid token format',
         code: 'INVALID_TOKEN_FORMAT',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     // Verify JWT structure
@@ -83,12 +85,13 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (tokenParts.length !== 3) {
       console.log('❌ [JWT-AUTH] Invalid JWT structure');
       res.setHeader('Content-Type', 'application/json');
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: 'Invalid token structure',
         code: 'INVALID_TOKEN_STRUCTURE',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     // Verify JWT token using enhanced token manager
@@ -127,11 +130,13 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       console.error('❌ [JWT-AUTH] No userId found in token payload:', payload);
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      return res.status(401).json({
+      res.status(401).json({
+        success: false,
         message: 'Invalid token payload',
         needsRefresh: true,
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     const user = await userRepository.findById(userId);
@@ -139,10 +144,12 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (!user || !user.isActive) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      return res.status(401).json({ 
+      res.status(401).json({ 
+        success: false,
         message: 'User not found or inactive',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     // Add user context to request - with permissions and enhanced tenant validation
@@ -154,18 +161,21 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (!user.tenantId && req.path.includes('/customers')) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      return res.status(403).json({
+      res.status(403).json({
+        success: false,
         message: 'Tenant access required for customer operations',
         code: 'MISSING_TENANT_ACCESS',
         timestamp: new Date().toISOString()
       });
+      return;
     }
 
     req.user = {
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: user.tenantId,
+      tenantId: user.tenantId || '',
+      roles: [user.role],
       permissions: permissions || [],
       attributes: {}
     };
@@ -197,9 +207,9 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
   } catch (error) {
     console.error('❌ [JWT-AUTH] Authentication error:', error);
     console.error('❌ [JWT-AUTH] Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack?.substring(0, 200)
+      name: (error as Error).name,
+      message: (error as Error).message,
+      stack: (error as Error).stack?.substring(0, 200)
     });
 
     // ✅ CRITICAL FIX - Ensure JSON response even in error cases per 1qa.md
@@ -261,7 +271,8 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
           id: user.id,
           email: user.email,
           role: user.role,
-          tenantId: user.tenantId,
+          tenantId: user.tenantId || '',
+          roles: [user.role],
           permissions: [], // Permissions might need to be fetched here as well if required by optional auth
           attributes: {}
         };
