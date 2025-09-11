@@ -141,6 +141,14 @@ export default function TechnicalSkillsTab() {
   const [showAssignMembers, setShowAssignMembers] = useState(false);
   const [selectedSkillForAssignment, setSelectedSkillForAssignment] = useState<Skill | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [newUserSkill, setNewUserSkill] = useState({
+    skillId: '',
+    userId: '',
+    proficiencyLevel: 'beginner' as 'beginner' | 'intermediate' | 'advanced' | 'expert',
+    yearsOfExperience: 0,
+    certifications: [] as string[],
+    notes: ''
+  });
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
