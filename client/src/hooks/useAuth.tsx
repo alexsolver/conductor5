@@ -235,15 +235,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
       try {
+        console.log('🔐 [REGISTER] Starting registration process...');
+        
         // Using apiRequest here, assuming it correctly handles POST requests
         const res = await apiRequest('POST', '/api/auth/register', credentials);
-        return await res.json();
+        
+        if (!res.ok) {
+          let errorMessage = 'Registration failed';
+          try {
+            const errorData = await res.json();
+            errorMessage = errorData.message || errorMessage;
+            console.error('❌ [REGISTER] Error response:', errorData);
+          } catch (e) {
+            errorMessage = res.statusText || errorMessage;
+          }
+          throw new Error(errorMessage);
+        }
+
+        const responseData = await res.json();
+        console.log('🔍 [REGISTER] Response data structure:', Object.keys(responseData));
+        
+        // Validate response structure
+        if (!responseData || (!responseData.user && !responseData.data?.user)) {
+          console.error('❌ [REGISTER] Invalid response structure:', responseData);
+          throw new Error('Invalid registration response from server');
+        }
+
+        // Handle different response formats
+        if (responseData.data?.user) {
+          return {
+            user: responseData.data.user,
+            tenant: responseData.data.tenant || responseData.tenant
+          };
+        } else if (responseData.user) {
+          return {
+            user: responseData.user,
+            tenant: responseData.tenant
+          };
+        }
+
+        throw new Error('User data not found in response');
       } catch (error) {
-        console.error('Registration API error:', error);
+        console.error('❌ [REGISTER] Registration error:', error);
         throw error;
       }
     },
     onSuccess: (result: { user: User; tenant?: { id: string; name: string; subdomain: string } }) => {
+      // Validate that we have a user object
+      if (!result || !result.user) {
+        console.error('❌ [REGISTER-SUCCESS] Invalid registration response - missing user data');
+        toast({
+          title: 'Registration failed',
+          description: 'Invalid response from server. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Store tenantId for quick access by components (tokens are now HTTP-only cookies)
       if (result.user?.tenantId) {
         localStorage.setItem('tenantId', result.user.tenantId);
@@ -260,7 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast({
           title: 'Registro realizado com sucesso',
-          description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
+          description: `Bem-vindo ao Conductor, ${result.user?.firstName || result.user?.email || 'usuário'}!`,
         });
       }
     },

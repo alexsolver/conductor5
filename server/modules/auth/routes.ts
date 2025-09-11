@@ -365,16 +365,24 @@ authRouter.post(
       });
 
       res.status(201).json({
-        user: result.user,
-        accessToken: result.accessToken,
-        tenant:
-          userData.companyName && userData.workspaceName
-            ? {
-                id: userData.tenantId,
-                name: userData.companyName,
-                subdomain: userData.workspaceName,
-              }
-            : undefined,
+        success: true,
+        message: "Registration successful",
+        data: {
+          user: result.user,
+          tokens: {
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+          },
+          tenant:
+            userData.companyName && userData.workspaceName
+              ? {
+                  id: userData.tenantId,
+                  name: userData.companyName,
+                  subdomain: userData.workspaceName,
+                }
+              : undefined,
+        },
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       const { logError } = await import("../../utils/logger");
