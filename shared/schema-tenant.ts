@@ -117,7 +117,7 @@ export const companies = pgTable("companies", {
 
 // Items table
 export const items = pgTable("items", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
   tenantId: uuid("tenant_id").notNull(),
   code: varchar("code", { length: 50 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),

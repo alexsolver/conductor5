@@ -116,9 +116,14 @@ export class ItemRepository {
   }
 
   async create(data: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item> {
+    // Generate UUID for the item
+    const { randomUUID } = await import('crypto');
+    const itemId = randomUUID();
+    
     const [item] = await this.db
       .insert(items)
       .values({
+        id: itemId, // ✅ Explicitly set the UUID
         ...data,
         // Handle text fields properly
         maintenancePlan: data.maintenancePlan || null,
