@@ -150,7 +150,17 @@ export const updateUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
   lastLoginAt: true,
   lastActiveAt: true,
-}).partial().transform((data) => {
+}).partial().extend({
+  // Override date fields to accept strings and convert empty strings to null
+  admissionDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+    if (!val || val === '') return null;
+    if (typeof val === 'string') {
+      const parsed = new Date(val);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return val;
+  }),
+}).transform((data) => {
   // Normalize email to lowercase if provided
   if (data.email) {
     data.email = data.email.toLowerCase();

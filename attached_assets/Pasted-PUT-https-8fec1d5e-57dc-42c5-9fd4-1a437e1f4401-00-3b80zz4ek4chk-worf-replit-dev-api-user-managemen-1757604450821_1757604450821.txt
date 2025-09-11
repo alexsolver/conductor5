@@ -1,0 +1,37 @@
+PUT https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/user-management/users/81816d12-23cd-4596-a637-ea3384a0911b 400
+
+Request Data
+
+{"firstName":"Caterina","lastName":"Marchetti","email":"cat@lansolver.com","integrationCode":"","alternativeEmail":"","cellPhone":"","phone":"","ramal":"","timeZone":"America/Sao_Paulo","vehicleType":"nenhum","cpfCnpj":"","cep":"","country":"Brasil","state":"","city":"","streetAddress":"","houseType":"","houseNumber":"","complement":"","neighborhood":"","employeeCode":"","pis":"","cargo":"","ctps":"","serieNumber":"","admissionDate":"","costCenter":"","employmentType":"autonomo","role":"tenant_admin","groupIds":[]}
+
+Request Headers
+
+Content-Type: application/json
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 191
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Thu, 11 Sep 2025 15:27:01 GMT
+etag: W/"bf-IOd55N5nCX3nquPY5eRMYHrdk+Y"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-12T15:27:01.287Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"message":"Invalid request data","errors":[{"code":"invalid_type","expected":"date","received":"string","path":["admissionDate"],"message":"Expected date, received string"}]}
