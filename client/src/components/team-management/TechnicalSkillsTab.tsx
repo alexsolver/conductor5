@@ -23,8 +23,12 @@ import {
   Eye,
   Edit,
   Trash2,
-  Star
+  Star,
+  UserPlus,
+  Users
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Schema para criação de habilidades
 const skillFormSchema = z.object({
@@ -99,6 +103,32 @@ interface CertificationsResponse {
   count: number;
 }
 
+interface UserSkill {
+  id: string;
+  tenantId: string;
+  userId: string;
+  skillId: string;
+  proficiencyLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  yearsOfExperience: number;
+  certifications: string[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  skill: Skill;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function TechnicalSkillsTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -106,6 +136,10 @@ export default function TechnicalSkillsTab() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [scaleOptions, setScaleOptions] = useState(DEFAULT_SCALE_OPTIONS);
+  const [showCreateUserSkill, setShowCreateUserSkill] = useState(false);
+  const [showAssignMembers, setShowAssignMembers] = useState(false);
+  const [selectedSkillForAssignment, setSelectedSkillForAssignment] = useState<Skill | null>(null);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -144,6 +178,27 @@ export default function TechnicalSkillsTab() {
       const res = await apiRequest("GET", "/api/technical-skills/certifications/expiring");
       if (!res.ok) throw new Error("Erro ao buscar certificações expirando");
       return res.json();
+    },
+  });
+
+  // Fetch user skills
+  const { data: userSkills, isLoading: userSkillsLoading } = useQuery<UserSkill[]>({
+    queryKey: ['/api/technical-skills/user-skills'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/technical-skills/user-skills');
+      if (!res.ok) throw new Error('Erro ao buscar habilidades dos usuários');
+      return res.json();
+    },
+  });
+
+  // Fetch team members
+  const { data: teamMembers } = useQuery<TeamMember[]>({
+    queryKey: ['/api/team/members'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/team/members');
+      if (!res.ok) throw new Error('Erro ao buscar membros da equipe');
+      const data = await res.json();
+      return data.members || [];
     },
   });
 
@@ -233,6 +288,102 @@ export default function TechnicalSkillsTab() {
     },
   });
 
+  // Create user skill mutation
+  const createUserSkillMutation = useMutation({
+    mutationFn: ({ skillId, userId, proficiencyLevel, yearsOfExperience, certifications, notes }: UserSkill) => 
+      apiRequest('POST', '/api/technical-skills/user-skills', { skillId, userId, proficiencyLevel, yearsOfExperience, certifications, notes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      setShowCreateUserSkill(false);
+      setNewUserSkill({
+        skillId: '',
+        userId: '',
+        proficiencyLevel: 'beginner',
+        yearsOfExperience: 0,
+        certifications: [],
+        notes: ''
+      });
+      toast({
+        title: 'Sucesso',
+        description: 'Habilidade atribuída ao usuário com sucesso.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Delete user skill mutation
+  const deleteUserSkillMutation = useMutation({
+    mutationFn: async (userSkillId: string) => {
+      const res = await apiRequest('DELETE', `/api/technical-skills/user-skills/${userSkillId}`);
+      if (!res.ok) throw new Error('Erro ao excluir habilidade do usuário');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Habilidade do usuário excluída com sucesso.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Assign members to skill mutation
+  const assignMembersToSkillMutation = useMutation({
+    mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
+      const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
+        memberIds,
+        defaultProficiencyLevel: 'beginner'
+      });
+
+      if (!res.ok) {
+        throw new Error('Erro ao atribuir membros à habilidade');
+      }
+
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      setShowAssignMembers(false);
+      setSelectedMembers([]);
+      setSelectedSkillForAssignment(null);
+
+      const { successCount, errorCount } = data.data;
+
+      if (errorCount > 0) {
+        toast({
+          title: 'Atribuição Parcial',
+          description: `${successCount} membro(s) atribuído(s) com sucesso. ${errorCount} erro(s) encontrado(s).`,
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Sucesso',
+          description: `${successCount} membro(s) atribuído(s) à habilidade com sucesso.`,
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Event handlers
   const onCreateSubmit = (data: SkillFormData) => {
     createSkillMutation.mutate(data);
@@ -262,6 +413,60 @@ export default function TechnicalSkillsTab() {
       scaleOptions: skillScaleOptions,
     });
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteSkill = (skillId: string) => {
+    if (confirm('Tem certeza de que deseja desativar esta habilidade?')) {
+      deleteSkillMutation.mutate(skillId);
+    }
+  };
+
+  const handleCreateUserSkill = () => {
+    if (newUserSkill.skillId && newUserSkill.userId) {
+      createUserSkillMutation.mutate(newUserSkill as UserSkill);
+    }
+  };
+
+  const handleDeleteUserSkill = (userSkillId: string) => {
+    if (confirm('Tem certeza de que deseja excluir esta habilidade do usuário?')) {
+      deleteUserSkillMutation.mutate(userSkillId);
+    }
+  };
+
+  const handleOpenAssignMembers = (skill: Skill) => {
+    setSelectedSkillForAssignment(skill);
+    setSelectedMembers([]);
+    setShowAssignMembers(true);
+  };
+
+  const handleMemberSelection = (memberId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedMembers(prev => [...prev, memberId]);
+    } else {
+      setSelectedMembers(prev => prev.filter(id => id !== memberId));
+    }
+  };
+
+  const handleAssignMembers = () => {
+    if (selectedSkillForAssignment && selectedMembers.length > 0) {
+      assignMembersToSkillMutation.mutate({
+        skillId: selectedSkillForAssignment.id,
+        memberIds: selectedMembers
+      });
+    }
+  };
+
+  // Get members already assigned to a skill
+  const getMembersWithSkill = (skillId: string) => {
+    if (!userSkills) return [];
+    return userSkills.filter((us: UserSkill) => us.skillId === skillId);
+  };
+
+  // Get available members for assignment (not already assigned to the skill)
+  const getAvailableMembers = (skillId: string) => {
+    if (!teamMembers) return [];
+    const assignedUserIds = getMembersWithSkill(skillId).map((us: UserSkill) => us.userId);
+    return teamMembers.filter((member: TeamMember) => !assignedUserIds.includes(member.id));
   };
 
   const renderStars = (skillScaleOptions?: typeof DEFAULT_SCALE_OPTIONS) => {
@@ -351,7 +556,7 @@ export default function TechnicalSkillsTab() {
                               {category}
                             </SelectItem>
                           ))}
-                          {categories?.data?.filter((category: string) => 
+                          {categories?.filter((category: string) => 
                             !DEFAULT_CATEGORIES.includes(category)
                           ).map((category: string) => (
                             <SelectItem key={category} value={category}>
@@ -496,7 +701,7 @@ export default function TechnicalSkillsTab() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600" data-testid="text-expired-certs">{expiredCerts?.data?.length || 0}</div>
+            <div className="text-2xl font-bold text-red-600" data-testid="text-expired-certs">{expiredCerts?.length || 0}</div>
             <p className="text-xs text-muted-foreground">Requerem atenção</p>
           </CardContent>
         </Card>
@@ -507,7 +712,7 @@ export default function TechnicalSkillsTab() {
             <Award className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600" data-testid="text-expiring-certs">{expiringCerts?.data?.length || 0}</div>
+            <div className="text-2xl font-bold text-yellow-600" data-testid="text-expiring-certs">{expiringCerts?.length || 0}</div>
             <p className="text-xs text-muted-foreground">Certificações</p>
           </CardContent>
         </Card>
@@ -518,7 +723,7 @@ export default function TechnicalSkillsTab() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-categories-count">{categories?.data?.length || 0}</div>
+            <div className="text-2xl font-bold" data-testid="text-categories-count">{categories?.length || 0}</div>
             <p className="text-xs text-muted-foreground">Diferentes áreas</p>
           </CardContent>
         </Card>
@@ -543,7 +748,7 @@ export default function TechnicalSkillsTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
-            {categories?.data?.map((category) => (
+            {categories?.map((category) => (
               <SelectItem key={category} value={category}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </SelectItem>
@@ -563,221 +768,292 @@ export default function TechnicalSkillsTab() {
             <div className="text-gray-500" data-testid="text-no-skills">Nenhuma habilidade encontrada</div>
           </div>
         ) : (
-          filteredSkills.map((skill) => (
-            <Card key={skill.id} className="hover:shadow-md transition-shadow" data-testid={`card-skill-${skill.id}`}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg" data-testid={`text-skill-name-${skill.id}`}>{skill.name}</CardTitle>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Badge variant="secondary" data-testid={`badge-skill-category-${skill.id}`}>{skill.category}</Badge>
-                      {renderStars(skill.scaleOptions)}
+          filteredSkills.map((skill) => {
+            const assignedMembers = getMembersWithSkill(skill.id);
+
+            return (
+              <Card key={skill.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold">{skill.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {skill.description || 'Sem descrição'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{skill.category}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenAssignMembers(skill)}
+                        title="Atribuir Membros"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(skill)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteSkill(skill.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditDialog(skill)}
-                      data-testid={`button-edit-skill-${skill.id}`}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSkillMutation.mutate(skill.id)}
-                      data-testid={`button-delete-skill-${skill.id}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+
+                  <div className="border-t pt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Membros Atribuídos ({assignedMembers.length})
+                      </span>
+                      {assignedMembers.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenAssignMembers(skill)}
+                        >
+                          <Users className="h-4 w-4 mr-1" />
+                          Gerenciar
+                        </Button>
+                      )}
+                    </div>
+
+                    {assignedMembers.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {assignedMembers.slice(0, 5).map((userSkill: UserSkill) => (
+                          <Badge key={userSkill.id} variant="secondary" className="text-xs">
+                            {userSkill.user.firstName} {userSkill.user.lastName}
+                            <span className="ml-1 opacity-70">
+                              ({userSkill.proficiencyLevel === 'beginner' ? 'Iniciante' :
+                                userSkill.proficiencyLevel === 'intermediate' ? 'Intermediário' :
+                                userSkill.proficiencyLevel === 'advanced' ? 'Avançado' : 'Especialista'})
+                            </span>
+                          </Badge>
+                        ))}
+                        {assignedMembers.length > 5 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{assignedMembers.length - 5} mais
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-3">
+                        <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Nenhum membro atribuído ainda
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenAssignMembers(skill)}
+                        >
+                          <UserPlus className="h-4 w-4 mr-1" />
+                          Atribuir Membros
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {skill.description && (
-                  <p className="text-sm text-gray-600 mb-3" data-testid={`text-skill-description-${skill.id}`}>{skill.description}</p>
-                )}
-                {skill.suggestedCertification && (
-                  <div className="text-xs text-blue-600" data-testid={`text-skill-certification-${skill.id}`}>
-                    <Award className="h-3 w-3 inline mr-1" />
-                    {skill.suggestedCertification}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Create User Skill Dialog */}
+      <Dialog open={showCreateUserSkill} onOpenChange={setShowCreateUserSkill}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Editar Habilidade</DialogTitle>
+            <DialogTitle>Atribuir Habilidade a Usuário</DialogTitle>
             <DialogDescription>
-              Modifique os dados da habilidade técnica selecionada.
+              Atribua uma habilidade específica a um usuário da equipe.
             </DialogDescription>
           </DialogHeader>
-          <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input {...field} data-testid="input-edit-skill-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={editForm.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-edit-skill-category">
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {DEFAULT_CATEGORIES.map((category: string) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                        {categories?.data?.filter((category: string) => 
-                          !DEFAULT_CATEGORIES.includes(category)
-                        ).map((category: string) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="skill-select">Habilidade</Label>
+                <Select
+                  value={newUserSkill.skillId}
+                  onValueChange={(value) => setNewUserSkill(prev => ({ ...prev, skillId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma habilidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {skills?.map((skill: Skill) => (
+                      <SelectItem key={skill.id} value={skill.id}>
+                        {skill.name} ({skill.category})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Editor de Opções da Escala para Edit */}
-              <div className="space-y-4">
-                <FormLabel>Opções da Escala</FormLabel>
-                {scaleOptions.map((option, index) => (
-                  <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-1">
-                      <span className="text-sm font-medium">{option.level}</span>
-                    </div>
-                    <div className="col-span-3">
-                      <Input
-                        placeholder="Nome da escala"
-                        value={option.label}
-                        onChange={(e) => {
-                          const newOptions = [...scaleOptions];
-                          newOptions[index].label = e.target.value;
-                          setScaleOptions(newOptions);
-                        }}
-                        data-testid={`input-edit-scale-label-${index}`}
-                      />
-                    </div>
-                    <div className="col-span-8">
-                      <Input
-                        placeholder="Descrição da escala"
-                        value={option.description}
-                        onChange={(e) => {
-                          const newOptions = [...scaleOptions];
-                          newOptions[index].description = e.target.value;
-                          setScaleOptions(newOptions);
-                        }}
-                        data-testid={`input-edit-scale-description-${index}`}
-                      />
-                    </div>
-                  </div>
+              <div>
+                <Label htmlFor="user-select">Usuário</Label>
+                <Select
+                  value={newUserSkill.userId}
+                  onValueChange={(value) => setNewUserSkill(prev => ({ ...prev, userId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um usuário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers?.map((member: TeamMember) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="proficiency">Nível de Proficiência</Label>
+                <Select
+                  value={newUserSkill.proficiencyLevel}
+                  onValueChange={(value: any) => setNewUserSkill(prev => ({ ...prev, proficiencyLevel: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Iniciante</SelectItem>
+                    <SelectItem value="intermediate">Intermediário</SelectItem>
+                    <SelectItem value="advanced">Avançado</SelectItem>
+                    <SelectItem value="expert">Especialista</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="experience">Anos de Experiência</Label>
+                <Input
+                  id="experience"
+                  type="number"
+                  min="0"
+                  value={newUserSkill.yearsOfExperience}
+                  onChange={(e) => setNewUserSkill(prev => ({ ...prev, yearsOfExperience: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                placeholder="Observações sobre esta habilidade..."
+                value={newUserSkill.notes}
+                onChange={(e) => setNewUserSkill(prev => ({ ...prev, notes: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateUserSkill(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateUserSkill}
+              disabled={createUserSkillMutation.isPending || !newUserSkill.skillId || !newUserSkill.userId}
+            >
+              {createUserSkillMutation.isPending ? 'Criando...' : 'Atribuir Habilidade'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Members to Skill Dialog */}
+      <Dialog open={showAssignMembers} onOpenChange={setShowAssignMembers}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Atribuir Membros à Habilidade</DialogTitle>
+            <DialogDescription>
+              Selecione os membros da equipe para atribuir à habilidade "{selectedSkillForAssignment?.name}".
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2">Membros já atribuídos:</h4>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {selectedSkillForAssignment && getMembersWithSkill(selectedSkillForAssignment.id).map((userSkill: UserSkill) => (
+                  <Badge key={userSkill.id} variant="secondary">
+                    {userSkill.user.firstName} {userSkill.user.lastName}
+                    <span className="ml-1 text-xs">({userSkill.proficiencyLevel === 'beginner' ? 'Iniciante' :
+                      userSkill.proficiencyLevel === 'intermediate' ? 'Intermediário' :
+                      userSkill.proficiencyLevel === 'advanced' ? 'Avançado' : 'Especialista'})</span>
+                  </Badge>
                 ))}
+                {selectedSkillForAssignment && getMembersWithSkill(selectedSkillForAssignment.id).length === 0 && (
+                  <span className="text-sm text-muted-foreground">Nenhum membro atribuído ainda</span>
+                )}
               </div>
+            </div>
 
-              <FormField
-                control={editForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} data-testid="textarea-edit-skill-description" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="suggestedCertification"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Certificação Sugerida (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} data-testid="input-edit-skill-certification" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="certificationValidityMonths"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Validade da Certificação (meses)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        data-testid="input-edit-certification-validity"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações (Opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} data-testid="textarea-edit-skill-observations" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} data-testid="button-cancel-edit">
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={updateSkillMutation.isPending} data-testid="button-submit-edit">
-                  {updateSkillMutation.isPending ? "Atualizando..." : "Atualizar"}
-                </Button>
+            <div>
+              <h4 className="text-sm font-medium mb-2">Selecionar novos membros:</h4>
+              <div className="max-h-60 overflow-y-auto border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">Selecionar</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Função</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedSkillForAssignment && getAvailableMembers(selectedSkillForAssignment.id).map((member: TeamMember) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedMembers.includes(member.id)}
+                            onCheckedChange={(checked) => handleMemberSelection(member.id, checked as boolean)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{member.name}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{member.role}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {selectedSkillForAssignment && getAvailableMembers(selectedSkillForAssignment.id).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          Todos os membros já foram atribuídos a esta habilidade
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-            </form>
-          </Form>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAssignMembers(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleAssignMembers}
+              disabled={assignMembersToSkillMutation.isPending || selectedMembers.length === 0}
+            >
+              {assignMembersToSkillMutation.isPending ? 'Atribuindo...' : `Atribuir ${selectedMembers.length} Membro(s)`}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

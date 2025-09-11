@@ -15,6 +15,7 @@ const { skills, userSkills } = require('../../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 const { jwtAuth } = require('../../middleware/jwtAuth');
 const { v4: uuidv4 } = require('uuid');
+const { z } = require('zod'); // Import zod for validation
 
 const router = express.Router();
 router.use(jwtAuth);
@@ -342,20 +343,40 @@ router.put('/working/skills/:id', async (req, res) => {
     // Validate partial update data
     const updateData = createSkillSchema.partial().parse(req.body);
 
-    // Return updated skill
-    const updatedSkill = {
-      id,
-      tenantId,
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Check if skill exists and belongs to the tenant
+    const [existingSkill] = await db.select().from(skills).where(
+      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    );
+
+    if (!existingSkill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Technical skill not found or does not belong to this tenant'
+      });
+    }
+
+    // Update skill in database
+    const updatedSkillData = {
       ...updateData,
       updatedAt: new Date()
     };
+
+    const [updatedSkill] = await db.update(skills).set(updatedSkillData).where(
+      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    ).returning();
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Updated skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
       success: true,
       data: updatedSkill,
-      message: 'Technical skill updated successfully (Phase 9 working implementation)'
+      message: 'Technical skill updated successfully'
     });
 
   } catch (error) {
@@ -393,11 +414,39 @@ router.delete('/working/skills/:id', async (req, res) => {
 
     const { id } = req.params;
 
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { skills, userSkills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Check if skill exists and belongs to the tenant
+    const [existingSkill] = await db.select().from(skills).where(
+      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    );
+
+    if (!existingSkill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Technical skill not found or does not belong to this tenant'
+      });
+    }
+
+    // Delete associated user skills first
+    await db.delete(userSkills).where(
+      and(eq(userSkills.skillId, id), eq(userSkills.tenantId, tenantId))
+    );
+
+    // Delete the skill
+    await db.delete(skills).where(
+      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    );
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      message: 'Technical skill deleted successfully (Phase 9 working implementation)'
+      message: 'Technical skill deleted successfully'
     });
 
   } catch (error) {
@@ -428,6 +477,37 @@ router.post('/working/user-skills', async (req, res) => {
     // Validate input
     const userSkillData = createUserSkillSchema.parse(req.body);
 
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { userSkills, skills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Check if skill exists and belongs to the tenant
+    const [skill] = await db.select().from(skills).where(
+      and(eq(skills.id, userSkillData.skillId), eq(skills.tenantId, tenantId))
+    );
+
+    if (!skill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Skill not found or does not belong to this tenant'
+      });
+    }
+    
+    // Check if user already has this skill assigned
+    const [existingUserSkill] = await db.select().from(userSkills).where(
+      and(eq(userSkills.userId, userSkillData.userId), eq(userSkills.skillId, userSkillData.skillId), eq(userSkills.tenantId, tenantId))
+    );
+
+    if (existingUserSkill) {
+      return res.status(409).json({
+        success: false,
+        error: 'Conflict',
+        message: 'User already has this skill assigned'
+      });
+    }
+
     // Create a working user skill response
     const newUserSkill = {
       id: `user_skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -439,21 +519,18 @@ router.post('/working/user-skills', async (req, res) => {
       certifications: userSkillData.certifications || [],
       notes: userSkillData.notes || null,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      // Include skill details for convenience
-      skill: {
-        id: userSkillData.skillId,
-        name: 'Sample Skill',
-        category: 'Programming Languages'
-      }
+      updatedAt: new Date()
     };
+    
+    // Insert into database
+    await db.insert(userSkills).values(newUserSkill);
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Created user skill: ${newUserSkill.id} for tenant: ${tenantId}`);
 
     res.status(201).json({
       success: true,
       data: newUserSkill,
-      message: 'User skill assignment created successfully (Phase 9 working implementation)'
+      message: 'User skill assignment created successfully'
     });
 
   } catch (error) {
@@ -489,66 +566,142 @@ router.get('/working/user-skills', async (req, res) => {
       });
     }
 
-    // Return working sample data
-    const sampleUserSkills = [
-      {
-        id: 'user_skill_sample_1',
-        tenantId,
-        userId: 'user_123',
-        skillId: 'skill_sample_1',
-        proficiencyLevel: 'advanced',
-        yearsOfExperience: 3,
-        certifications: ['AWS Certified Developer'],
-        notes: 'Experienced in full-stack development',
-        createdAt: new Date(Date.now() - 86400000),
-        updatedAt: new Date(Date.now() - 86400000),
-        skill: {
-          id: 'skill_sample_1',
-          name: 'JavaScript',
-          category: 'Programming Languages'
-        },
-        user: {
-          id: 'user_123',
-          firstName: 'João',
-          lastName: 'Silva'
-        }
-      },
-      {
-        id: 'user_skill_sample_2',
-        tenantId,
-        userId: 'user_456',
-        skillId: 'skill_sample_2',
-        proficiencyLevel: 'intermediate',
-        yearsOfExperience: 2,
-        certifications: [],
-        notes: 'Learning React development',
-        createdAt: new Date(Date.now() - 172800000),
-        updatedAt: new Date(Date.now() - 172800000),
-        skill: {
-          id: 'skill_sample_2',
-          name: 'React',
-          category: 'Frontend Frameworks'
-        },
-        user: {
-          id: 'user_456',
-          firstName: 'Maria',
-          lastName: 'Santos'
-        }
-      }
-    ];
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { userSkills, skills, users } = await import('../../../shared/schema');
+    const { eq, and, asc, ilike, placeholder, sql } = await import('drizzle-orm');
 
-    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${sampleUserSkills.length} user skills for tenant: ${tenantId}`);
+    // Query parameters for filtering and pagination
+    const { 
+      search, 
+      skillId, 
+      userId, 
+      proficiency, 
+      sortBy = 'createdAt', 
+      sortOrder = 'desc', 
+      page = 1, 
+      limit = 20 
+    } = req.query;
+
+    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    let query = db.select({
+      id: userSkills.id,
+      userId: userSkills.userId,
+      skillId: userSkills.skillId,
+      proficiencyLevel: userSkills.proficiencyLevel,
+      yearsOfExperience: userSkills.yearsOfExperience,
+      certifications: userSkills.certifications,
+      notes: userSkills.notes,
+      createdAt: userSkills.createdAt,
+      updatedAt: userSkills.updatedAt,
+      skillName: skills.name,
+      skillCategory: skills.category,
+      skillLevel: skills.level,
+      userName: users.firstName,
+      userLastName: users.lastName
+    })
+    .from(userSkills)
+    .innerJoin(skills, eq(userSkills.skillId, skills.id))
+    .innerJoin(users, eq(userSkills.userId, users.id))
+    .where(
+      and(
+        eq(userSkills.tenantId, tenantId),
+        eq(userSkills.isActive, true), // Assuming active skills are relevant
+        skillId ? eq(userSkills.skillId, skillId as string) : undefined,
+        userId ? eq(userSkills.userId, userId as string) : undefined,
+        proficiency ? eq(userSkills.proficiencyLevel, proficiency as string) : undefined,
+        search ? 
+          or(
+            ilike(skills.name, `%${search}%`),
+            ilike(skills.category, `%${search}%`),
+            ilike(users.firstName, `%${search}%`),
+            ilike(users.lastName, `%${search}%`)
+          ) : undefined
+      )
+    );
+
+    // Count total matching records
+    const countQuery = db.select({ count: fn.count(userSkills.id) })
+      .from(userSkills)
+      .innerJoin(skills, eq(userSkills.skillId, skills.id))
+      .innerJoin(users, eq(userSkills.userId, users.id))
+      .where(
+        and(
+          eq(userSkills.tenantId, tenantId),
+          eq(userSkills.isActive, true),
+          skillId ? eq(userSkills.skillId, skillId as string) : undefined,
+          userId ? eq(userSkills.userId, userId as string) : undefined,
+          proficiency ? eq(userSkills.proficiencyLevel, proficiency as string) : undefined,
+          search ? 
+            or(
+              ilike(skills.name, `%${search}%`),
+              ilike(skills.category, `%${search}%`),
+              ilike(users.firstName, `%${search}%`),
+              ilike(users.lastName, `%${search}%`)
+            ) : undefined
+        )
+      );
+
+    // Apply sorting
+    const orderBy = [];
+    if (sortBy === 'createdAt') {
+      orderBy.push(sortOrder === 'asc' ? asc(userSkills.createdAt) : desc(userSkills.createdAt));
+    } else if (sortBy === 'userName') {
+      orderBy.push(sortOrder === 'asc' ? asc(users.firstName) : desc(users.firstName));
+    } else if (sortBy === 'skillName') {
+      orderBy.push(sortOrder === 'asc' ? asc(skills.name) : desc(skills.name));
+    } else if (sortBy === 'proficiency') {
+      orderBy.push(sortOrder === 'asc' ? asc(userSkills.proficiencyLevel) : desc(userSkills.proficiencyLevel));
+    } else {
+      orderBy.push(sortOrder === 'asc' ? asc(userSkills.createdAt) : desc(userSkills.createdAt));
+    }
+    
+    query = query.orderBy(...orderBy);
+
+    // Apply pagination
+    query = query.limit(parseInt(limit as string)).offset(offset);
+
+    const [userSkillsData, totalCountResult] = await Promise.all([
+      query,
+      countQuery
+    ]);
+
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${userSkillsData.length} user skills for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      data: sampleUserSkills,
+      data: userSkillsData.map(us => ({
+        id: us.id,
+        userId: us.userId,
+        skillId: us.skillId,
+        proficiencyLevel: us.proficiencyLevel,
+        yearsOfExperience: us.yearsOfExperience,
+        certifications: us.certifications,
+        notes: us.notes,
+        createdAt: us.createdAt,
+        updatedAt: us.updatedAt,
+        skill: {
+          id: us.skillId,
+          name: us.skillName,
+          category: us.skillCategory,
+          level: us.skillLevel
+        },
+        user: {
+          id: us.userId,
+          firstName: us.userName,
+          lastName: us.userLastName
+        }
+      })),
       pagination: {
-        page: 1,
-        limit: 20,
-        total: sampleUserSkills.length,
-        totalPages: 1
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / parseInt(limit as string))
       },
-      message: 'User skills retrieved successfully (Phase 9 working implementation)'
+      message: 'User skills retrieved successfully'
     });
 
   } catch (error) {
@@ -578,64 +731,93 @@ router.get('/working/user-skills/user/:userId', async (req, res) => {
 
     const { userId } = req.params;
 
-    // Return working sample data for specific user
-    const sampleUserSkills = [
-      {
-        id: 'user_skill_sample_1',
-        tenantId,
-        userId,
-        skillId: 'skill_sample_1',
-        proficiencyLevel: 'advanced',
-        yearsOfExperience: 5,
-        certifications: ['Oracle Java Certified', 'Spring Professional'],
-        notes: 'Senior developer with enterprise experience',
-        createdAt: new Date(Date.now() - 86400000),
-        updatedAt: new Date(Date.now() - 86400000),
-        skill: {
-          id: 'skill_sample_1',
-          name: 'Java',
-          category: 'Programming Languages',
-          level: 'advanced'
-        }
-      },
-      {
-        id: 'user_skill_sample_2',
-        tenantId,
-        userId,
-        skillId: 'skill_sample_2',
-        proficiencyLevel: 'expert',
-        yearsOfExperience: 4,
-        certifications: ['PostgreSQL Certified'],
-        notes: 'Database optimization specialist',
-        createdAt: new Date(Date.now() - 172800000),
-        updatedAt: new Date(Date.now() - 172800000),
-        skill: {
-          id: 'skill_sample_2',
-          name: 'PostgreSQL',
-          category: 'Databases',
-          level: 'advanced'
-        }
-      }
-    ];
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { userSkills, skills, users } = await import('../../../shared/schema');
+    const { eq, and, asc, desc, fn, or, ilike, placeholder, sql } = await import('drizzle-orm');
 
-    console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved ${sampleUserSkills.length} skills for user: ${userId} in tenant: ${tenantId}`);
+    // Query to get user skills along with skill and user details
+    const userSkillsData = await db.select({
+      id: userSkills.id,
+      userId: userSkills.userId,
+      skillId: userSkills.skillId,
+      proficiencyLevel: userSkills.proficiencyLevel,
+      yearsOfExperience: userSkills.yearsOfExperience,
+      certifications: userSkills.certifications,
+      notes: userSkills.notes,
+      createdAt: userSkills.createdAt,
+      updatedAt: userSkills.updatedAt,
+      skillName: skills.name,
+      skillCategory: skills.category,
+      skillLevel: skills.level,
+      userName: users.firstName,
+      userLastName: users.lastName
+    })
+    .from(userSkills)
+    .innerJoin(skills, eq(userSkills.skillId, skills.id))
+    .innerJoin(users, eq(userSkills.userId, users.id))
+    .where(
+      and(
+        eq(userSkills.tenantId, tenantId),
+        eq(userSkills.userId, userId),
+        eq(userSkills.isActive, true) // Assuming we only want active skill assignments
+      )
+    )
+    .orderBy(asc(skills.name)); // Order by skill name alphabetically
+
+    // Calculate summary statistics
+    const totalSkills = userSkillsData.length;
+    const proficiencyDistribution = {
+      novice: 0,
+      basic: 0,
+      intermediate: 0,
+      advanced: 0,
+      expert: 0
+    };
+    const categoryCounts = {};
+    let totalExperience = 0;
+
+    userSkillsData.forEach(us => {
+      if (us.proficiencyLevel in proficiencyDistribution) {
+        proficiencyDistribution[us.proficiencyLevel]++;
+      }
+      categoryCounts[us.skillCategory] = (categoryCounts[us.skillCategory] || 0) + 1;
+      totalExperience += us.yearsOfExperience || 0;
+    });
+
+    const topCategories = Object.entries(categoryCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([category]) => category);
+
+    console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved ${totalSkills} skills for user: ${userId} in tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      data: sampleUserSkills,
+      data: userSkillsData.map(us => ({
+        id: us.id,
+        userId: us.userId,
+        skillId: us.skillId,
+        proficiencyLevel: us.proficiencyLevel,
+        yearsOfExperience: us.yearsOfExperience,
+        certifications: us.certifications,
+        notes: us.notes,
+        createdAt: us.createdAt,
+        updatedAt: us.updatedAt,
+        skill: {
+          id: us.skillId,
+          name: us.skillName,
+          category: us.skillCategory,
+          level: us.skillLevel
+        }
+      })),
       summary: {
-        totalSkills: sampleUserSkills.length,
-        proficiencyDistribution: {
-          novice: 0,
-          basic: 0,
-          intermediate: 0,
-          advanced: 1,
-          expert: 1
-        },
-        topCategories: ['Programming Languages', 'Databases'],
-        totalExperience: sampleUserSkills.reduce((sum, skill) => sum + skill.yearsOfExperience, 0)
+        totalSkills,
+        proficiencyDistribution,
+        topCategories,
+        totalExperience
       },
-      message: 'User skills retrieved successfully (Phase 9 working implementation)'
+      message: 'User skills retrieved successfully'
     });
 
   } catch (error) {
@@ -665,11 +847,34 @@ router.delete('/working/user-skills/:id', async (req, res) => {
 
     const { id } = req.params;
 
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { userSkills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Check if the user skill assignment exists and belongs to the tenant
+    const [existingUserSkill] = await db.select().from(userSkills).where(
+      and(eq(userSkills.id, id), eq(userSkills.tenantId, tenantId))
+    );
+
+    if (!existingUserSkill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'User skill assignment not found or does not belong to this tenant'
+      });
+    }
+
+    // Delete the user skill assignment
+    await db.delete(userSkills).where(
+      and(eq(userSkills.id, id), eq(userSkills.tenantId, tenantId))
+    );
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted user skill: ${id} for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      message: 'User skill assignment removed successfully (Phase 9 working implementation)'
+      message: 'User skill assignment removed successfully'
     });
 
   } catch (error) {
@@ -745,5 +950,120 @@ router.get('/working/certifications/expiring', async (req, res) => {
     });
   }
 });
+
+// Batch assign members to skill
+router.post('/skills/:skillId/assign-members', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const { skillId } = req.params;
+    const { memberIds, defaultProficiencyLevel = 'beginner' } = req.body;
+
+    // ✅ 1QA.MD: Validate required fields following security patterns
+    if (!skillId || !Array.isArray(memberIds) || memberIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: skillId and memberIds array' 
+      });
+    }
+
+    // ✅ 1QA.MD: Use tenant-specific schema for multi-tenancy compliance
+    const tenantId = user.tenantId;
+    console.log(`[TECHNICAL-SKILLS-WORKING] Batch assigning members to skill ${skillId} for tenant: ${tenantId}`);
+
+    const assignments = [];
+    const errors = [];
+
+    // Import database and schema
+    const { db } = await import('../../../db');
+    const { userSkills, skills } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // Check if the skill exists and belongs to the tenant
+    const [skill] = await db.select().from(skills).where(
+      and(eq(skills.id, skillId), eq(skills.tenantId, tenantId))
+    );
+
+    if (!skill) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Skill not found or does not belong to this tenant'
+      });
+    }
+
+    for (const userId of memberIds) {
+      try {
+        // Check if user already has this skill assigned
+        const [existingUserSkill] = await db.select().from(userSkills).where(
+          and(eq(userSkills.userId, userId), eq(userSkills.skillId, skillId), eq(userSkills.tenantId, tenantId))
+        );
+
+        if (existingUserSkill) {
+          errors.push({ userId, error: 'User already has this skill assigned' });
+          continue; // Skip to next user if already assigned
+        }
+
+        const userSkillId = `user_skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        const assignment = {
+          id: userSkillId,
+          tenantId,
+          userId,
+          skillId,
+          proficiencyLevel: defaultProficiencyLevel,
+          yearsOfExperience: 0,
+          certifications: [],
+          notes: 'Atribuído automaticamente via atribuição em lote',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        assignments.push(assignment);
+        console.log(`[TECHNICAL-SKILLS-WORKING] Created assignment: ${userSkillId} for user: ${userId}`);
+      } catch (error) {
+        console.error(`[TECHNICAL-SKILLS-WORKING] Error assigning user ${userId}:`, error);
+        errors.push({ userId, error: error.message });
+      }
+    }
+
+    // Bulk insert assignments if there are any to add
+    if (assignments.length > 0) {
+      await db.insert(userSkills).values(assignments);
+    }
+
+    const response = {
+      success: true,
+      data: {
+        assignments: assignments.map(a => ({ // Return only successful assignments
+          id: a.id,
+          userId: a.userId,
+          skillId: a.skillId,
+          proficiencyLevel: a.proficiencyLevel,
+          notes: a.notes
+        })),
+        successCount: assignments.length,
+        errorCount: errors.length,
+        errors
+      },
+      message: `Successfully assigned ${assignments.length} member(s) to skill. ${errors.length} error(s).`
+    };
+
+    console.log(`[TECHNICAL-SKILLS-WORKING] Batch assignment completed: ${assignments.length} success, ${errors.length} errors`);
+
+    res.status(201).json(response);
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS-WORKING] Error in batch assignment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign members to skill'
+    });
+  }
+});
+
 
 module.exports = { technicalSkillsWorkingRoutes: router };
