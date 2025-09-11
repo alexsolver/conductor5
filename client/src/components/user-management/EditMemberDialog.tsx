@@ -144,14 +144,21 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       return res.json();
     },
     enabled: open && !!member?.id,
+    cacheTime: 0,               // 🔥 sem cache
+    staleTime: 0,               // 🔥 nunca fresco
+    refetchOnMount: 'always',   // 🔥 sempre refetch ao montar
+    refetchOnWindowFocus: false // opcional
+
   });
 
   // Update selected groups when member groups data changes
   useEffect(() => {
     if (memberGroupsData?.groups) {
-      setSelectedGroups(memberGroupsData.groups.map((g: any) => g.id));
+      const currentGroupIds = memberGroupsData.groups.map((g: any) => g.id);
+      setSelectedGroups(currentGroupIds);
     }
   }, [memberGroupsData]);
+
 
 
   // Reset form when member details are loaded
