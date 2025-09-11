@@ -846,7 +846,6 @@ router.post(
         SELECT id
         FROM ${sql.raw(`"${schemaName}".user_groups`)}
         WHERE id = ${groupId}
-          AND tenant_id = ${tenantId}
           AND is_active = true
         LIMIT 1
       `;
@@ -857,13 +856,15 @@ router.post(
       }
 
       // 2️⃣ Validar usuários do tenant
+      const idsList = uniqueUserIds.map(id => `'${id}'`).join(', ');
+
       const validUsersQuery = sql`
         SELECT id
         FROM ${sql.raw(`"${schemaName}".users`)}
-        WHERE id = ANY(${uniqueUserIds}::uuid[])
-          AND tenant_id = ${tenantId}
+        WHERE id = ANY(ARRAY[${sql.raw(idsList)}])
           AND is_active = true
       `;
+
       const validUsers = await db.execute(validUsersQuery);
 
       const validUserIds = validUsers.rows.map((u) => u.id);
@@ -906,15 +907,14 @@ router.post(
 
       const insertQuery = sql`
         INSERT INTO ${membershipsTable}
-          (user_id, group_id, role, added_by_id, is_active, created_at, updated_at)
+          (user_id, group_id, role, added_by_id, is_active, created_at, updated_at, tenant_id)
         VALUES ${sql.join(
           membershipData.map(
             (row) =>
-              sql`(${row[0]}, ${row[1]}, ${row[2]}, ${row[3]}, ${row[4]}, ${row[5]}, ${row[6]})`
+              sql`(${row[0]}, ${row[1]}, ${row[2]}, ${row[3]}, ${row[4]}, ${row[5]}, ${row[6]}, ${te})`
           ),
           sql`, `
         )}
-        ON CONFLICT (group_id, user_id) DO NOTHING
         RETURNING *
       `;
 
