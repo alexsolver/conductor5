@@ -286,7 +286,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       if (JSON.stringify(selectedGroups.sort()) !== JSON.stringify(currentGroupIds.sort())) {
         await updateGroupsMutation.mutateAsync(selectedGroups);
       }
-
+      
       onOpenChange(false); // Close dialog only after both mutations succeed
     } catch (error) {
       console.error('EditMemberDialog - Submit error:', error);
@@ -309,11 +309,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   };
 
   if (!member) {
-    return null;
-  }
-  
-  if (!member.id) {
-    console.error('EditMemberDialog - Member missing ID:', member);
     return null;
   }
 
@@ -539,7 +534,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     id="pis"
                     {...form.register('pis')}
                     className="pl-10"
-                    placeholder="000.000.000-0"
+                    placeholder="000.00000.00-0"
                   />
                 </div>
               </div>
