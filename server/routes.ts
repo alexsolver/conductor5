@@ -2353,102 +2353,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // MANUAL TENANT TEMPLATE APPLICATION
   // ========================================
-  
-  app.post(
-    "/api/tenant/apply-template",
-    jwtAuth,
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const tenantId = req.user?.tenantId;
-        const userId = req.user?.id;
-        
-        if (!tenantId || !userId) {
-          return res.status(400).json({
-            success: false,
-            message: "Tenant ID and User ID are required"
-          });
-        }
 
-        const { TenantTemplateService } = await import("./services/TenantTemplateService");
-        
-        const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
-        
-        // Check if template is already applied
-        const isTemplateApplied = await TenantTemplateService.isTemplateApplied(
-          schemaManager.pool,
-          schemaName,
-          tenantId
-        );
+  // Apply tenant template endpoint
+  app.post('/api/tenant/apply-template', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user.tenantId;
+      const userId = req.user.id;
+      const { companyName, companyEmail, industry } = req.body;
 
-        if (isTemplateApplied) {
-          return res.json({
-            success: true,
-            message: "Template already applied",
-            data: {
-              tenantId,
-              templateStatus: "already_applied"
-            }
-          });
-        }
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID required' });
+      }
 
-        // Get tenant info for company name
-        const tenantQuery = `SELECT name, subdomain FROM public.tenants WHERE id = $1`;
-        const tenantResult = await schemaManager.pool.query(tenantQuery, [tenantId]);
-        
-        const tenantData = tenantResult.rows[0];
-        const companyName = tenantData?.name || tenantData?.subdomain || "Default Company";
+      // Check if user has admin permissions
+      if (req.user.role !== 'tenant_admin' && req.user.role !== 'saas_admin') {
+        return res.status(403).json({ error: 'Admin permissions required' });
+      }
 
-        // Apply the template
+      const { pool } = await import('./db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log(`[TEMPLATE-APPLICATION] Applying template for tenant: ${tenantId}`);
+
+      // Check if template was already applied
+      const isAlreadyApplied = await TenantTemplateService.isTemplateApplied(pool, schemaName, tenantId);
+
+      if (isAlreadyApplied) {
+        return res.json({
+          success: true,
+          message: 'Template already applied',
+          alreadyApplied: true
+        });
+      }
+
+      // Apply the customized default template if company info provided, otherwise apply basic template
+      if (companyName) {
         await TenantTemplateService.applyCustomizedDefaultTemplate(
           tenantId,
           userId,
-          schemaManager.pool,
+          pool,
           schemaName,
           {
             companyName,
-            companyEmail: req.user?.email,
-            industry: "Geral"
+            companyEmail,
+            industry
           }
         );
-
-        // Validate application
-        const validationResult = await TenantTemplateService.isTemplateApplied(
-          schemaManager.pool,
-          schemaName,
-          tenantId
+      } else {
+        // Apply basic template
+        await TenantTemplateService.applyDefaultCompanyTemplate(
+          tenantId,
+          userId,
+          pool,
+          schemaName
         );
-
-        if (!validationResult) {
-          throw new Error("Template validation failed after manual application");
-        }
-
-        res.json({
-          success: true,
-          message: "Template applied successfully",
-          data: {
-            tenantId,
-            companyName,
-            templateStatus: "applied",
-            totalItemsCreated: {
-              company: 1,
-              ticketFieldOptions: 19,
-              categories: 4,
-              subcategories: 12,
-              actions: 36,
-            }
-          }
-        });
-
-      } catch (error) {
-        console.error("Error applying template manually:", error);
-        res.status(500).json({
-          success: false,
-          message: error instanceof Error ? error.message : "Failed to apply template",
-          error: error instanceof Error ? error.message : "Unknown error"
-        });
       }
+
+      res.json({
+        success: true,
+        message: 'Default template applied successfully',
+        alreadyApplied: false
+      });
+    } catch (error) {
+      console.error('Error applying tenant template:', error);
+      res.status(500).json({
+        error: 'Failed to apply template',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
-  );
+  });
 
   // ========================================
   // TENANT DEPLOYMENT TEMPLATEROUTES
@@ -3555,7 +3528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get('/api/locations-new/grupos-equipe', jwtAuth, locationsNewController.getGruposEquipe.bind(locationsNewController));
     app.get('/api/locations-new/locais', jwtAuth, locationsNewController.getLocaisAtendimento.bind(locationsNewController));
     app.get('/api/locations-new/cep/:cep', locationsNewController.lookupCep.bind(locationsNewController));
-    app.get('/api/locations-new/holidays', locationsNewController.lookupHolidays.bind(locationsNewController));
+    app.get('/api/locations-new/holidays', jwtAuth, locationsNewController.lookupHolidays.bind(locationsNewController));
     app.post('/api/locations-new/geocode', locationsNewController.geocodeAddress.bind(locationsNewController));
     app.get('/api/locations-new/:recordType', jwtAuth, locationsNewController.getRecordsByType.bind(locationsNewController));
     app.post('/api/locations-new/:recordType', jwtAuth, locationsNewController.createRecord.bind(locationsNewController));
@@ -3683,9 +3656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenantId = req.user?.tenantId;
         if (!tenantId) {
-          return res.status(400).json({
-            message: "Tenant ID required for integrations",
-          });
+          return res.status(400).json({ message: "Tenant ID required for integrations" });
         }
 
         console.log(

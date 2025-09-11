@@ -10,6 +10,8 @@ import { authSecurityService } from "../../services/authSecurityService";
 import { tokenManager } from "../../utils/tokenManager";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import { tenantAutoProvisioningService } from '../../services/TenantAutoProvisioningService';
+import { TenantTemplateService } from '../../services/TenantTemplateService';
 
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
@@ -35,9 +37,9 @@ authRouter.post(
 
       if (!tokenToUse) {
         console.log("❌ [REFRESH] No refresh token provided");
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Refresh token required" 
+          message: "Refresh token required"
         });
       }
 
@@ -53,9 +55,9 @@ authRouter.post(
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
         });
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: "Invalid refresh token" 
+          message: "Invalid refresh token"
         });
       }
 
@@ -68,9 +70,9 @@ authRouter.post(
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
         });
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: "User not found or inactive" 
+          message: "User not found or inactive"
         });
       }
 
@@ -100,9 +102,9 @@ authRouter.post(
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
       });
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
-        message: "Token refresh failed" 
+        message: "Token refresh failed"
       });
     }
   },
@@ -257,8 +259,8 @@ authRouter.post(
             const { sql } = await import("drizzle-orm");
             const schemaCheck = await db.execute(
               sql.raw(`
-                SELECT schema_name 
-                FROM information_schema.schemata 
+                SELECT schema_name
+                FROM information_schema.schemata
                 WHERE schema_name = '${schemaName}'
               `),
             );
@@ -359,52 +361,30 @@ authRouter.post(
 
         // Apply template for the new tenant
         try {
-          const { TenantTemplateService } = await import("../../services/TenantTemplateService");
-
           console.log(`🎯 [REGISTER] Applying default template for tenant: ${savedTenant.id}`);
 
-          // Verify if template was already applied
-          const isTemplateApplied = await TenantTemplateService.isTemplateApplied(
-            schemaManager.pool,
+          // Get pool and schema name for template application
+          const { pool } = await import('../../db');
+          const schemaName = `tenant_${savedTenant.id.replace(/-/g, '_')}`;
+
+          // Apply the customized default template with company name from registration
+          await TenantTemplateService.applyCustomizedDefaultTemplate(
+            savedTenant.id,
+            newUser.id,
+            pool,
             schemaName,
-            savedTenant.id
+            {
+              companyName: userData.companyName || userData.workspaceName || "Default Company",
+              companyEmail: userData.email,
+              industry: "Geral"
+            }
           );
 
-          if (!isTemplateApplied) {
-            // Apply customized template with company name
-            await TenantTemplateService.applyCustomizedDefaultTemplate(
-              savedTenant.id,
-              newUser.id,
-              schemaManager.pool,
-              schemaName,
-              {
-                companyName: userData.companyName || userData.workspaceName || "Default Company",
-                companyEmail: userData.email,
-                industry: "Geral"
-              }
-            );
-
-            console.log(`✅ [REGISTER] Template applied successfully for tenant: ${savedTenant.id}`);
-          } else {
-            console.log(`ℹ️ [REGISTER] Template already applied for tenant: ${savedTenant.id}`);
-          }
-
-          // Validate that template was applied correctly
-          const validationResult = await TenantTemplateService.isTemplateApplied(
-            schemaManager.pool,
-            schemaName,
-            savedTenant.id
-          );
-
-          if (!validationResult) {
-            throw new Error("Template validation failed after application");
-          }
-
+          console.log(`✅ [REGISTER] Template applied successfully for tenant: ${savedTenant.id}`);
         } catch (templateError) {
           console.error(`❌ [REGISTER] Template application failed for tenant ${savedTenant.id}:`, templateError);
           // Don't fail the registration, but log the error and try to apply basic template
           try {
-            const { TenantTemplateService } = await import("../../services/TenantTemplateService");
             await TenantTemplateService.applyDefaultCompanyTemplate(
               savedTenant.id,
               newUser.id,
