@@ -218,115 +218,26 @@ export default function ItemCatalog() {
       const url = `/api/materials-services/items${params.toString() ? `?${params}` : ''}`;
       console.log('🔍 [ItemCatalog] Fetching from URL:', url);
 
-      // ✅ CRITICAL FIX - Enhanced token validation per 1qa.md compliance
-      const token = localStorage.getItem('accessToken');
-      if (!token || token === 'null' || token === 'undefined' || token.trim() === '' || token.length < 10) {
-        console.error('❌ [ItemCatalog] No valid authentication token found');
-        
-        // Try to get a fresh token from cookies as fallback
-        const cookieToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('accessToken='))
-          ?.split('=')[1];
-          
-        if (cookieToken && cookieToken.length > 10) {
-          console.log('🔄 [ItemCatalog] Found valid token in cookies, updating localStorage');
-          localStorage.setItem('accessToken', cookieToken);
-          // Retry the fetch with the new token
-          setTimeout(() => fetchItems(), 100);
-          return;
-        }
-        
-        toast({
-          title: "Sessão expirada",
-          description: "Por favor, faça login novamente.",
-          variant: "destructive"
-        });
-        // Don't force redirect following 1qa.md - let components handle auth state
-        console.log('Invalid tokens detected - components will handle auth state');
-        return;
-      }
+      // ✅ CRITICAL FIX - Use HTTP-only cookies authentication like other working endpoints
+      console.log('🔍 [ItemCatalog] Using HTTP-only cookie authentication');
 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         },
-        credentials: 'same-origin'
+        credentials: 'include' // ✅ Use HTTP-only cookies
       });
 
       console.log('🔍 [ItemCatalog] Response status:', response.status);
       console.log('🔍 [ItemCatalog] Response headers:', Object.fromEntries(response.headers.entries()));
 
-      // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
+      // ✅ CRITICAL FIX - Handle 401/403 responses with HTTP-only cookie authentication
       if (response.status === 401 || response.status === 403) {
-        console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
-
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken || refreshToken === 'null' || refreshToken === 'undefined') {
-          console.error('❌ [ItemCatalog] No refresh token available');
-
-          // Clear invalid tokens
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-
-          // Don't force redirect following 1qa.md - let components handle auth state
-          console.log('Session expired detected - components will handle auth state');
-          return;
-        }
-
-        try {
-          const refreshResponse = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
-            credentials: 'include'
-          });
-
-          if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json();
-
-            // ✅ CRITICAL FIX - Handle backend response structure per 1qa.md compliance
-            if (refreshData.success && refreshData.data?.tokens) {
-              const { accessToken, refreshToken: newRefreshToken } = refreshData.data.tokens;
-              localStorage.setItem('accessToken', accessToken);
-              if (newRefreshToken) {
-                localStorage.setItem('refreshToken', newRefreshToken);
-              }
-
-              // Retry the original request with new token
-              const retryResponse = await fetch(url, {
-                headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'include'
-              });
-
-              if (retryResponse.ok) {
-                const data = await retryResponse.json();
-                if (data.success && Array.isArray(data.data)) {
-                  setItems(data.data);
-                  console.log('✅ [ItemCatalog] Successfully loaded after token refresh:', data.data.length, 'items');
-                  return;
-                }
-              }
-            }
-          }
-        } catch (refreshError) {
-          console.error('❌ [ItemCatalog] Token refresh failed:', refreshError);
-        }
-
-        // If refresh failed, redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        console.log('🔄 [ItemCatalog] Authentication failed - session expired');
+        
         toast({
           title: "Sessão expirada",
           description: "Por favor, faça login novamente.",
@@ -334,7 +245,7 @@ export default function ItemCatalog() {
         });
 
         // Don't force redirect following 1qa.md - let components handle auth state
-        console.log('CSP-related errors detected - components will handle auth state');
+        console.log('Session expired detected - components will handle auth state');
         return;
       }
 
