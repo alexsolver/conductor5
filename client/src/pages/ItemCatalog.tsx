@@ -148,7 +148,7 @@ const measurementUnits = [
 
 export default function ItemCatalog() {
   const { t } = useTranslation();
-  
+
   // Estados principais
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -249,15 +249,15 @@ export default function ItemCatalog() {
       // ✅ CRITICAL FIX - Handle 401/403 responses with token refresh per 1qa.md
       if (response.status === 401 || response.status === 403) {
         console.log('🔄 [ItemCatalog] Token expired, attempting refresh...');
-        
+
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken || refreshToken === 'null' || refreshToken === 'undefined') {
           console.error('❌ [ItemCatalog] No refresh token available');
-          
+
           // Clear invalid tokens
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          
+
           // Don't force redirect following 1qa.md - let components handle auth state
           console.log('Session expired detected - components will handle auth state');
           return;
@@ -274,7 +274,7 @@ export default function ItemCatalog() {
 
           if (refreshResponse.ok) {
             const refreshData = await refreshResponse.json();
-            
+
             // ✅ CRITICAL FIX - Handle backend response structure per 1qa.md compliance
             if (refreshData.success && refreshData.data?.tokens) {
               const { accessToken, refreshToken: newRefreshToken } = refreshData.data.tokens;
@@ -282,7 +282,7 @@ export default function ItemCatalog() {
               if (newRefreshToken) {
                 localStorage.setItem('refreshToken', newRefreshToken);
               }
-              
+
               // Retry the original request with new token
               const retryResponse = await fetch(url, {
                 headers: {
@@ -290,7 +290,7 @@ export default function ItemCatalog() {
                   'Content-Type': 'application/json'
                 }
               });
-              
+
               if (retryResponse.ok) {
                 const data = await retryResponse.json();
                 if (data.success && Array.isArray(data.data)) {
@@ -304,7 +304,7 @@ export default function ItemCatalog() {
         } catch (refreshError) {
           console.error('❌ [ItemCatalog] Token refresh failed:', refreshError);
         }
-        
+
         // If refresh failed, redirect to login
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -313,7 +313,7 @@ export default function ItemCatalog() {
           description: "Por favor, faça login novamente.",
           variant: "destructive"
         });
-        
+
         // Don't force redirect following 1qa.md - let components handle auth state
         console.log('CSP-related errors detected - components will handle auth state');
         return;
@@ -332,7 +332,7 @@ export default function ItemCatalog() {
         console.log('🔍 [ItemCatalog] Raw response length:', responseText.length);
         console.log('🔍 [ItemCatalog] Raw response start:', responseText.substring(0, 200));
         console.log('🔍 [ItemCatalog] Response content-type:', response.headers.get('content-type'));
-        
+
         // ✅ CRITICAL FIX - Enhanced HTML response detection per 1qa.md compliance
         const contentType = response.headers.get('content-type') || '';
         if (!contentType.includes('application/json')) {
@@ -350,20 +350,20 @@ export default function ItemCatalog() {
             responseText.includes('@vite/client')) {
           console.error('❌ [ItemCatalog] Received HTML/JavaScript instead of JSON - Vite interception detected');
           console.error('❌ [ItemCatalog] This indicates API routing is not working properly');
-          
+
           // Clear tokens and force re-authentication
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          
+
           throw new Error('Vite intercepted API route - forcing re-authentication');
         }
-        
+
         // Check if response is empty
         if (!responseText.trim()) {
           console.error('❌ [ItemCatalog] Received empty response');
           throw new Error('Server returned empty response');
         }
-        
+
         data = JSON.parse(responseText);
         console.log('✅ [ItemCatalog] Successfully parsed JSON response');
       } catch (parseError) {
@@ -395,20 +395,17 @@ export default function ItemCatalog() {
         setItems([]);
       }
     } catch (error) {
-      console.error('❌ [ItemCatalog] Error fetching items:', error);
-      setItems([]);
+      console.error('❌ [ItemCatalog] Fetch error:', error);
 
-      // ✅ Enhanced error handling per 1qa.md compliance
-      if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
-        // Don't force redirect following 1qa.md - let components handle auth state  
-        console.log('Authentication error detected - components will handle auth state');
-      } else {
-        toast({
-          title: "Erro no catálogo",
-          description: "Erro ao carregar itens do catálogo. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+      const errorMessage = error?.message || 'Erro ao carregar itens do catálogo. Tente novamente.';
+
+      toast({
+        title: "Erro no catálogo",
+        description: errorMessage,
+        variant: "destructive"
+      });
+
+      setItems([]);
     } finally {
       setLoading(false);
     }
