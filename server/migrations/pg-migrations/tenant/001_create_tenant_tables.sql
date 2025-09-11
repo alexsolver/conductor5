@@ -467,7 +467,7 @@ CREATE TABLE IF NOT EXISTS user_group_memberships (
   created_at    timestamp   NOT NULL DEFAULT now(),
   updated_at    timestamp   NULL,
   created_by_id uuid        NULL,
-  updated_by_id uuid        NULL,
+  updated_by_id uuid        NULL
 );
 
 

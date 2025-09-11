@@ -813,20 +813,25 @@ router.post(
       const tenantId = req.user!.tenantId;
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      console.log(`👥 [TENANT-GROUPS] Adding ${userIds?.length || 0} members to group ${groupId} in schema ${schemaName}`);
+      console.log(
+        `👥 [TENANT-GROUPS] Adding ${userIds?.length || 0} members to group ${groupId} in schema ${schemaName}`
+      );
 
       // Validate input
       if (!Array.isArray(userIds) || userIds.length === 0) {
-        return res.status(400).json({ message: 'userIds array is required and cannot be empty' });
+        return res.status(400).json({
+          message: 'userIds array is required and cannot be empty',
+        });
       }
 
-      // 1️⃣ Check if group exists and belongs to tenant
+      // 1️⃣ Check if group exists
       const groupQuery = `
-        SELECT id FROM "${schemaName}".user_groups 
-        WHERE id::text = $1::text 
+        SELECT id 
+        FROM "${schemaName}".user_groups 
+        WHERE id = '${groupId}' 
           AND is_active = true
       `;
-      const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
+      const groupResult = await db.execute(groupQuery);
 
       if (!groupResult.rows.length) {
         console.log(`Group ${groupId} not found for tenant ${tenantId}`);
@@ -834,17 +839,19 @@ router.post(
       }
 
       const results = [];
-      const now = new Date();
+      const now = new Date().toISOString();
 
       for (const userId of userIds) {
         try {
-          // 2️⃣ Check if user exists and belongs to tenant
+          // 2️⃣ Check if user exists
           const userQuery = `
-            SELECT id FROM public.users 
-            WHERE id::text = $1::text 
+            SELECT id 
+            FROM public.users 
+            WHERE id = '${userId}' 
+              AND tenant_id = '${tenantId}' 
               AND is_active = true
           `;
-          const userResult = await db.execute(sql.raw(userQuery, [userId, tenantId]));
+          const userResult = await db.execute(userQuery);
 
           if (!userResult.rows.length) {
             results.push({ userId, success: false, error: 'User not found' });
@@ -853,64 +860,69 @@ router.post(
 
           // 3️⃣ Check if membership already exists
           const existingQuery = `
-            SELECT id FROM "${schemaName}".user_group_memberships 
-            WHERE user_id::text = $1::text 
-              AND group_id::text = $2::text 
+            SELECT id 
+            FROM "${schemaName}".user_group_memberships 
+            WHERE user_id = '${userId}' 
+              AND group_id = '${groupId}' 
               AND is_active = true
           `;
-          const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
+          const existingResult = await db.execute(existingQuery);
 
           if (existingResult.rows.length > 0) {
-            results.push({ userId, success: false, error: 'User is already a member' });
+            results.push({
+              userId,
+              success: false,
+              error: 'User is already a member',
+            });
             continue;
           }
 
-          // 4️⃣ Add user to group
+          // 4️⃣ Insert membership
           const membershipId = crypto.randomUUID();
           const insertQuery = `
             INSERT INTO "${schemaName}".user_group_memberships 
-            (id, tenant_id, user_id, group_id, role, added_by_id, added_at, is_active, created_at, updated_at)
-            VALUES ($1::text, $2::text, $3::text, $4::text, $5, $6::text, $7, $8, $9, $10)
+            (id, tenant_id, user_id, group_id, role, is_active, created_at, updated_at)
+            VALUES (
+              '${membershipId}', 
+              '${tenantId}', 
+              '${userId}', 
+              '${groupId}', 
+              'member', 
+              true, 
+              '${now}', 
+              '${now}'
+            )
           `;
-
-          await db.execute(sql.raw(insertQuery, [
-            membershipId,
-            tenantId,
-            userId,
-            groupId,
-            'member',
-            req.user!.id,
-            now,
-            true,
-            now,
-            now
-          ]));
+          await db.execute(insertQuery);
 
           results.push({ userId, success: true, membershipId });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error adding user ${userId} to group:`, error);
           results.push({ userId, success: false, error: error.message });
         }
       }
 
-      const successCount = results.filter(r => r.success).length;
-      console.log(`✅ [TENANT-GROUPS] Successfully added ${successCount}/${userIds.length} users to group ${groupId}`);
+      const successCount = results.filter((r) => r.success).length;
+      console.log(
+        `✅ [TENANT-GROUPS] Successfully added ${successCount}/${userIds.length} users to group ${groupId}`
+      );
 
       res.json({
         success: true,
         message: `Added ${successCount} users to group`,
-        results
+        results,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error in bulk add:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to add users to group',
-        error: error?.message || 'Unknown error occurred'
+        error: error?.message || 'Unknown error occurred',
       });
     }
   }
 );
+
 
 // Remove user from group
 router.delete('/:groupId/members/:userId', 
@@ -1121,7 +1133,7 @@ router.post('/roles',
       const tableIdent = sql.raw(`"${schemaName}".roles`);
 
       const descOrNull = description ? description : null;
-      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + ']::text[]')}`;
+      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + '][]')}`;
 
 
       const query = sql`
@@ -1154,7 +1166,7 @@ router.put('/roles/:roleId',
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const tableIdent = sql.raw(`"${schemaName}".roles`);
       const descOrNull = description ? description : null;
-      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + ']::text[]')}`;
+      const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + '][]')}`;
 
       const query = sql`
         UPDATE ${tableIdent}
