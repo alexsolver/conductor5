@@ -855,6 +855,14 @@ router.post(
       }
 
       // 2️⃣ Validar usuários do tenant (sem sql.raw aqui!)
+      const validUsers = await db.execute(sql`
+      SELECT id
+       FROM "${schemaName}".users
+       WHERE id = ANY($1::uuid[])
+         AND tenant_id = ${uniqueUserIds}
+         AND is_active = true
+      `);
+
       const validUsers = await db.execute(
         `SELECT id
          FROM "${schemaName}".users
