@@ -1,0 +1,52 @@
+Warning: A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://reactjs.org/link/controlled-components
+    at input
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/input.tsx:23:8
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:128:9
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:76:6
+    at Controller (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-Z4Z5NBTV.js?v=966dbd41:345:35)
+    at FormField (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at form
+    at FormProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-Z4Z5NBTV.js?v=966dbd41:101:11)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=966dbd41:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=966dbd41:61:7
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=966dbd41:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=966dbd41:29:5
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=966dbd41:237:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=966dbd41:160:58
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=966dbd41:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=966dbd41:151:64
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=966dbd41:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=966dbd41:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=966dbd41:260:22
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=966dbd41:24:11)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=966dbd41:38:15)
+    at DialogPortal (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=966dbd41:113:11)
+    at _c3 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=966dbd41:38:15)
+    at Dialog…
+Error creating contract: 
+TypeError {message: "Failed to execute 'fetch' on 'Window': '/api/contracts' is not a valid HTTP method."}
+message: "Failed to execute 'fetch' on 'Window': '/api/contracts' is not a valid HTTP method."
+stack: "TypeError: '/api/contracts' is not a valid HTTP method.↵ at window.fetch (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)↵ at Object.apply (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/injected.js:278:39)↵ at apiRequest (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/lib/queryClient.ts:60:10)↵ at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/forms/CreateContractDialog.tsx:108:30)↵ at Object.fn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:1189:29)↵ at run (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:494:49)↵ at Object.start (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:536:9)↵ at _a6.execute (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:1225:56)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Failed to execute 'fetch' on 'Window': '/api/contracts' is not a valid HTTP method.
+at window.fetch (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+at Object.apply (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/injected.js:278:39)
+at apiRequest (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/lib/queryClient.ts:60:10)
+at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/forms/CreateContractDialog.tsx:108:30)
+at Object.fn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:1189:29)
+at run (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:494:49)
+at Object.start (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:536:9)
+at _a6.execute (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=71595aae:1225:56)
