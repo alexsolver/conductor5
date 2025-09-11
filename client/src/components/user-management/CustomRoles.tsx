@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +19,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +54,8 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Trash
+  Trash,
+  AlertCircle
 } from "lucide-react";
 
 interface Role {
@@ -100,7 +112,7 @@ interface CustomRolesProps {
   tenantAdmin?: boolean;
 }
 
-export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
+function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -113,7 +125,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
 
   // Queries
   // Roles
-  const { data: rolesData, isLoading: rolesLoading } = useQuery({
+  const { data: rolesData, isLoading: rolesLoading, error: rolesError } = useQuery({
     queryKey: ["/api/user-management/roles"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user-management/roles");
@@ -127,7 +139,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
   });
 
   // Permissions
-  const { data: permissionsData, isLoading: permissionsLoading } = useQuery({
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = useQuery({
     queryKey: ["/api/user-management/permissions"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user-management/permissions");
@@ -326,6 +338,46 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     acc[permission.category].push(permission);
     return acc;
   }, {}) || {};
+
+  // Loading state
+  if (rolesLoading || permissionsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-3"></div>
+          <span className="text-sm text-gray-600">Carregando permissões...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (rolesError || permissionsError) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar permissões</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Ocorreu um erro ao carregar as permissões do sistema. Tente novamente.
+              </p>
+              <Button
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/user-management/roles'] });
+                  queryClient.invalidateQueries({ queryKey: ['/api/user-management/permissions'] });
+                }}
+                variant="outline"
+              >
+                Tentar Novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -637,12 +689,7 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
         </Dialog>
       </div>
 
-      {rolesLoading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Carregando permissões...</p>
-        </div>
-      ) : rolesData?.length === 0 ? (
+      {rolesData?.length === 0 ? (
         <Card className="p-8 text-center">
           <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium mb-2">Nenhuma permissão encontrada</h3>
@@ -723,3 +770,5 @@ export default function CustomRoles({ tenantAdmin = false }: CustomRolesProps) {
     </div>
   );
 }
+
+export default CustomRoles;

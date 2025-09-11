@@ -498,7 +498,7 @@ export default function TeamManagement() {
             <Building className="h-3 w-3" />
             <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="permissões" className="flex items-center space-x-1">
+          <TabsTrigger value="permissions" className="flex items-center space-x-1">
             <Shield className="h-3 w-3" />
             <span className="text-xs">Permissões</span>
           </TabsTrigger>
