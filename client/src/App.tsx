@@ -34,6 +34,7 @@ import HourBank from "./pages/HourBank";
 import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
 import TenantProvisioning from "./pages/TenantProvisioning";
+import Tenants from "./pages/Tenants";
 import SaasAdminPerformance from "./pages/SaasAdminPerformance";
 import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
@@ -179,12 +180,14 @@ function AppRouter() {
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
-        <Route path="/saas-admin" component={SaasAdmin} />
+        {/* Unified Tenants Management Page */}
+        <Route path="/tenants" component={Tenants} />
+        <Route path="/saas-admin" component={Tenants} />
         <Route path="/saas-admin/performance" component={SaasAdminPerformance} />
         <Route path="/saas-admin/billing" component={SaasAdminBilling} />
         <Route path="/saas-admin/disaster-recovery" component={SaasAdminDisasterRecovery} />
         <Route path="/saas-admin/integrations" component={SaasAdminIntegrations} />
-        <Route path="/tenant-admin" component={TenantAdmin} />
+        <Route path="/tenant-admin" component={Tenants} />
         <Route path="/tenant-admin/geral" component={TenantAdminGeral} />
         <Route path="/tenant-admin/workflows" component={TenantAdminWorkflows} />
         <Route path="/slas" component={SlaManagement} />
@@ -195,8 +198,8 @@ function AppRouter() {
 
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
-        <Route path="/tenant-provisioning" component={TenantProvisioning} />
-        <Route path="/saas-admin/tenant-provisioning" component={TenantProvisioning} />
+        <Route path="/tenant-provisioning" component={Tenants} />
+        <Route path="/saas-admin/tenant-provisioning" component={Tenants} />
         <Route path="/translation-manager" component={TranslationManager} />
         <Route path="/saas-admin/translation-manager" component={TranslationManager} />
         <Route path="/module-integrity" component={ModuleIntegrityControl} />
