@@ -841,36 +841,30 @@ router.post(
         `👥 [TENANT-GROUPS] Adding ${uniqueUserIds.length} members to group ${groupId} in schema ${schemaName}`
       );
 
-      // 1️⃣ Verificar se o grupo existe
-      const group = await db.execute(sql`
-        SELECT id, is_active
-        FROM ${userGroupsTable}
+      // 1️⃣ Verificar se o grupo existe e pertence ao tenant
+      const groupQuery = sql`
+        SELECT id
+        FROM ${sql.raw(`"${schemaName}".user_groups`)}
         WHERE id = ${groupId}
+          AND tenant_id = ${tenantId}
           AND is_active = true
         LIMIT 1
-      `);
+      `;
+      const group = await db.execute(groupQuery);
 
       if (group.rows.length === 0) {
         return res.status(404).json({ success: false, message: 'Group not found' });
       }
 
-      // 2️⃣ Validar usuários do tenant (sem sql.raw aqui!)
-      const validUsers = await db.execute(sql`
-      SELECT id
-       FROM "${schemaName}".users
-       WHERE id = ANY($1::uuid[])
-         AND tenant_id = ${uniqueUserIds}
-         AND is_active = true
-      `);
-
-      const validUsers = await db.execute(
-        `SELECT id
-         FROM "${schemaName}".users
-         WHERE id = ANY($1::uuid[])
-           AND tenant_id = $2
-           AND is_active = true`,
-        [uniqueUserIds, tenantId]
-      );
+      // 2️⃣ Validar usuários do tenant
+      const validUsersQuery = sql`
+        SELECT id
+        FROM ${sql.raw(`"${schemaName}".users`)}
+        WHERE id = ANY(${uniqueUserIds}::uuid[])
+          AND tenant_id = ${tenantId}
+          AND is_active = true
+      `;
+      const validUsers = await db.execute(validUsersQuery);
 
       const validUserIds = validUsers.rows.map((u) => u.id);
       if (validUserIds.length === 0) {
