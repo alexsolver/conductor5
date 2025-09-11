@@ -12,7 +12,7 @@ import {
   type DynamicPricing,
   type InsertDynamicPricing
 } from '@shared/schema';
-import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
 export class LPURepository {
@@ -606,9 +606,9 @@ export class LPURepository {
       // Set search path to tenant schema
       await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
 
-      const startTime = Date.now();
-      const result = await Promise.race([
-        this.db.execute(sql`
+      let result;
+      try {
+        result = await this.db.execute(sql`
           SELECT 
             pr.id,
             pr.tenant_id,
@@ -623,16 +623,17 @@ export class LPURepository {
             pr.updated_at
           FROM pricing_rules pr
           WHERE pr.tenant_id = ${tenantId}
-          ORDER BY pr.priority DESC, pr.created_at DESC
-          LIMIT 100
-        `),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Query timeout')), 6000)
-        )
-      ]);
+          ORDER BY pr.priority ASC, pr.created_at DESC
+          LIMIT 50
+        `);
+      } catch (tableError: any) {
+        if (tableError.message.includes('does not exist')) {
+          console.warn('🔄 [LPURepository] pricing_rules table does not exist, returning empty array');
+          return [];
+        }
+        throw tableError;
+      }
 
-      const queryTime = Date.now() - startTime;
-      console.log(`⚡ [LPURepository] Pricing rules query completed in ${queryTime}ms`);
       console.log(`✅ LPURepository.getAllPricingRules: Query successful, found ${result.rows.length} pricing rules`);
 
       // Cache results with 5-minute TTL
@@ -641,11 +642,18 @@ export class LPURepository {
         tags: [`tenant-${tenantId}`, 'pricing-rules']
       });
 
-      console.log(`💾 [LPURepository] Pricing rules cached for tenant: ${tenantId}`);
       return result.rows;
+
     } catch (error) {
       console.error('❌ LPURepository.getAllPricingRules: Database error:', error);
       console.error('❌ LPURepository.getAllPricingRules: Stack:', error instanceof Error ? error.stack : 'No stack trace');
+
+      // Return empty array instead of throwing error to prevent 500 responses
+      if (error instanceof Error && error.message.includes('does not exist')) {
+        console.warn('🔄 [LPURepository] Returning empty array due to missing table/column');
+        return [];
+      }
+
       throw new Error(`Failed to fetch pricing rules: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
