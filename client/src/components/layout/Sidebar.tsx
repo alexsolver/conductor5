@@ -408,9 +408,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   }`}>AC</span>
                 </div>
                 {!collapsed && (
-                  <span className="text-sm font-medium text-white transition-opacity duration-300">
-                    {tenantData?.name || t('common.loading', 'Carregando...')}
-                  </span>
+                  <div className="text-white">
+                    <p className="text-sm font-medium truncate max-w-32">
+                      {tenantData?.workspaceName || tenantData?.name || 'Carregando...'}
+                    </p>
+                    <p className="text-xs opacity-75 truncate max-w-32">
+                      Workspace
+                    </p>
+                  </div>
                 )}
               </div>
               {!collapsed && <ChevronDown className="w-4 h-4 text-white" />}
