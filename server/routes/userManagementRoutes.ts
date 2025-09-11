@@ -230,7 +230,7 @@ router.get(
 
       // Ambos SaaS Admin e Workspace Admin veem apenas grupos do próprio tenant
       console.log(`🔍 [USER-GROUPS] Fetching groups from own tenant: ${currentUserTenantId}`);
-      
+
       // Verificar permissões
       const hasPermission = userRole === 'saas_admin' || userRole === 'tenant_admin' || userRole === 'workspace_admin';
       if (!hasPermission) {
@@ -249,7 +249,7 @@ router.get(
         WHERE schema_name = ${schemaName}
       `;
       const schemaResult = await db.execute(schemaExistsQuery);
-      
+
       if (schemaResult.rows.length === 0) {
         console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist`);
         return res.status(404).json({
@@ -335,11 +335,19 @@ router.post(
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
+        console.error('❌ [USER-GROUPS] Missing required fields:', { tenantId, userId });
         return res.status(400).json({
           success: false,
           message: 'Tenant ID and user ID required',
         });
       }
+
+      console.log('🆕 [USER-GROUPS] Creating group with:', { 
+        tenantId, 
+        userId, 
+        name: name.trim(),
+        schemaName: `tenant_${tenantId.replace(/-/g, '_')}`
+      });
 
       if (!name || !name.trim()) {
         return res.status(400).json({
@@ -371,19 +379,28 @@ router.post(
 
       // Criação
       const groupId = crypto.randomUUID();
-      const nowIso = new Date().toISOString();
+      const now = new Date();
 
       const descOrNull =
         description && String(description).trim() ? String(description).trim() : null;
 
-      const insertQuery = sql`
-        INSERT INTO ${tableIdent}
-          (id, name, description, is_active, created_by_id, created_at, updated_at)
-        VALUES
-          (${groupId}, ${name.trim()}, ${descOrNull}, true, ${userId}, ${nowIso}::timestamptz, ${nowIso}::timestamptz)
-        RETURNING id, name, description, is_active, created_at
-      `;
-      const result = await db.execute(insertQuery);
+      const insertQuery = `
+      INSERT INTO "${schemaName}".user_groups 
+      (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, tenant_id, name, description, is_active, created_at
+    `;
+
+      const result = await db.execute(sql.raw(insertQuery, [
+        groupId,
+        tenantId,
+        name.trim(),
+        description?.trim() || null,
+        true,
+        userId,
+        now,
+        now
+      ]));
 
       if (result.rows.length === 0) {
         return res.status(500).json({
@@ -407,6 +424,7 @@ router.post(
           createdAt: newGroup.created_at,
           memberCount: 0,
           memberships: [],
+          tenantId: newGroup.tenant_id,
         },
       });
     } catch (error: any) {
@@ -562,12 +580,12 @@ router.delete('/groups/:groupId',
 
       // Both SaaS Admin and Workspace Admin can only delete from own tenant
       const targetSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const groupsTable = sql.raw(`"${targetSchema}".user_groups`);
       const groupResult = await db.execute(
         sql`SELECT id FROM ${groupsTable} WHERE id = ${groupId} AND is_active = true`
       );
-      
+
       if (!groupResult.rows.length) {
         console.log(`🗑️ [USER-GROUPS] Group ${groupId} not found in tenant ${tenantId}`);
         return res.status(404).json({ 
@@ -1122,7 +1140,7 @@ router.post('/roles',
       const descOrNull = description ? description : null;
       const permsExpr = sql`${sql.raw('ARRAY[' + (permissions.map(p => `'${p}'`).join(',')) + ']::text[]')}`;
 
-      
+
       const query = sql`
         INSERT INTO ${tableIdent}
           (tenant_id, name, description, permissions, is_active, is_system)
