@@ -1020,6 +1020,11 @@ export default function TeamManagement() {
           <UserGroups />
         </TabsContent>
 
+        {/* Permissions Tab */}
+        <TabsContent value="permissions" className="space-y-4">
+          <CustomRoles tenantAdmin={true} />
+        </TabsContent>
+
         {/* Roles Tab */}
         <TabsContent value="roles" className="space-y-4">
           <CustomRoles tenantAdmin={true} />
