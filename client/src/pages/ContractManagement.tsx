@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Filter, FileText, DollarSign, Calendar, Users, Edit, Trash2, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,7 @@ interface ContractFilters {
 }
 
 export default function ContractManagement() {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<ContractFilters>({});
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
