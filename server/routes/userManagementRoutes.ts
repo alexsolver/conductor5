@@ -924,7 +924,7 @@ router.delete('/:groupId/members/:userId',
       // Check if group exists and belongs to tenant
     const groupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE id = $1::text AND tenant_id = $2::text AND is_active = true
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
     `;
     const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
@@ -936,7 +936,7 @@ router.delete('/:groupId/members/:userId',
       // Check if active membership exists
     const existingQuery = `
       SELECT id FROM "${schemaName}".user_group_memberships 
-      WHERE user_id = $1::text AND group_id = $2::text AND is_active = true
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
@@ -948,7 +948,7 @@ router.delete('/:groupId/members/:userId',
     // Remove user from group (only active memberships)
     const deleteQuery = `
       DELETE FROM "${schemaName}".user_group_memberships 
-      WHERE user_id = $1::text AND group_id = $2::text AND is_active = true
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
     const result = await db.execute(sql.raw(deleteQuery, [userId, groupId]));
 
