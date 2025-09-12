@@ -985,7 +985,6 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         color: color || '#3b82f6',
         icon,
         isDefault: isDefault || false,
-        active: active !== false,
         sortOrder: sortOrder || 1,
         statusType: req.body.statusType || null
       },
