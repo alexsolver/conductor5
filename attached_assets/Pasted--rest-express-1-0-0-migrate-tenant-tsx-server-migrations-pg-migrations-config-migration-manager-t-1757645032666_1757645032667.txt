@@ -1,0 +1,75 @@
+> rest-express@1.0.0 migrate:tenant
+> tsx server/migrations/pg-migrations/config/migration-manager.ts tenant 8e08994🔧 [MIGRATION-MANAGER] Running tenant migrations for schema: tenant_8e08994e_6d7a_496e_9e8a_3ca63a021cdc
+📝 [MIGRATION-MANAGER] Executing migration: 001_create_tenant_tables.sql for schema: tenant_8e08994e_6d7a_496e_9e8a_3ca63a021cdc
+❌ [MIGRATION-MANAGER] Migration 001_create_tenant_tables.sql failed for tenant_8e08994e_6d7a_496e_9e8a_3ca63a021cdc: error: trigger "trg_customers_updated" for relation "customers" already exists
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:202:11) {
+  length: 138,
+  severity: 'ERROR',
+  code: '42710',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'trigger.c',
+  line: '768',
+  routine: 'CreateTriggerFiringOn'
+}
+❌ [MIGRATION-MANAGER] Tenant migration failed for tenant_8e08994e_6d7a_496e_9e8a_3ca63a021cdc: error: trigger "trg_customers_updated" for relation "customers" already exists
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:202:11) {
+  length: 138,
+  severity: 'ERROR',
+  code: '42710',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'trigger.c',
+  line: '768',
+  routine: 'CreateTriggerFiringOn'
+}
+💥 Migration failed: error: trigger "trg_customers_updated" for relation "customers" already exists
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:202:11) {
+  length: 138,
+  severity: 'ERROR',
+  code: '42710',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'trigger.c',
+  line: '768',
+  routine: 'CreateTriggerFiringOn'
+}
