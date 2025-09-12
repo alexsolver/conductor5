@@ -1547,10 +1547,9 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           WHEN EXISTS (
             SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" existing
             WHERE existing.tenant_id = ${tenantId} 
-            AND existing.name = src.name 
-            AND existing.company_id != ${sourceCompanyId}
+            AND existing.name = src.name
           )
-          THEN src.name || ' (Empresa ' || ${targetCompanyId}::varchar || ')'
+          THEN src.name || ' (Empresa ' || substring(${targetCompanyId}::varchar, 1, 8) || ')'
           ELSE src.name
         END as name,
         description, 
