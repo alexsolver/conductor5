@@ -14,7 +14,7 @@ import { toast } from "@/hooks/use-toast";
 
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, isAuthenticated, isLoading, setToken } = useAuth();
+  const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
   const setLocation = useLocation()[1];
@@ -61,8 +61,8 @@ export default function AuthPage() {
             disabled={loginMutation.isPending}
           />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           disabled={loginMutation.isPending}
         >
@@ -89,10 +89,10 @@ export default function AuthPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      const registerData = { 
-        email, 
-        password, 
-        firstName: firstName || undefined, 
+      const registerData = {
+        email,
+        password,
+        firstName: firstName || undefined,
         lastName: lastName || undefined,
         companyName: companyName || undefined,
         workspaceName: workspaceName || undefined,
@@ -122,7 +122,7 @@ export default function AuthPage() {
 
         if (result.success && result.data?.tokens?.accessToken) {
           localStorage.setItem('accessToken', result.data.tokens.accessToken);
-          setToken(result.data.tokens.accessToken);
+          // Token is already stored in HTTP-only cookies by the server
           queryClient.setQueryData(['user'], result.data.user);
 
           // If company data is available, cache it
@@ -235,8 +235,8 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           disabled={registerMutation.isPending}
         >
@@ -308,9 +308,9 @@ export default function AuthPage() {
         <div className="hidden lg:block space-y-6">
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-              <img 
-                src="/conductor-logo.svg" 
-                alt="Conductor Logo" 
+              <img
+                src="/conductor-logo.svg"
+                alt="Conductor Logo"
                 className="w-28 h-28 object-contain"
               />
             </div>
