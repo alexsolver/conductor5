@@ -127,7 +127,8 @@ export default function ComplianceManagement() {
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/audits')
   });
 
-  const audits = auditsResponse?.data || auditsResponse || [];
+  const audits = Array.isArray(auditsResponse?.data) ? auditsResponse.data : 
+                 Array.isArray(auditsResponse) ? auditsResponse : [];
 
   // Fetch certifications
   const { data: certificationsResponse } = useQuery({
@@ -135,7 +136,8 @@ export default function ComplianceManagement() {
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/certifications')
   });
 
-  const certifications = certificationsResponse?.data || certificationsResponse || [];
+  const certifications = Array.isArray(certificationsResponse?.data) ? certificationsResponse.data : 
+                         Array.isArray(certificationsResponse) ? certificationsResponse : [];
 
   // Fetch alerts
   const { data: alertsResponse } = useQuery({
@@ -143,7 +145,8 @@ export default function ComplianceManagement() {
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/alerts')
   });
 
-  const alerts = alertsResponse?.data || alertsResponse || [];
+  const alerts = Array.isArray(alertsResponse?.data) ? alertsResponse.data : 
+                 Array.isArray(alertsResponse) ? alertsResponse : [];
 
   // Fetch compliance scores
   const { data: scoresResponse } = useQuery({
@@ -151,7 +154,8 @@ export default function ComplianceManagement() {
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/scores')
   });
 
-  const scores = scoresResponse?.data || scoresResponse || [];
+  const scores = Array.isArray(scoresResponse?.data) ? scoresResponse.data : 
+                 Array.isArray(scoresResponse) ? scoresResponse : [];
 
   // Create audit mutation
   const createAuditMutation = useMutation({
