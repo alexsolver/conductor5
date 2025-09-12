@@ -966,13 +966,15 @@ CREATE TABLE IF NOT EXISTS ticket_field_options (
 CREATE TABLE IF NOT EXISTS ticket_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    company_id UUID,
+    name VARCHAR(100) NOT NULL,
     description TEXT,
-    color VARCHAR(7), -- ex: #FF0000
+    color VARCHAR(7) DEFAULT '#3b82f6',
+    icon VARCHAR(50),
     active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now(),
-    CONSTRAINT ticket_categories_tenant_name_unique UNIQUE (tenant_id, name)
+    updated_at TIMESTAMP DEFAULT now()
 );
 
 -- ==============================
@@ -981,13 +983,17 @@ CREATE TABLE IF NOT EXISTS ticket_categories (
 CREATE TABLE IF NOT EXISTS ticket_subcategories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
-    category_id UUID NOT NULL REFERENCES ticket_categories(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
+    company_id UUID,
+    category_id UUID NOT NULL,
+    name VARCHAR(100) NOT NULL,
     description TEXT,
+    color VARCHAR(7) DEFAULT '#3b82f6',
+    icon VARCHAR(50),
     active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now(),
-    CONSTRAINT ticket_subcategories_tenant_name_unique UNIQUE (tenant_id, category_id, name)
+    FOREIGN KEY (category_id) REFERENCES ticket_categories(id) ON DELETE CASCADE
 );
 
 -- ==============================
@@ -996,11 +1002,19 @@ CREATE TABLE IF NOT EXISTS ticket_subcategories (
 CREATE TABLE IF NOT EXISTS ticket_actions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
-    ticket_id UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
-    action_type VARCHAR(100) NOT NULL, -- status_change, note_added, file_uploaded...
-    action_data JSONB DEFAULT '{}'::jsonb,
-    performed_by UUID,
-    performed_at TIMESTAMP DEFAULT now()
+    company_id UUID,
+    subcategory_id UUID NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    estimated_time_minutes INTEGER DEFAULT 0,
+    color VARCHAR(7) DEFAULT '#3b82f6',
+    icon VARCHAR(50),
+    active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
+    action_type VARCHAR(50) DEFAULT 'standard',
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    FOREIGN KEY (subcategory_id) REFERENCES ticket_subcategories(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS users (
