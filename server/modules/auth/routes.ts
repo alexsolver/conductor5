@@ -360,33 +360,12 @@ authRouter.post(
         }
 
         // Apply template for the new tenant
+        console.log('🎯 [REGISTER] Applying tenant template...');
         try {
-          console.log(`🎯 [REGISTER] Applying default template for tenant: ${savedTenant.id}`);
-          console.log(`🎯 [REGISTER] Company name: ${userData.companyName}, Email: ${userData.email}`);
-
-          // Get pool and schema name for template application
-          const { pool } = await import('../../db');
-          const schemaName = `tenant_${savedTenant.id.replace(/-/g, '_')}`;
-
-          // Verify schema exists before applying template
-          const schemaExistsQuery = `
-            SELECT schema_name
-            FROM information_schema.schemata
-            WHERE schema_name = $1
-          `;
-          const schemaExists = await pool.query(schemaExistsQuery, [schemaName]);
-
-          if (schemaExists.rows.length === 0) {
-            throw new Error(`Schema ${schemaName} does not exist`);
-          }
-
-          console.log(`✅ [REGISTER] Schema ${schemaName} verified, applying template...`);
-
-          // Apply the customized default template with company name from registration
-          await TenantTemplateService.applyCustomizedDefaultTemplate(
+          const templateResult = await TenantTemplateService.applyCustomizedDefaultTemplate(
             savedTenant.id,
             newUser.id,
-            pool,
+            await (await import('../../db')).pool,
             schemaName,
             {
               companyName: userData.companyName || userData.workspaceName || "Default Company",
@@ -394,42 +373,20 @@ authRouter.post(
               industry: "Geral"
             }
           );
-
-          console.log(`✅ [REGISTER] Template applied successfully for tenant: ${savedTenant.id}`);
-
-          // Verify template was applied correctly
-          const isApplied = await TenantTemplateService.isTemplateApplied(pool, schemaName, savedTenant.id);
-          console.log(`🔍 [REGISTER] Template verification result: ${isApplied}`);
-
-          // Wait a moment to ensure database consistency
-          await new Promise(resolve => setTimeout(resolve, 100));
-
+          console.log('✅ [REGISTER] Template applied successfully:', templateResult);
         } catch (templateError) {
-          console.error(`❌ [REGISTER] Template application failed for tenant: ${savedTenant.id}`, templateError);
-
-          // Fallback para template básico se falhar - mas ainda usando nome personalizado
-          try {
-            console.log(`🔄 [REGISTER] Applying fallback template for tenant: ${savedTenant.id}`);
-            await TenantTemplateService.applyCustomizedDefaultTemplate(
-              savedTenant.id,
-              newUser.id,
-              pool,
-              schemaName,
-              {
-                companyName: userData.companyName || userData.workspaceName || "Minha Empresa",
-                companyEmail: userData.email,
-                industry: "Geral"
-              }
-            );
-            console.log(`✅ [REGISTER] Fallback template applied for tenant: ${savedTenant.id}`);
-
-            // Wait a moment to ensure database consistency
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (fallbackError) {
-            console.error(`❌ [REGISTER] Fallback template failed for tenant: ${savedTenant.id}`, fallbackError);
-            // Continue with registration even if template fails
-          }
+          console.error('❌ [REGISTER] Template application failed:', templateError);
+          console.error('❌ [REGISTER] Template error details:', templateError.message);
+          // Continue even if template fails, but log it properly
         }
+
+        // Verify template was applied correctly
+        const isApplied = await TenantTemplateService.isTemplateApplied(await (await import('../../db')).pool, schemaName, savedTenant.id);
+        console.log(`🔍 [REGISTER] Template verification result: ${isApplied}`);
+
+        // Wait a moment to ensure database consistency
+        await new Promise(resolve => setTimeout(resolve, 100));
+
       }
 
       // Set refresh token as httpOnly cookie
@@ -449,18 +406,18 @@ authRouter.post(
 
           // Check which table exists and get company data
           const tableCheckQuery = `
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = $1 
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = $1
             AND table_name IN ('customer_companies', 'companies')
           `;
           const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
           const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
 
           const companyQuery = `
-            SELECT id, name, display_name, email, industry, is_active 
-            FROM "${schemaName}"."${tableName}" 
-            WHERE tenant_id = $1 
+            SELECT id, name, display_name, email, industry, is_active
+            FROM "${schemaName}"."${tableName}"
+            WHERE tenant_id = $1
             LIMIT 1
           `;
           const companyResult = await pool.query(companyQuery, [userData.tenantId]);
