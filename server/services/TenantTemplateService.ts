@@ -475,15 +475,37 @@ export class TenantTemplateService {
     try {
       // 1. Criar empresa personalizada em vez da Default
       const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
+      console.log(`[TENANT-TEMPLATE] Step 1: Creating company with ID ${defaultCompanyId}`);
       await this.createCustomizedDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId, customizations);
 
-      // 2. Criar opções de campos de tickets
+      // 2. Criar opções de campos de tickets PRIMEIRO
+      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options`);
       await this.createTicketFieldOptions(pool, schemaName, tenantId, defaultCompanyId);
 
       // 3. Criar categorias hierárquicas
+      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure`);
       await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
 
-      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId} with company: ${customizations.companyName}`);
+      // 4. Verificar se os dados foram inseridos corretamente
+      const verifyQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM "${schemaName}".ticket_field_options WHERE tenant_id = $1) as field_options_count,
+          (SELECT COUNT(*) FROM "${schemaName}".ticket_categories WHERE tenant_id = $1) as categories_count,
+          (SELECT COUNT(*) FROM "${schemaName}".ticket_subcategories WHERE tenant_id = $1) as subcategories_count,
+          (SELECT COUNT(*) FROM "${schemaName}".ticket_actions WHERE tenant_id = $1) as actions_count
+      `;
+
+      const verifyResult = await pool.query(verifyQuery, [tenantId]);
+      const counts = verifyResult.rows[0];
+
+      console.log(`[TENANT-TEMPLATE] Template verification for tenant ${tenantId}:`, {
+        fieldOptions: counts.field_options_count,
+        categories: counts.categories_count,
+        subcategories: counts.subcategories_count,
+        actions: counts.actions_count
+      });
+
+      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId}`);
     } catch (error) {
       console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
       throw error;
