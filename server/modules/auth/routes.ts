@@ -377,15 +377,11 @@ authRouter.post(
         } catch (templateError) {
           console.error('❌ [REGISTER] Template application failed:', templateError);
           console.error('❌ [REGISTER] Template error details:', templateError.message);
-          // Continue even if template fails, but log it properly
+          // Continue even if template fails - don't block registration
         }
 
-        // Verify template was applied correctly
-        const isApplied = await TenantTemplateService.isTemplateApplied(await (await import('../../db')).pool, schemaName, savedTenant.id);
-        console.log(`🔍 [REGISTER] Template verification result: ${isApplied}`);
-
         // Wait a moment to ensure database consistency
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
       }
 

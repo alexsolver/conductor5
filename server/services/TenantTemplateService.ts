@@ -47,7 +47,7 @@ export class TenantTemplateService {
       await this.createDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId);
 
       // 2. Criar opções de campos de tickets
-      await this.createTicketFieldOptions(pool, schemaName, tenantId, defaultCompanyId);
+      await this.createTicketFieldOptions(pool, schemaName, tenantId);
 
       // 3. Criar categorias hierárquicas
       await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
@@ -176,36 +176,56 @@ export class TenantTemplateService {
   private static async createTicketFieldOptions(
     pool: any,
     schemaName: string,
-    tenantId: string,
-    defaultCompanyId: string
+    tenantId: string
   ): Promise<void> {
-    const options = DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions;
+    console.log('[TENANT-TEMPLATE] Creating ticket field options');
 
-    for (const option of options) {
-      const query = `
-        INSERT INTO "${schemaName}".ticket_field_options (
-          id, tenant_id, company_id, field_name, value, label, color,
-          sort_order, is_active, is_default, status_type, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-        ON CONFLICT DO NOTHING
+    const fieldOptions = [
+      // Status options
+      { field_type: 'status', field_value: 'new', label: 'Novo', color: '#f59e0b', sort_order: 1, is_active: true },
+      { field_type: 'status', field_value: 'open', label: 'Aberto', color: '#3b82f6', sort_order: 2, is_active: true },
+      { field_type: 'status', field_value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6', sort_order: 3, is_active: true },
+      { field_type: 'status', field_value: 'resolved', label: 'Resolvido', color: '#10b981', sort_order: 4, is_active: true },
+      { field_type: 'status', field_value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 5, is_active: true },
+
+      // Priority options
+      { field_type: 'priority', field_value: 'low', label: 'Baixa', color: '#10b981', sort_order: 1, is_active: true },
+      { field_type: 'priority', field_value: 'medium', label: 'Média', color: '#f59e0b', sort_order: 2, is_active: true },
+      { field_type: 'priority', field_value: 'high', label: 'Alta', color: '#f97316', sort_order: 3, is_active: true },
+      { field_type: 'priority', field_value: 'critical', label: 'Crítica', color: '#dc2626', sort_order: 4, is_active: true },
+
+      // Impact options
+      { field_type: 'impact', field_value: 'low', label: 'Baixo', color: '#10b981', sort_order: 1, is_active: true },
+      { field_type: 'impact', field_value: 'medium', label: 'Médio', color: '#f59e0b', sort_order: 2, is_active: true },
+      { field_type: 'impact', field_value: 'high', label: 'Alto', color: '#f97316', sort_order: 3, is_active: true },
+      { field_type: 'impact', field_value: 'critical', label: 'Crítico', color: '#dc2626', sort_order: 4, is_active: true },
+
+      // Urgency options
+      { field_type: 'urgency', field_value: 'low', label: 'Baixa', color: '#10b981', sort_order: 1, is_active: true },
+      { field_type: 'urgency', field_value: 'medium', label: 'Média', color: '#f59e0b', sort_order: 2, is_active: true },
+      { field_type: 'urgency', field_value: 'high', label: 'Alta', color: '#f97316', sort_order: 3, is_active: true },
+      { field_type: 'urgency', field_value: 'critical', label: 'Crítica', color: '#dc2626', sort_order: 4, is_active: true }
+    ];
+
+    for (const option of fieldOptions) {
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_field_options 
+        (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
 
-      await pool.query(query, [
-        uuidv4(),
-        tenantId,
-        defaultCompanyId,
-        option.fieldName,
-        option.value,
+      await pool.query(insertQuery, [
+        option.field_type,
+        option.field_value,
         option.label,
         option.color,
-        option.sortOrder,
-        option.isActive,
-        option.isDefault,
-        option.statusType || null
+        option.sort_order,
+        option.is_active,
+        tenantId
       ]);
     }
 
-    console.log(`[TENANT-TEMPLATE] Created ${options.length} ticket field options`);
+    console.log('[TENANT-TEMPLATE] Ticket field options created successfully');
   }
 
   /**
@@ -480,7 +500,7 @@ export class TenantTemplateService {
 
       // 2. Criar opções de campos de tickets PRIMEIRO
       console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options`);
-      await this.createTicketFieldOptions(pool, schemaName, tenantId, defaultCompanyId);
+      await this.createTicketFieldOptions(pool, schemaName, tenantId);
 
       // 3. Criar categorias hierárquicas
       console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure`);

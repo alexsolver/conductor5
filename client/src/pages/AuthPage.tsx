@@ -14,10 +14,10 @@ import { toast } from "@/hooks/use-toast";
 
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
+  const { loginMutation, registerMutation, isAuthenticated, isLoading, setToken, setUser } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
-  const setLocation = useLocation()[1];
+  const navigate = useLocation()[1]; // Renamed from setLocation to navigate for clarity
   const queryClient = useQueryClient();
 
   // Redirect if already authenticated
@@ -99,11 +99,7 @@ export default function AuthPage() {
         role: 'tenant_admin' // First user becomes tenant admin
       };
 
-      // Assuming registerMutation.mutate handles the API call and response processing
-      // The original code did not show the mutation logic, so we'll simulate it here.
-      // In a real scenario, this would likely be part of the `useAuth` hook.
       try {
-        // Simulating the API call and response
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
@@ -120,31 +116,33 @@ export default function AuthPage() {
 
         const result = await response.json();
 
-        if (result.success && result.data?.tokens?.accessToken) {
-          localStorage.setItem('accessToken', result.data.tokens.accessToken);
-          // Token is already stored in HTTP-only cookies by the server
-          queryClient.setQueryData(['user'], result.data.user);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ [AUTH] Registration successful:', data);
 
-          // If company data is available, cache it
-          if (result.data.company) {
-            queryClient.setQueryData(['/api/companies'], [result.data.company]);
-            console.log('✅ [AUTH] Company data cached after registration:', result.data.company);
+          // Cache company data if available
+          if (data.data?.company) {
+            console.log('✅ [AUTH] Company data cached after registration:', data.data.company);
+            localStorage.setItem('companyData', JSON.stringify(data.data.company));
           }
 
-          // Invalidate relevant queries to ensure fresh data
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
-            queryClient.invalidateQueries({ queryKey: ['companies'] }),
-            queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
-            queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
-          ]);
+          if (data.data?.tokens?.accessToken) {
+            setToken(data.data.tokens.accessToken);
+            localStorage.setItem('accessToken', data.data.tokens.accessToken);
+          }
+
+          // Set user context immediately
+          if (data.data?.user) {
+            setUser(data.data.user);
+          }
 
           toast({
-            title: "Conta criada com sucesso!",
-            description: "Bem-vindo ao Conductor",
+            title: "Sucesso!",
+            description: "Conta criada com sucesso. Redirecionando...",
           });
 
-          setLocation("/");
+          // Immediate redirect after successful registration
+          navigate('/dashboard');
         } else {
           throw new Error(result.message || 'Falha no registro');
         }
