@@ -324,7 +324,7 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,
@@ -971,7 +971,7 @@ const TicketConfiguration: React.FC = () => {
                                   {category.active ? "Ativo" : "Inativo"}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
-                                  {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias
+                                  {subcategories.filter((sub: Subcategory) => sub.categoryId === category.id).length} subcategorias
                                 </Badge>
                               </div>
                               {category.description && (
@@ -1036,7 +1036,7 @@ const TicketConfiguration: React.FC = () => {
                                         <div className="flex items-center space-x-3">
                                           <span className="font-medium text-gray-900">{subcategory.name}</span>
                                           <Badge variant="outline" className="text-xs">
-                                            {actions.filter(action => action.subcategoryId === subcategory.id).length} ações
+                                            {actions.filter((action: any) => action.subcategoryId === subcategory.id).length} ações
                                           </Badge>
                                         </div>
                                         {subcategory.description && (
@@ -1120,7 +1120,7 @@ const TicketConfiguration: React.FC = () => {
                                           </div>
                                         </div>
                                       ))}
-                                    {actions.filter(action => action.subcategoryId === subcategory.id).length === 0 && (
+                                    {actions.filter((action: any) => action.subcategoryId === subcategory.id).length === 0 && (
                                       <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
                                         <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                         <p className="text-sm">Nenhuma ação cadastrada</p>
@@ -1139,7 +1139,7 @@ const TicketConfiguration: React.FC = () => {
                                 </div>
                               ))}
 
-                            {subcategories.filter(sub => sub.categoryId === category.id).length === 0 && (
+                            {subcategories.filter((sub: Subcategory) => sub.categoryId === category.id).length === 0 && (
                               <div className="p-8 text-center text-gray-500 border-t">
                                 <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                 <p className="text-sm mb-4">Nenhuma subcategoria cadastrada nesta categoria</p>
@@ -1174,7 +1174,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Status</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'status').length}
+                        {fieldOptions.filter((opt: any) => opt.fieldName === 'status').length}
                       </p>
                     </div>
                   </div>
@@ -1187,7 +1187,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Prioridades</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
+                        {fieldOptions.filter((opt: any) => opt.fieldName === 'priority').length}
                       </p>
                     </div>
                   </div>
@@ -1200,7 +1200,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Impactos</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
+                        {fieldOptions.filter((opt: any) => opt.fieldName === 'impact').length}
                       </p>
                     </div>
                   </div>
@@ -1213,7 +1213,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Urgências</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
+                        {fieldOptions.filter((opt: any) => opt.fieldName === 'urgency').length}
                       </p>
                     </div>
                   </div>
