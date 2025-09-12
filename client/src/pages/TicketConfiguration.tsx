@@ -324,7 +324,7 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany,
     staleTime: 0,
-    gcTime: 0,
+    cacheTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: false,

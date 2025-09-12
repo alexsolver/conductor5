@@ -289,9 +289,9 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     console.log('🔍 Checking if category exists:', categoryId);
 
-    // Check if category exists and get its company_id
+    // Check if category exists
     const categoryCheck = await db.execute(sql`
-      SELECT id, company_id FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -303,14 +303,13 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
       });
     }
 
-    const categoryCompanyId = categoryCheck.rows[0].company_id;
-    console.log('✅ Category found, creating subcategory with company_id:', categoryCompanyId);
+    console.log('✅ Category found, creating subcategory...');
 
-    // Insert subcategory with correct company_id from parent category
+    // Insert subcategory with proper company_id field
     const result = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
       (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-      VALUES (gen_random_uuid(), ${tenantId}, ${categoryCompanyId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
+      VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
       RETURNING *
     `);
 
@@ -353,103 +352,31 @@ router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // If categoryId is being changed, validate same-company constraint
-    if (categoryId) {
-      // Get current subcategory's company_id
-      const currentSubcategory = await db.execute(sql`
-        SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
-        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
-      `);
-
-      if (currentSubcategory.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Subcategory not found'
-        });
-      }
-
-      // Validate new category exists and belongs to same company
-      const categoryCheck = await db.execute(sql`
-        SELECT id, company_id FROM "${sql.raw(schemaName)}"."ticket_categories" 
-        WHERE id = ${categoryId} AND tenant_id = ${tenantId}
-      `);
-
-      if (categoryCheck.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Category not found'
-        });
-      }
-
-      const currentCompanyId = currentSubcategory.rows[0].company_id;
-      const newCompanyId = categoryCheck.rows[0].company_id;
-
-      if (currentCompanyId !== newCompanyId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot move subcategory to a different company'
-        });
-      }
-    }
-
-    // Update subcategory (company_id remains unchanged for integrity)
-    const updateFields = {
-      name,
-      description: description || null,
-      color: color || '#3b82f6',
-      icon: icon || null,
-      active: active !== false,
-      sort_order: sortOrder || 1
-    };
-
-    if (categoryId) {
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
-        SET 
-          name = ${updateFields.name},
-          description = ${updateFields.description},
-          category_id = ${categoryId},
-          color = ${updateFields.color},
-          icon = ${updateFields.icon},
-          active = ${updateFields.active},
-          sort_order = ${updateFields.sort_order},
-          updated_at = NOW()
-        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
-      `);
-    } else {
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
-        SET 
-          name = ${updateFields.name},
-          description = ${updateFields.description},
-          color = ${updateFields.color},
-          icon = ${updateFields.icon},
-          active = ${updateFields.active},
-          sort_order = ${updateFields.sort_order},
-          updated_at = NOW()
-        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
-      `);
-    }
-
-    // Sync color with ticket_field_options (with company_id constraint to prevent cross-company contamination)
-    const subcategoryForSync = await db.execute(sql`
-      SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+    // Update subcategory
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
+      SET 
+        name = ${name},
+        description = ${description || null},
+        category_id = ${categoryId},
+        color = ${color || '#3b82f6'},
+        icon = ${icon || null},
+        active = ${active !== false},
+        sort_order = ${sortOrder || 1},
+        updated_at = NOW()
       WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
 
-    if (subcategoryForSync.rows.length > 0) {
-      const subcategoryCompanyId = subcategoryForSync.rows[0].company_id;
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
-        SET 
-          color = ${color || '#3b82f6'},
-          updated_at = NOW()
-        WHERE field_name = 'subcategory' 
-        AND value = ${name}
-        AND tenant_id = ${tenantId}
-        AND company_id = ${subcategoryCompanyId}
-      `);
-    }
+    // Sync color with ticket_field_options
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        color = ${color || '#3b82f6'},
+        updated_at = NOW()
+      WHERE field_name = 'subcategory' 
+      AND value = ${name}
+      AND tenant_id = ${tenantId}
+    `);
 
     console.log(`🔄 Synced subcategory color: ${name} = ${color || '#3b82f6'}`);
 
@@ -480,7 +407,7 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // Check if subcategory has actions
     const actionsCheck = await db.execute(sql`
-      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_action_types" 
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_actions" 
       WHERE subcategory_id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -535,7 +462,7 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
              a.sort_order as "sortOrder",
              s.name as subcategory_name, 
              c.name as category_name 
-      FROM "${sql.raw(schemaName)}"."ticket_action_types" a
+      FROM "${sql.raw(schemaName)}"."ticket_actions" a
       JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
       WHERE a.tenant_id = ${tenantId} 
@@ -573,36 +500,30 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       color,
       icon,
       active,
-      sortOrder
+      sortOrder,
+      companyId
     } = req.body;
 
     if (!name || !subcategoryId) {
       return res.status(400).json({ message: 'Name and subcategory ID are required' });
     }
 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    // Get companyId from query params if not in body
+    const finalCompanyId = companyId || req.query.companyId as string;
 
-    // Get company_id from subcategory to ensure consistency
-    const subcategoryCheck = await db.execute(sql`
-      SELECT s.company_id 
-      FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
-      JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-      WHERE s.id = ${subcategoryId} AND s.tenant_id = ${tenantId}
-    `);
-
-    if (subcategoryCheck.rows.length === 0) {
-      return res.status(404).json({ message: 'Subcategory not found' });
+    if (!finalCompanyId) {
+      return res.status(400).json({ message: 'Company ID is required' });
     }
 
-    const subcategoryCompanyId = subcategoryCheck.rows[0].company_id;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const actionId = randomUUID();
 
     await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_action_types" (
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
         id, tenant_id, company_id, subcategory_id, name, description,
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
-        ${actionId}, ${tenantId}, ${subcategoryCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
+        ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
         ${color || '#3b82f6'}, ${icon || null}, 
         ${active !== false}, ${sortOrder || 1}, NOW(), NOW()
       )
@@ -619,7 +540,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         icon,
         active: active !== false,
         sortOrder: sortOrder || 1,
-        companyId: subcategoryCompanyId
+        companyId: finalCompanyId
       }
     });
   } catch (error) {
@@ -653,96 +574,31 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // If subcategoryId is being changed, validate same-company constraint
-    if (subcategoryId) {
-      // Get current action's company_id
-      const currentAction = await db.execute(sql`
-        SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_action_types" 
-        WHERE id = ${actionId} AND tenant_id = ${tenantId}
-      `);
-
-      if (currentAction.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Action not found'
-        });
-      }
-
-      // Validate new subcategory exists and belongs to same company
-      const subcategoryCheck = await db.execute(sql`
-        SELECT s.company_id 
-        FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
-        JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-        WHERE s.id = ${subcategoryId} AND s.tenant_id = ${tenantId}
-      `);
-
-      if (subcategoryCheck.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Subcategory not found'
-        });
-      }
-
-      const currentCompanyId = currentAction.rows[0].company_id;
-      const newCompanyId = subcategoryCheck.rows[0].company_id;
-
-      if (currentCompanyId !== newCompanyId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot move action to a different company'
-        });
-      }
-    }
-
-    // Update action (company_id remains unchanged for integrity)
-    if (subcategoryId) {
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
-        SET 
-          name = ${name},
-          description = ${description || null},
-          subcategory_id = ${subcategoryId},
-          color = ${color || '#3b82f6'},
-          icon = ${icon || null},
-          active = ${active !== false},
-          sort_order = ${sortOrder || 1},
-          updated_at = NOW()
-        WHERE id = ${actionId} AND tenant_id = ${tenantId}
-      `);
-    } else {
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
-        SET 
-          name = ${name},
-          description = ${description || null},
-          color = ${color || '#3b82f6'},
-          icon = ${icon || null},
-          active = ${active !== false},
-          sort_order = ${sortOrder || 1},
-          updated_at = NOW()
-        WHERE id = ${actionId} AND tenant_id = ${tenantId}
-      `);
-    }
-
-    // Sync color with ticket_field_options (with company_id constraint to prevent cross-company contamination)
-    const actionForSync = await db.execute(sql`
-      SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_action_types" 
+    // Update action
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_actions" 
+      SET 
+        name = ${name},
+        description = ${description || null},
+        subcategory_id = ${subcategoryId},
+        color = ${color || '#3b82f6'},
+        icon = ${icon || null},
+        active = ${active !== false},
+        sort_order = ${sortOrder || 1},
+        updated_at = NOW()
       WHERE id = ${actionId} AND tenant_id = ${tenantId}
     `);
 
-    if (actionForSync.rows.length > 0) {
-      const actionCompanyId = actionForSync.rows[0].company_id;
-      await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
-        SET 
-          color = ${color || '#3b82f6'},
-          updated_at = NOW()
-        WHERE field_name = 'action' 
-        AND value = ${name}
-        AND tenant_id = ${tenantId}
-        AND company_id = ${actionCompanyId}
-      `);
-    }
+    // Sync color with ticket_field_options
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        color = ${color || '#3b82f6'},
+        updated_at = NOW()
+      WHERE field_name = 'action' 
+      AND value = ${name}
+      AND tenant_id = ${tenantId}
+    `);
 
     console.log(`🔄 Synced action color: ${name} = ${color || '#3b82f6'}`);
 
@@ -772,7 +628,7 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_action_types" 
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_actions" 
       WHERE id = ${actionId} AND tenant_id = ${tenantId}
     `);
 
@@ -1514,28 +1370,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       numberingConfig: 0
     };
 
-    // First, clean existing data from target company to avoid duplicates
-    console.log(`🗑️ Cleaning existing data for target company ${targetCompanyId}`);
-    
-    // Delete in reverse dependency order: actions -> subcategories -> categories
-    await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_action_types" 
-      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
-    `);
-    
-    await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
-      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
-    `);
-    
-    await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_categories" 
-      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
-    `);
-    
-    console.log(`✅ Existing data cleaned for target company ${targetCompanyId}`);
-
-    // 1. Copy Categories with unique naming to avoid tenant-level constraints
+    // 1. Copy Categories
     const categoriesResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
       (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
@@ -1543,15 +1378,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         gen_random_uuid(), 
         tenant_id, 
         ${targetCompanyId}, 
-        CASE 
-          WHEN EXISTS (
-            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" existing
-            WHERE existing.tenant_id = ${tenantId} 
-            AND existing.name = src.name
-          )
-          THEN src.name || ' (Empresa ' || substring(${targetCompanyId}::varchar, 1, 8) || ')'
-          ELSE src.name
-        END as name,
+        name, 
         description, 
         color, 
         icon, 
@@ -1559,8 +1386,14 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         sort_order, 
         NOW(), 
         NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_categories" src
-      WHERE src.tenant_id = ${tenantId} AND src.company_id = ${sourceCompanyId}
+      FROM "${sql.raw(schemaName)}"."ticket_categories"
+      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
+      AND NOT EXISTS (
+        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" target
+        WHERE target.tenant_id = ${tenantId} 
+        AND target.company_id = ${targetCompanyId}
+        AND target.name = "${sql.raw(schemaName)}"."ticket_categories".name
+      )
       RETURNING id
     `);
     copiedItems.categories = categoriesResult.rows.length;
@@ -1589,6 +1422,12 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
         WHERE s.tenant_id = ${tenantId} 
         AND sc.company_id = ${sourceCompanyId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_subcategories" target
+          WHERE target.tenant_id = ${tenantId} 
+          AND target.category_id = tc.id
+          AND target.name = s.name
+        )
         RETURNING id
       `);
       copiedItems.subcategories = subcategoriesResult.rows.length;
@@ -1596,7 +1435,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       // 3. Copy Actions (with subcategory mapping)
       if (copiedItems.subcategories > 0) {
         const actionsResult = await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_action_types" 
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
           (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, created_at, updated_at)
           SELECT 
             gen_random_uuid(),
@@ -1612,7 +1451,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             a.sort_order,
             NOW(),
             NOW()
-          FROM "${sql.raw(schemaName)}"."ticket_action_types" a
+          FROM "${sql.raw(schemaName)}"."ticket_actions" a
           JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ss ON a.subcategory_id = ss.id
           JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON ss.category_id = sc.id
           JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
@@ -1621,6 +1460,12 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             AND ts.category_id = tc.id AND ts.tenant_id = ${tenantId}
           WHERE a.tenant_id = ${tenantId} 
           AND sc.company_id = ${sourceCompanyId}
+          AND NOT EXISTS (
+            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_actions" target
+            WHERE target.tenant_id = ${tenantId} 
+            AND target.subcategory_id = ts.id
+            AND target.name = a.name
+          )
           RETURNING id
         `);
         copiedItems.actions = actionsResult.rows.length;
