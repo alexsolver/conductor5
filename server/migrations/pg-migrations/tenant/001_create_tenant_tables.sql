@@ -1170,187 +1170,273 @@ $$ LANGUAGE plpgsql;
 -- ==============================
 
 -- Core business
+DROP TRIGGER IF EXISTS trg_customers_updated ON customers;
 CREATE TRIGGER trg_customers_updated
-BEFORE UPDATE ON customers
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON customers
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_companies_updated ON companies;
 CREATE TRIGGER trg_companies_updated
-BEFORE UPDATE ON companies
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON companies
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_beneficiaries_updated ON beneficiaries;
 CREATE TRIGGER trg_beneficiaries_updated
-BEFORE UPDATE ON beneficiaries
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON beneficiaries
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_tickets_updated ON tickets;
 CREATE TRIGGER trg_tickets_updated
-BEFORE UPDATE ON tickets
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON tickets
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Locations
+DROP TRIGGER IF EXISTS trg_locations_updated ON locations;
 CREATE TRIGGER trg_locations_updated
-BEFORE UPDATE ON locations
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON locations
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Items & suppliers
+DROP TRIGGER IF EXISTS trg_items_updated ON items;
 CREATE TRIGGER trg_items_updated
-BEFORE UPDATE ON items
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON items
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_suppliers_updated ON suppliers;
 CREATE TRIGGER trg_suppliers_updated
-BEFORE UPDATE ON suppliers
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON suppliers
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_price_lists_updated ON price_lists;
 CREATE TRIGGER trg_price_lists_updated
-BEFORE UPDATE ON price_lists
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON price_lists
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_price_list_items_updated ON price_list_items;
 CREATE TRIGGER trg_price_list_items_updated
-BEFORE UPDATE ON price_list_items
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON price_list_items
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Stock
+DROP TRIGGER IF EXISTS trg_stock_locations_updated ON stock_locations;
 CREATE TRIGGER trg_stock_locations_updated
-BEFORE UPDATE ON stock_locations
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON stock_locations
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_stock_levels_updated ON stock_levels;
 CREATE TRIGGER trg_stock_levels_updated
-BEFORE UPDATE ON stock_levels
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON stock_levels
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_stock_movements_updated ON stock_movements;
 CREATE TRIGGER trg_stock_movements_updated
-BEFORE UPDATE ON stock_movements
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON stock_movements
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Tickets x items
+DROP TRIGGER IF EXISTS trg_ticket_planned_items_updated ON ticket_planned_items;
 CREATE TRIGGER trg_ticket_planned_items_updated
-BEFORE UPDATE ON ticket_planned_items
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON ticket_planned_items
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_ticket_consumed_items_updated ON ticket_consumed_items;
 CREATE TRIGGER trg_ticket_consumed_items_updated
-BEFORE UPDATE ON ticket_consumed_items
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON ticket_consumed_items
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Customer mapping
+DROP TRIGGER IF EXISTS trg_customer_item_mappings_updated ON customer_item_mappings;
 CREATE TRIGGER trg_customer_item_mappings_updated
-BEFORE UPDATE ON customer_item_mappings
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON customer_item_mappings
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- User groups
+DROP TRIGGER IF EXISTS trg_user_groups_updated ON user_groups;
 CREATE TRIGGER trg_user_groups_updated
-BEFORE UPDATE ON user_groups
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON user_groups
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Approval system
+DROP TRIGGER IF EXISTS trg_approval_rules_updated ON approval_rules;
 CREATE TRIGGER trg_approval_rules_updated
-BEFORE UPDATE ON approval_rules
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_rules
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_approval_instances_updated ON approval_instances;
 CREATE TRIGGER trg_approval_instances_updated
-BEFORE UPDATE ON approval_instances
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_instances
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_approval_decisions_updated ON approval_decisions;
 CREATE TRIGGER trg_approval_decisions_updated
-BEFORE UPDATE ON approval_decisions
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_decisions
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_approval_steps_updated ON approval_steps;
 CREATE TRIGGER trg_approval_steps_updated
-BEFORE UPDATE ON approval_steps
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_steps
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_approval_conditions_updated ON approval_conditions;
 CREATE TRIGGER trg_approval_conditions_updated
-BEFORE UPDATE ON approval_conditions
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_conditions
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_approval_workflows_updated ON approval_workflows;
 CREATE TRIGGER trg_approval_workflows_updated
-BEFORE UPDATE ON approval_workflows
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON approval_workflows
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Knowledge base
+DROP TRIGGER IF EXISTS trg_kb_articles_updated ON knowledge_base_articles;
 CREATE TRIGGER trg_kb_articles_updated
-BEFORE UPDATE ON knowledge_base_articles
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_articles
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_article_versions_updated ON knowledge_base_article_versions;
 CREATE TRIGGER trg_kb_article_versions_updated
-BEFORE UPDATE ON knowledge_base_article_versions
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_article_versions
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_attachments_updated ON knowledge_base_attachments;
 CREATE TRIGGER trg_kb_attachments_updated
-BEFORE UPDATE ON knowledge_base_attachments
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_attachments
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_ratings_updated ON knowledge_base_ratings;
 CREATE TRIGGER trg_kb_ratings_updated
-BEFORE UPDATE ON knowledge_base_ratings
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_approvals_updated ON knowledge_base_approvals;
 CREATE TRIGGER trg_kb_approvals_updated
-BEFORE UPDATE ON knowledge_base_approvals
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_approvals
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_comments_updated ON knowledge_base_comments;
 CREATE TRIGGER trg_kb_comments_updated
-BEFORE UPDATE ON knowledge_base_comments
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_kb_templates_updated ON knowledge_base_templates;
 CREATE TRIGGER trg_kb_templates_updated
-BEFORE UPDATE ON knowledge_base_templates
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON knowledge_base_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Notifications
+DROP TRIGGER IF EXISTS trg_notifications_updated ON notifications;
 CREATE TRIGGER trg_notifications_updated
-BEFORE UPDATE ON notifications
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON notifications
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_user_notif_prefs_updated ON user_notification_preferences;
 CREATE TRIGGER trg_user_notif_prefs_updated
-BEFORE UPDATE ON user_notification_preferences
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON user_notification_preferences
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_notification_templates_updated ON notification_templates;
 CREATE TRIGGER trg_notification_templates_updated
-BEFORE UPDATE ON notification_templates
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON notification_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_schedule_notifications_updated ON schedule_notifications;
 CREATE TRIGGER trg_schedule_notifications_updated
-BEFORE UPDATE ON schedule_notifications
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON schedule_notifications
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Reports & dashboards
+DROP TRIGGER IF EXISTS trg_reports_updated ON reports;
 CREATE TRIGGER trg_reports_updated
-BEFORE UPDATE ON reports
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON reports
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dashboards_updated ON dashboards;
 CREATE TRIGGER trg_dashboards_updated
-BEFORE UPDATE ON dashboards
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON dashboards
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dashboard_widgets_updated ON dashboard_widgets;
 CREATE TRIGGER trg_dashboard_widgets_updated
-BEFORE UPDATE ON dashboard_widgets
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON dashboard_widgets
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- GDPR
+DROP TRIGGER IF EXISTS trg_gdpr_requests_updated ON gdpr_data_requests;
 CREATE TRIGGER trg_gdpr_requests_updated
-BEFORE UPDATE ON gdpr_data_requests
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON gdpr_data_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_gdpr_consent_updated ON gdpr_consent_records;
 CREATE TRIGGER trg_gdpr_consent_updated
-BEFORE UPDATE ON gdpr_consent_records
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON gdpr_consent_records
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_gdpr_audit_logs_updated ON gdpr_audit_logs;
 CREATE TRIGGER trg_gdpr_audit_logs_updated
-BEFORE UPDATE ON gdpr_audit_logs
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON gdpr_audit_logs
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Activity
+DROP TRIGGER IF EXISTS trg_activity_logs_updated ON activity_logs;
 CREATE TRIGGER trg_activity_logs_updated
-BEFORE UPDATE ON activity_logs
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON activity_logs
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
 -- Omnibridge
+DROP TRIGGER IF EXISTS trg_omni_channels_updated ON omnibridge_channels;
 CREATE TRIGGER trg_omni_channels_updated
-BEFORE UPDATE ON omnibridge_channels
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON omnibridge_channels
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_omni_messages_updated ON omnibridge_messages;
 CREATE TRIGGER trg_omni_messages_updated
-BEFORE UPDATE ON omnibridge_messages
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON omnibridge_messages
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_omni_chatbots_updated ON omnibridge_chatbots;
 CREATE TRIGGER trg_omni_chatbots_updated
-BEFORE UPDATE ON omnibridge_chatbots
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+    BEFORE UPDATE ON omnibridge_chatbots
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();

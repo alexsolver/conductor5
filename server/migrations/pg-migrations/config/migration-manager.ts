@@ -139,7 +139,16 @@ export class MigrationManager {
       await this.recordMigration(filename, schemaName);
 
       console.log(`✅ [MIGRATION-MANAGER] Migration ${filename} completed for ${schemaName}`);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle specific PostgreSQL error codes for objects that already exist
+      if (error.code === '42710' || // trigger already exists
+          error.code === '42P07' || // relation already exists
+          error.code === '42723' || // function already exists
+          error.code === '42P06') { // schema already exists
+        console.log(`⚠️ [MIGRATION-MANAGER] Migration ${filename} - object already exists, continuing...`);
+        return; // Continue with migration
+      }
+
       console.error(`❌ [MIGRATION-MANAGER] Migration ${filename} failed for ${schemaName}:`, error);
       throw error;
     }
