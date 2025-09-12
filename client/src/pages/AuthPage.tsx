@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 
@@ -17,7 +17,7 @@ export default function AuthPage() {
   const { loginMutation, registerMutation, isAuthenticated, isLoading, setToken } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const setLocation = useLocation()[1];
   const queryClient = useQueryClient();
 
   // Redirect if already authenticated
@@ -144,7 +144,7 @@ export default function AuthPage() {
             description: "Bem-vindo ao Conductor",
           });
 
-          navigate('/dashboard');
+          setLocation("/");
         } else {
           throw new Error(result.message || 'Falha no registro');
         }
