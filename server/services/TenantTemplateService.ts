@@ -225,26 +225,62 @@ export class TenantTemplateService {
       const categoryId = uuidv4();
       categoryIdMap.set(category.name, categoryId);
 
-      const query = `
-        INSERT INTO "${schemaName}".ticket_categories (
-          id, tenant_id, company_id, customer_id, name, description, color, icon,
-          active, sort_order, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-        ON CONFLICT DO NOTHING
+      // Check if company_id column exists
+      const columnCheckQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 
+        AND table_name = 'ticket_categories' 
+        AND column_name = 'company_id'
       `;
+      
+      const columnExists = await pool.query(columnCheckQuery, [schemaName]);
+      
+      let query;
+      let values;
+      
+      if (columnExists.rows.length > 0) {
+        query = `
+          INSERT INTO "${schemaName}".ticket_categories (
+            id, tenant_id, company_id, customer_id, name, description, color, icon,
+            active, sort_order, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          categoryId,
+          tenantId,
+          defaultCompanyId,
+          defaultCompanyId,
+          category.name,
+          category.description,
+          category.color,
+          category.icon,
+          category.active,
+          category.sortOrder
+        ];
+      } else {
+        query = `
+          INSERT INTO "${schemaName}".ticket_categories (
+            id, tenant_id, customer_id, name, description, color, icon,
+            active, sort_order, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          categoryId,
+          tenantId,
+          defaultCompanyId,
+          category.name,
+          category.description,
+          category.color,
+          category.icon,
+          category.active,
+          category.sortOrder
+        ];
+      }
 
-      await pool.query(query, [
-        categoryId,
-        tenantId,
-        defaultCompanyId,
-        defaultCompanyId,
-        category.name,
-        category.description,
-        category.color,
-        category.icon,
-        category.active,
-        category.sortOrder
-      ]);
+      await pool.query(query, values);
     }
 
     // Mapear nomes para IDs das subcategorias
@@ -262,27 +298,64 @@ export class TenantTemplateService {
 
       subcategoryIdMap.set(subcategory.name, subcategoryId);
 
-      const query = `
-        INSERT INTO "${schemaName}".ticket_subcategories (
-          id, tenant_id, company_id, customer_id, category_id, name, description, color, icon,
-          active, sort_order, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-        ON CONFLICT DO NOTHING
+      // Check if company_id column exists in subcategories
+      const columnCheckQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 
+        AND table_name = 'ticket_subcategories' 
+        AND column_name = 'company_id'
       `;
+      
+      const columnExists = await pool.query(columnCheckQuery, [schemaName]);
+      
+      let query;
+      let values;
+      
+      if (columnExists.rows.length > 0) {
+        query = `
+          INSERT INTO "${schemaName}".ticket_subcategories (
+            id, tenant_id, company_id, customer_id, category_id, name, description, color, icon,
+            active, sort_order, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          subcategoryId,
+          tenantId,
+          defaultCompanyId,
+          defaultCompanyId,
+          categoryId,
+          subcategory.name,
+          subcategory.description,
+          subcategory.color,
+          subcategory.icon,
+          subcategory.active,
+          subcategory.sortOrder
+        ];
+      } else {
+        query = `
+          INSERT INTO "${schemaName}".ticket_subcategories (
+            id, tenant_id, customer_id, category_id, name, description, color, icon,
+            active, sort_order, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          subcategoryId,
+          tenantId,
+          defaultCompanyId,
+          categoryId,
+          subcategory.name,
+          subcategory.description,
+          subcategory.color,
+          subcategory.icon,
+          subcategory.active,
+          subcategory.sortOrder
+        ];
+      }
 
-      await pool.query(query, [
-        subcategoryId,
-        tenantId,
-        defaultCompanyId,
-        defaultCompanyId,
-        categoryId,
-        subcategory.name,
-        subcategory.description,
-        subcategory.color,
-        subcategory.icon,
-        subcategory.active,
-        subcategory.sortOrder
-      ]);
+      await pool.query(query, values);
     }
 
     // 3. Criar ações
@@ -294,30 +367,70 @@ export class TenantTemplateService {
         continue;
       }
 
-      const query = `
-        INSERT INTO "${schemaName}".ticket_actions (
-          id, tenant_id, company_id, customer_id, subcategory_id, name, description,
-          estimated_time_minutes, color, icon, active, sort_order, action_type,
-          created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
-        ON CONFLICT DO NOTHING
+      // Check if company_id column exists in actions
+      const columnCheckQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = $1 
+        AND table_name = 'ticket_actions' 
+        AND column_name = 'company_id'
       `;
+      
+      const columnExists = await pool.query(columnCheckQuery, [schemaName]);
+      
+      let query;
+      let values;
+      
+      if (columnExists.rows.length > 0) {
+        query = `
+          INSERT INTO "${schemaName}".ticket_actions (
+            id, tenant_id, company_id, customer_id, subcategory_id, name, description,
+            estimated_time_minutes, color, icon, active, sort_order, action_type,
+            created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          uuidv4(),
+          tenantId,
+          defaultCompanyId,
+          defaultCompanyId,
+          subcategoryId,
+          action.name,
+          action.description,
+          action.estimatedTimeMinutes,
+          action.color,
+          action.icon,
+          action.active,
+          action.sortOrder,
+          action.actionType
+        ];
+      } else {
+        query = `
+          INSERT INTO "${schemaName}".ticket_actions (
+            id, tenant_id, customer_id, subcategory_id, name, description,
+            estimated_time_minutes, color, icon, active, sort_order, action_type,
+            created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+          ON CONFLICT DO NOTHING
+        `;
+        values = [
+          uuidv4(),
+          tenantId,
+          defaultCompanyId,
+          subcategoryId,
+          action.name,
+          action.description,
+          action.estimatedTimeMinutes,
+          action.color,
+          action.icon,
+          action.active,
+          action.sortOrder,
+          action.actionType
+        ];
+      }
 
-      await pool.query(query, [
-        uuidv4(),
-        tenantId,
-        defaultCompanyId,
-        defaultCompanyId,
-        subcategoryId,
-        action.name,
-        action.description,
-        action.estimatedTimeMinutes,
-        action.color,
-        action.icon,
-        action.active,
-        action.sortOrder,
-        action.actionType
-      ]);
+      await pool.query(query, values);
     }
 
     console.log(`[TENANT-TEMPLATE] Created hierarchical structure: ${DEFAULT_COMPANY_TEMPLATE.categories.length} categories, ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategories, ${DEFAULT_COMPANY_TEMPLATE.actions.length} actions`);
@@ -365,7 +478,7 @@ export class TenantTemplateService {
   ): Promise<void> {
     console.log(`[TENANT-TEMPLATE] Applying customized default template for tenant ${tenantId} with company name: ${customizations.companyName}`);
 
-    const defaultCompanyId = `default-${tenantId}`;
+    const defaultCompanyId = uuidv4();
 
     try {
       // 1. Criar empresa personalizada baseada no template Default
