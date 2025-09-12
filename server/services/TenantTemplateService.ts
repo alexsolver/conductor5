@@ -71,8 +71,21 @@ export class TenantTemplateService {
   ): Promise<void> {
     const company = DEFAULT_COMPANY_TEMPLATE.company;
 
+    // Check which table name exists in the schema
+    const tableCheckQuery = `
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = $1 
+      AND table_name IN ('customer_companies', 'companies')
+    `;
+    
+    const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
+    const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
+
+    console.log(`[TENANT-TEMPLATE] Using table: ${tableName} in schema: ${schemaName}`);
+
     const query = `
-      INSERT INTO "${schemaName}".customer_companies (
+      INSERT INTO "${schemaName}"."${tableName}" (
         id, tenant_id, name, display_name, description, industry, size,
         email, phone, website, subscription_tier, status, 
         created_by, created_at, updated_at, is_active, country
@@ -96,7 +109,7 @@ export class TenantTemplateService {
       userId
     ]);
 
-    console.log(`[TENANT-TEMPLATE] Default company created with ID: ${defaultCompanyId}`);
+    console.log(`[TENANT-TEMPLATE] Default company created with ID: ${defaultCompanyId} in table: ${tableName}`);
   }
 
   /**
@@ -116,8 +129,21 @@ export class TenantTemplateService {
   ): Promise<void> {
     const company = DEFAULT_COMPANY_TEMPLATE.company;
 
+    // First, check which table name exists in the schema
+    const tableCheckQuery = `
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = $1 
+      AND table_name IN ('customer_companies', 'companies')
+    `;
+    
+    const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
+    const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
+
+    console.log(`[TENANT-TEMPLATE] Using table: ${tableName} in schema: ${schemaName}`);
+
     const query = `
-      INSERT INTO "${schemaName}".customer_companies (
+      INSERT INTO "${schemaName}"."${tableName}" (
         id, tenant_id, name, display_name, description, industry, size,
         email, phone, website, subscription_tier, status, 
         created_by, created_at, updated_at, is_active, country
@@ -141,7 +167,7 @@ export class TenantTemplateService {
       userId
     ]);
 
-    console.log(`[TENANT-TEMPLATE] Customized default company '${customizations.companyName}' created with ID: ${defaultCompanyId}`);
+    console.log(`[TENANT-TEMPLATE] Customized default company '${customizations.companyName}' created with ID: ${defaultCompanyId} in table: ${tableName}`);
   }
 
   /**
@@ -441,10 +467,21 @@ export class TenantTemplateService {
    */
   static async isTemplateApplied(pool: any, schemaName: string, tenantId: string): Promise<boolean> {
     try {
+      // Check which company table exists
+      const tableCheckQuery = `
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = $1 
+        AND table_name IN ('customer_companies', 'companies')
+      `;
+      
+      const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
+      const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
+
       // Check for default company
       const companyQuery = `
         SELECT COUNT(*) as count 
-        FROM "${schemaName}".customer_companies 
+        FROM "${schemaName}"."${tableName}" 
         WHERE tenant_id = $1
       `;
       const companyResult = await pool.query(companyQuery, [tenantId]);
@@ -470,7 +507,7 @@ export class TenantTemplateService {
 
       const isApplied = hasCompany && hasOptions && hasCategories;
 
-      console.log(`[TENANT-TEMPLATE] Template check for ${tenantId}: company=${hasCompany}, options=${hasOptions}, categories=${hasCategories}, applied=${isApplied}`);
+      console.log(`[TENANT-TEMPLATE] Template check for ${tenantId}: company=${hasCompany} (table: ${tableName}), options=${hasOptions}, categories=${hasCategories}, applied=${isApplied}`);
 
       return isApplied;
     } catch (error) {
