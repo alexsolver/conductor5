@@ -898,101 +898,101 @@ export class TenantTemplateService {
     console.log('🔧 [TENANT-TEMPLATE] Ensuring ticket config tables exist...');
 
     try {
-      // Create ticket_categories table
-      // Added sort_order back, as the copyHierarchy now handles its potential absence.
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS "${sql.raw(schemaName)}"."ticket_categories" (
+      // Ensure ticket config tables exist
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_configurations" (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           company_id UUID NOT NULL,
-          name VARCHAR(255) NOT NULL,
+          field_name VARCHAR(100) NOT NULL,
+          display_name VARCHAR(200) NOT NULL,
+          field_type VARCHAR(50) NOT NULL DEFAULT 'text',
+          is_required BOOLEAN DEFAULT false,
+          is_system_field BOOLEAN DEFAULT false,
+          sort_order INTEGER DEFAULT 0,
+          is_active BOOLEAN DEFAULT true,
+          field_config JSONB DEFAULT '{}',
+          description TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, company_id, field_name)
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_options" (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          company_id UUID NOT NULL,
+          field_config_id UUID NOT NULL,
+          option_value VARCHAR(100) NOT NULL,
+          display_label VARCHAR(200) NOT NULL,
+          color_hex VARCHAR(7) DEFAULT '#3b82f6',
+          sort_order INTEGER DEFAULT 0,
+          is_default BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          option_config JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, company_id, field_config_id, option_value),
+          FOREIGN KEY (field_config_id) REFERENCES "${schemaName}"."ticket_field_configurations"(id) ON DELETE CASCADE
+        )
+      `);
+
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_categories" (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          company_id UUID NOT NULL,
+          name VARCHAR(200) NOT NULL,
           description TEXT,
           color VARCHAR(7) DEFAULT '#3b82f6',
           icon VARCHAR(50),
           active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 1,
+          sort_order INTEGER DEFAULT 0,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(tenant_id, company_id, name)
         )
       `);
 
-      // Create ticket_subcategories table  
-      // Added sort_order back. Removed company_id NOT NULL constraint as it might not be present in all scenarios.
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS "${sql.raw(schemaName)}"."ticket_subcategories" (
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_subcategories" (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
-          company_id UUID,
+          company_id UUID NOT NULL,
           category_id UUID NOT NULL,
-          name VARCHAR(255) NOT NULL,
+          name VARCHAR(200) NOT NULL,
           description TEXT,
           color VARCHAR(7) DEFAULT '#3b82f6',
           icon VARCHAR(50),
           active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 1,
+          sort_order INTEGER DEFAULT 0,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, category_id, name),
-          FOREIGN FOREIGN KEY (category_id) REFERENCES "${sql.raw(schemaName)}"."ticket_categories"(id) ON DELETE CASCADE
+          UNIQUE(tenant_id, company_id, category_id, name),
+          FOREIGN KEY (category_id) REFERENCES "${schemaName}"."ticket_categories"(id) ON DELETE CASCADE
         )
       `);
 
-      // Create ticket_actions table
-      // Added sort_order back. Removed company_id NOT NULL constraint.
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS "${sql.raw(schemaName)}"."ticket_actions" (
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_actions" (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
-          company_id UUID,
+          company_id UUID NOT NULL,
           subcategory_id UUID NOT NULL,
-          name VARCHAR(255) NOT NULL,
+          name VARCHAR(200) NOT NULL,
           description TEXT,
+          estimated_time_minutes INTEGER DEFAULT 0,
           color VARCHAR(7) DEFAULT '#3b82f6',
           icon VARCHAR(50),
           active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 1,
+          sort_order INTEGER DEFAULT 0,
+          action_type VARCHAR(50) DEFAULT 'general',
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, subcategory_id, name),
-          FOREIGN KEY (subcategory_id) REFERENCES "${sql.raw(schemaName)}"."ticket_subcategories"(id) ON DELETE CASCADE
-        )
-      `);
-
-      // Create ticket_field_options table
-      // Kept as is, assuming it's generally stable.
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS "${sql.raw(schemaName)}"."ticket_field_options" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          field_name VARCHAR(100) NOT NULL,
-          value VARCHAR(255) NOT NULL,
-          label VARCHAR(255) NOT NULL,
-          color VARCHAR(7) DEFAULT '#3b82f6',
-          sort_order INTEGER DEFAULT 1,
-          active BOOLEAN DEFAULT true,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, field_name, value)
-        )
-      `);
-
-      // Create ticket_numbering_config table
-      // This table was missing and added to resolve errors related to it.
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS "${sql.raw(schemaName)}"."ticket_numbering_config" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          prefix VARCHAR(10) DEFAULT 'TK',
-          separator VARCHAR(5) DEFAULT '-',
-          current_number INTEGER DEFAULT 1,
-          padding INTEGER DEFAULT 6,
-          active BOOLEAN DEFAULT true,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id)
+          UNIQUE(tenant_id, company_id, subcategory_id, name),
+          FOREIGN KEY (subcategory_id) REFERENCES "${schemaName}"."ticket_subcategories"(id) ON DELETE CASCADE
         )
       `);
 
