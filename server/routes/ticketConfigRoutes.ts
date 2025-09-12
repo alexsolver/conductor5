@@ -289,9 +289,9 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     console.log('🔍 Checking if category exists:', categoryId);
 
-    // Check if category exists
+    // Check if category exists and get its company_id
     const categoryCheck = await db.execute(sql`
-      SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      SELECT id, company_id FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -303,13 +303,14 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
       });
     }
 
-    console.log('✅ Category found, creating subcategory...');
+    const categoryCompanyId = categoryCheck.rows[0].company_id;
+    console.log('✅ Category found, creating subcategory with company_id:', categoryCompanyId);
 
-    // Insert subcategory with proper company_id field
+    // Insert subcategory with correct company_id from parent category
     const result = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
       (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-      VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
+      VALUES (gen_random_uuid(), ${tenantId}, ${categoryCompanyId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
       RETURNING *
     `);
 
@@ -352,20 +353,83 @@ router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Update subcategory
-    await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
-      SET 
-        name = ${name},
-        description = ${description || null},
-        category_id = ${categoryId},
-        color = ${color || '#3b82f6'},
-        icon = ${icon || null},
-        active = ${active !== false},
-        sort_order = ${sortOrder || 1},
-        updated_at = NOW()
-      WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
-    `);
+    // If categoryId is being changed, validate same-company constraint
+    if (categoryId) {
+      // Get current subcategory's company_id
+      const currentSubcategory = await db.execute(sql`
+        SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
+      `);
+
+      if (currentSubcategory.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Subcategory not found'
+        });
+      }
+
+      // Validate new category exists and belongs to same company
+      const categoryCheck = await db.execute(sql`
+        SELECT id, company_id FROM "${sql.raw(schemaName)}"."ticket_categories" 
+        WHERE id = ${categoryId} AND tenant_id = ${tenantId}
+      `);
+
+      if (categoryCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
+      }
+
+      const currentCompanyId = currentSubcategory.rows[0].company_id;
+      const newCompanyId = categoryCheck.rows[0].company_id;
+
+      if (currentCompanyId !== newCompanyId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot move subcategory to a different company'
+        });
+      }
+    }
+
+    // Update subcategory (company_id remains unchanged for integrity)
+    const updateFields = {
+      name,
+      description: description || null,
+      color: color || '#3b82f6',
+      icon: icon || null,
+      active: active !== false,
+      sort_order: sortOrder || 1
+    };
+
+    if (categoryId) {
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
+        SET 
+          name = ${updateFields.name},
+          description = ${updateFields.description},
+          category_id = ${categoryId},
+          color = ${updateFields.color},
+          icon = ${updateFields.icon},
+          active = ${updateFields.active},
+          sort_order = ${updateFields.sort_order},
+          updated_at = NOW()
+        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
+      `);
+    } else {
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
+        SET 
+          name = ${updateFields.name},
+          description = ${updateFields.description},
+          color = ${updateFields.color},
+          icon = ${updateFields.icon},
+          active = ${updateFields.active},
+          sort_order = ${updateFields.sort_order},
+          updated_at = NOW()
+        WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
+      `);
+    }
 
     // Sync color with ticket_field_options
     await db.execute(sql`
@@ -500,22 +564,28 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       color,
       icon,
       active,
-      sortOrder,
-      companyId
+      sortOrder
     } = req.body;
 
     if (!name || !subcategoryId) {
       return res.status(400).json({ message: 'Name and subcategory ID are required' });
     }
 
-    // Get companyId from query params if not in body
-    const finalCompanyId = companyId || req.query.companyId as string;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    if (!finalCompanyId) {
-      return res.status(400).json({ message: 'Company ID is required' });
+    // Get company_id from subcategory to ensure consistency
+    const subcategoryCheck = await db.execute(sql`
+      SELECT s.company_id 
+      FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
+      JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
+      WHERE s.id = ${subcategoryId} AND s.tenant_id = ${tenantId}
+    `);
+
+    if (subcategoryCheck.rows.length === 0) {
+      return res.status(404).json({ message: 'Subcategory not found' });
     }
 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const subcategoryCompanyId = subcategoryCheck.rows[0].company_id;
     const actionId = randomUUID();
 
     await db.execute(sql`
@@ -523,7 +593,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         id, tenant_id, company_id, subcategory_id, name, description,
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
-        ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
+        ${actionId}, ${tenantId}, ${subcategoryCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
         ${color || '#3b82f6'}, ${icon || null}, 
         ${active !== false}, ${sortOrder || 1}, NOW(), NOW()
       )
@@ -540,7 +610,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         icon,
         active: active !== false,
         sortOrder: sortOrder || 1,
-        companyId: finalCompanyId
+        companyId: subcategoryCompanyId
       }
     });
   } catch (error) {
@@ -574,7 +644,48 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Update action
+    // If subcategoryId is being changed, validate same-company constraint
+    if (subcategoryId) {
+      // Get current action's company_id
+      const currentAction = await db.execute(sql`
+        SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_action_types" 
+        WHERE id = ${actionId} AND tenant_id = ${tenantId}
+      `);
+
+      if (currentAction.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Action not found'
+        });
+      }
+
+      // Validate new subcategory exists and belongs to same company
+      const subcategoryCheck = await db.execute(sql`
+        SELECT s.company_id 
+        FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
+        WHERE s.id = ${subcategoryId} AND s.tenant_id = ${tenantId}
+      `);
+
+      if (subcategoryCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Subcategory not found'
+        });
+      }
+
+      const currentCompanyId = currentAction.rows[0].company_id;
+      const newCompanyId = subcategoryCheck.rows[0].company_id;
+
+      if (currentCompanyId !== newCompanyId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot move action to a different company'
+        });
+      }
+    }
+
+    // Update action (company_id remains unchanged for integrity)
     await db.execute(sql`
       UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
       SET 
