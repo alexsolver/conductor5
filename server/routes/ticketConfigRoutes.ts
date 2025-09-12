@@ -1514,7 +1514,28 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       numberingConfig: 0
     };
 
-    // 1. Copy Categories
+    // First, clean existing data from target company to avoid duplicates
+    console.log(`🗑️ Cleaning existing data for target company ${targetCompanyId}`);
+    
+    // Delete in reverse dependency order: actions -> subcategories -> categories
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_action_types" 
+      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
+    `);
+    
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
+    `);
+    
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
+    `);
+    
+    console.log(`✅ Existing data cleaned for target company ${targetCompanyId}`);
+
+    // 1. Copy Categories with unique naming to avoid tenant-level constraints
     const categoriesResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
       (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
@@ -1522,7 +1543,16 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         gen_random_uuid(), 
         tenant_id, 
         ${targetCompanyId}, 
-        name, 
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" existing
+            WHERE existing.tenant_id = ${tenantId} 
+            AND existing.name = src.name 
+            AND existing.company_id != ${sourceCompanyId}
+          )
+          THEN src.name || ' (Empresa ' || ${targetCompanyId}::varchar || ')'
+          ELSE src.name
+        END as name,
         description, 
         color, 
         icon, 
@@ -1530,14 +1560,8 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         sort_order, 
         NOW(), 
         NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_categories"
-      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
-      AND NOT EXISTS (
-        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" target
-        WHERE target.tenant_id = ${tenantId} 
-        AND target.company_id = ${targetCompanyId}
-        AND target.name = "${sql.raw(schemaName)}"."ticket_categories".name
-      )
+      FROM "${sql.raw(schemaName)}"."ticket_categories" src
+      WHERE src.tenant_id = ${tenantId} AND src.company_id = ${sourceCompanyId}
       RETURNING id
     `);
     copiedItems.categories = categoriesResult.rows.length;
@@ -1566,12 +1590,6 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
         WHERE s.tenant_id = ${tenantId} 
         AND sc.company_id = ${sourceCompanyId}
-        AND NOT EXISTS (
-          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_subcategories" target
-          WHERE target.tenant_id = ${tenantId} 
-          AND target.category_id = tc.id
-          AND target.name = s.name
-        )
         RETURNING id
       `);
       copiedItems.subcategories = subcategoriesResult.rows.length;
@@ -1604,12 +1622,6 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             AND ts.category_id = tc.id AND ts.tenant_id = ${tenantId}
           WHERE a.tenant_id = ${tenantId} 
           AND sc.company_id = ${sourceCompanyId}
-          AND NOT EXISTS (
-            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_action_types" target
-            WHERE target.tenant_id = ${tenantId} 
-            AND target.subcategory_id = ts.id
-            AND target.name = a.name
-          )
           RETURNING id
         `);
         copiedItems.actions = actionsResult.rows.length;
