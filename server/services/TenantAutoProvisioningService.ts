@@ -169,7 +169,7 @@ class TenantAutoProvisioningService {
         console.log(
           `🔧 [TENANT-PROVISIONING] Applying default company template for: ${savedTenant.id}`,
         );
-        
+
         try {
           const { TenantTemplateService } = await import("./TenantTemplateService");
           await TenantTemplateService.applyDefaultCompanyTemplate(savedTenant.id);
@@ -185,7 +185,7 @@ class TenantAutoProvisioningService {
         }
 
         console.log(
-          `✅ [TENANT-PROVISIONING] Tenant schema ready for template application: ${savedTenant.id}`,
+          `✅ [TENANT-PROVISIONING] Schema validated successfully for tenant: ${savedTenant.id}`,
         );
 
       } catch (schemaError) {
@@ -199,7 +199,7 @@ class TenantAutoProvisioningService {
       }
 
       console.log(
-        `✅ [TENANT-PROVISIONING] Schema validated successfully for tenant: ${savedTenant.id}`,
+        `✅ [TENANT-PROVISIONING] Tenant schema ready for template application: ${savedTenant.id}`,
       );
 
       // Log provisioning activity

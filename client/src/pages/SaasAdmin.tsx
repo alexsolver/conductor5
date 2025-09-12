@@ -1,351 +1,756 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Plus, Users, Building, Settings, BarChart3, Shield } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
-// Type definitions for API responses
-interface TenantsData {
-  total: number;
-  tenants: Array<{
-    id: string;
-    name: string;
-    subdomain: string;
-    createdAt: string;
-    status: string;
-  }>;
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Server, 
+  Users, 
+  Database, 
+  Activity, 
+  Settings, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Building,
+  Globe,
+  Shield,
+  HardDrive,
+  Cpu,
+  BarChart3,
+  UserCheck,
+  Mail
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Tenant {
+  id: string;
+  name: string;
+  subdomain: string;
+  status: 'active' | 'inactive' | 'suspended';
+  plan: string;
+  createdAt: string;
+  lastActivity: string;
+  userCount: number;
+  dbSize: string;
+  monthlyUsage: number;
+  contactEmail: string;
 }
 
-interface AnalyticsData {
+interface SystemStats {
+  totalTenants: number;
+  activeTenants: number;
   totalUsers: number;
   totalTickets: number;
-  activeUsers: number;
+  systemLoad: number;
+  memoryUsage: number;
+  diskUsage: number;
+  uptime: string;
 }
 
-interface UsersData {
-  users: Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-    isActive: boolean;
-    lastLoginAt?: string;
-  }>;
+interface PlatformUser {
+  id: string;
+  email: string;
+  role: 'saas_admin' | 'platform_admin' | 'support';
+  status: 'active' | 'inactive';
+  lastLogin: string;
+  createdAt: string;
+  tenantAccess: string[];
 }
 
-const createTenantSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  subdomain: z.string().min(1, "Subdomínio é obrigatório").regex(/^[a-z0-9-]+$/, "Subdomínio deve conter apenas letras minúsculas, números e hífens"),
-  settings: z.object({}).optional()
-});
-
-export default function SaasAdmin() {
-  const { user } = useAuth();
+const SaasAdmin: React.FC = () => {
   const { toast } = useToast();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(false);
+  const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([]);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [showCreateTenant, setShowCreateTenant] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
 
-  // Verificar se usuário é SaaS admin
-  if (user?.role !== 'saas_admin') {
-    return (
-      <div className="p-8 text-center">
-        <Shield className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          Acesso Negado
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Esta página é restrita para administradores da plataforma SaaS.
-        </p>
-      </div>
-    );
-  }
-
-  // Query para listar tenants
-  const { data: tenantsData, isLoading: isLoadingTenants } = useQuery<TenantsData>({
-    queryKey: ['/api/saas-admin/tenants'],
-    staleTime: 5 * 60 * 1000,
+  // New tenant form
+  const [newTenant, setNewTenant] = useState({
+    name: '',
+    subdomain: '',
+    plan: 'basic',
+    contactEmail: '',
+    adminEmail: '',
+    adminPassword: ''
   });
 
-  // Query para analytics da plataforma
-  const { data: analyticsData } = useQuery<AnalyticsData>({
-    queryKey: ['/api/saas-admin/analytics'],
-    staleTime: 2 * 60 * 1000,
+  // New user form
+  const [newUser, setNewUser] = useState({
+    email: '',
+    role: 'support' as const,
+    password: '',
+    tenantAccess: [] as string[]
   });
 
-  // Query para lista de usuários
-  const { data: usersData } = useQuery<UsersData>({
-    queryKey: ['/api/saas-admin/users'],
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Form para criar tenant
-  const form = useForm({
-    resolver: zodResolver(createTenantSchema),
-    defaultValues: {
-      name: "",
-      subdomain: "",
-      settings: {}
-    }
-  });
-
-  // Mutation para criar tenant
-  const createTenantMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof createTenantSchema>) => {
-      const res = await apiRequest('POST', '/api/saas-admin/tenants', data);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/tenants'] });
-      setIsCreateDialogOpen(false);
-      form.reset();
-      toast({
-        title: "Tenant criado",
-        description: "Novo tenant criado com sucesso!",
+  // Load system overview data
+  const loadSystemStats = async () => {
+    try {
+      const response = await fetch('/api/saas-admin/overview', {
+        credentials: 'include'
       });
-    },
-    onError: (error: Error) => {
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSystemStats(data);
+      }
+    } catch (error) {
+      console.error('Failed to load system stats:', error);
+    }
+  };
+
+  // Load all tenants
+  const loadTenants = async () => {
+    try {
+      const response = await fetch('/api/saas-admin/tenants', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTenants(data);
+      }
+    } catch (error) {
+      console.error('Failed to load tenants:', error);
+    }
+  };
+
+  // Load platform users
+  const loadPlatformUsers = async () => {
+    try {
+      const response = await fetch('/api/saas-admin/platform-users', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPlatformUsers(data);
+      }
+    } catch (error) {
+      console.error('Failed to load platform users:', error);
+    }
+  };
+
+  // Create new tenant
+  const createTenant = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/tenant-provisioning/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(newTenant)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Tenant criado com sucesso",
+          description: "O novo tenant foi criado e configurado automaticamente.",
+        });
+        setShowCreateTenant(false);
+        setNewTenant({
+          name: '',
+          subdomain: '',
+          plan: 'basic',
+          contactEmail: '',
+          adminEmail: '',
+          adminPassword: ''
+        });
+        loadTenants();
+      } else {
+        throw new Error('Failed to create tenant');
+      }
+    } catch (error) {
       toast({
         title: "Erro ao criar tenant",
-        description: error.message,
-        variant: "destructive",
+        description: "Ocorreu um erro ao criar o tenant. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create platform user
+  const createPlatformUser = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/saas-admin/platform-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(newUser)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Usuário criado com sucesso",
+          description: "O novo usuário da plataforma foi criado.",
+        });
+        setShowCreateUser(false);
+        setNewUser({
+          email: '',
+          role: 'support',
+          password: '',
+          tenantAccess: []
+        });
+        loadPlatformUsers();
+      } else {
+        throw new Error('Failed to create user');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao criar usuário",
+        description: "Ocorreu um erro ao criar o usuário. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle tenant status
+  const toggleTenantStatus = async (tenantId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      const response = await fetch(`/api/saas-admin/tenants/${tenantId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Status atualizado",
+          description: `Tenant ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso.`,
+        });
+        loadTenants();
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar status do tenant.",
+        variant: "destructive"
       });
     }
-  });
+  };
 
-  const onSubmit = (data: z.infer<typeof createTenantSchema>) => {
-    createTenantMutation.mutate(data);
+  useEffect(() => {
+    loadSystemStats();
+    loadTenants();
+    loadPlatformUsers();
+  }, []);
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      active: 'default',
+      inactive: 'secondary',
+      suspended: 'destructive'
+    };
+    return <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>{status}</Badge>;
+  };
+
+  const getRoleBadge = (role: string) => {
+    const variants = {
+      saas_admin: 'default',
+      platform_admin: 'secondary',
+      support: 'outline'
+    };
+    return <Badge variant={variants[role as keyof typeof variants] || 'outline'}>{role}</Badge>;
   };
 
   return (
-    <div className="p-4 space-y-8">
-      {/* Header */}
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Administração SaaS
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Gerencie tenants, usuários e configurações da plataforma
+          <h1 className="text-3xl font-bold tracking-tight">SaaS Admin</h1>
+          <p className="text-muted-foreground">
+            Gerencie todos os aspectos da plataforma SaaS
           </p>
         </div>
-        
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gradient-primary text-white hover:opacity-90">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Tenant
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Novo Tenant</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Tenant</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Acme Corporation" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="subdomain"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subdomínio</FormLabel>
-                      <FormControl>
-                        <Input placeholder="acme" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={createTenantMutation.isPending}>
-                    {createTenantMutation.isPending ? 'Criando...' : 'Criar'}
-                  </Button>
+        <Button onClick={() => {
+          loadSystemStats();
+          loadTenants();
+          loadPlatformUsers();
+        }}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Atualizar
+        </Button>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="tenants">Gestão de Tenant</TabsTrigger>
+          <TabsTrigger value="provisioning">Provisionamento</TabsTrigger>
+          <TabsTrigger value="users">Usuários da Plataforma</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Tenants</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{systemStats?.totalTenants || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {systemStats?.activeTenants || 0} ativos
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{systemStats?.totalUsers || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  Todos os tenants
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Tickets</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{systemStats?.totalTickets || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  Sistema inteiro
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Uptime</CardTitle>
+                <Server className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{systemStats?.uptime || '0d'}</div>
+                <p className="text-xs text-muted-foreground">
+                  Sistema online
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Carga do Sistema</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>CPU</span>
+                    <span>{systemStats?.systemLoad || 0}%</span>
+                  </div>
+                  <Progress value={systemStats?.systemLoad || 0} />
                 </div>
-              </form>
-            </Form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Uso de Memória</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>RAM</span>
+                    <span>{systemStats?.memoryUsage || 0}%</span>
+                  </div>
+                  <Progress value={systemStats?.memoryUsage || 0} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Uso de Disco</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Storage</span>
+                    <span>{systemStats?.diskUsage || 0}%</span>
+                  </div>
+                  <Progress value={systemStats?.diskUsage || 0} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tenants Management Tab */}
+        <TabsContent value="tenants" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestão de Tenants</CardTitle>
+              <CardDescription>
+                Gerencie todos os tenants do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Subdomínio</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Usuários</TableHead>
+                    <TableHead>Última Atividade</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tenants.map((tenant) => (
+                    <TableRow key={tenant.id}>
+                      <TableCell className="font-medium">{tenant.name}</TableCell>
+                      <TableCell>{tenant.subdomain}</TableCell>
+                      <TableCell>{getStatusBadge(tenant.status)}</TableCell>
+                      <TableCell>{tenant.plan}</TableCell>
+                      <TableCell>{tenant.userCount}</TableCell>
+                      <TableCell>{new Date(tenant.lastActivity).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedTenant(tenant)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleTenantStatus(tenant.id, tenant.status)}
+                          >
+                            {tenant.status === 'active' ? (
+                              <XCircle className="h-4 w-4" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Provisioning Tab */}
+        <TabsContent value="provisioning" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Provisionamento de Tenants</CardTitle>
+              <CardDescription>
+                Crie e configure novos tenants automaticamente
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => setShowCreateTenant(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Novo Tenant
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Dialog open={showCreateTenant} onOpenChange={setShowCreateTenant}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Tenant</DialogTitle>
+                <DialogDescription>
+                  Preencha os dados para criar um novo tenant no sistema.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Nome
+                  </Label>
+                  <Input
+                    id="name"
+                    value={newTenant.name}
+                    onChange={(e) => setNewTenant({...newTenant, name: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="subdomain" className="text-right">
+                    Subdomínio
+                  </Label>
+                  <Input
+                    id="subdomain"
+                    value={newTenant.subdomain}
+                    onChange={(e) => setNewTenant({...newTenant, subdomain: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="plan" className="text-right">
+                    Plano
+                  </Label>
+                  <Select value={newTenant.plan} onValueChange={(value) => setNewTenant({...newTenant, plan: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">Básico</SelectItem>
+                      <SelectItem value="professional">Profissional</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="contactEmail" className="text-right">
+                    Email Contato
+                  </Label>
+                  <Input
+                    id="contactEmail"
+                    type="email"
+                    value={newTenant.contactEmail}
+                    onChange={(e) => setNewTenant({...newTenant, contactEmail: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="adminEmail" className="text-right">
+                    Email Admin
+                  </Label>
+                  <Input
+                    id="adminEmail"
+                    type="email"
+                    value={newTenant.adminEmail}
+                    onChange={(e) => setNewTenant({...newTenant, adminEmail: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="adminPassword" className="text-right">
+                    Senha Admin
+                  </Label>
+                  <Input
+                    id="adminPassword"
+                    type="password"
+                    value={newTenant.adminPassword}
+                    onChange={(e) => setNewTenant({...newTenant, adminPassword: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" onClick={createTenant} disabled={loading}>
+                  {loading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+                  Criar Tenant
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* Platform Users Tab */}
+        <TabsContent value="users" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Usuários da Plataforma</CardTitle>
+                <CardDescription>
+                  Gerencie usuários com acesso à plataforma SaaS
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowCreateUser(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Usuário
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Função</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Último Login</TableHead>
+                    <TableHead>Criado em</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {platformUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.email}</TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>{getStatusBadge(user.status)}</TableCell>
+                      <TableCell>{new Date(user.lastLogin).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Usuário da Plataforma</DialogTitle>
+                <DialogDescription>
+                  Adicione um novo usuário com acesso à plataforma SaaS.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="userEmail" className="text-right">
+                    Email
+                  </Label>
+                  <Input
+                    id="userEmail"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="userRole" className="text-right">
+                    Função
+                  </Label>
+                  <Select value={newUser.role} onValueChange={(value: any) => setNewUser({...newUser, role: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="support">Suporte</SelectItem>
+                      <SelectItem value="platform_admin">Admin Plataforma</SelectItem>
+                      <SelectItem value="saas_admin">SaaS Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="userPassword" className="text-right">
+                    Senha
+                  </Label>
+                  <Input
+                    id="userPassword"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" onClick={createPlatformUser} disabled={loading}>
+                  {loading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+                  Criar Usuário
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+      </Tabs>
+
+      {/* Tenant Details Modal */}
+      {selectedTenant && (
+        <Dialog open={!!selectedTenant} onOpenChange={() => setSelectedTenant(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Tenant</DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre {selectedTenant.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Nome</Label>
+                  <p className="text-sm">{selectedTenant.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Subdomínio</Label>
+                  <p className="text-sm">{selectedTenant.subdomain}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <p className="text-sm">{getStatusBadge(selectedTenant.status)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Plano</Label>
+                  <p className="text-sm">{selectedTenant.plan}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Usuários</Label>
+                  <p className="text-sm">{selectedTenant.userCount}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Tamanho BD</Label>
+                  <p className="text-sm">{selectedTenant.dbSize}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Uso Mensal</Label>
+                  <p className="text-sm">{selectedTenant.monthlyUsage}%</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Email Contato</Label>
+                  <p className="text-sm">{selectedTenant.contactEmail}</p>
+                </div>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
-      </div>
-
-      {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="gradient-card border-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Total Tenants</CardTitle>
-            <Building className="h-4 w-4 text-purple-300" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {tenantsData?.total || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="gradient-card border-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Total Usuários</CardTitle>
-            <Users className="h-4 w-4 text-purple-300" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {analyticsData?.totalUsers || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="gradient-card border-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Total Tickets</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-300" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {analyticsData?.totalTickets || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="gradient-card border-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Usuários Ativos</CardTitle>
-            <Users className="h-4 w-4 text-purple-300" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {analyticsData?.activeUsers || 0}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tenants and Users Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tenants Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building className="w-5 h-5 mr-2" />
-              Tenants
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingTenants ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {tenantsData?.tenants?.map((tenant: any) => (
-                  <div key={tenant.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{tenant.name}</h3>
-                      <Badge className="bg-green-100 text-green-700">Ativo</Badge>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <span className="font-medium mr-2">Subdomínio:</span>
-                        <Badge variant="outline">{tenant.subdomain}</Badge>
-                      </div>
-                      <div>
-                        <span className="font-medium mr-2">Criado em:</span>
-                        {new Date(tenant.createdAt).toLocaleDateString('pt-BR')}
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <Button variant="ghost" size="sm" className="text-purple-600">
-                        <Settings className="w-4 h-4 mr-1" />
-                        Gerenciar
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="w-5 h-5 mr-2" />
-              Usuários da Plataforma
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {usersData ? (
-              <div className="space-y-4">
-                {usersData?.users?.slice(0, 5).map((user: any) => (
-                  <div key={user.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                        {user.firstName} {user.lastName}
-                      </h3>
-                      <Badge 
-                        variant={user.role === 'saas_admin' ? 'default' : 'secondary'}
-                        className={user.role === 'saas_admin' ? 'bg-red-100 text-red-700' : ''}
-                      >
-                        {user.role.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                      <div>{user.email}</div>
-                      <div>
-                        <span className="font-medium mr-2">Status:</span>
-                        <Badge className={user.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                          {user.isActive ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </div>
-                      {user.lastLoginAt && (
-                        <div>
-                          <span className="font-medium mr-2">Último login:</span>
-                          {new Date(user.lastLoginAt).toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-2 border-t">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Ver todos os usuários
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center py-8">
-                <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      )}
     </div>
   );
-}
+};
+
+export default SaasAdmin;

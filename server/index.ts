@@ -489,6 +489,8 @@ app.use((req, res, next) => {
     console.log('⚠️ [APPROVAL-MANAGEMENT] Continuing without approval routes for now');
   }
 
+  // Register SaaS Admin routes
+  app.use('/api/saas-admin', saasAdminRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
