@@ -149,11 +149,6 @@ export const queryClient = new QueryClient({
         // Retry up to 3 times for other errors
         return failureCount < 3;
       },
-      onError: (error: any) => {
-        if (error?.status === 401) {
-          console.error('❌ [QUERY-CLIENT] Token refresh failed');
-        }
-      },
     },
     mutations: {
       retry: false,

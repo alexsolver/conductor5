@@ -37,9 +37,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
-  loginMutation: UseMutationResult<{ user: User; accessToken: string }, Error, LoginData>;
+  loginMutation: UseMutationResult<{ user: User; session?: any }, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<{ user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }, Error, RegisterData>;
+  registerMutation: UseMutationResult<{ user: User; tenant?: { id: string; name: string; subdomain: string } }, Error, RegisterData>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

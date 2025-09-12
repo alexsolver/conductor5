@@ -14,7 +14,7 @@ import { toast } from "@/hooks/use-toast";
 
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, isAuthenticated, isLoading, setToken, setUser } = useAuth();
+  const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
   const navigate = useLocation()[1]; // Renamed from setLocation to navigate for clarity
@@ -87,7 +87,7 @@ export default function AuthPage() {
     const [companyName, setCompanyName] = useState("");
     const [workspaceName, setWorkspaceName] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const registerData = {
         email,
@@ -96,63 +96,10 @@ export default function AuthPage() {
         lastName: lastName || undefined,
         companyName: companyName || undefined,
         workspaceName: workspaceName || undefined,
-        role: 'tenant_admin' // First user becomes tenant admin
+        role: 'tenant_admin' as const // First user becomes tenant admin
       };
 
-      try {
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(registerData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Falha no registro');
-        }
-
-        const result = await response.json();
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('✅ [AUTH] Registration successful:', data);
-
-          // Cache company data if available
-          if (data.data?.company) {
-            console.log('✅ [AUTH] Company data cached after registration:', data.data.company);
-            localStorage.setItem('companyData', JSON.stringify(data.data.company));
-          }
-
-          if (data.data?.tokens?.accessToken) {
-            setToken(data.data.tokens.accessToken);
-            localStorage.setItem('accessToken', data.data.tokens.accessToken);
-          }
-
-          // Set user context immediately
-          if (data.data?.user) {
-            setUser(data.data.user);
-          }
-
-          toast({
-            title: "Sucesso!",
-            description: "Conta criada com sucesso. Redirecionando...",
-          });
-
-          // Immediate redirect after successful registration
-          navigate('/dashboard');
-        } else {
-          throw new Error(result.message || 'Falha no registro');
-        }
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Erro no registro",
-          description: error.message,
-        });
-      }
+      registerMutation.mutate(registerData);
     };
 
     return (
