@@ -359,30 +359,46 @@ authRouter.post(
           throw new Error("User record not found after creation.");
         }
 
-        // Apply template for the new tenant
-        console.log('🎯 [REGISTER] Applying tenant template...');
-        try {
-          const templateResult = await TenantTemplateService.applyCustomizedDefaultTemplate(
-            savedTenant.id,
-            newUser.id,
-            await (await import('../../db')).pool,
-            schemaName,
-            {
-              companyName: userData.companyName || userData.workspaceName || "Default Company",
-              companyEmail: userData.email,
-              industry: "Geral"
-            }
-          );
-          console.log('✅ [REGISTER] Template applied successfully:', templateResult);
-        } catch (templateError) {
-          console.error('❌ [REGISTER] Template application failed:', templateError);
-          console.error('❌ [REGISTER] Template error details:', templateError.message);
-          // Continue even if template fails - don't block registration
-        }
+        // Apply template for the new tenant - run in background to avoid blocking response
+        console.log('🎯 [REGISTER] Scheduling tenant template application...');
+
+        // Apply template asynchronously to avoid blocking the response
+        setImmediate(async () => {
+          try {
+            const { pool } = await import('../../db');
+            const templateResult = await TenantTemplateService.applyCustomizedDefaultTemplate(
+              savedTenant.id,
+              newUser.id,
+              pool,
+              schemaName,
+              {
+                companyName: userData.companyName || userData.workspaceName || "Default Company",
+                companyEmail: userData.email,
+                industry: "Geral"
+              }
+            );
+            console.log('✅ [REGISTER] Template applied successfully:', templateResult);
+          } catch (templateError) {
+            console.error('❌ [REGISTER] Template application failed:', templateError);
+            console.error('❌ [REGISTER] Template error details:', templateError.message);
+          }
+        });
 
         // Wait a moment to ensure database consistency
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
+      }
+
+      // Validate tokens before sending response
+      if (!result.accessToken || !result.refreshToken) {
+        console.error("❌ [REGISTER-ROUTE] Invalid tokens generated:", {
+          hasAccessToken: !!result.accessToken,
+          hasRefreshToken: !!result.refreshToken,
+        });
+        return res.status(500).json({
+          success: false,
+          message: "Failed to generate authentication tokens"
+        });
       }
 
       // Set refresh token as httpOnly cookie
@@ -393,48 +409,14 @@ authRouter.post(
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      // Get company data for the response if tenant was created
-      let companyData = null;
-      if (userData.companyName && userData.workspaceName && userData.tenantId) {
-        try {
-          const { pool } = await import('../../db');
-          const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
+      console.log("✅ [REGISTER-ROUTE] Registration successful, sending response");
 
-          // Check which table exists and get company data
-          const tableCheckQuery = `
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = $1
-            AND table_name IN ('customer_companies', 'companies')
-          `;
-          const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
-          const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
-
-          const companyQuery = `
-            SELECT id, name, display_name, email, industry, is_active
-            FROM "${schemaName}"."${tableName}"
-            WHERE tenant_id = $1
-            LIMIT 1
-          `;
-          const companyResult = await pool.query(companyQuery, [userData.tenantId]);
-
-          if (companyResult.rows.length > 0) {
-            companyData = companyResult.rows[0];
-            console.log(`✅ [REGISTER] Company data retrieved for response:`, companyData);
-          }
-        } catch (error) {
-          console.error(`❌ [REGISTER] Error retrieving company data:`, error);
-          // Continue without company data
-        }
-      }
-
-      // ✅ 1QA.MD: Resposta padronizada para registro
-      res.json({
+      // Send immediate success response
+      return res.json({
         success: true,
         message: "Registration successful",
         data: {
           user: result.user,
-          company: companyData,
           tokens: {
             accessToken: result.accessToken,
             refreshToken: result.refreshToken,

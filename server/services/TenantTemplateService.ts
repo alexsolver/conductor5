@@ -489,46 +489,49 @@ export class TenantTemplateService {
       companyEmail?: string;
       industry?: string;
     }
-  ): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying customized default template for tenant ${tenantId} with company: ${customizations.companyName}`);
+  ): Promise<{ success: boolean; details: string }> {
+    console.log(`[TENANT-TEMPLATE] Applying customized template for tenant ${tenantId}`);
 
     try {
-      // 1. Criar empresa personalizada em vez da Default
-      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
-      console.log(`[TENANT-TEMPLATE] Step 1: Creating company with ID ${defaultCompanyId}`);
-      await this.createCustomizedDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId, customizations);
+      // Validate inputs
+      if (!tenantId || !userId || !pool || !schemaName) {
+        throw new Error('Missing required parameters for template application');
+      }
 
-      // 2. Criar opções de campos de tickets PRIMEIRO
-      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options`);
+      // Generate consistent company ID
+      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
+
+      console.log(`[TENANT-TEMPLATE] Step 1: Creating customized company for ${tenantId}`);
+      // 1. Criar empresa personalizada
+      await this.createCustomizedDefaultCompany(
+        pool,
+        schemaName,
+        tenantId,
+        userId,
+        defaultCompanyId,
+        customizations
+      );
+
+      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options for ${tenantId}`);
+      // 2. Criar opções de campos de tickets
       await this.createTicketFieldOptions(pool, schemaName, tenantId);
 
+      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure for ${tenantId}`);
       // 3. Criar categorias hierárquicas
-      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure`);
       await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
 
-      // 4. Verificar se os dados foram inseridos corretamente
-      const verifyQuery = `
-        SELECT 
-          (SELECT COUNT(*) FROM "${schemaName}".ticket_field_options WHERE tenant_id = $1) as field_options_count,
-          (SELECT COUNT(*) FROM "${schemaName}".ticket_categories WHERE tenant_id = $1) as categories_count,
-          (SELECT COUNT(*) FROM "${schemaName}".ticket_subcategories WHERE tenant_id = $1) as subcategories_count,
-          (SELECT COUNT(*) FROM "${schemaName}".ticket_actions WHERE tenant_id = $1) as actions_count
-      `;
+      console.log(`[TENANT-TEMPLATE] Customized template applied successfully for tenant ${tenantId}`);
 
-      const verifyResult = await pool.query(verifyQuery, [tenantId]);
-      const counts = verifyResult.rows[0];
-
-      console.log(`[TENANT-TEMPLATE] Template verification for tenant ${tenantId}:`, {
-        fieldOptions: counts.field_options_count,
-        categories: counts.categories_count,
-        subcategories: counts.subcategories_count,
-        actions: counts.actions_count
-      });
-
-      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId}`);
+      return {
+        success: true,
+        details: `Template applied with company: ${customizations.companyName}`
+      };
     } catch (error) {
       console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
-      throw error;
+      return {
+        success: false,
+        details: `Template application failed: ${error.message}`
+      };
     }
   }
 
@@ -934,7 +937,7 @@ export class TenantTemplateService {
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(tenant_id, category_id, name),
-          FOREIGN KEY (category_id) REFERENCES "${sql.raw(schemaName)}"."ticket_categories"(id) ON DELETE CASCADE
+          FOREIGN FOREIGN KEY (category_id) REFERENCES "${sql.raw(schemaName)}"."ticket_categories"(id) ON DELETE CASCADE
         )
       `);
 
