@@ -407,7 +407,7 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // Check if subcategory has actions
     const actionsCheck = await db.execute(sql`
-      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_actions" 
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_action_types" 
       WHERE subcategory_id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -462,7 +462,7 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
              a.sort_order as "sortOrder",
              s.name as subcategory_name, 
              c.name as category_name 
-      FROM "${sql.raw(schemaName)}"."ticket_actions" a
+      FROM "${sql.raw(schemaName)}"."ticket_action_types" a
       JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
       WHERE a.tenant_id = ${tenantId} 
@@ -519,7 +519,7 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const actionId = randomUUID();
 
     await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_action_types" (
         id, tenant_id, company_id, subcategory_id, name, description,
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
@@ -576,7 +576,7 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // Update action
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_actions" 
+      UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
       SET 
         name = ${name},
         description = ${description || null},
@@ -628,7 +628,7 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_actions" 
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_action_types" 
       WHERE id = ${actionId} AND tenant_id = ${tenantId}
     `);
 
@@ -1435,7 +1435,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       // 3. Copy Actions (with subcategory mapping)
       if (copiedItems.subcategories > 0) {
         const actionsResult = await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_action_types" 
           (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, created_at, updated_at)
           SELECT 
             gen_random_uuid(),
@@ -1451,7 +1451,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             a.sort_order,
             NOW(),
             NOW()
-          FROM "${sql.raw(schemaName)}"."ticket_actions" a
+          FROM "${sql.raw(schemaName)}"."ticket_action_types" a
           JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ss ON a.subcategory_id = ss.id
           JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON ss.category_id = sc.id
           JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
@@ -1461,7 +1461,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           WHERE a.tenant_id = ${tenantId} 
           AND sc.company_id = ${sourceCompanyId}
           AND NOT EXISTS (
-            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_actions" target
+            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_action_types" target
             WHERE target.tenant_id = ${tenantId} 
             AND target.subcategory_id = ts.id
             AND target.name = a.name
