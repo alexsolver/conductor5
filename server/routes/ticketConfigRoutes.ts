@@ -458,7 +458,6 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const result = await db.execute(sql`
       SELECT a.*, 
-             a.subcategory_id as "subcategoryId",
              a.sort_order as "sortOrder",
              s.name as subcategory_name, 
              c.name as category_name 
