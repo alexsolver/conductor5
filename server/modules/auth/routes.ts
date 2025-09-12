@@ -401,6 +401,9 @@ authRouter.post(
           const isApplied = await TenantTemplateService.isTemplateApplied(pool, schemaName, savedTenant.id);
           console.log(`🔍 [REGISTER] Template verification result: ${isApplied}`);
 
+          // Wait a moment to ensure database consistency
+          await new Promise(resolve => setTimeout(resolve, 100));
+
         } catch (templateError) {
           console.error(`❌ [REGISTER] Template application failed for tenant: ${savedTenant.id}`, templateError);
 
@@ -418,10 +421,13 @@ authRouter.post(
                 industry: "Geral"
               }
             );
-            console.log(`✅ [REGISTER] Fallback template applied successfully for tenant: ${savedTenant.id}`);
+            console.log(`✅ [REGISTER] Fallback template applied for tenant: ${savedTenant.id}`);
+
+            // Wait a moment to ensure database consistency
+            await new Promise(resolve => setTimeout(resolve, 100));
           } catch (fallbackError) {
-            console.error(`❌ [REGISTER] Fallback template also failed for tenant: ${savedTenant.id}`, fallbackError);
-            // Continuar mesmo se o template falhar
+            console.error(`❌ [REGISTER] Fallback template failed for tenant: ${savedTenant.id}`, fallbackError);
+            // Continue with registration even if template fails
           }
         }
       }
@@ -434,23 +440,56 @@ authRouter.post(
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      res.status(201).json({
+      // Get company data for the response if tenant was created
+      let companyData = null;
+      if (userData.companyName && userData.workspaceName && userData.tenantId) {
+        try {
+          const { pool } = await import('../../db');
+          const schemaName = `tenant_${userData.tenantId.replace(/-/g, '_')}`;
+
+          // Check which table exists and get company data
+          const tableCheckQuery = `
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = $1 
+            AND table_name IN ('customer_companies', 'companies')
+          `;
+          const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
+          const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
+
+          const companyQuery = `
+            SELECT id, name, display_name, email, industry, is_active 
+            FROM "${schemaName}"."${tableName}" 
+            WHERE tenant_id = $1 
+            LIMIT 1
+          `;
+          const companyResult = await pool.query(companyQuery, [userData.tenantId]);
+
+          if (companyResult.rows.length > 0) {
+            companyData = companyResult.rows[0];
+            console.log(`✅ [REGISTER] Company data retrieved for response:`, companyData);
+          }
+        } catch (error) {
+          console.error(`❌ [REGISTER] Error retrieving company data:`, error);
+          // Continue without company data
+        }
+      }
+
+      // ✅ 1QA.MD: Resposta padronizada para registro
+      res.json({
         success: true,
         message: "Registration successful",
         data: {
           user: result.user,
+          company: companyData,
           tokens: {
             accessToken: result.accessToken,
             refreshToken: result.refreshToken,
           },
-          tenant:
-            userData.companyName && userData.workspaceName
-              ? {
-                  id: userData.tenantId,
-                  name: userData.companyName,
-                  subdomain: userData.workspaceName,
-                }
-              : undefined,
+          session: {
+            registeredAt: new Date().toISOString(),
+            userAgent: req.headers["user-agent"] || "unknown",
+          },
         },
         timestamp: new Date().toISOString(),
       });

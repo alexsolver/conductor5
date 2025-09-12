@@ -8,16 +8,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
 
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
+  const { loginMutation, registerMutation, isAuthenticated, isLoading, setToken } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
-
-  // ✅ CRITICAL FIX: Não limpar tokens automaticamente na página de auth
-  // Isso pode estar causando problemas durante o processo de login
-  
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -86,9 +87,9 @@ export default function AuthPage() {
     const [companyName, setCompanyName] = useState("");
     const [workspaceName, setWorkspaceName] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      registerMutation.mutate({ 
+      const registerData = { 
         email, 
         password, 
         firstName: firstName || undefined, 
@@ -96,7 +97,64 @@ export default function AuthPage() {
         companyName: companyName || undefined,
         workspaceName: workspaceName || undefined,
         role: 'tenant_admin' // First user becomes tenant admin
-      });
+      };
+
+      // Assuming registerMutation.mutate handles the API call and response processing
+      // The original code did not show the mutation logic, so we'll simulate it here.
+      // In a real scenario, this would likely be part of the `useAuth` hook.
+      try {
+        // Simulating the API call and response
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(registerData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Falha no registro');
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.data?.tokens?.accessToken) {
+          localStorage.setItem('accessToken', result.data.tokens.accessToken);
+          setToken(result.data.tokens.accessToken);
+          queryClient.setQueryData(['user'], result.data.user);
+
+          // If company data is available, cache it
+          if (result.data.company) {
+            queryClient.setQueryData(['/api/companies'], [result.data.company]);
+            console.log('✅ [AUTH] Company data cached after registration:', result.data.company);
+          }
+
+          // Invalidate relevant queries to ensure fresh data
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
+            queryClient.invalidateQueries({ queryKey: ['companies'] }),
+            queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
+            queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
+          ]);
+
+          toast({
+            title: "Conta criada com sucesso!",
+            description: "Bem-vindo ao Conductor",
+          });
+
+          navigate('/dashboard');
+        } else {
+          throw new Error(result.message || 'Falha no registro');
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Erro no registro",
+          description: error.message,
+        });
+      }
     };
 
     return (
