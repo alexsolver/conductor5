@@ -106,48 +106,99 @@ const SaasAdmin: React.FC = () => {
   // Load system overview data
   const loadSystemStats = async () => {
     try {
+      console.log('🔍 [SAAS-ADMIN-CLIENT] Loading system stats...');
       const response = await fetch('/api/saas-admin/overview', {
         credentials: 'include'
       });
       
+      console.log('📡 [SAAS-ADMIN-CLIENT] Overview response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ [SAAS-ADMIN-CLIENT] System stats loaded:', data);
         setSystemStats(data);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ [SAAS-ADMIN-CLIENT] Failed to load system stats:', response.status, errorText);
+        toast({
+          title: "Erro ao carregar estatísticas",
+          description: `Falha ao carregar dados do sistema: ${response.status}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error('Failed to load system stats:', error);
+      console.error('❌ [SAAS-ADMIN-CLIENT] Error loading system stats:', error);
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive"
+      });
     }
   };
 
   // Load all tenants
   const loadTenants = async () => {
     try {
+      console.log('🔍 [SAAS-ADMIN-CLIENT] Loading tenants...');
       const response = await fetch('/api/saas-admin/tenants', {
         credentials: 'include'
       });
       
+      console.log('📡 [SAAS-ADMIN-CLIENT] Tenants response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ [SAAS-ADMIN-CLIENT] Tenants loaded:', data);
         setTenants(data);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ [SAAS-ADMIN-CLIENT] Failed to load tenants:', response.status, errorText);
+        toast({
+          title: "Erro ao carregar tenants",
+          description: `Falha ao carregar lista de tenants: ${response.status}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error('Failed to load tenants:', error);
+      console.error('❌ [SAAS-ADMIN-CLIENT] Error loading tenants:', error);
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive"
+      });
     }
   };
 
   // Load platform users
   const loadPlatformUsers = async () => {
     try {
+      console.log('🔍 [SAAS-ADMIN-CLIENT] Loading platform users...');
       const response = await fetch('/api/saas-admin/platform-users', {
         credentials: 'include'
       });
       
+      console.log('📡 [SAAS-ADMIN-CLIENT] Platform users response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ [SAAS-ADMIN-CLIENT] Platform users loaded:', data);
         setPlatformUsers(data);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ [SAAS-ADMIN-CLIENT] Failed to load platform users:', response.status, errorText);
+        toast({
+          title: "Erro ao carregar usuários",
+          description: `Falha ao carregar usuários da plataforma: ${response.status}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error('Failed to load platform users:', error);
+      console.error('❌ [SAAS-ADMIN-CLIENT] Error loading platform users:', error);
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor",
+        variant: "destructive"
+      });
     }
   };
 

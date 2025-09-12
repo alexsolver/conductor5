@@ -550,11 +550,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log(
     "🏗️ [SAAS-ADMIN] Initializing SaaS Admin Clean Architecture routes...",
   );
-  const saasAdminRoutes = (await import("./modules/saas-admin/routes")).default;
-  app.use("/api/saas-admin", saasAdminRoutes);
-  console.log(
-    "✅ [SAAS-ADMIN] SaaS Admin Clean Architecture routes configured successfully",
-  );
+  try {
+    const saasAdminRoutes = await import('./routes/saasAdminRoutes');
+    app.use('/api/saas-admin', saasAdminRoutes.default);
+    console.log('✅ [ROUTES] SaaS Admin routes registered successfully');
+  } catch (error) {
+    console.error('❌ [ROUTES] Failed to register SaaS Admin routes:', error);
+  }
 
   // ✅ SaaS Groups routes - Global groups management for SaaS Admin
   console.log("🏗️ [SAAS-GROUPS] Initializing SaaS Groups routes...");
