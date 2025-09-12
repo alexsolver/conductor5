@@ -47,10 +47,20 @@ export class TenantTemplateService {
       await this.createDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId);
 
       // 2. Criar opções de campos de tickets
-      await this.createTicketFieldOptions(pool, schemaName, tenantId);
+      try {
+        await this.createTicketFieldOptions(pool, schemaName, tenantId);
+        console.log('[TENANT-TEMPLATE] Ticket field options created successfully');
+      } catch (fieldOptionsError) {
+        console.warn('[TENANT-TEMPLATE] Field options creation failed, continuing without them:', fieldOptionsError.message);
+      }
 
       // 3. Criar categorias hierárquicas
-      await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
+      try {
+        await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
+        console.log(`[TENANT-TEMPLATE] Created hierarchical structure: ${DEFAULT_COMPANY_TEMPLATE.categories.length} categories, ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategories, ${DEFAULT_COMPANY_TEMPLATE.actions.length} actions`);
+      } catch (hierarchyError) {
+        console.warn('[TENANT-TEMPLATE] Hierarchical structure creation failed, continuing without it:', hierarchyError.message);
+      }
 
       console.log(`[TENANT-TEMPLATE] Default company template applied successfully for tenant ${tenantId}`);
     } catch (error) {
@@ -457,7 +467,7 @@ export class TenantTemplateService {
     pool: any,
     schemaName: string,
     tenantId: string,
-    customizations: {
+    customizations?: {
       companyName?: string;
       companyEmail?: string;
       industry?: string;

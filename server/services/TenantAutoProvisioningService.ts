@@ -165,7 +165,25 @@ class TenantAutoProvisioningService {
           );
         }
 
-        // Note: Default company template will be applied after user creation
+        // Apply default company template immediately after schema creation
+        console.log(
+          `🔧 [TENANT-PROVISIONING] Applying default company template for: ${savedTenant.id}`,
+        );
+        
+        try {
+          const { TenantTemplateService } = await import("./TenantTemplateService");
+          await TenantTemplateService.applyDefaultCompanyTemplate(savedTenant.id);
+          console.log(
+            `✅ [TENANT-PROVISIONING] Default company template applied for: ${savedTenant.id}`,
+          );
+        } catch (templateError) {
+          console.error(
+            `⚠️ [TENANT-PROVISIONING] Template application failed for ${savedTenant.id}:`,
+            templateError,
+          );
+          // Continue without failing the entire tenant creation
+        }
+
         console.log(
           `✅ [TENANT-PROVISIONING] Tenant schema ready for template application: ${savedTenant.id}`,
         );

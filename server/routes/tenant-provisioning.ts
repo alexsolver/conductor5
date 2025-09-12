@@ -6,9 +6,14 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { tenantAutoProvisioningService } from '../services/TenantAutoProvisioningService';
+import { validateRequestBody, jsonErrorHandler } from '../middleware/requestBodyValidator';
 import { z } from 'zod';
 
 const router = Router();
+
+// Apply body validation middleware
+router.use(validateRequestBody);
+router.use(jsonErrorHandler);
 
 // Schema for manual tenant provisioning
 const provisionTenantSchema = z.object({
@@ -53,12 +58,14 @@ router.post('/provision', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
 
     if (result.success) {
-      res.status(201).json({
+      return res.status(201).json({
+        success: true,
         message: result.message,
         tenant: result.tenant
       });
     } else {
-      res.status(400).json({
+      return res.status(400).json({
+        success: false,
         message: result.message
       });
     }
