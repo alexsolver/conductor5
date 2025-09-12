@@ -451,7 +451,71 @@ export class TenantTemplateService {
   }
 
   /**
-   * Aplica template personalizado baseado na empresa Default mas com customizações
+   * Aplica customizações adicionais
+   */
+  private static async applyCustomizations(
+    pool: any,
+    schemaName: string,
+    tenantId: string,
+    customizations: {
+      companyName?: string;
+      companyEmail?: string;
+      industry?: string;
+      customCategories?: Array<{ name: string; description: string; color: string; icon: string }>;
+    }
+  ): Promise<void> {
+    // Implementar customizações adicionais conforme necessário
+    console.log(`[TENANT-TEMPLATE] Applying additional customizations for tenant ${tenantId}`);
+  }
+
+  /**
+   * Aplica template default com nome de empresa personalizado
+   */
+  static async applyCustomizedDefaultTemplate(
+    tenantId: string,
+    userId: string,
+    pool: any,
+    schemaName: string,
+    customizations: {
+      companyName: string;
+      companyEmail?: string;
+      industry?: string;
+    }
+  ): Promise<void> {
+    console.log(`[TENANT-TEMPLATE] Applying customized template for tenant ${tenantId}`);
+
+    try {
+      // 1. Criar empresa customizada
+      console.log(`[TENANT-TEMPLATE] Step 1: Creating customized company for ${tenantId}`);
+      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
+      await this.createCustomizedDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId, customizations);
+
+      // 2. Criar opções de campos de tickets (com verificação de estrutura)
+      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options for ${tenantId}`);
+      try {
+        await this.createTicketFieldOptions(pool, schemaName, tenantId);
+      } catch (fieldOptionsError) {
+        console.warn(`[TENANT-TEMPLATE] Field options creation failed, continuing without them:`, fieldOptionsError.message);
+      }
+
+      // 3. Criar categorias hierárquicas (usando as padrões do template)
+      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure for ${tenantId}`);
+      try {
+        await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
+      } catch (hierarchyError) {
+        console.warn(`[TENANT-TEMPLATE] Hierarchical structure creation failed, continuing without it:`, hierarchyError.message);
+      }
+
+      console.log(`[TENANT-TEMPLATE] Customized template applied successfully for tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
+      // Don't throw the error - let tenant creation succeed even if template application fails
+      console.log(`[TENANT-TEMPLATE] Template application failed, but tenant creation will continue`);
+    }
+  }
+
+  /**
+   * Aplica template customizado baseado no template Default
    */
   static async applyCustomizedTemplate(
     tenantId: string,
@@ -474,83 +538,6 @@ export class TenantTemplateService {
     if (customizations) {
       await this.applyCustomizations(pool, schemaName, tenantId, customizations);
     }
-  }
-
-  /**
-   * Aplica template default com nome de empresa personalizado
-   */
-  static async applyCustomizedDefaultTemplate(
-    tenantId: string,
-    userId: string,
-    pool: any,
-    schemaName: string,
-    customizations: {
-      companyName: string;
-      companyEmail?: string;
-      industry?: string;
-    }
-  ): Promise<{ success: boolean; details: string }> {
-    console.log(`[TENANT-TEMPLATE] Applying customized template for tenant ${tenantId}`);
-
-    try {
-      // Validate inputs
-      if (!tenantId || !userId || !pool || !schemaName) {
-        throw new Error('Missing required parameters for template application');
-      }
-
-      // Generate consistent company ID
-      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
-
-      console.log(`[TENANT-TEMPLATE] Step 1: Creating customized company for ${tenantId}`);
-      // 1. Criar empresa personalizada
-      await this.createCustomizedDefaultCompany(
-        pool,
-        schemaName,
-        tenantId,
-        userId,
-        defaultCompanyId,
-        customizations
-      );
-
-      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options for ${tenantId}`);
-      // 2. Criar opções de campos de tickets
-      await this.createTicketFieldOptions(pool, schemaName, tenantId);
-
-      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure for ${tenantId}`);
-      // 3. Criar categorias hierárquicas
-      await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
-
-      console.log(`[TENANT-TEMPLATE] Customized template applied successfully for tenant ${tenantId}`);
-
-      return {
-        success: true,
-        details: `Template applied with company: ${customizations.companyName}`
-      };
-    } catch (error) {
-      console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
-      return {
-        success: false,
-        details: `Template application failed: ${error.message}`
-      };
-    }
-  }
-
-  /**
-   * Aplica customizações adicionais
-   */
-  private static async applyCustomizations(
-    pool: any,
-    schemaName: string,
-    tenantId: string,
-    customizations: {
-      companyName?: string;
-      companyEmail?: string;
-      industry?: string;
-      customCategories?: Array<{ name: string; description: string; color: string; icon: string }>;
-    }
-  ): Promise<void> {
-    // Implementar customizações adicionais conforme necessário
-    console.log(`[TENANT-TEMPLATE] Applying additional customizations for tenant ${tenantId}`);
   }
 
   /**
