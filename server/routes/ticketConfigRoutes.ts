@@ -431,16 +431,25 @@ router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
       `);
     }
 
-    // Sync color with ticket_field_options
-    await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
-      SET 
-        color = ${color || '#3b82f6'},
-        updated_at = NOW()
-      WHERE field_name = 'subcategory' 
-      AND value = ${name}
-      AND tenant_id = ${tenantId}
+    // Sync color with ticket_field_options (with company_id constraint to prevent cross-company contamination)
+    const subcategoryForSync = await db.execute(sql`
+      SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
+      WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
+
+    if (subcategoryForSync.rows.length > 0) {
+      const subcategoryCompanyId = subcategoryForSync.rows[0].company_id;
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+        SET 
+          color = ${color || '#3b82f6'},
+          updated_at = NOW()
+        WHERE field_name = 'subcategory' 
+        AND value = ${name}
+        AND tenant_id = ${tenantId}
+        AND company_id = ${subcategoryCompanyId}
+      `);
+    }
 
     console.log(`🔄 Synced subcategory color: ${name} = ${color || '#3b82f6'}`);
 
@@ -686,30 +695,54 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // Update action (company_id remains unchanged for integrity)
-    await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
-      SET 
-        name = ${name},
-        description = ${description || null},
-        subcategory_id = ${subcategoryId},
-        color = ${color || '#3b82f6'},
-        icon = ${icon || null},
-        active = ${active !== false},
-        sort_order = ${sortOrder || 1},
-        updated_at = NOW()
+    if (subcategoryId) {
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
+        SET 
+          name = ${name},
+          description = ${description || null},
+          subcategory_id = ${subcategoryId},
+          color = ${color || '#3b82f6'},
+          icon = ${icon || null},
+          active = ${active !== false},
+          sort_order = ${sortOrder || 1},
+          updated_at = NOW()
+        WHERE id = ${actionId} AND tenant_id = ${tenantId}
+      `);
+    } else {
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_action_types" 
+        SET 
+          name = ${name},
+          description = ${description || null},
+          color = ${color || '#3b82f6'},
+          icon = ${icon || null},
+          active = ${active !== false},
+          sort_order = ${sortOrder || 1},
+          updated_at = NOW()
+        WHERE id = ${actionId} AND tenant_id = ${tenantId}
+      `);
+    }
+
+    // Sync color with ticket_field_options (with company_id constraint to prevent cross-company contamination)
+    const actionForSync = await db.execute(sql`
+      SELECT company_id FROM "${sql.raw(schemaName)}"."ticket_action_types" 
       WHERE id = ${actionId} AND tenant_id = ${tenantId}
     `);
 
-    // Sync color with ticket_field_options
-    await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
-      SET 
-        color = ${color || '#3b82f6'},
-        updated_at = NOW()
-      WHERE field_name = 'action' 
-      AND value = ${name}
-      AND tenant_id = ${tenantId}
-    `);
+    if (actionForSync.rows.length > 0) {
+      const actionCompanyId = actionForSync.rows[0].company_id;
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+        SET 
+          color = ${color || '#3b82f6'},
+          updated_at = NOW()
+        WHERE field_name = 'action' 
+        AND value = ${name}
+        AND tenant_id = ${tenantId}
+        AND company_id = ${actionCompanyId}
+      `);
+    }
 
     console.log(`🔄 Synced action color: ${name} = ${color || '#3b82f6'}`);
 
