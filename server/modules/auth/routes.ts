@@ -370,12 +370,12 @@ authRouter.post(
 
           // Verify schema exists before applying template
           const schemaExistsQuery = `
-            SELECT schema_name 
-            FROM information_schema.schemata 
+            SELECT schema_name
+            FROM information_schema.schemata
             WHERE schema_name = $1
           `;
           const schemaExists = await pool.query(schemaExistsQuery, [schemaName]);
-          
+
           if (schemaExists.rows.length === 0) {
             throw new Error(`Schema ${schemaName} does not exist`);
           }
@@ -396,31 +396,32 @@ authRouter.post(
           );
 
           console.log(`✅ [REGISTER] Template applied successfully for tenant: ${savedTenant.id}`);
-          
+
           // Verify template was applied correctly
           const isApplied = await TenantTemplateService.isTemplateApplied(pool, schemaName, savedTenant.id);
           console.log(`🔍 [REGISTER] Template verification result: ${isApplied}`);
-          
+
         } catch (templateError) {
-          console.error(`❌ [REGISTER] Template application failed for tenant ${savedTenant.id}:`, templateError);
-          console.error(`❌ [REGISTER] Template error stack:`, templateError.stack);
-          
-          // Don't fail the registration, but log the error and try to apply basic template
+          console.error(`❌ [REGISTER] Template application failed for tenant: ${savedTenant.id}`, templateError);
+
+          // Fallback para template básico se falhar - mas ainda usando nome personalizado
           try {
-            const { pool } = await import('../../db');
-            const schemaName = `tenant_${savedTenant.id.replace(/-/g, '_')}`;
-            
-            console.log(`🔄 [REGISTER] Attempting fallback template for tenant: ${savedTenant.id}`);
-            await TenantTemplateService.applyDefaultCompanyTemplate(
+            console.log(`🔄 [REGISTER] Applying fallback template for tenant: ${savedTenant.id}`);
+            await TenantTemplateService.applyCustomizedDefaultTemplate(
               savedTenant.id,
               newUser.id,
               pool,
-              schemaName
+              schemaName,
+              {
+                companyName: userData.companyName || userData.workspaceName || "Minha Empresa",
+                companyEmail: userData.email,
+                industry: "Geral"
+              }
             );
-            console.log(`✅ [REGISTER] Basic template applied as fallback for tenant: ${savedTenant.id}`);
+            console.log(`✅ [REGISTER] Fallback template applied successfully for tenant: ${savedTenant.id}`);
           } catch (fallbackError) {
-            console.error(`❌ [REGISTER] Even fallback template failed for tenant ${savedTenant.id}:`, fallbackError);
-            console.error(`❌ [REGISTER] Fallback error stack:`, fallbackError.stack);
+            console.error(`❌ [REGISTER] Fallback template also failed for tenant: ${savedTenant.id}`, fallbackError);
+            // Continuar mesmo se o template falhar
           }
         }
       }

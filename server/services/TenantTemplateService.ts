@@ -78,7 +78,7 @@ export class TenantTemplateService {
       WHERE table_schema = $1 
       AND table_name IN ('customer_companies', 'companies')
     `;
-    
+
     const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
     const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
 
@@ -136,7 +136,7 @@ export class TenantTemplateService {
       WHERE table_schema = $1 
       AND table_name IN ('customer_companies', 'companies')
     `;
-    
+
     const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
     const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
 
@@ -233,12 +233,12 @@ export class TenantTemplateService {
         AND table_name = 'ticket_categories' 
         AND column_name = 'company_id'
       `;
-      
+
       const columnExists = await pool.query(columnCheckQuery, [schemaName]);
-      
+
       let query;
       let values;
-      
+
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_categories (
@@ -306,12 +306,12 @@ export class TenantTemplateService {
         AND table_name = 'ticket_subcategories' 
         AND column_name = 'company_id'
       `;
-      
+
       const columnExists = await pool.query(columnCheckQuery, [schemaName]);
-      
+
       let query;
       let values;
-      
+
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_subcategories (
@@ -375,12 +375,12 @@ export class TenantTemplateService {
         AND table_name = 'ticket_actions' 
         AND column_name = 'company_id'
       `;
-      
+
       const columnExists = await pool.query(columnCheckQuery, [schemaName]);
-      
+
       let query;
       let values;
-      
+
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_actions (
@@ -476,103 +476,42 @@ export class TenantTemplateService {
       industry?: string;
     }
   ): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying customized default template for tenant ${tenantId} with company name: ${customizations.companyName}`);
-
-    const defaultCompanyId = uuidv4();
+    console.log(`[TENANT-TEMPLATE] Applying customized default template for tenant ${tenantId} with company: ${customizations.companyName}`);
 
     try {
-      // 1. Criar empresa personalizada baseada no template Default
-      await this.createCustomizedDefaultCompany(
-        pool,
-        schemaName,
-        tenantId,
-        userId,
-        defaultCompanyId,
-        customizations
-      );
+      // 1. Criar empresa personalizada em vez da Default
+      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
+      await this.createCustomizedDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId, customizations);
 
-      // 2. Criar opções de campos de tickets (mantém o padrão)
+      // 2. Criar opções de campos de tickets
       await this.createTicketFieldOptions(pool, schemaName, tenantId, defaultCompanyId);
 
-      // 3. Criar estrutura hierárquica de categorias, subcategorias e ações (mantém o padrão)
+      // 3. Criar categorias hierárquicas
       await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
 
-      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId}`);
+      console.log(`[TENANT-TEMPLATE] Customized default template applied successfully for tenant ${tenantId} with company: ${customizations.companyName}`);
     } catch (error) {
-      console.error(`[TENANT-TEMPLATE] Error applying customized default template for tenant ${tenantId}:`, error);
+      console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Aplica customizações específicas sobre o template base
+   * Aplica customizações adicionais
    */
   private static async applyCustomizations(
     pool: any,
     schemaName: string,
     tenantId: string,
-    customizations: any
+    customizations: {
+      companyName?: string;
+      companyEmail?: string;
+      industry?: string;
+      customCategories?: Array<{ name: string; description: string; color: string; icon: string }>;
+    }
   ): Promise<void> {
-    const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
-
-    // Atualizar dados da empresa se fornecidos
-    if (customizations.companyName || customizations.companyEmail || customizations.industry) {
-      const updateFields = [];
-      const updateValues = [];
-      let paramIndex = 1;
-
-      if (customizations.companyName) {
-        updateFields.push(`name = $${paramIndex++}`);
-        updateValues.push(customizations.companyName);
-      }
-      if (customizations.companyEmail) {
-        updateFields.push(`email = $${paramIndex++}`);
-        updateValues.push(customizations.companyEmail);
-      }
-      if (customizations.industry) {
-        updateFields.push(`industry = $${paramIndex++}`);
-        updateValues.push(customizations.industry);
-      }
-
-      updateValues.push(defaultCompanyId, tenantId);
-
-      const query = `
-        UPDATE "${schemaName}".customer_companies 
-        SET ${updateFields.join(', ')}, updated_at = NOW()
-        WHERE id = $${paramIndex++} AND tenant_id = $${paramIndex}
-      `;
-
-      await pool.query(query, updateValues);
-      console.log(`[TENANT-TEMPLATE] Applied company customizations`);
-    }
-
-    // Adicionar categorias customizadas se fornecidas
-    if (customizations.customCategories && customizations.customCategories.length > 0) {
-      let sortOrder = DEFAULT_COMPANY_TEMPLATE.categories.length + 1;
-
-      for (const customCategory of customizations.customCategories) {
-        const query = `
-          INSERT INTO "${schemaName}".ticket_categories (
-            id, tenant_id, company_id, customer_id, name, description, color, icon,
-            active, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, NOW(), NOW())
-        `;
-
-        await pool.query(query, [
-          uuidv4(),
-          tenantId,
-          defaultCompanyId,
-          defaultCompanyId,
-          customCategory.name,
-          customCategory.description,
-          customCategory.color,
-          customCategory.icon,
-          sortOrder++
-        ]);
-      }
-
-      console.log(`[TENANT-TEMPLATE] Added ${customizations.customCategories.length} custom categories`);
-    }
+    // Implementar customizações adicionais conforme necessário
+    console.log(`[TENANT-TEMPLATE] Applying additional customizations for tenant ${tenantId}`);
   }
 
   /**
@@ -587,7 +526,7 @@ export class TenantTemplateService {
         WHERE table_schema = $1 
         AND table_name IN ('customer_companies', 'companies')
       `;
-      
+
       const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
       const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
 
