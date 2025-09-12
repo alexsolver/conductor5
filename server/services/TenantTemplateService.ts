@@ -184,7 +184,7 @@ export class TenantTemplateService {
     for (const option of options) {
       const query = `
         INSERT INTO "${schemaName}".ticket_field_options (
-          id, tenant_id, customer_id, field_name, value, label, color,
+          id, tenant_id, company_id, field_name, value, label, color,
           sort_order, is_active, is_default, status_type, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
         ON CONFLICT DO NOTHING
@@ -242,15 +242,14 @@ export class TenantTemplateService {
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_categories (
-            id, tenant_id, company_id, customer_id, name, description, color, icon,
+            id, tenant_id, company_id, name, description, color, icon,
             active, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           categoryId,
           tenantId,
-          defaultCompanyId,
           defaultCompanyId,
           category.name,
           category.description,
@@ -262,15 +261,14 @@ export class TenantTemplateService {
       } else {
         query = `
           INSERT INTO "${schemaName}".ticket_categories (
-            id, tenant_id, customer_id, name, description, color, icon,
+            id, tenant_id, name, description, color, icon,
             active, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           categoryId,
           tenantId,
-          defaultCompanyId,
           category.name,
           category.description,
           category.color,
@@ -315,15 +313,14 @@ export class TenantTemplateService {
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_subcategories (
-            id, tenant_id, company_id, customer_id, category_id, name, description, color, icon,
+            id, tenant_id, company_id, category_id, name, description, color, icon,
             active, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           subcategoryId,
           tenantId,
-          defaultCompanyId,
           defaultCompanyId,
           categoryId,
           subcategory.name,
@@ -336,15 +333,14 @@ export class TenantTemplateService {
       } else {
         query = `
           INSERT INTO "${schemaName}".ticket_subcategories (
-            id, tenant_id, customer_id, category_id, name, description, color, icon,
+            id, tenant_id, category_id, name, description, color, icon,
             active, sort_order, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           subcategoryId,
           tenantId,
-          defaultCompanyId,
           categoryId,
           subcategory.name,
           subcategory.description,
@@ -384,16 +380,15 @@ export class TenantTemplateService {
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_actions (
-            id, tenant_id, company_id, customer_id, subcategory_id, name, description,
+            id, tenant_id, company_id, subcategory_id, name, description,
             estimated_time_minutes, color, icon, active, sort_order, action_type,
             created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           uuidv4(),
           tenantId,
-          defaultCompanyId,
           defaultCompanyId,
           subcategoryId,
           action.name,
@@ -408,16 +403,15 @@ export class TenantTemplateService {
       } else {
         query = `
           INSERT INTO "${schemaName}".ticket_actions (
-            id, tenant_id, customer_id, subcategory_id, name, description,
+            id, tenant_id, subcategory_id, name, description,
             estimated_time_minutes, color, icon, active, sort_order, action_type,
             created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
           uuidv4(),
           tenantId,
-          defaultCompanyId,
           subcategoryId,
           action.name,
           action.description,
