@@ -45,11 +45,6 @@ export class TenantTemplateService {
    * Copy hierarchy from one company to another within the same tenant
    */
   static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string): Promise<{ summary: string; details: any }> {
-    // Validate tenantId format
-    if (!tenantId || typeof tenantId !== 'string') {
-      throw new Error('Invalid tenantId provided');
-    }
-
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
@@ -58,8 +53,7 @@ export class TenantTemplateService {
         targetCompanyId,
         tenantId,
         schemaName,
-        derivedFrom: 'tenantId parameter (authenticated user)',
-        schemaNameGenerated: schemaName
+        derivedFrom: 'tenantId parameter (authenticated user)'
       });
 
       // First, ensure the tenant schema exists
