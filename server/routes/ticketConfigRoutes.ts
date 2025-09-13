@@ -689,7 +689,7 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    let companyId = req.query.companyId as string;
+    const companyId = req.query.companyId as string;
     const fieldName = req.query.fieldName as string;
     const dependsOn = req.query.dependsOn as string; // Para hierarquias (categoria → subcategoria → ação)
 
@@ -699,14 +699,86 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
 
     // Se nenhuma empresa foi selecionada, usar a empresa padrão Default
     if (!companyId) {
-      companyId = '00000000-0000-0000-0000-000000000001'; // Empresa Default
-      console.log('🎯 No company selected, using Default company for field options');
+      // companyId = '00000000-0000-0000-0000-000000000001'; // Empresa Default
+      // console.log('🎯 No company selected, using Default company for field options');
     }
 
-    console.log('🔍 Fetching field options for:', { tenantId, companyId, fieldName, dependsOn });
+    console.log(`🔍 Fetching field options for: {
+      tenantId: ${tenantId},
+      companyId: ${companyId},
+      fieldName: ${fieldName}
+    }`);
 
+    // Import db connection
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+
+    // Use default company if none specified
+    const effectiveCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    let result: any;
+
+    console.log(`🎯 Using company ${effectiveCompanyId} for field options`);
+
+    // Try to get from ticket_field_options table first
+    try {
+      // If no specific fieldName is provided, get all field options
+      let query;
+      if (fieldName) {
+        query = sql`
+          SELECT 
+            id,
+            field_name,
+            value as option_value,
+            display_label,
+            color,
+            sort_order,
+            active as is_active,
+            company_id,
+            created_at
+          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+          WHERE tenant_id = ${tenantId} 
+          AND company_id = ${effectiveCompanyId} 
+          AND field_name = ${fieldName}
+          AND active = true
+          ORDER BY sort_order ASC, display_label ASC
+        `;
+      } else {
+        query = sql`
+          SELECT 
+            id,
+            field_name,
+            value as option_value,
+            display_label,
+            color,
+            sort_order,
+            active as is_active,
+            company_id,
+            created_at
+          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+          WHERE tenant_id = ${tenantId} 
+          AND company_id = ${effectiveCompanyId} 
+          AND active = true
+          ORDER BY field_name, sort_order ASC, display_label ASC
+        `;
+      }
+
+      const result = await db.execute(query);
+
+      console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'}`);
+
+      if (result.rows.length > 0) {
+        console.log(`✅ Found ${result.rows.length} field options in database`);
+        return res.json({
+          success: true,
+          data: result.rows,
+          fieldName: fieldName || 'all',
+          companyId: effectiveCompanyId,
+          tenantId
+        });
+      }
+    } catch (dbError) {
+      console.log('⚠️ ticket_field_options table not found, using fallback:', dbError.message);
+    }
 
     // CRÍTICO: Verificar se é campo hierárquico
     const isHierarchical = ['category', 'subcategory', 'action'].includes(fieldName);

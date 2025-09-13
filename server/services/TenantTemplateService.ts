@@ -150,7 +150,7 @@ export class TenantTemplateService {
   private static async applyFieldOptionsForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
     
-    // First ensure the table exists
+    // First ensure the table exists, if not create it
     try {
       const tableCheckQuery = `
         SELECT table_name 
@@ -162,11 +162,34 @@ export class TenantTemplateService {
       const tableResult = await pool.query(tableCheckQuery, [schemaName]);
       
       if (tableResult.rows.length === 0) {
-        console.log(`⚠️ Table ticket_field_options não existe no schema ${schemaName}`);
-        return;
+        console.log(`🔧 Creating ticket_field_options table in schema ${schemaName}`);
+        
+        // Create the table
+        const createTableQuery = `
+          CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_options" (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID NOT NULL,
+            company_id UUID NOT NULL,
+            field_name VARCHAR(100) NOT NULL,
+            value VARCHAR(100) NOT NULL,
+            display_label VARCHAR(255) NOT NULL,
+            color VARCHAR(7),
+            icon VARCHAR(100),
+            is_default BOOLEAN DEFAULT false,
+            active BOOLEAN DEFAULT true,
+            sort_order INTEGER DEFAULT 0,
+            status_type VARCHAR(50),
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW(),
+            CONSTRAINT unique_field_option UNIQUE (tenant_id, company_id, field_name, value)
+          );
+        `;
+        
+        await pool.query(createTableQuery);
+        console.log(`✅ Table ticket_field_options created in schema ${schemaName}`);
       }
     } catch (error) {
-      console.error('❌ Erro ao verificar tabela ticket_field_options:', error);
+      console.error('❌ Erro ao verificar/criar tabela ticket_field_options:', error);
       return;
     }
     
