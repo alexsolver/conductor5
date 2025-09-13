@@ -1639,7 +1639,7 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
       return res.status(400).json({ message: 'Company ID required' });
     }
 
-    console.log('🔄 Aplicando estrutura padrão para empresa:', companyId);
+    console.log('🔄 AplicANDO estrutura padrão para empresa:', companyId);
 
     // Importar o serviço de template
     // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
@@ -1669,40 +1669,42 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
 // Copy hierarchy from one company to another
 router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const { sourceCompanyId, targetCompanyId } = req.body;
     const tenantId = req.user?.tenantId;
-    const { sourceCompanyId = '00000000-0000-0000-0000-000000000001', targetCompanyId } = req.body;
+    const userEmail = req.user?.email;
 
+    // Validate tenant ID exists
     if (!tenantId) {
+      console.error('❌ [COPY-HIERARCHY] No tenant ID found in user context');
       return res.status(401).json({
         success: false,
-        message: 'Tenant ID required'
+        message: 'Tenant ID not found in user context'
       });
     }
 
-    if (!targetCompanyId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Target company ID required'
-      });
-    }
-
-    console.log('🔄 [COPY-HIERARCHY] Request details:', {
+    console.log('🔄 [COPY-HIERARCHY] Processing hierarchy copy request:', {
       tenantId,
       sourceCompanyId,
       targetCompanyId,
-      userEmail: req.user?.email
+      userEmail: req.user?.email,
+      userTenantId: req.user?.tenantId
     });
 
-    // Validate that we're not using company ID as tenant ID
-    if (tenantId === targetCompanyId || tenantId === sourceCompanyId) {
-      console.error('❌ [COPY-HIERARCHY] Invalid tenant ID - matches company ID:', {
-        tenantId,
-        sourceCompanyId,
-        targetCompanyId
-      });
+// Validate input parameters
+    if (!sourceCompanyId || !targetCompanyId) {
+      console.error('❌ [COPY-HIERARCHY] Missing required parameters');
       return res.status(400).json({
         success: false,
-        message: 'Invalid tenant configuration detected'
+        message: 'sourceCompanyId and targetCompanyId are required'
+      });
+    }
+
+    // Validate that source and target are different
+    if (sourceCompanyId === targetCompanyId) {
+      console.error('❌ [COPY-HIERARCHY] Source and target companies are the same');
+      return res.status(400).json({
+        success: false,
+        message: 'Source and target companies must be different'
       });
     }
 
