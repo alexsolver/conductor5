@@ -103,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(false);
         setUser(null);
         setIsLoading(false);
+        setMounted(true); // Force mounted to true when no auth needed
         return;
       }
 
@@ -436,7 +437,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Combine all states and mutations into the context value
   const value = {
     user: user ?? null, // Ensure user is null if not loaded or logged out
-    isLoading: isLoading || !mounted, // Show loading if still processing initial auth check or not yet mounted
+    isLoading: isLoading && mounted, // Only show loading if processing AND mounted (prevent blocking interface)
     error: null, // Error state is handled within mutations/checkAuth, keeping this for interface compatibility
     isAuthenticated,
     loginMutation,
