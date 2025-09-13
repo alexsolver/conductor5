@@ -6290,9 +6290,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Copy ticket hierarchy structure endpoint is now handled in ticketConfigRoutes.ts
   // Removed duplicate endpoint to prevent conflicts
-
-      console.log('🔄 [COPY-HIERARCHY-ALT] Starting copy:', {
-        tenantId,
         sourceCompanyId,
         targetCompanyId
       });
