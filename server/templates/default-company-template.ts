@@ -79,10 +79,11 @@ export const DEFAULT_COMPANY_TEMPLATE: DefaultCompanyTemplate = {
   
   ticketFieldOptions: [
     // Categories
-    { fieldName: 'category', value: 'suporte_tecnico', label: 'Suporte Técnico', color: '#3b82f6', sortOrder: 1, isActive: true, isDefault: true },
-    { fieldName: 'category', value: 'atendimento_cliente', label: 'Atendimento ao Cliente', color: '#10b981', sortOrder: 2, isActive: true, isDefault: false },
-    { fieldName: 'category', value: 'financeiro', label: 'Financeiro', color: '#f59e0b', sortOrder: 3, isActive: true, isDefault: false },
-    { fieldName: 'category', value: 'infraestrutura', label: 'Infraestrutura', color: '#ef4444', sortOrder: 4, isActive: true, isDefault: false },
+    { fieldName: 'category', value: 'infraestrutura_equipamentos', label: 'Infraestrutura & Equipamentos', color: '#6366f1', sortOrder: 1, isActive: true, isDefault: true },
+    { fieldName: 'category', value: 'software_aplicacoes', label: 'Software & Aplicações', color: '#10b981', sortOrder: 2, isActive: true, isDefault: false },
+    { fieldName: 'category', value: 'conectividade_redes', label: 'Conectividade & Redes', color: '#8b5cf6', sortOrder: 3, isActive: true, isDefault: false },
+    { fieldName: 'category', value: 'seguranca_acesso', label: 'Segurança & Acesso', color: '#dc2626', sortOrder: 4, isActive: true, isDefault: false },
+    { fieldName: 'category', value: 'usuarios_suporte', label: 'Usuários & Suporte', color: '#f59e0b', sortOrder: 5, isActive: true, isDefault: false },
     
     // Impact
     { fieldName: 'impact', value: 'baixo', label: 'Baixo', color: '#10b981', sortOrder: 1, isActive: true, isDefault: true },
@@ -110,120 +111,125 @@ export const DEFAULT_COMPANY_TEMPLATE: DefaultCompanyTemplate = {
   
   categories: [
     {
-      name: 'Suporte Técnico',
-      description: 'Problemas relacionados a infraestrutura, hardware e software',
-      color: '#3b82f6',
-      icon: 'wrench',
+      name: 'Infraestrutura & Equipamentos',
+      description: 'Problemas relacionados a hardware, equipamentos e infraestrutura física',
+      color: '#6366f1',
+      icon: 'monitor',
       active: true,
       sortOrder: 1
     },
     {
-      name: 'Atendimento ao Cliente',
-      description: 'Dúvidas, reclamações e suporte geral ao cliente',
+      name: 'Software & Aplicações',
+      description: 'Questões relacionadas a softwares, aplicativos e sistemas',
       color: '#10b981',
-      icon: 'user-check',
+      icon: 'code',
       active: true,
       sortOrder: 2
     },
     {
-      name: 'Financeiro',
-      description: 'Questões relacionadas a faturamento, pagamentos e contratos',
-      color: '#f59e0b',
-      icon: 'dollar-sign',
+      name: 'Conectividade & Redes',
+      description: 'Problemas de rede, conectividade e comunicação',
+      color: '#8b5cf6',
+      icon: 'wifi',
       active: true,
       sortOrder: 3
     },
     {
-      name: 'Administrativo',
-      description: 'Processos internos, documentação e gestão',
-      color: '#8b5cf6',
-      icon: 'file-text',
+      name: 'Segurança & Acesso',
+      description: 'Questões de segurança, acessos e permissões',
+      color: '#dc2626',
+      icon: 'shield',
       active: true,
       sortOrder: 4
+    },
+    {
+      name: 'Usuários & Suporte',
+      description: 'Solicitações de usuários, treinamentos e suporte geral',
+      color: '#f59e0b',
+      icon: 'user-check',
+      active: true,
+      sortOrder: 5
     }
   ],
   
   subcategories: [
-    // Suporte Técnico
-    { categoryName: 'Suporte Técnico', name: 'Hardware', description: 'Problemas com equipamentos físicos', color: '#ef4444', icon: 'monitor', active: true, sortOrder: 1 },
-    { categoryName: 'Suporte Técnico', name: 'Software', description: 'Problemas com aplicações e licenças', color: '#8b5cf6', icon: 'code', active: true, sortOrder: 2 },
-    { categoryName: 'Suporte Técnico', name: 'Rede', description: 'Problemas de conectividade e infraestrutura', color: '#06b6d4', icon: 'wifi', active: true, sortOrder: 3 },
+    // Infraestrutura & Equipamentos
+    { categoryName: 'Infraestrutura & Equipamentos', name: 'Computadores Desktop', description: 'Problemas com PCs fixos', color: '#6366f1', icon: 'monitor', active: true, sortOrder: 1 },
+    { categoryName: 'Infraestrutura & Equipamentos', name: 'Notebooks e Móveis', description: 'Laptops, tablets, dispositivos móveis', color: '#6366f1', icon: 'laptop', active: true, sortOrder: 2 },
+    { categoryName: 'Infraestrutura & Equipamentos', name: 'Servidores', description: 'Infraestrutura de servidores', color: '#6366f1', icon: 'server', active: true, sortOrder: 3 },
+    { categoryName: 'Infraestrutura & Equipamentos', name: 'Periféricos', description: 'Impressoras, monitores, teclados, mouse', color: '#6366f1', icon: 'printer', active: true, sortOrder: 4 },
+    { categoryName: 'Infraestrutura & Equipamentos', name: 'Telefonia', description: 'Telefones IP, centrais telefônicas', color: '#6366f1', icon: 'phone', active: true, sortOrder: 5 },
     
-    // Atendimento ao Cliente
-    { categoryName: 'Atendimento ao Cliente', name: 'Dúvidas Gerais', description: 'Questões sobre produtos e serviços', color: '#10b981', icon: 'help-circle', active: true, sortOrder: 1 },
-    { categoryName: 'Atendimento ao Cliente', name: 'Reclamações', description: 'Insatisfação com produtos ou serviços', color: '#f59e0b', icon: 'alert-triangle', active: true, sortOrder: 2 },
-    { categoryName: 'Atendimento ao Cliente', name: 'Sugestões', description: 'Ideias de melhoria e feedback', color: '#3b82f6', icon: 'lightbulb', active: true, sortOrder: 3 },
+    // Software & Aplicações
+    { categoryName: 'Software & Aplicações', name: 'Sistema Operacional', description: 'Windows, Linux, macOS', color: '#10b981', icon: 'monitor', active: true, sortOrder: 1 },
+    { categoryName: 'Software & Aplicações', name: 'Aplicações Corporativas', description: 'ERP, CRM, sistemas internos', color: '#10b981', icon: 'briefcase', active: true, sortOrder: 2 },
+    { categoryName: 'Software & Aplicações', name: 'Software de Produtividade', description: 'Office, navegadores, ferramentas', color: '#10b981', icon: 'edit', active: true, sortOrder: 3 },
+    { categoryName: 'Software & Aplicações', name: 'Licenciamento', description: 'Renovações, ativações, compliance', color: '#10b981', icon: 'key', active: true, sortOrder: 4 },
+    { categoryName: 'Software & Aplicações', name: 'Atualizações', description: 'Patches, versões, upgrades', color: '#10b981', icon: 'refresh-cw', active: true, sortOrder: 5 },
     
-    // Financeiro
-    { categoryName: 'Financeiro', name: 'Faturamento', description: 'Dúvidas sobre cobranças e faturas', color: '#f59e0b', icon: 'receipt', active: true, sortOrder: 1 },
-    { categoryName: 'Financeiro', name: 'Pagamentos', description: 'Questões sobre forma de pagamento', color: '#10b981', icon: 'credit-card', active: true, sortOrder: 2 },
-    { categoryName: 'Financeiro', name: 'Contratos', description: 'Alterações e renovações contratuais', color: '#8b5cf6', icon: 'file-signature', active: true, sortOrder: 3 },
+    // Conectividade & Redes
+    { categoryName: 'Conectividade & Redes', name: 'Rede Local (LAN)', description: 'Switches, cabos, conectividade interna', color: '#8b5cf6', icon: 'network', active: true, sortOrder: 1 },
+    { categoryName: 'Conectividade & Redes', name: 'Internet e WAN', description: 'Conexões externas, provedores', color: '#8b5cf6', icon: 'globe', active: true, sortOrder: 2 },
+    { categoryName: 'Conectividade & Redes', name: 'Wi-Fi e Wireless', description: 'Redes sem fio, access points', color: '#8b5cf6', icon: 'wifi', active: true, sortOrder: 3 },
+    { categoryName: 'Conectividade & Redes', name: 'VPN e Acesso Remoto', description: 'Conexões seguras, trabalho remoto', color: '#8b5cf6', icon: 'shield', active: true, sortOrder: 4 },
+    { categoryName: 'Conectividade & Redes', name: 'Telefonia e VoIP', description: 'Comunicação por voz sobre IP', color: '#8b5cf6', icon: 'phone-call', active: true, sortOrder: 5 },
     
-    // Administrativo
-    { categoryName: 'Administrativo', name: 'Documentação', description: 'Solicitação e emissão de documentos', color: '#6b7280', icon: 'file-text', active: true, sortOrder: 1 },
-    { categoryName: 'Administrativo', name: 'Processos', description: 'Fluxos de trabalho e procedimentos', color: '#ef4444', icon: 'workflow', active: true, sortOrder: 2 },
-    { categoryName: 'Administrativo', name: 'Treinamento', description: 'Capacitação e orientações', color: '#10b981', icon: 'graduation-cap', active: true, sortOrder: 3 }
+    // Segurança & Acesso
+    { categoryName: 'Segurança & Acesso', name: 'Controle de Acesso', description: 'Permissões, usuários, grupos', color: '#dc2626', icon: 'lock', active: true, sortOrder: 1 },
+    { categoryName: 'Segurança & Acesso', name: 'Antivírus e Proteção', description: 'Malware, ameaças, quarentena', color: '#dc2626', icon: 'shield-check', active: true, sortOrder: 2 },
+    { categoryName: 'Segurança & Acesso', name: 'Firewall e Políticas', description: 'Bloqueios, regras de segurança', color: '#dc2626', icon: 'shield', active: true, sortOrder: 3 },
+    { categoryName: 'Segurança & Acesso', name: 'Backup e Recovery', description: 'Backups, restaurações, disaster recovery', color: '#dc2626', icon: 'hard-drive', active: true, sortOrder: 4 },
+    { categoryName: 'Segurança & Acesso', name: 'Compliance', description: 'Auditoria, conformidade, políticas', color: '#dc2626', icon: 'file-check', active: true, sortOrder: 5 },
+    
+    // Usuários & Suporte
+    { categoryName: 'Usuários & Suporte', name: 'Contas e Perfis', description: 'Criação, alteração, desativação de usuários', color: '#f59e0b', icon: 'user', active: true, sortOrder: 1 },
+    { categoryName: 'Usuários & Suporte', name: 'Treinamento', description: 'Capacitação, manuais, orientações', color: '#f59e0b', icon: 'graduation-cap', active: true, sortOrder: 2 },
+    { categoryName: 'Usuários & Suporte', name: 'Solicitações Gerais', description: 'Pedidos diversos, informações', color: '#f59e0b', icon: 'help-circle', active: true, sortOrder: 3 },
+    { categoryName: 'Usuários & Suporte', name: 'Procedimentos', description: 'Processos, fluxos, documentação', color: '#f59e0b', icon: 'file-text', active: true, sortOrder: 4 },
+    { categoryName: 'Usuários & Suporte', name: 'Consultoria', description: 'Orientações técnicas, recomendações', color: '#f59e0b', icon: 'lightbulb', active: true, sortOrder: 5 }
   ],
   
   actions: [
-    // Hardware
-    { subcategoryName: 'Hardware', name: 'Diagnóstico de Hardware', description: 'Verificar funcionamento de componentes físicos', estimatedTimeMinutes: 60, color: '#ef4444', icon: 'search', active: true, sortOrder: 1, actionType: 'diagnostic' },
-    { subcategoryName: 'Hardware', name: 'Substituição de Peças', description: 'Trocar componentes defeituosos', estimatedTimeMinutes: 120, color: '#ef4444', icon: 'tool', active: true, sortOrder: 2, actionType: 'repair' },
-    { subcategoryName: 'Hardware', name: 'Manutenção Preventiva', description: 'Limpeza e verificação geral do equipamento', estimatedTimeMinutes: 90, color: '#ef4444', icon: 'shield', active: true, sortOrder: 3, actionType: 'maintenance' },
+    // Computadores Desktop
+    { subcategoryName: 'Computadores Desktop', name: 'Substituição de Componente', description: 'Trocar peças defeituosas do PC', estimatedTimeMinutes: 90, color: '#6366f1', icon: 'tool', active: true, sortOrder: 1, actionType: 'repair' },
+    { subcategoryName: 'Computadores Desktop', name: 'Manutenção Preventiva', description: 'Limpeza e verificação geral do desktop', estimatedTimeMinutes: 60, color: '#6366f1', icon: 'shield', active: true, sortOrder: 2, actionType: 'maintenance' },
+    { subcategoryName: 'Computadores Desktop', name: 'Configuração de Hardware', description: 'Configurar BIOS e componentes', estimatedTimeMinutes: 45, color: '#6366f1', icon: 'settings', active: true, sortOrder: 3, actionType: 'configuration' },
+    { subcategoryName: 'Computadores Desktop', name: 'Instalação de Equipamento', description: 'Instalar novo desktop', estimatedTimeMinutes: 120, color: '#6366f1', icon: 'plus-circle', active: true, sortOrder: 4, actionType: 'installation' },
+    { subcategoryName: 'Computadores Desktop', name: 'Diagnóstico Técnico', description: 'Analisar problemas de hardware', estimatedTimeMinutes: 60, color: '#6366f1', icon: 'search', active: true, sortOrder: 5, actionType: 'diagnostic' },
     
-    // Software
-    { subcategoryName: 'Software', name: 'Reinstalação de Software', description: 'Remover e instalar novamente aplicações', estimatedTimeMinutes: 45, color: '#8b5cf6', icon: 'download', active: true, sortOrder: 1, actionType: 'installation' },
-    { subcategoryName: 'Software', name: 'Atualização de Sistema', description: 'Aplicar patches e atualizações', estimatedTimeMinutes: 30, color: '#8b5cf6', icon: 'refresh-cw', active: true, sortOrder: 2, actionType: 'update' },
-    { subcategoryName: 'Software', name: 'Configuração de Aplicação', description: 'Ajustar parâmetros e preferências', estimatedTimeMinutes: 30, color: '#8b5cf6', icon: 'settings', active: true, sortOrder: 3, actionType: 'configuration' },
+    // Notebooks e Móveis
+    { subcategoryName: 'Notebooks e Móveis', name: 'Substituição de Componente', description: 'Trocar peças de notebook', estimatedTimeMinutes: 75, color: '#6366f1', icon: 'tool', active: true, sortOrder: 1, actionType: 'repair' },
+    { subcategoryName: 'Notebooks e Móveis', name: 'Manutenção Preventiva', description: 'Limpeza e manutenção de portáteis', estimatedTimeMinutes: 45, color: '#6366f1', icon: 'shield', active: true, sortOrder: 2, actionType: 'maintenance' },
+    { subcategoryName: 'Notebooks e Móveis', name: 'Configuração de Hardware', description: 'Configurar dispositivos móveis', estimatedTimeMinutes: 30, color: '#6366f1', icon: 'settings', active: true, sortOrder: 3, actionType: 'configuration' },
+    { subcategoryName: 'Notebooks e Móveis', name: 'Instalação de Equipamento', description: 'Setup de notebooks e tablets', estimatedTimeMinutes: 90, color: '#6366f1', icon: 'plus-circle', active: true, sortOrder: 4, actionType: 'installation' },
+    { subcategoryName: 'Notebooks e Móveis', name: 'Diagnóstico Técnico', description: 'Diagnóstico de problemas móveis', estimatedTimeMinutes: 45, color: '#6366f1', icon: 'search', active: true, sortOrder: 5, actionType: 'diagnostic' },
     
-    // Rede
-    { subcategoryName: 'Rede', name: 'Teste de Conectividade', description: 'Verificar comunicação de rede', estimatedTimeMinutes: 20, color: '#06b6d4', icon: 'activity', active: true, sortOrder: 1, actionType: 'testing' },
-    { subcategoryName: 'Rede', name: 'Configuração de Firewall', description: 'Ajustar regras de segurança', estimatedTimeMinutes: 40, color: '#06b6d4', icon: 'shield', active: true, sortOrder: 2, actionType: 'configuration' },
-    { subcategoryName: 'Rede', name: 'Reset de Equipamentos', description: 'Reinicializar dispositivos de rede', estimatedTimeMinutes: 15, color: '#06b6d4', icon: 'rotate-ccw', active: true, sortOrder: 3, actionType: 'reset' },
+    // Sistema Operacional
+    { subcategoryName: 'Sistema Operacional', name: 'Instalação de Software', description: 'Instalar sistemas operacionais', estimatedTimeMinutes: 180, color: '#10b981', icon: 'download', active: true, sortOrder: 1, actionType: 'installation' },
+    { subcategoryName: 'Sistema Operacional', name: 'Atualização de Sistema', description: 'Aplicar updates do SO', estimatedTimeMinutes: 60, color: '#10b981', icon: 'refresh-cw', active: true, sortOrder: 2, actionType: 'update' },
+    { subcategoryName: 'Sistema Operacional', name: 'Correção de Bug', description: 'Corrigir problemas do sistema', estimatedTimeMinutes: 90, color: '#10b981', icon: 'bug', active: true, sortOrder: 3, actionType: 'bugfix' },
+    { subcategoryName: 'Sistema Operacional', name: 'Configuração de Aplicação', description: 'Configurar parâmetros do SO', estimatedTimeMinutes: 45, color: '#10b981', icon: 'settings', active: true, sortOrder: 4, actionType: 'configuration' },
+    { subcategoryName: 'Sistema Operacional', name: 'Licenciamento', description: 'Gerenciar licenças do SO', estimatedTimeMinutes: 30, color: '#10b981', icon: 'key', active: true, sortOrder: 5, actionType: 'licensing' },
     
-    // Dúvidas Gerais
-    { subcategoryName: 'Dúvidas Gerais', name: 'Resposta por E-mail', description: 'Esclarecer dúvidas via comunicação escrita', estimatedTimeMinutes: 15, color: '#10b981', icon: 'mail', active: true, sortOrder: 1, actionType: 'communication' },
-    { subcategoryName: 'Dúvidas Gerais', name: 'Atendimento Telefônico', description: 'Esclarecimento por telefone', estimatedTimeMinutes: 20, color: '#10b981', icon: 'phone', active: true, sortOrder: 2, actionType: 'communication' },
-    { subcategoryName: 'Dúvidas Gerais', name: 'Consulta FAQ', description: 'Direcionamento para base de conhecimento', estimatedTimeMinutes: 5, color: '#10b981', icon: 'book-open', active: true, sortOrder: 3, actionType: 'reference' },
+    // Rede Local (LAN)
+    { subcategoryName: 'Rede Local (LAN)', name: 'Diagnóstico de Rede', description: 'Analisar problemas de LAN', estimatedTimeMinutes: 45, color: '#8b5cf6', icon: 'activity', active: true, sortOrder: 1, actionType: 'diagnostic' },
+    { subcategoryName: 'Rede Local (LAN)', name: 'Configuração de Acesso', description: 'Configurar switches e equipamentos LAN', estimatedTimeMinutes: 60, color: '#8b5cf6', icon: 'settings', active: true, sortOrder: 2, actionType: 'configuration' },
+    { subcategoryName: 'Rede Local (LAN)', name: 'Reset de Conexão', description: 'Reinicializar equipamentos de rede', estimatedTimeMinutes: 15, color: '#8b5cf6', icon: 'rotate-ccw', active: true, sortOrder: 3, actionType: 'reset' },
+    { subcategoryName: 'Rede Local (LAN)', name: 'Otimização de Performance', description: 'Melhorar performance da rede', estimatedTimeMinutes: 90, color: '#8b5cf6', icon: 'trending-up', active: true, sortOrder: 4, actionType: 'optimization' },
+    { subcategoryName: 'Rede Local (LAN)', name: 'Instalação de Ponto de Rede', description: 'Instalar novos pontos de rede', estimatedTimeMinutes: 120, color: '#8b5cf6', icon: 'plus-circle', active: true, sortOrder: 5, actionType: 'installation' },
     
-    // Reclamações
-    { subcategoryName: 'Reclamações', name: 'Investigar Reclamação', description: 'Analisar e apurar os fatos relatados', estimatedTimeMinutes: 45, color: '#f59e0b', icon: 'search', active: true, sortOrder: 1, actionType: 'investigation' },
-    { subcategoryName: 'Reclamações', name: 'Oferecer Compensação', description: 'Propor solução ou ressarcimento', estimatedTimeMinutes: 30, color: '#f59e0b', icon: 'gift', active: true, sortOrder: 2, actionType: 'compensation' },
-    { subcategoryName: 'Reclamações', name: 'Escalar para Supervisor', description: 'Encaminhar para nível superior', estimatedTimeMinutes: 10, color: '#f59e0b', icon: 'arrow-up', active: true, sortOrder: 3, actionType: 'escalation' },
+    // Controle de Acesso
+    { subcategoryName: 'Controle de Acesso', name: 'Liberação de Acesso', description: 'Conceder permissões de acesso', estimatedTimeMinutes: 20, color: '#dc2626', icon: 'unlock', active: true, sortOrder: 1, actionType: 'access_grant' },
+    { subcategoryName: 'Controle de Acesso', name: 'Bloqueio de Ameaça', description: 'Bloquear acessos suspeitos', estimatedTimeMinutes: 30, color: '#dc2626', icon: 'shield-x', active: true, sortOrder: 2, actionType: 'security' },
+    { subcategoryName: 'Controle de Acesso', name: 'Restauração de Backup', description: 'Restaurar dados de backup', estimatedTimeMinutes: 90, color: '#dc2626', icon: 'rotate-ccw', active: true, sortOrder: 3, actionType: 'restore' },
+    { subcategoryName: 'Controle de Acesso', name: 'Aplicação de Política', description: 'Aplicar políticas de segurança', estimatedTimeMinutes: 45, color: '#dc2626', icon: 'file-check', active: true, sortOrder: 4, actionType: 'policy' },
+    { subcategoryName: 'Controle de Acesso', name: 'Auditoria de Segurança', description: 'Auditar logs de acesso', estimatedTimeMinutes: 60, color: '#dc2626', icon: 'search', active: true, sortOrder: 5, actionType: 'audit' },
     
-    // Sugestões
-    { subcategoryName: 'Sugestões', name: 'Avaliar Sugestão', description: 'Analisar viabilidade da proposta', estimatedTimeMinutes: 25, color: '#3b82f6', icon: 'star', active: true, sortOrder: 1, actionType: 'evaluation' },
-    { subcategoryName: 'Sugestões', name: 'Encaminhar para Produto', description: 'Direcionar para equipe de desenvolvimento', estimatedTimeMinutes: 15, color: '#3b82f6', icon: 'send', active: true, sortOrder: 2, actionType: 'routing' },
-    { subcategoryName: 'Sugestões', name: 'Agradecer Cliente', description: 'Reconhecer contribuição do cliente', estimatedTimeMinutes: 10, color: '#3b82f6', icon: 'heart', active: true, sortOrder: 3, actionType: 'communication' },
-    
-    // Faturamento
-    { subcategoryName: 'Faturamento', name: 'Verificar Cobrança', description: 'Analisar itens da fatura', estimatedTimeMinutes: 20, color: '#f59e0b', icon: 'calculator', active: true, sortOrder: 1, actionType: 'verification' },
-    { subcategoryName: 'Faturamento', name: 'Reemitir Fatura', description: 'Gerar nova via do documento', estimatedTimeMinutes: 10, color: '#f59e0b', icon: 'file-text', active: true, sortOrder: 2, actionType: 'documentation' },
-    { subcategoryName: 'Faturamento', name: 'Ajustar Valores', description: 'Corrigir divergências de valores', estimatedTimeMinutes: 30, color: '#f59e0b', icon: 'edit', active: true, sortOrder: 3, actionType: 'adjustment' },
-    
-    // Pagamentos
-    { subcategoryName: 'Pagamentos', name: 'Confirmar Pagamento', description: 'Verificar recebimento de valores', estimatedTimeMinutes: 15, color: '#10b981', icon: 'check-circle', active: true, sortOrder: 1, actionType: 'verification' },
-    { subcategoryName: 'Pagamentos', name: 'Renegociar Condições', description: 'Alterar forma ou prazo de pagamento', estimatedTimeMinutes: 45, color: '#f59e0b', icon: 'calendar', active: true, sortOrder: 2, actionType: 'negotiation' },
-    { subcategoryName: 'Pagamentos', name: 'Processar Estorno', description: 'Reverter cobrança indevida', estimatedTimeMinutes: 60, color: '#ef4444', icon: 'rotate-ccw', active: true, sortOrder: 3, actionType: 'refund' },
-    
-    // Contratos
-    { subcategoryName: 'Contratos', name: 'Revisar Cláusulas', description: 'Analisar termos contratuais', estimatedTimeMinutes: 30, color: '#8b5cf6', icon: 'file-search', active: true, sortOrder: 1, actionType: 'review' },
-    { subcategoryName: 'Contratos', name: 'Preparar Aditivo', description: 'Elaborar alteração contratual', estimatedTimeMinutes: 90, color: '#8b5cf6', icon: 'file-plus', active: true, sortOrder: 2, actionType: 'documentation' },
-    { subcategoryName: 'Contratos', name: 'Renovar Contrato', description: 'Processar renovação automática', estimatedTimeMinutes: 60, color: '#8b5cf6', icon: 'refresh-cw', active: true, sortOrder: 3, actionType: 'renewal' },
-    
-    // Documentação
-    { subcategoryName: 'Documentação', name: 'Emitir Certidão', description: 'Gerar documento oficial', estimatedTimeMinutes: 20, color: '#6b7280', icon: 'award', active: true, sortOrder: 1, actionType: 'documentation' },
-    { subcategoryName: 'Documentação', name: 'Autenticar Documento', description: 'Validar autenticidade', estimatedTimeMinutes: 15, color: '#6b7280', icon: 'shield-check', active: true, sortOrder: 2, actionType: 'verification' },
-    { subcategoryName: 'Documentação', name: 'Arquivo Digital', description: 'Digitalizar e arquivar documento', estimatedTimeMinutes: 10, color: '#6b7280', icon: 'archive', active: true, sortOrder: 3, actionType: 'archiving' },
-    
-    // Processos
-    { subcategoryName: 'Processos', name: 'Mapear Fluxo', description: 'Documentar processo atual', estimatedTimeMinutes: 60, color: '#ef4444', icon: 'git-branch', active: true, sortOrder: 1, actionType: 'analysis' },
-    { subcategoryName: 'Processos', name: 'Otimizar Etapas', description: 'Melhorar eficiência do processo', estimatedTimeMinutes: 120, color: '#ef4444', icon: 'trending-up', active: true, sortOrder: 2, actionType: 'optimization' },
-    { subcategoryName: 'Processos', name: 'Implementar Mudanças', description: 'Aplicar melhorias identificadas', estimatedTimeMinutes: 180, color: '#ef4444', icon: 'play-circle', active: true, sortOrder: 3, actionType: 'implementation' },
-    
-    // Treinamento
-    { subcategoryName: 'Treinamento', name: 'Capacitar Usuário', description: 'Treinar no uso do sistema', estimatedTimeMinutes: 60, color: '#10b981', icon: 'user-plus', active: true, sortOrder: 1, actionType: 'training' },
-    { subcategoryName: 'Treinamento', name: 'Criar Material', description: 'Elaborar guias e manuais', estimatedTimeMinutes: 90, color: '#10b981', icon: 'book', active: true, sortOrder: 2, actionType: 'documentation' },
-    { subcategoryName: 'Treinamento', name: 'Orientar Processo', description: 'Explicar procedimentos específicos', estimatedTimeMinutes: 30, color: '#10b981', icon: 'compass', active: true, sortOrder: 3, actionType: 'guidance' }
+    // Contas e Perfis
+    { subcategoryName: 'Contas e Perfis', name: 'Criação de Usuário', description: 'Criar nova conta de usuário', estimatedTimeMinutes: 30, color: '#f59e0b', icon: 'user-plus', active: true, sortOrder: 1, actionType: 'user_management' },
+    { subcategoryName: 'Contas e Perfis', name: 'Treinamento Técnico', description: 'Treinar usuário em tecnologias', estimatedTimeMinutes: 120, color: '#f59e0b', icon: 'graduation-cap', active: true, sortOrder: 2, actionType: 'training' },
+    { subcategoryName: 'Contas e Perfis', name: 'Orientação Técnica', description: 'Orientar sobre uso de sistemas', estimatedTimeMinutes: 45, color: '#f59e0b', icon: 'lightbulb', active: true, sortOrder: 3, actionType: 'guidance' },
+    { subcategoryName: 'Contas e Perfis', name: 'Atualização de Procedimento', description: 'Atualizar procedimentos de usuário', estimatedTimeMinutes: 60, color: '#f59e0b', icon: 'edit', active: true, sortOrder: 4, actionType: 'update' },
+    { subcategoryName: 'Contas e Perfis', name: 'Consultoria Especializada', description: 'Consultoria técnica especializada', estimatedTimeMinutes: 90, color: '#f59e0b', icon: 'briefcase', active: true, sortOrder: 5, actionType: 'consultation' }
   ]
 };
