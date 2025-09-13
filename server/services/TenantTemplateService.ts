@@ -41,30 +41,96 @@ export class TenantTemplateService {
     }
   }
 
+  /**
+   * Copia hierarquia de uma empresa para outra
+   */
+  static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log(`🔄 Copiando hierarquia de ${sourceCompanyId} para ${targetCompanyId} no schema ${schemaName}`);
+
+    try {
+      // 1. Copiar categorias
+      await this.copyCategoriesForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
+
+      // 2. Copiar subcategorias  
+      await this.copySubcategoriesForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
+
+      // 3. Copiar ações
+      await this.copyActionsForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
+
+      console.log('✅ Hierarquia copiada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao copiar hierarquia:', error);
+      throw error;
+    }
+  }
+
   private static async applyCategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
 
     for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
-      const query = `
-        INSERT INTO "${schemaName}"."ticket_categories" 
-        (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-        ON CONFLICT (tenant_id, name) DO UPDATE SET
-          description = $4,
-          color = $5,
-          icon = $6,
-          active = $7,
-          sort_order = $8,
-          updated_at = NOW()
+      // Check if category already exists
+      const existsQuery = `
+        SELECT id FROM "${schemaName}"."ticket_categories" 
+        WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
+      
+      const existsResult = await pool.query(existsQuery, [tenantId, companyId, category.name]);
 
-      await pool.query(query, [
-        tenantId, companyId, category.name, category.description,
-        category.color, category.icon, category.active, category.sortOrder
-      ]);
+      if (existsResult.rows.length === 0) {
+        // Insert new category
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_categories" 
+          (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        `;
+
+        await pool.query(insertQuery, [
+          tenantId, companyId, category.name, category.description,
+          category.color, category.icon, category.active, category.sortOrder
+        ]);
+      }
     }
 
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.categories.length} categorias aplicadas`);
+  }
+
+  private static async copyCategoriesForCompany(schemaName: string, tenantId: string, sourceCompanyId: string, targetCompanyId: string) {
+    // Get source categories
+    const sourceQuery = `
+      SELECT name, description, color, icon, active, sort_order
+      FROM "${schemaName}"."ticket_categories" 
+      WHERE tenant_id = $1 AND company_id = $2
+    `;
+
+    const sourceResult = await pool.query(sourceQuery, [tenantId, sourceCompanyId]);
+
+    for (const category of sourceResult.rows) {
+      // Check if category already exists in target
+      const existsQuery = `
+        SELECT id FROM "${schemaName}"."ticket_categories" 
+        WHERE tenant_id = $1 AND company_id = $2 AND name = $3
+      `;
+      
+      const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, category.name]);
+
+      if (existsResult.rows.length === 0) {
+        // Insert new category
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_categories" 
+          (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        `;
+
+        await pool.query(insertQuery, [
+          tenantId, targetCompanyId, category.name, category.description,
+          category.color, category.icon, category.active, category.sort_order
+        ]);
+      }
+    }
+
+    console.log(`✅ ${sourceResult.rows.length} categorias copiadas`);
   }
 
   private static async applySubcategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
@@ -82,27 +148,79 @@ export class TenantTemplateService {
       if (categoryResult.rows.length > 0) {
         const categoryId = categoryResult.rows[0].id;
 
-        const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_subcategories" 
-          (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-          ON CONFLICT (tenant_id, name) DO UPDATE SET
-            description = $5,
-            color = $6,
-            icon = $7,
-            active = $8,
-            sort_order = $9,
-            updated_at = NOW()
+        // Check if subcategory already exists
+        const existsQuery = `
+          SELECT id FROM "${schemaName}"."ticket_subcategories" 
+          WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
         `;
+        
+        const existsResult = await pool.query(existsQuery, [tenantId, companyId, categoryId, subcategory.name]);
 
-        await pool.query(insertQuery, [
-          tenantId, companyId, categoryId, subcategory.name, subcategory.description,
-          subcategory.color, subcategory.icon, subcategory.active, subcategory.sortOrder
-        ]);
+        if (existsResult.rows.length === 0) {
+          const insertQuery = `
+            INSERT INTO "${schemaName}"."ticket_subcategories" 
+            (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          `;
+
+          await pool.query(insertQuery, [
+            tenantId, companyId, categoryId, subcategory.name, subcategory.description,
+            subcategory.color, subcategory.icon, subcategory.active, subcategory.sortOrder
+          ]);
+        }
       }
     }
 
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategorias aplicadas`);
+  }
+
+  private static async copySubcategoriesForCompany(schemaName: string, tenantId: string, sourceCompanyId: string, targetCompanyId: string) {
+    // Get source subcategories with their category names
+    const sourceQuery = `
+      SELECT s.name, s.description, s.color, s.icon, s.active, s.sort_order, c.name as category_name
+      FROM "${schemaName}"."ticket_subcategories" s
+      JOIN "${schemaName}"."ticket_categories" c ON s.category_id = c.id
+      WHERE s.tenant_id = $1 AND s.company_id = $2
+    `;
+
+    const sourceResult = await pool.query(sourceQuery, [tenantId, sourceCompanyId]);
+
+    for (const subcategory of sourceResult.rows) {
+      // Find the category ID in the target company
+      const categoryQuery = `
+        SELECT id FROM "${schemaName}"."ticket_categories" 
+        WHERE tenant_id = $1 AND company_id = $2 AND name = $3
+      `;
+
+      const categoryResult = await pool.query(categoryQuery, [tenantId, targetCompanyId, subcategory.category_name]);
+
+      if (categoryResult.rows.length > 0) {
+        const categoryId = categoryResult.rows[0].id;
+
+        // Check if subcategory already exists
+        const existsQuery = `
+          SELECT id FROM "${schemaName}"."ticket_subcategories" 
+          WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
+        `;
+        
+        const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, categoryId, subcategory.name]);
+
+        if (existsResult.rows.length === 0) {
+          const insertQuery = `
+            INSERT INTO "${schemaName}"."ticket_subcategories" 
+            (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          `;
+
+          await pool.query(insertQuery, [
+            tenantId, targetCompanyId, categoryId, subcategory.name, subcategory.description,
+            subcategory.color, subcategory.icon, subcategory.active, subcategory.sort_order
+          ]);
+        }
+      }
+    }
+
+    console.log(`✅ ${sourceResult.rows.length} subcategorias copiadas`);
   }
 
   private static async applyActionsForCompany(schemaName: string, tenantId: string, companyId: string) {
@@ -121,30 +239,82 @@ export class TenantTemplateService {
       if (subcategoryResult.rows.length > 0) {
         const subcategoryId = subcategoryResult.rows[0].id;
 
-        const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_actions" 
-          (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
-          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-          ON CONFLICT (tenant_id, name) DO UPDATE SET
-            description = $5,
-            estimated_time_minutes = $6,
-            color = $7,
-            icon = $8,
-            active = $9,
-            sort_order = $10,
-            action_type = $11,
-            updated_at = NOW()
+        // Check if action already exists
+        const existsQuery = `
+          SELECT id FROM "${schemaName}"."ticket_actions" 
+          WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
         `;
+        
+        const existsResult = await pool.query(existsQuery, [tenantId, companyId, subcategoryId, action.name]);
 
-        await pool.query(insertQuery, [
-          tenantId, companyId, subcategoryId, action.name, action.description,
-          action.estimatedTimeMinutes, action.color, action.icon, action.active,
-          action.sortOrder, action.actionType
-        ]);
+        if (existsResult.rows.length === 0) {
+          const insertQuery = `
+            INSERT INTO "${schemaName}"."ticket_actions" 
+            (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          `;
+
+          await pool.query(insertQuery, [
+            tenantId, companyId, subcategoryId, action.name, action.description,
+            action.estimatedTimeMinutes, action.color, action.icon, action.active,
+            action.sortOrder, action.actionType
+          ]);
+        }
       }
     }
 
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.actions.length} ações aplicadas`);
+  }
+
+  private static async copyActionsForCompany(schemaName: string, tenantId: string, sourceCompanyId: string, targetCompanyId: string) {
+    // Get source actions with their subcategory names
+    const sourceQuery = `
+      SELECT a.name, a.description, a.estimated_time_minutes, a.color, a.icon, a.active, a.sort_order, a.action_type, s.name as subcategory_name
+      FROM "${schemaName}"."ticket_actions" a
+      JOIN "${schemaName}"."ticket_subcategories" s ON a.subcategory_id = s.id
+      WHERE a.tenant_id = $1 AND a.company_id = $2
+    `;
+
+    const sourceResult = await pool.query(sourceQuery, [tenantId, sourceCompanyId]);
+
+    for (const action of sourceResult.rows) {
+      // Find the subcategory ID in the target company
+      const subcategoryQuery = `
+        SELECT s.id FROM "${schemaName}"."ticket_subcategories" s
+        JOIN "${schemaName}"."ticket_categories" c ON s.category_id = c.id
+        WHERE s.tenant_id = $1 AND c.company_id = $2 AND s.name = $3
+      `;
+
+      const subcategoryResult = await pool.query(subcategoryQuery, [tenantId, targetCompanyId, action.subcategory_name]);
+
+      if (subcategoryResult.rows.length > 0) {
+        const subcategoryId = subcategoryResult.rows[0].id;
+
+        // Check if action already exists
+        const existsQuery = `
+          SELECT id FROM "${schemaName}"."ticket_actions" 
+          WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
+        `;
+        
+        const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, subcategoryId, action.name]);
+
+        if (existsResult.rows.length === 0) {
+          const insertQuery = `
+            INSERT INTO "${schemaName}"."ticket_actions" 
+            (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          `;
+
+          await pool.query(insertQuery, [
+            tenantId, targetCompanyId, subcategoryId, action.name, action.description,
+            action.estimated_time_minutes, action.color, action.icon, action.active,
+            action.sort_order, action.action_type
+          ]);
+        }
+      }
+    }
+
+    console.log(`✅ ${sourceResult.rows.length} ações copiadas`);
   }
 
   private static async applyFieldOptionsForCompany(schemaName: string, tenantId: string, companyId: string) {

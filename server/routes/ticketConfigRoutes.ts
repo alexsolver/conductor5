@@ -3,6 +3,7 @@ import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import { Response } from 'express'; // Import Response type
 
 const router = Router();
 
@@ -1515,7 +1516,7 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 });
 
 // ============================================================================
-// COPY STRUCTURE - AplicAR template padrão
+// COPY STRUCTURE - Metadados dos campos
 // ============================================================================
 
 // POST /api/ticket-config/copy-structure
@@ -1657,6 +1658,41 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
       success: false,
       error: 'Failed to copy default structure',
       details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ============================================================================
+// COPY HIERARCHY - Copiar hierarquia de uma empresa para outra
+// ============================================================================
+// Copy hierarchy from one company to another
+router.post('/copy-hierarchy', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { sourceCompanyId, targetCompanyId } = req.body;
+    const { tenantId } = req.user;
+
+    if (!sourceCompanyId || !targetCompanyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'sourceCompanyId and targetCompanyId are required'
+      });
+    }
+
+    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId}`);
+
+    // Copy hierarchy from source to target company
+    await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
+
+    res.json({
+      success: true,
+      message: 'Hierarchy copied successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error copying hierarchy:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error copying hierarchy',
+      error: error.message
     });
   }
 });
