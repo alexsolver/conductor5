@@ -1344,15 +1344,21 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     const tenantId = req.user?.tenantId;
     const { companyId } = req.body;
 
+    console.log('🔄 [COPY-STRUCTURE] Starting copy for:', { tenantId, companyId });
+
     if (!tenantId) {
-      return res.status(401).json({ message: 'Tenant required' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Tenant required' 
+      });
     }
 
     if (!companyId) {
-      return res.status(400).json({ message: 'Company ID required' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Company ID required' 
+      });
     }
-
-    console.log('🔄 Copying structure for company:', companyId);
 
     // Import TenantTemplateService
     const { TenantTemplateService } = await import('../services/TenantTemplateService');
@@ -1360,14 +1366,19 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     // Apply default structure to the company
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
-    console.log('✅ Structure copied successfully for company:', companyId);
+    console.log('✅ [COPY-STRUCTURE] Structure copied successfully');
 
     res.json({
       success: true,
-      message: 'Estrutura copiada com sucesso!'
+      message: 'Estrutura hierárquica copiada com sucesso!',
+      data: {
+        tenantId,
+        companyId,
+        templateApplied: 'DEFAULT_COMPANY_TEMPLATE'
+      }
     });
   } catch (error) {
-    console.error('❌ Error copying structure:', error);
+    console.error('❌ [COPY-STRUCTURE] Error copying structure:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to copy structure',

@@ -8,25 +8,9 @@ import { v4 as uuidv4 } from 'uuid';
 // Assuming db and sql are imported from your database client library
 // import { db, sql } from './db'; // Example import
 
-// Mocking db and sql for demonstration purposes if not provided
-const db = {
-  execute: async (query: any) => {
-    console.log('Mock db.execute called with:', query);
-    // Simulate table creation or data retrieval
-    if (query.text.includes('CREATE TABLE')) {
-      return { rows: [] };
-    } else if (query.text.includes('SELECT')) {
-      // Simulate returning empty rows for potentially non-existent tables during the fix
-      return { rows: [] };
-    }
-    return { rows: [] };
-  }
-};
-const sql = (strings: TemplateStringsArray, ...values: any[]) => ({
-  text: strings.reduce((acc, str, i) => acc + str + (values[i] || ''), ''),
-  values: values
-});
-const randomUUID = uuidv4;
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 
 
 export class TenantTemplateService {
@@ -63,19 +47,23 @@ export class TenantTemplateService {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
     
     for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
-      await db.execute(sql`
-        INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+      const query = `
+        INSERT INTO "${schemaName}"."ticket_categories" 
         (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-        VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${category.name}, ${category.description}, 
-                ${category.color}, ${category.icon}, ${category.active}, ${category.sortOrder}, NOW(), NOW())
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         ON CONFLICT (tenant_id, company_id, name) DO UPDATE SET
-          description = ${category.description},
-          color = ${category.color},
-          icon = ${category.icon},
-          active = ${category.active},
-          sort_order = ${category.sortOrder},
+          description = $4,
+          color = $5,
+          icon = $6,
+          active = $7,
+          sort_order = $8,
           updated_at = NOW()
-      `);
+      `;
+      
+      await db.query(query, [
+        tenantId, companyId, category.name, category.description,
+        category.color, category.icon, category.active, category.sortOrder
+      ]);
     }
     
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.categories.length} categorias aplicadas`);
@@ -86,27 +74,33 @@ export class TenantTemplateService {
     
     for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
       // Buscar ID da categoria pai
-      const categoryResult = await db.execute(sql`
-        SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
-        WHERE tenant_id = ${tenantId} AND company_id = ${companyId} AND name = ${subcategory.categoryName}
-      `);
+      const categoryQuery = `
+        SELECT id FROM "${schemaName}"."ticket_categories" 
+        WHERE tenant_id = $1 AND company_id = $2 AND name = $3
+      `;
+      
+      const categoryResult = await db.query(categoryQuery, [tenantId, companyId, subcategory.categoryName]);
       
       if (categoryResult.rows.length > 0) {
         const categoryId = categoryResult.rows[0].id;
         
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_subcategories" 
           (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-          VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, ${subcategory.description}, 
-                  ${subcategory.color}, ${subcategory.icon}, ${subcategory.active}, ${subcategory.sortOrder}, NOW(), NOW())
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           ON CONFLICT (tenant_id, category_id, name) DO UPDATE SET
-            description = ${subcategory.description},
-            color = ${subcategory.color},
-            icon = ${subcategory.icon},
-            active = ${subcategory.active},
-            sort_order = ${subcategory.sortOrder},
+            description = $5,
+            color = $6,
+            icon = $7,
+            active = $8,
+            sort_order = $9,
             updated_at = NOW()
-        `);
+        `;
+        
+        await db.query(insertQuery, [
+          tenantId, companyId, categoryId, subcategory.name, subcategory.description,
+          subcategory.color, subcategory.icon, subcategory.active, subcategory.sortOrder
+        ]);
       }
     }
     
@@ -118,30 +112,37 @@ export class TenantTemplateService {
     
     for (const action of DEFAULT_COMPANY_TEMPLATE.actions) {
       // Buscar ID da subcategoria pai
-      const subcategoryResult = await db.execute(sql`
-        SELECT s.id FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
-        JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-        WHERE s.tenant_id = ${tenantId} AND c.company_id = ${companyId} AND s.name = ${action.subcategoryName}
-      `);
+      const subcategoryQuery = `
+        SELECT s.id FROM "${schemaName}"."ticket_subcategories" s
+        JOIN "${schemaName}"."ticket_categories" c ON s.category_id = c.id
+        WHERE s.tenant_id = $1 AND c.company_id = $2 AND s.name = $3
+      `;
+      
+      const subcategoryResult = await db.query(subcategoryQuery, [tenantId, companyId, action.subcategoryName]);
       
       if (subcategoryResult.rows.length > 0) {
         const subcategoryId = subcategoryResult.rows[0].id;
         
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_actions" 
           (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
-          VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, ${action.description}, 
-                  ${action.estimatedTimeMinutes}, ${action.color}, ${action.icon}, ${action.active}, ${action.sortOrder}, ${action.actionType}, NOW(), NOW())
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           ON CONFLICT (tenant_id, subcategory_id, name) DO UPDATE SET
-            description = ${action.description},
-            estimated_time_minutes = ${action.estimatedTimeMinutes},
-            color = ${action.color},
-            icon = ${action.icon},
-            active = ${action.active},
-            sort_order = ${action.sortOrder},
-            action_type = ${action.actionType},
+            description = $5,
+            estimated_time_minutes = $6,
+            color = $7,
+            icon = $8,
+            active = $9,
+            sort_order = $10,
+            action_type = $11,
             updated_at = NOW()
-        `);
+        `;
+        
+        await db.query(insertQuery, [
+          tenantId, companyId, subcategoryId, action.name, action.description,
+          action.estimatedTimeMinutes, action.color, action.icon, action.active,
+          action.sortOrder, action.actionType
+        ]);
       }
     }
     
@@ -152,21 +153,26 @@ export class TenantTemplateService {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
     
     for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
-      await db.execute(sql`
-        INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+      const insertQuery = `
+        INSERT INTO "${schemaName}"."ticket_field_options" 
         (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
-        VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${option.fieldName}, ${option.value}, ${option.label}, 
-                ${option.color}, ${option.icon || null}, ${option.isDefault}, ${option.isActive}, ${option.sortOrder}, ${option.statusType || null}, NOW(), NOW())
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
         ON CONFLICT (tenant_id, company_id, field_name, value) DO UPDATE SET
-          display_label = ${option.label},
-          color = ${option.color},
-          icon = ${option.icon || null},
-          is_default = ${option.isDefault},
-          active = ${option.isActive},
-          sort_order = ${option.sortOrder},
-          status_type = ${option.statusType || null},
+          display_label = $5,
+          color = $6,
+          icon = $7,
+          is_default = $8,
+          active = $9,
+          sort_order = $10,
+          status_type = $11,
           updated_at = NOW()
-      `);
+      `;
+      
+      await db.query(insertQuery, [
+        tenantId, companyId, option.fieldName, option.value, option.label,
+        option.color, option.icon || null, option.isDefault, option.isActive,
+        option.sortOrder, option.statusType || null
+      ]);
     }
     
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length} opções de campos aplicadas`);
