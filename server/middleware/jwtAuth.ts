@@ -155,10 +155,15 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Add user context to request - with permissions and enhanced tenant validation
     const { RBACService } = await import('./rbacMiddleware');
     const rbacInstance = RBACService.getInstance();
-    const permissions = rbacInstance.getRolePermissions(user.role);
+    
+    // ✅ CRITICAL FIX: Handle different User entity structures
+    const userRole = typeof user.getRole === 'function' ? user.getRole() : user.role;
+    const userTenantId = typeof user.getTenantId === 'function' ? user.getTenantId() : user.tenantId;
+    
+    const permissions = rbacInstance.getRolePermissions(userRole);
 
     // Enhanced tenant validation for customers module
-    if (!user.tenantId && req.path.includes('/customers')) {
+    if (!userTenantId && req.path.includes('/customers')) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       res.status(403).json({
@@ -173,9 +178,9 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     req.user = {
       id: user.id,
       email: user.email,
-      role: user.role,
-      tenantId: user.tenantId || '',
-      roles: [user.role],
+      role: userRole,
+      tenantId: userTenantId || '',
+      roles: [userRole],
       permissions: permissions || [],
       attributes: {}
     };
