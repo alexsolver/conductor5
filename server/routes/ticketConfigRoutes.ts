@@ -1639,7 +1639,7 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
       return res.status(400).json({ message: 'Company ID required' });
     }
 
-    console.log('🔄 AplicANDO estrutura padrão para empresa:', companyId);
+    console.log('🔄 APPLYING estrutura padrão para empresa:', companyId);
 
     // Importar o serviço de template
     // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue

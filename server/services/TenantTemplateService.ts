@@ -429,6 +429,17 @@ export class TenantTemplateService {
       await this.copyActionsForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
 
       console.log('✅ Hierarquia copiada com sucesso');
+
+      return {
+        summary: `Hierarquia copiada com sucesso de ${sourceCompanyId} para ${targetCompanyId}`,
+        details: {
+          tenantId,
+          sourceCompanyId,
+          targetCompanyId,
+          schemaUsed: schemaName
+        }
+      };
+
     } catch (error) {
       console.error('❌ Erro ao copiar hierarquia:', error);
       throw error;
