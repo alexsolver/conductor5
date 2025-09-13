@@ -5,6 +5,7 @@
 
 import { DEFAULT_COMPANY_TEMPLATE, DefaultCompanyTemplate } from '../templates/default-company-template';
 import { v4 as uuidv4 } from 'uuid';
+
 // Assuming db and sql are imported from your database client library
 // import { db, sql } from './db'; // Example import
 
@@ -37,7 +38,7 @@ export class TenantTemplateService {
     const { db } = await import("../db");
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const pool = { query: (text: string, params: any[]) => db.execute({ text, values: params }) };
-    
+
     await TenantTemplateService.applyDefaultCompanyTemplate(tenantId, companyId, pool, schemaName);
   }
 
@@ -50,14 +51,22 @@ export class TenantTemplateService {
     pool: any,
     schemaName: string
   ): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying Default company template for tenant ${tenantId}`);
+    console.log(`[TENANT-TEMPLATE] Applying NEW hierarchical structure template for tenant ${tenantId}`);
 
     try {
-      // 1. Criar empresa Default
+      // 1. Limpar estrutura antiga (se existir)
+      try {
+        await this.cleanOldHierarchicalStructure(pool, schemaName);
+        console.log('[TENANT-TEMPLATE] Old hierarchical structure cleaned');
+      } catch (cleanError) {
+        console.warn('[TENANT-TEMPLATE] No old structure to clean or error cleaning:', cleanError.message);
+      }
+
+      // 2. Criar empresa Default
       const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
       await this.createDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId);
 
-      // 2. Criar opções de campos de tickets
+      // 3. Criar opções de campos de tickets
       try {
         await this.createTicketFieldOptions(pool, schemaName, tenantId);
         console.log('[TENANT-TEMPLATE] Ticket field options created successfully');
@@ -65,18 +74,43 @@ export class TenantTemplateService {
         console.warn('[TENANT-TEMPLATE] Field options creation failed, continuing without them:', fieldOptionsError.message);
       }
 
-      // 3. Criar categorias hierárquicas
+      // 4. Criar NOVA estrutura hierárquica de 5 categorias
       try {
-        await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
-        console.log(`[TENANT-TEMPLATE] Created hierarchical structure: ${DEFAULT_COMPANY_TEMPLATE.categories.length} categories, ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategories, ${DEFAULT_COMPANY_TEMPLATE.actions.length} actions`);
+        await this.createNewHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
+        console.log(`[TENANT-TEMPLATE] NEW hierarchical structure created: ${DEFAULT_COMPANY_TEMPLATE.categories.length} categories, ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategories, ${DEFAULT_COMPANY_TEMPLATE.actions.length} actions`);
       } catch (hierarchyError) {
-        console.warn('[TENANT-TEMPLATE] Hierarchical structure creation failed, continuing without it:', hierarchyError.message);
+        console.error('[TENANT-TEMPLATE] NEW hierarchical structure creation failed:', hierarchyError);
+        throw hierarchyError;
       }
 
-      console.log(`[TENANT-TEMPLATE] Default company template applied successfully for tenant ${tenantId}`);
+      console.log(`[TENANT-TEMPLATE] NEW template applied successfully for tenant ${tenantId}`);
     } catch (error) {
-      console.error(`[TENANT-TEMPLATE] Error applying template for tenant ${tenantId}:`, error);
+      console.error(`[TENANT-TEMPLATE] Error applying NEW template for tenant ${tenantId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Limpa estrutura hierárquica antiga
+   */
+  private static async cleanOldHierarchicalStructure(
+    pool: any,
+    schemaName: string
+  ): Promise<void> {
+    console.log('[TENANT-TEMPLATE] Cleaning old hierarchical structure...');
+
+    const cleanupQueries = [
+      `DELETE FROM "${schemaName}".ticket_actions WHERE id IS NOT NULL`,
+      `DELETE FROM "${schemaName}".ticket_subcategories WHERE id IS NOT NULL`,
+      `DELETE FROM "${schemaName}".ticket_categories WHERE id IS NOT NULL`
+    ];
+
+    for (const query of cleanupQueries) {
+      try {
+        await pool.query(query, []);
+      } catch (error) {
+        console.warn(`[TENANT-TEMPLATE] Cleanup query failed (normal if table doesn't exist): ${error.message}`);
+      }
     }
   }
 
@@ -134,65 +168,7 @@ export class TenantTemplateService {
   }
 
   /**
-   * Cria empresa personalizada baseada no template Default
-   */
-  private static async createCustomizedDefaultCompany(
-    pool: any,
-    schemaName: string,
-    tenantId: string,
-    userId: string,
-    defaultCompanyId: string,
-    customizations: {
-      companyName: string;
-      companyEmail?: string;
-      industry?: string;
-    }
-  ): Promise<void> {
-    const company = DEFAULT_COMPANY_TEMPLATE.company;
-
-    // First, check which table name exists in the schema
-    const tableCheckQuery = `
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = $1 
-      AND table_name IN ('customer_companies', 'companies')
-    `;
-
-    const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
-    const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
-
-    console.log(`[TENANT-TEMPLATE] Using table: ${tableName} in schema: ${schemaName}`);
-
-    const query = `
-      INSERT INTO "${schemaName}"."${tableName}" (
-        id, tenant_id, name, display_name, description, industry, size,
-        email, phone, website, subscription_tier, status, 
-        created_by, created_at, updated_at, is_active, country
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), true, 'Brazil')
-      ON CONFLICT (id) DO NOTHING
-    `;
-
-    await pool.query(query, [
-      defaultCompanyId,
-      tenantId,
-      customizations.companyName, // Nome personalizado
-      customizations.companyName, // Display name igual ao nome
-      `Empresa ${customizations.companyName} - Configurações padrão do sistema`, // Descrição personalizada
-      customizations.industry || company.industry, // Indústria personalizada ou padrão
-      company.size,
-      customizations.companyEmail || company.email, // Email personalizado ou padrão
-      company.phone,
-      company.website,
-      company.subscriptionTier,
-      company.status,
-      userId
-    ]);
-
-    console.log(`[TENANT-TEMPLATE] Customized default company '${customizations.companyName}' created with ID: ${defaultCompanyId} in table: ${tableName}`);
-  }
-
-  /**
-   * Cria as opções básicas de campos de tickets (apenas status, priority, impact, urgency)
+   * Cria as opções básicas de campos de tickets
    */
   private static async createTicketFieldOptions(
     pool: any,
@@ -202,7 +178,7 @@ export class TenantTemplateService {
     console.log('[TENANT-TEMPLATE] Creating basic ticket field options');
 
     const fieldOptions = [
-      // Status options - básicas para funcionamento
+      // Status options
       { field_type: 'status', field_value: 'new', label: 'Novo', color: '#f59e0b', sort_order: 1, is_active: true },
       { field_type: 'status', field_value: 'open', label: 'Aberto', color: '#3b82f6', sort_order: 2, is_active: true },
       { field_type: 'status', field_value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6', sort_order: 3, is_active: true },
@@ -233,6 +209,7 @@ export class TenantTemplateService {
         INSERT INTO "${schemaName}".ticket_field_options 
         (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT DO NOTHING
       `;
 
       await pool.query(insertQuery, [
@@ -250,18 +227,20 @@ export class TenantTemplateService {
   }
 
   /**
-   * Cria a estrutura hierárquica completa (categorias → subcategorias → ações)
+   * Cria a NOVA estrutura hierárquica completa (5 categorias → 20 subcategorias → 30 ações)
    */
-  private static async createHierarchicalStructure(
+  private static async createNewHierarchicalStructure(
     pool: any,
     schemaName: string,
     tenantId: string,
     defaultCompanyId: string
   ): Promise<void> {
+    console.log('[TENANT-TEMPLATE] Creating NEW 5-category hierarchical structure...');
+
     // Mapear nomes para IDs das categorias
     const categoryIdMap = new Map<string, string>();
 
-    // 1. Criar categorias
+    // 1. Criar 5 NOVAS categorias
     for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
       const categoryId = uuidv4();
       categoryIdMap.set(category.name, categoryId);
@@ -320,12 +299,13 @@ export class TenantTemplateService {
       }
 
       await pool.query(query, values);
+      console.log(`[TENANT-TEMPLATE] Created category: ${category.name}`);
     }
 
     // Mapear nomes para IDs das subcategorias
     const subcategoryIdMap = new Map<string, string>();
 
-    // 2. Criar subcategorias
+    // 2. Criar 20 NOVAS subcategorias
     for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
       const subcategoryId = uuidv4();
       const categoryId = categoryIdMap.get(subcategory.categoryName);
@@ -393,10 +373,12 @@ export class TenantTemplateService {
       }
 
       await pool.query(query, values);
+      console.log(`[TENANT-TEMPLATE] Created subcategory: ${subcategory.name} under ${subcategory.categoryName}`);
     }
 
-    // 3. Criar ações
+    // 3. Criar 30 NOVAS ações
     for (const action of DEFAULT_COMPANY_TEMPLATE.actions) {
+      const actionId = uuidv4();
       const subcategoryId = subcategoryIdMap.get(action.subcategoryName);
 
       if (!subcategoryId) {
@@ -421,14 +403,14 @@ export class TenantTemplateService {
       if (columnExists.rows.length > 0) {
         query = `
           INSERT INTO "${schemaName}".ticket_actions (
-            id, tenant_id, company_id, subcategory_id, name, description,
-            estimated_time_minutes, color, icon, active, sort_order, action_type,
-            created_at, updated_at
+            id, tenant_id, company_id, subcategory_id, name, description, 
+            estimated_time_minutes, color, icon, active, sort_order, 
+            action_type, created_at, updated_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
-          uuidv4(),
+          actionId,
           tenantId,
           defaultCompanyId,
           subcategoryId,
@@ -444,14 +426,14 @@ export class TenantTemplateService {
       } else {
         query = `
           INSERT INTO "${schemaName}".ticket_actions (
-            id, tenant_id, subcategory_id, name, description,
-            estimated_time_minutes, color, icon, active, sort_order, action_type,
-            created_at, updated_at
+            id, tenant_id, subcategory_id, name, description, 
+            estimated_time_minutes, color, icon, active, sort_order, 
+            action_type, created_at, updated_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           ON CONFLICT DO NOTHING
         `;
         values = [
-          uuidv4(),
+          actionId,
           tenantId,
           subcategoryId,
           action.name,
@@ -466,601 +448,9 @@ export class TenantTemplateService {
       }
 
       await pool.query(query, values);
+      console.log(`[TENANT-TEMPLATE] Created action: ${action.name} under ${action.subcategoryName}`);
     }
 
-    console.log(`[TENANT-TEMPLATE] Created hierarchical structure: ${DEFAULT_COMPANY_TEMPLATE.categories.length} categories, ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategories, ${DEFAULT_COMPANY_TEMPLATE.actions.length} actions`);
-  }
-
-  /**
-   * Aplica customizações adicionais
-   */
-  private static async applyCustomizations(
-    pool: any,
-    schemaName: string,
-    tenantId: string,
-    customizations?: {
-      companyName?: string;
-      companyEmail?: string;
-      industry?: string;
-      customCategories?: Array<{ name: string; description: string; color: string; icon: string }>;
-    }
-  ): Promise<void> {
-    // Implementar customizações adicionais conforme necessário
-    console.log(`[TENANT-TEMPLATE] Applying additional customizations for tenant ${tenantId}`);
-  }
-
-  /**
-   * Aplica template default com nome de empresa personalizado
-   */
-  static async applyCustomizedDefaultTemplate(
-    tenantId: string,
-    userId: string,
-    pool: any,
-    schemaName: string,
-    customizations: {
-      companyName: string;
-      companyEmail?: string;
-      industry?: string;
-    }
-  ): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying customized template for tenant ${tenantId}`);
-
-    try {
-      // 1. Criar empresa customizada
-      console.log(`[TENANT-TEMPLATE] Step 1: Creating customized company for ${tenantId}`);
-      const defaultCompanyId = DEFAULT_COMPANY_TEMPLATE.company.id;
-      await this.createCustomizedDefaultCompany(pool, schemaName, tenantId, userId, defaultCompanyId, customizations);
-
-      // 2. Criar opções de campos de tickets (com verificação de estrutura)
-      console.log(`[TENANT-TEMPLATE] Step 2: Creating ticket field options for ${tenantId}`);
-      try {
-        await this.createTicketFieldOptions(pool, schemaName, tenantId);
-      } catch (fieldOptionsError) {
-        console.warn(`[TENANT-TEMPLATE] Field options creation failed, continuing without them:`, fieldOptionsError.message);
-      }
-
-      // 3. Criar categorias hierárquicas (usando as padrões do template)
-      console.log(`[TENANT-TEMPLATE] Step 3: Creating hierarchical structure for ${tenantId}`);
-      try {
-        await this.createHierarchicalStructure(pool, schemaName, tenantId, defaultCompanyId);
-      } catch (hierarchyError) {
-        console.warn(`[TENANT-TEMPLATE] Hierarchical structure creation failed, continuing without it:`, hierarchyError.message);
-      }
-
-      console.log(`[TENANT-TEMPLATE] Customized template applied successfully for tenant ${tenantId}`);
-    } catch (error) {
-      console.error(`[TENANT-TEMPLATE] Error applying customized template for tenant ${tenantId}:`, error);
-      // Don't throw the error - let tenant creation succeed even if template application fails
-      console.log(`[TENANT-TEMPLATE] Template application failed, but tenant creation will continue`);
-    }
-  }
-
-  /**
-   * Aplica template customizado baseado no template Default
-   */
-  static async applyCustomizedTemplate(
-    tenantId: string,
-    userId: string,
-    pool: any,
-    schemaName: string,
-    customizations?: {
-      companyName?: string;
-      companyEmail?: string;
-      industry?: string;
-      customCategories?: Array<{ name: string; description: string; color: string; icon: string }>;
-    }
-  ): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying customized template for tenant ${tenantId}`);
-
-    // Aplicar template base
-    await this.applyDefaultCompanyTemplate(tenantId, userId, pool, schemaName);
-
-    // Aplicar customizações se fornecidas
-    if (customizations) {
-      await this.applyCustomizations(pool, schemaName, tenantId, customizations);
-    }
-  }
-
-  /**
-   * Verifica se o template já foi aplicado para um tenant
-   */
-  static async isTemplateApplied(pool: any, schemaName: string, tenantId: string): Promise<boolean> {
-    try {
-      // Check which company table exists
-      const tableCheckQuery = `
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = $1 
-        AND table_name IN ('customer_companies', 'companies')
-      `;
-
-      const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
-      const tableName = tableCheckResult.rows.find(row => row.table_name === 'customer_companies') ? 'customer_companies' : 'companies';
-
-      // Check for default company
-      const companyQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}"."${tableName}" 
-        WHERE tenant_id = $1
-      `;
-      const companyResult = await pool.query(companyQuery, [tenantId]);
-      const hasCompany = parseInt(companyResult.rows[0].count) > 0;
-
-      // Check for ticket field options
-      const optionsQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}".ticket_field_options 
-        WHERE tenant_id = $1
-      `;
-      const optionsResult = await pool.query(optionsQuery, [tenantId]);
-      const hasOptions = parseInt(optionsResult.rows[0].count) > 0;
-
-      // Check for categories
-      const categoriesQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}".ticket_categories 
-        WHERE tenant_id = $1
-      `;
-      const categoriesResult = await pool.query(categoriesQuery, [tenantId]);
-      const hasCategories = parseInt(categoriesResult.rows[0].count) > 0;
-
-      const isApplied = hasCompany && hasOptions && hasCategories;
-
-      console.log(`[TENANT-TEMPLATE] Template check for ${tenantId}: company=${hasCompany} (table: ${tableName}), options=${hasOptions}, categories=${hasCategories}, applied=${isApplied}`);
-
-      return isApplied;
-    } catch (error) {
-      console.error(`[TENANT-TEMPLATE] Error checking template status:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Helper to apply default template, potentially used by copyHierarchy
-   */
-  static async applyDefaultTemplate(tenantId: string, companyId: string): Promise<void> {
-    console.log(`[TENANT-TEMPLATE] Applying default template for tenant ${tenantId}`);
-
-    // Apply the new hierarchy structure using the TenantAutoProvisioningService method
-    const { TenantAutoProvisioningService } = await import('./TenantAutoProvisioningService');
-    const provisioningService = new TenantAutoProvisioningService();
-
-    // Use the private method through reflection or create a public version
-    // For now, we'll implement the hierarchy directly here to ensure consistency
-    await this.initializeNewHierarchy(tenantId, companyId);
-
-    console.log(`[TENANT-TEMPLATE] Default template applied successfully for tenant ${tenantId}`);
-  }
-
-  private async initializeNewHierarchy(tenantId: string, companyId: string): Promise<void> {
-    console.log('🎯 [TEMPLATE-HIERARCHY] Initializing NEW HIERARCHICAL structure from template...');
-
-    const { db } = await import("../db");
-    const { sql } = await import("drizzle-orm");
-    const { randomUUID } = await import("crypto");
-
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    // IMPORTANT: Use EXACTLY the same structure as TenantAutoProvisioningService for consistency
-    const categories = [
-      {
-        name: 'Infraestrutura & Equipamentos',
-        color: '#6366f1',
-        description: 'Problemas relacionados a hardware, equipamentos e infraestrutura física',
-        icon: 'server'
-      },
-      {
-        name: 'Software & Aplicações',
-        color: '#10b981',
-        description: 'Questões relacionadas a softwares, aplicativos e sistemas',
-        icon: 'code'
-      },
-      {
-        name: 'Conectividade & Redes',
-        color: '#8b5cf6',
-        description: 'Problemas de rede, conectividade e comunicação',
-        icon: 'wifi'
-      },
-      {
-        name: 'Segurança & Acesso',
-        color: '#dc2626',
-        description: 'Questões de segurança, acessos e permissões',
-        icon: 'shield'
-      },
-      {
-        name: 'Usuários & Suporte',
-        color: '#f59e0b',
-        description: 'Solicitações de usuários, treinamentos e suporte geral',
-        icon: 'users'
-      }
-    ];
-
-    const categoryIds: Record<string, string> = {};
-
-    for (const [index, category] of categories.entries()) {
-      const categoryId = randomUUID();
-      categoryIds[category.name] = categoryId;
-
-      await db.execute(sql`
-        INSERT INTO "${sql.raw(schemaName)}"."ticket_categories"
-        (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-        VALUES (
-          ${categoryId}, ${tenantId}, ${companyId}, ${category.name}, ${category.description},
-          ${category.color}, ${category.icon}, true, ${index + 1}, NOW(), NOW()
-        )
-        ON CONFLICT (id) DO NOTHING
-      `);
-    }
-
-    console.log(`[TENANT-TEMPLATE] Created ${categories.length} categories for new hierarchy`);
-  }
-
-
-  /**
-   * Copia a estrutura hierárquica de uma empresa para outra.
-   */
-  static async copyHierarchy(sourceCompanyId: string, targetCompanyId: string, tenantId: string) {
-    try {
-      console.log('🔄 [TENANT-TEMPLATE] Starting hierarchy copy:', {
-        sourceCompanyId,
-        targetCompanyId, 
-        tenantId
-      });
-
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // First, ensure we have the basic ticket configuration tables
-      await this.ensureTicketConfigTables(tenantId);
-
-      // Apply default template first to ensure we have a source to copy from
-      // This is a workaround for when the source is the default company template itself.
-      if (sourceCompanyId === '00000000-0000-0000-0000-000000000001') {
-        console.log('🔄 Creating default structure first...');
-        await this.applyDefaultTemplate(tenantId, 'Default Company');
-      }
-
-      // Copy categories
-      console.log('📂 Copying categories...');
-      let categories;
-      try {
-        // Attempt to select with sort_order, assuming it might exist
-        categories = await db.execute(sql`
-          SELECT id, name, description, color, icon, sort_order FROM "${sql.raw(schemaName)}"."ticket_categories" 
-          WHERE company_id = ${sourceCompanyId} AND active = true
-        `);
-      } catch (error: any) {
-        // If sort_order column doesn't exist, select without it
-        if (error.message.includes('column "sort_order" does not exist')) {
-          console.log('⚠️ "sort_order" column not found in ticket_categories, fetching without it.');
-          categories = await db.execute(sql`
-            SELECT id, name, description, color, icon FROM "${sql.raw(schemaName)}"."ticket_categories" 
-            WHERE company_id = ${sourceCompanyId} AND active = true
-          `);
-        } else {
-          throw error; // Rethrow other errors
-        }
-      }
-
-      const categoryMapping: Record<string, string> = {};
-
-      for (const category of categories.rows) {
-        const newCategoryId = randomUUID();
-        categoryMapping[category.id as string] = newCategoryId;
-
-        try {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
-            (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-            VALUES (
-              ${newCategoryId}, ${tenantId}, ${targetCompanyId}, 
-              ${category.name}, ${category.description}, ${category.color || '#3b82f6'}, 
-              ${category.icon}, true, ${category.sort_order || 1}, NOW(), NOW()
-            )
-          `);
-        } catch (error: any) {
-          console.log('⚠️ Category insert error, trying alternative approach:', error.message);
-          // Try with minimal fields if the full insert fails
-          // This might happen if some columns like description, color, icon are not nullable
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
-            (id, tenant_id, company_id, name, active, created_at, updated_at)
-            VALUES (
-              ${newCategoryId}, ${tenantId}, ${targetCompanyId}, 
-              ${category.name}, true, NOW(), NOW()
-            )
-          `);
-        }
-      }
-
-      // Copy subcategories
-      console.log('📁 Copying subcategories...');
-      let subcategories;
-      try {
-        subcategories = await db.execute(sql`
-          SELECT s.id, s.name, s.description, s.color, s.icon, s.category_id, s.sort_order
-          FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
-          JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-          WHERE c.company_id = ${sourceCompanyId} AND s.active = true
-        `);
-      } catch (error: any) {
-        // If the table or column doesn't exist, log and continue with empty results
-        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_subcategories" does not exist')) {
-          console.log('⚠️ Subcategories table or necessary columns not found, skipping subcategories.');
-          subcategories = { rows: [] };
-        } else {
-          throw error;
-        }
-      }
-
-      const subcategoryMapping: Record<string, string> = {};
-
-      for (const subcategory of subcategories.rows) {
-        const newSubcategoryId = randomUUID();
-        const newCategoryId = categoryMapping[subcategory.category_id as string];
-
-        if (newCategoryId) {
-          subcategoryMapping[subcategory.id as string] = newSubcategoryId;
-
-          try {
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-              (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-              VALUES (
-                ${newSubcategoryId}, ${tenantId}, ${targetCompanyId}, ${newCategoryId},
-                ${subcategory.name}, ${subcategory.description}, ${subcategory.color || '#3b82f6'},
-                ${subcategory.icon}, true, ${subcategory.sort_order || 1}, NOW(), NOW()
-              )
-            `);
-          } catch (error: any) {
-            console.log('⚠️ Subcategory insert error, trying minimal approach:', error.message);
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-              (id, tenant_id, company_id, category_id, name, active, created_at, updated_at)
-              VALUES (
-                ${newSubcategoryId}, ${tenantId}, ${targetCompanyId}, ${newCategoryId},
-                ${subcategory.name}, true, NOW(), NOW()
-              )
-            `);
-          }
-        }
-      }
-
-      // Copy actions
-      console.log('⚡ Copying actions...');
-      let actions;
-      try {
-        actions = await db.execute(sql`
-          SELECT a.id, a.name, a.description, a.color, a.icon, a.subcategory_id, a.sort_order
-          FROM "${sql.raw(schemaName)}"."ticket_actions" a
-          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id  
-          JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-          WHERE c.company_id = ${sourceCompanyId} AND a.active = true
-        `);
-      } catch (error: any) {
-        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_actions" does not exist')) {
-          console.log('⚠️ Actions table or necessary columns not found, skipping actions.');
-          actions = { rows: [] };
-        } else {
-          throw error;
-        }
-      }
-
-      for (const action of actions.rows) {
-        const newActionId = randomUUID();
-        const newSubcategoryId = subcategoryMapping[action.subcategory_id as string];
-
-        if (newSubcategoryId) {
-          try {
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
-              (id, tenant_id, company_id, subcategory_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-              VALUES (
-                ${newActionId}, ${tenantId}, ${targetCompanyId}, ${newSubcategoryId},
-                ${action.name}, ${action.description}, ${action.color || '#3b82f6'},
-                ${action.icon}, true, ${action.sort_order || 1}, NOW(), NOW()
-              )
-            `);
-          } catch (error: any) {
-            console.log('⚠️ Action insert error, trying minimal approach:', error.message);
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
-              (id, tenant_id, company_id, subcategory_id, name, active, created_at, updated_at)
-              VALUES (
-                ${newActionId}, ${tenantId}, ${targetCompanyId}, ${newSubcategoryId},
-                ${action.name}, true, NOW(), NOW()
-              )
-            `);
-          }
-        }
-      }
-
-      // Copy field options
-      console.log('🏷️ Copying field options...');
-      let fieldOptions;
-      try {
-        fieldOptions = await db.execute(sql`
-          SELECT id, field_name, value, label, color, sort_order 
-          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-          WHERE company_id = ${sourceCompanyId} AND active = true
-        `);
-      } catch (error: any) {
-        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_field_options" does not exist')) {
-          console.log('⚠️ Field options table not found, skipping field options.');
-          fieldOptions = { rows: [] };
-        } else {
-          throw error;
-        }
-      }
-
-      for (const option of fieldOptions.rows) {
-        const newOptionId = randomUUID();
-
-        try {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
-            (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
-            VALUES (
-              ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
-              ${option.value}, ${option.label}, ${option.color || '#3b82f6'}, 
-              ${option.sort_order || 1}, true, NOW(), NOW()
-            )
-          `);
-        } catch (error: any) {
-          console.log('⚠️ Field option insert error:', error.message);
-          // Minimal insert if needed, though field options are usually simpler
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
-            (id, tenant_id, company_id, field_name, value, label, active, created_at, updated_at)
-            VALUES (
-              ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
-              ${option.value}, ${option.label}, true, NOW(), NOW()
-            )
-          `);
-        }
-      }
-
-      const summary = `Copiou ${categories.rows.length} categorias, ${subcategories.rows.length} subcategorias, ${actions.rows.length} ações e ${fieldOptions.rows.length} opções de campos`;
-
-      console.log('✅ [TENANT-TEMPLATE] Hierarchy copy completed:', summary);
-
-      return {
-        success: true,
-        summary,
-        details: {
-          categories: categories.rows.length,
-          subcategories: subcategories.rows.length, 
-          actions: actions.rows.length,
-          fieldOptions: fieldOptions.rows.length
-        }
-      };
-
-    } catch (error) {
-      console.error('❌ [TENANT-TEMPLATE] Error copying hierarchy:', error);
-      throw error;
-    }
-  }
-
-
-  /**
-   * Garante que as tabelas de configuração de tickets existam no schema do tenant.
-   * Se alguma tabela ou coluna não existir, ela será criada.
-   */
-  private static async ensureTicketConfigTables(tenantId: string) {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    console.log('🔧 [TENANT-TEMPLATE] Ensuring ticket config tables exist...');
-
-    try {
-      // Ensure ticket config tables exist
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_configurations" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          field_name VARCHAR(100) NOT NULL,
-          display_name VARCHAR(200) NOT NULL,
-          field_type VARCHAR(50) NOT NULL DEFAULT 'text',
-          is_required BOOLEAN DEFAULT false,
-          is_system_field BOOLEAN DEFAULT false,
-          sort_order INTEGER DEFAULT 0,
-          is_active BOOLEAN DEFAULT true,
-          field_config JSONB DEFAULT '{}',
-          description TEXT,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, field_name)
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_options" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          field_config_id UUID NOT NULL,
-          option_value VARCHAR(100) NOT NULL,
-          display_label VARCHAR(200) NOT NULL,
-          color_hex VARCHAR(7) DEFAULT '#3b82f6',
-          sort_order INTEGER DEFAULT 0,
-          is_default BOOLEAN DEFAULT false,
-          is_active BOOLEAN DEFAULT true,
-          option_config JSONB DEFAULT '{}',
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, field_config_id, option_value),
-          FOREIGN KEY (field_config_id) REFERENCES "${schemaName}"."ticket_field_configurations"(id) ON DELETE CASCADE
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_categories" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          name VARCHAR(200) NOT NULL,
-          description TEXT,
-          color VARCHAR(7) DEFAULT '#3b82f6',
-          icon VARCHAR(50),
-          active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, name)
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_subcategories" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          category_id UUID NOT NULL,
-          name VARCHAR(200) NOT NULL,
-          description TEXT,
-          color VARCHAR(7) DEFAULT '#3b82f6',
-          icon VARCHAR(50),
-          active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, category_id, name),
-          FOREIGN KEY (category_id) REFERENCES "${schemaName}"."ticket_categories"(id) ON DELETE CASCADE
-        )
-      `);
-
-      await db.execute(`
-        CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_actions" (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          tenant_id UUID NOT NULL,
-          company_id UUID NOT NULL,
-          subcategory_id UUID NOT NULL,
-          name VARCHAR(200) NOT NULL,
-          description TEXT,
-          estimated_time_minutes INTEGER DEFAULT 0,
-          color VARCHAR(7) DEFAULT '#3b82f6',
-          icon VARCHAR(50),
-          active BOOLEAN DEFAULT true,
-          sort_order INTEGER DEFAULT 0,
-          action_type VARCHAR(50) DEFAULT 'general',
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(tenant_id, company_id, subcategory_id, name),
-          FOREIGN KEY (subcategory_id) REFERENCES "${schemaName}"."ticket_subcategories"(id) ON DELETE CASCADE
-        )
-      `);
-
-      console.log('✅ [TENANT-TEMPLATE] Ticket config tables ensured');
-
-    } catch (error: any) {
-      console.error('❌ [TENANT-TEMPLATE] Error ensuring tables:', error);
-      // If the error is due to tables already existing with a different structure,
-      // we log it and continue, assuming the necessary components are present.
-      if (error.message.includes('already exists') || error.message.includes('relation "') && error.message.includes('" already exists')) {
-        console.log('⚠️ Tables might already exist with different structure, continuing...');
-      } else {
-        // Rethrow unexpected errors
-        throw error;
-      }
-    }
+    console.log('[TENANT-TEMPLATE] NEW hierarchical structure creation completed successfully!');
   }
 }
