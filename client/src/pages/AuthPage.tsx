@@ -198,16 +198,7 @@ export default function AuthPage() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-          <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  // Note: Removed isLoading check to prevent UI blocking - auth page should always be interactive
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
