@@ -1,0 +1,90 @@
+📱 1. INFRAESTRUTURA & EQUIPAMENTOS
+Cor: #6366f1 (Índigo)
+Descrição: Problemas relacionados a hardware, equipamentos e infraestrutura física
+
+Subcategorias:
+
+Computadores Desktop - Problemas com PCs fixos
+Notebooks e Móveis - Laptops, tablets, dispositivos móveis
+Servidores - Infraestrutura de servidores
+Periféricos - Impressoras, monitores, teclados, mouse
+Telefonia - Telefones IP, centrais telefônicas
+Ações Típicas:
+
+Substituição de Componente
+Manutenção Preventiva
+Configuração de Hardware
+Instalação de Equipamento
+Diagnóstico Técnico
+🖥️ 2. SOFTWARE & APLICAÇÕES
+Cor: #10b981 (Verde Esmeralda)
+Descrição: Questões relacionadas a softwares, aplicativos e sistemas
+
+Subcategorias:
+
+Sistema Operacional - Windows, Linux, macOS
+Aplicações Corporativas - ERP, CRM, sistemas internos
+Software de Produtividade - Office, navegadores, ferramentas
+Licenciamento - Renovações, ativações, compliance
+Atualizações - Patches, versões, upgrades
+Ações Típicas:
+
+Instalação de Software
+Atualização de Sistema
+Correção de Bug
+Configuração de Aplicação
+Licenciamento
+🌐 3. CONECTIVIDADE & REDES
+Cor: #8b5cf6 (Roxo)
+Descrição: Problemas de rede, conectividade e comunicação
+
+Subcategorias:
+
+Rede Local (LAN) - Switches, cabos, conectividade interna
+Internet e WAN - Conexões externas, provedores
+Wi-Fi e Wireless - Redes sem fio, access points
+VPN e Acesso Remoto - Conexões seguras, trabalho remoto
+Telefonia e VoIP - Comunicação por voz sobre IP
+Ações Típicas:
+
+Diagnóstico de Rede
+Configuração de Acesso
+Reset de Conexão
+Otimização de Performance
+Instalação de Ponto de Rede
+🔒 4. SEGURANÇA & ACESSO
+Cor: #dc2626 (Vermelho)
+Descrição: Questões de segurança, acessos e permissões
+
+Subcategorias:
+
+Controle de Acesso - Permissões, usuários, grupos
+Antivírus e Proteção - Malware, ameaças, quarentena
+Firewall e Políticas - Bloqueios, regras de segurança
+Backup e Recovery - Backups, restaurações, disaster recovery
+Compliance - Auditoria, conformidade, políticas
+Ações Típicas:
+
+Liberação de Acesso
+Bloqueio de Ameaça
+Restauração de Backup
+Aplicação de Política
+Auditoria de Segurança
+👥 5. USUÁRIOS & SUPORTE
+Cor: #f59e0b (Laranja)
+Descrição: Solicitações de usuários, treinamentos e suporte geral
+
+Subcategorias:
+
+Contas e Perfis - Criação, alteração, desativação de usuários
+Treinamento - Capacitação, manuais, orientações
+Solicitações Gerais - Pedidos diversos, informações
+Procedimentos - Processos, fluxos, documentação
+Consultoria - Orientações técnicas, recomendações
+Ações Típicas:
+
+Criação de Usuário
+Treinamento Técnico
+Orientação Técnica
+Atualização de Procedimento
+Consultoria Especializada
