@@ -54,7 +54,11 @@ export class TenantTemplateService {
         tenantId
       });
 
-      // First, ensure we have the basic ticket configuration tables
+      // First, ensure the tenant schema exists
+      console.log('🔄 [TENANT-TEMPLATE] Ensuring tenant schema exists...');
+      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS "${sql.raw(schemaName)}"`);
+
+      // Then, ensure we have the basic ticket configuration tables
       await this.ensureTicketConfigTables(tenantId);
 
       // Apply default template first to ensure we have a source to copy from
