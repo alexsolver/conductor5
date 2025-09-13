@@ -51,7 +51,9 @@ export class TenantTemplateService {
       console.log('🔄 [TENANT-TEMPLATE] Starting hierarchy copy:', {
         sourceCompanyId,
         targetCompanyId,
-        tenantId
+        tenantId,
+        schemaName,
+        derivedFrom: 'tenantId parameter'
       });
 
       // First, ensure the tenant schema exists

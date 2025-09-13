@@ -1686,7 +1686,25 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} for tenant ${tenantId}`);
+    console.log('🔄 [COPY-HIERARCHY] Request details:', {
+      tenantId,
+      sourceCompanyId,
+      targetCompanyId,
+      userEmail: req.user?.email
+    });
+
+    // Validate that we're not using company ID as tenant ID
+    if (tenantId === targetCompanyId || tenantId === sourceCompanyId) {
+      console.error('❌ [COPY-HIERARCHY] Invalid tenant ID - matches company ID:', {
+        tenantId,
+        sourceCompanyId,
+        targetCompanyId
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid tenant configuration detected'
+      });
+    }
 
     // First, verify that the tenant schema exists
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -1726,7 +1744,11 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
     }
 
     // Copy hierarchy between companies
-    await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
+    const result = await TenantTemplateService.copyHierarchy(
+      tenantId,
+      sourceCompanyId,
+      targetCompanyId
+    );
 
     res.json({
       success: true,
