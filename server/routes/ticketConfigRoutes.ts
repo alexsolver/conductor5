@@ -475,6 +475,46 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
   }
 });
 
+// POST /api/ticket-config/copy-hierarchy
+router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { sourceCompanyId = '00000000-0000-0000-0000-000000000001', targetCompanyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    if (!targetCompanyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Target company ID required'
+      });
+    }
+
+    console.log(`🔄 [HIERARCHY-COPY] Starting hierarchy copy from ${sourceCompanyId} to ${targetCompanyId} in tenant ${tenantId}`);
+
+    // Call the copyHierarchy method with the correct tenantId
+    const result = await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
+
+    res.json({
+      success: true,
+      message: 'Hierarchy copied successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('❌ [HIERARCHY-COPY] Error copying hierarchy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to copy hierarchy',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // ============================================================================
 // ACTIONS - Nível 4 da hierarquia
 // ============================================================================

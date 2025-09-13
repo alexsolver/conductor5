@@ -6288,25 +6288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("❌ [EMERGENCY-FINAL] Stack:", emergencyError.stack);
   }
 
-  // Copy ticket hierarchy structure (alternative endpoint)
-  app.post('/api/ticket-config/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const { sourceCompanyId = '00000000-0000-0000-0000-000000000001', targetCompanyId } = req.body;
-
-      if (!tenantId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Tenant ID required'
-        });
-      }
-
-      if (!targetCompanyId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Target company ID required'
-        });
-      }
+  // Copy ticket hierarchy structure endpoint is now handled in ticketConfigRoutes.ts
+  // Removed duplicate endpoint to prevent conflicts
 
       console.log('🔄 [COPY-HIERARCHY-ALT] Starting copy:', {
         tenantId,
