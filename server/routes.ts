@@ -6324,13 +6324,13 @@ message: "Base URL deve ser uma URL válida",
   });
 
 } catch (error) {
-  console.error('❌ [COPY-HIERARCHY-ALT] Error:', error);
-  res.status(500).json({
-    success: false,
-    message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
-    error: error instanceof Error ? error.message : 'Unknown error'
-  });
-}
+    console.error('❌ [COPY-HIERARCHY-ALT] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
   const httpServer = createServer(app);
