@@ -44,7 +44,7 @@ export class TenantTemplateService {
   /**
    * Copy hierarchy from one company to another within the same tenant
    */
-  static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string): Promise<void> {
+  static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string): Promise<{ summary: string; details: any }> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
@@ -53,7 +53,7 @@ export class TenantTemplateService {
         targetCompanyId,
         tenantId,
         schemaName,
-        derivedFrom: 'tenantId parameter'
+        derivedFrom: 'tenantId parameter (authenticated user)'
       });
 
       // First, ensure the tenant schema exists
