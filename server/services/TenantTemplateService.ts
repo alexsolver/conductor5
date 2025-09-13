@@ -12,28 +12,28 @@ import { pool } from '../db';
 
 
 export class TenantTemplateService {
-  
+
   /**
    * Aplica a estrutura hierárquica padrão para uma empresa específica
    */
   static async applyDefaultStructureToCompany(tenantId: string, companyId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     console.log(`🔄 Aplicando estrutura padrão para empresa ${companyId} no schema ${schemaName}`);
-    
+
     try {
       // 1. Aplicar categorias
       await this.applyCategoriesForCompany(schemaName, tenantId, companyId);
-      
+
       // 2. Aplicar subcategorias  
       await this.applySubcategoriesForCompany(schemaName, tenantId, companyId);
-      
+
       // 3. Aplicar ações
       await this.applyActionsForCompany(schemaName, tenantId, companyId);
-      
+
       // 4. Aplicar opções de campos
       await this.applyFieldOptionsForCompany(schemaName, tenantId, companyId);
-      
+
       console.log('✅ Estrutura padrão aplicada com sucesso');
     } catch (error) {
       console.error('❌ Erro ao aplicar estrutura padrão:', error);
@@ -43,7 +43,7 @@ export class TenantTemplateService {
 
   private static async applyCategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
-    
+
     for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
       const query = `
         INSERT INTO "${schemaName}"."ticket_categories" 
@@ -57,31 +57,31 @@ export class TenantTemplateService {
           sort_order = $8,
           updated_at = NOW()
       `;
-      
+
       await pool.query(query, [
         tenantId, companyId, category.name, category.description,
         category.color, category.icon, category.active, category.sortOrder
       ]);
     }
-    
+
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.categories.length} categorias aplicadas`);
   }
 
   private static async applySubcategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
-    
+
     for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
       // Buscar ID da categoria pai
       const categoryQuery = `
         SELECT id FROM "${schemaName}"."ticket_categories" 
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
-      
+
       const categoryResult = await pool.query(categoryQuery, [tenantId, companyId, subcategory.categoryName]);
-      
+
       if (categoryResult.rows.length > 0) {
         const categoryId = categoryResult.rows[0].id;
-        
+
         const insertQuery = `
           INSERT INTO "${schemaName}"."ticket_subcategories" 
           (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
@@ -94,20 +94,20 @@ export class TenantTemplateService {
             sort_order = $9,
             updated_at = NOW()
         `;
-        
+
         await pool.query(insertQuery, [
           tenantId, companyId, categoryId, subcategory.name, subcategory.description,
           subcategory.color, subcategory.icon, subcategory.active, subcategory.sortOrder
         ]);
       }
     }
-    
+
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategorias aplicadas`);
   }
 
   private static async applyActionsForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
-    
+
     for (const action of DEFAULT_COMPANY_TEMPLATE.actions) {
       // Buscar ID da subcategoria pai
       const subcategoryQuery = `
@@ -115,12 +115,12 @@ export class TenantTemplateService {
         JOIN "${schemaName}"."ticket_categories" c ON s.category_id = c.id
         WHERE s.tenant_id = $1 AND c.company_id = $2 AND s.name = $3
       `;
-      
+
       const subcategoryResult = await pool.query(subcategoryQuery, [tenantId, companyId, action.subcategoryName]);
-      
+
       if (subcategoryResult.rows.length > 0) {
         const subcategoryId = subcategoryResult.rows[0].id;
-        
+
         const insertQuery = `
           INSERT INTO "${schemaName}"."ticket_actions" 
           (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
@@ -135,7 +135,7 @@ export class TenantTemplateService {
             action_type = $11,
             updated_at = NOW()
         `;
-        
+
         await pool.query(insertQuery, [
           tenantId, companyId, subcategoryId, action.name, action.description,
           action.estimatedTimeMinutes, action.color, action.icon, action.active,
@@ -143,13 +143,13 @@ export class TenantTemplateService {
         ]);
       }
     }
-    
+
     console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.actions.length} ações aplicadas`);
   }
 
   private static async applyFieldOptionsForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
-    
+
     // First ensure the table exists, if not create it
     try {
       const tableCheckQuery = `
@@ -158,12 +158,12 @@ export class TenantTemplateService {
         WHERE table_schema = $1 
         AND table_name = 'ticket_field_options'
       `;
-      
+
       const tableResult = await pool.query(tableCheckQuery, [schemaName]);
-      
+
       if (tableResult.rows.length === 0) {
         console.log(`🔧 Creating ticket_field_options table in schema ${schemaName}`);
-        
+
         // Create the table
         const createTableQuery = `
           CREATE TABLE IF NOT EXISTS "${schemaName}"."ticket_field_options" (
@@ -184,7 +184,7 @@ export class TenantTemplateService {
             CONSTRAINT unique_field_option UNIQUE (tenant_id, company_id, field_name, value)
           );
         `;
-        
+
         await pool.query(createTableQuery);
         console.log(`✅ Table ticket_field_options created in schema ${schemaName}`);
       }
@@ -192,9 +192,9 @@ export class TenantTemplateService {
       console.error('❌ Erro ao verificar/criar tabela ticket_field_options:', error);
       return;
     }
-    
+
     console.log(`🔄 Applying field options for company ${companyId}...`);
-    
+
     // Apply field options from template
     for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
       try {
@@ -212,19 +212,19 @@ export class TenantTemplateService {
             status_type = $11,
             updated_at = NOW()
         `;
-        
+
         await pool.query(insertQuery, [
           tenantId, companyId, option.fieldName, option.value, option.label,
           option.color, option.icon || null, option.isDefault, option.isActive,
           option.sortOrder, option.statusType || null
         ]);
-        
+
         console.log(`✅ Applied field option: ${option.fieldName}:${option.value}`);
       } catch (error) {
         console.error(`❌ Erro ao inserir field option ${option.fieldName}:${option.value}:`, error);
       }
     }
-    
+
     // Add basic fallback options to ensure minimum functionality
     const fallbackOptions = [
       { fieldName: 'status', value: 'novo', label: 'Novo', color: '#6b7280', isDefault: true, isActive: true, sortOrder: 1, statusType: 'open' },
@@ -243,7 +243,7 @@ export class TenantTemplateService {
       { fieldName: 'urgency', value: 'medium', label: 'Média', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
       { fieldName: 'urgency', value: 'high', label: 'Alta', color: '#ef4444', isDefault: false, isActive: true, sortOrder: 3 },
     ];
-    
+
     for (const option of fallbackOptions) {
       try {
         const insertQuery = `
@@ -252,7 +252,7 @@ export class TenantTemplateService {
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
           ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
         `;
-        
+
         await pool.query(insertQuery, [
           tenantId, companyId, option.fieldName, option.value, option.label,
           option.color, option.isDefault, option.isActive, option.sortOrder, option.statusType || null
@@ -261,7 +261,7 @@ export class TenantTemplateService {
         console.error(`❌ Erro ao inserir fallback option ${option.fieldName}:${option.value}:`, error);
       }
     }
-    
+
     console.log(`✅ Field options aplicadas para empresa ${companyId} - Total: ${DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length + fallbackOptions.length} opções`);
   }
   /**
@@ -928,28 +928,50 @@ export class TenantTemplateService {
         const newCategoryId = randomUUID();
         categoryMapping[category.id as string] = newCategoryId;
 
-        try {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+        // Check if category already exists
+        const existingCategory = await pool.query(`
+          SELECT id FROM "${schemaName}".ticket_categories 
+          WHERE tenant_id = $1 AND company_id = $2 AND name = $3
+        `, [tenantId, targetCompanyId, category.name]);
+
+        if (existingCategory.rows.length === 0) {
+          await pool.query(`
+            INSERT INTO "${schemaName}".ticket_categories 
             (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-            VALUES (
-              ${newCategoryId}, ${tenantId}, ${targetCompanyId}, 
-              ${category.name}, ${category.description}, ${category.color || '#3b82f6'}, 
-              ${category.icon}, true, ${category.sort_order || 1}, NOW(), NOW()
-            )
-          `);
-        } catch (error: any) {
-          console.log('⚠️ Category insert error, trying alternative approach:', error.message);
-          // Try with minimal fields if the full insert fails
-          // This might happen if some columns like description, color, icon are not nullable
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
-            (id, tenant_id, company_id, name, active, created_at, updated_at)
-            VALUES (
-              ${newCategoryId}, ${tenantId}, ${targetCompanyId}, 
-              ${category.name}, true, NOW(), NOW()
-            )
-          `);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          `, [
+            newCategoryId,
+            tenantId,
+            targetCompanyId,
+            category.name,
+            category.description,
+            category.color,
+            category.icon,
+            category.active,
+            category.sort_order || 1
+          ]);
+        } else {
+          // Update existing category
+          await pool.query(`
+            UPDATE "${schemaName}".ticket_categories 
+            SET 
+              description = $1,
+              color = $2,
+              icon = $3,
+              active = $4,
+              sort_order = $5,
+              updated_at = NOW()
+            WHERE tenant_id = $6 AND company_id = $7 AND name = $8
+          `, [
+            category.description,
+            category.color,
+            category.icon,
+            category.active,
+            category.sort_order || 1,
+            tenantId,
+            targetCompanyId,
+            category.name
+          ]);
         }
       }
 
@@ -982,26 +1004,52 @@ export class TenantTemplateService {
         if (newCategoryId) {
           subcategoryMapping[subcategory.id as string] = newSubcategoryId;
 
-          try {
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+          // Check if subcategory already exists
+          const existingSubcategory = await pool.query(`
+            SELECT id FROM "${schemaName}".ticket_subcategories 
+            WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
+          `, [tenantId, targetCompanyId, newCategoryId, subcategory.name]);
+
+          if (existingSubcategory.rows.length === 0) {
+            await pool.query(`
+              INSERT INTO "${schemaName}".ticket_subcategories 
               (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-              VALUES (
-                ${newSubcategoryId}, ${tenantId}, ${targetCompanyId}, ${newCategoryId},
-                ${subcategory.name}, ${subcategory.description}, ${subcategory.color || '#3b82f6'},
-                ${subcategory.icon}, true, ${subcategory.sort_order || 1}, NOW(), NOW()
-              )
-            `);
-          } catch (error: any) {
-            console.log('⚠️ Subcategory insert error, trying minimal approach:', error.message);
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-              (id, tenant_id, company_id, category_id, name, active, created_at, updated_at)
-              VALUES (
-                ${newSubcategoryId}, ${tenantId}, ${targetCompanyId}, ${newCategoryId},
-                ${subcategory.name}, true, NOW(), NOW()
-              )
-            `);
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            `, [
+              newSubcategoryId,
+              tenantId,
+              targetCompanyId,
+              newCategoryId,
+              subcategory.name,
+              subcategory.description,
+              subcategory.color,
+              subcategory.icon,
+              subcategory.active,
+              subcategory.sort_order || 1
+            ]);
+          } else {
+            // Update existing subcategory
+            await pool.query(`
+              UPDATE "${schemaName}".ticket_subcategories 
+              SET 
+                description = $1,
+                color = $2,
+                icon = $3,
+                active = $4,
+                sort_order = $5,
+                updated_at = NOW()
+              WHERE tenant_id = $6 AND company_id = $7 AND category_id = $8 AND name = $9
+            `, [
+              subcategory.description,
+              subcategory.color,
+              subcategory.icon,
+              subcategory.active,
+              subcategory.sort_order || 1,
+              tenantId,
+              targetCompanyId,
+              newCategoryId,
+              subcategory.name
+            ]);
           }
         }
       }
@@ -1031,26 +1079,52 @@ export class TenantTemplateService {
         const newSubcategoryId = subcategoryMapping[action.subcategory_id as string];
 
         if (newSubcategoryId) {
-          try {
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+          // Check if action already exists
+          const existingAction = await pool.query(`
+            SELECT id FROM "${schemaName}".ticket_actions 
+            WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
+          `, [tenantId, targetCompanyId, newSubcategoryId, action.name]);
+
+          if (existingAction.rows.length === 0) {
+            await pool.query(`
+              INSERT INTO "${schemaName}".ticket_actions 
               (id, tenant_id, company_id, subcategory_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-              VALUES (
-                ${newActionId}, ${tenantId}, ${targetCompanyId}, ${newSubcategoryId},
-                ${action.name}, ${action.description}, ${action.color || '#3b82f6'},
-                ${action.icon}, true, ${action.sort_order || 1}, NOW(), NOW()
-              )
-            `);
-          } catch (error: any) {
-            console.log('⚠️ Action insert error, trying minimal approach:', error.message);
-            await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
-              (id, tenant_id, company_id, subcategory_id, name, active, created_at, updated_at)
-              VALUES (
-                ${newActionId}, ${tenantId}, ${targetCompanyId}, ${newSubcategoryId},
-                ${action.name}, true, NOW(), NOW()
-              )
-            `);
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            `, [
+              newActionId,
+              tenantId,
+              targetCompanyId,
+              newSubcategoryId,
+              action.name,
+              action.description,
+              action.color,
+              action.icon,
+              action.active,
+              action.sort_order || 1
+            ]);
+          } else {
+            // Update existing action
+            await pool.query(`
+              UPDATE "${schemaName}".ticket_actions 
+              SET 
+                description = $1,
+                color = $2,
+                icon = $3,
+                active = $4,
+                sort_order = $5,
+                updated_at = NOW()
+              WHERE tenant_id = $6 AND company_id = $7 AND subcategory_id = $8 AND name = $9
+            `, [
+              action.description,
+              action.color,
+              action.icon,
+              action.active,
+              action.sort_order || 1,
+              tenantId,
+              targetCompanyId,
+              newSubcategoryId,
+              action.name
+            ]);
           }
         }
       }
@@ -1064,34 +1138,34 @@ export class TenantTemplateService {
           FROM "${sql.raw(schemaName)}"."ticket_field_options" 
           WHERE company_id = ${sourceCompanyId} AND active = true
         `);
-        
+
         // If no field options found, create default ones
         if (fieldOptions.rows.length === 0) {
           console.log('⚡ No field options found, creating default field options...');
-          
+
           const defaultFieldOptions = [
             // Status options
             { field_name: 'status', value: 'open', label: 'Aberto', color: '#ef4444', sort_order: 1 },
             { field_name: 'status', value: 'in_progress', label: 'Em Andamento', color: '#f59e0b', sort_order: 2 },
             { field_name: 'status', value: 'resolved', label: 'Resolvido', color: '#22c55e', sort_order: 3 },
             { field_name: 'status', value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 4 },
-            
+
             // Priority options
             { field_name: 'priority', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
             { field_name: 'priority', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
             { field_name: 'priority', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 },
-            
+
             // Impact options
             { field_name: 'impact', value: 'high', label: 'Alto', color: '#fb923c', sort_order: 1 },
             { field_name: 'impact', value: 'medium', label: 'Médio', color: '#fcd34d', sort_order: 2 },
             { field_name: 'impact', value: 'low', label: 'Baixo', color: '#9ca3af', sort_order: 3 },
-            
+
             // Urgency options
             { field_name: 'urgency', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
             { field_name: 'urgency', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
             { field_name: 'urgency', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 }
           ];
-          
+
           // Insert default field options for target company
           for (const option of defaultFieldOptions) {
             const optionId = randomUUID();
@@ -1105,7 +1179,7 @@ export class TenantTemplateService {
               )
             `);
           }
-          
+
           console.log(`✅ Created ${defaultFieldOptions.length} default field options for company ${targetCompanyId}`);
           fieldOptions = { rows: defaultFieldOptions };
         }
