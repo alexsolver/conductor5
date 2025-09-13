@@ -152,30 +152,84 @@ export class TenantTemplateService {
   private static async applyFieldOptionsForCompany(schemaName: string, tenantId: string, companyId: string) {
     const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
     
-    for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
-      const insertQuery = `
-        INSERT INTO "${schemaName}"."ticket_field_options" 
-        (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-        ON CONFLICT (tenant_id, company_id, field_name, value) DO UPDATE SET
-          display_label = $5,
-          color = $6,
-          icon = $7,
-          is_default = $8,
-          active = $9,
-          sort_order = $10,
-          status_type = $11,
-          updated_at = NOW()
+    // First ensure the table exists
+    try {
+      const tableCheckQuery = `
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = $1 
+        AND table_name = 'ticket_field_options'
       `;
       
-      await db.query(insertQuery, [
-        tenantId, companyId, option.fieldName, option.value, option.label,
-        option.color, option.icon || null, option.isDefault, option.isActive,
-        option.sortOrder, option.statusType || null
-      ]);
+      const tableResult = await db.query(tableCheckQuery, [schemaName]);
+      
+      if (tableResult.rows.length === 0) {
+        console.log(`⚠️ Table ticket_field_options não existe no schema ${schemaName}`);
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Erro ao verificar tabela ticket_field_options:', error);
+      return;
     }
     
-    console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length} opções de campos aplicadas`);
+    // Apply field options from template
+    for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
+      try {
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_field_options" 
+          (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          ON CONFLICT (tenant_id, company_id, field_name, value) DO UPDATE SET
+            display_label = $5,
+            color = $6,
+            icon = $7,
+            is_default = $8,
+            active = $9,
+            sort_order = $10,
+            status_type = $11,
+            updated_at = NOW()
+        `;
+        
+        await db.query(insertQuery, [
+          tenantId, companyId, option.fieldName, option.value, option.label,
+          option.color, option.icon || null, option.isDefault, option.isActive,
+          option.sortOrder, option.statusType || null
+        ]);
+      } catch (error) {
+        console.error(`❌ Erro ao inserir field option ${option.fieldName}:${option.value}:`, error);
+      }
+    }
+    
+    // Add basic fallback options if template is empty
+    const fallbackOptions = [
+      { fieldName: 'status', value: 'open', label: 'Aberto', color: '#3b82f6', isDefault: true, isActive: true, sortOrder: 1 },
+      { fieldName: 'status', value: 'in_progress', label: 'Em Progresso', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
+      { fieldName: 'status', value: 'resolved', label: 'Resolvido', color: '#10b981', isDefault: false, isActive: true, sortOrder: 3 },
+      { fieldName: 'status', value: 'closed', label: 'Fechado', color: '#6b7280', isDefault: false, isActive: true, sortOrder: 4 },
+      { fieldName: 'priority', value: 'low', label: 'Baixa', color: '#10b981', isDefault: true, isActive: true, sortOrder: 1 },
+      { fieldName: 'priority', value: 'medium', label: 'Média', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
+      { fieldName: 'priority', value: 'high', label: 'Alta', color: '#ef4444', isDefault: false, isActive: true, sortOrder: 3 },
+    ];
+    
+    for (const option of fallbackOptions) {
+      try {
+        const insertQuery = `
+          INSERT INTO "${schemaName}"."ticket_field_options" 
+          (id, tenant_id, company_id, field_name, value, display_label, color, is_default, active, sort_order, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
+        `;
+        
+        await db.query(insertQuery, [
+          tenantId, companyId, option.fieldName, option.value, option.label,
+          option.color, option.isDefault, option.isActive, option.sortOrder
+        ]);
+      } catch (error) {
+        console.error(`❌ Erro ao inserir fallback option ${option.fieldName}:${option.value}:`, error);
+      }
+    }
+    
+    console.log(`✅ Field options aplicadas para empresa ${companyId}`);
   }
   /**
    * Aplica o template completo da empresa Default para um novo tenant
