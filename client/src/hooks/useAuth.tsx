@@ -77,33 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient]);
 
-  // Debug function to check cookies
-  const debugCookies = useCallback(() => {
-    console.log('🍪 [COOKIE-DEBUG] All cookies:', document.cookie);
-    console.log('🍪 [COOKIE-DEBUG] Cookie breakdown:',
-      document.cookie.split(';').map(c => c.trim()));
-  }, []);
-
-
   // Function to check authentication status
   const checkAuth = async () => {
     try {
       setIsLoading(true);
 
       // Check if we have an access token in cookies
+      // Note: Accessing document.cookie directly is a client-side operation
       const hasToken = document.cookie.includes('accessToken=');
-      console.log('🔍 [AUTH] Cookie check:', {
-        hasCookies: document.cookie.length > 0,
-        hasToken,
-        cookiePreview: document.cookie.substring(0, 100)
-      });
 
       if (!hasToken) {
         console.log('🔍 [AUTH] No access token found in cookies');
         setIsAuthenticated(false);
         setUser(null);
         setIsLoading(false);
-        setMounted(true); // Force mounted to true when no auth needed
         return;
       }
 
@@ -153,25 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Effect to run checkAuth when the component mounts
   useEffect(() => {
     setMounted(true); // Mark as mounted
-
-    // Debug cookies immediately
-    debugCookies();
-
-    // Add timeout to prevent infinite loading
-    const authTimeout = setTimeout(() => {
-      if (isLoading) {
-        console.log('⏰ [AUTH] Authentication timeout, stopping loading state');
-        setIsLoading(false);
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    }, 10000); // 10 second timeout
-
     checkAuth();
-
-    return () => {
-      clearTimeout(authTimeout);
-    };
   }, []);
 
 
@@ -267,10 +236,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async (credentials: RegisterData) => {
       try {
         console.log('🔐 [REGISTER] Starting registration process...');
-
+        
         // Using apiRequest here, assuming it correctly handles POST requests
         const res = await apiRequest('POST', '/api/auth/register', credentials);
-
+        
         if (!res.ok) {
           let errorMessage = 'Registration failed';
           try {
@@ -285,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const responseData = await res.json();
         console.log('🔍 [REGISTER] Response data structure:', Object.keys(responseData));
-
+        
         // Validate response structure
         if (!responseData || (!responseData.user && !responseData.data?.user)) {
           console.error('❌ [REGISTER] Invalid response structure:', responseData);
@@ -437,7 +406,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Combine all states and mutations into the context value
   const value = {
     user: user ?? null, // Ensure user is null if not loaded or logged out
-    isLoading: isLoading && mounted, // Only show loading if processing AND mounted (prevent blocking interface)
+    isLoading: isLoading || !mounted, // Show loading if still processing initial auth check or not yet mounted
     error: null, // Error state is handled within mutations/checkAuth, keeping this for interface compatibility
     isAuthenticated,
     loginMutation,

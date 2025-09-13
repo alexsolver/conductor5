@@ -139,17 +139,7 @@ const AppRoutes = ({ children }: { children: React.ReactNode }) => <>{children}<
 function AppRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show auth page if not authenticated (don't block with loading overlay)
-  if (!isAuthenticated) {
-    return (
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-        <Route component={AuthPage} />
-      </Switch>
-    );
-  }
-
-  // Show loading state only for authenticated users loading their data
+  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -158,6 +148,16 @@ function AppRouter() {
           <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
         </div>
       </div>
+    );
+  }
+
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/auth" component={AuthPage} />
+        <Route component={AuthPage} />
+      </Switch>
     );
   }
 

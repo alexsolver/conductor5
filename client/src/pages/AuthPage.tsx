@@ -20,16 +20,6 @@ export default function AuthPage() {
   const navigate = useLocation()[1]; // Renamed from setLocation to navigate for clarity
   const queryClient = useQueryClient();
 
-  // 🔧 DEBUG: Log mutation states
-  useEffect(() => {
-    console.log('🔧 [AUTH-DEBUG] Mutation states:', {
-      loginPending: loginMutation.isPending,
-      registerPending: registerMutation.isPending,
-      isLoading,
-      isAuthenticated
-    });
-  }, [loginMutation.isPending, registerMutation.isPending, isLoading, isAuthenticated]);
-
   // Redirect if already authenticated
   if (isAuthenticated) {
     window.location.href = "/";
@@ -75,7 +65,6 @@ export default function AuthPage() {
           type="submit"
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           disabled={loginMutation.isPending}
-          data-testid="button-login"
         >
           {loginMutation.isPending ? (
             <>
@@ -86,32 +75,6 @@ export default function AuthPage() {
             "Sign In"
           )}
         </Button>
-        
-        {/* 🔧 DEBUG BUTTON - Teste simples de clique */}
-        <Button
-          type="button"
-          onClick={() => {
-            console.log('🎯 DEBUG: Botão de teste clicado!');
-            alert('CLIQUE FUNCIONA! O problema não é geral.');
-          }}
-          className="w-full bg-red-500 hover:bg-red-600 text-white"
-          data-testid="button-debug-test"
-          style={{ zIndex: 99999, position: 'relative' }}
-        >
-          🔧 TESTE DE CLIQUE (DEBUG)
-        </Button>
-        
-        {/* 🔧 LINK PARA TESTE HTML PURO */}
-        <div className="mt-4 text-center">
-          <a 
-            href="/test-basic.html" 
-            target="_blank"
-            className="text-blue-600 underline hover:text-blue-800"
-            style={{ zIndex: 99999, position: 'relative' }}
-          >
-            📄 Abrir teste HTML puro (nova aba)
-          </a>
-        </div>
       </form>
     );
   };
@@ -235,7 +198,16 @@ export default function AuthPage() {
     );
   };
 
-  // Note: Removed isLoading check to prevent UI blocking - auth page should always be interactive
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+          <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
