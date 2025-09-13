@@ -471,48 +471,50 @@ class TenantAutoProvisioningService {
         console.log(`✅ Categoria criada: ${category.name}`);
       }
 
-      // 3.2. Criar subcategorias (Nova estrutura abrangente)
+      // 2. CRIAR SUBCATEGORIAS (Nova estrutura abrangente)
       const subcategories = [
         // Infraestrutura & Equipamentos
         { name: 'Computadores Desktop', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Problemas com PCs fixos' },
         { name: 'Notebooks e Móveis', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Laptops, tablets, dispositivos móveis' },
         { name: 'Servidores', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Infraestrutura de servidores' },
         { name: 'Periféricos', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Impressoras, monitores, teclados, mouse' },
+        { name: 'Telefonia', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Telefones IP, centrais telefônicas' },
 
         // Software & Aplicações
         { name: 'Sistema Operacional', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Windows, Linux, macOS' },
         { name: 'Aplicações Corporativas', categoryName: 'Software & Aplicações', color: '#10b981', description: 'ERP, CRM, sistemas internos' },
         { name: 'Software de Produtividade', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Office, navegadores, ferramentas' },
         { name: 'Licenciamento', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Renovações, ativações, compliance' },
+        { name: 'Atualizações', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Patches, versões, upgrades' },
 
         // Conectividade & Redes
-        { name: 'Wi-Fi e Internet', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Problemas de conexão sem fio e internet' },
-        { name: 'Redes Corporativas', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VPNs, domínios, servidores de rede' },
-        { name: 'Telefonia', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VoIP, telefones, comunicação' },
-        { name: 'Comunicação', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Email, mensageria, colaboração' },
+        { name: 'Rede Local (LAN)', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Switches, cabos, conectividade interna' },
+        { name: 'Internet e WAN', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões externas, provedores' },
+        { name: 'Wi-Fi e Wireless', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Redes sem fio, access points' },
+        { name: 'VPN e Acesso Remoto', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões seguras, trabalho remoto' },
+        { name: 'Telefonia e VoIP', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Comunicação por voz sobre IP' },
 
         // Segurança & Acesso
-        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Senhas, permissões, autenticação' },
-        { name: 'Segurança de Dados', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backup, proteção, conformidade' },
-        { name: 'Antivírus e Firewall', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Proteção contra malware e ameaças' },
-        { name: 'Políticas de TI', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Compliance, normas internas' },
+        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Permissões, usuários, grupos' },
+        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, ameaças, quarentena' },
+        { name: 'Firewall e Políticas', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Bloqueios, regras de segurança' },
+        { name: 'Backup e Recovery', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restaurações, disaster recovery' },
 
         // Usuários & Suporte
-        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, workshops, documentação' },
-        { name: 'Suporte Geral', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Dúvidas, orientações, assistência' },
-        { name: 'Novos Usuários', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Configuração inicial, onboarding' },
-        { name: 'Solicitações Diversas', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos especiais, customizações' }
+        { name: 'Contas e Perfis', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Criação, alteração, desativação de usuários' },
+        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, manuais, orientações' },
+        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos, informações' },
+        { name: 'Procedimentos', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Processos, fluxos, documentação' }
       ];
 
       const subcategoryIds: Record<string, string> = {};
 
-      // Criar subcategorias
       for (const [index, subcategory] of subcategories.entries()) {
         const subcategoryId = randomUUID();
         const categoryId = categoryIds[subcategory.categoryName];
 
         if (!categoryId) {
-          console.warn(`[TICKET-CONFIG] Category not found: ${subcategory.categoryName}`);
+          console.warn(`⚠️ [NEW-HIERARCHY] Category not found: ${subcategory.categoryName}`);
           continue;
         }
 
@@ -520,32 +522,31 @@ class TenantAutoProvisioningService {
 
         await db.execute(sql`
           INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
-          (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          (id, tenant_id, company_id, category_id, name, description, color, active, sort_order, created_at, updated_at)
           VALUES (
-            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, ${subcategory.description},
-            ${subcategory.color}, 'folder', true, ${index + 1}, NOW(), NOW()
+            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, 
+            ${subcategory.description}, ${subcategory.color}, true, ${index + 1}, NOW(), NOW()
           )
         `);
 
-        console.log(`✅ Subcategoria criada: ${subcategory.name}`);
+        console.log(`✅ [NEW-HIERARCHY] Subcategoria criada: ${subcategory.name}`);
       }
 
-      // 3.3. Criar ações básicas (amostra)
-      const basicActions = [
-        { name: 'Verificar Conexões', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Verificar cabos e conexões físicas' },
-        { name: 'Reinstalar Sistema', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Formatação e reinstalação completa' },
-        { name: 'Resetar Conexão', subcategoryName: 'Wi-Fi e Internet', color: '#8b5cf6', description: 'Reinicializar configurações de rede' },
-        { name: 'Resetar Senha', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Redefinição de credenciais de acesso' },
-        { name: 'Agendar Treinamento', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Agendamento de sessão de capacitação' }
+      // 3. CRIAR AÇÕES BÁSICAS
+      const actions = [
+        { name: 'Substituição de Componente', subcategoryName: 'Computadores Desktop', description: 'Substituir componente defeituoso' },
+        { name: 'Instalação de Software', subcategoryName: 'Sistema Operacional', description: 'Instalar novo software' },
+        { name: 'Configuração de Rede', subcategoryName: 'Rede Local (LAN)', description: 'Configurar parâmetros de rede' },
+        { name: 'Reset de Senha', subcategoryName: 'Controle de Acesso', description: 'Redefinir senha de usuário' },
+        { name: 'Treinamento Básico', subcategoryName: 'Treinamento', description: 'Fornecer treinamento básico' }
       ];
 
-      // Criar ações básicas
-      for (const [index, action] of basicActions.entries()) {
+      for (const [index, action] of actions.entries()) {
         const actionId = randomUUID();
         const subcategoryId = subcategoryIds[action.subcategoryName];
 
         if (!subcategoryId) {
-          console.warn(`[TICKET-CONFIG] Subcategory not found: ${action.subcategoryName}`);
+          console.warn(`⚠️ [NEW-HIERARCHY] Subcategory not found: ${action.subcategoryName}`);
           continue;
         }
 
@@ -553,23 +554,63 @@ class TenantAutoProvisioningService {
           INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
           (id, tenant_id, company_id, subcategory_id, name, description, color, active, sort_order, created_at, updated_at)
           VALUES (
-            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, ${action.description},
-            ${action.color}, true, ${index + 1}, NOW(), NOW()
+            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, 
+            ${action.description}, '#64748b', true, ${index + 1}, NOW(), NOW()
           )
         `);
 
-        console.log(`✅ Ação criada: ${action.name}`);
+        console.log(`✅ [NEW-HIERARCHY] Ação criada: ${action.name}`);
       }
 
-      console.log('🎉 [TICKET-CONFIG] Nova estrutura hierárquica aplicada com sucesso!');
-      console.log('📊 [TICKET-CONFIG] Resumo:');
-      console.log(`   - ${categories.length} categorias principais`);
-      console.log(`   - ${subcategories.length} subcategorias`);
-      console.log(`   - ${basicActions.length} ações básicas`);
+      console.log('🎉 [NEW-HIERARCHY] Nova estrutura hierárquica aplicada com sucesso!');
+      console.log('📊 [NEW-HIERARCHY] Resumo:');
+      console.log(`   - 5 Categorias criadas`);
+      console.log(`   - ${subcategories.length} Subcategorias criadas`);
+      console.log(`   - ${actions.length} Ações criadas`);
 
       console.log('✅ [TICKET-CONFIG] Ticket configurations initialized successfully');
     } catch (error) {
       console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
+      throw error;
+    }
+  }
+
+  private async validateHierarchicalStructure(tenantId: string): Promise<void> {
+    try {
+      console.log('🔍 [VALIDATION] Validating hierarchical structure...');
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const { db } = await import("../db");
+      const { sql } = await import("drizzle-orm");
+
+      // Verificar se temos exatamente 5 categorias
+      const categoriesResult = await db.execute(sql`
+        SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_categories"
+        WHERE tenant_id = ${tenantId} AND active = true
+      `);
+
+      const categoriesCount = Number(categoriesResult[0]?.count || 0);
+
+      if (categoriesCount !== 5) {
+        throw new Error(`Expected 5 categories, found ${categoriesCount}`);
+      }
+
+      // Verificar subcategorias
+      const subcategoriesResult = await db.execute(sql`
+        SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_subcategories"
+        WHERE tenant_id = ${tenantId} AND active = true
+      `);
+
+      const subcategoriesCount = Number(subcategoriesResult[0]?.count || 0);
+
+      console.log(`✅ [VALIDATION] Structure validated: ${categoriesCount} categories, ${subcategoriesCount} subcategories`);
+
+      if (subcategoriesCount < 20) {
+        console.warn(`⚠️ [VALIDATION] Expected at least 20 subcategories, found ${subcategoriesCount}`);
+      }
+
+    } catch (error) {
+      console.error('❌ [VALIDATION] Structure validation failed:', error);
       throw error;
     }
   }

@@ -622,13 +622,15 @@ export class TenantTemplateService {
   }
 
   private async initializeNewHierarchy(tenantId: string, companyId: string): Promise<void> {
+    console.log('🎯 [TEMPLATE-HIERARCHY] Initializing NEW HIERARCHICAL structure from template...');
+
     const { db } = await import("../db");
     const { sql } = await import("drizzle-orm");
     const { randomUUID } = await import("crypto");
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Use the same structure as TenantAutoProvisioningService
+    // IMPORTANT: Use EXACTLY the same structure as TenantAutoProvisioningService for consistency
     const categories = [
       {
         name: 'Infraestrutura & Equipamentos',
