@@ -96,9 +96,22 @@ export default function AuthPage() {
           }}
           className="w-full bg-red-500 hover:bg-red-600 text-white"
           data-testid="button-debug-test"
+          style={{ zIndex: 99999, position: 'relative' }}
         >
           🔧 TESTE DE CLIQUE (DEBUG)
         </Button>
+        
+        {/* 🔧 LINK PARA TESTE HTML PURO */}
+        <div className="mt-4 text-center">
+          <a 
+            href="/test-basic.html" 
+            target="_blank"
+            className="text-blue-600 underline hover:text-blue-800"
+            style={{ zIndex: 99999, position: 'relative' }}
+          >
+            📄 Abrir teste HTML puro (nova aba)
+          </a>
+        </div>
       </form>
     );
   };
