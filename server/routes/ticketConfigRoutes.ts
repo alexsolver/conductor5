@@ -310,8 +310,8 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
     // Insert subcategory with proper company_id field
     const result = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-      (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-      VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${active}, ${sortOrder}, NOW(), NOW())
+      (id, tenant_id, company_id, category_id, name, description, color, icon, sort_order, created_at, updated_at)
+      VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${sortOrder}, NOW(), NOW())
       RETURNING *
     `);
 
@@ -1544,7 +1544,7 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
 
     // Import TenantTemplateService
     // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
-    
+
     // Apply default structure to the company
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
@@ -1643,7 +1643,7 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
 
     // Importar o serviço de template
     // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
-    
+
     // Aplicar a estrutura padrão apenas para esta empresa específica
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
