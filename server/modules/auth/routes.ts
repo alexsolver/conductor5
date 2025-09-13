@@ -127,12 +127,31 @@ authRouter.post(
       const loginUseCase = container.loginUseCase;
       const result = await loginUseCase.execute({ email, password });
 
-      // Set refresh token as httpOnly cookie
-      res.cookie("refreshToken", result.refreshToken, {
+      // Set HTTP-only cookies for enhanced security
+      const isProduction = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: isProduction,
+        sameSite: isProduction ? 'lax' : 'none' as const,
+        domain: isProduction ? undefined : undefined, // Let browser handle domain in dev
+        path: '/'
+      };
+
+      res.cookie('accessToken', result.accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      console.log('🍪 [AUTH] Cookies set successfully:', {
+        accessTokenLength: result.accessToken.length,
+        environment: process.env.NODE_ENV,
+        isProduction,
+        cookieOptions
       });
 
       // ✅ CRITICAL FIX: Validar tokens antes de enviar resposta
@@ -401,12 +420,31 @@ authRouter.post(
         });
       }
 
-      // Set refresh token as httpOnly cookie
-      res.cookie("refreshToken", result.refreshToken, {
+      // Set HTTP-only cookies for enhanced security
+      const isProduction = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: isProduction,
+        sameSite: isProduction ? 'lax' : 'none' as const,
+        domain: isProduction ? undefined : undefined, // Let browser handle domain in dev
+        path: '/'
+      };
+
+      res.cookie('accessToken', result.accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      console.log('🍪 [AUTH] Cookies set successfully:', {
+        accessTokenLength: result.accessToken.length,
+        environment: process.env.NODE_ENV,
+        isProduction,
+        cookieOptions
       });
 
       console.log("✅ [REGISTER-ROUTE] Registration successful, sending response");
@@ -452,6 +490,34 @@ authRouter.post("/logout", async (req, res) => {
     const { logError } = await import("../../utils/logger");
     logError("Logout error", error);
     res.status(500).json({ message: "Logout failed" });
+  }
+});
+
+// Debug authentication (dev only)
+authRouter.get('/debug', async (req: Request, res: Response) => {
+  try {
+    const cookies = req.cookies;
+    const headers = req.headers;
+
+    res.json({
+      success: true,
+      debug: {
+        hasCookies: !!cookies,
+        cookieKeys: Object.keys(cookies || {}),
+        hasAccessToken: !!cookies?.accessToken,
+        hasRefreshToken: !!cookies?.refreshToken,
+        userAgent: headers['user-agent'],
+        origin: headers.origin,
+        referer: headers.referer,
+        environment: process.env.NODE_ENV
+      }
+    });
+  } catch (error) {
+    console.error('Debug auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Debug failed'
+    });
   }
 });
 
