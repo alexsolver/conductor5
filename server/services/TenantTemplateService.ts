@@ -31,6 +31,17 @@ const randomUUID = uuidv4;
 
 export class TenantTemplateService {
   /**
+   * Alternative method signature for compatibility
+   */
+  async applyDefaultTemplate(tenantId: string, companyId: string): Promise<void> {
+    const { db } = await import("../db");
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const pool = { query: (text: string, params: any[]) => db.execute({ text, values: params }) };
+    
+    await TenantTemplateService.applyDefaultCompanyTemplate(tenantId, companyId, pool, schemaName);
+  }
+
+  /**
    * Aplica o template completo da empresa Default para um novo tenant
    */
   static async applyDefaultCompanyTemplate(

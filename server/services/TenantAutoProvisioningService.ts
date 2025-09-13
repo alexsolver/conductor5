@@ -406,172 +406,48 @@ class TenantAutoProvisioningService {
     try {
       console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
 
+      // The hierarchical structure is already created by TenantTemplateService
+      // Just create basic field options here
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const { db } = await import("../db");
       const { sql } = await import("drizzle-orm");
 
-      // Need to import randomUUID from 'crypto' if it's not globally available
-      const { randomUUID } = await import("crypto");
+      // Create basic field options (status, priority, etc.)
+      const fieldOptions = [
+        // Status options
+        { field_type: 'status', field_value: 'new', label: 'Novo', color: '#f59e0b', sort_order: 1, is_active: true },
+        { field_type: 'status', field_value: 'open', label: 'Aberto', color: '#3b82f6', sort_order: 2, is_active: true },
+        { field_type: 'status', field_value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6', sort_order: 3, is_active: true },
+        { field_type: 'status', field_value: 'resolved', label: 'Resolvido', color: '#10b981', sort_order: 4, is_active: true },
+        { field_type: 'status', field_value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 5, is_active: true },
 
-      // ============================================================================
-      // SEÇÃO 3: CRIAR CATEGORIAS, SUBCATEGORIAS E AÇÕES (NOVA ESTRUTURA DE 5 CATEGORIAS)
-      // ============================================================================
-
-      console.log('🎯 Criando nova estrutura hierárquica de 5 categorias...');
-
-      // 3.1. Criar categorias (Nova estrutura moderna)
-      const categories = [
-        {
-          name: 'Infraestrutura & Equipamentos',
-          color: '#6366f1',
-          description: 'Problemas relacionados a hardware, equipamentos e infraestrutura física',
-          icon: 'server'
-        },
-        {
-          name: 'Software & Aplicações',
-          color: '#10b981',
-          description: 'Questões relacionadas a softwares, aplicativos e sistemas',
-          icon: 'code'
-        },
-        {
-          name: 'Conectividade & Redes',
-          color: '#8b5cf6',
-          description: 'Problemas de rede, conectividade e comunicação',
-          icon: 'wifi'
-        },
-        {
-          name: 'Segurança & Acesso',
-          color: '#dc2626',
-          description: 'Questões de segurança, acessos e permissões',
-          icon: 'shield'
-        },
-        {
-          name: 'Usuários & Suporte',
-          color: '#f59e0b',
-          description: 'Solicitações de usuários, treinamentos e suporte geral',
-          icon: 'users'
-        }
+        // Priority options
+        { field_type: 'priority', field_value: 'low', label: 'Baixa', color: '#10b981', sort_order: 1, is_active: true },
+        { field_type: 'priority', field_value: 'medium', label: 'Média', color: '#f59e0b', sort_order: 2, is_active: true },
+        { field_type: 'priority', field_value: 'high', label: 'Alta', color: '#f97316', sort_order: 3, is_active: true },
+        { field_type: 'priority', field_value: 'critical', label: 'Crítica', color: '#dc2626', sort_order: 4, is_active: true },
       ];
 
-      const categoryIds: Record<string, string> = {};
-
-      for (const [index, category] of categories.entries()) {
-        const categoryId = randomUUID();
-        categoryIds[category.name] = categoryId;
-
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_categories"
-          (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-          VALUES (
-            ${categoryId}, ${tenantId}, ${companyId}, ${category.name}, ${category.description},
-            ${category.color}, ${category.icon}, true, ${index + 1}, NOW(), NOW()
-          )
-        `);
-
-        console.log(`✅ Categoria criada: ${category.name}`);
-      }
-
-      // 2. CRIAR SUBCATEGORIAS (Nova estrutura abrangente)
-      const subcategories = [
-        // Infraestrutura & Equipamentos
-        { name: 'Computadores Desktop', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Problemas com PCs fixos' },
-        { name: 'Notebooks e Móveis', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Laptops, tablets, dispositivos móveis' },
-        { name: 'Servidores', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Infraestrutura de servidores' },
-        { name: 'Periféricos', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Impressoras, monitores, teclados, mouse' },
-        { name: 'Telefonia', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Telefones IP, centrais telefônicas' },
-
-        // Software & Aplicações
-        { name: 'Sistema Operacional', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Windows, Linux, macOS' },
-        { name: 'Aplicações Corporativas', categoryName: 'Software & Aplicações', color: '#10b981', description: 'ERP, CRM, sistemas internos' },
-        { name: 'Software de Produtividade', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Office, navegadores, ferramentas' },
-        { name: 'Licenciamento', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Renovações, ativações, compliance' },
-        { name: 'Atualizações', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Patches, versões, upgrades' },
-
-        // Conectividade & Redes
-        { name: 'Rede Local (LAN)', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Switches, cabos, conectividade interna' },
-        { name: 'Internet e WAN', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões externas, provedores' },
-        { name: 'Wi-Fi e Wireless', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Redes sem fio, access points' },
-        { name: 'VPN e Acesso Remoto', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões seguras, trabalho remoto' },
-        { name: 'Telefonia e VoIP', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Comunicação por voz sobre IP' },
-
-        // Segurança & Acesso
-        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Permissões, usuários, grupos' },
-        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, ameaças, quarentena' },
-        { name: 'Firewall e Políticas', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Bloqueios, regras de segurança' },
-        { name: 'Backup e Recovery', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restaurações, disaster recovery' },
-
-        // Usuários & Suporte
-        { name: 'Contas e Perfis', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Criação, alteração, desativação de usuários' },
-        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, manuais, orientações' },
-        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos, informações' },
-        { name: 'Procedimentos', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Processos, fluxos, documentação' }
-      ];
-
-      const subcategoryIds: Record<string, string> = {};
-
-      for (const [index, subcategory] of subcategories.entries()) {
-        const subcategoryId = randomUUID();
-        const categoryId = categoryIds[subcategory.categoryName];
-
-        if (!categoryId) {
-          console.warn(`⚠️ [NEW-HIERARCHY] Category not found: ${subcategory.categoryName}`);
-          continue;
+      for (const option of fieldOptions) {
+        try {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+            (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
+            VALUES (
+              ${option.field_type}, ${option.field_value}, ${option.label}, ${option.color}, 
+              ${option.sort_order}, ${option.is_active}, ${tenantId}, NOW(), NOW()
+            )
+          `);
+        } catch (error) {
+          console.warn(`⚠️ Failed to create field option ${option.field_type}:${option.field_value}:`, error.message);
         }
-
-        subcategoryIds[subcategory.name] = subcategoryId;
-
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
-          (id, tenant_id, company_id, category_id, name, description, color, active, sort_order, created_at, updated_at)
-          VALUES (
-            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, 
-            ${subcategory.description}, ${subcategory.color}, true, ${index + 1}, NOW(), NOW()
-          )
-        `);
-
-        console.log(`✅ [NEW-HIERARCHY] Subcategoria criada: ${subcategory.name}`);
       }
 
-      // 3. CRIAR AÇÕES BÁSICAS
-      const actions = [
-        { name: 'Substituição de Componente', subcategoryName: 'Computadores Desktop', description: 'Substituir componente defeituoso' },
-        { name: 'Instalação de Software', subcategoryName: 'Sistema Operacional', description: 'Instalar novo software' },
-        { name: 'Configuração de Rede', subcategoryName: 'Rede Local (LAN)', description: 'Configurar parâmetros de rede' },
-        { name: 'Reset de Senha', subcategoryName: 'Controle de Acesso', description: 'Redefinir senha de usuário' },
-        { name: 'Treinamento Básico', subcategoryName: 'Treinamento', description: 'Fornecer treinamento básico' }
-      ];
+      console.log(`✅ [TICKET-CONFIG] Basic field options initialized successfully!`);
 
-      for (const [index, action] of actions.entries()) {
-        const actionId = randomUUID();
-        const subcategoryId = subcategoryIds[action.subcategoryName];
-
-        if (!subcategoryId) {
-          console.warn(`⚠️ [NEW-HIERARCHY] Subcategory not found: ${action.subcategoryName}`);
-          continue;
-        }
-
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
-          (id, tenant_id, company_id, subcategory_id, name, description, color, active, sort_order, created_at, updated_at)
-          VALUES (
-            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, 
-            ${action.description}, '#64748b', true, ${index + 1}, NOW(), NOW()
-          )
-        `);
-
-        console.log(`✅ [NEW-HIERARCHY] Ação criada: ${action.name}`);
-      }
-
-      console.log('🎉 [NEW-HIERARCHY] Nova estrutura hierárquica aplicada com sucesso!');
-      console.log('📊 [NEW-HIERARCHY] Resumo:');
-      console.log(`   - 5 Categorias criadas`);
-      console.log(`   - ${subcategories.length} Subcategorias criadas`);
-      console.log(`   - ${actions.length} Ações criadas`);
-
-      console.log('✅ [TICKET-CONFIG] Ticket configurations initialized successfully');
     } catch (error) {
-      console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
-      throw error;
+      console.error('❌ [TICKET-CONFIG] Erro ao inicializar configurações básicas:', error);
+      // Don't throw, as this is not critical
     }
   }
 
