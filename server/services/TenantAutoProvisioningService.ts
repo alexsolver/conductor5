@@ -404,82 +404,175 @@ class TenantAutoProvisioningService {
 
   private async initializeTicketConfigurations(tenantId: string, companyId: string): Promise<void> {
     try {
-      console.log('🎫 [TICKET-CONFIG] Verifying ticket configurations...');
-
-      // All ticket configurations (hierarchical structure + field options)
-      // are already created by TenantTemplateService
-      // This method now just verifies the setup was successful
+      console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const { db } = await import("../db");
-      const { sql } = await import("drizzle-orm");
 
-      // Verify hierarchical structure was created
-      try {
-        const categoriesResult = await db.execute(sql`
-          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_categories
+      // Need to import randomUUID from 'crypto' if it's not globally available
+      const { randomUUID } = await import("crypto");
+
+      // ============================================================================
+      // SEÇÃO 3: CRIAR CATEGORIAS, SUBCATEGORIAS E AÇÕES (NOVA ESTRUTURA DE 5 CATEGORIAS)
+      // ============================================================================
+
+      console.log('🎯 Criando nova estrutura hierárquica de 5 categorias...');
+
+      // 3.1. Criar categorias (Nova estrutura moderna)
+      const categories = [
+        {
+          name: 'Infraestrutura & Equipamentos',
+          color: '#6366f1',
+          description: 'Problemas relacionados a hardware, equipamentos e infraestrutura física',
+          icon: 'server'
+        },
+        {
+          name: 'Software & Aplicações',
+          color: '#10b981',
+          description: 'Questões relacionadas a softwares, aplicativos e sistemas',
+          icon: 'code'
+        },
+        {
+          name: 'Conectividade & Redes',
+          color: '#8b5cf6',
+          description: 'Problemas de rede, conectividade e comunicação',
+          icon: 'wifi'
+        },
+        {
+          name: 'Segurança & Acesso',
+          color: '#dc2626',
+          description: 'Questões de segurança, acessos e permissões',
+          icon: 'shield'
+        },
+        {
+          name: 'Usuários & Suporte',
+          color: '#f59e0b',
+          description: 'Solicitações de usuários, treinamentos e suporte geral',
+          icon: 'users'
+        }
+      ];
+
+      const categoryIds: Record<string, string> = {};
+
+      for (const [index, category] of categories.entries()) {
+        const categoryId = randomUUID();
+        categoryIds[category.name] = categoryId;
+
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_categories"
+          (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          VALUES (
+            ${categoryId}, ${tenantId}, ${companyId}, ${category.name}, ${category.description},
+            ${category.color}, ${category.icon}, true, ${index + 1}, NOW(), NOW()
+          )
         `);
-        const categoriesCount = parseInt(categoriesResult[0]?.count || '0');
 
-        const subcategoriesResult = await db.execute(sql`
-          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_subcategories
-        `);
-        const subcategoriesCount = parseInt(subcategoriesResult[0]?.count || '0');
-
-        const actionsResult = await db.execute(sql`
-          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_actions
-        `);
-        const actionsCount = parseInt(actionsResult[0]?.count || '0');
-
-        console.log(`✅ [TICKET-CONFIG] Hierarchical structure verified: ${categoriesCount} categories, ${subcategoriesCount} subcategories, ${actionsCount} actions`);
-      } catch (error) {
-        console.warn(`⚠️ [TICKET-CONFIG] Could not verify hierarchical structure:`, error.message);
+        console.log(`✅ Categoria criada: ${category.name}`);
       }
 
-      console.log('✅ [TICKET-CONFIG] Ticket configurations verification completed');
+      // 3.2. Criar subcategorias (Nova estrutura abrangente)
+      const subcategories = [
+        // Infraestrutura & Equipamentos
+        { name: 'Computadores Desktop', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Problemas com PCs fixos' },
+        { name: 'Notebooks e Móveis', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Laptops, tablets, dispositivos móveis' },
+        { name: 'Servidores', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Infraestrutura de servidores' },
+        { name: 'Periféricos', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Impressoras, monitores, teclados, mouse' },
+
+        // Software & Aplicações
+        { name: 'Sistema Operacional', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Windows, Linux, macOS' },
+        { name: 'Aplicações Corporativas', categoryName: 'Software & Aplicações', color: '#10b981', description: 'ERP, CRM, sistemas internos' },
+        { name: 'Software de Produtividade', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Office, navegadores, ferramentas' },
+        { name: 'Licenciamento', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Renovações, ativações, compliance' },
+
+        // Conectividade & Redes
+        { name: 'Rede Local (LAN)', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Switches, cabos, conectividade interna' },
+        { name: 'Internet e WAN', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões externas, provedores' },
+        { name: 'Wi-Fi e Wireless', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Redes sem fio, access points' },
+        { name: 'VPN e Acesso Remoto', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Conexões seguras, trabalho remoto' },
+
+        // Segurança & Acesso
+        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Permissões, usuários, grupos' },
+        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, ameaças, quarentena' },
+        { name: 'Backup e Recovery', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restaurações, disaster recovery' },
+
+        // Usuários & Suporte
+        { name: 'Contas e Perfis', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Criação, alteração, desativação de usuários' },
+        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, manuais, orientações' },
+        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos, informações' }
+      ];
+
+      const subcategoryIds: Record<string, string> = {};
+
+      for (const [index, subcategory] of subcategories.entries()) {
+        const subcategoryId = randomUUID();
+        subcategoryIds[subcategory.name] = subcategoryId;
+        const categoryId = categoryIds[subcategory.categoryName];
+
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
+          (id, tenant_id, company_id, category_id, name, description, color, active, sort_order, created_at, updated_at)
+          VALUES (
+            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name},
+            ${subcategory.description}, ${subcategory.color}, true, ${index + 1}, NOW(), NOW()
+          )
+        `);
+
+        console.log(`✅ Subcategoria criada: ${subcategory.name}`);
+      }
+
+      // 3.3. Criar ações (Ações específicas para cada contexto)
+      const actions = [
+        // Infraestrutura & Equipamentos
+        { name: 'Substituição de Componente', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Trocar peça defeituosa' },
+        { name: 'Manutenção Preventiva', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Limpeza e verificação geral' },
+        { name: 'Configuração de Hardware', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Configurar dispositivo móvel' },
+        { name: 'Instalação de Equipamento', subcategoryName: 'Servidores', color: '#6366f1', description: 'Instalar novo servidor' },
+        { name: 'Diagnóstico Técnico', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Diagnosticar problema em periférico' },
+
+        // Software & Aplicações
+        { name: 'Instalação de Software', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Instalar aplicação no sistema' },
+        { name: 'Atualização de Sistema', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Atualizar SO para nova versão' },
+        { name: 'Correção de Bug', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Corrigir erro em aplicação' },
+        { name: 'Configuração de Aplicação', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Configurar software para usuário' },
+        { name: 'Licenciamento', subcategoryName: 'Licenciamento', color: '#10b981', description: 'Renovar ou ativar licença' },
+
+        // Conectividade & Redes
+        { name: 'Diagnóstico de Rede', subcategoryName: 'Rede Local (LAN)', color: '#8b5cf6', description: 'Diagnosticar problema de conexão' },
+        { name: 'Configuração de Acesso', subcategoryName: 'Internet e WAN', color: '#8b5cf6', description: 'Configurar acesso à internet' },
+        { name: 'Reset de Conexão', subcategoryName: 'Wi-Fi e Wireless', color: '#8b5cf6', description: 'Resetar configurações Wi-Fi' },
+        { name: 'Configuração VPN', subcategoryName: 'VPN e Acesso Remoto', color: '#8b5cf6', description: 'Configurar conexão VPN' },
+
+        // Segurança & Acesso
+        { name: 'Liberação de Acesso', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Liberar acesso para usuário' },
+        { name: 'Bloqueio de Ameaça', subcategoryName: 'Antivírus e Proteção', color: '#dc2626', description: 'Bloquear ameaça detectada' },
+        { name: 'Restauração de Backup', subcategoryName: 'Backup e Recovery', color: '#dc2626', description: 'Restaurar dados de backup' },
+
+        // Usuários & Suporte
+        { name: 'Criação de Usuário', subcategoryName: 'Contas e Perfis', color: '#f59e0b', description: 'Criar nova conta de usuário' },
+        { name: 'Treinamento Técnico', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Treinar usuário em sistema' },
+        { name: 'Orientação Técnica', subcategoryName: 'Solicitações Gerais', color: '#f59e0b', description: 'Orientar usuário sobre procedimento' }
+      ];
+
+      for (const [index, action] of actions.entries()) {
+        const actionId = randomUUID();
+        const subcategoryId = subcategoryIds[action.subcategoryName];
+
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
+          (id, tenant_id, company_id, subcategory_id, name, description, color, active, sort_order, created_at, updated_at)
+          VALUES (
+            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name},
+            ${action.description}, ${action.color}, true, ${index + 1}, NOW(), NOW()
+          )
+        `);
+
+        console.log(`✅ Ação criada: ${action.name}`);
+      }
+
+      console.log('✅ [TICKET-CONFIG] Ticket configurations initialized successfully');
     } catch (error: any) {
-      console.error('❌ [TICKET-CONFIG] Error verifying ticket configurations:', error);
-      // Continue without failing the entire tenant creation
-    }
-  }
-
-  private async validateHierarchicalStructure(tenantId: string): Promise<void> {
-    try {
-      console.log('🔍 [VALIDATION] Validating hierarchical structure...');
-
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const { db } = await import("../db");
-      const { sql } = await import("drizzle-orm");
-
-      // Verificar se temos exatamente 5 categorias
-      const categoriesResult = await db.execute(sql`
-        SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_categories"
-        WHERE tenant_id = ${tenantId} AND active = true
-      `);
-
-      const categoriesCount = Number(categoriesResult[0]?.count || 0);
-
-      if (categoriesCount !== 5) {
-        throw new Error(`Expected 5 categories, found ${categoriesCount}`);
-      }
-
-      // Verificar subcategorias
-      const subcategoriesResult = await db.execute(sql`
-        SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_subcategories"
-        WHERE tenant_id = ${tenantId} AND active = true
-      `);
-
-      const subcategoriesCount = Number(subcategoriesResult[0]?.count || 0);
-
-      console.log(`✅ [VALIDATION] Structure validated: ${categoriesCount} categories, ${subcategoriesCount} subcategories`);
-
-      if (subcategoriesCount < 20) {
-        console.warn(`⚠️ [VALIDATION] Expected at least 20 subcategories, found ${subcategoriesCount}`);
-      }
-
-    } catch (error) {
-      console.error('❌ [VALIDATION] Structure validation failed:', error);
-      throw error;
+      console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
+      throw new Error(`Failed to initialize ticket configurations: ${error.message}`);
     }
   }
 }
