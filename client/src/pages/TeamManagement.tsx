@@ -494,6 +494,10 @@ export default function TeamManagement() {
             <Users className="h-3 w-3" />
             <span className="text-xs">Membros</span>
           </TabsTrigger>
+          <TabsTrigger value="skills" className="flex items-center space-x-1">
+            <Award className="h-3 w-3" />
+            <span className="text-xs">Habilidades</span>
+          </TabsTrigger>
           <TabsTrigger value="groups" className="flex items-center space-x-1">
             <Building className="h-3 w-3" />
             <span className="text-xs">Grupos</span>
@@ -509,10 +513,6 @@ export default function TeamManagement() {
           <TabsTrigger value="sessions" className="flex items-center space-x-1">
             <Monitor className="h-3 w-3" />
             <span className="text-xs">Sessões</span>
-          </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center space-x-1">
-            <Award className="h-3 w-3" />
-            <span className="text-xs">Habilidades</span>
           </TabsTrigger>
         </TabsList>
 
