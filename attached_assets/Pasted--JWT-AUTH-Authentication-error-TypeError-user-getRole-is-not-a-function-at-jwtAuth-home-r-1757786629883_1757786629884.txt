@@ -1,0 +1,49 @@
+❌ [JWT-AUTH] Authentication error: TypeError: user.getRole is not a function
+    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)
+❌ [JWT-AUTH] Error details: {
+  name: 'TypeError',
+  message: 'user.getRole is not a function',
+  stack: 'TypeError: user.getRole is not a function\n' +
+    '    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)'
+}
+6:03:01 PM [express] GET /api/tenants/e6605299-471b-4284-bc55-0051c5a53df8 401 in 25ms :: {"success"…
+❌ [JWT-AUTH] Authentication error: TypeError: user.getRole is not a function
+    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+❌ [JWT-AUTH] Error details: {
+  name: 'TypeError',
+  message: 'user.getRole is not a function',
+  stack: 'TypeError: user.getRole is not a function\n' +
+    '    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)'
+}
+6:03:01 PM [express] GET /api/user/profile 401 in 25ms :: {"success":false,"message":"Authentication…
+❌ [JWT-AUTH] Authentication error: TypeError: user.getRole is not a function
+    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+❌ [JWT-AUTH] Error details: {
+  name: 'TypeError',
+  message: 'user.getRole is not a function',
+  stack: 'TypeError: user.getRole is not a function\n' +
+    '    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)'
+}
+6:03:01 PM [express] GET /api/schedule-notifications/count 401 in 25ms :: {"success":false,"message"…
+❌ [JWT-AUTH] Authentication error: TypeError: user.getRole is not a function
+    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)
+❌ [JWT-AUTH] Error details: {
+  name: 'TypeError',
+  message: 'user.getRole is not a function',
+  stack: 'TypeError: user.getRole is not a function\n' +
+    '    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)'
+}
+6:03:01 PM [express] GET /api/timecard/current-status 401 in 24ms :: {"success":false,"message":"Aut…
+❌ [JWT-AUTH] Authentication error: TypeError: user.getRole is not a function
+    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+❌ [JWT-AUTH] Error details: {
+  name: 'TypeError',
+  message: 'user.getRole is not a function',
+  stack: 'TypeError: user.getRole is not a function\n' +
+    '    at jwtAuth (/home/runner/workspace/server/middleware/jwtAuth.ts:159:62)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)'
