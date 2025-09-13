@@ -126,7 +126,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const userRepository = container.userRepository;
 
     // ✅ CRITICAL FIX - Handle different payload structures per 1qa.md compliance
-    const userId = payload.userId || payload.sub || payload.id;
+    const userId = payload.userId;
     if (!userId) {
       console.error('❌ [JWT-AUTH] No userId found in token payload:', payload);
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
@@ -156,10 +156,10 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Add user context to request - with permissions and enhanced tenant validation
     const { RBACService } = await import('./rbacMiddleware');
     const rbacInstance = RBACService.getInstance();
-    const permissions = rbacInstance.getRolePermissions(user.role);
+    const permissions = rbacInstance.getRolePermissions(user.getRole());
 
     // Enhanced tenant validation for customers module
-    if (!user.tenantId && req.path.includes('/customers')) {
+    if (!user.getTenantId() && req.path.includes('/customers')) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
       res.status(403).json({
@@ -172,11 +172,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantId || '',
-      roles: [user.role],
+      id: user.getId(),
+      email: user.getEmail(),
+      role: user.getRole(),
+      tenantId: user.getTenantId() || '',
+      roles: [user.getRole()],
       permissions: permissions || [],
       attributes: {}
     };
@@ -269,11 +269,11 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
 
       if (user && user.isActive) {
         req.user = {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          tenantId: user.tenantId || '',
-          roles: [user.role],
+          id: user.getId(),
+          email: user.getEmail(),
+          role: user.getRole(),
+          tenantId: user.getTenantId() || '',
+          roles: [user.getRole()],
           permissions: [], // Permissions might need to be fetched here as well if required by optional auth
           attributes: {}
         };
