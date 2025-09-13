@@ -1702,17 +1702,27 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    // Verify target company exists in the tenant
-    const companyCheck = await db.execute(sql`
-      SELECT id FROM "${sql.raw(schemaName)}"."customer_companies" 
-      WHERE id = ${targetCompanyId} AND tenant_id = ${tenantId}
+    // Check if customer_companies table exists, if not skip company validation
+    const tableCheck = await db.execute(sql`
+      SELECT table_name FROM information_schema.tables 
+      WHERE table_schema = ${schemaName} AND table_name = 'customer_companies'
     `);
 
-    if (companyCheck.rows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Target company not found in this tenant'
-      });
+    if (tableCheck.rows.length > 0) {
+      // Verify target company exists in the tenant if table exists
+      const companyCheck = await db.execute(sql`
+        SELECT id FROM "${sql.raw(schemaName)}"."customer_companies" 
+        WHERE id = ${targetCompanyId} AND tenant_id = ${tenantId}
+      `);
+
+      if (companyCheck.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Target company not found in this tenant'
+        });
+      }
+    } else {
+      console.log(`ℹ️ customer_companies table not found in ${schemaName}, skipping company validation`);
     }
 
     // Copy hierarchy between companies
