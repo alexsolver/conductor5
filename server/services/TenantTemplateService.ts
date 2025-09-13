@@ -604,42 +604,82 @@ export class TenantTemplateService {
     }
   }
 
-  // Helper to apply default template, potentially used by copyHierarchy
-  private static async applyDefaultTemplate(tenantId: string, companyName: string) {
+  /**
+   * Helper to apply default template, potentially used by copyHierarchy
+   */
+  static async applyDefaultTemplate(tenantId: string, companyId: string): Promise<void> {
+    console.log(`[TENANT-TEMPLATE] Applying default template for tenant ${tenantId}`);
+
+    // Apply the new hierarchy structure using the TenantAutoProvisioningService method
+    const { TenantAutoProvisioningService } = await import('./TenantAutoProvisioningService');
+    const provisioningService = new TenantAutoProvisioningService();
+
+    // Use the private method through reflection or create a public version
+    // For now, we'll implement the hierarchy directly here to ensure consistency
+    await this.initializeNewHierarchy(tenantId, companyId);
+
+    console.log(`[TENANT-TEMPLATE] Default template applied successfully for tenant ${tenantId}`);
+  }
+
+  private async initializeNewHierarchy(tenantId: string, companyId: string): Promise<void> {
+    const { db } = await import("../db");
+    const { sql } = await import("drizzle-orm");
+    const { randomUUID } = await import("crypto");
+
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    // This is a placeholder. In a real scenario, this would call applyDefaultCompanyTemplate
-    // or applyCustomizedDefaultTemplate with default values.
-    console.log(`[TENANT-TEMPLATE] Placeholder for applying default template for ${tenantId}`);
 
-    // Ensure the necessary tables exist before attempting to copy
-    await this.ensureTicketConfigTables(tenantId);
+    // Use the same structure as TenantAutoProvisioningService
+    const categories = [
+      {
+        name: 'Infraestrutura & Equipamentos',
+        color: '#6366f1',
+        description: 'Problemas relacionados a hardware, equipamentos e infraestrutura física',
+        icon: 'server'
+      },
+      {
+        name: 'Software & Aplicações',
+        color: '#10b981',
+        description: 'Questões relacionadas a softwares, aplicativos e sistemas',
+        icon: 'code'
+      },
+      {
+        name: 'Conectividade & Redes',
+        color: '#8b5cf6',
+        description: 'Problemas de rede, conectividade e comunicação',
+        icon: 'wifi'
+      },
+      {
+        name: 'Segurança & Acesso',
+        color: '#dc2626',
+        description: 'Questões de segurança, acessos e permissões',
+        icon: 'shield'
+      },
+      {
+        name: 'Usuários & Suporte',
+        color: '#f59e0b',
+        description: 'Solicitações de usuários, treinamentos e suporte geral',
+        icon: 'users'
+      }
+    ];
 
-    // Simulate creating default data if sourceCompanyId is the default placeholder
-    const defaultCompanyId = '00000000-0000-0000-0000-000000000001';
-    await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
-      (id, tenant_id, company_id, name, active, created_at, updated_at)
-      VALUES (
-        '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, 
-        'Default Category', true, NOW(), NOW()
-      ) ON CONFLICT DO NOTHING
-    `);
-    await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-      (id, tenant_id, company_id, category_id, name, active, created_at, updated_at)
-      VALUES (
-        '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, '${defaultCompanyId}',
-        'Default Subcategory', true, NOW(), NOW()
-      ) ON CONFLICT DO NOTHING
-    `);
-    await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
-      (id, tenant_id, company_id, subcategory_id, name, active, created_at, updated_at)
-      VALUES (
-        '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, '${defaultCompanyId}',
-        'Default Action', true, NOW(), NOW()
-      ) ON CONFLICT DO NOTHING
-    `);
+    const categoryIds: Record<string, string> = {};
+
+    for (const [index, category] of categories.entries()) {
+      const categoryId = randomUUID();
+      categoryIds[category.name] = categoryId;
+
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_categories"
+        (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        VALUES (
+          ${categoryId}, ${tenantId}, ${companyId}, ${category.name}, ${category.description},
+          ${category.color}, ${category.icon}, true, ${index + 1}, NOW(), NOW()
+        )
+        ON CONFLICT (id) DO NOTHING
+      `);
+    }
+
+    console.log(`[TENANT-TEMPLATE] Created ${categories.length} categories for new hierarchy`);
   }
 
 

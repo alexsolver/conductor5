@@ -408,6 +408,7 @@ class TenantAutoProvisioningService {
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const { db } = await import("../db");
+      const { sql } = await import("drizzle-orm");
 
       // Need to import randomUUID from 'crypto' if it's not globally available
       const { randomUUID } = await import("crypto");
@@ -469,6 +470,109 @@ class TenantAutoProvisioningService {
 
         console.log(`✅ Categoria criada: ${category.name}`);
       }
+
+      // 3.2. Criar subcategorias (Nova estrutura abrangente)
+      const subcategories = [
+        // Infraestrutura & Equipamentos
+        { name: 'Computadores Desktop', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Problemas com PCs fixos' },
+        { name: 'Notebooks e Móveis', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Laptops, tablets, dispositivos móveis' },
+        { name: 'Servidores', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Infraestrutura de servidores' },
+        { name: 'Periféricos', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Impressoras, monitores, teclados, mouse' },
+
+        // Software & Aplicações
+        { name: 'Sistema Operacional', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Windows, Linux, macOS' },
+        { name: 'Aplicações Corporativas', categoryName: 'Software & Aplicações', color: '#10b981', description: 'ERP, CRM, sistemas internos' },
+        { name: 'Software de Produtividade', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Office, navegadores, ferramentas' },
+        { name: 'Licenciamento', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Renovações, ativações, compliance' },
+
+        // Conectividade & Redes
+        { name: 'Wi-Fi e Internet', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Problemas de conexão sem fio e internet' },
+        { name: 'Redes Corporativas', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VPNs, domínios, servidores de rede' },
+        { name: 'Telefonia', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Ramais, VOIP, sistemas telefônicos' },
+        { name: 'Comunicação Digital', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'E-mail, Teams, videoconferência' },
+
+        // Segurança & Acesso
+        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Senhas, bloqueios, permissões' },
+        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, vírus, firewall' },
+        { name: 'Backup e Recuperação', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restauração de dados' },
+        { name: 'Certificados Digitais', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Certificados, assinaturas digitais' },
+
+        // Usuários & Suporte
+        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, tutoriais, dúvidas' },
+        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos dos usuários' },
+        { name: 'Suporte Remoto', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Assistência técnica à distância' },
+        { name: 'Consultoria', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Orientações técnicas especializadas' }
+      ];
+
+      const subcategoryIds: Record<string, string> = {};
+
+      // Criar subcategorias
+      for (const [index, subcategory] of subcategories.entries()) {
+        const subcategoryId = randomUUID();
+        const categoryId = categoryIds[subcategory.categoryName];
+
+        if (!categoryId) {
+          console.warn(`[TICKET-CONFIG] Category not found: ${subcategory.categoryName}`);
+          continue;
+        }
+
+        subcategoryIds[subcategory.name] = subcategoryId;
+
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
+          (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          VALUES (
+            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, ${subcategory.description},
+            ${subcategory.color}, 'folder', true, ${index + 1}, NOW(), NOW()
+          )
+        `);
+
+        console.log(`✅ Subcategoria criada: ${subcategory.name}`);
+      }
+
+      // 3.3. Criar ações básicas (amostra)
+      const basicActions = [
+        { name: 'Verificar Conexões', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Verificar cabos e conexões físicas' },
+        { name: 'Reinstalar Sistema', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Formatação e reinstalação completa' },
+        { name: 'Resetar Conexão', subcategoryName: 'Wi-Fi e Internet', color: '#8b5cf6', description: 'Reinicializar configurações de rede' },
+        { name: 'Resetar Senha', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Redefinição de credenciais de acesso' },
+        { name: 'Agendar Treinamento', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Agendamento de sessão de capacitação' }
+      ];
+
+      // Criar ações básicas
+      for (const [index, action] of basicActions.entries()) {
+        const actionId = randomUUID();
+        const subcategoryId = subcategoryIds[action.subcategoryName];
+
+        if (!subcategoryId) {
+          console.warn(`[TICKET-CONFIG] Subcategory not found: ${action.subcategoryName}`);
+          continue;
+        }
+
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
+          (id, tenant_id, company_id, subcategory_id, name, description, color, active, sort_order, created_at, updated_at)
+          VALUES (
+            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, ${action.description},
+            ${action.color}, true, ${index + 1}, NOW(), NOW()
+          )
+        `);
+
+        console.log(`✅ Ação criada: ${action.name}`);
+      }
+
+      console.log('🎉 [TICKET-CONFIG] Nova estrutura hierárquica aplicada com sucesso!');
+      console.log('📊 [TICKET-CONFIG] Resumo:');
+      console.log(`   - ${categories.length} categorias principais`);
+      console.log(`   - ${subcategories.length} subcategorias`);
+      console.log(`   - ${basicActions.length} ações básicas`);
+
+      console.log('✅ [TICKET-CONFIG] Ticket configurations initialized successfully');
+    } catch (error) {
+      console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
+      throw error;
+    }
+  }
 
       // 3.2. Criar subcategorias (Nova estrutura abrangente)
       const subcategories = [
