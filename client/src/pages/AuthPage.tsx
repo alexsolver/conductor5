@@ -20,6 +20,16 @@ export default function AuthPage() {
   const navigate = useLocation()[1]; // Renamed from setLocation to navigate for clarity
   const queryClient = useQueryClient();
 
+  // 🔧 DEBUG: Log mutation states
+  useEffect(() => {
+    console.log('🔧 [AUTH-DEBUG] Mutation states:', {
+      loginPending: loginMutation.isPending,
+      registerPending: registerMutation.isPending,
+      isLoading,
+      isAuthenticated
+    });
+  }, [loginMutation.isPending, registerMutation.isPending, isLoading, isAuthenticated]);
+
   // Redirect if already authenticated
   if (isAuthenticated) {
     window.location.href = "/";
@@ -65,6 +75,7 @@ export default function AuthPage() {
           type="submit"
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           disabled={loginMutation.isPending}
+          data-testid="button-login"
         >
           {loginMutation.isPending ? (
             <>
@@ -74,6 +85,19 @@ export default function AuthPage() {
           ) : (
             "Sign In"
           )}
+        </Button>
+        
+        {/* 🔧 DEBUG BUTTON - Teste simples de clique */}
+        <Button
+          type="button"
+          onClick={() => {
+            console.log('🎯 DEBUG: Botão de teste clicado!');
+            alert('CLIQUE FUNCIONA! O problema não é geral.');
+          }}
+          className="w-full bg-red-500 hover:bg-red-600 text-white"
+          data-testid="button-debug-test"
+        >
+          🔧 TESTE DE CLIQUE (DEBUG)
         </Button>
       </form>
     );

@@ -107,9 +107,6 @@ import OmniBridge from "./pages/OmniBridge";
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
 
-// DEBUG COMPONENT
-import DebugTest from "./DebugTest";
-
 // Components
 import { AppShell } from "./components/layout/AppShell";
 
