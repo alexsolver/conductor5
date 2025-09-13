@@ -5843,9 +5843,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } catch {
             return res.status(400).json({
               success: false,
-              message: "Base URL deve ser uma URL válida",
-            });
-          }
+message: "Base URL deve ser uma URL válida",
+          });
         }
 
         // Validate maxTokens
@@ -6291,48 +6290,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Copy ticket hierarchy structure endpoint is now handled in ticketConfigRoutes.ts
   // Removed duplicate endpoint to prevent conflicts
 
-      // Import TenantTemplateService
-      const { TenantTemplateService } = await import('./services/TenantTemplateService');
+  // Import TenantTemplateService
+  const { TenantTemplateService } = await import('./services/TenantTemplateService');
 
-      // Apply default structure to the target company
-      await TenantTemplateService.applyDefaultStructureToCompany(tenantId, targetCompanyId);
+  // Apply default structure to the target company
+  await TenantTemplateService.applyDefaultStructureToCompany(tenantId, targetCompanyId);
 
-      // Placeholder for actual copy logic - this part needs to be implemented based on TenantTemplateService capabilities
-      // The goal is to copy configurations, field options, categories, etc. from source to target.
-      // For now, we simulate success by applying a default structure.
+  // Placeholder for actual copy logic - this part needs to be implemented based on TenantTemplateService capabilities
+  // The goal is to copy configurations, field options, categories, etc. from source to target.
+  // For now, we simulate success by applying a default structure.
 
-      // Example of how TenantTemplateService might be used for copying:
-      // const result = await TenantTemplateService.copyHierarchy(sourceCompanyId, targetCompanyId, tenantId);
+  // Example of how TenantTemplateService might be used for copying:
+  // const result = await TenantTemplateService.copyHierarchy(sourceCompanyId, targetCompanyId, tenantId);
 
-      // Mock result for now
-      const mockResult = {
-        summary: {
-          copiedConfigurations: 0,
-          copiedOptions: 0,
-          copiedCategories: 0,
-          copiedSubcategories: 0,
-          copiedActions: 0,
-          errors: [],
-        },
-        message: "Estrutura copiada com sucesso (simulado)",
-      };
+  // Mock result for now
+  const mockResult = {
+    summary: {
+      copiedConfigurations: 0,
+      copiedOptions: 0,
+      copiedCategories: 0,
+      copiedSubcategories: 0,
+      copiedActions: 0,
+      errors: [],
+    },
+    message: "Estrutura copiada com sucesso (simulado)",
+  };
 
-      res.json({
-        success: true,
-        message: mockResult.message,
-        data: mockResult.summary,
-        summary: mockResult.summary
-      });
-
-    } catch (error) {
-      console.error('❌ [COPY-HIERARCHY-ALT] Error:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
+  res.json({
+    success: true,
+    message: mockResult.message,
+    data: mockResult.summary,
+    summary: mockResult.summary
   });
+
+} catch (error) {
+  console.error('❌ [COPY-HIERARCHY-ALT] Error:', error);
+  res.status(500).json({
+    success: false,
+    message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
+    error: error instanceof Error ? error.message : 'Unknown error'
+  });
+}
+});
 
   const httpServer = createServer(app);
   return httpServer;
