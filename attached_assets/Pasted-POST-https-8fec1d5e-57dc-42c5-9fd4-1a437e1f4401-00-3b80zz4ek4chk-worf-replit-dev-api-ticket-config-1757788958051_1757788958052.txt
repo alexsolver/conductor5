@@ -1,0 +1,37 @@
+POST https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/ticket-config/copy-hierarchy 500
+
+Request Data
+
+{"sourceCompanyId":"00000000-0000-0000-0000-000000000001","targetCompanyId":"677163c9-72c4-414b-add1-5cd704e847a6"}
+
+Request Headers
+
+Content-Type: application/json
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 203
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Sat, 13 Sep 2025 18:42:25 GMT
+etag: W/"cb-rTaX4K26h8Kiy3msqXgFwaPsBEQ"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: authenticated
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-14T18:42:25.907Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"message":"there is no unique or exclusion constraint matching the ON CONFLICT specification","error":"there is no unique or exclusion constraint matching the ON CONFLICT specification"}
