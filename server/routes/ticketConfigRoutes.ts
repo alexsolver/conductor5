@@ -785,6 +785,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     console.log(`🔧 Processing field: ${fieldName}, hierarchical: ${isHierarchical}, dependsOn: ${dependsOn}`);
 
     // Handle hierarchical field types
+    let result;
     if (fieldName === 'category') {
       // Buscar categorias
       result = await db.execute(sql`
@@ -921,10 +922,79 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       `);
     }
 
-    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${['category', 'subcategory', 'action'].includes(fieldName)})`);
+    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${isHierarchical})`);
 
     if (result.rows.length === 0) {
-      console.log(`⚠️ No field options found for ${fieldName || 'any field'} in company ${companyId}`);
+      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
+
+      // Fallback to default field options for specific field types
+      const FIELD_OPTIONS = {
+        status: [
+          { value: 'new', label: 'Novo', color: '#3b82f6' },
+          { value: 'open', label: 'Aberto', color: '#f59e0b' },
+          { value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6' },
+          { value: 'pending', label: 'Pendente', color: '#ef4444' },
+          { value: 'resolved', label: 'Resolvido', color: '#10b981' },
+          { value: 'closed', label: 'Fechado', color: '#6b7280' }
+        ],
+        priority: [
+          { value: 'low', label: 'Baixa', color: '#10b981' },
+          { value: 'medium', label: 'Média', color: '#f59e0b' },
+          { value: 'high', label: 'Alta', color: '#ef4444' },
+          { value: 'urgent', label: 'Urgente', color: '#dc2626' },
+          { value: 'critical', label: 'Crítica', color: '#991b1b' }
+        ],
+        impact: [
+          { value: 'low', label: 'Baixo', color: '#10b981' },
+          { value: 'medium', label: 'Médio', color: '#f59e0b' },
+          { value: 'high', label: 'Alto', color: '#ef4444' },
+          { value: 'critical', label: 'Crítico', color: '#dc2626' }
+        ],
+        urgency: [
+          { value: 'low', label: 'Baixa', color: '#10b981' },
+          { value: 'medium', label: 'Média', color: '#f59e0b' },
+          { value: 'high', label: 'Alta', color: '#ef4444' },
+          { value: 'urgent', label: 'Urgente', color: '#dc2626' }
+        ]
+      };
+
+      // Use fallback options if available for this field
+      const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
+      if (fallbackOptions) {
+        const transformedOptions = fallbackOptions.map((option, index) => ({
+          id: `fallback_${fieldName}_${index}`,
+          field_name: fieldName,
+          option_value: option.value,
+          display_label: option.label,
+          color: option.color,
+          sort_order: index + 1,
+          is_active: true,
+          company_id: effectiveCompanyId,
+          created_at: new Date().toISOString()
+        }));
+
+        console.log(`🏢 Field options found: ${transformedOptions.length} fallback records for ${fieldName}`);
+
+        return res.json({
+          success: true,
+          data: transformedOptions,
+          fieldName,
+          companyId: effectiveCompanyId,
+          tenantId,
+          source: 'fallback'
+        });
+      }
+
+      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
+
+      return res.json({
+        success: true,
+        data: [],
+        fieldName,
+        companyId: effectiveCompanyId,
+        tenantId,
+        source: 'empty'
+      });
     }
 
     // Force fresh response headers
@@ -939,10 +1009,11 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       data: result.rows
     });
   } catch (error) {
-    console.error('Error fetching field options:', error);
+    console.error('❌ Error fetching field options:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch field options'
+      message: 'Failed to fetch field options',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
