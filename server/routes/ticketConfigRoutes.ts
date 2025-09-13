@@ -4,6 +4,7 @@ import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { Response } from 'express'; // Import Response type
+import { TenantTemplateService } from '../services/TenantTemplateService'; // Direct import
 
 const router = Router();
 
@@ -458,7 +459,7 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     console.log(`🔄 Applying default structure to company ${companyId} in tenant ${tenantId}`);
 
     // Import and apply the default structure
-    const { TenantTemplateService } = await import('../services/TenantTemplateService');
+    // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
     res.json({
@@ -1542,8 +1543,8 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     }
 
     // Import TenantTemplateService
-    const { TenantTemplateService } = await import('../services/TenantTemplateService');
-
+    // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
+    
     // Apply default structure to the company
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
@@ -1641,8 +1642,8 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
     console.log('🔄 Aplicando estrutura padrão para empresa:', companyId);
 
     // Importar o serviço de template
-    const { TenantTemplateService } = await import('../services/TenantTemplateService');
-
+    // const { TenantTemplateService } = await import('../services/TenantTemplateService'); // This line was causing the issue
+    
     // Aplicar a estrutura padrão apenas para esta empresa específica
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
@@ -1666,26 +1667,33 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
 // COPY HIERARCHY - Copiar hierarquia de uma empresa para outra
 // ============================================================================
 // Copy hierarchy from one company to another
-router.post('/copy-hierarchy', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const tenantId = req.user?.tenantId;
     const { sourceCompanyId, targetCompanyId } = req.body;
-    const { tenantId } = req.user;
 
-    if (!sourceCompanyId || !targetCompanyId) {
-      return res.status(400).json({
+    if (!tenantId) {
+      return res.status(401).json({ 
         success: false,
-        message: 'sourceCompanyId and targetCompanyId are required'
+        message: 'Tenant required' 
       });
     }
 
-    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId}`);
+    if (!sourceCompanyId || !targetCompanyId) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Source and target company IDs required' 
+      });
+    }
 
-    // Copy hierarchy from source to target company
+    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} in tenant ${tenantId}`);
+
+    // Execute copy hierarchy
     await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
 
     res.json({
       success: true,
-      message: 'Hierarchy copied successfully'
+      message: 'Hierarquia copiada com sucesso'
     });
   } catch (error) {
     console.error('❌ Error copying hierarchy:', error);
