@@ -950,7 +950,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           { value: 'low', label: 'Baixo', color: '#10b981' },
           { value: 'medium', label: 'Médio', color: '#f59e0b' },
           { value: 'high', label: 'Alto', color: '#ef4444' },
-          { value: 'critical', label: 'Crítico', color: '#dc2626' }
+          { value: 'critical', color: '#dc2626' }
         ],
         urgency: [
           { value: 'low', label: 'Baixa', color: '#10b981' },
@@ -1682,15 +1682,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    console.log('🔄 [COPY-HIERARCHY] Processing hierarchy copy request:', {
-      tenantId,
-      sourceCompanyId,
-      targetCompanyId,
-      userEmail: req.user?.email,
-      userTenantId: req.user?.tenantId
-    });
-
-// Validate input parameters
+    // Validate input parameters
     if (!sourceCompanyId || !targetCompanyId) {
       console.error('❌ [COPY-HIERARCHY] Missing required parameters');
       return res.status(400).json({
@@ -1708,54 +1700,36 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    // First, verify that the tenant schema exists
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const schemaCheck = await db.execute(sql`
-      SELECT schema_name FROM information_schema.schemata 
-      WHERE schema_name = ${schemaName}
-    `);
-
-    if (schemaCheck.rows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Tenant schema does not exist: ${schemaName}. Please ensure the tenant is properly provisioned.`
-      });
-    }
-
-    // Check if customer_companies table exists, if not skip company validation
-    const tableCheck = await db.execute(sql`
-      SELECT table_name FROM information_schema.tables 
-      WHERE table_schema = ${schemaName} AND table_name = 'customer_companies'
-    `);
-
-    if (tableCheck.rows.length > 0) {
-      // Verify target company exists in the tenant if table exists
-      const companyCheck = await db.execute(sql`
-        SELECT id FROM "${sql.raw(schemaName)}"."customer_companies" 
-        WHERE id = ${targetCompanyId} AND tenant_id = ${tenantId}
-      `);
-
-      if (companyCheck.rows.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Target company not found in this tenant'
-        });
-      }
-    } else {
-      console.log(`ℹ️ customer_companies table not found in ${schemaName}, skipping company validation`);
-    }
-
-    // Copy hierarchy between companies
-    const result = await TenantTemplateService.copyHierarchy(
+    console.log('🔄 [COPY-HIERARCHY] Processing hierarchy copy request:', {
       tenantId,
       sourceCompanyId,
-      targetCompanyId
-    );
-
-    res.json({
-      success: true,
-      message: 'Hierarchy copied successfully'
+      targetCompanyId,
+      userEmail,
+      schemaWillUse: `tenant_${tenantId.replace(/-/g, '_')}`
     });
+
+    try {
+      // Use TenantTemplateService to copy hierarchy within the same tenant
+      const result = await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
+
+      console.log('✅ [COPY-HIERARCHY] Hierarchy copied successfully:', result);
+
+      res.json({
+        success: true,
+        message: 'Hierarchy copied successfully',
+        summary: result.summary || `Hierarquia copiada de ${sourceCompanyId} para ${targetCompanyId}`,
+        details: result.details
+      });
+
+    } catch (error) {
+      console.error('❌ [COPY-HIERARCHY] Error copying hierarchy:', error);
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to copy hierarchy',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   } catch (error) {
     console.error('❌ Error copying hierarchy:', error);
     res.status(500).json({
