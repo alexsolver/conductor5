@@ -520,37 +520,77 @@ class TenantAutoProvisioningService {
         console.log(`✅ Subcategoria criada: ${subcategory.name}`);
       }
 
-      // 3.3. Criar ações (Ações específicas para cada contexto)
+      // 3.3. Criar ações (Ações modernas e abrangentes para nova estrutura)
       const actions = [
-        // Infraestrutura & Equipamentos
-        { name: 'Substituição de Componente', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Trocar peça defeituosa' },
-        { name: 'Manutenção Preventiva', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Limpeza e verificação geral' },
-        { name: 'Configuração de Hardware', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Configurar dispositivo móvel' },
-        { name: 'Instalação de Equipamento', subcategoryName: 'Servidores', color: '#6366f1', description: 'Instalar novo servidor' },
-        { name: 'Diagnóstico Técnico', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Diagnosticar problema em periférico' },
+        // Infraestrutura & Equipamentos - Computadores Desktop
+        { name: 'Substituição de Componente', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Trocar placa-mãe, RAM, HD, etc.' },
+        { name: 'Manutenção Preventiva', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Limpeza, verificação geral' },
+        { name: 'Diagnóstico Técnico', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Identificar problemas de hardware' },
 
-        // Software & Aplicações
-        { name: 'Instalação de Software', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Instalar aplicação no sistema' },
-        { name: 'Atualização de Sistema', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Atualizar SO para nova versão' },
-        { name: 'Correção de Bug', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Corrigir erro em aplicação' },
-        { name: 'Configuração de Aplicação', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Configurar software para usuário' },
-        { name: 'Licenciamento', subcategoryName: 'Licenciamento', color: '#10b981', description: 'Renovar ou ativar licença' },
+        // Infraestrutura & Equipamentos - Notebooks e Móveis
+        { name: 'Reparo de Tela', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Trocar display, touch screen' },
+        { name: 'Substituição de Bateria', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Trocar bateria de notebook/tablet' },
+        { name: 'Configuração Mobile', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Setup de dispositivos móveis' },
 
-        // Conectividade & Redes
-        { name: 'Diagnóstico de Rede', subcategoryName: 'Rede Local (LAN)', color: '#8b5cf6', description: 'Diagnosticar problema de conexão' },
-        { name: 'Configuração de Acesso', subcategoryName: 'Internet e WAN', color: '#8b5cf6', description: 'Configurar acesso à internet' },
-        { name: 'Reset de Conexão', subcategoryName: 'Wi-Fi e Wireless', color: '#8b5cf6', description: 'Resetar configurações Wi-Fi' },
-        { name: 'Configuração VPN', subcategoryName: 'VPN e Acesso Remoto', color: '#8b5cf6', description: 'Configurar conexão VPN' },
+        // Infraestrutura & Equipamentos - Servidores
+        { name: 'Manutenção de Servidor', subcategoryName: 'Servidores', color: '#6366f1', description: 'Manutenção preventiva/corretiva' },
+        { name: 'Instalação de Hardware', subcategoryName: 'Servidores', color: '#6366f1', description: 'Adicionar componentes ao servidor' },
+        { name: 'Monitoramento', subcategoryName: 'Servidores', color: '#6366f1', description: 'Verificar performance e saúde' },
 
-        // Segurança & Acesso
-        { name: 'Liberação de Acesso', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Liberar acesso para usuário' },
-        { name: 'Bloqueio de Ameaça', subcategoryName: 'Antivírus e Proteção', color: '#dc2626', description: 'Bloquear ameaça detectada' },
-        { name: 'Restauração de Backup', subcategoryName: 'Backup e Recovery', color: '#dc2626', description: 'Restaurar dados de backup' },
+        // Infraestrutura & Equipamentos - Periféricos
+        { name: 'Instalação de Impressora', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Configurar impressoras/multifuncionais' },
+        { name: 'Configuração de Monitor', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Setup de monitores/displays' },
+        { name: 'Substituição de Periférico', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Trocar teclado, mouse, etc.' },
 
-        // Usuários & Suporte
-        { name: 'Criação de Usuário', subcategoryName: 'Contas e Perfis', color: '#f59e0b', description: 'Criar nova conta de usuário' },
-        { name: 'Treinamento Técnico', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Treinar usuário em sistema' },
-        { name: 'Orientação Técnica', subcategoryName: 'Solicitações Gerais', color: '#f59e0b', description: 'Orientar usuário sobre procedimento' }
+        // Software & Aplicações - Sistema Operacional
+        { name: 'Instalação de SO', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Instalar Windows, Linux, macOS' },
+        { name: 'Atualização de Sistema', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Updates, patches, service packs' },
+        { name: 'Formatação', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Formatação completa do sistema' },
+
+        // Software & Aplicações - Aplicações Corporativas
+        { name: 'Instalação de ERP', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Setup de sistemas corporativos' },
+        { name: 'Configuração de CRM', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Configurar sistema de relacionamento' },
+        { name: 'Integração de Sistemas', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Conectar sistemas internos' },
+
+        // Software & Aplicações - Software de Produtividade
+        { name: 'Instalação Office', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Instalar pacote Office' },
+        { name: 'Configuração de Navegador', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Setup de navegadores web' },
+        { name: 'Instalação de Ferramentas', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Instalar softwares específicos' },
+
+        // Conectividade & Redes - Rede Local (LAN)
+        { name: 'Configuração de Switch', subcategoryName: 'Rede Local (LAN)', color: '#8b5cf6', description: 'Setup de switches de rede' },
+        { name: 'Instalação de Ponto de Rede', subcategoryName: 'Rede Local (LAN)', color: '#8b5cf6', description: 'Instalar novo ponto de rede' },
+        { name: 'Diagnóstico de Conectividade', subcategoryName: 'Rede Local (LAN)', color: '#8b5cf6', description: 'Verificar problemas de conexão' },
+
+        // Conectividade & Redes - Wi-Fi e Wireless
+        { name: 'Configuração de Access Point', subcategoryName: 'Wi-Fi e Wireless', color: '#8b5cf6', description: 'Setup de pontos de acesso Wi-Fi' },
+        { name: 'Otimização de Sinal', subcategoryName: 'Wi-Fi e Wireless', color: '#8b5cf6', description: 'Melhorar cobertura wireless' },
+        { name: 'Reset de Rede Wireless', subcategoryName: 'Wi-Fi e Wireless', color: '#8b5cf6', description: 'Reiniciar configurações Wi-Fi' },
+
+        // Segurança & Acesso - Controle de Acesso
+        { name: 'Liberação de Acesso', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Liberar permissões de usuário' },
+        { name: 'Criação de Usuário', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Criar nova conta de usuário' },
+        { name: 'Configuração de Perfil', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Definir permissões e grupos' },
+
+        // Segurança & Acesso - Backup e Recovery
+        { name: 'Executar Backup', subcategoryName: 'Backup e Recovery', color: '#dc2626', description: 'Realizar backup de dados' },
+        { name: 'Restauração de Dados', subcategoryName: 'Backup e Recovery', color: '#dc2626', description: 'Recuperar arquivos/sistemas' },
+        { name: 'Teste de Recovery', subcategoryName: 'Backup e Recovery', color: '#dc2626', description: 'Validar procedimentos de recuperação' },
+
+        // Usuários & Suporte - Contas e Perfis
+        { name: 'Criação de Conta', subcategoryName: 'Contas e Perfis', color: '#f59e0b', description: 'Criar nova conta de usuário' },
+        { name: 'Alteração de Perfil', subcategoryName: 'Contas e Perfis', color: '#f59e0b', description: 'Modificar dados do usuário' },
+        { name: 'Desativação de Conta', subcategoryName: 'Contas e Perfis', color: '#f59e0b', description: 'Desativar conta de usuário' },
+
+        // Usuários & Suporte - Treinamento
+        { name: 'Treinamento Técnico', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Capacitar usuário em sistema' },
+        { name: 'Orientação Técnica', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Orientar uso de ferramentas' },
+        { name: 'Documentação', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Criar/atualizar manuais' },
+
+        // Usuários & Suporte - Consultoria
+        { name: 'Consultoria Especializada', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Fornecer consultoria técnica' },
+        { name: 'Análise de Requisitos', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Analisar necessidades técnicas' },
+        { name: 'Recomendação Técnica', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Sugerir melhorias/soluções' }
       ];
 
       for (const [index, action] of actions.entries()) {
