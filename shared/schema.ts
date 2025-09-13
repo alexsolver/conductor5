@@ -18,8 +18,11 @@ export {
   insertUserGroupMembershipSchema 
 } from "./schema-tenant";
 
-// Reports & Dashboards Module Schema
-export * from "./schema-reports";
+// Reports & Dashboards Module Schema - using selective exports to avoid conflicts
+export {
+  reports,
+  dashboards
+} from "./schema-reports";
 
 // GDPR Compliance Module Schema - Clean Version
 export * from "./schema-gdpr-compliance-clean";
@@ -145,26 +148,22 @@ export {
 
 // Validation: Ensure all critical exports are available
 import type {
-  User, Customer, Ticket, Tenant, Company, Beneficiary,
-  TicketPlannedItem, TicketConsumedItem,
-  Item, CustomerItemMapping, InsertCustomerItemMapping
+  users, customers, tickets, tenants, companies,
+  ticketPlannedItems, ticketConsumedItems,
+  items, customerItemMappings, insertCustomerItemMappingSchema
 } from "./schema-master";
 
 import type {
   PriceList, PricingRule
 } from "./schema-materials-services";
 
-// User Notification Preferences - Re-export from notifications schema per 1qa.md
-export {
-  userNotificationPreferences,
-  insertUserNotificationPreferencesSchema
-} from "./schema-notifications";
+// User Notification Preferences - Already exported from schema-master
 
 // Re-export all types for consistency
 export type {
-  User, Customer, Ticket, Tenant, Company, Beneficiary,
-  TicketPlannedItem, TicketConsumedItem,
-  Item, CustomerItemMapping, InsertCustomerItemMapping
+  users, customers, tickets, tenants, companies,
+  ticketPlannedItems, ticketConsumedItems,
+  items, customerItemMappings, insertCustomerItemMappingSchema
 };
 
 // Re-export materials-services types
@@ -172,11 +171,7 @@ export type {
   PriceList, PricingRule
 } from "./schema-materials-services";
 
-// User Notification Preferences types from notifications schema
-export type {
-  UserNotificationPreferences,
-  InsertUserNotificationPreferences
-} from "./schema-notifications";
+// User Notification Preferences types - Already exported from schema-master
 
 // This file serves as the single entry point for all schema definitions
 // All imports should use: import { ... } from '@shared/schema'
@@ -189,7 +184,6 @@ export type {
 
 // Export all tables for migrations - using selective exports to avoid conflicts
 export * from './schema-field-layout';
-export * from './schema-notifications';
 
 // ✅ 1QA.MD: Approval Rules Export - Critical for Approval Management Module
 // Export approval-related tables and enums from schema-master
@@ -318,12 +312,4 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
 
 // ✅ 1QA.MD: Note - Ticket template functionality is handled through templateName/templateAlternative fields in tickets table
 
-// Import from schema-tenant for tenant-specific tables
-import { 
-  tickets as ticketsFromTenant,
-  ticketRelationships as ticketRelationshipsFromTenant
-} from './schema-tenant';
-
-// Re-export tenant tables with standard names
-export const tickets = ticketsFromTenant;
-export const ticketRelationships = ticketRelationshipsFromTenant;
+// Note: tickets and ticketRelationships are already exported from schema-master via schema-tenant

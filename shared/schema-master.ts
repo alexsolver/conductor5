@@ -14,8 +14,15 @@ import { pgTable, varchar, text, timestamp, uuid, integer, boolean, jsonb, pgEnu
 export * from "./schema-public";
 export * from "./schema-tenant";
 
-// Import specialized schemas
-export * from "./schema-notifications";
+// Import specialized schemas - using selective exports to avoid conflicts
+export {
+  userNotificationPreferences,
+  insertUserNotificationPreferencesSchema
+} from "./schema-notifications";
+export type {
+  UserNotificationPreferences,
+  InsertUserNotificationPreferences
+} from "./schema-notifications";
 export * from "./schema-expense-approval";
 
 // Import temporary missing tables - COMPLETED: All tables consolidated into schema-tenant.ts
