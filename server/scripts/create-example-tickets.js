@@ -1,6 +1,6 @@
 
-const { Pool } = require('pg');
-const { v4: uuidv4 } = require('uuid');
+import { Pool } from 'pg';
+import { v4 as uuidv4 } from 'uuid';
 
 // Configuração do banco de dados
 const pool = new Pool({
