@@ -1335,290 +1335,44 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 });
 
 // ============================================================================
-// COPY HIERARCHY - Copiar estrutura hierárquica entre empresas
+// COPY HIERARCHY - Copiar estrutura hierárquica completa
 // ============================================================================
 
 // POST /api/ticket-config/copy-hierarchy
 router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { sourceCompanyId, targetCompanyId } = req.body;
+    const { targetCompanyId } = req.body;
 
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
 
-    if (!sourceCompanyId || !targetCompanyId) {
-      return res.status(400).json({ message: 'Source and target company IDs are required' });
+    if (!targetCompanyId) {
+      return res.status(400).json({ message: 'Target company ID required' });
     }
 
-    if (sourceCompanyId === targetCompanyId) {
-      return res.status(400).json({ message: 'Source and target companies cannot be the same' });
-    }
+    console.log(`🔄 Iniciando cópia da estrutura hierárquica para empresa ${targetCompanyId}`);
 
-    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} for tenant ${tenantId}`);
+    // Aplicar a estrutura padrão completa
+    await TenantTemplateService.applyDefaultStructureToCompany(tenantId, targetCompanyId);
 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    let copiedItems = {
-      categories: 0,
-      subcategories: 0,
-      actions: 0,
-      fieldOptions: 0,
-      numberingConfig: 0
-    };
-
-    // 1. Copy Categories
-    const categoriesResult = await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
-      (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-      SELECT 
-        gen_random_uuid(), 
-        tenant_id, 
-        ${targetCompanyId}, 
-        name, 
-        description, 
-        color, 
-        icon, 
-        active, 
-        sort_order, 
-        NOW(), 
-        NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_categories"
-      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
-      AND NOT EXISTS (
-        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" target
-        WHERE target.tenant_id = ${tenantId} 
-        AND target.company_id = ${targetCompanyId}
-        AND target.name = "${sql.raw(schemaName)}"."ticket_categories".name
-      )
-      RETURNING id
-    `);
-    copiedItems.categories = categoriesResult.rows.length;
-
-    // 2. Copy Subcategories (with category mapping)
-    if (copiedItems.categories > 0) {
-      const subcategoriesResult = await db.execute(sql`
-        INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
-        (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-        SELECT 
-          gen_random_uuid(),
-          s.tenant_id,
-          ${targetCompanyId},
-          tc.id,
-          s.name,
-          s.description,
-          s.color,
-          s.icon,
-          s.active,
-          s.sort_order,
-          NOW(),
-          NOW()
-        FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
-        JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON s.category_id = sc.id
-        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
-          AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
-        WHERE s.tenant_id = ${tenantId} 
-        AND sc.company_id = ${sourceCompanyId}
-        AND NOT EXISTS (
-          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_subcategories" target
-          WHERE target.tenant_id = ${tenantId} 
-          AND target.category_id = tc.id
-          AND target.name = s.name
-        )
-        RETURNING id
-      `);
-      copiedItems.subcategories = subcategoriesResult.rows.length;
-
-      // 3. Copy Actions (with subcategory mapping)
-      if (copiedItems.subcategories > 0) {
-        const actionsResult = await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
-          (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, created_at, updated_at)
-          SELECT 
-            gen_random_uuid(),
-            a.tenant_id,
-            ${targetCompanyId},
-            ts.id,
-            a.name,
-            a.description,
-            a.estimated_time_minutes,
-            a.color,
-            a.icon,
-            a.active,
-            a.sort_order,
-            NOW(),
-            NOW()
-          FROM "${sql.raw(schemaName)}"."ticket_actions" a
-          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ss ON a.subcategory_id = ss.id
-          JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON ss.category_id = sc.id
-          JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
-            AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
-          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ts ON ss.name = ts.name 
-            AND ts.category_id = tc.id AND ts.tenant_id = ${tenantId}
-          WHERE a.tenant_id = ${tenantId} 
-          AND sc.company_id = ${sourceCompanyId}
-          AND NOT EXISTS (
-            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_actions" target
-            WHERE target.tenant_id = ${tenantId} 
-            AND target.subcategory_id = ts.id
-            AND target.name = a.name
-          )
-          RETURNING id
-        `);
-        copiedItems.actions = actionsResult.rows.length;
-      }
-    }
-
-    // 4. Copy Field Options - Fixed logic for Default company fallback
-    console.log(`🔍 Copying field options from ${sourceCompanyId} to ${targetCompanyId}`);
-
-    // Try to copy from source company first, then fallback to Default company if none found
-    let sourceCompanyIdToUse = sourceCompanyId;
-
-    // Check if source company has specific field options
-    const sourceOptionsCheck = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId} 
-      AND customer_id = ${sourceCompanyId}
-    `);
-
-    const sourceHasOptions = Number(sourceOptionsCheck.rows[0]?.count) > 0;
-
-    if (!sourceHasOptions) {
-      // Fallback to Default company
-      sourceCompanyIdToUse = '00000000-0000-0000-0000-000000000001';
-      console.log(`🔄 Source company has no field options, using Default company as source`);
-    }
-
-    // Delete existing field options for the target company to avoid conflicts
-    const deleteExistingResult = await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId} 
-      AND customer_id = ${targetCompanyId}::uuid
-    `);
-    console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
-
-    // Now insert the field options with proper company mapping - bypassing unique constraint
-    // First get all source field options
-    const sourceFieldOptions = await db.execute(sql`
-      SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options" source
-      WHERE source.tenant_id = ${tenantId} 
-      AND source.customer_id = ${sourceCompanyIdToUse}::uuid
-      ORDER BY field_name, sort_order
-    `);
-
-    console.log(`🔍 Found ${sourceFieldOptions.rows.length} source field options to copy`);
-    console.log(`🔍 Source field options:`, sourceFieldOptions.rows.map(o => `${o.field_name}:${o.value}`));
-
-    let copiedFieldOptionsCount = 0;
-
-    // Insert each field option individually with detailed logging  
-    for (const option of sourceFieldOptions.rows) {
-      try {
-        console.log(`🔄 Copying field option: ${option.field_name}:${option.value} from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
-
-        const insertResult = await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
-          (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
-          VALUES (
-            gen_random_uuid(),
-            ${tenantId},
-            ${targetCompanyId}::uuid,
-            ${option.field_name},
-            ${option.value},
-            ${option.label},
-            ${option.color},
-            ${option.sort_order},
-            ${option.is_default},
-            ${option.is_active},
-            ${option.status_type},
-            NOW(),
-            NOW()
-          )
-          ON CONFLICT (tenant_id, customer_id, field_name, value) DO NOTHING
-          RETURNING id
-        `);
-
-        if (insertResult.rows.length > 0) {
-          copiedFieldOptionsCount++;
-          console.log(`✅ Successfully copied ${option.field_name}:${option.value}`);
-        } else {
-          console.log(`⚠️ No rows returned for ${option.field_name}:${option.value}`);
-        }
-      } catch (error) {
-        console.log(`❌ Failed to copy field option ${option.field_name}:${option.value}:`, error.message);
-      }
-    }
-
-    const fieldOptionsResult = { rows: Array(copiedFieldOptionsCount).fill({}) };
-    copiedItems.fieldOptions = fieldOptionsResult.rows.length;
-    console.log(`✅ Copied ${copiedItems.fieldOptions} field options from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
-
-    // 5. Copy Numbering Configuration - Fixed logic with fallback
-    console.log(`🔍 Copying numbering config from ${sourceCompanyId} to ${targetCompanyId}`);
-
-    // Delete existing numbering config for target company
-    await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
-      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
-    `);
-
-    // Try to copy from source company first, then fallback to Default company
-    let numberingSourceId = sourceCompanyId;
-
-    const sourceNumberingCheck = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
-      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
-    `);
-
-    const sourceHasNumbering = Number(sourceNumberingCheck.rows[0]?.count) > 0;
-
-    if (!sourceHasNumbering) {
-      // Fallback to Default company
-      numberingSourceId = '00000000-0000-0000-0000-000000000001';
-      console.log(`🔄 Source company has no numbering config, using Default company as source`);
-    }
-
-    const numberingResult = await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" 
-      (id, tenant_id, company_id, prefix, year_format, sequential_digits, separator, reset_yearly, first_separator, created_at, updated_at)
-      SELECT 
-        gen_random_uuid(),
-        tenant_id,
-        ${targetCompanyId}::uuid,
-        prefix,
-        year_format,
-        sequential_digits,
-        separator,
-        reset_yearly,
-        first_separator,
-        NOW(),
-        NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
-      WHERE tenant_id = ${tenantId} AND company_id = ${numberingSourceId}::uuid
-      RETURNING id
-    `);
-    copiedItems.numberingConfig = numberingResult.rows.length;
-    console.log(`✅ Copied ${copiedItems.numberingConfig} numbering config from ${numberingSourceId} to ${targetCompanyId}`);
-
-    const summary = `Copiados: ${copiedItems.categories} categorias, ${copiedItems.subcategories} subcategorias, ${copiedItems.actions} ações, ${copiedItems.fieldOptions} opções de campos, ${copiedItems.numberingConfig} configuração de numeração`;
-
-    console.log('✅ Hierarchy copy completed:', copiedItems);
+    console.log('✅ Estrutura hierárquica copiada com sucesso');
 
     res.json({
       success: true,
-      message: 'Hierarchy copied successfully',
-      data: copiedItems,
-      summary: summary
+      message: 'Estrutura hierárquica copiada com sucesso',
+      data: {
+        tenantId,
+        targetCompanyId,
+        appliedTemplate: 'DEFAULT_COMPANY_TEMPLATE'
+      }
     });
   } catch (error) {
-    console.error('Error copying hierarchy:', error);
+    console.error('❌ Erro ao copiar estrutura hierárquica:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to copy hierarchy',
+      error: 'Failed to copy hierarchical structure',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -1698,7 +1452,7 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
 
     // Importar o serviço de template
     const { TenantTemplateService } = await import('../services/TenantTemplateService');
-    
+
     // Aplicar a estrutura padrão apenas para esta empresa específica
     await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
 
