@@ -1,27 +1,78 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTenantId } from './useTenantId';
 import React from 'react';
 
+// Interface para representar um campo em uma configuração de ticket
 interface FieldOption {
   value: string;
   label: string;
   color?: string;
   isDefault?: boolean;
+  status?: string; // Adicionado para o filtro de empresas inativas
 }
 
+// Interface de resposta da API para opções de campo
 interface FieldOptionsResponse {
   success: boolean;
   data: FieldOption[];
   total?: number;
 }
 
-// Cache inteligente para reduzir chamadas à API
+// Interface para a estrutura de dados de tickets
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  active: boolean;
+  sortOrder: number;
+  companyId?: string; // Para associar categoria a uma empresa específica
+}
+
+interface Subcategory {
+  id: string;
+  name: string;
+  description?: string;
+  categoryId: string;
+  color?: string;
+  icon?: string;
+  active: boolean;
+  sortOrder: number;
+  categoryName?: string;
+}
+
+interface Action {
+  id: string;
+  name: string;
+  description?: string;
+  subcategoryId: string;
+  color?: string;
+  icon?: string;
+  active: boolean;
+  sortOrder: number;
+  subcategoryName?: string;
+  categoryName?: string;
+}
+
+// Helper para fazer chamadas de API
+const apiRequest = async (method: string, url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+    }
+    return response;
+};
+
+// Cache inteligente para reduzir chamadas à API de campo
 const fieldOptionsCache = new Map<string, { data: any[], timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 export const useTicketMetadata = () => {
   const tenantId = useTenantId();
+  const queryClient = useQueryClient();
 
+  // Hook genérico para buscar opções de campo com cache
   const useFieldOptions = (fieldName: string, companyId?: string) => {
     return useQuery<FieldOptionsResponse>({
       queryKey: ['fieldOptions', tenantId, fieldName, companyId || 'default'],
@@ -43,17 +94,23 @@ export const useTicketMetadata = () => {
             ...(companyId && { companyId })
           });
 
-          const response = await fetch(`/api/ticket-config/field-options?${params}`);
-          const data = await response.json();
-          allOptions = data.data || [];
+          try {
+            const response = await apiRequest('GET', `/api/ticket-config/field-options?${params}`);
+            const data = await response.json();
+            allOptions = data.data || [];
 
-          // Atualizar cache
-          fieldOptionsCache.set(cacheKey, {
-            data: allOptions,
-            timestamp: now
-          });
+            // Atualizar cache
+            fieldOptionsCache.set(cacheKey, {
+              data: allOptions,
+              timestamp: now
+            });
 
-          console.log(`🔄 Fetched fresh field options for ${fieldName}`);
+            console.log(`🔄 Fetched fresh field options for ${fieldName}`);
+          } catch (error) {
+            console.error(`Error fetching field options for ${fieldName}:`, error);
+            // Retornar um array vazio em caso de erro para não quebrar a UI
+            return { success: false, data: [] };
+          }
         }
 
         // Filter options for specific field and exclude inactive companies
@@ -104,12 +161,13 @@ export const useTicketMetadata = () => {
           total: sortedOptions.length
         };
       },
-      enabled: !!tenantId && !!fieldName,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      enabled: !!tenantId && !!fieldName, // Habilita a query se tenantId e fieldName existirem
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      gcTime: 10 * 60 * 1000, // 10 minutos
     });
   };
 
+  // Busca de categorias
   const {
     data: categoriesData,
     isLoading: categoriesLoading,
@@ -117,6 +175,7 @@ export const useTicketMetadata = () => {
     refetch: refetchCategories
   } = useFieldOptions('category');
 
+  // Busca de subcategorias
   const {
     data: subcategoriesData,
     isLoading: subcategoriesLoading,
@@ -124,6 +183,7 @@ export const useTicketMetadata = () => {
     refetch: refetchSubcategories
   } = useFieldOptions('subcategory');
 
+  // Busca de ações
   const {
     data: actionsData,
     isLoading: actionsLoading,
@@ -131,33 +191,26 @@ export const useTicketMetadata = () => {
     refetch: refetchActions
   } = useFieldOptions('action');
 
+  // Busca de opções de campo (ex: empresas)
   const {
-    data: fieldOptions,
+    data: fieldOptionsData, // Renomeado para evitar conflito com o hook genérico
     isLoading: fieldOptionsLoading,
     error: fieldOptionsError,
     refetch: refetchFieldOptions
-  } = useFieldOptions('company_id'); // Assuming 'company_id' is the field name for companies
+  } = useFieldOptions('company_id'); // Assumindo 'company_id' como o campo para empresas
 
 
+  // Query para buscar todas as empresas (não relacionado a opções de campo)
   const companiesQuery = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
-      // Assuming apiRequest is defined elsewhere and handles the API call
-      const apiRequest = async (method: string, url: string) => {
-          const response = await fetch(url);
-          return await response.json();
-      };
-
       const response = await apiRequest('GET', '/api/companies');
-      console.log('🏢 Raw companies response:', response);
+      const companies = await response.json();
+      console.log('🏢 Raw companies response:', companies);
 
-      if (Array.isArray(response)) {
-        // Filter out inactive companies - NO EXCEPTIONS
-        const activeCompanies = response.filter(company =>
-          company.status === 'active'
-        );
-
-        // Sort to put Default company first (only if it's active)
+      if (Array.isArray(companies)) {
+        // Filtra empresas ativas e ordena para colocar a empresa "Default" primeiro
+        const activeCompanies = companies.filter(company => company.status === 'active');
         const sortedCompanies = activeCompanies.sort((a, b) => {
           const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
           const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
@@ -169,7 +222,7 @@ export const useTicketMetadata = () => {
 
         console.log('🏢 Filtered and sorted companies:', sortedCompanies);
 
-        // Clear field options cache when companies change
+        // Limpa o cache de opções de campo quando as empresas são atualizadas
         fieldOptionsCache.clear();
 
         return sortedCompanies;
@@ -177,14 +230,13 @@ export const useTicketMetadata = () => {
 
       return [];
     },
-    staleTime: 30 * 1000, // Reduced to 30 seconds for faster updates
+    staleTime: 30 * 1000, // 30 segundos
   });
 
-  // Transform categories data
+  // Transforma os dados das categorias para a estrutura esperada
   const transformedCategories = React.useMemo(() => {
-    if (!categoriesData?.data) return [];
-
-    return categoriesData.data.map((cat: any) => ({
+    if (!categoriesData) return [];
+    return categoriesData.map((cat: any) => ({
       id: cat.id,
       name: cat.name,
       description: cat.description,
@@ -195,11 +247,10 @@ export const useTicketMetadata = () => {
     }));
   }, [categoriesData]);
 
-  // Transform subcategories data
+  // Transforma os dados das subcategorias
   const transformedSubcategories = React.useMemo(() => {
-    if (!subcategoriesData?.data) return [];
-
-    return subcategoriesData.data.map((sub: any) => ({
+    if (!subcategoriesData) return [];
+    return subcategoriesData.map((sub: any) => ({
       id: sub.id,
       name: sub.name,
       description: sub.description,
@@ -212,11 +263,10 @@ export const useTicketMetadata = () => {
     }));
   }, [subcategoriesData]);
 
-  // Transform actions data
+  // Transforma os dados das ações
   const transformedActions = React.useMemo(() => {
-    if (!actionsData?.data) return [];
-
-    return actionsData.data.map((action: any) => ({
+    if (!actionsData) return [];
+    return actionsData.map((action: any) => ({
       id: action.id,
       name: action.name,
       description: action.description,
@@ -230,24 +280,30 @@ export const useTicketMetadata = () => {
     }));
   }, [actionsData]);
 
+  // Função de refetch consolidada
+  const refetchAll = () => {
+    refetchCategories();
+    refetchSubcategories();
+    refetchActions();
+    refetchFieldOptions();
+    companiesQuery.refetch();
+  };
+
   return {
     categories: transformedCategories,
     subcategories: transformedSubcategories,
     actions: transformedActions,
-    fieldOptions,
-    isLoading: categoriesLoading || subcategoriesLoading || actionsLoading || fieldOptionsLoading,
-    error: categoriesError || subcategoriesError || actionsError || fieldOptionsError,
-    refetch: () => {
-      refetchCategories();
-      refetchSubcategories();
-      refetchActions();
-      refetchFieldOptions();
-    },
-    // Debug info
+    // Usando fieldOptionsData que vem da query genérica para 'company_id'
+    fieldOptions: fieldOptionsData?.data || [],
+    isLoading: categoriesLoading || subcategoriesLoading || actionsLoading || fieldOptionsLoading || companiesQuery.isLoading,
+    error: categoriesError || subcategoriesError || actionsError || fieldOptionsError || companiesQuery.error,
+    refetch: refetchAll,
+    // Dados brutos para depuração ou uso direto se necessário
     rawData: {
       categories: categoriesData,
       subcategories: subcategoriesData,
-      actions: actionsData
+      actions: actionsData,
+      companies: companiesQuery.data // Adiciona dados de empresas ao rawData
     }
   };
 };

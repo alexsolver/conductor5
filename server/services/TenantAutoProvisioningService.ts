@@ -8,6 +8,7 @@ import { DependencyContainer } from "../application/services/DependencyContainer
 import crypto from "crypto";
 import { storageSimple } from "../storage-simple";
 import { TenantTemplateService } from "./TenantTemplateService"; // Assuming TenantTemplateService is in the same directory or accessible path
+import { sql } from "drizzle-orm";
 
 export interface AutoProvisioningConfig {
   enabled: boolean;
@@ -406,25 +407,108 @@ class TenantAutoProvisioningService {
       console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
 
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const { db } = await import("../db");
 
-      // 1. Create ticket field configurations
+      // 1. Create ticket categories first
+      const categories = [
+        { id: crypto.randomUUID(), name: 'Hardware', description: 'Problemas de hardware', color: '#3b82f6', sortOrder: 1 },
+        { id: crypto.randomUUID(), name: 'Software', description: 'Problemas de software', color: '#10b981', sortOrder: 2 },
+        { id: crypto.randomUUID(), name: 'Rede', description: 'Problemas de rede', color: '#f59e0b', sortOrder: 3 }
+      ];
+
+      for (const category of categories) {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" (
+            id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at
+          ) VALUES (
+            ${category.id}, ${tenantId}, ${companyId}, ${category.name}, ${category.description}, 
+            ${category.color}, null, true, ${category.sortOrder}, NOW(), NOW()
+          )
+        `);
+      }
+
+      // 2. Create subcategories for each category
+      const subcategories = [
+        // Hardware subcategories
+        { id: crypto.randomUUID(), name: 'Desktop', description: 'Problemas com Desktops', categoryId: categories[0].id, color: '#60a5fa', sortOrder: 1 },
+        { id: crypto.randomUUID(), name: 'Impressora', description: 'Problemas com Impressoras', categoryId: categories[0].id, color: '#a78bfa', sortOrder: 2 },
+        // Software subcategories
+        { id: crypto.randomUUID(), name: 'Sistema Operacional', description: 'Problemas com SO', categoryId: categories[1].id, color: '#34d399', sortOrder: 1 },
+        { id: crypto.randomUUID(), name: 'Aplicativo', description: 'Problemas com Aplicativos', categoryId: categories[1].id, color: '#fbbf24', sortOrder: 2 },
+        // Network subcategories
+        { id: crypto.randomUUID(), name: 'Conectividade', description: 'Problemas de conexão', categoryId: categories[2].id, color: '#fb923c', sortOrder: 1 },
+        { id: crypto.randomUUID(), name: 'Equipamento', description: 'Problemas com equipamentos de rede', categoryId: categories[2].id, color: '#f87171', sortOrder: 2 }
+      ];
+
+      for (const subcategory of subcategories) {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" (
+            id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at
+          ) VALUES (
+            ${subcategory.id}, ${tenantId}, ${companyId}, ${subcategory.categoryId}, ${subcategory.name}, 
+            ${subcategory.description}, ${subcategory.color}, null, true, ${subcategory.sortOrder}, NOW(), NOW()
+          )
+        `);
+      }
+
+      // 3. Create actions for each subcategory
+      const actions = [
+        // Desktop actions
+        { name: 'Diagnóstico Inicial', description: 'Verificação preliminar do problema', subcategoryId: subcategories[0].id, estimatedTime: 10, color: '#93c5fc' },
+        { name: 'Troca de Componente', description: 'Substituição de peça defeituosa', subcategoryId: subcategories[0].id, estimatedTime: 30, color: '#a7f3d0' },
+        { name: 'Teste de Funcionamento', description: 'Validação pós-reparo', subcategoryId: subcategories[0].id, estimatedTime: 15, color: '#fde68a' },
+        
+        // Printer actions
+        { name: 'Configuração de Rede', description: 'Setup de conexão de rede', subcategoryId: subcategories[1].id, estimatedTime: 20, color: '#c4b5fd' },
+        { name: 'Troca de Toner/Tinta', description: 'Substituição de consumíveis', subcategoryId: subcategories[1].id, estimatedTime: 10, color: '#fbbf24' },
+        { name: 'Manutenção Preventiva', description: 'Limpeza e verificação', subcategoryId: subcategories[1].id, estimatedTime: 25, color: '#fb7185' },
+        
+        // OS actions
+        { name: 'Atualização de Sistema', description: 'Update do SO', subcategoryId: subcategories[2].id, estimatedTime: 45, color: '#6ee7b7' },
+        { name: 'Reinstalação', description: 'Formatação e nova instalação', subcategoryId: subcategories[2].id, estimatedTime: 120, color: '#fcd34d' },
+        { name: 'Configuração de Permissões', description: 'Ajuste de acesso', subcategoryId: subcategories[2].id, estimatedTime: 15, color: '#f472b6' },
+        
+        // Application actions
+        { name: 'Instalação de Software', description: 'Setup de nova aplicação', subcategoryId: subcategories[3].id, estimatedTime: 20, color: '#fef08a' },
+        { name: 'Atualização de Versão', description: 'Update de aplicativo', subcategoryId: subcategories[3].id, estimatedTime: 15, color: '#c084fc' },
+        { name: 'Correção de Configuração', description: 'Ajuste de settings', subcategoryId: subcategories[3].id, estimatedTime: 10, color: '#fb923c' },
+        
+        // Connectivity actions
+        { name: 'Teste de Conectividade', description: 'Verificação de conexão', subcategoryId: subcategories[4].id, estimatedTime: 10, color: '#fdba74' },
+        { name: 'Configuração de IP', description: 'Setup de endereçamento', subcategoryId: subcategories[4].id, estimatedTime: 15, color: '#fca5a5' },
+        { name: 'Reset de Equipamento', description: 'Reinicialização de dispositivos', subcategoryId: subcategories[4].id, estimatedTime: 5, color: '#a5b4fc' },
+        
+        // Equipment actions
+        { name: 'Substituição de Cabo', description: 'Troca de cabeamento', subcategoryId: subcategories[5].id, estimatedTime: 10, color: '#fca5a5' },
+        { name: 'Configuração de Switch/Router', description: 'Setup de equipamentos', subcategoryId: subcategories[5].id, estimatedTime: 30, color: '#fb7185' },
+        { name: 'Documentação Técnica', description: 'Registro de alterações', subcategoryId: subcategories[5].id, estimatedTime: 10, color: '#a78bfa' }
+      ];
+
+      for (const action of actions) {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
+            id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, created_at, updated_at
+          ) VALUES (
+            gen_random_uuid(), ${tenantId}, ${companyId}, ${action.subcategoryId}, ${action.name}, 
+            ${action.description}, ${action.estimatedTime}, ${action.color}, null, true, 1, NOW(), NOW()
+          )
+        `);
+      }
+
+      // 4. Create field options for ticket fields
       const fieldConfigs = [
         {
           fieldName: 'status',
-          displayName: 'Status',
-          fieldType: 'select',
           options: [
             { value: 'novo', label: 'Novo', color: '#6b7280', sortOrder: 1, isDefault: true, statusType: 'open' },
             { value: 'aberto', label: 'Aberto', color: '#3b82f6', sortOrder: 2, isDefault: false, statusType: 'open' },
             { value: 'em_andamento', label: 'Em Andamento', color: '#f59e0b', sortOrder: 3, isDefault: false, statusType: 'open' },
-            { value: 'resolvido', label: 'Resolvido', color: '#10b981', sortOrder: 4, isDefault: false, statusType: 'paused' },
+            { value: 'resolvido', label: 'Resolvido', color: '#10b981', sortOrder: 4, isDefault: false, statusType: 'resolved' },
             { value: 'fechado', label: 'Fechado', color: '#6b7280', sortOrder: 5, isDefault: false, statusType: 'closed' }
           ]
         },
         {
           fieldName: 'priority',
-          displayName: 'Prioridade',
-          fieldType: 'select',
           options: [
             { value: 'low', label: 'Baixa', color: '#10b981', sortOrder: 1, isDefault: false },
             { value: 'medium', label: 'Média', color: '#f59e0b', sortOrder: 2, isDefault: true },
@@ -434,8 +518,6 @@ class TenantAutoProvisioningService {
         },
         {
           fieldName: 'impact',
-          displayName: 'Impacto',
-          fieldType: 'select',
           options: [
             { value: 'baixo', label: 'Baixo', color: '#10b981', sortOrder: 1, isDefault: true },
             { value: 'medio', label: 'Médio', color: '#f59e0b', sortOrder: 2, isDefault: false },
@@ -444,8 +526,6 @@ class TenantAutoProvisioningService {
         },
         {
           fieldName: 'urgency',
-          displayName: 'Urgência',
-          fieldType: 'select',
           options: [
             { value: 'low', label: 'Baixa', color: '#10b981', sortOrder: 1, isDefault: true },
             { value: 'medium', label: 'Média', color: '#f59e0b', sortOrder: 2, isDefault: false },
@@ -454,9 +534,25 @@ class TenantAutoProvisioningService {
         }
       ];
 
-      // 2. Insert field configurations and options
+      // 5. Insert field options
       for (const config of fieldConfigs) {
-        // Insert field configuration
+        for (const option of config.options) {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
+              id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at
+            ) VALUES (
+              gen_random_uuid(), ${tenantId}, ${companyId}, ${config.fieldName}, ${option.value}, 
+              ${option.label}, ${option.color}, null, ${option.isDefault || false}, true, ${option.sortOrder}, 
+              ${option.statusType || null}, NOW(), NOW()
+            )
+          `);
+        }
+      }
+
+      console.log('✅ [TICKET-CONFIG] Ticket configurations initialized successfully');
+    } catch (error) {
+      console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
+      throw error;
         const configResult = await db.execute(`
           INSERT INTO "${schemaName}"."ticket_field_configurations" 
           (tenant_id, company_id, field_name, display_name, field_type, is_required, is_system_field, sort_order, is_active)

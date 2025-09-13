@@ -1624,4 +1624,56 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
   }
 });
 
+// ============================================================================
+// FIELD OPTIONS - Opções para campos de tickets
+// ============================================================================
+
+// GET /api/ticket-config/field-options
+router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const companyId = req.query.companyId as string;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ message: 'Company ID required' });
+    }
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const result = await db.execute(sql`
+      SELECT 
+        id,
+        field_name as "fieldName",
+        value,
+        display_label as "displayLabel", 
+        color,
+        icon,
+        is_default as "isDefault",
+        active,
+        sort_order as "sortOrder",
+        status_type as "statusType"
+      FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+      WHERE tenant_id = ${tenantId} 
+      AND company_id = ${companyId}
+      AND active = true
+      ORDER BY field_name, sort_order, display_label
+    `);
+
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching field options:', error);
+    res.status(500).json({
+      error: 'Failed to fetch field options',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
