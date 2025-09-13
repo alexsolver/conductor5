@@ -668,6 +668,23 @@ export class EnterpriseMigrationManager {
         return false;
       }
 
+      // Validate schema completeness after migrations
+      const tableCount = await db.execute(sql`
+        SELECT COUNT(table_name)
+        FROM information_schema.tables
+        WHERE table_schema = '${schemaName}'
+      `);
+
+      // Expected table count based on migrations
+      const requiredTableCount = 25; // Updated count for all essential tables
+      const actualCount = parseInt(tableCount.rows[0].count);
+
+      if (actualCount < requiredTableCount) {
+        console.warn(`⚠️ Tenant schema has ${actualCount}/${requiredTableCount} expected tables`);
+      } else {
+        console.log(`✅ Tenant schema complete with ${actualCount} tables`);
+      }
+
       console.log(`[MigrationManager] ✅ Schema integrity validated for ${schemaName}`);
       return true;
     } catch (error) {
