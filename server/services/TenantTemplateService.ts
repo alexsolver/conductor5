@@ -14,9 +14,9 @@ import { pool } from '../db';
 export class TenantTemplateService {
 
   /**
-   * Aplica a estrutura hierárquica padrão para uma empresa específica
+   * Apply default structure to a specific company
    */
-  static async applyDefaultStructureToCompany(tenantId: string, companyId: string) {
+  static async applyDefaultStructureToCompany(tenantId: string, companyId: string): Promise<void> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     console.log(`🔄 Aplicando estrutura padrão para empresa ${companyId} no schema ${schemaName}`);
@@ -25,7 +25,7 @@ export class TenantTemplateService {
       // 1. Aplicar categorias
       await this.applyCategoriesForCompany(schemaName, tenantId, companyId);
 
-      // 2. Aplicar subcategorias  
+      // 2. Aplicar subcategorias
       await this.applySubcategoriesForCompany(schemaName, tenantId, companyId);
 
       // 3. Aplicar ações
@@ -42,6 +42,369 @@ export class TenantTemplateService {
   }
 
   /**
+   * Copy hierarchy from one company to another within the same tenant
+   */
+  static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string): Promise<void> {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    try {
+      console.log('🔄 [TENANT-TEMPLATE] Starting hierarchy copy:', {
+        sourceCompanyId,
+        targetCompanyId,
+        tenantId
+      });
+
+      // First, ensure we have the basic ticket configuration tables
+      await this.ensureTicketConfigTables(tenantId);
+
+      // Apply default template first to ensure we have a source to copy from
+      // This is a workaround for when the source is the default company template itself.
+      if (sourceCompanyId === '00000000-0000-0000-0000-000000000001') {
+        console.log('🔄 Creating default structure first...');
+        await this.applyDefaultTemplate(tenantId, 'Default Company');
+      }
+
+      // Copy categories
+      console.log('📂 Copying categories...');
+      let categories;
+      try {
+        // Attempt to select with sort_order, assuming it might exist
+        categories = await db.execute(sql`
+          SELECT id, name, description, color, icon, sort_order FROM "${sql.raw(schemaName)}"."ticket_categories"
+          WHERE company_id = ${sourceCompanyId} AND active = true
+        `);
+      } catch (error: any) {
+        // If sort_order column doesn't exist, select without it
+        if (error.message.includes('column "sort_order" does not exist')) {
+          console.log('⚠️ "sort_order" column not found in ticket_categories, fetching without it.');
+          categories = await db.execute(sql`
+            SELECT id, name, description, color, icon FROM "${sql.raw(schemaName)}"."ticket_categories"
+            WHERE company_id = ${sourceCompanyId} AND active = true
+          `);
+        } else {
+          throw error; // Rethrow other errors
+        }
+      }
+
+      const categoryMapping: Record<string, string> = {};
+
+      for (const category of categories.rows) {
+        const newCategoryId = randomUUID();
+        categoryMapping[category.id as string] = newCategoryId;
+
+        // Check if category already exists
+        const existingCategory = await pool.query(`
+          SELECT id FROM "${schemaName}".ticket_categories
+          WHERE tenant_id = $1 AND company_id = $2 AND name = $3
+        `, [tenantId, targetCompanyId, category.name]);
+
+        if (existingCategory.rows.length === 0) {
+          await pool.query(`
+            INSERT INTO "${schemaName}".ticket_categories
+            (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          `, [
+            newCategoryId,
+            tenantId,
+            targetCompanyId,
+            category.name,
+            category.description,
+            category.color,
+            category.icon,
+            category.active,
+            category.sort_order || 1
+          ]);
+        } else {
+          // Update existing category
+          await pool.query(`
+            UPDATE "${schemaName}".ticket_categories
+            SET
+              description = $1,
+              color = $2,
+              icon = $3,
+              active = $4,
+              sort_order = $5,
+              updated_at = NOW()
+            WHERE tenant_id = $6 AND company_id = $7 AND name = $8
+          `, [
+            category.description,
+            category.color,
+            category.icon,
+            category.active,
+            category.sort_order || 1,
+            tenantId,
+            targetCompanyId,
+            category.name
+          ]);
+        }
+      }
+
+      // Copy subcategories
+      console.log('📁 Copying subcategories...');
+      let subcategories;
+      try {
+        subcategories = await db.execute(sql`
+          SELECT s.id, s.name, s.description, s.color, s.icon, s.category_id, s.sort_order
+          FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
+          JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
+          WHERE c.company_id = ${sourceCompanyId} AND s.active = true
+        `);
+      } catch (error: any) {
+        // If the table or column doesn't exist, log and continue with empty results
+        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_subcategories" does not exist')) {
+          console.log('⚠️ Subcategories table or necessary columns not found, skipping subcategories.');
+          subcategories = { rows: [] };
+        } else {
+          throw error;
+        }
+      }
+
+      const subcategoryMapping: Record<string, string> = {};
+
+      for (const subcategory of subcategories.rows) {
+        const newSubcategoryId = randomUUID();
+        const newCategoryId = categoryMapping[subcategory.category_id as string];
+
+        if (newCategoryId) {
+          subcategoryMapping[subcategory.id as string] = newSubcategoryId;
+
+          // Check if subcategory already exists
+          const existingSubcategory = await pool.query(`
+            SELECT id FROM "${schemaName}".ticket_subcategories
+            WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
+          `, [tenantId, targetCompanyId, newCategoryId, subcategory.name]);
+
+          if (existingSubcategory.rows.length === 0) {
+            await pool.query(`
+              INSERT INTO "${schemaName}".ticket_subcategories
+              (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            `, [
+              newSubcategoryId,
+              tenantId,
+              targetCompanyId,
+              newCategoryId,
+              subcategory.name,
+              subcategory.description,
+              subcategory.color,
+              subcategory.icon,
+              subcategory.active,
+              subcategory.sort_order || 1
+            ]);
+          } else {
+            // Update existing subcategory
+            await pool.query(`
+              UPDATE "${schemaName}".ticket_subcategories
+              SET
+                description = $1,
+                color = $2,
+                icon = $3,
+                active = $4,
+                sort_order = $5,
+                updated_at = NOW()
+              WHERE tenant_id = $6 AND company_id = $7 AND category_id = $8 AND name = $9
+            `, [
+              subcategory.description,
+              subcategory.color,
+              subcategory.icon,
+              subcategory.active,
+              subcategory.sort_order || 1,
+              tenantId,
+              targetCompanyId,
+              newCategoryId,
+              subcategory.name
+            ]);
+          }
+        }
+      }
+
+      // Copy actions
+      console.log('⚡ Copying actions...');
+      let actions;
+      try {
+        actions = await db.execute(sql`
+          SELECT a.id, a.name, a.description, a.color, a.icon, a.subcategory_id, a.sort_order
+          FROM "${sql.raw(schemaName)}"."ticket_actions" a
+          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
+          JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
+          WHERE c.company_id = ${sourceCompanyId} AND a.active = true
+        `);
+      } catch (error: any) {
+        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_actions" does not exist')) {
+          console.log('⚠️ Actions table or necessary columns not found, skipping actions.');
+          actions = { rows: [] };
+        } else {
+          throw error;
+        }
+      }
+
+      for (const action of actions.rows) {
+        const newActionId = randomUUID();
+        const newSubcategoryId = subcategoryMapping[action.subcategory_id as string];
+
+        if (newSubcategoryId) {
+          // Check if action already exists
+          const existingAction = await pool.query(`
+            SELECT id FROM "${schemaName}".ticket_actions
+            WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
+          `, [tenantId, targetCompanyId, newSubcategoryId, action.name]);
+
+          if (existingAction.rows.length === 0) {
+            await pool.query(`
+              INSERT INTO "${schemaName}".ticket_actions
+              (id, tenant_id, company_id, subcategory_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            `, [
+              newActionId,
+              tenantId,
+              targetCompanyId,
+              newSubcategoryId,
+              action.name,
+              action.description,
+              action.color,
+              action.icon,
+              action.active,
+              action.sort_order || 1
+            ]);
+          } else {
+            // Update existing action
+            await pool.query(`
+              UPDATE "${schemaName}".ticket_actions
+              SET
+                description = $1,
+                color = $2,
+                icon = $3,
+                active = $4,
+                sort_order = $5,
+                updated_at = NOW()
+              WHERE tenant_id = $6 AND company_id = $7 AND subcategory_id = $8 AND name = $9
+            `, [
+              action.description,
+              action.color,
+              action.icon,
+              action.active,
+              action.sort_order || 1,
+              tenantId,
+              targetCompanyId,
+              newSubcategoryId,
+              action.name
+            ]);
+          }
+        }
+      }
+
+      // Copy field options - Create default ones if none exist
+      console.log('🏷️ Copying/Creating field options...');
+      let fieldOptions;
+      try {
+        fieldOptions = await db.execute(sql`
+          SELECT id, field_name, value, label, color, sort_order
+          FROM "${sql.raw(schemaName)}"."ticket_field_options"
+          WHERE company_id = ${sourceCompanyId} AND active = true
+        `);
+
+        // If no field options found, create default ones
+        if (fieldOptions.rows.length === 0) {
+          console.log('⚡ No field options found, creating default field options...');
+
+          const defaultFieldOptions = [
+            // Status options
+            { field_name: 'status', value: 'open', label: 'Aberto', color: '#ef4444', sort_order: 1 },
+            { field_name: 'status', value: 'in_progress', label: 'Em Andamento', color: '#f59e0b', sort_order: 2 },
+            { field_name: 'status', value: 'resolved', label: 'Resolvido', color: '#22c55e', sort_order: 3 },
+            { field_name: 'status', value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 4 },
+
+            // Priority options
+            { field_name: 'priority', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
+            { field_name: 'priority', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'priority', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 },
+
+            // Impact options
+            { field_name: 'impact', value: 'high', label: 'Alto', color: '#fb923c', sort_order: 1 },
+            { field_name: 'impact', value: 'medium', label: 'Médio', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'impact', value: 'low', label: 'Baixo', color: '#9ca3af', sort_order: 3 },
+
+            // Urgency options
+            { field_name: 'urgency', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
+            { field_name: 'urgency', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'urgency', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 }
+          ];
+
+          // Insert default field options for target company
+          for (const option of defaultFieldOptions) {
+            const optionId = randomUUID();
+            await db.execute(sql`
+              INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
+              (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
+              VALUES (
+                ${optionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
+                ${option.value}, ${option.label}, ${option.color},
+                ${option.sort_order}, true, NOW(), NOW()
+              )
+            `);
+          }
+
+          console.log(`✅ Created ${defaultFieldOptions.length} default field options for company ${targetCompanyId}`);
+          fieldOptions = { rows: defaultFieldOptions };
+        }
+      } catch (error: any) {
+        if (error.message.includes('does not exist') || error.message.includes('relation "ticket_field_options" does not exist')) {
+          console.log('⚠️ Field options table not found, skipping field options.');
+          fieldOptions = { rows: [] };
+        } else {
+          throw error;
+        }
+      }
+
+      for (const option of fieldOptions.rows) {
+        const newOptionId = randomUUID();
+
+        try {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
+            (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
+            VALUES (
+              ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
+              ${option.value}, ${option.label}, ${option.color || '#3b82f6'},
+              ${option.sort_order}, true, NOW(), NOW()
+            )
+          `);
+        } catch (error: any) {
+          console.log('⚠️ Field option insert error:', error.message);
+          // Minimal insert if needed, though field options are usually simpler
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
+            (id, tenant_id, company_id, field_name, value, label, active, created_at, updated_at)
+            VALUES (
+              ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
+              ${option.value}, ${option.label}, true, NOW(), NOW()
+            )
+          `);
+        }
+      }
+
+      const summary = `Copiou ${categories.rows.length} categorias, ${subcategories.rows.length} subcategorias, ${actions.rows.length} ações e ${fieldOptions.rows.length} opções de campos`;
+
+      console.log('✅ [TENANT-TEMPLATE] Hierarchy copy completed:', summary);
+
+      return {
+        success: true,
+        summary,
+        details: {
+          categories: categories.rows.length,
+          subcategories: subcategories.rows.length,
+          actions: actions.rows.length,
+          fieldOptions: fieldOptions.rows.length
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ [TENANT-TEMPLATE] Error copying hierarchy:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Copia hierarquia de uma empresa para outra
    */
   static async copyHierarchy(tenantId: string, sourceCompanyId: string, targetCompanyId: string) {
@@ -53,7 +416,7 @@ export class TenantTemplateService {
       // 1. Copiar categorias
       await this.copyCategoriesForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
 
-      // 2. Copiar subcategorias  
+      // 2. Copiar subcategorias
       await this.copySubcategoriesForCompany(schemaName, tenantId, sourceCompanyId, targetCompanyId);
 
       // 3. Copiar ações
@@ -72,16 +435,16 @@ export class TenantTemplateService {
     for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
       // Check if category already exists
       const existsQuery = `
-        SELECT id FROM "${schemaName}"."ticket_categories" 
+        SELECT id FROM "${schemaName}"."ticket_categories"
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
-      
+
       const existsResult = await pool.query(existsQuery, [tenantId, companyId, category.name]);
 
       if (existsResult.rows.length === 0) {
         // Insert new category
         const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_categories" 
+          INSERT INTO "${schemaName}"."ticket_categories"
           (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         `;
@@ -100,7 +463,7 @@ export class TenantTemplateService {
     // Get source categories
     const sourceQuery = `
       SELECT name, description, color, icon, active, sort_order
-      FROM "${schemaName}"."ticket_categories" 
+      FROM "${schemaName}"."ticket_categories"
       WHERE tenant_id = $1 AND company_id = $2
     `;
 
@@ -109,16 +472,16 @@ export class TenantTemplateService {
     for (const category of sourceResult.rows) {
       // Check if category already exists in target
       const existsQuery = `
-        SELECT id FROM "${schemaName}"."ticket_categories" 
+        SELECT id FROM "${schemaName}"."ticket_categories"
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
-      
+
       const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, category.name]);
 
       if (existsResult.rows.length === 0) {
         // Insert new category
         const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_categories" 
+          INSERT INTO "${schemaName}"."ticket_categories"
           (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         `;
@@ -139,7 +502,7 @@ export class TenantTemplateService {
     for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
       // Buscar ID da categoria pai
       const categoryQuery = `
-        SELECT id FROM "${schemaName}"."ticket_categories" 
+        SELECT id FROM "${schemaName}"."ticket_categories"
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
 
@@ -150,15 +513,15 @@ export class TenantTemplateService {
 
         // Check if subcategory already exists
         const existsQuery = `
-          SELECT id FROM "${schemaName}"."ticket_subcategories" 
+          SELECT id FROM "${schemaName}"."ticket_subcategories"
           WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
         `;
-        
+
         const existsResult = await pool.query(existsQuery, [tenantId, companyId, categoryId, subcategory.name]);
 
         if (existsResult.rows.length === 0) {
           const insertQuery = `
-            INSERT INTO "${schemaName}"."ticket_subcategories" 
+            INSERT INTO "${schemaName}"."ticket_subcategories"
             (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           `;
@@ -188,7 +551,7 @@ export class TenantTemplateService {
     for (const subcategory of sourceResult.rows) {
       // Find the category ID in the target company
       const categoryQuery = `
-        SELECT id FROM "${schemaName}"."ticket_categories" 
+        SELECT id FROM "${schemaName}"."ticket_categories"
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
 
@@ -199,15 +562,15 @@ export class TenantTemplateService {
 
         // Check if subcategory already exists
         const existsQuery = `
-          SELECT id FROM "${schemaName}"."ticket_subcategories" 
+          SELECT id FROM "${schemaName}"."ticket_subcategories"
           WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
         `;
-        
+
         const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, categoryId, subcategory.name]);
 
         if (existsResult.rows.length === 0) {
           const insertQuery = `
-            INSERT INTO "${schemaName}"."ticket_subcategories" 
+            INSERT INTO "${schemaName}"."ticket_subcategories"
             (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           `;
@@ -241,15 +604,15 @@ export class TenantTemplateService {
 
         // Check if action already exists
         const existsQuery = `
-          SELECT id FROM "${schemaName}"."ticket_actions" 
+          SELECT id FROM "${schemaName}"."ticket_actions"
           WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
         `;
-        
+
         const existsResult = await pool.query(existsQuery, [tenantId, companyId, subcategoryId, action.name]);
 
         if (existsResult.rows.length === 0) {
           const insertQuery = `
-            INSERT INTO "${schemaName}"."ticket_actions" 
+            INSERT INTO "${schemaName}"."ticket_actions"
             (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           `;
@@ -292,15 +655,15 @@ export class TenantTemplateService {
 
         // Check if action already exists
         const existsQuery = `
-          SELECT id FROM "${schemaName}"."ticket_actions" 
+          SELECT id FROM "${schemaName}"."ticket_actions"
           WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
         `;
-        
+
         const existsResult = await pool.query(existsQuery, [tenantId, targetCompanyId, subcategoryId, action.name]);
 
         if (existsResult.rows.length === 0) {
           const insertQuery = `
-            INSERT INTO "${schemaName}"."ticket_actions" 
+            INSERT INTO "${schemaName}"."ticket_actions"
             (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
             VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           `;
@@ -323,9 +686,9 @@ export class TenantTemplateService {
     // First ensure the table exists, if not create it
     try {
       const tableCheckQuery = `
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = $1 
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = $1
         AND table_name = 'ticket_field_options'
       `;
 
@@ -369,7 +732,7 @@ export class TenantTemplateService {
     for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
       try {
         const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_field_options" 
+          INSERT INTO "${schemaName}"."ticket_field_options"
           (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           ON CONFLICT (tenant_id, company_id, field_name, value) DO UPDATE SET
@@ -417,7 +780,7 @@ export class TenantTemplateService {
     for (const option of fallbackOptions) {
       try {
         const insertQuery = `
-          INSERT INTO "${schemaName}"."ticket_field_options" 
+          INSERT INTO "${schemaName}"."ticket_field_options"
           (id, tenant_id, company_id, field_name, value, display_label, color, is_default, active, sort_order, status_type, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
           ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
@@ -487,9 +850,9 @@ export class TenantTemplateService {
 
     // Check which table name exists in the schema
     const tableCheckQuery = `
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = $1 
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = $1
       AND table_name IN ('customer_companies', 'companies')
     `;
 
@@ -501,7 +864,7 @@ export class TenantTemplateService {
     const query = `
       INSERT INTO "${schemaName}"."${tableName}" (
         id, tenant_id, name, display_name, description, industry, size,
-        email, phone, website, subscription_tier, status, 
+        email, phone, website, subscription_tier, status,
         created_by, created_at, updated_at, is_active, country
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), true, 'Brazil')
       ON CONFLICT (id) DO NOTHING
@@ -545,9 +908,9 @@ export class TenantTemplateService {
 
     // First, check which table name exists in the schema
     const tableCheckQuery = `
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = $1 
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = $1
       AND table_name IN ('customer_companies', 'companies')
     `;
 
@@ -559,7 +922,7 @@ export class TenantTemplateService {
     const query = `
       INSERT INTO "${schemaName}"."${tableName}" (
         id, tenant_id, name, display_name, description, industry, size,
-        email, phone, website, subscription_tier, status, 
+        email, phone, website, subscription_tier, status,
         created_by, created_at, updated_at, is_active, country
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), true, 'Brazil')
       ON CONFLICT (id) DO NOTHING
@@ -623,7 +986,7 @@ export class TenantTemplateService {
 
     for (const option of fieldOptions) {
       const insertQuery = `
-        INSERT INTO "${schemaName}".ticket_field_options 
+        INSERT INTO "${schemaName}".ticket_field_options
         (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
@@ -661,10 +1024,10 @@ export class TenantTemplateService {
 
       // Check if company_id column exists
       const columnCheckQuery = `
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 
-        AND table_name = 'ticket_categories' 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = $1
+        AND table_name = 'ticket_categories'
         AND column_name = 'company_id'
       `;
 
@@ -716,7 +1079,7 @@ export class TenantTemplateService {
     }
 
     // Mapear nomes para IDs das subcategorias
-    const subcategoryIdMap = new Map<string, string>();
+    const subcategoryIDMap = new Map<string, string>();
 
     // 2. Criar subcategorias
     for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
@@ -732,10 +1095,10 @@ export class TenantTemplateService {
 
       // Check if company_id column exists in subcategories
       const columnCheckQuery = `
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 
-        AND table_name = 'ticket_subcategories' 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = $1
+        AND table_name = 'ticket_subcategories'
         AND column_name = 'company_id'
       `;
 
@@ -799,10 +1162,10 @@ export class TenantTemplateService {
 
       // Check if company_id column exists in actions
       const columnCheckQuery = `
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_schema = $1 
-        AND table_name = 'ticket_actions' 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = $1
+        AND table_name = 'ticket_actions'
         AND column_name = 'company_id'
       `;
 
@@ -961,9 +1324,9 @@ export class TenantTemplateService {
     try {
       // Check which company table exists
       const tableCheckQuery = `
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = $1 
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = $1
         AND table_name IN ('customer_companies', 'companies')
       `;
 
@@ -972,8 +1335,8 @@ export class TenantTemplateService {
 
       // Check for default company
       const companyQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}"."${tableName}" 
+        SELECT COUNT(*) as count
+        FROM "${schemaName}"."${tableName}"
         WHERE tenant_id = $1
       `;
       const companyResult = await pool.query(companyQuery, [tenantId]);
@@ -981,8 +1344,8 @@ export class TenantTemplateService {
 
       // Check for ticket field options
       const optionsQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}".ticket_field_options 
+        SELECT COUNT(*) as count
+        FROM "${schemaName}".ticket_field_options
         WHERE tenant_id = $1
       `;
       const optionsResult = await pool.query(optionsQuery, [tenantId]);
@@ -990,8 +1353,8 @@ export class TenantTemplateService {
 
       // Check for categories
       const categoriesQuery = `
-        SELECT COUNT(*) as count 
-        FROM "${schemaName}".ticket_categories 
+        SELECT COUNT(*) as count
+        FROM "${schemaName}".ticket_categories
         WHERE tenant_id = $1
       `;
       const categoriesResult = await pool.query(categoriesQuery, [tenantId]);
@@ -1021,15 +1384,15 @@ export class TenantTemplateService {
     // Simulate creating default data if sourceCompanyId is the default placeholder
     const defaultCompanyId = '00000000-0000-0000-0000-000000000001';
     await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_categories"
       (id, tenant_id, company_id, name, active, created_at, updated_at)
       VALUES (
-        '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, 
+        '${uuidv4()}', ${tenantId}, ${defaultCompanyId},
         'Default Category', true, NOW(), NOW()
       ) ON CONFLICT DO NOTHING
     `);
     await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
       (id, tenant_id, company_id, category_id, name, active, created_at, updated_at)
       VALUES (
         '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, '${defaultCompanyId}',
@@ -1037,7 +1400,7 @@ export class TenantTemplateService {
       ) ON CONFLICT DO NOTHING
     `);
     await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
       (id, tenant_id, company_id, subcategory_id, name, active, created_at, updated_at)
       VALUES (
         '${uuidv4()}', ${tenantId}, ${defaultCompanyId}, '${defaultCompanyId}',
@@ -1054,7 +1417,7 @@ export class TenantTemplateService {
     try {
       console.log('🔄 [TENANT-TEMPLATE] Starting hierarchy copy:', {
         sourceCompanyId,
-        targetCompanyId, 
+        targetCompanyId,
         tenantId
       });
 
@@ -1076,7 +1439,7 @@ export class TenantTemplateService {
       try {
         // Attempt to select with sort_order, assuming it might exist
         categories = await db.execute(sql`
-          SELECT id, name, description, color, icon, sort_order FROM "${sql.raw(schemaName)}"."ticket_categories" 
+          SELECT id, name, description, color, icon, sort_order FROM "${sql.raw(schemaName)}"."ticket_categories"
           WHERE company_id = ${sourceCompanyId} AND active = true
         `);
       } catch (error: any) {
@@ -1084,7 +1447,7 @@ export class TenantTemplateService {
         if (error.message.includes('column "sort_order" does not exist')) {
           console.log('⚠️ "sort_order" column not found in ticket_categories, fetching without it.');
           categories = await db.execute(sql`
-            SELECT id, name, description, color, icon FROM "${sql.raw(schemaName)}"."ticket_categories" 
+            SELECT id, name, description, color, icon FROM "${sql.raw(schemaName)}"."ticket_categories"
             WHERE company_id = ${sourceCompanyId} AND active = true
           `);
         } else {
@@ -1100,13 +1463,13 @@ export class TenantTemplateService {
 
         // Check if category already exists
         const existingCategory = await pool.query(`
-          SELECT id FROM "${schemaName}".ticket_categories 
+          SELECT id FROM "${schemaName}".ticket_categories
           WHERE tenant_id = $1 AND company_id = $2 AND name = $3
         `, [tenantId, targetCompanyId, category.name]);
 
         if (existingCategory.rows.length === 0) {
           await pool.query(`
-            INSERT INTO "${schemaName}".ticket_categories 
+            INSERT INTO "${schemaName}".ticket_categories
             (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           `, [
@@ -1123,8 +1486,8 @@ export class TenantTemplateService {
         } else {
           // Update existing category
           await pool.query(`
-            UPDATE "${schemaName}".ticket_categories 
-            SET 
+            UPDATE "${schemaName}".ticket_categories
+            SET
               description = $1,
               color = $2,
               icon = $3,
@@ -1176,13 +1539,13 @@ export class TenantTemplateService {
 
           // Check if subcategory already exists
           const existingSubcategory = await pool.query(`
-            SELECT id FROM "${schemaName}".ticket_subcategories 
+            SELECT id FROM "${schemaName}".ticket_subcategories
             WHERE tenant_id = $1 AND company_id = $2 AND category_id = $3 AND name = $4
           `, [tenantId, targetCompanyId, newCategoryId, subcategory.name]);
 
           if (existingSubcategory.rows.length === 0) {
             await pool.query(`
-              INSERT INTO "${schemaName}".ticket_subcategories 
+              INSERT INTO "${schemaName}".ticket_subcategories
               (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
             `, [
@@ -1200,8 +1563,8 @@ export class TenantTemplateService {
           } else {
             // Update existing subcategory
             await pool.query(`
-              UPDATE "${schemaName}".ticket_subcategories 
-              SET 
+              UPDATE "${schemaName}".ticket_subcategories
+              SET
                 description = $1,
                 color = $2,
                 icon = $3,
@@ -1231,7 +1594,7 @@ export class TenantTemplateService {
         actions = await db.execute(sql`
           SELECT a.id, a.name, a.description, a.color, a.icon, a.subcategory_id, a.sort_order
           FROM "${sql.raw(schemaName)}"."ticket_actions" a
-          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id  
+          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
           JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
           WHERE c.company_id = ${sourceCompanyId} AND a.active = true
         `);
@@ -1251,13 +1614,13 @@ export class TenantTemplateService {
         if (newSubcategoryId) {
           // Check if action already exists
           const existingAction = await pool.query(`
-            SELECT id FROM "${schemaName}".ticket_actions 
+            SELECT id FROM "${schemaName}".ticket_actions
             WHERE tenant_id = $1 AND company_id = $2 AND subcategory_id = $3 AND name = $4
           `, [tenantId, targetCompanyId, newSubcategoryId, action.name]);
 
           if (existingAction.rows.length === 0) {
             await pool.query(`
-              INSERT INTO "${schemaName}".ticket_actions 
+              INSERT INTO "${schemaName}".ticket_actions
               (id, tenant_id, company_id, subcategory_id, name, description, color, icon, active, sort_order, created_at, updated_at)
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
             `, [
@@ -1275,8 +1638,8 @@ export class TenantTemplateService {
           } else {
             // Update existing action
             await pool.query(`
-              UPDATE "${schemaName}".ticket_actions 
-              SET 
+              UPDATE "${schemaName}".ticket_actions
+              SET
                 description = $1,
                 color = $2,
                 icon = $3,
@@ -1304,8 +1667,8 @@ export class TenantTemplateService {
       let fieldOptions;
       try {
         fieldOptions = await db.execute(sql`
-          SELECT id, field_name, value, label, color, sort_order 
-          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+          SELECT id, field_name, value, label, color, sort_order
+          FROM "${sql.raw(schemaName)}"."ticket_field_options"
           WHERE company_id = ${sourceCompanyId} AND active = true
         `);
 
@@ -1340,11 +1703,11 @@ export class TenantTemplateService {
           for (const option of defaultFieldOptions) {
             const optionId = randomUUID();
             await db.execute(sql`
-              INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+              INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
               (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
               VALUES (
                 ${optionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
-                ${option.value}, ${option.label}, ${option.color}, 
+                ${option.value}, ${option.label}, ${option.color},
                 ${option.sort_order}, true, NOW(), NOW()
               )
             `);
@@ -1367,19 +1730,19 @@ export class TenantTemplateService {
 
         try {
           await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
             (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
             VALUES (
               ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
-              ${option.value}, ${option.label}, ${option.color || '#3b82f6'}, 
-              ${option.sort_order || 1}, true, NOW(), NOW()
+              ${option.value}, ${option.label}, ${option.color || '#3b82f6'},
+              ${option.sort_order}, true, NOW(), NOW()
             )
           `);
         } catch (error: any) {
           console.log('⚠️ Field option insert error:', error.message);
           // Minimal insert if needed, though field options are usually simpler
           await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+            INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options"
             (id, tenant_id, company_id, field_name, value, label, active, created_at, updated_at)
             VALUES (
               ${newOptionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
@@ -1398,7 +1761,7 @@ export class TenantTemplateService {
         summary,
         details: {
           categories: categories.rows.length,
-          subcategories: subcategories.rows.length, 
+          subcategories: subcategories.rows.length,
           actions: actions.rows.length,
           fieldOptions: fieldOptions.rows.length
         }

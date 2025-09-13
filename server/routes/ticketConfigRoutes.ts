@@ -1686,9 +1686,9 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} in tenant ${tenantId}`);
+    console.log(`🔄 Copying hierarchy from company ${sourceCompanyId} to company ${targetCompanyId} in tenant ${tenantId}`);
 
-    // Execute copy hierarchy
+    // Execute copy hierarchy using the user's tenantId (not the target company ID)
     await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
 
     res.json({
