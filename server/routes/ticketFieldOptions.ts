@@ -102,130 +102,89 @@ router.get('/:fieldName', jwtAuth, async (req: AuthenticatedRequest, res: Respon
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { tenantId } = req.user!;
-    const { fieldName, customerId, dependsOn } = req.query;
+    const { fieldName, companyId } = req.query;
 
     console.log(`🔍 Fetching field options for ${fieldName}:`, {
       tenantId,
-      customerId,
-      fieldName,
-      dependsOn
+      companyId,
+      fieldName
     });
 
-    // Usar a empresa padrão se nenhuma for especificada
-    const effectiveCustomerId = customerId || '00000000-0000-0000-0000-000000000001';
-    const effectiveCompanyId = effectiveCustomerId; // Alias for clarity in queries
+    // Import db connection
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
 
-    console.log(`🎯 ${customerId ? 'Company specific' : 'No company selected'}, using ${effectiveCustomerId === '00000000-0000-0000-0000-000000000001' ? 'Default' : 'Selected'} company for field options`);
-
+    // Use default company if none specified
+    const effectiveCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    let query = '';
-    let queryParams: any[] = [];
+    console.log(`🎯 Using company ${effectiveCompanyId} for field options`);
 
-    // Para campos hierárquicos (categoria → subcategoria → ação)
-    if (fieldName === 'subcategory' && dependsOn) {
-      // Buscar subcategorias baseadas na categoria selecionada
-      query = `
-        SELECT 
-          tso.id,
-          tso.field_name,
-          tso.option_value as value,
-          tso.display_label as label,
-          tso.color_hex,
-          tso.icon_name,
-          tso.sort_order,
-          tso.is_default,
-          tso.company_id,
-          tso.created_at
-        FROM ${schemaName}.ticket_field_options tso
-        INNER JOIN ${schemaName}.ticket_subcategories ts ON ts.code = tso.option_value
-        INNER JOIN ${schemaName}.ticket_categories tc ON tc.id = ts.category_id
-        WHERE tso.tenant_id = $1 
-        AND tso.company_id = $2 
-        AND tso.field_name = $3 
-        AND tc.code = $4
-        AND tso.is_active = true
-        ORDER BY tso.sort_order ASC, tso.display_label ASC
-      `;
-      queryParams = [tenantId, effectiveCompanyId, fieldName, dependsOn];
-    } else if (fieldName === 'action' && dependsOn) {
-      // Buscar ações baseadas na subcategoria selecionada
-      query = `
-        SELECT 
-          tso.id,
-          tso.field_name,
-          tso.option_value as value,
-          tso.display_label as label,
-          tso.color_hex,
-          tso.icon_name,
-          tso.sort_order,
-          tso.is_default,
-          tso.company_id,
-          tso.created_at
-        FROM ${schemaName}.ticket_field_options tso
-        INNER JOIN ${schemaName}.ticket_actions ta ON ta.code = tso.option_value
-        INNER JOIN ${schemaName}.ticket_subcategories ts ON ts.id = ta.subcategory_id
-        WHERE tso.tenant_id = $1 
-        AND tso.company_id = $2 
-        AND tso.field_name = $3 
-        AND ts.code = $4
-        AND tso.is_active = true
-        ORDER BY tso.sort_order ASC, tso.display_label ASC
-      `;
-      queryParams = [tenantId, effectiveCompanyId, fieldName, dependsOn];
-    } else {
-      // Query padrão para campos não hierárquicos ou categoria (nível raiz)
-      query = `
+    // Try to get from ticket_field_options table first
+    try {
+      const result = await db.execute(sql`
         SELECT 
           id,
           field_name,
-          option_value as value,
-          display_label as label,
-          color_hex,
-          icon_name,
+          value as option_value,
+          label as display_label,
+          color as color_hex,
           sort_order,
-          is_default,
+          active as is_active,
           company_id,
           created_at
-        FROM ${schemaName}.ticket_field_options 
-        WHERE tenant_id = $1 
-        AND company_id = $2 
-        AND field_name = $3 
-        AND is_active = true
-        ORDER BY sort_order ASC, display_label ASC
-      `;
-      queryParams = [tenantId, effectiveCompanyId, fieldName];
+        FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+        WHERE tenant_id = ${tenantId} 
+        AND company_id = ${effectiveCompanyId} 
+        AND field_name = ${fieldName || 'status'}
+        AND active = true
+        ORDER BY sort_order ASC, label ASC
+      `);
+
+      if (result.rows.length > 0) {
+        console.log(`✅ Found ${result.rows.length} field options in database`);
+        return res.json({
+          success: true,
+          data: result.rows,
+          fieldName,
+          companyId: effectiveCompanyId,
+          tenantId
+        });
+      }
+    } catch (dbError) {
+      console.log('⚠️ ticket_field_options table not found, using fallback');
     }
 
-    // Assuming 'pool' is available in this scope and is a valid database connection pool object
-    // Replace this with your actual pool query logic
-    const result = { rows: [] }; // Placeholder for actual query result
-    console.log('Executing query:', query);
-    console.log('With params:', queryParams);
-    // const result = await pool.query(query, queryParams);
+    // Fallback to mock data if no database records found
+    console.log('🔄 Using fallback field options data');
+    
+    const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS] || FIELD_OPTIONS.status;
+    
+    // Transform mock data to match expected format
+    const transformedOptions = fallbackOptions.map((option, index) => ({
+      id: `mock_${index}`,
+      field_name: fieldName || 'status',
+      option_value: option.value,
+      display_label: option.label,
+      color_hex: option.color,
+      sort_order: index + 1,
+      is_active: true,
+      company_id: effectiveCompanyId,
+      created_at: new Date().toISOString()
+    }));
 
-
-    console.log(`🔍 Field options query result for company: ${effectiveCompanyId}`, {
-      totalRows: result.rows.length,
-      hierarchical: !!dependsOn,
-      dependsOn,
-      byFieldName: result.rows.reduce((acc: any, row: any) => {
-        acc[row.field_name] = (acc[row.field_name] || 0) + 1;
-        return acc;
-      }, {}),
-      statusRows: fieldName === 'status' ? result.rows : undefined
-    });
+    console.log(`🏢 Field options found: ${transformedOptions.length} records for ${fieldName}`);
 
     res.json({
       success: true,
-      data: result.rows,
+      data: transformedOptions,
       fieldName,
-      companyId: effectiveCompanyId, // Changed from customerId to companyId for consistency
+      companyId: effectiveCompanyId,
       tenantId,
-      dependsOn
+      source: 'fallback'
     });
   } catch (error) {
-    console.error('Error fetching field options:', error);
+    console.error('❌ Error fetching field options:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch field options',

@@ -968,8 +968,8 @@ export class TenantTemplateService {
         }
       }
 
-      // Copy field options
-      console.log('🏷️ Copying field options...');
+      // Copy field options - Create default ones if none exist
+      console.log('🏷️ Copying/Creating field options...');
       let fieldOptions;
       try {
         fieldOptions = await db.execute(sql`
@@ -977,6 +977,51 @@ export class TenantTemplateService {
           FROM "${sql.raw(schemaName)}"."ticket_field_options" 
           WHERE company_id = ${sourceCompanyId} AND active = true
         `);
+        
+        // If no field options found, create default ones
+        if (fieldOptions.rows.length === 0) {
+          console.log('⚡ No field options found, creating default field options...');
+          
+          const defaultFieldOptions = [
+            // Status options
+            { field_name: 'status', value: 'open', label: 'Aberto', color: '#ef4444', sort_order: 1 },
+            { field_name: 'status', value: 'in_progress', label: 'Em Andamento', color: '#f59e0b', sort_order: 2 },
+            { field_name: 'status', value: 'resolved', label: 'Resolvido', color: '#22c55e', sort_order: 3 },
+            { field_name: 'status', value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 4 },
+            
+            // Priority options
+            { field_name: 'priority', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
+            { field_name: 'priority', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'priority', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 },
+            
+            // Impact options
+            { field_name: 'impact', value: 'high', label: 'Alto', color: '#fb923c', sort_order: 1 },
+            { field_name: 'impact', value: 'medium', label: 'Médio', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'impact', value: 'low', label: 'Baixo', color: '#9ca3af', sort_order: 3 },
+            
+            // Urgency options
+            { field_name: 'urgency', value: 'high', label: 'Alta', color: '#f87171', sort_order: 1 },
+            { field_name: 'urgency', value: 'medium', label: 'Média', color: '#fcd34d', sort_order: 2 },
+            { field_name: 'urgency', value: 'low', label: 'Baixa', color: '#9ca3af', sort_order: 3 }
+          ];
+          
+          // Insert default field options for target company
+          for (const option of defaultFieldOptions) {
+            const optionId = randomUUID();
+            await db.execute(sql`
+              INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+              (id, tenant_id, company_id, field_name, value, label, color, sort_order, active, created_at, updated_at)
+              VALUES (
+                ${optionId}, ${tenantId}, ${targetCompanyId}, ${option.field_name},
+                ${option.value}, ${option.label}, ${option.color}, 
+                ${option.sort_order}, true, NOW(), NOW()
+              )
+            `);
+          }
+          
+          console.log(`✅ Created ${defaultFieldOptions.length} default field options for company ${targetCompanyId}`);
+          fieldOptions = { rows: defaultFieldOptions };
+        }
       } catch (error: any) {
         if (error.message.includes('does not exist') || error.message.includes('relation "ticket_field_options" does not exist')) {
           console.log('⚠️ Field options table not found, skipping field options.');
