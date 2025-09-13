@@ -176,7 +176,7 @@ const useTicketMetadata = (selectedCompany: string) => {
     if (selectedCompany) {
       // Simulate fetching data
       console.log(`Simulating fetch for company: ${selectedCompany}`);
-      
+
       // Mock categories
       const mockCategories = [
         { id: 'cat1', name: 'Hardware', description: 'Problemas de hardware', color: '#3b82f6', active: true, sortOrder: 1, companyId: selectedCompany },

@@ -1676,4 +1676,46 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
   }
 });
 
+// ============================================================================
+// COPY DEFAULT STRUCTURE - Copiar estrutura hierárquica padrão
+// ============================================================================
+
+// POST /api/ticket-config/copy-default-structure
+router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { companyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ message: 'Company ID required' });
+    }
+
+    console.log('🔄 Aplicando estrutura padrão para empresa:', companyId);
+
+    // Importar o serviço de template
+    const { TenantTemplateService } = await import('../services/TenantTemplateService');
+    
+    // Aplicar a estrutura padrão apenas para esta empresa específica
+    await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
+
+    console.log('✅ Estrutura padrão aplicada com sucesso');
+
+    res.json({
+      success: true,
+      message: 'Estrutura hierárquica padrão copiada com sucesso'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao copiar estrutura padrão:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to copy default structure',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

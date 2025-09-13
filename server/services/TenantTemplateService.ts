@@ -30,6 +30,147 @@ const randomUUID = uuidv4;
 
 
 export class TenantTemplateService {
+  
+  /**
+   * Aplica a estrutura hierárquica padrão para uma empresa específica
+   */
+  static async applyDefaultStructureToCompany(tenantId: string, companyId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    console.log(`🔄 Aplicando estrutura padrão para empresa ${companyId} no schema ${schemaName}`);
+    
+    try {
+      // 1. Aplicar categorias
+      await this.applyCategoriesForCompany(schemaName, tenantId, companyId);
+      
+      // 2. Aplicar subcategorias  
+      await this.applySubcategoriesForCompany(schemaName, tenantId, companyId);
+      
+      // 3. Aplicar ações
+      await this.applyActionsForCompany(schemaName, tenantId, companyId);
+      
+      // 4. Aplicar opções de campos
+      await this.applyFieldOptionsForCompany(schemaName, tenantId, companyId);
+      
+      console.log('✅ Estrutura padrão aplicada com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao aplicar estrutura padrão:', error);
+      throw error;
+    }
+  }
+
+  private static async applyCategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
+    const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
+    
+    for (const category of DEFAULT_COMPANY_TEMPLATE.categories) {
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+        (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${category.name}, ${category.description}, 
+                ${category.color}, ${category.icon}, ${category.active}, ${category.sortOrder}, NOW(), NOW())
+        ON CONFLICT (tenant_id, company_id, name) DO UPDATE SET
+          description = ${category.description},
+          color = ${category.color},
+          icon = ${category.icon},
+          active = ${category.active},
+          sort_order = ${category.sortOrder},
+          updated_at = NOW()
+      `);
+    }
+    
+    console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.categories.length} categorias aplicadas`);
+  }
+
+  private static async applySubcategoriesForCompany(schemaName: string, tenantId: string, companyId: string) {
+    const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
+    
+    for (const subcategory of DEFAULT_COMPANY_TEMPLATE.subcategories) {
+      // Buscar ID da categoria pai
+      const categoryResult = await db.execute(sql`
+        SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
+        WHERE tenant_id = ${tenantId} AND company_id = ${companyId} AND name = ${subcategory.categoryName}
+      `);
+      
+      if (categoryResult.rows.length > 0) {
+        const categoryId = categoryResult.rows[0].id;
+        
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+          (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+          VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, ${subcategory.description}, 
+                  ${subcategory.color}, ${subcategory.icon}, ${subcategory.active}, ${subcategory.sortOrder}, NOW(), NOW())
+          ON CONFLICT (tenant_id, category_id, name) DO UPDATE SET
+            description = ${subcategory.description},
+            color = ${subcategory.color},
+            icon = ${subcategory.icon},
+            active = ${subcategory.active},
+            sort_order = ${subcategory.sortOrder},
+            updated_at = NOW()
+        `);
+      }
+    }
+    
+    console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.subcategories.length} subcategorias aplicadas`);
+  }
+
+  private static async applyActionsForCompany(schemaName: string, tenantId: string, companyId: string) {
+    const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
+    
+    for (const action of DEFAULT_COMPANY_TEMPLATE.actions) {
+      // Buscar ID da subcategoria pai
+      const subcategoryResult = await db.execute(sql`
+        SELECT s.id FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
+        WHERE s.tenant_id = ${tenantId} AND c.company_id = ${companyId} AND s.name = ${action.subcategoryName}
+      `);
+      
+      if (subcategoryResult.rows.length > 0) {
+        const subcategoryId = subcategoryResult.rows[0].id;
+        
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+          (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
+          VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, ${action.description}, 
+                  ${action.estimatedTimeMinutes}, ${action.color}, ${action.icon}, ${action.active}, ${action.sortOrder}, ${action.actionType}, NOW(), NOW())
+          ON CONFLICT (tenant_id, subcategory_id, name) DO UPDATE SET
+            description = ${action.description},
+            estimated_time_minutes = ${action.estimatedTimeMinutes},
+            color = ${action.color},
+            icon = ${action.icon},
+            active = ${action.active},
+            sort_order = ${action.sortOrder},
+            action_type = ${action.actionType},
+            updated_at = NOW()
+        `);
+      }
+    }
+    
+    console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.actions.length} ações aplicadas`);
+  }
+
+  private static async applyFieldOptionsForCompany(schemaName: string, tenantId: string, companyId: string) {
+    const { DEFAULT_COMPANY_TEMPLATE } = await import('../templates/default-company-template');
+    
+    for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+        (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
+        VALUES (gen_random_uuid(), ${tenantId}, ${companyId}, ${option.fieldName}, ${option.value}, ${option.label}, 
+                ${option.color}, ${option.icon || null}, ${option.isDefault}, ${option.isActive}, ${option.sortOrder}, ${option.statusType || null}, NOW(), NOW())
+        ON CONFLICT (tenant_id, company_id, field_name, value) DO UPDATE SET
+          display_label = ${option.label},
+          color = ${option.color},
+          icon = ${option.icon || null},
+          is_default = ${option.isDefault},
+          active = ${option.isActive},
+          sort_order = ${option.sortOrder},
+          status_type = ${option.statusType || null},
+          updated_at = NOW()
+      `);
+    }
+    
+    console.log(`✅ ${DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length} opções de campos aplicadas`);
+  }
   /**
    * Aplica o template completo da empresa Default para um novo tenant
    */
