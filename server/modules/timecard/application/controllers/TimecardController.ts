@@ -189,7 +189,7 @@ export class TimecardController {
           new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
         )[0];
         
-        console.log('[TIMECARD-CREATE] Using most recent active entry:', activeCheckIn.id?.substring(0, 8));
+        console.log('[TIMECARD-CREATE] Using most recent active entry:', String(activeCheckIn.id).substring(0, 8));
 
         // ✅ 1QA.MD: Usar timestamp ISO diretamente para PostgreSQL
         // Update the existing check-in record with check-out time
