@@ -1335,51 +1335,49 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 });
 
 // ============================================================================
-// COPY HIERARCHY - Copiar estrutura hierárquica completa
+// COPY STRUCTURE - AplicAR template padrão
 // ============================================================================
 
-// POST /api/ticket-config/copy-hierarchy
-router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+// POST /api/ticket-config/copy-structure
+router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { targetCompanyId } = req.body;
+    const { companyId } = req.body;
 
     if (!tenantId) {
       return res.status(401).json({ message: 'Tenant required' });
     }
 
-    if (!targetCompanyId) {
-      return res.status(400).json({ message: 'Target company ID required' });
+    if (!companyId) {
+      return res.status(400).json({ message: 'Company ID required' });
     }
 
-    console.log(`🔄 Iniciando cópia da estrutura hierárquica para empresa ${targetCompanyId}`);
+    console.log('🔄 Copying structure for company:', companyId);
 
-    // Aplicar a estrutura padrão completa
-    await TenantTemplateService.applyDefaultStructureToCompany(tenantId, targetCompanyId);
+    // Import TenantTemplateService
+    const { TenantTemplateService } = await import('../services/TenantTemplateService');
 
-    console.log('✅ Estrutura hierárquica copiada com sucesso');
+    // Apply default structure to the company
+    await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
+
+    console.log('✅ Structure copied successfully for company:', companyId);
 
     res.json({
       success: true,
-      message: 'Estrutura hierárquica copiada com sucesso',
-      data: {
-        tenantId,
-        targetCompanyId,
-        appliedTemplate: 'DEFAULT_COMPANY_TEMPLATE'
-      }
+      message: 'Estrutura copiada com sucesso!'
     });
   } catch (error) {
-    console.error('❌ Erro ao copiar estrutura hierárquica:', error);
+    console.error('❌ Error copying structure:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to copy hierarchical structure',
+      error: 'Failed to copy structure',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
 // ============================================================================
-// FIELD OPTIONS - Opções para campos de tickets
+// FIELD OPTIONS - Metadados dos campos
 // ============================================================================
 
 // GET /api/ticket-config/field-options
