@@ -192,17 +192,17 @@ export class TenantTemplateService {
   }
 
   /**
-   * Cria as opções de campos de tickets (priority, status, category, etc.)
+   * Cria as opções básicas de campos de tickets (apenas status, priority, impact, urgency)
    */
   private static async createTicketFieldOptions(
     pool: any,
     schemaName: string,
     tenantId: string
   ): Promise<void> {
-    console.log('[TENANT-TEMPLATE] Creating ticket field options');
+    console.log('[TENANT-TEMPLATE] Creating basic ticket field options');
 
     const fieldOptions = [
-      // Status options
+      // Status options - básicas para funcionamento
       { field_type: 'status', field_value: 'new', label: 'Novo', color: '#f59e0b', sort_order: 1, is_active: true },
       { field_type: 'status', field_value: 'open', label: 'Aberto', color: '#3b82f6', sort_order: 2, is_active: true },
       { field_type: 'status', field_value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6', sort_order: 3, is_active: true },
@@ -246,7 +246,7 @@ export class TenantTemplateService {
       ]);
     }
 
-    console.log('[TENANT-TEMPLATE] Ticket field options created successfully');
+    console.log('[TENANT-TEMPLATE] Basic ticket field options created successfully');
   }
 
   /**

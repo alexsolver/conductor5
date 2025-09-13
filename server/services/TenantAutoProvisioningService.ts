@@ -404,50 +404,42 @@ class TenantAutoProvisioningService {
 
   private async initializeTicketConfigurations(tenantId: string, companyId: string): Promise<void> {
     try {
-      console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
+      console.log('🎫 [TICKET-CONFIG] Verifying ticket configurations...');
 
-      // The hierarchical structure is already created by TenantTemplateService
-      // Just create basic field options here
+      // All ticket configurations (hierarchical structure + field options)
+      // are already created by TenantTemplateService
+      // This method now just verifies the setup was successful
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const { db } = await import("../db");
       const { sql } = await import("drizzle-orm");
 
-      // Create basic field options (status, priority, etc.)
-      const fieldOptions = [
-        // Status options
-        { field_type: 'status', field_value: 'new', label: 'Novo', color: '#f59e0b', sort_order: 1, is_active: true },
-        { field_type: 'status', field_value: 'open', label: 'Aberto', color: '#3b82f6', sort_order: 2, is_active: true },
-        { field_type: 'status', field_value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6', sort_order: 3, is_active: true },
-        { field_type: 'status', field_value: 'resolved', label: 'Resolvido', color: '#10b981', sort_order: 4, is_active: true },
-        { field_type: 'status', field_value: 'closed', label: 'Fechado', color: '#6b7280', sort_order: 5, is_active: true },
+      // Verify hierarchical structure was created
+      try {
+        const categoriesResult = await db.execute(sql`
+          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_categories
+        `);
+        const categoriesCount = parseInt(categoriesResult[0]?.count || '0');
 
-        // Priority options
-        { field_type: 'priority', field_value: 'low', label: 'Baixa', color: '#10b981', sort_order: 1, is_active: true },
-        { field_type: 'priority', field_value: 'medium', label: 'Média', color: '#f59e0b', sort_order: 2, is_active: true },
-        { field_type: 'priority', field_value: 'high', label: 'Alta', color: '#f97316', sort_order: 3, is_active: true },
-        { field_type: 'priority', field_value: 'critical', label: 'Crítica', color: '#dc2626', sort_order: 4, is_active: true },
-      ];
+        const subcategoriesResult = await db.execute(sql`
+          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_subcategories
+        `);
+        const subcategoriesCount = parseInt(subcategoriesResult[0]?.count || '0');
 
-      for (const option of fieldOptions) {
-        try {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-            (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
-            VALUES (
-              ${option.field_type}, ${option.field_value}, ${option.label}, ${option.color}, 
-              ${option.sort_order}, ${option.is_active}, ${tenantId}, NOW(), NOW()
-            )
-          `);
-        } catch (error) {
-          console.warn(`⚠️ Failed to create field option ${option.field_type}:${option.field_value}:`, error.message);
-        }
+        const actionsResult = await db.execute(sql`
+          SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}".ticket_actions
+        `);
+        const actionsCount = parseInt(actionsResult[0]?.count || '0');
+
+        console.log(`✅ [TICKET-CONFIG] Hierarchical structure verified: ${categoriesCount} categories, ${subcategoriesCount} subcategories, ${actionsCount} actions`);
+      } catch (error) {
+        console.warn(`⚠️ [TICKET-CONFIG] Could not verify hierarchical structure:`, error.message);
       }
 
-      console.log(`✅ [TICKET-CONFIG] Basic field options initialized successfully!`);
-
-    } catch (error) {
-      console.error('❌ [TICKET-CONFIG] Erro ao inicializar configurações básicas:', error);
-      // Don't throw, as this is not critical
+      console.log('✅ [TICKET-CONFIG] Ticket configurations verification completed');
+    } catch (error: any) {
+      console.error('❌ [TICKET-CONFIG] Error verifying ticket configurations:', error);
+      // Continue without failing the entire tenant creation
     }
   }
 
