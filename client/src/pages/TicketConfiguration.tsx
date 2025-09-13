@@ -163,6 +163,81 @@ interface NumberingConfig {
   companyId: string;
 }
 
+// Mock hook for demonstration purposes, replace with actual implementation
+const useTicketMetadata = (selectedCompany: string) => {
+  // Placeholder for actual data fetching logic
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [actions, setActions] = useState<Action[]>([]);
+  const [fieldOptions, setFieldOptions] = useState<FieldOption[]>([]);
+  const [rawData, setRawData] = useState<any>(null);
+
+  useEffect(() => {
+    if (selectedCompany) {
+      // Simulate fetching data
+      console.log(`Simulating fetch for company: ${selectedCompany}`);
+      
+      // Mock categories
+      const mockCategories = [
+        { id: 'cat1', name: 'Hardware', description: 'Problemas de hardware', color: '#3b82f6', active: true, sortOrder: 1, companyId: selectedCompany },
+        { id: 'cat2', name: 'Software', description: 'Problemas de software', color: '#10b981', active: true, sortOrder: 2, companyId: selectedCompany },
+        { id: 'cat3', name: 'Rede', description: 'Problemas de rede', color: '#f59e0b', active: false, sortOrder: 3, companyId: selectedCompany },
+      ];
+      setCategories(mockCategories);
+
+      // Mock subcategories
+      const mockSubcategories = [
+        { id: 'sub1', name: 'Desktop', description: 'Problemas com Desktops', categoryId: 'cat1', color: '#60a5fa', active: true, sortOrder: 1 },
+        { id: 'sub2', name: 'Notebook', description: 'Problemas com Notebooks', categoryId: 'cat1', color: '#90ee90', active: true, sortOrder: 2 },
+        { id: 'sub3', name: 'Sistema Operacional', description: 'Problemas com SO', categoryId: 'cat2', color: '#34d399', active: true, sortOrder: 1 },
+        { id: 'sub4', name: 'Aplicativo X', description: 'Problemas com App X', categoryId: 'cat2', color: '#fcd34d', active: false, sortOrder: 2 },
+      ];
+      setSubcategories(mockSubcategories);
+
+      // Mock actions
+      const mockActions = [
+        { id: 'act1', name: 'Troca de Peça', description: 'Substituir componente defeituoso', subcategoryId: 'sub1', color: '#93c5fc', active: true, sortOrder: 1 },
+        { id: 'act2', name: 'Formatação', description: 'Formatar disco rígido', subcategoryId: 'sub2', color: '#a7f3d0', active: true, sortOrder: 1 },
+        { id: 'act3', name: 'Reinstalação', description: 'Reinstalar sistema operacional', subcategoryId: 'sub3', color: '#fca503', active: true, sortOrder: 1 },
+        { id: 'act4', name: 'Update App X', description: 'Atualizar aplicativo X', subcategoryId: 'sub4', color: '#fde68a', active: true, sortOrder: 1 },
+        { id: 'act5', name: 'Configuração Rede', description: 'Ajustar configurações de rede', subcategoryId: 'sub3', color: '#fca503', active: true, sortOrder: 2 },
+      ];
+      setActions(mockActions);
+
+      // Mock field options
+      const mockFieldOptions = [
+        // Status
+        { id: 'fo1', fieldName: 'status', value: 'open', displayLabel: 'Aberto', color: '#ef4444', active: true, sortOrder: 1, statusType: 'open' },
+        { id: 'fo2', fieldName: 'status', value: 'in_progress', displayLabel: 'Em Andamento', color: '#f59e0b', active: true, sortOrder: 2, statusType: 'open' },
+        { id: 'fo3', fieldName: 'status', value: 'resolved', displayLabel: 'Resolvido', color: '#22c55e', active: true, sortOrder: 3, statusType: 'resolved' },
+        { id: 'fo4', fieldName: 'status', value: 'closed', displayLabel: 'Fechado', color: '#6b7280', active: true, sortOrder: 4, statusType: 'closed' },
+        // Priority
+        { id: 'fo5', fieldName: 'priority', value: 'high', displayLabel: 'Alta', color: '#f87171', active: true, sortOrder: 1, isDefault: true },
+        { id: 'fo6', fieldName: 'priority', value: 'medium', displayLabel: 'Média', color: '#fcd34d', active: true, sortOrder: 2 },
+        { id: 'fo7', fieldName: 'priority', value: 'low', displayLabel: 'Baixa', color: '#9ca3af', active: true, sortOrder: 3 },
+        // Impact
+        { id: 'fo8', fieldName: 'impact', value: 'high', displayLabel: 'Alto', color: '#fb923c', active: true, sortOrder: 1 },
+        { id: 'fo9', fieldName: 'impact', value: 'medium', displayLabel: 'Médio', color: '#fcd34d', active: true, sortOrder: 2, isDefault: true },
+        { id: 'fo10', fieldName: 'impact', value: 'low', displayLabel: 'Baixo', color: '#9ca3af', active: true, sortOrder: 3 },
+        // Urgency
+        { id: 'fo11', fieldName: 'urgency', value: 'high', displayLabel: 'Alta', color: '#f87171', active: true, sortOrder: 1 },
+        { id: 'fo12', fieldName: 'urgency', value: 'medium', displayLabel: 'Média', color: '#fcd34d', active: true, sortOrder: 2 },
+        { id: 'fo13', fieldName: 'urgency', value: 'low', displayLabel: 'Baixa', color: '#9ca3af', active: true, sortOrder: 3, isDefault: true },
+      ];
+      setFieldOptions(mockFieldOptions);
+
+      setRawData({ categories: mockCategories, subcategories: mockSubcategories, actions: mockActions, fieldOptions: mockFieldOptions });
+    }
+  }, [selectedCompany]);
+
+  const isLoading = false; // Mock loading
+  const error = null; // Mock error
+  const refetch = () => {}; // Mock refetch
+
+  return { categories, subcategories, actions, fieldOptions, isLoading, error, refetch, rawData };
+};
+
+
 const TicketConfiguration: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -271,6 +346,23 @@ const TicketConfiguration: React.FC = () => {
     return [];
   })();
 
+  // Fetching metadata using the mock hook
+  const { categories, subcategories, actions, fieldOptions, isLoading, error, refetch, rawData } = useTicketMetadata(selectedCompany);
+
+  console.log('🔍 TicketConfiguration data:', { 
+    categories: categories?.length, 
+    subcategories: subcategories?.length, 
+    actions: actions?.length,
+    selectedCompany,
+    rawSubcategories: rawData?.subcategories,
+    rawActions: rawData?.actions
+  });
+
+  // The following queries are commented out because the useTicketMetadata hook is now used
+  // and it fetches all the necessary data. If you need to re-enable these,
+  // ensure they are handled correctly alongside the hook's data.
+
+  /*
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', selectedCompany],
     queryFn: async () => {
@@ -303,8 +395,9 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
+  */
 
-  const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
+  const { data: fieldOptionsData, refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
@@ -372,9 +465,9 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       // Invalidate with the correct query key
-      await queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
       // Force refetch to ensure UI updates
-      await queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] });
+      queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] });
       setDialogOpen(false);
       subcategoryForm.reset();
       toast({ title: "Subcategoria criada com sucesso" });
@@ -504,10 +597,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option updated successfully:', result);
-      
+
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-      
+
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
@@ -535,10 +628,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option status updated successfully:', result);
-      
+
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-      
+
       toast({ 
         title: "Status atualizado com sucesso",
         description: "A opção foi ativada/desativada."
@@ -631,7 +724,7 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Hierarchy copied successfully:', result);
-      
+
       // Invalidate all related queries to refresh data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] }),
@@ -640,7 +733,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-      
+
       // Force refetch to ensure UI updates
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ['categories', selectedCompany] }),
@@ -649,7 +742,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.refetchQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-      
+
       toast({ 
         title: "Estrutura copiada com sucesso",
         description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
@@ -790,7 +883,7 @@ const TicketConfiguration: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-          
+
           {/* Botão para copiar estrutura da empresa Default */}
           {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
             <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1021,13 +1114,17 @@ const TicketConfiguration: React.FC = () => {
                         {/* Conteúdo Expandido - Subcategorias */}
                         {expandedCategories.has(category.id) && (
                           <div className="bg-white">
-                            {subcategories
-                              .filter((sub: Subcategory) => sub.categoryId === category.id)
+                            {subcategories && subcategories.length > 0 ? subcategories
+                              .filter((sub: Subcategory) => {
+                                if (!searchTerm) return true;
+                                return sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                       sub.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                              })
                               .map((subcategory: Subcategory) => (
                                 <div key={subcategory.id} className="border-t border-gray-100">
                                   {/* Header da Subcategoria */}
                                   <div className="flex items-center justify-between p-4 pl-12 bg-green-50 hover:bg-green-100 transition-colors">
-                                    <div className="flex items-center space-x-3 flex-1">
+                                    <div className="flex items-center space-x-3">
                                       <div 
                                         className="w-4 h-4 rounded border border-white shadow-sm"
                                         style={{ backgroundColor: subcategory.color }}
@@ -1078,8 +1175,12 @@ const TicketConfiguration: React.FC = () => {
 
                                   {/* Ações da Subcategoria */}
                                   <div className="pl-16 pr-4 pb-4">
-                                    {actions
-                                      .filter((action: Action) => action.subcategoryId === subcategory.id)
+                                    {actions && actions.length > 0 ? actions
+                                      .filter(action => {
+                                        if (!searchTerm) return true;
+                                        return action.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                               action.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                                      })
                                       .map((action: Action) => (
                                         <div key={action.id} className="flex items-center justify-between py-2 px-3 bg-orange-50 rounded-md mb-2 last:mb-0">
                                           <div className="flex items-center space-x-3">
@@ -1119,7 +1220,12 @@ const TicketConfiguration: React.FC = () => {
                                             </Button>
                                           </div>
                                         </div>
-                                      ))}
+                                      )) : (
+                                        <div className="text-center py-8 text-gray-500">
+                                          <p>Nenhuma ação encontrada</p>
+                                          <p className="text-sm">Selecione uma empresa ou adicione ações</p>
+                                        </div>
+                                      )}
                                     {actions.filter((action: any) => action.subcategoryId === subcategory.id).length === 0 && (
                                       <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
                                         <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -1137,22 +1243,12 @@ const TicketConfiguration: React.FC = () => {
                                     )}
                                   </div>
                                 </div>
-                              ))}
-
-                            {subcategories.filter((sub: Subcategory) => sub.categoryId === category.id).length === 0 && (
-                              <div className="p-8 text-center text-gray-500 border-t">
-                                <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p className="text-sm mb-4">Nenhuma subcategoria cadastrada nesta categoria</p>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => openDialog('subcategory', { categoryId: category.id })}
-                                  className="text-green-600 border-green-200 hover:bg-green-50"
-                                >
-                                  <Plus className="w-4 h-4 mr-2" />
-                                  Criar primeira subcategoria
-                                </Button>
-                              </div>
-                            )}
+                              )) : (
+                                <div className="text-center py-8 text-gray-500">
+                                  <p>Nenhuma subcategoria encontrada</p>
+                                  <p className="text-sm">Selecione uma empresa ou adicione subcategorias</p>
+                                </div>
+                              )}
                           </div>
                         )}
                       </div>

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTenantId } from './useTenantId';
+import React from 'react';
 
 interface FieldOption {
   value: string;
@@ -109,7 +110,36 @@ export const useTicketMetadata = () => {
     });
   };
 
-const companiesQuery = useQuery({
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories
+  } = useFieldOptions('category');
+
+  const {
+    data: subcategoriesData,
+    isLoading: subcategoriesLoading,
+    error: subcategoriesError,
+    refetch: refetchSubcategories
+  } = useFieldOptions('subcategory');
+
+  const {
+    data: actionsData,
+    isLoading: actionsLoading,
+    error: actionsError,
+    refetch: refetchActions
+  } = useFieldOptions('action');
+
+  const {
+    data: fieldOptions,
+    isLoading: fieldOptionsLoading,
+    error: fieldOptionsError,
+    refetch: refetchFieldOptions
+  } = useFieldOptions('company_id'); // Assuming 'company_id' is the field name for companies
+
+
+  const companiesQuery = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
       // Assuming apiRequest is defined elsewhere and handles the API call
@@ -123,7 +153,7 @@ const companiesQuery = useQuery({
 
       if (Array.isArray(response)) {
         // Filter out inactive companies - NO EXCEPTIONS
-        const activeCompanies = response.filter(company => 
+        const activeCompanies = response.filter(company =>
           company.status === 'active'
         );
 
@@ -138,10 +168,10 @@ const companiesQuery = useQuery({
         });
 
         console.log('🏢 Filtered and sorted companies:', sortedCompanies);
-        
+
         // Clear field options cache when companies change
         fieldOptionsCache.clear();
-        
+
         return sortedCompanies;
       }
 
@@ -149,4 +179,75 @@ const companiesQuery = useQuery({
     },
     staleTime: 30 * 1000, // Reduced to 30 seconds for faster updates
   });
-}
+
+  // Transform categories data
+  const transformedCategories = React.useMemo(() => {
+    if (!categoriesData?.data) return [];
+
+    return categoriesData.data.map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      description: cat.description,
+      color: cat.color || '#3b82f6',
+      icon: cat.icon,
+      active: cat.active !== false,
+      sortOrder: cat.sortOrder || cat.sort_order || 1
+    }));
+  }, [categoriesData]);
+
+  // Transform subcategories data
+  const transformedSubcategories = React.useMemo(() => {
+    if (!subcategoriesData?.data) return [];
+
+    return subcategoriesData.data.map((sub: any) => ({
+      id: sub.id,
+      name: sub.name,
+      description: sub.description,
+      categoryId: sub.categoryId || sub.category_id,
+      color: sub.color || '#3b82f6',
+      icon: sub.icon,
+      active: sub.active !== false,
+      sortOrder: sub.sortOrder || sub.sort_order || 1,
+      categoryName: sub.category_name
+    }));
+  }, [subcategoriesData]);
+
+  // Transform actions data
+  const transformedActions = React.useMemo(() => {
+    if (!actionsData?.data) return [];
+
+    return actionsData.data.map((action: any) => ({
+      id: action.id,
+      name: action.name,
+      description: action.description,
+      subcategoryId: action.subcategoryId || action.subcategory_id,
+      color: action.color || '#3b82f6',
+      icon: action.icon,
+      active: action.active !== false,
+      sortOrder: action.sortOrder || action.sort_order || 1,
+      subcategoryName: action.subcategory_name,
+      categoryName: action.category_name
+    }));
+  }, [actionsData]);
+
+  return {
+    categories: transformedCategories,
+    subcategories: transformedSubcategories,
+    actions: transformedActions,
+    fieldOptions,
+    isLoading: categoriesLoading || subcategoriesLoading || actionsLoading || fieldOptionsLoading,
+    error: categoriesError || subcategoriesError || actionsError || fieldOptionsError,
+    refetch: () => {
+      refetchCategories();
+      refetchSubcategories();
+      refetchActions();
+      refetchFieldOptions();
+    },
+    // Debug info
+    rawData: {
+      categories: categoriesData,
+      subcategories: subcategoriesData,
+      actions: actionsData
+    }
+  };
+};
