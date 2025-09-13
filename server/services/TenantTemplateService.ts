@@ -49,7 +49,7 @@ export class TenantTemplateService {
         INSERT INTO "${schemaName}"."ticket_categories" 
         (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-        ON CONFLICT (tenant_id, company_id, name) DO UPDATE SET
+        ON CONFLICT (tenant_id, name) DO UPDATE SET
           description = $4,
           color = $5,
           icon = $6,
@@ -86,7 +86,7 @@ export class TenantTemplateService {
           INSERT INTO "${schemaName}"."ticket_subcategories" 
           (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-          ON CONFLICT (tenant_id, category_id, name) DO UPDATE SET
+          ON CONFLICT (tenant_id, name) DO UPDATE SET
             description = $5,
             color = $6,
             icon = $7,
@@ -125,7 +125,7 @@ export class TenantTemplateService {
           INSERT INTO "${schemaName}"."ticket_actions" 
           (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, action_type, created_at, updated_at)
           VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-          ON CONFLICT (tenant_id, subcategory_id, name) DO UPDATE SET
+          ON CONFLICT (tenant_id, name) DO UPDATE SET
             description = $5,
             estimated_time_minutes = $6,
             color = $7,
