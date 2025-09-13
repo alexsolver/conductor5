@@ -437,6 +437,43 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
 });
 
 // ============================================================================
+// COPY STRUCTURE - Copiar estrutura padrão para empresa
+// ============================================================================
+
+// POST /api/ticket-config/copy-structure
+router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { companyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ message: 'Company ID required' });
+    }
+
+    console.log(`🔄 Applying default structure to company ${companyId} in tenant ${tenantId}`);
+
+    // Import and apply the default structure
+    const { TenantTemplateService } = await import('../services/TenantTemplateService');
+    await TenantTemplateService.applyDefaultStructureToCompany(tenantId, companyId);
+
+    res.json({
+      success: true,
+      message: 'Estrutura padrão aplicada com sucesso'
+    });
+  } catch (error) {
+    console.error('Error copying structure:', error);
+    res.status(500).json({
+      error: 'Failed to copy structure',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ============================================================================
 // ACTIONS - Nível 4 da hierarquia
 // ============================================================================
 

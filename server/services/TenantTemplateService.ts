@@ -172,6 +172,8 @@ export class TenantTemplateService {
       return;
     }
     
+    console.log(`🔄 Applying field options for company ${companyId}...`);
+    
     // Apply field options from template
     for (const option of DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions) {
       try {
@@ -195,41 +197,51 @@ export class TenantTemplateService {
           option.color, option.icon || null, option.isDefault, option.isActive,
           option.sortOrder, option.statusType || null
         ]);
+        
+        console.log(`✅ Applied field option: ${option.fieldName}:${option.value}`);
       } catch (error) {
         console.error(`❌ Erro ao inserir field option ${option.fieldName}:${option.value}:`, error);
       }
     }
     
-    // Add basic fallback options if template is empty
+    // Add basic fallback options to ensure minimum functionality
     const fallbackOptions = [
-      { fieldName: 'status', value: 'open', label: 'Aberto', color: '#3b82f6', isDefault: true, isActive: true, sortOrder: 1 },
-      { fieldName: 'status', value: 'in_progress', label: 'Em Progresso', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
-      { fieldName: 'status', value: 'resolved', label: 'Resolvido', color: '#10b981', isDefault: false, isActive: true, sortOrder: 3 },
-      { fieldName: 'status', value: 'closed', label: 'Fechado', color: '#6b7280', isDefault: false, isActive: true, sortOrder: 4 },
-      { fieldName: 'priority', value: 'low', label: 'Baixa', color: '#10b981', isDefault: true, isActive: true, sortOrder: 1 },
-      { fieldName: 'priority', value: 'medium', label: 'Média', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
+      { fieldName: 'status', value: 'novo', label: 'Novo', color: '#6b7280', isDefault: true, isActive: true, sortOrder: 1, statusType: 'open' },
+      { fieldName: 'status', value: 'aberto', label: 'Aberto', color: '#3b82f6', isDefault: false, isActive: true, sortOrder: 2, statusType: 'open' },
+      { fieldName: 'status', value: 'em_andamento', label: 'Em Andamento', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 3, statusType: 'open' },
+      { fieldName: 'status', value: 'resolvido', label: 'Resolvido', color: '#10b981', isDefault: false, isActive: true, sortOrder: 4, statusType: 'resolved' },
+      { fieldName: 'status', value: 'fechado', label: 'Fechado', color: '#6b7280', isDefault: false, isActive: true, sortOrder: 5, statusType: 'closed' },
+      { fieldName: 'priority', value: 'low', label: 'Baixa', color: '#10b981', isDefault: false, isActive: true, sortOrder: 1 },
+      { fieldName: 'priority', value: 'medium', label: 'Média', color: '#f59e0b', isDefault: true, isActive: true, sortOrder: 2 },
       { fieldName: 'priority', value: 'high', label: 'Alta', color: '#ef4444', isDefault: false, isActive: true, sortOrder: 3 },
+      { fieldName: 'priority', value: 'critical', label: 'Crítica', color: '#dc2626', isDefault: false, isActive: true, sortOrder: 4 },
+      { fieldName: 'impact', value: 'baixo', label: 'Baixo', color: '#10b981', isDefault: false, isActive: true, sortOrder: 1 },
+      { fieldName: 'impact', value: 'medio', label: 'Médio', color: '#f59e0b', isDefault: true, isActive: true, sortOrder: 2 },
+      { fieldName: 'impact', value: 'alto', label: 'Alto', color: '#ef4444', isDefault: false, isActive: true, sortOrder: 3 },
+      { fieldName: 'urgency', value: 'low', label: 'Baixa', color: '#10b981', isDefault: true, isActive: true, sortOrder: 1 },
+      { fieldName: 'urgency', value: 'medium', label: 'Média', color: '#f59e0b', isDefault: false, isActive: true, sortOrder: 2 },
+      { fieldName: 'urgency', value: 'high', label: 'Alta', color: '#ef4444', isDefault: false, isActive: true, sortOrder: 3 },
     ];
     
     for (const option of fallbackOptions) {
       try {
         const insertQuery = `
           INSERT INTO "${schemaName}"."ticket_field_options" 
-          (id, tenant_id, company_id, field_name, value, display_label, color, is_default, active, sort_order, created_at, updated_at)
-          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+          (id, tenant_id, company_id, field_name, value, display_label, color, is_default, active, sort_order, status_type, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
           ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
         `;
         
         await db.query(insertQuery, [
           tenantId, companyId, option.fieldName, option.value, option.label,
-          option.color, option.isDefault, option.isActive, option.sortOrder
+          option.color, option.isDefault, option.isActive, option.sortOrder, option.statusType || null
         ]);
       } catch (error) {
         console.error(`❌ Erro ao inserir fallback option ${option.fieldName}:${option.value}:`, error);
       }
     }
     
-    console.log(`✅ Field options aplicadas para empresa ${companyId}`);
+    console.log(`✅ Field options aplicadas para empresa ${companyId} - Total: ${DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length + fallbackOptions.length} opções`);
   }
   /**
    * Aplica o template completo da empresa Default para um novo tenant
