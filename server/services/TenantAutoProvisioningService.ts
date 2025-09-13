@@ -488,20 +488,20 @@ class TenantAutoProvisioningService {
         // Conectividade & Redes
         { name: 'Wi-Fi e Internet', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Problemas de conexão sem fio e internet' },
         { name: 'Redes Corporativas', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VPNs, domínios, servidores de rede' },
-        { name: 'Telefonia', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Ramais, VOIP, sistemas telefônicos' },
-        { name: 'Comunicação Digital', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'E-mail, Teams, videoconferência' },
+        { name: 'Telefonia', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VoIP, telefones, comunicação' },
+        { name: 'Comunicação', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Email, mensageria, colaboração' },
 
         // Segurança & Acesso
-        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Senhas, bloqueios, permissões' },
-        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, vírus, firewall' },
-        { name: 'Backup e Recuperação', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restauração de dados' },
-        { name: 'Certificados Digitais', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Certificados, assinaturas digitais' },
+        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Senhas, permissões, autenticação' },
+        { name: 'Segurança de Dados', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backup, proteção, conformidade' },
+        { name: 'Antivírus e Firewall', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Proteção contra malware e ameaças' },
+        { name: 'Políticas de TI', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Compliance, normas internas' },
 
         // Usuários & Suporte
-        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, tutoriais, dúvidas' },
-        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos dos usuários' },
-        { name: 'Suporte Remoto', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Assistência técnica à distância' },
-        { name: 'Consultoria', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Orientações técnicas especializadas' }
+        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, workshops, documentação' },
+        { name: 'Suporte Geral', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Dúvidas, orientações, assistência' },
+        { name: 'Novos Usuários', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Configuração inicial, onboarding' },
+        { name: 'Solicitações Diversas', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos especiais, customizações' }
       ];
 
       const subcategoryIds: Record<string, string> = {};
@@ -571,199 +571,6 @@ class TenantAutoProvisioningService {
     } catch (error) {
       console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
       throw error;
-    }
-  }
-
-      // 3.2. Criar subcategorias (Nova estrutura abrangente)
-      const subcategories = [
-        // Infraestrutura & Equipamentos
-        { name: 'Computadores Desktop', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Problemas com PCs fixos' },
-        { name: 'Notebooks e Móveis', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Laptops, tablets, dispositivos móveis' },
-        { name: 'Servidores', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Infraestrutura de servidores' },
-        { name: 'Periféricos', categoryName: 'Infraestrutura & Equipamentos', color: '#6366f1', description: 'Impressoras, monitores, teclados, mouse' },
-
-        // Software & Aplicações
-        { name: 'Sistema Operacional', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Windows, Linux, macOS' },
-        { name: 'Aplicações Corporativas', categoryName: 'Software & Aplicações', color: '#10b981', description: 'ERP, CRM, sistemas internos' },
-        { name: 'Software de Produtividade', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Office, navegadores, ferramentas' },
-        { name: 'Licenciamento', categoryName: 'Software & Aplicações', color: '#10b981', description: 'Renovações, ativações, compliance' },
-
-        // Conectividade & Redes
-        { name: 'Wi-Fi e Internet', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Problemas de conexão sem fio e internet' },
-        { name: 'Redes Corporativas', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'VPNs, domínios, servidores de rede' },
-        { name: 'Telefonia', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'Ramais, VOIP, sistemas telefônicos' },
-        { name: 'Comunicação Digital', categoryName: 'Conectividade & Redes', color: '#8b5cf6', description: 'E-mail, Teams, videoconferência' },
-
-        // Segurança & Acesso
-        { name: 'Controle de Acesso', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Senhas, bloqueios, permissões' },
-        { name: 'Antivírus e Proteção', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Malware, vírus, firewall' },
-        { name: 'Backup e Recuperação', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Backups, restauração de dados' },
-        { name: 'Certificados Digitais', categoryName: 'Segurança & Acesso', color: '#dc2626', description: 'Certificados, assinaturas digitais' },
-
-        // Usuários & Suporte
-        { name: 'Treinamento', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Capacitação, tutoriais, dúvidas' },
-        { name: 'Solicitações Gerais', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Pedidos diversos dos usuários' },
-        { name: 'Suporte Remoto', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Assistência técnica à distância' },
-        { name: 'Consultoria', categoryName: 'Usuários & Suporte', color: '#f59e0b', description: 'Orientações técnicas especializadas' }
-      ];
-
-      const subcategoryIds: Record<string, string> = {};
-
-      for (const [index, subcategory] of subcategories.entries()) {
-        const subcategoryId = randomUUID();
-        const categoryId = categoryIds[subcategory.categoryName];
-
-        if (!categoryId) {
-          console.warn(`[TICKET-CONFIG] Category not found: ${subcategory.categoryName}`);
-          continue;
-        }
-
-        subcategoryIds[subcategory.name] = subcategoryId;
-
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
-          (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
-          VALUES (
-            ${subcategoryId}, ${tenantId}, ${companyId}, ${categoryId}, ${subcategory.name}, ${subcategory.description},
-            ${subcategory.color}, 'folder', true, ${index + 1}, NOW(), NOW()
-          )
-        `);
-
-        console.log(`✅ Subcategoria criada: ${subcategory.name}`);
-      }
-
-      // 3.3. Criar ações (Nova estrutura completa)
-      const actions = [
-        // Infraestrutura & Equipamentos - Desktop
-        { name: 'Verificar Conexões', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Verificar cabos e conexões físicas' },
-        { name: 'Reinstalar Sistema', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Formatação e reinstalação completa' },
-        { name: 'Substituir Hardware', subcategoryName: 'Computadores Desktop', color: '#6366f1', description: 'Troca de componentes defeituosos' },
-
-        // Notebooks e Móveis
-        { name: 'Calibrar Tela', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Ajustar configurações de display' },
-        { name: 'Substituir Bateria', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Troca de bateria do notebook' },
-        { name: 'Configurar Mobile', subcategoryName: 'Notebooks e Móveis', color: '#6366f1', description: 'Setup inicial de dispositivos móveis' },
-
-        // Servidores
-        { name: 'Reiniciar Serviços', subcategoryName: 'Servidores', color: '#6366f1', description: 'Restart de serviços críticos' },
-        { name: 'Monitorar Performance', subcategoryName: 'Servidores', color: '#6366f1', description: 'Análise de recursos do servidor' },
-        { name: 'Aplicar Updates', subcategoryName: 'Servidores', color: '#6366f1', description: 'Atualizações de sistema e segurança' },
-
-        // Periféricos
-        { name: 'Configurar Impressora', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Setup e configuração de impressoras' },
-        { name: 'Instalar Drivers', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Instalação de drivers específicos' },
-        { name: 'Calibrar Monitor', subcategoryName: 'Periféricos', color: '#6366f1', description: 'Ajuste de cores e resolução' },
-
-        // Software & Aplicações - Sistema Operacional
-        { name: 'Aplicar Patches', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Instalação de correções do SO' },
-        { name: 'Otimizar Performance', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Limpeza e otimização do sistema' },
-        { name: 'Configurar Usuário', subcategoryName: 'Sistema Operacional', color: '#10b981', description: 'Criação e configuração de contas' },
-
-        // Aplicações Corporativas
-        { name: 'Sincronizar Dados', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Sincronização de bases de dados' },
-        { name: 'Configurar Integração', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Setup de integrações entre sistemas' },
-        { name: 'Treinar Usuário', subcategoryName: 'Aplicações Corporativas', color: '#10b981', description: 'Capacitação no uso da aplicação' },
-
-        // Software de Produtividade
-        { name: 'Restaurar Arquivo', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Recuperação de documentos perdidos' },
-        { name: 'Configurar Add-ins', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Instalação de complementos' },
-        { name: 'Migrar Dados', subcategoryName: 'Software de Produtividade', color: '#10b981', description: 'Transferência entre versões' },
-
-        // Licenciamento
-        { name: 'Renovar Licença', subcategoryName: 'Licenciamento', color: '#10b981', description: 'Processo de renovação de licenças' },
-        { name: 'Ativar Software', subcategoryName: 'Licenciamento', color: '#10b981', description: 'Ativação de produtos licenciados' },
-        { name: 'Auditoria Compliance', subcategoryName: 'Licenciamento', color: '#10b981', description: 'Verificação de conformidade' },
-
-        // Conectividade & Redes - Wi-Fi e Internet
-        { name: 'Resetar Conexão', subcategoryName: 'Wi-Fi e Internet', color: '#8b5cf6', description: 'Reinicializar configurações de rede' },
-        { name: 'Configurar Wi-Fi', subcategoryName: 'Wi-Fi e Internet', color: '#8b5cf6', description: 'Setup de conexão wireless' },
-        { name: 'Testar Velocidade', subcategoryName: 'Wi-Fi e Internet', color: '#8b5cf6', description: 'Diagnóstico de performance de rede' },
-
-        // Redes Corporativas
-        { name: 'Configurar VPN', subcategoryName: 'Redes Corporativas', color: '#8b5cf6', description: 'Setup de conexão VPN corporativa' },
-        { name: 'Mapear Drives', subcategoryName: 'Redes Corporativas', color: '#8b5cf6', description: 'Mapeamento de unidades de rede' },
-        { name: 'Configurar Domínio', subcategoryName: 'Redes Corporativas', color: '#8b5cf6', description: 'Ingressar no domínio corporativo' },
-
-        // Telefonia
-        { name: 'Configurar Ramal', subcategoryName: 'Telefonia', color: '#8b5cf6', description: 'Setup de ramal telefônico' },
-        { name: 'Testar Áudio', subcategoryName: 'Telefonia', color: '#8b5cf6', description: 'Verificação de qualidade de áudio' },
-        { name: 'Configurar VOIP', subcategoryName: 'Telefonia', color: '#8b5cf6', description: 'Setup de sistema de voz IP' },
-
-        // Comunicação Digital
-        { name: 'Configurar E-mail', subcategoryName: 'Comunicação Digital', color: '#8b5cf6', description: 'Setup de conta de e-mail corporativo' },
-        { name: 'Testar Videoconferência', subcategoryName: 'Comunicação Digital', color: '#8b5cf6', description: 'Verificação de sistemas de vídeo' },
-        { name: 'Sincronizar Calendário', subcategoryName: 'Comunicação Digital', color: '#8b5cf6', description: 'Setup de calendário compartilhado' },
-
-        // Segurança & Acesso - Controle de Acesso
-        { name: 'Resetar Senha', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Redefinição de credenciais de acesso' },
-        { name: 'Configurar MFA', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Setup de autenticação multifator' },
-        { name: 'Revisar Permissões', subcategoryName: 'Controle de Acesso', color: '#dc2626', description: 'Auditoria de níveis de acesso' },
-
-        // Antivírus e Proteção
-        { name: 'Executar Scan', subcategoryName: 'Antivírus e Proteção', color: '#dc2626', description: 'Varredura completa do sistema' },
-        { name: 'Atualizar Definições', subcategoryName: 'Antivírus e Proteção', color: '#dc2626', description: 'Update de base de vírus' },
-        { name: 'Configurar Firewall', subcategoryName: 'Antivírus e Proteção', color: '#dc2626', description: 'Setup de regras de firewall' },
-
-        // Backup e Recuperação
-        { name: 'Executar Backup', subcategoryName: 'Backup e Recuperação', color: '#dc2626', description: 'Processo de backup de dados' },
-        { name: 'Restaurar Arquivo', subcategoryName: 'Backup e Recuperação', color: '#dc2626', description: 'Recuperação de arquivos perdidos' },
-        { name: 'Testar Integridade', subcategoryName: 'Backup e Recuperação', color: '#dc2626', description: 'Verificação de backups' },
-
-        // Certificados Digitais
-        { name: 'Instalar Certificado', subcategoryName: 'Certificados Digitais', color: '#dc2626', description: 'Instalação de certificado digital' },
-        { name: 'Renovar Certificado', subcategoryName: 'Certificados Digitais', color: '#dc2626', description: 'Processo de renovação' },
-        { name: 'Validar Assinatura', subcategoryName: 'Certificados Digitais', color: '#dc2626', description: 'Verificação de assinatura digital' },
-
-        // Usuários & Suporte - Treinamento
-        { name: 'Agendar Treinamento', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Agendamento de sessão de capacitação' },
-        { name: 'Criar Material', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Desenvolvimento de conteúdo educativo' },
-        { name: 'Avaliar Conhecimento', subcategoryName: 'Treinamento', color: '#f59e0b', description: 'Teste de conhecimento pós-treinamento' },
-
-        // Solicitações Gerais
-        { name: 'Atender Solicitação', subcategoryName: 'Solicitações Gerais', color: '#f59e0b', description: 'Atendimento de pedido específico' },
-        { name: 'Escalar Demanda', subcategoryName: 'Solicitações Gerais', color: '#f59e0b', description: 'Encaminhamento para especialista' },
-        { name: 'Acompanhar Processo', subcategoryName: 'Solicitações Gerais', color: '#f59e0b', description: 'Monitoramento de andamento' },
-
-        // Suporte Remoto
-        { name: 'Conectar Remotamente', subcategoryName: 'Suporte Remoto', color: '#f59e0b', description: 'Estabelecer conexão remota' },
-        { name: 'Diagnosticar Problema', subcategoryName: 'Suporte Remoto', color: '#f59e0b', description: 'Análise remota de issue' },
-        { name: 'Aplicar Correção', subcategoryName: 'Suporte Remoto', color: '#f59e0b', description: 'Implementação de solução remota' },
-
-        // Consultoria
-        { name: 'Analisar Necessidade', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Levantamento de requisitos técnicos' },
-        { name: 'Elaborar Proposta', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Criação de proposta técnica' },
-        { name: 'Apresentar Solução', subcategoryName: 'Consultoria', color: '#f59e0b', description: 'Demonstração de alternativas' }
-      ];
-
-      for (const [index, action] of actions.entries()) {
-        const actionId = randomUUID();
-        const subcategoryId = subcategoryIds[action.subcategoryName];
-
-        if (!subcategoryId) {
-          console.warn(`[TICKET-CONFIG] Subcategory not found: ${action.subcategoryName}`);
-          continue;
-        }
-
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions"
-          (id, tenant_id, company_id, subcategory_id, name, description, color, active, sort_order, created_at, updated_at)
-          VALUES (
-            ${actionId}, ${tenantId}, ${companyId}, ${subcategoryId}, ${action.name}, ${action.description},
-            ${action.color}, true, ${index + 1}, NOW(), NOW()
-          )
-        `);
-
-        console.log(`✅ Ação criada: ${action.name}`);
-      }
-
-      console.log('🎉 [TICKET-CONFIG] Nova estrutura hierárquica de 5 categorias criada com sucesso!');
-      console.log('📊 [TICKET-CONFIG] Resumo:');
-      console.log(`   - ${categories.length} categorias principais`);
-      console.log(`   - ${subcategories.length} subcategorias`);
-      console.log(`   - ${actions.length} ações específicas`);
-    } catch (error: any) {
-      console.error('❌ [TICKET-CONFIG] Error initializing ticket configurations:', error);
-      throw new Error(`Failed to initialize ticket configurations: ${error.message}`);
     }
   }
 }
