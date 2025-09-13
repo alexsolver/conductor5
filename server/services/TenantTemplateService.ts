@@ -5,12 +5,10 @@
 
 import { DEFAULT_COMPANY_TEMPLATE, DefaultCompanyTemplate } from '../templates/default-company-template';
 import { v4 as uuidv4 } from 'uuid';
-// Assuming db and sql are imported from your database client library
-// import { db, sql } from './db'; // Example import
-
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import { pool } from '../db';
 
 
 export class TenantTemplateService {
@@ -60,7 +58,7 @@ export class TenantTemplateService {
           updated_at = NOW()
       `;
       
-      await db.query(query, [
+      await pool.query(query, [
         tenantId, companyId, category.name, category.description,
         category.color, category.icon, category.active, category.sortOrder
       ]);
@@ -79,7 +77,7 @@ export class TenantTemplateService {
         WHERE tenant_id = $1 AND company_id = $2 AND name = $3
       `;
       
-      const categoryResult = await db.query(categoryQuery, [tenantId, companyId, subcategory.categoryName]);
+      const categoryResult = await pool.query(categoryQuery, [tenantId, companyId, subcategory.categoryName]);
       
       if (categoryResult.rows.length > 0) {
         const categoryId = categoryResult.rows[0].id;
@@ -97,7 +95,7 @@ export class TenantTemplateService {
             updated_at = NOW()
         `;
         
-        await db.query(insertQuery, [
+        await pool.query(insertQuery, [
           tenantId, companyId, categoryId, subcategory.name, subcategory.description,
           subcategory.color, subcategory.icon, subcategory.active, subcategory.sortOrder
         ]);
@@ -118,7 +116,7 @@ export class TenantTemplateService {
         WHERE s.tenant_id = $1 AND c.company_id = $2 AND s.name = $3
       `;
       
-      const subcategoryResult = await db.query(subcategoryQuery, [tenantId, companyId, action.subcategoryName]);
+      const subcategoryResult = await pool.query(subcategoryQuery, [tenantId, companyId, action.subcategoryName]);
       
       if (subcategoryResult.rows.length > 0) {
         const subcategoryId = subcategoryResult.rows[0].id;
@@ -138,7 +136,7 @@ export class TenantTemplateService {
             updated_at = NOW()
         `;
         
-        await db.query(insertQuery, [
+        await pool.query(insertQuery, [
           tenantId, companyId, subcategoryId, action.name, action.description,
           action.estimatedTimeMinutes, action.color, action.icon, action.active,
           action.sortOrder, action.actionType
@@ -161,7 +159,7 @@ export class TenantTemplateService {
         AND table_name = 'ticket_field_options'
       `;
       
-      const tableResult = await db.query(tableCheckQuery, [schemaName]);
+      const tableResult = await pool.query(tableCheckQuery, [schemaName]);
       
       if (tableResult.rows.length === 0) {
         console.log(`⚠️ Table ticket_field_options não existe no schema ${schemaName}`);
@@ -192,7 +190,7 @@ export class TenantTemplateService {
             updated_at = NOW()
         `;
         
-        await db.query(insertQuery, [
+        await pool.query(insertQuery, [
           tenantId, companyId, option.fieldName, option.value, option.label,
           option.color, option.icon || null, option.isDefault, option.isActive,
           option.sortOrder, option.statusType || null
@@ -232,7 +230,7 @@ export class TenantTemplateService {
           ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
         `;
         
-        await db.query(insertQuery, [
+        await pool.query(insertQuery, [
           tenantId, companyId, option.fieldName, option.value, option.label,
           option.color, option.isDefault, option.isActive, option.sortOrder, option.statusType || null
         ]);
