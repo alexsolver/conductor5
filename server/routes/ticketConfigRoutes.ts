@@ -1670,37 +1670,64 @@ router.post('/copy-default-structure', jwtAuth, async (req: AuthenticatedRequest
 router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { sourceCompanyId, targetCompanyId } = req.body;
+    const { sourceCompanyId = '00000000-0000-0000-0000-000000000001', targetCompanyId } = req.body;
 
     if (!tenantId) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
-        message: 'Tenant required' 
+        message: 'Tenant ID required'
       });
     }
 
-    if (!sourceCompanyId || !targetCompanyId) {
-      return res.status(400).json({ 
+    if (!targetCompanyId) {
+      return res.status(400).json({
         success: false,
-        message: 'Source and target company IDs required' 
+        message: 'Target company ID required'
       });
     }
 
-    console.log(`🔄 Copying hierarchy from company ${sourceCompanyId} to company ${targetCompanyId} in tenant ${tenantId}`);
+    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} for tenant ${tenantId}`);
 
-    // Execute copy hierarchy using the user's tenantId (not the target company ID)
+    // First, verify that the tenant schema exists
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaCheck = await db.execute(sql`
+      SELECT schema_name FROM information_schema.schemata 
+      WHERE schema_name = ${schemaName}
+    `);
+
+    if (schemaCheck.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Tenant schema does not exist: ${schemaName}. Please ensure the tenant is properly provisioned.`
+      });
+    }
+
+    // Verify target company exists in the tenant
+    const companyCheck = await db.execute(sql`
+      SELECT id FROM "${sql.raw(schemaName)}"."customer_companies" 
+      WHERE id = ${targetCompanyId} AND tenant_id = ${tenantId}
+    `);
+
+    if (companyCheck.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Target company not found in this tenant'
+      });
+    }
+
+    // Copy hierarchy between companies
     await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
 
     res.json({
       success: true,
-      message: 'Hierarquia copiada com sucesso'
+      message: 'Hierarchy copied successfully'
     });
   } catch (error) {
     console.error('❌ Error copying hierarchy:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Error copying hierarchy',
-      error: error.message
+      message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
