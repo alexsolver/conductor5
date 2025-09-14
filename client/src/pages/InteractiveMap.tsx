@@ -877,12 +877,7 @@ const FiltersPanel: React.FC<{
           Grupos/Equipes
         </Label>
         <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
-          {userGroupsLoading ? (
-            <div className="flex items-center justify-center py-2">
-              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
-              <span className="text-xs text-gray-500 ml-2">Carregando grupos...</span>
-            </div>
-          ) : availableTeams.length > 0 ? (
+          {availableTeams.length > 0 ? (
             availableTeams.map((team) => (
               <div key={team} className="flex items-center space-x-2">
                 <Checkbox
