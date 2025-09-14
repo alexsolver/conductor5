@@ -74,6 +74,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrajectoryReplay, AgentTrajectory } from '@/components/map/TrajectoryReplay';
+import { Label } from '@/components/ui/label'; // Import Label
 
 // ===========================================================================================
 // Type Definitions
@@ -153,43 +154,102 @@ interface MapSettings {
   reduceMotion: boolean;
 }
 
+// Type for Technical Skills
+interface TechnicalSkill {
+  id: string;
+  name: string;
+  category: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Type for User Skills (assuming it's an array of skill names or objects)
+interface UserSkill {
+  skillName: string;
+  // Add other properties if they exist in your actual UserSkill type
+}
+
+// Mock API Request Function (replace with actual implementation)
+const apiRequest = async (method: string, url: string, body?: any): Promise<any> => {
+  // This is a placeholder. Replace with your actual API call logic.
+  console.log(`API Request: ${method} ${url}`, body);
+  // Mock response for demonstration
+  if (url === '/api/technical-skills/skills') {
+    return {
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          { id: 's1', name: 'Elétrica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
+          { id: 's2', name: 'Hidráulica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
+          { id: 's3', name: 'Soldagem', category: 'Produção', isActive: false, createdAt: '', updatedAt: '' },
+          { id: 's4', name: 'Mecânica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
+          { id: 's5', name: 'Eletrônica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
+          { id: 's6', name: 'Redes', category: 'TI', isActive: true, createdAt: '', updatedAt: '' },
+          { id: 's7', name: 'Suporte OS', category: 'TI', isActive: false, createdAt: '', updatedAt: '' },
+        ]
+      })
+    };
+  }
+  if (url === '/api/technical-skills/user-skills') {
+    return {
+      ok: true,
+      json: async () => ([
+        { skillName: 'Elétrica' },
+        { skillName: 'Mecânica' }
+      ])
+    };
+  }
+  if (url === '/api/team/members') {
+    return {
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [{ id: 'm1', name: 'Carlos Silva', team: 'Suporte Técnico' }, { id: 'm2', name: 'Ana Costa', team: 'Vendas' }]
+      })
+    };
+  }
+  return { ok: false, status: 500, json: async () => ({ success: false, message: 'Not implemented' }) };
+};
+
 // Weather visualization configuration with gradient colors
 const weatherVisualizationConfig = {
-  'excellent': { 
-    temp: 28, 
-    condition: 'Céu limpo', 
+  'excellent': {
+    temp: 28,
+    condition: 'Céu limpo',
     color: '#00BFFF', // Azul claro ótimo
     radius: 12000,
     opacity: 0.4,
     icon: '☀️'
   },
-  'good': { 
-    temp: 25, 
-    condition: 'Ensolarado', 
+  'good': {
+    temp: 25,
+    condition: 'Ensolarado',
     color: '#87CEEB', // Azul claro bom
     radius: 10000,
     opacity: 0.35,
     icon: '🌤️'
   },
-  'normal': { 
-    temp: 18, 
-    condition: 'Parcialmente nublado', 
+  'normal': {
+    temp: 18,
+    condition: 'Parcialmente nublado',
     color: '#90EE90', // Verde claro normal
     radius: 8000,
     opacity: 0.3,
     icon: '⛅'
   },
-  'bad': { 
-    temp: 10, 
-    condition: 'Chuva', 
+  'bad': {
+    temp: 10,
+    condition: 'Chuva',
     color: '#808080', // Cinza ruim
     radius: 6000,
     opacity: 0.4,
     icon: '🌧️'
   },
-  'stormy': { 
-    temp: 5, 
-    condition: 'Tempestade', 
+  'stormy': {
+    temp: 5,
+    condition: 'Tempestade',
     color: '#DC143C', // Vermelho temporal
     radius: 4000,
     opacity: 0.5,
@@ -519,9 +579,9 @@ const createAgentIcon = (agent: AgentPosition, settings: MapSettings) => {
 // Advanced Agent Tooltip Component
 // ===========================================================================================
 
-const AgentTooltip: React.FC<{ 
-  agent: AgentPosition; 
-  onOpenTrajectory?: (agent: AgentPosition) => void; 
+const AgentTooltip: React.FC<{
+  agent: AgentPosition;
+  onOpenTrajectory?: (agent: AgentPosition) => void;
 }> = ({ agent, onOpenTrajectory }) => {
   const { t } = useTranslation();
 
@@ -741,24 +801,81 @@ const AgentTooltip: React.FC<{
 };
 
 // ===========================================================================================
-// Dynamic Filters Panel Component
+// Filters Panel Component
 // ===========================================================================================
 
 const FiltersPanel: React.FC<{
   filters: MapFilters;
   onFiltersChange: (filters: MapFilters) => void;
   teams: string[];
-  skills: string[];
+  skills: { id: string; name: string; category: string | null }[]; // Updated skills type
   agentStats: any;
-}> = ({ filters, onFiltersChange, teams, skills, agentStats }) => {
+}> = ({ filters, onFiltersChange, teams, skills: availableSkills, agentStats }) => {
   const { t } = useTranslation();
 
   const handleFilterChange = (key: keyof MapFilters, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
+  // Function to clear all filters
+  const clearAllFilters = () => {
+    onFiltersChange({
+      status: [],
+      teams: [],
+      skills: [],
+      batteryLevel: { min: 0, max: 100 },
+      lastActivityMinutes: 60,
+      assignedTicketsOnly: false,
+      onDutyOnly: false,
+      accuracyThreshold: 100,
+      slaRisk: false,
+    });
+  };
+
   return (
     <div className="space-y-6">
+
+      {/* Filters Header */}
+      <div className="flex items-center justify-between sticky top-0 bg-background z-10 py-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Filter className="w-5 h-5 mr-2" />
+          Filtros do Mapa
+        </h3>
+        <div className="flex items-center space-x-2">
+          {(filters.status.length > 0 || filters.teams.length > 0 || filters.skills.length > 0 ||
+            filters.batteryLevel.min > 0 || filters.batteryLevel.max < 100 ||
+            filters.lastActivityMinutes < 1440 || filters.assignedTicketsOnly ||
+            filters.onDutyOnly || filters.slaRisk) && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+              {filters.status.length + filters.teams.length + filters.skills.length +
+               (filters.batteryLevel.min > 0 || filters.batteryLevel.max < 100 ? 1 : 0) +
+               (filters.lastActivityMinutes < 1440 ? 1 : 0) +
+               (filters.assignedTicketsOnly ? 1 : 0) +
+               (filters.onDutyOnly ? 1 : 0) +
+               (filters.slaRisk ? 1 : 0)} filtros ativos
+            </Badge>
+          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Limpar
+                </Button>
+              </Tooltip>
+              <TooltipContent>
+                Limpar todos os filtros aplicados
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
       {/* Status Filters */}
       <div>
         <h4 className="font-medium mb-3 flex items-center gap-2">
@@ -824,31 +941,46 @@ const FiltersPanel: React.FC<{
       )}
 
       {/* Skills Filters */}
-      {skills.length > 0 && (
+      {availableSkills.length > 0 && (
         <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <Zap className="w-4 h-4" />
-            Habilidades
-          </h4>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {skills.map(skill => (
-              <div key={skill} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`skill-${skill}`}
-                  checked={filters.skills.includes(skill)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      handleFilterChange('skills', [...filters.skills, skill]);
-                    } else {
-                      handleFilterChange('skills', filters.skills.filter(s => s !== skill));
-                    }
-                  }}
-                />
-                <label htmlFor={`skill-${skill}`} className="text-sm cursor-pointer truncate">
-                  {skill}
-                </label>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Users className="w-4 h-4 inline mr-2" />
+            Habilidades Técnicas
+          </Label>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {availableSkills.length > 0 ? (
+              availableSkills.map((skill) => (
+                <div key={skill.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`skill-${skill.id}`}
+                    checked={filters.skills.includes(skill.name)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        handleFilterChange('skills', [...filters.skills, skill.name]);
+                      } else {
+                        handleFilterChange('skills', filters.skills.filter(s => s !== skill.name));
+                      }
+                    }}
+                    className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                  />
+                  <Label
+                    htmlFor={`skill-${skill.id}`}
+                    className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
+                  >
+                    {skill.name}
+                    {skill.category && (
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {skill.category}
+                      </Badge>
+                    )}
+                  </Label>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+                Nenhuma habilidade configurada. Configure habilidades em Gestão da Equipe.
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
@@ -970,28 +1102,6 @@ const FiltersPanel: React.FC<{
         </div>
       </div>
 
-      {/* Reset Filters */}
-      <div className="pt-4 border-t">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onFiltersChange({
-            status: [],
-            teams: [],
-            skills: [],
-            batteryLevel: { min: 0, max: 100 },
-            lastActivityMinutes: 60,
-            assignedTicketsOnly: false,
-            onDutyOnly: false,
-            accuracyThreshold: 100,
-            slaRisk: false,
-          })}
-          className="w-full"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Limpar Filtros
-        </Button>
-      </div>
     </div>
   );
 };
@@ -1372,8 +1482,51 @@ export const InteractiveMap: React.FC = () => {
   const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
 
   // ===========================================================================================
-  // Mock Data (for demo purposes until backend is ready)
+  // Data Fetching and Integration
   // ===========================================================================================
+
+  // ✅ Fetch technical skills from Team Management module
+  const { data: skillsResponse } = useQuery({
+    queryKey: ['/api/technical-skills/skills'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/technical-skills/skills');
+      if (!res.ok) throw new Error('Erro ao buscar habilidades técnicas');
+      return res.json();
+    },
+  });
+
+  // ✅ Fetch user skills
+  const { data: userSkills, isLoading: userSkillsLoading } = useQuery<UserSkill[]>({
+    queryKey: ['/api/technical-skills/user-skills'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/technical-skills/user-skills');
+      if (!res.ok) throw new Error('Erro ao buscar habilidades dos usuários');
+      return res.json();
+    },
+  });
+
+  // Fetch team members
+  const { data: teamMembersResponse } = useQuery({
+    queryKey: ['/api/team/members'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/team/members');
+      if (!res.ok) throw new Error('Erro ao buscar membros da equipe');
+      return res.json();
+    },
+  });
+
+  // Extract team members array from response
+  const teamMembers = Array.isArray(teamMembersResponse)
+    ? teamMembersResponse
+    : (teamMembersResponse?.members || teamMembersResponse?.data || []);
+
+  // ✅ Extract technical skills for filters
+  const technicalSkills = skillsResponse?.data || [];
+  const availableSkills = technicalSkills.filter(skill => skill.isActive).map(skill => ({
+    id: skill.id,
+    name: skill.name,
+    category: skill.category
+  }));
 
   // Mock ticket data for visualization
   const mockTickets = [
@@ -1568,11 +1721,6 @@ export const InteractiveMap: React.FC = () => {
     [agents]
   );
 
-  const availableSkills = useMemo(() =>
-    Array.from(new Set(agents.flatMap(agent => agent.skills))).sort(),
-    [agents]
-  );
-
   // Performance optimization: Only render agents in viewport for large datasets
   const visibleAgents = useMemo(() => {
     if (filteredAgents.length <= 500) return filteredAgents;
@@ -1672,6 +1820,21 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
 
   const mapRef = useRef<any>(null); // Ref for the MapContainer
+
+  // Function to clear all filters (moved here to be accessible by FiltersPanel)
+  const clearAllFilters = () => {
+    setFilters({
+      status: [],
+      teams: [],
+      skills: [],
+      batteryLevel: { min: 0, max: 100 },
+      lastActivityMinutes: 60,
+      assignedTicketsOnly: false,
+      onDutyOnly: false,
+      accuracyThreshold: 100,
+      slaRisk: false,
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -1927,12 +2090,12 @@ export const InteractiveMap: React.FC = () => {
                               `Total de agentes: ${filteredAgents.length}`,
                               '',
                               'STATUS SUMMARY:',
-                              ...Object.entries(STATUS_COLORS).map(([status]) => 
+                              ...Object.entries(STATUS_COLORS).map(([status]) =>
                                 `${status.replace('_', ' ').toUpperCase()}: ${filteredAgents.filter(a => a.status === status).length}`
                               ),
                               '',
                               'DETALHES DOS AGENTES:',
-                              ...filteredAgents.map(agent => 
+                              ...filteredAgents.map(agent =>
                                 `${agent.name} - ${agent.status} - ${agent.team} - Bateria: ${agent.device_battery || 'N/A'}%`
                               )
                             ];
@@ -1971,11 +2134,11 @@ export const InteractiveMap: React.FC = () => {
                         onClick={() => {
                           const mode = 'rectangle';
                           console.log(`🎯 [SELECTION] Modo de seleção ${mode} ativado`);
-                          
+
                           // Simular seleção múltipla com agentes próximos
                           const sampleAgents = filteredAgents.slice(0, Math.min(3, filteredAgents.length));
                           setSelectedAgents(sampleAgents.map(a => a.id));
-                          
+
                           alert(`Seleção por retângulo: ${sampleAgents.length} agente(s) selecionado(s): ${sampleAgents.map(a => a.name).join(', ')}`);
                         }}
                         data-testid="rectangle-selection-btn"
@@ -1990,13 +2153,13 @@ export const InteractiveMap: React.FC = () => {
                         onClick={() => {
                           const mode = 'lasso';
                           console.log(`🎯 [SELECTION] Modo de seleção ${mode} ativado`);
-                          
+
                           // Simular seleção múltipla com agentes de um status específico
                           const availableAgents = filteredAgents.filter(a => a.status === 'available');
                           const selectedCount = Math.min(2, availableAgents.length);
                           const selected = availableAgents.slice(0, selectedCount);
                           setSelectedAgents(selected.map(a => a.id));
-                          
+
                           alert(`Seleção por laço: ${selected.length} agente(s) selecionado(s): ${selected.map(a => a.name).join(', ')}`);
                         }}
                         data-testid="lasso-selection-btn"
@@ -2071,7 +2234,7 @@ export const InteractiveMap: React.FC = () => {
                       onClick={async () => {
                         try {
                           console.log('📋 [AUDIT] Gerando logs de auditoria...');
-                          
+
                           // Gerar logs de auditoria baseados na atividade atual
                           const currentTime = new Date();
                           const auditLogs = [
@@ -2085,7 +2248,7 @@ export const InteractiveMap: React.FC = () => {
                             {
                               action: 'FILTER',
                               resource: 'agents',
-                              user: 'alex@lansolver.com', 
+                              user: 'alex@lansolver.com',
                               timestamp: new Date(currentTime.getTime() - 2 * 60 * 1000).toISOString(),
                               details: `Aplicou filtros: ${Object.keys(filters).filter(k => filters[k as keyof typeof filters]).join(', ')}`
                             },
@@ -2104,13 +2267,13 @@ export const InteractiveMap: React.FC = () => {
                               details: 'Acessou o módulo de mapa interativo'
                             }
                           ];
-                          
-                          const logText = auditLogs.map(log => 
+
+                          const logText = auditLogs.map(log =>
                             `${log.action} - ${log.resource} - ${log.user}\n${new Date(log.timestamp).toLocaleString()} - ${log.details}`
                           ).join('\n\n');
-                          
+
                           console.log('✅ [AUDIT] Logs gerados:', auditLogs.length);
-                          
+
                           alert(`Logs de Auditoria (${auditLogs.length} entradas):\n\n${logText}`);
                         } catch (error) {
                           console.error('❌ [AUDIT] Erro ao gerar logs:', error);
@@ -2285,31 +2448,31 @@ export const InteractiveMap: React.FC = () => {
                       }}
                     >
                       <Popup maxWidth={400} className="agent-popup">
-                        <AgentTooltip 
-                          agent={agent} 
+                        <AgentTooltip
+                          agent={agent}
                           onOpenTrajectory={async (selectedAgent) => {
                             try {
                               console.log('📍 [TRAJECTORY] Carregando trajetória do banco para:', selectedAgent.name);
-                              
+
                               // Fechar o modal do agente e mostrar apenas o agente selecionado
                               setSelectedAgent(null);
                               setTrajectoryAgentId(selectedAgent.id);
-                              
+
                               // Forçar fechamento do popup do Leaflet
                               if (mapRef.current) {
                                 mapRef.current.closePopup();
                               }
-                              
+
                               // Mapear o ID do agente para o agent_id correto
                               const agentIdMapping: { [key: string]: string } = {
                                 '1': 'agent-001', // João Silva
-                                '2': 'agent-002', // Ana Costa  
+                                '2': 'agent-002', // Ana Costa
                                 '3': 'agent-003', // Maria Santos
                               };
-                              
+
                               const mappedAgentId = agentIdMapping[selectedAgent.id] || selectedAgent.id;
                               console.log('🔍 [TRAJECTORY] Mapping agent:', { frontendId: selectedAgent.id, dbId: mappedAgentId });
-                              
+
                               const response = await fetch(`/api/interactive-map/trajectory/${mappedAgentId}`, {
                                 method: 'GET',
                                 credentials: 'include',
@@ -2497,7 +2660,7 @@ export const InteractiveMap: React.FC = () => {
                     weight={3}
                     opacity={0.8}
                   />
-                  
+
                   {/* Current Position Marker - ANIMATED! */}
                   {selectedTrajectory.points.length > 0 && (
                     <Marker
@@ -2613,7 +2776,7 @@ export const InteractiveMap: React.FC = () => {
             </div>
           )}
 
-          
+
           {/* TrajectoryReplay Controls Panel - Positioned as overlay */}
           {trajectoryModalOpen && selectedTrajectory && (
             <div className="absolute top-20 right-4 z-[99999] w-80">
@@ -2630,22 +2793,22 @@ export const InteractiveMap: React.FC = () => {
                 onPeriodChange={async (startTime, endTime) => {
                   console.log('🔄 [PERIOD] Atualizando período da trajetória:', { startTime, endTime });
                   if (!trajectoryAgentId) return;
-                  
+
                   const agentIdMapping: { [key: string]: string } = {
                     '1': 'agent-001',
                     '2': 'agent-002',
                     '3': 'agent-003',
                   };
-                  
+
                   const mappedAgentId = agentIdMapping[trajectoryAgentId] || trajectoryAgentId;
-                  
+
                   try {
                     const response = await fetch(`/api/interactive-map/trajectory/${mappedAgentId}?start=${startTime}&end=${endTime}`, {
                       method: 'GET',
                       credentials: 'include',
                       headers: { 'Content-Type': 'application/json' },
                     });
-                    
+
                     if (response.ok) {
                       const data = await response.json();
                       if (data.success) {
@@ -2660,7 +2823,7 @@ export const InteractiveMap: React.FC = () => {
                 onExport={async (format) => {
                   console.log(`📥 [EXPORT] Exportando trajetória ${format.toUpperCase()}...`);
                   if (selectedTrajectory) {
-                    const data = format === 'geojson' 
+                    const data = format === 'geojson'
                       ? {
                           type: 'FeatureCollection',
                           features: [{
@@ -2688,7 +2851,7 @@ export const InteractiveMap: React.FC = () => {
                           heading: p.heading || 0,
                           battery: p.deviceBattery || 0
                         }));
-                    
+
                     const blob = new Blob([JSON.stringify(data, null, 2)], {
                       type: format === 'geojson' ? 'application/geo+json' : 'application/json'
                     });
@@ -2717,7 +2880,7 @@ export const InteractiveMap: React.FC = () => {
                       {selectedPoint.name}
                     </h3>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setSelectedPoint(null)}
                     className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
                   >

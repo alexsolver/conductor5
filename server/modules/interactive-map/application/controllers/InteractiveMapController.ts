@@ -50,6 +50,7 @@ export class InteractiveMapController {
       }
       if (skills) {
         criteria.skills = Array.isArray(skills) ? skills as string[] : [skills as string];
+        console.log('[InteractiveMapController] Skills filter applied:', criteria.skills);
       }
       if (onDutyOnly === 'true') {
         criteria.onDutyOnly = true;
