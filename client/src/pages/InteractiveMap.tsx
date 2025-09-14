@@ -1667,13 +1667,15 @@ export const InteractiveMap: React.FC = () => {
   // Derived Data and Performance Optimization
   // ===========================================================================================
 
-  // Get agents from API query
+  // Get agents from API query and update state
   const agents = useMemo(() => {
-    return agentsData?.data?.agents || [];
+    const agentsFromAPI = agentsData?.data?.agents || [];
+    setFilteredAgents(agentsFromAPI); // Update the state with fresh data
+    return agentsFromAPI;
   }, [agentsData]);
 
   // Filter agents by search term
-  const filteredAgents = useMemo(() => {
+  const searchFilteredAgents = useMemo(() => {
     if (!searchTerm) return agents;
     const search = searchTerm.toLowerCase();
     return agents.filter(agent =>
