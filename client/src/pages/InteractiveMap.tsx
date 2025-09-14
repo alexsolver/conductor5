@@ -1386,6 +1386,9 @@ export const InteractiveMap: React.FC = () => {
   // State Management
   // ===========================================================================================
 
+  const [agents, setAgents] = useState<AgentPosition[]>([]);
+  const [filteredAgents, setFilteredAgents] = useState<AgentPosition[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<MapFilters>({
     status: [],
     teams: [],
