@@ -402,7 +402,7 @@ class TenantAutoProvisioningService {
     }
   }
 
-  private async initializeTicketConfigurations(tenantId: string, companyId: string): Promise<void> {
+  public async initializeTicketConfigurations(tenantId: string, companyId: string): Promise<void> {
     try {
       console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
 

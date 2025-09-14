@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -26,7 +26,6 @@ import {
   Building2,
   FolderTree,
   Settings,
-  Palette,
   Hash,
   AlertTriangle,
   Search,
@@ -163,81 +162,6 @@ interface NumberingConfig {
   companyId: string;
 }
 
-// Mock hook for demonstration purposes, replace with actual implementation
-const useTicketMetadata = (selectedCompany: string) => {
-  // Placeholder for actual data fetching logic
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [actions, setActions] = useState<Action[]>([]);
-  const [fieldOptions, setFieldOptions] = useState<FieldOption[]>([]);
-  const [rawData, setRawData] = useState<any>(null);
-
-  useEffect(() => {
-    if (selectedCompany) {
-      // Simulate fetching data
-      console.log(`Simulating fetch for company: ${selectedCompany}`);
-
-      // Mock categories
-      const mockCategories = [
-        { id: 'cat1', name: 'Hardware', description: 'Problemas de hardware', color: '#3b82f6', active: true, sortOrder: 1, companyId: selectedCompany },
-        { id: 'cat2', name: 'Software', description: 'Problemas de software', color: '#10b981', active: true, sortOrder: 2, companyId: selectedCompany },
-        { id: 'cat3', name: 'Rede', description: 'Problemas de rede', color: '#f59e0b', active: false, sortOrder: 3, companyId: selectedCompany },
-      ];
-      setCategories(mockCategories);
-
-      // Mock subcategories
-      const mockSubcategories = [
-        { id: 'sub1', name: 'Desktop', description: 'Problemas com Desktops', categoryId: 'cat1', color: '#60a5fa', active: true, sortOrder: 1 },
-        { id: 'sub2', name: 'Notebook', description: 'Problemas com Notebooks', categoryId: 'cat1', color: '#90ee90', active: true, sortOrder: 2 },
-        { id: 'sub3', name: 'Sistema Operacional', description: 'Problemas com SO', categoryId: 'cat2', color: '#34d399', active: true, sortOrder: 1 },
-        { id: 'sub4', name: 'Aplicativo X', description: 'Problemas com App X', categoryId: 'cat2', color: '#fcd34d', active: false, sortOrder: 2 },
-      ];
-      setSubcategories(mockSubcategories);
-
-      // Mock actions
-      const mockActions = [
-        { id: 'act1', name: 'Troca de Peça', description: 'Substituir componente defeituoso', subcategoryId: 'sub1', color: '#93c5fc', active: true, sortOrder: 1 },
-        { id: 'act2', name: 'Formatação', description: 'Formatar disco rígido', subcategoryId: 'sub2', color: '#a7f3d0', active: true, sortOrder: 1 },
-        { id: 'act3', name: 'Reinstalação', description: 'Reinstalar sistema operacional', subcategoryId: 'sub3', color: '#fca503', active: true, sortOrder: 1 },
-        { id: 'act4', name: 'Update App X', description: 'Atualizar aplicativo X', subcategoryId: 'sub4', color: '#fde68a', active: true, sortOrder: 1 },
-        { id: 'act5', name: 'Configuração Rede', description: 'Ajustar configurações de rede', subcategoryId: 'sub3', color: '#fca503', active: true, sortOrder: 2 },
-      ];
-      setActions(mockActions);
-
-      // Mock field options
-      const mockFieldOptions = [
-        // Status
-        { id: 'fo1', fieldName: 'status', value: 'open', displayLabel: 'Aberto', color: '#ef4444', active: true, sortOrder: 1, statusType: 'open' },
-        { id: 'fo2', fieldName: 'status', value: 'in_progress', displayLabel: 'Em Andamento', color: '#f59e0b', active: true, sortOrder: 2, statusType: 'open' },
-        { id: 'fo3', fieldName: 'status', value: 'resolved', displayLabel: 'Resolvido', color: '#22c55e', active: true, sortOrder: 3, statusType: 'resolved' },
-        { id: 'fo4', fieldName: 'status', value: 'closed', displayLabel: 'Fechado', color: '#6b7280', active: true, sortOrder: 4, statusType: 'closed' },
-        // Priority
-        { id: 'fo5', fieldName: 'priority', value: 'high', displayLabel: 'Alta', color: '#f87171', active: true, sortOrder: 1, isDefault: true },
-        { id: 'fo6', fieldName: 'priority', value: 'medium', displayLabel: 'Média', color: '#fcd34d', active: true, sortOrder: 2 },
-        { id: 'fo7', fieldName: 'priority', value: 'low', displayLabel: 'Baixa', color: '#9ca3af', active: true, sortOrder: 3 },
-        // Impact
-        { id: 'fo8', fieldName: 'impact', value: 'high', displayLabel: 'Alto', color: '#fb923c', active: true, sortOrder: 1 },
-        { id: 'fo9', fieldName: 'impact', value: 'medium', displayLabel: 'Médio', color: '#fcd34d', active: true, sortOrder: 2, isDefault: true },
-        { id: 'fo10', fieldName: 'impact', value: 'low', displayLabel: 'Baixo', color: '#9ca3af', active: true, sortOrder: 3 },
-        // Urgency
-        { id: 'fo11', fieldName: 'urgency', value: 'high', displayLabel: 'Alta', color: '#f87171', active: true, sortOrder: 1 },
-        { id: 'fo12', fieldName: 'urgency', value: 'medium', displayLabel: 'Média', color: '#fcd34d', active: true, sortOrder: 2 },
-        { id: 'fo13', fieldName: 'urgency', value: 'low', displayLabel: 'Baixa', color: '#9ca3af', active: true, sortOrder: 3, isDefault: true },
-      ];
-      setFieldOptions(mockFieldOptions);
-
-      setRawData({ categories: mockCategories, subcategories: mockSubcategories, actions: mockActions, fieldOptions: mockFieldOptions });
-    }
-  }, [selectedCompany]);
-
-  const isLoading = false; // Mock loading
-  const error = null; // Mock error
-  const refetch = () => {}; // Mock refetch
-
-  return { categories, subcategories, actions, fieldOptions, isLoading, error, refetch, rawData };
-};
-
-
 const TicketConfiguration: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -314,7 +238,8 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
-  // Queries
+  // ========================= QUERIES =========================
+
   const { data: companiesData } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
@@ -325,44 +250,13 @@ const TicketConfiguration: React.FC = () => {
 
   // Handle different response formats from the API
   const companies = (() => {
-    console.log('🔍 [COMPANIES-DEBUG] Raw API response:', companiesData);
-    if (!companiesData) {
-      console.log('❌ [COMPANIES-DEBUG] No data received');
-      return [];
-    }
-    if (Array.isArray(companiesData)) {
-      console.log('✅ [COMPANIES-DEBUG] Array format:', companiesData.length, 'companies');
-      return companiesData;
-    }
-    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) {
-      console.log('✅ [COMPANIES-DEBUG] Success wrapper format:', (companiesData as any).data.length, 'companies');
-      return (companiesData as any).data;
-    }
-    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) {
-      console.log('✅ [COMPANIES-DEBUG] Data wrapper format:', (companiesData as any).data.length, 'companies');
-      return (companiesData as any).data;
-    }
-    console.log('❌ [COMPANIES-DEBUG] Unknown format, returning empty array');
+    if (!companiesData) return [];
+    if (Array.isArray(companiesData)) return companiesData;
+    if ((companiesData as any).success && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
+    if ((companiesData as any).data && Array.isArray((companiesData as any).data)) return (companiesData as any).data;
     return [];
   })();
 
-  // Fetching metadata using the mock hook
-  const { categories, subcategories, actions, fieldOptions, isLoading, error, refetch, rawData } = useTicketMetadata(selectedCompany);
-
-  console.log('🔍 TicketConfiguration data:', { 
-    categories: categories?.length, 
-    subcategories: subcategories?.length, 
-    actions: actions?.length,
-    selectedCompany,
-    rawSubcategories: rawData?.subcategories,
-    rawActions: rawData?.actions
-  });
-
-  // The following queries are commented out because the useTicketMetadata hook is now used
-  // and it fetches all the necessary data. If you need to re-enable these,
-  // ensure they are handled correctly alongside the hook's data.
-
-  /*
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', selectedCompany],
     queryFn: async () => {
@@ -395,25 +289,16 @@ const TicketConfiguration: React.FC = () => {
     },
     enabled: !!selectedCompany
   });
-  */
 
-  const { data: fieldOptionsData, refetch: refetchFieldOptions } = useQuery({
+  const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
-      // Add timestamp to prevent caching issues
-      const timestamp = Date.now();
-      const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}&_t=${timestamp}`);
+      // usar a rota simplificada que já retorna nomes normalizados
+      const response = await apiRequest('GET', `/api/ticket-config/field-options?companyId=${selectedCompany}`);
       const result = await response.json();
-      console.log('🔍 Field options query result for company:', selectedCompany, result);
-
-      // Validate data structure
-      if (!result.success || !Array.isArray(result.data)) {
-        console.error('❌ Invalid field options response:', result);
-        return [];
-      }
-
-      return result.data;
+      if (!result.success || !Array.isArray(result.data)) return [];
+      return result.data as FieldOption[];
     },
     enabled: !!selectedCompany,
     staleTime: 0,
@@ -422,7 +307,6 @@ const TicketConfiguration: React.FC = () => {
     refetchOnMount: true,
     refetchInterval: false,
     retry: 3,
-    // Force network requests, ignore cache
     networkMode: 'always'
   });
 
@@ -437,7 +321,8 @@ const TicketConfiguration: React.FC = () => {
     enabled: !!selectedCompany
   });
 
-  // Mutations
+  // ========================= MUTATIONS =========================
+
   const createCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/categories', {
@@ -454,6 +339,32 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof categorySchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/categories/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }); // sincroniza cores
+      setDialogOpen(false);
+      categoryForm.reset();
+      toast({ title: "Categoria atualizada com sucesso" });
+    }
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/categories/${categoryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
+      toast({ title: "Categoria excluída com sucesso" });
+    }
+  });
+
   const createSubcategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof subcategorySchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/subcategories', {
@@ -463,14 +374,38 @@ const TicketConfiguration: React.FC = () => {
       const result = await response.json();
       return result;
     },
-    onSuccess: async (result) => {
-      // Invalidate with the correct query key
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
-      // Force refetch to ensure UI updates
       queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] });
       setDialogOpen(false);
       subcategoryForm.reset();
       toast({ title: "Subcategoria criada com sucesso" });
+    }
+  });
+
+  const updateSubcategoryMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof subcategorySchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/subcategories/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      setDialogOpen(false);
+      subcategoryForm.reset();
+      toast({ title: "Subcategoria atualizada com sucesso" });
+    }
+  });
+
+  const deleteSubcategoryMutation = useMutation({
+    mutationFn: async (subcategoryId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/subcategories/${subcategoryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      toast({ title: "Subcategoria excluída com sucesso" });
     }
   });
 
@@ -490,37 +425,6 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
-  // UPDATE MUTATIONS - Adicionando funcionalidade de edição
-  const updateCategoryMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof categorySchema> & { id: string }) => {
-      const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/categories/${id}`, updateData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
-      setDialogOpen(false);
-      categoryForm.reset();
-      toast({ title: "Categoria atualizada com sucesso" });
-    }
-  });
-
-  const updateSubcategoryMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof subcategorySchema> & { id: string }) => {
-      const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/subcategories/${id}`, updateData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
-      setDialogOpen(false);
-      subcategoryForm.reset();
-      toast({ title: "Subcategoria atualizada com sucesso" });
-    }
-  });
-
   const updateActionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof actionSchema> & { id: string }) => {
       const { id, ...updateData } = data;
@@ -529,176 +433,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions', selectedCompany] });
-      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       setDialogOpen(false);
       actionForm.reset();
       toast({ title: "Ação atualizada com sucesso" });
-    }
-  });
-
-  const createFieldOptionMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof fieldOptionSchema>) => {
-      const response = await apiRequest('POST', '/api/ticket-config/field-options', {
-        ...data,
-        companyId: selectedCompany
-      });
-      return response.json();
-    },
-    onSuccess: async (result) => {
-      console.log('✅ Field option created successfully:', result);
-
-      // Complete cache reset strategy
-      const queryKey = ['field-options', selectedCompany];
-
-      // 1. Remove from cache
-      queryClient.removeQueries({ queryKey });
-
-      // 2. Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['field-options'] });
-
-      // 3. Force immediate refetch with fresh data
-      await queryClient.refetchQueries({ 
-        queryKey, 
-        type: 'active',
-        exact: true 
-      });
-
-      // 4. Reset stale time to force immediate refresh
-      queryClient.setQueryData(queryKey, undefined);
-
-      setDialogOpen(false);
-      fieldOptionForm.reset();
-      toast({ title: "Opção de campo criada com sucesso" });
-    }
-  });
-
-  const saveNumberingMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof numberingConfigSchema>) => {
-      const response = await apiRequest('POST', '/api/ticket-config/numbering', {
-        ...data,
-        companyId: selectedCompany
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] });
-      toast({ title: "Configuração de numeração salva com sucesso" });
-    }
-  });
-
-  const updateFieldOptionMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof fieldOptionSchema> & { id: string }) => {
-      const { id, ...updateData } = data;
-      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}`, {
-        ...updateData,
-        companyId: selectedCompany
-      });
-      return response.json();
-    },
-    onSuccess: async (result) => {
-      console.log('✅ Field option updated successfully:', result);
-
-      // Invalidate cache sem forçar refetch imediato
-      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-
-      setDialogOpen(false);
-      fieldOptionForm.reset();
-      toast({ 
-        title: "Opção atualizada com sucesso",
-        description: "A opção foi atualizada no sistema."
-      });
-    },
-    onError: (error) => {
-      console.error('❌ Error updating field option:', error);
-      toast({ 
-        title: "Erro ao atualizar opção",
-        description: "Não foi possível atualizar a opção.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const updateFieldOptionStatusMutation = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}/status`, {
-        active,
-        companyId: selectedCompany
-      });
-      return response.json();
-    },
-    onSuccess: async (result) => {
-      console.log('✅ Field option status updated successfully:', result);
-
-      // Invalidate cache sem forçar refetch imediato
-      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-
-      toast({ 
-        title: "Status atualizado com sucesso",
-        description: "A opção foi ativada/desativada."
-      });
-    },
-    onError: (error) => {
-      console.error('❌ Error updating field option status:', error);
-      toast({ 
-        title: "Erro ao atualizar status",
-        description: "Não foi possível alterar o status da opção.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const deleteFieldOptionMutation = useMutation({
-    mutationFn: async (optionId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
-      return response.json();
-    },
-    onSuccess: async () => {
-      // Complete cache reset strategy
-      const queryKey = ['field-options', selectedCompany];
-
-      // 1. Remove from cache
-      queryClient.removeQueries({ queryKey });
-
-      // 2. Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['field-options'] });
-
-      // 3. Force immediate refetch with fresh data
-      await queryClient.refetchQueries({ 
-        queryKey, 
-        type: 'active',
-        exact: true 
-      });
-
-      toast({ title: "Opção de campo excluída com sucesso" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Erro ao excluir opção", 
-        description: error.message || "Erro desconhecido",
-        variant: "destructive" 
-      });
-    }
-  });
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: async (categoryId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/categories/${categoryId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
-      toast({ title: "Categoria excluída com sucesso" });
-    }
-  });
-
-  const deleteSubcategoryMutation = useMutation({
-    mutationFn: async (subcategoryId: string) => {
-      const response = await apiRequest('DELETE', `/api/ticket-config/subcategories/${subcategoryId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
-      toast({ title: "Subcategoria excluída com sucesso" });
     }
   });
 
@@ -713,6 +451,82 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const createFieldOptionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof fieldOptionSchema>) => {
+      const response = await apiRequest('POST', '/api/ticket-config/field-options', {
+        ...data,
+        companyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async () => {
+      const queryKey = ['field-options', selectedCompany];
+      queryClient.removeQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      await queryClient.refetchQueries({ queryKey, type: 'active', exact: true });
+      queryClient.setQueryData(queryKey, undefined);
+      setDialogOpen(false);
+      fieldOptionForm.reset();
+      toast({ title: "Opção de campo criada com sucesso" });
+    }
+  });
+
+  const updateFieldOptionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof fieldOptionSchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}`, {
+        ...updateData,
+        companyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      setDialogOpen(false);
+      fieldOptionForm.reset();
+      toast({ title: "Opção atualizada com sucesso", description: "A opção foi atualizada no sistema." });
+    },
+    onError: (error) => {
+      console.error('❌ Error updating field option:', error);
+      toast({ title: "Erro ao atualizar opção", description: "Não foi possível atualizar a opção.", variant: "destructive" });
+    }
+  });
+
+  const updateFieldOptionStatusMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}/status`, {
+        active,
+        companyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      toast({ title: "Status atualizado com sucesso", description: "A opção foi ativada/desativada." });
+    },
+    onError: (error) => {
+      console.error('❌ Error updating field option status:', error);
+      toast({ title: "Erro ao atualizar status", description: "Não foi possível alterar o status da opção.", variant: "destructive" });
+    }
+  });
+
+  const deleteFieldOptionMutation = useMutation({
+    mutationFn: async (optionId: string) => {
+      const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
+      return response.json();
+    },
+    onSuccess: async () => {
+      const queryKey = ['field-options', selectedCompany];
+      queryClient.removeQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      await queryClient.refetchQueries({ queryKey, type: 'active', exact: true });
+      toast({ title: "Opção de campo excluída com sucesso" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Erro ao excluir opção", description: error.message || "Erro desconhecido", variant: "destructive" });
+    }
+  });
+
   // Mutation para copiar estrutura hierárquica
   const copyHierarchyMutation = useMutation({
     mutationFn: async () => {
@@ -723,9 +537,6 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: async (result) => {
-      console.log('✅ Hierarchy copied successfully:', result);
-
-      // Invalidate all related queries to refresh data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] }),
         queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] }),
@@ -733,8 +544,6 @@ const TicketConfiguration: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-
-      // Force refetch to ensure UI updates
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ['categories', selectedCompany] }),
         queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] }),
@@ -758,33 +567,28 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
-  // Helper functions
+  // ========================= HELPERS =========================
+
   const toggleCategoryExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
+    if (newExpanded.has(categoryId)) newExpanded.delete(categoryId);
+    else newExpanded.add(categoryId);
     setExpandedCategories(newExpanded);
   };
 
   const openDialog = (type: string, item?: any) => {
     setEditingItem({ type, ...item });
 
-    // Initialize form values based on dialog type
     if (type === 'subcategory') {
       const formData = {
         name: item?.name || '',
         description: item?.description || '',
-        // Fix: handle both camelCase and snake_case from backend
         categoryId: item?.categoryId || item?.category_id || '',
         color: item?.color || '#3b82f6',
         icon: item?.icon || '',
         active: item?.active !== undefined ? item.active : true,
         sortOrder: item?.sortOrder || item?.sort_order || 1
       };
-      console.log('🔧 Opening subcategory dialog with data:', formData);
       subcategoryForm.reset(formData);
     } else if (type === 'category') {
       categoryForm.reset({
@@ -799,7 +603,6 @@ const TicketConfiguration: React.FC = () => {
       const formData = {
         name: item?.name || '',
         description: item?.description || '',
-        // Fix: handle both camelCase and snake_case from backend
         subcategoryId: item?.subcategoryId || item?.subcategory_id || '',
         estimatedTimeMinutes: item?.estimatedTimeMinutes || item?.estimated_time_minutes || undefined,
         color: item?.color || '#3b82f6',
@@ -807,10 +610,8 @@ const TicketConfiguration: React.FC = () => {
         active: item?.active !== undefined ? item.active : true,
         sortOrder: item?.sortOrder || item?.sort_order || 1
       };
-      console.log('🔧 Opening action dialog with data:', formData);
       actionForm.reset(formData);
     } else if (type === 'field-option') {
-      // Handle both normalized (from frontend mapping) and raw database format
       fieldOptionForm.reset({
         fieldName: item?.fieldName || item?.field_name || '',
         value: item?.value || '',
@@ -847,8 +648,6 @@ const TicketConfiguration: React.FC = () => {
       numberingForm.reset(numberingConfig);
     }
   }, [numberingConfig, numberingForm]);
-
-
 
   return (
     <div className="container mx-auto p-6">
@@ -1090,7 +889,7 @@ const TicketConfiguration: React.FC = () => {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openDialog('category', category);
+                                openDialog('category', { ...category, id: category.id });
                               }}
                             >
                               <Edit className="w-3 h-3" />
@@ -1115,6 +914,7 @@ const TicketConfiguration: React.FC = () => {
                         {expandedCategories.has(category.id) && (
                           <div className="bg-white">
                             {subcategories && subcategories.length > 0 ? subcategories
+                              .filter((sub: Subcategory) => sub.categoryId === category.id)
                               .filter((sub: Subcategory) => {
                                 if (!searchTerm) return true;
                                 return sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1154,7 +954,7 @@ const TicketConfiguration: React.FC = () => {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => openDialog('subcategory', subcategory)}
+                                        onClick={() => openDialog('subcategory', { ...subcategory, id: subcategory.id })}
                                       >
                                         <Edit className="w-3 h-3" />
                                       </Button>
@@ -1176,7 +976,8 @@ const TicketConfiguration: React.FC = () => {
                                   {/* Ações da Subcategoria */}
                                   <div className="pl-16 pr-4 pb-4">
                                     {actions && actions.length > 0 ? actions
-                                      .filter(action => {
+                                      .filter((action: Action) => action.subcategoryId === subcategory.id)
+                                      .filter((action: Action) => {
                                         if (!searchTerm) return true;
                                         return action.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                                action.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -1202,7 +1003,7 @@ const TicketConfiguration: React.FC = () => {
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              onClick={() => openDialog('action', action)}
+                                              onClick={() => openDialog('action', { ...action, id: action.id })}
                                             >
                                               <Edit className="w-3 h-3" />
                                             </Button>
@@ -1262,7 +1063,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Tab: Classificação */}
           <TabsContent value="classification" className="space-y-6">
             {/* Header com estatísticas gerais */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md-grid-cols-4 md:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -1270,7 +1071,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Status</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter((opt: any) => opt.fieldName === 'status').length}
+                        {fieldOptions.filter((opt: any) => (opt.fieldName || opt.field_name) === 'status').length}
                       </p>
                     </div>
                   </div>
@@ -1283,7 +1084,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Prioridades</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter((opt: any) => opt.fieldName === 'priority').length}
+                        {fieldOptions.filter((opt: any) => (opt.fieldName || opt.field_name) === 'priority').length}
                       </p>
                     </div>
                   </div>
@@ -1296,7 +1097,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Impactos</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter((opt: any) => opt.fieldName === 'impact').length}
+                        {fieldOptions.filter((opt: any) => (opt.fieldName || opt.field_name) === 'impact').length}
                       </p>
                     </div>
                   </div>
@@ -1309,7 +1110,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Urgências</p>
                       <p className="text-2xl font-bold">
-                        {fieldOptions.filter((opt: any) => opt.fieldName === 'urgency').length}
+                        {fieldOptions.filter((opt: any) => (opt.fieldName || opt.field_name) === 'urgency').length}
                       </p>
                     </div>
                   </div>
@@ -1348,46 +1149,26 @@ const TicketConfiguration: React.FC = () => {
                 color: 'red'
               }
             ].map(({ key, title, description, icon: Icon, color }) => {
-              // Ensure we have valid data and map database fields correctly
               const validFieldOptions = Array.isArray(fieldOptions) ? fieldOptions : [];
 
               const fieldOptionsForType = validFieldOptions
                 .filter((option: any) => {
-                  // Handle both camelCase and snake_case field names from DB
                   const fieldName = option.fieldName || option.field_name;
-                  const matches = fieldName === key;
-
-                  if (key === 'status') {
-                    console.log('🔍 Filtering status option:', {
-                      displayLabel: option.displayLabel || option.display_label,
-                      fieldName: fieldName,
-                      expected: key,
-                      matches: matches,
-                      rawOption: option
-                    });
-                  }
-                  return matches;
+                  return fieldName === key;
                 })
                 .map((option: any) => ({
-                  // Normalize the object structure
                   id: option.id,
                   fieldName: option.fieldName || option.field_name,
                   value: option.value,
                   displayLabel: option.displayLabel || option.display_label || option.label,
                   color: option.color,
                   icon: option.icon,
-                  isDefault: option.isDefault || option.is_default,
+                  isDefault: option.isDefault ?? option.is_default ?? false,
                   active: option.active !== undefined ? option.active : (option.is_active !== undefined ? option.is_active : true),
                   sortOrder: option.sortOrder || option.sort_order || 1,
                   statusType: option.statusType || option.status_type
                 }))
                 .sort((a, b) => a.sortOrder - b.sortOrder);
-
-              console.log(`🔍 Field options for ${key}:`, {
-                total: validFieldOptions.length,
-                filtered: fieldOptionsForType.length,
-                options: fieldOptionsForType.map(o => ({ label: o.displayLabel, value: o.value }))
-              });
 
               return (
                 <Card key={key} className="overflow-hidden">
@@ -1590,7 +1371,22 @@ const TicketConfiguration: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Form {...numberingForm}>
-                  <form onSubmit={numberingForm.handleSubmit((data) => saveNumberingMutation.mutate(data))} className="space-y-4">
+                  <form onSubmit={numberingForm.handleSubmit((data) => {
+                    // salvar numeração
+                    (async () => {
+                      const response = await apiRequest('POST', '/api/ticket-config/numbering', {
+                        ...data,
+                        companyId: selectedCompany
+                      });
+                      const json = await response.json();
+                      if (json.success) {
+                        queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] });
+                        toast({ title: "Configuração de numeração salva com sucesso" });
+                      } else {
+                        toast({ title: "Erro ao salvar numeração", variant: "destructive" });
+                      }
+                    })();
+                  })} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <FormField
                         control={numberingForm.control}
@@ -1705,9 +1501,9 @@ const TicketConfiguration: React.FC = () => {
                       </div>
                     </div>
 
-                    <Button type="submit" disabled={saveNumberingMutation.isPending}>
+                    <Button type="submit">
                       <Save className="w-4 h-4 mr-2" />
-                      {saveNumberingMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
+                      Salvar Configuração
                     </Button>
                   </form>
                 </Form>
@@ -1724,16 +1520,25 @@ const TicketConfiguration: React.FC = () => {
           <DialogHeader>
             <DialogTitle>
               {editingItem?.type === 'category' && (editingItem.id ? 'Editar Categoria' : 'Nova Categoria')}
-              {editingItem?.type === 'subcategory' && 'Nova Subcategoria'}
-              {editingItem?.type === 'action' && 'Nova Ação'}
-              {editingItem?.type === 'field-option' && 'Nova Opção de Campo'}
+              {editingItem?.type === 'subcategory' && (editingItem.id ? 'Editar Subcategoria' : 'Nova Subcategoria')}
+              {editingItem?.type === 'action' && (editingItem.id ? 'Editar Ação' : 'Nova Ação')}
+              {editingItem?.type === 'field-option' && (editingItem.id ? 'Editar Opção de Campo' : 'Nova Opção de Campo')}
             </DialogTitle>
           </DialogHeader>
 
           {/* Formulário de Categoria */}
           {editingItem?.type === 'category' && (
             <Form {...categoryForm}>
-              <form onSubmit={categoryForm.handleSubmit((data) => createCategoryMutation.mutate(data))} className="space-y-4">
+              <form
+                onSubmit={categoryForm.handleSubmit((data) => {
+                  if (editingItem?.id) {
+                    updateCategoryMutation.mutate({ ...data, id: editingItem.id });
+                  } else {
+                    createCategoryMutation.mutate(data);
+                  }
+                })}
+                className="space-y-4"
+              >
                 <FormField
                   control={categoryForm.control}
                   name="name"
@@ -1809,7 +1614,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createCategoryMutation.isPending}>
+                  <Button type="submit" disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1820,7 +1625,16 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Subcategoria */}
           {editingItem?.type === 'subcategory' && (
             <Form {...subcategoryForm}>
-              <form onSubmit={subcategoryForm.handleSubmit((data) => createSubcategoryMutation.mutate(data))} className="space-y-4">
+              <form
+                onSubmit={subcategoryForm.handleSubmit((data) => {
+                  if (editingItem?.id) {
+                    updateSubcategoryMutation.mutate({ ...data, id: editingItem.id });
+                  } else {
+                    createSubcategoryMutation.mutate(data);
+                  }
+                })}
+                className="space-y-4"
+              >
                 <FormField
                   control={subcategoryForm.control}
                   name="categoryId"
@@ -1903,7 +1717,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createSubcategoryMutation.isPending}>
+                  <Button type="submit" disabled={createSubcategoryMutation.isPending || updateSubcategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1914,14 +1728,23 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Ação */}
           {editingItem?.type === 'action' && (
             <Form {...actionForm}>
-              <form onSubmit={actionForm.handleSubmit((data) => createActionMutation.mutate(data))} className="space-y-4">
+              <form
+                onSubmit={actionForm.handleSubmit((data) => {
+                  if (editingItem?.id) {
+                    updateActionMutation.mutate({ ...data, id: editingItem.id });
+                  } else {
+                    createActionMutation.mutate(data);
+                  }
+                })}
+                className="space-y-4"
+              >
                 <FormField
                   control={actionForm.control}
                   name="subcategoryId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Subcategoria</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={editingItem.subcategoryId || field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={editingItem?.subcategoryId || field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione a subcategoria" />
@@ -1997,7 +1820,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createActionMutation.isPending}>
+                  <Button type="submit" disabled={createActionMutation.isPending || updateActionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -2010,10 +1833,8 @@ const TicketConfiguration: React.FC = () => {
             <Form {...fieldOptionForm}>
               <form onSubmit={fieldOptionForm.handleSubmit((data) => {
                 if (editingItem.id) {
-                  // Modo edição - usar updateFieldOptionMutation
                   updateFieldOptionMutation.mutate({ ...data, id: editingItem.id });
                 } else {
-                  // Modo criação - usar createFieldOptionMutation
                   createFieldOptionMutation.mutate(data);
                 }
               })} className="space-y-4">
@@ -2159,7 +1980,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createFieldOptionMutation.isPending}>
+                  <Button type="submit" disabled={createFieldOptionMutation.isPending || updateFieldOptionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
