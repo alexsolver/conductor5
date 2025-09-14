@@ -1386,7 +1386,6 @@ export const InteractiveMap: React.FC = () => {
   // State Management
   // ===========================================================================================
 
-  const [agents, setAgents] = useState<AgentPosition[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<AgentPosition[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<MapFilters>({
@@ -1668,7 +1667,10 @@ export const InteractiveMap: React.FC = () => {
   // Derived Data and Performance Optimization
   // ===========================================================================================
 
-  const agents: AgentPosition[] = agentsData?.data?.agents || [];
+  // Get agents from API query
+  const agents = useMemo(() => {
+    return agentsData?.data?.agents || [];
+  }, [agentsData]);
 
   // Filter agents by search term
   const filteredAgents = useMemo(() => {
