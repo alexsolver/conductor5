@@ -1476,174 +1476,130 @@ export class TenantTemplateService {
     pool: any,
     schemaName: string,
     tenantId: string,
+    companyId?: string, // <- use este valor para preencher customer_id/company_id
   ): Promise<void> {
-    console.log("[TENANT-TEMPLATE] Creating ticket field options");
+    const client = await pool.connect();
 
-    const fieldOptions = [
-      // Status options
-      {
-        field_type: "status",
-        field_value: "new",
-        label: "Novo",
-        color: "#f59e0b",
-        sort_order: 1,
-        is_active: true,
-      },
-      {
-        field_type: "status",
-        field_value: "open",
-        label: "Aberto",
-        color: "#3b82f6",
-        sort_order: 2,
-        is_active: true,
-      },
-      {
-        field_type: "status",
-        field_value: "in_progress",
-        label: "Em Progresso",
-        color: "#8b5cf6",
-        sort_order: 3,
-        is_active: true,
-      },
-      {
-        field_type: "status",
-        field_value: "resolved",
-        label: "Resolvido",
-        color: "#10b981",
-        sort_order: 4,
-        is_active: true,
-      },
-      {
-        field_type: "status",
-        field_value: "closed",
-        label: "Fechado",
-        color: "#6b7280",
-        sort_order: 5,
-        is_active: true,
-      },
-
-      // Priority options
-      {
-        field_type: "priority",
-        field_value: "low",
-        label: "Baixa",
-        color: "#10b981",
-        sort_order: 1,
-        is_active: true,
-      },
-      {
-        field_type: "priority",
-        field_value: "medium",
-        label: "Média",
-        color: "#f59e0b",
-        sort_order: 2,
-        is_active: true,
-      },
-      {
-        field_type: "priority",
-        field_value: "high",
-        label: "Alta",
-        color: "#f97316",
-        sort_order: 3,
-        is_active: true,
-      },
-      {
-        field_type: "priority",
-        field_value: "critical",
-        label: "Crítica",
-        color: "#dc2626",
-        sort_order: 4,
-        is_active: true,
-      },
-
-      // Impact options
-      {
-        field_type: "impact",
-        field_value: "low",
-        label: "Baixo",
-        color: "#10b981",
-        sort_order: 1,
-        is_active: true,
-      },
-      {
-        field_type: "impact",
-        field_value: "medium",
-        label: "Médio",
-        color: "#f59e0b",
-        sort_order: 2,
-        is_active: true,
-      },
-      {
-        field_type: "impact",
-        field_value: "high",
-        label: "Alto",
-        color: "#f97316",
-        sort_order: 3,
-        is_active: true,
-      },
-      {
-        field_type: "impact",
-        field_value: "critical",
-        label: "Crítico",
-        color: "#dc2626",
-        sort_order: 4,
-        is_active: true,
-      },
-
-      // Urgency options
-      {
-        field_type: "urgency",
-        field_value: "low",
-        label: "Baixa",
-        color: "#10b981",
-        sort_order: 1,
-        is_active: true,
-      },
-      {
-        field_type: "urgency",
-        field_value: "medium",
-        label: "Média",
-        color: "#f59e0b",
-        sort_order: 2,
-        is_active: true,
-      },
-      {
-        field_type: "urgency",
-        field_value: "high",
-        label: "Alta",
-        color: "#f97316",
-        sort_order: 3,
-        is_active: true,
-      },
-      {
-        field_type: "urgency",
-        field_value: "critical",
-        label: "Crítica",
-        color: "#dc2626",
-        sort_order: 4,
-        is_active: true,
-      },
+    const options = [
+      // Status
+      { field: "status", value: "new",         label: "Novo",         color: "#f59e0b", sortOrder: 1, active: true },
+      { field: "status", value: "open",        label: "Aberto",       color: "#3b82f6", sortOrder: 2, active: true },
+      { field: "status", value: "in_progress", label: "Em Progresso", color: "#8b5cf6", sortOrder: 3, active: true },
+      { field: "status", value: "resolved",    label: "Resolvido",    color: "#10b981", sortOrder: 4, active: true },
+      { field: "status", value: "closed",      label: "Fechado",      color: "#6b7280", sortOrder: 5, active: true },
+      // Priority
+      { field: "priority", value: "low",      label: "Baixa",   color: "#10b981", sortOrder: 1, active: true },
+      { field: "priority", value: "medium",   label: "Média",   color: "#f59e0b", sortOrder: 2, active: true },
+      { field: "priority", value: "high",     label: "Alta",    color: "#f97316", sortOrder: 3, active: true },
+      { field: "priority", value: "critical", label: "Crítica", color: "#dc2626", sortOrder: 4, active: true },
+      // Impact
+      { field: "impact", value: "low",    label: "Baixo",  color: "#10b981", sortOrder: 1, active: true },
+      { field: "impact", value: "medium", label: "Médio",  color: "#f59e0b", sortOrder: 2, active: true },
+      { field: "impact", value: "high",   label: "Alto",   color: "#f97316", sortOrder: 3, active: true },
+      { field: "impact", value: "critical", label: "Crítico", color: "#dc2626", sortOrder: 4, active: true },
+      // Urgency
+      { field: "urgency", value: "low",    label: "Baixa",  color: "#10b981", sortOrder: 1, active: true },
+      { field: "urgency", value: "medium", label: "Média",  color: "#f59e0b", sortOrder: 2, active: true },
+      { field: "urgency", value: "high",   label: "Alta",   color: "#f97316", sortOrder: 3, active: true },
+      { field: "urgency", value: "critical", label: "Crítica", color: "#dc2626", sortOrder: 4, active: true },
     ];
 
-    for (const option of fieldOptions) {
-      const insertQuery = `
-        INSERT INTO "${schemaName}".ticket_field_options
-        (field_type, field_value, label, color, sort_order, is_active, tenant_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    try {
+      console.log("[TENANT-TEMPLATE] Creating ticket field options");
+      await client.query("BEGIN");
+      companyId = "00000000-0000-0000-0000-000000000001"
+      // Descobre as colunas reais da tabela
+      const { rows: cols } = await client.query(
+        `
+        SELECT column_name, is_nullable
+        FROM information_schema.columns
+        WHERE table_schema = $1
+          AND table_name   = 'ticket_field_options'
+        `,
+        [schemaName],
+      );
+      const has = (c: string) => cols.some((r) => r.column_name === c);
+      const isNotNull = (c: string) =>
+        cols.some((r) => r.column_name === c && r.is_nullable === "NO");
+
+      const fieldCol = has("field_name") ? "field_name" : (has("field_type") ? "field_type" : null);
+      const valueCol = has("value")      ? "value"      : (has("field_value") ? "field_value" : null);
+      const labelCol = has("display_label") ? "display_label" : (has("label") ? "label" : null);
+      const activeCol= has("is_active")  ? "is_active"  : (has("active") ? "active" : null);
+      const sortCol  = has("sort_order") ? "sort_order" : (has("sortorder") ? "sortorder" : null);
+      const hasColor = has("color");
+      const hasTenant= has("tenant_id");
+      const hasCreated = has("created_at");
+      const hasUpdated = has("updated_at");
+
+      // Coluna organizacional: prioriza customer_id; se não houver, usa company_id (se existir).
+      const hasCustomerCol = has("customer_id");
+      const hasCompanyCol  = has("company_id");
+      const orgCol = hasCustomerCol ? "customer_id" : (hasCompanyCol ? "company_id" : null);
+
+      if (!fieldCol || !valueCol || !labelCol || !activeCol || !sortCol) {
+        throw new Error(
+          `ticket_field_options: colunas essenciais ausentes (precisa de field_name/field_type, value/field_value, display_label/label, is_active/active, sort_order)`
+        );
+      }
+
+      // Se a tabela exige customer_id/company_id, obrigue passar companyId
+      if (orgCol && isNotNull(orgCol) && !companyId) {
+        throw new Error(
+          `A tabela "${schemaName}".ticket_field_options exige "${orgCol}" NOT NULL. ` +
+          `Forneça o companyId ao chamar createTicketFieldOptions.`
+        );
+      }
+
+      // Monta a lista de colunas do INSERT (sempre inclui orgCol se existir)
+      const insertCols: string[] = [fieldCol, valueCol, labelCol];
+      if (hasColor) insertCols.push("color");
+      insertCols.push(sortCol, activeCol);
+      if (hasTenant) insertCols.push("tenant_id");
+      if (orgCol)    insertCols.push(orgCol);
+      if (hasCreated) insertCols.push("created_at");
+      if (hasUpdated) insertCols.push("updated_at");
+
+      const placeholders = (len: number) =>
+        Array.from({ length: len }, (_, i) => `$${i + 1}`).join(", ");
+
+      const sql = `
+        INSERT INTO "${schemaName}".ticket_field_options (${insertCols.join(", ")})
+        VALUES (${placeholders(insertCols.length)})
+        RETURNING 1
       `;
 
-      await pool.query(insertQuery, [
-        option.field_type,
-        option.field_value,
-        option.label,
-        option.color,
-        option.sort_order,
-        option.is_active,
-        tenantId,
-      ]);
-    }
+      let inserted = 0;
 
-    console.log("[TENANT-TEMPLATE] Ticket field options created successfully");
+      for (const o of options) {
+        const vals: any[] = [
+          o.field,            // field_name/field_type
+          o.value,            // value/field_value
+          o.label,            // display_label/label
+        ];
+        if (hasColor) vals.push(o.color);  // color
+        vals.push(o.sortOrder);            // sort_order
+        vals.push(o.active);               // is_active/active
+        if (hasTenant)  vals.push(tenantId);      // tenant_id
+        if (orgCol)     vals.push(companyId ?? null); // customer_id/company_id (usa companyId)
+        if (hasCreated) vals.push(new Date());    // created_at
+        if (hasUpdated) vals.push(new Date());    // updated_at
+
+        const { rowCount } = await client.query(sql, vals);
+        inserted += rowCount ?? 0;
+      }
+
+      await client.query("COMMIT");
+      console.log(
+        `[TENANT-TEMPLATE] Ticket field options: ${inserted}/${options.length} inseridas em ${schemaName}.ticket_field_options`
+      );
+    } catch (err) {
+      await client.query("ROLLBACK");
+      console.error("[TENANT-TEMPLATE] Erro ao criar ticket field options:", err);
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   /**
