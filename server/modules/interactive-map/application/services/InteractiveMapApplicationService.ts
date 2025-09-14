@@ -25,7 +25,8 @@ export class InteractiveMapApplicationService {
   // ✅ Initialize all services following Clean Architecture
   private initializeServices(): void {
     // ✅ Infrastructure Layer
-    this.repository = new DrizzleInteractiveMapRepository(this.db);
+    // Note: tenantId should be passed from request context, using 'default' for now
+    this.repository = new DrizzleInteractiveMapRepository(this.db, 'default');
 
     // ✅ Domain Layer
     this.domainService = new InteractiveMapDomainService();

@@ -78,21 +78,18 @@ export class DrizzleInteractiveMapRepository {
   private readonly tenantId: string;
   private db: any; // Use 'any' for dynamic schema, or define a more specific type
 
-  constructor(tenantId: string) {
-    this.schema = `tenant_${tenantId}`;
-    this.tenantId = tenantId;
-    this.db = this.getTenantDb(); // Initialize db here
+  constructor(db: any, tenantId?: string) {
+    // If tenantId is not provided, extract from request context or use a default
+    this.tenantId = tenantId || 'default';
+    this.schema = `tenant_${this.tenantId}`;
+    this.db = db;
   }
 
   // ✅ 1QA.MD: Get tenant-specific database instance
   private async getTenantDb() {
-    const schemaName = this.getSchemaName(this.tenantId);
-    const tenantPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      options: `-c search_path=${schemaName}`,
-      ssl: false,
-    });
-    return drizzle({ client: tenantPool, schema });
+    // Return the database instance passed in constructor
+    // Schema switching should be handled at the connection level
+    return this.db;
   }
 
   // ✅ 1QA.MD: Get tenant schema name
