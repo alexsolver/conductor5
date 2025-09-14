@@ -7,12 +7,15 @@ import { UpdateAgentLocationUseCase } from '../use-cases/UpdateAgentLocationUseC
 import { AgentSearchCriteria, MapViewport } from '../../domain/repositories/IInteractiveMapRepository';
 import { LocationPoint, MapBounds } from '../../domain/entities/FieldAgent';
 import type { AgentLocationUpdate } from '@shared/schema-interactive-map';
+import { AuthenticatedRequest } from '@shared/types/AuthenticatedRequest'; // Assuming this type is available
 
 // ✅ Controller - Application Layer
 export class InteractiveMapController {
   constructor(
     private findFieldAgentsUseCase: FindFieldAgentsUseCase,
-    private updateAgentLocationUseCase: UpdateAgentLocationUseCase
+    private updateAgentLocationUseCase: UpdateAgentLocationUseCase,
+    // Assuming interactiveMapService is injected here as well
+    private interactiveMapService: any // Replace 'any' with the actual service type
   ) {}
 
   // ✅ GET /api/interactive-map/agents - List all field agents with filters
@@ -78,7 +81,7 @@ export class InteractiveMapController {
         const lat = parseFloat(proximityLat as string);
         const lng = parseFloat(proximityLng as string);
         const radius = parseInt(proximityRadius as string);
-        
+
         if (!isNaN(lat) && !isNaN(lng) && !isNaN(radius)) {
           criteria.proximityLocation = new LocationPoint(lat, lng);
           criteria.proximityRadius = radius;
@@ -154,7 +157,7 @@ export class InteractiveMapController {
       }
 
       const { lat, lng, radius } = req.query;
-      
+
       if (!lat || !lng || !radius) {
         res.status(400).json({
           success: false,
@@ -202,14 +205,14 @@ export class InteractiveMapController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId) {
         res.status(401).json({ success: false, message: 'Tenant ID is required' });
         return;
       }
 
       const locationUpdate: AgentLocationUpdate = req.body;
-      
+
       if (!locationUpdate.agentId || !locationUpdate.lat || !locationUpdate.lng) {
         res.status(400).json({
           success: false,
@@ -244,14 +247,14 @@ export class InteractiveMapController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId) {
         res.status(401).json({ success: false, message: 'Tenant ID is required' });
         return;
       }
 
       const { locationUpdates } = req.body;
-      
+
       if (!Array.isArray(locationUpdates) || locationUpdates.length === 0) {
         res.status(400).json({
           success: false,
@@ -292,7 +295,7 @@ export class InteractiveMapController {
 
       const { agentId } = req.params;
       const { hours = '24' } = req.query;
-      
+
       if (!agentId) {
         res.status(400).json({
           success: false,
@@ -368,7 +371,7 @@ export class InteractiveMapController {
 
       const { maxOfflineMinutes = '5' } = req.query;
       const minutes = parseInt(maxOfflineMinutes as string);
-      
+
       if (isNaN(minutes) || minutes <= 0) {
         res.status(400).json({
           success: false,
@@ -390,6 +393,72 @@ export class InteractiveMapController {
         success: false,
         message: 'Failed to retrieve offline agents',
         error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Added endpoint to get user groups for the teams filter
+  async getExternalWeather(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { lat, lng } = req.query;
+
+      if (!lat || !lng) {
+        res.status(400).json({
+          success: false,
+          error: 'Missing required parameters',
+          message: 'Latitude and longitude are required'
+        });
+        return;
+      }
+
+      const weatherData = await this.interactiveMapService.getWeatherData(
+        parseFloat(lat as string),
+        parseFloat(lng as string)
+      );
+
+      res.json({
+        success: true,
+        data: weatherData,
+        message: 'Weather data retrieved successfully'
+      });
+
+    } catch (error) {
+      console.error('[INTERACTIVE-MAP-CONTROLLER] Error fetching weather data:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: 'Failed to fetch weather data'
+      });
+    }
+  }
+
+  async getUserGroups(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+          message: 'Tenant ID not found'
+        });
+        return;
+      }
+
+      const userGroups = await this.interactiveMapService.getUserGroups(tenantId);
+
+      res.json({
+        success: true,
+        data: userGroups,
+        message: 'User groups retrieved successfully'
+      });
+
+    } catch (error) {
+      console.error('[INTERACTIVE-MAP-CONTROLLER] Error fetching user groups:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: 'Failed to fetch user groups'
       });
     }
   }

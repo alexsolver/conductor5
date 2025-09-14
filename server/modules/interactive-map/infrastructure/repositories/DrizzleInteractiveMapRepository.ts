@@ -76,10 +76,12 @@ export interface NearbyAgentsQuery {
 export class DrizzleInteractiveMapRepository {
   private readonly schema: string;
   private readonly tenantId: string;
+  private db: any; // Use 'any' for dynamic schema, or define a more specific type
 
   constructor(tenantId: string) {
     this.schema = `tenant_${tenantId}`;
     this.tenantId = tenantId;
+    this.db = this.getTenantDb(); // Initialize db here
   }
 
   // ✅ 1QA.MD: Get tenant-specific database instance
@@ -110,7 +112,7 @@ export class DrizzleInteractiveMapRepository {
     const offset = options.offset || 0;
 
     // Complex query joining users with latest position, route, and device data
-    const query = db
+    const query = this.db
       .select({
         // User data from tenant schema
         id: sql`u.id`,
@@ -122,7 +124,7 @@ export class DrizzleInteractiveMapRepository {
         tenant_id: sql`u.tenant_id`,
         created_at: sql`u.created_at`,
         updated_at: sql`u.updated_at`,
-        
+
         // Latest position data
         pos_lat: sql`pos.lat`,
         pos_lng: sql`pos.lng`,
@@ -133,7 +135,7 @@ export class DrizzleInteractiveMapRepository {
         pos_signal_strength: sql`pos.signal_strength`,
         pos_captured_at: sql`pos.captured_at`,
         pos_is_accurate: sql`pos.is_accurate`,
-        
+
         // Latest route data
         route_id: sql`rt.id`,
         route_eta_seconds: sql`rt.current_eta_seconds`,
@@ -141,7 +143,7 @@ export class DrizzleInteractiveMapRepository {
         route_ticket_id: sql`rt.ticket_id`,
         route_status: sql`rt.status`,
         route_traffic_impact: sql`rt.traffic_impact`,
-        
+
         // Device status
         device_battery_level: sql`dev.battery_level`,
         device_is_online: sql`dev.is_online`,
@@ -151,7 +153,7 @@ export class DrizzleInteractiveMapRepository {
         device_low_battery_warning: sql`dev.low_battery_warning`,
       })
       .from(sql`${sql.identifier(this.schema)}.users u`)
-      
+
       // LEFT JOIN latest position data
       .leftJoin(
         sql`(
@@ -164,7 +166,7 @@ export class DrizzleInteractiveMapRepository {
         ) pos`,
         sql`pos.agent_id = u.id`
       )
-      
+
       // LEFT JOIN active routes
       .leftJoin(
         sql`(
@@ -178,7 +180,7 @@ export class DrizzleInteractiveMapRepository {
         ) rt`,
         sql`rt.agent_id = u.id`
       )
-      
+
       // LEFT JOIN device status
       .leftJoin(
         sql`(
@@ -191,7 +193,7 @@ export class DrizzleInteractiveMapRepository {
         ) dev`,
         sql`dev.agent_id = u.id`
       )
-      
+
       .where(sql`u.is_active = true`);
 
     // Apply filters
@@ -288,14 +290,14 @@ export class DrizzleInteractiveMapRepository {
     const { lat, lng, radiusKm, skills, status, maxResults = 50 } = query;
 
     // Use PostGIS distance calculation if available, otherwise Haversine formula
-    const distanceQuery = db
+    const distanceQuery = this.db
       .select({
         // User data
         id: sql`u.id`,
         name: sql`u.nome`,
         cargo: sql`u.cargo`,
         profile_image_url: sql`u.profile_image_url`,
-        
+
         // Position data with distance calculation
         pos_lat: sql`pos.lat`,
         pos_lng: sql`pos.lng`,
@@ -304,7 +306,7 @@ export class DrizzleInteractiveMapRepository {
         pos_speed: sql`pos.speed`,
         pos_device_battery: sql`pos.device_battery`,
         pos_captured_at: sql`pos.captured_at`,
-        
+
         // Calculate distance using Haversine formula
         distance_km: sql`
           6371 * acos(
@@ -351,7 +353,7 @@ export class DrizzleInteractiveMapRepository {
    */
   async getAgentStats(): Promise<AgentStatsResult> {
     // Get total count
-    const totalCountResult = await db
+    const totalCountResult = await this.db
       .select({ count: sql`COUNT(*)` })
       .from(sql`${sql.identifier(this.schema)}.users`)
       .where(sql`is_active = true`);
@@ -387,7 +389,7 @@ export class DrizzleInteractiveMapRepository {
       if (agent.deviceBattery !== null) {
         batterySum += agent.deviceBattery;
         batteryCount++;
-        
+
         if (agent.deviceBattery < 15) {
           lowBatteryCount++;
         }
@@ -651,7 +653,7 @@ export class DrizzleInteractiveMapRepository {
 
     // For lower zoom levels, use clustering or sampling
     const sampleSize = Math.max(100, Math.min(1000, Math.floor(2000 / Math.pow(2, 15 - zoomLevel))));
-    
+
     return this.getAllAgents({ bounds }, { limit: sampleSize });
   }
 
@@ -666,7 +668,7 @@ export class DrizzleInteractiveMapRepository {
   }> {
     const [positionUpdates, statusChanges, deviceUpdates, routeUpdates] = await Promise.all([
       // Position updates
-      db.select()
+      this.db.select()
         .from(agentPositions)
         .where(and(
           eq(agentPositions.tenantId, this.schema.replace('tenant_', '')),
@@ -676,7 +678,7 @@ export class DrizzleInteractiveMapRepository {
         .limit(1000),
 
       // Status changes
-      db.select()
+      this.db.select()
         .from(agentStatusHistory)
         .where(and(
           eq(agentStatusHistory.tenantId, this.schema.replace('tenant_', '')),
@@ -686,7 +688,7 @@ export class DrizzleInteractiveMapRepository {
         .limit(500),
 
       // Device updates
-      db.select()
+      this.db.select()
         .from(agentDeviceStatus)
         .where(and(
           eq(agentDeviceStatus.tenantId, this.schema.replace('tenant_', '')),
@@ -696,7 +698,7 @@ export class DrizzleInteractiveMapRepository {
         .limit(500),
 
       // Route updates
-      db.select()
+      this.db.select()
         .from(agentRoutes)
         .where(and(
           eq(agentRoutes.tenantId, this.schema.replace('tenant_', '')),
@@ -712,5 +714,65 @@ export class DrizzleInteractiveMapRepository {
       deviceUpdates,
       routeUpdates,
     };
+  }
+
+  // ===========================================================================================
+  // Point of Interest Methods
+  // ===========================================================================================
+
+  async getNearbyPOIs(tenantId: string, lat: number, lng: number, radius: number): Promise<PointOfInterest[]> {
+    try {
+      // This would typically query a spatial database for nearby points of interest
+      // For now, return mock data
+      return [
+        {
+          id: 'poi_1',
+          name: 'Hospital São Paulo',
+          type: 'hospital',
+          lat: lat + 0.001,
+          lng: lng + 0.001,
+          distance: 150
+        },
+        {
+          id: 'poi_2', 
+          name: 'Posto de Gasolina Shell',
+          type: 'gas_station',
+          lat: lat - 0.002,
+          lng: lng + 0.001,
+          distance: 280
+        }
+      ];
+    } catch (error) {
+      console.error('[DRIZZLE-INTERACTIVE-MAP-REPO] Error fetching nearby POIs:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches user groups for a given tenant.
+   * This method is intended to be used for populating filters in the interactive map.
+   */
+  async getUserGroups(tenantId: string): Promise<any[]> {
+    try {
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      const result = await this.db.execute(sql`
+        SELECT 
+          id,
+          name,
+          description,
+          is_active as "isActive",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM ${sql.identifier(schemaName)}.user_groups
+        WHERE is_active = true
+        ORDER BY name
+      `);
+
+      return result.rows;
+    } catch (error) {
+      console.error('[DRIZZLE-INTERACTIVE-MAP-REPO] Error fetching user groups:', error);
+      throw error;
+    }
   }
 }

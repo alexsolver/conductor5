@@ -770,7 +770,7 @@ const FiltersPanel: React.FC<{
   teams: string[];
   skills: { id: string; name: string; category: string | null }[]; // Updated skills type
   agentStats: any;
-}> = ({ filters, onFiltersChange, teams, skills: availableSkills, agentStats }) => {
+}> = ({ filters, onFiltersChange, teams: availableTeams, skills: availableSkills, agentStats }) => {
   const { t } = useTranslation();
 
   const handleFilterChange = (key: keyof MapFilters, value: any) => {
@@ -870,15 +870,20 @@ const FiltersPanel: React.FC<{
         </div>
       </div>
 
-      {/* Team Filters */}
-      {teams.length > 0 && (
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Equipes
-          </h4>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {teams.map(team => (
+      {/* Teams Filter */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          Grupos/Equipes
+        </Label>
+        <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
+          {userGroupsLoading ? (
+            <div className="flex items-center justify-center py-2">
+              <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
+              <span className="text-xs text-gray-500 ml-2">Carregando grupos...</span>
+            </div>
+          ) : availableTeams.length > 0 ? (
+            availableTeams.map((team) => (
               <div key={team} className="flex items-center space-x-2">
                 <Checkbox
                   id={`team-${team}`}
@@ -891,14 +896,21 @@ const FiltersPanel: React.FC<{
                     }
                   }}
                 />
-                <label htmlFor={`team-${team}`} className="text-sm cursor-pointer truncate">
+                <Label
+                  htmlFor={`team-${team}`}
+                  className="text-sm text-gray-600 cursor-pointer flex-1"
+                >
                   {team}
-                </label>
+                </Label>
               </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            <p className="text-xs text-gray-500">
+              Nenhum grupo encontrado. Configure grupos em Gestão da Equipe.
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Skills Filters */}
       {availableSkills.length > 0 && (
@@ -1067,7 +1079,7 @@ const FiltersPanel: React.FC<{
 };
 
 // ===========================================================================================
-// Layers Control Panel Component
+// Layers Panel Component
 // ===========================================================================================
 
 const LayersPanel: React.FC<{
@@ -1368,6 +1380,7 @@ const MapSettingsPanel: React.FC<{
 export const InteractiveMap: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const user = { id: 'user1', name: 'Admin', email: 'admin@example.com' }; // Mock user object
 
   // ===========================================================================================
   // State Management
@@ -1445,48 +1458,39 @@ export const InteractiveMap: React.FC = () => {
   // Data Fetching and Integration
   // ===========================================================================================
 
-  // ✅ Fetch technical skills from Team Management module
-  const { data: skillsResponse } = useQuery({
+  // Fetch skills data using real API
+  const { data: skillsData, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/technical-skills/skills'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/technical-skills/skills');
-      if (!res.ok) throw new Error('Erro ao buscar habilidades técnicas');
-      return res.json();
-    },
+    queryFn: () => apiRequest('GET', '/api/technical-skills/skills').then(res => res.json()),
+    enabled: !!user,
   });
 
-  // ✅ Fetch user skills
-  const { data: userSkills, isLoading: userSkillsLoading } = useQuery<UserSkill[]>({
+  // Fetch user skills data using real API
+  const { data: userSkillsData, isLoading: userSkillsLoading } = useQuery({
     queryKey: ['/api/technical-skills/user-skills'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/technical-skills/user-skills');
-      if (!res.ok) throw new Error('Erro ao buscar habilidades dos usuários');
-      return res.json();
-    },
+    queryFn: () => apiRequest('GET', '/api/technical-skills/user-skills').then(res => res.json()),
+    enabled: !!user,
   });
 
-  // Fetch team members
-  const { data: teamMembersResponse } = useQuery({
+  // Fetch team members data using real API
+  const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery({
     queryKey: ['/api/team/members'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/team/members');
-      if (!res.ok) throw new Error('Erro ao buscar membros da equipe');
-      return res.json();
-    },
+    queryFn: () => apiRequest('GET', '/api/team/members').then(res => res.json()),
+    enabled: !!user,
+  });
+
+  // Fetch user groups from Interactive Map API for teams filter
+  const { data: userGroupsData, isLoading: userGroupsLoading } = useQuery({
+    queryKey: ['/api/interactive-map/user-groups'],
+    queryFn: () => apiRequest('GET', '/api/interactive-map/user-groups').then(res => res.json()),
+    enabled: !!user,
   });
 
   // Extract team members array from response
-  const teamMembers = Array.isArray(teamMembersResponse)
-    ? teamMembersResponse
-    : (teamMembersResponse?.members || teamMembersResponse?.data || []);
-
-  // ✅ Extract technical skills for filters
-  const technicalSkills = skillsResponse?.data || [];
-  const availableSkills = technicalSkills.filter(skill => skill.isActive).map(skill => ({
-    id: skill.id,
-    name: skill.name,
-    category: skill.category
-  }));
+  const teamMembers = teamMembersData?.members || [];
+  const userGroups = userGroupsData?.data || [];
+  const availableTeams = userGroups.map((group: any) => group.name) || [];
+  const availableSkills = skillsData?.data?.filter((skill: any) => skill.isActive).map((skill: any) => skill.name) || [];
 
   // Mock ticket data for visualization
   const mockTickets = [
@@ -1625,7 +1629,7 @@ export const InteractiveMap: React.FC = () => {
   // Data Fetching with Mock Data (replace with real API calls)
   // ===========================================================================================
 
-  const { data: agentsData, isLoading } = useQuery({
+  const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/interactive-map/agents', filters],
     queryFn: async () => {
       // Simulate API delay
@@ -1674,12 +1678,6 @@ export const InteractiveMap: React.FC = () => {
       agent.assigned_ticket_id?.toLowerCase().includes(search)
     );
   }, [agents, searchTerm]);
-
-  // Extract unique teams and skills for filters
-  const availableTeams = useMemo(() =>
-    Array.from(new Set(agents.map(agent => agent.team).filter(Boolean))).sort(),
-    [agents]
-  );
 
   // Performance optimization: Only render agents in viewport for large datasets
   const visibleAgents = useMemo(() => {
@@ -1872,7 +1870,7 @@ export const InteractiveMap: React.FC = () => {
                     filters={filters}
                     onFiltersChange={setFilters}
                     teams={availableTeams}
-                    skills={availableSkills}
+                    skills={availableSkills.map(name => ({ id: name, name: name, category: null }))} // Map to the expected format
                     agentStats={agentStats?.data}
                   />
                 </div>
@@ -2074,7 +2072,7 @@ export const InteractiveMap: React.FC = () => {
                         data-testid="export-pdf-btn"
                       >
                         <Download className="w-3 h-3 mr-1" />
-                        PDF
+                        TXT
                       </Button>
                     </div>
                   </div>
@@ -2723,8 +2721,35 @@ export const InteractiveMap: React.FC = () => {
             </Card>
           )}
 
-          {/* Statistics Panel (Removed as per instructions) */}
-          {/* The following block for the Statistics Panel has been removed */}
+          {/* Status Indicators */}
+        <div className="absolute top-20 right-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Status em Tempo Real
+            </h3>
+            {(agentsLoading || skillsLoading || userSkillsLoading || teamMembersLoading || userGroupsLoading) && (
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+            )}
+          </div>
+          {!agentsLoading && agentStats?.data && (
+            <div className="space-y-2 text-xs text-gray-600">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Online: {agentStats.data.onlineCount} / {agents.length}
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                Média Bateria: {agentStats.data.avgBatteryLevel}%
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                Risco SLA: {agentStats.data.slaRiskCount}
+              </div>
+            </div>
+          )}
+        </div>
+
 
           {/* Loading Overlay */}
           {isLoading && (
