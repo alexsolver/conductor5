@@ -1486,6 +1486,9 @@ export const InteractiveMap: React.FC = () => {
     queryKey: ['/api/interactive-map/user-groups'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/interactive-map/user-groups');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user groups');
+      }
       return response.json();
     },
   });
