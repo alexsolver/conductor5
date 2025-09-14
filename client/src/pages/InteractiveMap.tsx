@@ -1491,6 +1491,7 @@ export const InteractiveMap: React.FC = () => {
       }
       return response.json();
     },
+    enabled: !!user,
   });
 
   // Extract team members array from response
