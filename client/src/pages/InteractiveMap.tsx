@@ -867,7 +867,7 @@ const FiltersPanel: React.FC<{
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Limpar
                 </Button>
-              </Tooltip>
+              </TooltipTrigger>
               <TooltipContent>
                 Limpar todos os filtros aplicados
               </TooltipContent>
