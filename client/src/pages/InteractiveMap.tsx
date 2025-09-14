@@ -1501,11 +1501,13 @@ export const InteractiveMap: React.FC = () => {
 
   // Extract user groups from team management data
   const userGroups = Array.isArray(userGroupsData?.data) ? userGroupsData.data : [];
+  const availableTeams = userGroups.map((group: any) => group.name) || [];
 
   // ===========================================================================================
   // Extract Skills Data
   const skillsData = Array.isArray(technicalSkillsData?.data) ? technicalSkillsData.data : [];
   const userSkillsData = Array.isArray(userSkillsResponse?.data) ? userSkillsResponse.data : [];
+  const availableSkills = skillsData?.filter((skill: any) => skill.isActive).map((skill: any) => skill.name) || [];
 
   // Mock ticket data for visualization
   const mockTickets = [
