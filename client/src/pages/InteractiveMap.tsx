@@ -1482,7 +1482,7 @@ export const InteractiveMap: React.FC = () => {
   });
 
   // Fetch user groups from Interactive Map API for teams filter
-  const { data: userGroupsData, isLoading: userGroupsLoading } = useQuery({
+  const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
     queryKey: ['/api/interactive-map/user-groups'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/interactive-map/user-groups');
