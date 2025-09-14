@@ -445,11 +445,52 @@ export class InteractiveMapController {
         return;
       }
 
+      // Get groups from team management
       const userGroups = await this.interactiveMapService.getUserGroups(tenantId);
+
+      // If no groups found, also try to get from team members
+      if (!userGroups || userGroups.length === 0) {
+        try {
+          // Try to get team data from team management endpoint
+          const teamResponse = await fetch(`http://localhost:5000/api/team/members`, {
+            headers: {
+              'Authorization': req.headers.authorization || '',
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (teamResponse.ok) {
+            const teamData = await teamResponse.json();
+            if (teamData.success && teamData.data) {
+              // Extract unique teams/groups from team members
+              const teams = [...new Set(teamData.data
+                .filter((member: any) => member.team || member.groupName)
+                .map((member: any) => member.team || member.groupName))]
+                .map((teamName: string, index: number) => ({
+                  id: `team_${index}`,
+                  name: teamName,
+                  description: `Equipe ${teamName}`,
+                  isActive: true,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                }));
+
+              res.json({
+                success: true,
+                data: teams,
+                message: 'User groups retrieved successfully from team management'
+              });
+              return;
+            }
+          }
+        } catch (fetchError) {
+          console.warn('[INTERACTIVE-MAP-CONTROLLER] Could not fetch from team management, using repository data');
+        }
+      }
 
       res.json({
         success: true,
-        data: userGroups,
+        data: userGroups || [],
         message: 'User groups retrieved successfully'
       });
 

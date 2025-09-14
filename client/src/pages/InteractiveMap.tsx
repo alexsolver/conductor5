@@ -877,31 +877,42 @@ const FiltersPanel: React.FC<{
           Grupos/Equipes
         </Label>
         <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
-          {(agentStats?.teams || []).length > 0 ? (
-            (agentStats?.teams || []).map((team: string) => (
-              <div key={team} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`team-${team}`}
-                  checked={filters.teams.includes(team)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      handleFilterChange('teams', [...filters.teams, team]);
-                    } else {
-                      handleFilterChange('teams', filters.teams.filter(t => t !== team));
-                    }
-                  }}
-                />
-                <Label htmlFor={`team-${team}`} className="text-sm text-gray-600 cursor-pointer flex-1">
-                  {team}
-                </Label>
+            {userGroupsLoading ? (
+              <div className="flex items-center justify-center py-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
+                <span className="ml-2 text-sm text-muted-foreground">Carregando grupos...</span>
               </div>
-            ))
-          ) : userGroupsError ? (
-            <div className="text-sm text-red-500">Erro ao carregar grupos</div>
-          ) : (
-            <div className="text-sm text-gray-500">Nenhuma equipe encontrada</div>
-          )}
-        </div>
+            ) : userGroups.length > 0 ? (
+              userGroups.map((group) => {
+                const groupName = group.name || group.groupName || group.team || `Grupo ${group.id}`;
+                return (
+                  <div key={group.id || groupName} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`team-${group.id || groupName}`}
+                      checked={filters.teams.includes(groupName)}
+                      onCheckedChange={(checked) => {
+                        setFilters(prev => ({
+                          ...prev,
+                          teams: checked
+                            ? [...prev.teams, groupName]
+                            : prev.teams.filter(t => t !== groupName)
+                        }));
+                      }}
+                    />
+                    <Label
+                      htmlFor={`team-${group.id || groupName}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {groupName}
+                    </Label>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex items-center justify-center py-2">
+                <span className="text-sm text-muted-foreground">Nenhum grupo encontrado</span>
+              </div>
+            )}</div>
       </div>
 
       {/* Skills Filters */}
@@ -1374,17 +1385,16 @@ export const InteractiveMap: React.FC = () => {
   const queryClient = useQueryClient();
   const user = { id: 'user1', name: 'Admin', email: 'admin@example.com' }; // Mock user object
 
-  // Fetch user groups for teams filter
+  // Fetch user groups from Team Management for teams filter
   const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
-    queryKey: ['/api/interactive-map/user-groups'],
+    queryKey: ['/api/team/members'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/interactive-map/user-groups');
+      const response = await apiRequest('GET', '/api/team/members');
       if (!response.ok) {
-        throw new Error('Failed to fetch user groups');
+        throw new Error('Failed to fetch team members');
       }
       return response.json();
     },
-    enabled: !!user,
   });
 
   // ===========================================================================================
@@ -1466,14 +1476,14 @@ export const InteractiveMap: React.FC = () => {
   // ===========================================================================================
 
   // Fetch skills data using real API
-  const { data: skillsData, isLoading: skillsLoading } = useQuery({
+  const { data: technicalSkillsData, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/technical-skills/skills'],
     queryFn: () => apiRequest('GET', '/api/technical-skills/skills').then(res => res.json()),
     enabled: !!user,
   });
 
   // Fetch user skills data using real API
-  const { data: userSkillsData, isLoading: userSkillsLoading } = useQuery({
+  const { data: userSkillsResponse, isLoading: userSkillsLoading } = useQuery({
     queryKey: ['/api/technical-skills/user-skills'],
     queryFn: () => apiRequest('GET', '/api/technical-skills/user-skills').then(res => res.json()),
     enabled: !!user,
@@ -1486,24 +1496,16 @@ export const InteractiveMap: React.FC = () => {
     enabled: !!user,
   });
 
-  // Fetch user groups from Interactive Map API for teams filter
-  // const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
-  //   queryKey: ['/api/interactive-map/user-groups'],
-  //   queryFn: async () => {
-  //     const response = await apiRequest('GET', '/api/interactive-map/user-groups');
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch user groups');
-  //     }
-  //     return response.json();
-  //   },
-  //   enabled: !!user,
-  // });
-
   // Extract team members array from response
-  const teamMembers = teamMembersData?.members || [];
-  // const userGroups = userGroupsData?.data || [];
-  const availableTeams = userGroupsData?.data?.map((group: any) => group.id) || []; // Use group IDs for filtering
-  const availableSkills = skillsData?.data?.filter((skill: any) => skill.isActive) || [];
+  const teamMembers = Array.isArray(teamMembersData?.data) ? teamMembersData.data : [];
+
+  // Extract user groups from team management data
+  const userGroups = Array.isArray(userGroupsData?.data) ? userGroupsData.data : [];
+
+  // ===========================================================================================
+  // Extract Skills Data
+  const skillsData = Array.isArray(technicalSkillsData?.data) ? technicalSkillsData.data : [];
+  const userSkillsData = Array.isArray(userSkillsResponse?.data) ? userSkillsResponse.data : [];
 
   // Mock ticket data for visualization
   const mockTickets = [

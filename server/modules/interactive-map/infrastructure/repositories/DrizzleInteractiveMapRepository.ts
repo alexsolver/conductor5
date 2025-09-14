@@ -746,14 +746,15 @@ export class DrizzleInteractiveMapRepository {
   }
 
   /**
-   * Fetches user groups for a given tenant.
+   * Fetches user groups for a given tenant from team management.
    * This method is intended to be used for populating filters in the interactive map.
    */
   async getUserGroups(tenantId: string): Promise<any[]> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      const result = await this.db.execute(sql`
+      // First, try to get from user_groups table (team management)
+      const userGroupsResult = await this.db.execute(sql`
         SELECT 
           id,
           name,
@@ -766,7 +767,25 @@ export class DrizzleInteractiveMapRepository {
         ORDER BY name
       `);
 
-      return result.rows;
+      if (userGroupsResult.rows.length > 0) {
+        return userGroupsResult.rows;
+      }
+
+      // Fallback: get unique teams from users table
+      const teamsResult = await this.db.execute(sql`
+        SELECT DISTINCT 
+          team as name,
+          team as id,
+          'Equipe ' || team as description,
+          true as "isActive",
+          NOW() as "createdAt",
+          NOW() as "updatedAt"
+        FROM ${sql.identifier(schemaName)}.users
+        WHERE team IS NOT NULL AND team != ''
+        ORDER BY team
+      `);
+
+      return teamsResult.rows;
     } catch (error) {
       console.error('[DRIZZLE-INTERACTIVE-MAP-REPO] Error fetching user groups:', error);
       throw error;
