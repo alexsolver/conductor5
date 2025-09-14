@@ -877,8 +877,8 @@ const FiltersPanel: React.FC<{
           Grupos/Equipes
         </Label>
         <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
-          {availableTeams.length > 0 ? (
-            availableTeams.map((team) => (
+          {(agentStats?.teams || []).length > 0 ? (
+            (agentStats?.teams || []).map((team: string) => (
               <div key={team} className="flex items-center space-x-2">
                 <Checkbox
                   id={`team-${team}`}
@@ -891,18 +891,15 @@ const FiltersPanel: React.FC<{
                     }
                   }}
                 />
-                <Label
-                  htmlFor={`team-${team}`}
-                  className="text-sm text-gray-600 cursor-pointer flex-1"
-                >
+                <Label htmlFor={`team-${team}`} className="text-sm text-gray-600 cursor-pointer flex-1">
                   {team}
                 </Label>
               </div>
             ))
+          ) : userGroupsError ? (
+            <div className="text-sm text-red-500">Erro ao carregar grupos</div>
           ) : (
-            <p className="text-xs text-gray-500">
-              Nenhum grupo encontrado. Configure grupos em Gestão da Equipe.
-            </p>
+            <div className="text-sm text-gray-500">Nenhuma equipe encontrada</div>
           )}
         </div>
       </div>
@@ -1377,6 +1374,19 @@ export const InteractiveMap: React.FC = () => {
   const queryClient = useQueryClient();
   const user = { id: 'user1', name: 'Admin', email: 'admin@example.com' }; // Mock user object
 
+  // Fetch user groups for teams filter
+  const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
+    queryKey: ['/api/interactive-map/user-groups'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/interactive-map/user-groups');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user groups');
+      }
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
   // ===========================================================================================
   // State Management
   // ===========================================================================================
@@ -1477,23 +1487,23 @@ export const InteractiveMap: React.FC = () => {
   });
 
   // Fetch user groups from Interactive Map API for teams filter
-  const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
-    queryKey: ['/api/interactive-map/user-groups'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/interactive-map/user-groups');
-      if (!response.ok) {
-        throw new Error('Failed to fetch user groups');
-      }
-      return response.json();
-    },
-    enabled: !!user,
-  });
+  // const { data: userGroupsData, isLoading: userGroupsLoading, error: userGroupsError } = useQuery({
+  //   queryKey: ['/api/interactive-map/user-groups'],
+  //   queryFn: async () => {
+  //     const response = await apiRequest('GET', '/api/interactive-map/user-groups');
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch user groups');
+  //     }
+  //     return response.json();
+  //   },
+  //   enabled: !!user,
+  // });
 
   // Extract team members array from response
   const teamMembers = teamMembersData?.members || [];
-  const userGroups = userGroupsData?.data || [];
-  const availableTeams = userGroups.map((group: any) => group.name) || [];
-  const availableSkills = skillsData?.data?.filter((skill: any) => skill.isActive).map((skill: any) => skill.name) || [];
+  // const userGroups = userGroupsData?.data || [];
+  const availableTeams = userGroupsData?.data?.map((group: any) => group.id) || []; // Use group IDs for filtering
+  const availableSkills = skillsData?.data?.filter((skill: any) => skill.isActive) || [];
 
   // Mock ticket data for visualization
   const mockTickets = [
@@ -1657,7 +1667,8 @@ export const InteractiveMap: React.FC = () => {
           statusBreakdown: mockAgents.reduce((acc, agent) => {
             acc[agent.status] = (acc[agent.status] || 0) + 1;
             return acc;
-          }, {} as Record<string, number>)
+          }, {} as Record<string, number>),
+          teams: Array.from(new Set(mockAgents.map(a => a.team))) // Extract unique teams
         }
       };
     },
@@ -1878,7 +1889,7 @@ export const InteractiveMap: React.FC = () => {
                     filters={filters}
                     onFiltersChange={setFilters}
                     teams={availableTeams}
-                    skills={availableSkills.map(name => ({ id: name, name: name, category: null }))} // Map to the expected format
+                    skills={availableSkills}
                     agentStats={agentStats?.data}
                   />
                 </div>
