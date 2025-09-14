@@ -877,37 +877,28 @@ const FiltersPanel: React.FC<{
           Grupos/Equipes
         </Label>
         <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
-            {userGroupsLoading ? (
-              <div className="flex items-center justify-center py-2">
-                <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
-                <span className="ml-2 text-sm text-muted-foreground">Carregando grupos...</span>
-              </div>
-            ) : userGroups.length > 0 ? (
-              userGroups.map((group) => {
-                const groupName = group.name || group.groupName || group.team || `Grupo ${group.id}`;
-                return (
-                  <div key={group.id || groupName} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`team-${group.id || groupName}`}
-                      checked={filters.teams.includes(groupName)}
-                      onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          teams: checked
-                            ? [...prev.teams, groupName]
-                            : prev.teams.filter(t => t !== groupName)
-                        }));
-                      }}
-                    />
-                    <Label
-                      htmlFor={`team-${group.id || groupName}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {groupName}
-                    </Label>
-                  </div>
-                );
-              })
+            {availableTeams.length > 0 ? (
+              availableTeams.map((team) => (
+                <div key={team} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`team-${team}`}
+                    checked={filters.teams.includes(team)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        handleFilterChange('teams', [...filters.teams, team]);
+                      } else {
+                        handleFilterChange('teams', filters.teams.filter(t => t !== team));
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor={`team-${team}`}
+                    className="text-sm text-gray-600 cursor-pointer flex-1"
+                  >
+                    {team}
+                  </Label>
+                </div>
+              ))
             ) : (
               <div className="flex items-center justify-center py-2">
                 <span className="text-sm text-muted-foreground">Nenhum grupo encontrado</span>
@@ -2751,7 +2742,7 @@ export const InteractiveMap: React.FC = () => {
               <Activity className="w-4 h-4" />
               Status em Tempo Real
             </h3>
-            {(agentsLoading || skillsLoading || userSkillsLoading || teamMembersLoading || userGroupsLoading) && (
+            {(agentsLoading || skillsLoading || userSkillsLoading || teamMembersLoading) && (
               <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
             )}
           </div>
