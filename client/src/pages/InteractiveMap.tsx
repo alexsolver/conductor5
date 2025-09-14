@@ -1631,7 +1631,7 @@ export const InteractiveMap: React.FC = () => {
   // Data Fetching with Mock Data (replace with real API calls)
   // ===========================================================================================
 
-  const { data: agentsData, isLoading: agentsLoading } = useQuery({
+  const { data: agentsData, isLoading: agentsLoading, error: agentsError } = useQuery({
     queryKey: ['/api/interactive-map/agents', filters],
     queryFn: async () => {
       // Simulate API delay
