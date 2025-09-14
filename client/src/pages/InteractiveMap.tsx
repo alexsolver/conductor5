@@ -170,48 +170,8 @@ interface UserSkill {
   // Add other properties if they exist in your actual UserSkill type
 }
 
-// Mock API Request Function (replace with actual implementation)
-const apiRequest = async (method: string, url: string, body?: any): Promise<any> => {
-  // This is a placeholder. Replace with your actual API call logic.
-  console.log(`API Request: ${method} ${url}`, body);
-  // Mock response for demonstration
-  if (url === '/api/technical-skills/skills') {
-    return {
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: [
-          { id: 's1', name: 'Elétrica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
-          { id: 's2', name: 'Hidráulica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
-          { id: 's3', name: 'Soldagem', category: 'Produção', isActive: false, createdAt: '', updatedAt: '' },
-          { id: 's4', name: 'Mecânica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
-          { id: 's5', name: 'Eletrônica', category: 'Manutenção', isActive: true, createdAt: '', updatedAt: '' },
-          { id: 's6', name: 'Redes', category: 'TI', isActive: true, createdAt: '', updatedAt: '' },
-          { id: 's7', name: 'Suporte OS', category: 'TI', isActive: false, createdAt: '', updatedAt: '' },
-        ]
-      })
-    };
-  }
-  if (url === '/api/technical-skills/user-skills') {
-    return {
-      ok: true,
-      json: async () => ([
-        { skillName: 'Elétrica' },
-        { skillName: 'Mecânica' }
-      ])
-    };
-  }
-  if (url === '/api/team/members') {
-    return {
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: [{ id: 'm1', name: 'Carlos Silva', team: 'Suporte Técnico' }, { id: 'm2', name: 'Ana Costa', team: 'Vendas' }]
-      })
-    };
-  }
-  return { ok: false, status: 500, json: async () => ({ success: false, message: 'Not implemented' }) };
-};
+// Import the real API request function
+import { apiRequest } from '@/lib/queryClient';
 
 // Weather visualization configuration with gradient colors
 const weatherVisualizationConfig = {
