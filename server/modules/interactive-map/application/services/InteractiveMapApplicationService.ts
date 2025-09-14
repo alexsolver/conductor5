@@ -7,7 +7,7 @@ import { UpdateAgentLocationUseCase } from '../use-cases/UpdateAgentLocationUseC
 import { InteractiveMapController } from '../controllers/InteractiveMapController';
 import { DrizzleInteractiveMapRepository } from '../../infrastructure/repositories/DrizzleInteractiveMapRepository';
 import { InteractiveMapDomainService } from '../../domain/services/InteractiveMapDomainService';
-import { ExternalApiService } from './ExternalApiService'; // Assuming ExternalApiService is in the same directory
+import { ExternalApiService } from '../../infrastructure/services/ExternalApiService';
 
 // ✅ Application Service - Dependency Injection Container
 export class InteractiveMapApplicationService {
@@ -16,7 +16,7 @@ export class InteractiveMapApplicationService {
   private findFieldAgentsUseCase: FindFieldAgentsUseCase;
   private updateAgentLocationUseCase: UpdateAgentLocationUseCase;
   private controller: InteractiveMapController;
-  private externalApiService: ExternalApiService; // Add ExternalApiService
+  // ExternalApiService uses static methods - no instance property needed
 
   constructor(private db: NodePgDatabase<any>) {
     this.initializeServices();
@@ -47,8 +47,8 @@ export class InteractiveMapApplicationService {
       this.updateAgentLocationUseCase
     );
 
-    // ✅ External API Service
-    this.externalApiService = new ExternalApiService(); // Initialize ExternalApiService
+    // ✅ External API Service - using static methods, no instantiation needed
+    // ExternalApiService uses static methods, so no instantiation required
   }
 
   // ✅ Get controller instance for route registration
@@ -75,16 +75,13 @@ export class InteractiveMapApplicationService {
     return this.updateAgentLocationUseCase;
   }
 
-  // ✅ Get External API Service instance
-  getExternalApiService(): ExternalApiService {
-    return this.externalApiService;
-  }
+  // ✅ External API Service uses static methods - no instance needed
 
   // ✅ Weather data retrieval
   async getWeatherData(lat: number, lng: number): Promise<any> {
     try {
       // Try to get real weather data from SaaS Admin OpenWeather integration
-      return await this.externalApiService.getWeatherData(lat, lng);
+      return await ExternalApiService.getWeatherData(lat, lng);
     } catch (error) {
       console.warn('[INTERACTIVE-MAP-SERVICE] Weather API failed, using fallback:', error);
 
@@ -129,8 +126,9 @@ export class InteractiveMapApplicationService {
       // Test repository connection
       const agentCount = await this.repository.getActiveAgentCount(tenantId);
 
-      // Test external API service
-      await this.externalApiService.healthCheck(); // Assuming ExternalApiService has a healthCheck method
+      // Test external API service - basic functionality test
+      // ExternalApiService uses static methods, test basic weather functionality
+      await ExternalApiService.getWeatherData(0, 0); // Basic test call
 
       // Test user groups retrieval
       await this.getUserGroups(tenantId);
@@ -162,7 +160,7 @@ export class InteractiveMapApplicationService {
       }
 
       try {
-        await this.externalApiService.healthCheck();
+        await ExternalApiService.getWeatherData(0, 0);
         externalApiHealthy = true;
       } catch (e) {
         console.error('[InteractiveMapApplicationService] External API health check failed.');
