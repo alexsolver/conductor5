@@ -122,24 +122,49 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Try to get from ticket_field_options table first
     try {
-      const result = await db.execute(sql.raw(`
-        SELECT 
-          id,
-          field_name,
-          value as option_value,
-          label as display_label,
-          color as color_hex,
-          sort_order,
-          is_active,
-          company_id,
-          created_at
-        FROM "${schemaName}".ticket_field_options 
-        WHERE tenant_id = $1
-        AND company_id = $2 
-        AND field_name = $3
-        AND is_active = true
-        ORDER BY sort_order ASC, label ASC
-      `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+      // First try with is_active column
+      let result;
+      try {
+        result = await db.execute(sql.raw(`
+          SELECT 
+            id,
+            field_name,
+            option_value,
+            display_label,
+            color_hex,
+            sort_order,
+            is_active,
+            company_id,
+            created_at
+          FROM "${schemaName}".ticket_field_options 
+          WHERE tenant_id = $1
+          AND company_id = $2 
+          AND field_name = $3
+          AND is_active = true
+          ORDER BY sort_order ASC, display_label ASC
+        `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+      } catch (columnError) {
+        // Fallback to 'active' column if 'is_active' doesn't exist
+        console.log('⚠️ is_active column not found, trying active column');
+        result = await db.execute(sql.raw(`
+          SELECT 
+            id,
+            field_name,
+            option_value,
+            display_label,
+            color_hex,
+            sort_order,
+            active as is_active,
+            company_id,
+            created_at
+          FROM "${schemaName}".ticket_field_options 
+          WHERE tenant_id = $1
+          AND company_id = $2 
+          AND field_name = $3
+          AND active = true
+          ORDER BY sort_order ASC, display_label ASC
+        `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+      }
 
       if (result.rows.length > 0) {
         console.log(`✅ Found ${result.rows.length} field options in database`);
