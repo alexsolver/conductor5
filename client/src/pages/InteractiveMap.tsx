@@ -1102,13 +1102,19 @@ const LayersPanel: React.FC<{
   setShowTrafficLayer: (show: boolean) => void;
   weatherRadius: number;
   setWeatherRadius: (radius: number) => void;
+  weatherPinPosition: { lat: number; lng: number } | null;
+  setWeatherPinPosition: (position: { lat: number; lng: number } | null) => void;
+  isWeatherPinPlacement: boolean;
+  setIsWeatherPinPlacement: (placement: boolean) => void;
 }> = ({
   showTickets, setShowTickets,
   showTeamGroups, setShowTeamGroups,
   showAreas, setShowAreas,
   showWeatherLayer, setShowWeatherLayer,
   showTrafficLayer, setShowTrafficLayer,
-  weatherRadius, setWeatherRadius
+  weatherRadius, setWeatherRadius,
+  weatherPinPosition, setWeatherPinPosition,
+  isWeatherPinPlacement, setIsWeatherPinPlacement
 }) => {
   return (
     <div className="space-y-6">
@@ -2016,6 +2022,10 @@ export const InteractiveMap: React.FC = () => {
                     setShowTrafficLayer={setShowTrafficLayer}
                     weatherRadius={weatherRadius}
                     setWeatherRadius={setWeatherRadius}
+                    weatherPinPosition={weatherPinPosition}
+                    setWeatherPinPosition={setWeatherPinPosition}
+                    isWeatherPinPlacement={isWeatherPinPlacement}
+                    setIsWeatherPinPlacement={setIsWeatherPinPlacement}
                   />
                 </div>
               </SheetContent>
