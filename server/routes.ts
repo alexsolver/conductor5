@@ -4247,7 +4247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Usar o TimecardController que já tem acesso ao db correto
-        const timecardController= new TimecardController();
+        const timecardController = new TimecardController();
 
         // Redirecionar para o método correto do controller
         req.params = { period };
@@ -4625,7 +4625,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "for tenant:",
         tenantId,
       );
-      consolet("📊 [/api/companies] Company names:",
+      console.log(
+        "📊 [/api/companies] Company names:",
         companies.map((c) => ({ name: c.name, displayName: c.displayName })),
       );
 
@@ -5927,10 +5928,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Check if user is SaaS admin
         if (!req.user || req.user.role !== "saas_admin") {
-          console.error(
-            "❌ [SAAS-ADMIN-TEST] Access denied - not SaaS admin:",
-            req.user?.role,
-          );
           return res.status(403).json({
             success: false,
             message: "Access denied. SaaS Admin role required.",
@@ -6359,13 +6356,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
-  // Team Management Routes
-  app.use('/api/team-management', teamManagementRoutes);
-
-  // First Company Template Routes
-  const firstCompanyTemplateRoutes = await import('./routes/firstCompanyTemplate');
-  app.use('/api/first-company-template', firstCompanyTemplateRoutes.default);
 
   const httpServer = createServer(app);
   return httpServer;
