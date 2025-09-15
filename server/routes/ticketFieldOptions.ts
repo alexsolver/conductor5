@@ -122,9 +122,49 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Try to get from ticket_field_options table first
     try {
-      // First try with is_active column
+      console.log(`🔍 Checking if ticket_field_options table exists in schema ${schemaName}`);
+      
+      // First check if table exists
+      const tableCheck = await db.execute(sql.raw(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = 'ticket_field_options'
+        );
+      `, [schemaName]));
+
+      if (!tableCheck.rows[0]?.exists) {
+        console.log(`⚠️ ticket_field_options table does not exist in ${schemaName}, creating it`);
+        
+        // Create the table with proper structure
+        await db.execute(sql.raw(`
+          CREATE TABLE IF NOT EXISTS "${schemaName}".ticket_field_options (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id VARCHAR(36) NOT NULL,
+            company_id VARCHAR(36),
+            field_name VARCHAR(50) NOT NULL,
+            option_value VARCHAR(100) NOT NULL,
+            display_label VARCHAR(200) NOT NULL,
+            color_hex VARCHAR(7),
+            sort_order INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          );
+        `));
+
+        // Create index for performance
+        await db.execute(sql.raw(`
+          CREATE INDEX IF NOT EXISTS idx_ticket_field_options_tenant_field 
+          ON "${schemaName}".ticket_field_options (tenant_id, field_name, is_active);
+        `));
+
+        console.log(`✅ ticket_field_options table created in ${schemaName}`);
+      }
+
+      // Now try to query with proper column detection
       let result;
       try {
+        // First try with is_active column
         result = await db.execute(sql.raw(`
           SELECT 
             id,
@@ -144,26 +184,59 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           ORDER BY sort_order ASC, display_label ASC
         `, [tenantId, effectiveCompanyId, fieldName || 'status']));
       } catch (columnError) {
-        // Fallback to 'active' column if 'is_active' doesn't exist
         console.log('⚠️ is_active column not found, trying active column');
-        result = await db.execute(sql.raw(`
-          SELECT 
-            id,
-            field_name,
-            option_value,
-            display_label,
-            color_hex,
-            sort_order,
-            active as is_active,
-            company_id,
-            created_at
-          FROM "${schemaName}".ticket_field_options 
-          WHERE tenant_id = $1
-          AND company_id = $2 
-          AND field_name = $3
-          AND active = true
-          ORDER BY sort_order ASC, display_label ASC
-        `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+        try {
+          result = await db.execute(sql.raw(`
+            SELECT 
+              id,
+              field_name,
+              option_value,
+              display_label,
+              color_hex,
+              sort_order,
+              active as is_active,
+              company_id,
+              created_at
+            FROM "${schemaName}".ticket_field_options 
+            WHERE tenant_id = $1
+            AND company_id = $2 
+            AND field_name = $3
+            AND active = true
+            ORDER BY sort_order ASC, display_label ASC
+          `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+        } catch (secondError) {
+          console.log('⚠️ Both is_active and active columns failed, table might need column migration');
+          // Add the missing column if needed
+          try {
+            await db.execute(sql.raw(`
+              ALTER TABLE "${schemaName}".ticket_field_options 
+              ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+            `));
+            
+            // Try again with is_active
+            result = await db.execute(sql.raw(`
+              SELECT 
+                id,
+                field_name,
+                option_value,
+                display_label,
+                color_hex,
+                sort_order,
+                is_active,
+                company_id,
+                created_at
+              FROM "${schemaName}".ticket_field_options 
+              WHERE tenant_id = $1
+              AND company_id = $2 
+              AND field_name = $3
+              AND is_active = true
+              ORDER BY sort_order ASC, display_label ASC
+            `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+          } catch (migrationError) {
+            console.error('❌ Failed to migrate table structure:', migrationError);
+            throw new Error('Database table structure issue - please check ticket_field_options table');
+          }
+        }
       }
 
       if (result.rows.length > 0) {
@@ -175,6 +248,72 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           companyId: effectiveCompanyId,
           tenantId
         });
+      } else {
+        // If no data found, seed with default options for this field
+        console.log(`🌱 No field options found, seeding default options for ${fieldName}`);
+        const defaultOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
+        
+        if (defaultOptions && defaultOptions.length > 0) {
+          // Insert default options
+          for (let i = 0; i < defaultOptions.length; i++) {
+            const option = defaultOptions[i];
+            try {
+              await db.execute(sql.raw(`
+                INSERT INTO "${schemaName}".ticket_field_options 
+                (tenant_id, company_id, field_name, option_value, display_label, color_hex, sort_order, is_active)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                ON CONFLICT DO NOTHING
+              `, [
+                tenantId,
+                effectiveCompanyId,
+                fieldName,
+                option.value,
+                option.label,
+                option.color,
+                i + 1,
+                true
+              ]));
+            } catch (seedError) {
+              console.warn('⚠️ Failed to seed option:', option.value, seedError.message);
+            }
+          }
+          
+          // Try to fetch again after seeding
+          try {
+            result = await db.execute(sql.raw(`
+              SELECT 
+                id,
+                field_name,
+                option_value,
+                display_label,
+                color_hex,
+                sort_order,
+                is_active,
+                company_id,
+                created_at
+              FROM "${schemaName}".ticket_field_options 
+              WHERE tenant_id = $1
+              AND company_id = $2 
+              AND field_name = $3
+              AND is_active = true
+              ORDER BY sort_order ASC, display_label ASC
+            `, [tenantId, effectiveCompanyId, fieldName || 'status']));
+            
+            if (result.rows.length > 0) {
+              console.log(`✅ Found ${result.rows.length} seeded field options`);
+              return res.json({
+                success: true,
+                data: result.rows,
+                fieldName,
+                companyId: effectiveCompanyId,
+                tenantId,
+                source: 'seeded'
+              });
+            }
+          } catch (refetchError) {
+            console.warn('⚠️ Failed to refetch after seeding:', refetchError.message);
+          }
+        }
       }
     } catch (dbError) {
       console.log('⚠️ ticket_field_options table not found, using fallback:', dbError.message);
