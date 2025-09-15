@@ -23,10 +23,21 @@ BEGIN
         BEGIN
             RAISE NOTICE 'Processing schema: %', tenant_schema;
             
-            -- Extract tenant_id from schema name for reference
-            current_tenant_id := REPLACE(tenant_schema, 'tenant_', '')::uuid;
+            -- Extract tenant_id from schema name and convert underscores to hyphens
+            tenant_uuid_string := REPLACE(REPLACE(tenant_schema, 'tenant_', ''), '_', '-');
+            current_tenant_id := tenant_uuid_string::uuid;
             
-            -- 1. ADD CLT COMPLIANCE FIELDS TO TIMECARD_ENTRIES (nullable initially)
+            -- 1. CHECK IF TIMECARD_ENTRIES TABLE EXISTS BEFORE PROCEEDING
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = tenant_schema 
+                  AND table_name = 'timecard_entries'
+            ) THEN
+                RAISE NOTICE 'Skipping schema % - timecard_entries table does not exist', tenant_schema;
+                CONTINUE;
+            END IF;
+            
+            -- 2. ADD CLT COMPLIANCE FIELDS TO TIMECARD_ENTRIES (nullable initially)
             EXECUTE format('
                 ALTER TABLE %I.timecard_entries 
                 ADD COLUMN IF NOT EXISTS user_id uuid,
@@ -91,18 +102,27 @@ BEGIN
                   AND column_name = 'tenant_id' 
                   AND data_type = 'character varying'
             ) THEN
-                -- Check if all values are valid UUIDs before converting
-                EXECUTE format('
-                    SELECT COUNT(*) 
-                    FROM %I.timecard_entries 
-                    WHERE tenant_id !~ ''^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$''
-                ', tenant_schema);
-                
-                -- If all values are valid UUIDs, convert the type
-                EXECUTE format('
-                    ALTER TABLE %I.timecard_entries 
-                    ALTER COLUMN tenant_id TYPE uuid USING tenant_id::uuid
-                ', tenant_schema);
+                DECLARE
+                    invalid_count integer;
+                BEGIN
+                    -- Check if all values are valid UUIDs before converting
+                    EXECUTE format('
+                        SELECT COUNT(*) 
+                        FROM %I.timecard_entries 
+                        WHERE tenant_id !~ ''^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$''
+                    ', tenant_schema) INTO invalid_count;
+                    
+                    -- Only convert if all values are valid UUIDs
+                    IF invalid_count = 0 THEN
+                        EXECUTE format('
+                            ALTER TABLE %I.timecard_entries 
+                            ALTER COLUMN tenant_id TYPE uuid USING tenant_id::uuid
+                        ', tenant_schema);
+                        RAISE NOTICE 'Successfully converted tenant_id to UUID for schema %', tenant_schema;
+                    ELSE
+                        RAISE WARNING 'Skipping tenant_id conversion for schema % - % invalid UUID values found', tenant_schema, invalid_count;
+                    END IF;
+                END;
             END IF;
             
             -- 5. CREATE CLT SUPPORT TABLES (per-tenant isolation)
