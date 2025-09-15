@@ -793,7 +793,7 @@ export const ticketTemplates = pgTable("ticket_templates", {
     sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
   ),
   // ✅ UNIQUE constraints sempre com tenant_id para isolamento
-  unique('unique_template_per_tenant_company', ['tenant_id', 'name', 'company_id']), // Nome único por tenant/company
+  unique('unique_template_per_tenant_company').on(table.tenantId, table.name, table.companyId), // Nome único por tenant/company
   // ✅ Index para performance
   index('idx_ticket_templates_tenant_company').on(table.tenantId, table.companyId),
   index('idx_ticket_templates_type_status').on(table.templateType, table.status)
