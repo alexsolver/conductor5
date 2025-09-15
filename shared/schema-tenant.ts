@@ -522,18 +522,59 @@ export const timecards = pgTable("timecards", {
   unique("timecards_unique").on(table.tenantId, table.userId, table.workDate),
 ]);
 
-// Timecard Entries table
+// Timecard Entries table - Enhanced with CLT Compliance fields
 export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  timecardId: uuid("timecard_id").notNull(),
-  entryTime: timestamp("entry_time").notNull(),
-  entryType: varchar("entry_type", { length: 20 }).notNull(), // clock_in, clock_out, break_start, break_end
-  location: varchar("location", { length: 255 }),
+  userId: uuid("user_id").notNull(),
+  
+  // NSR - Número Sequencial de Registros (CLT Compliance)
+  nsr: varchar("nsr", { length: 10 }),
+  
+  // Timecard data
+  checkIn: timestamp("check_in").notNull(),
+  checkOut: timestamp("check_out"),
+  totalHours: decimal("total_hours", { precision: 8, scale: 2 }),
   notes: text("notes"),
+  location: text("location"),
+  isManualEntry: boolean("is_manual_entry").default(false),
+  
+  // Approval workflow
+  approvedBy: uuid("approved_by"),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected
+  
+  // CLT Compliance - Blockchain-like hash chain
+  recordHash: varchar("record_hash", { length: 64 }), // SHA-256 hash
+  previousRecordHash: varchar("previous_record_hash", { length: 64 }),
+  originalRecordHash: varchar("original_record_hash", { length: 64 }),
+  
+  // Digital signature for legal compliance
+  digitalSignature: text("digital_signature"),
+  signedBy: uuid("signed_by"),
+  
+  // Audit trail for device and location
+  deviceInfo: jsonb("device_info"),
+  ipAddress: varchar("ip_address", { length: 45 }), // IPv6 support
+  geoLocation: jsonb("geo_location"),
+  
+  // Modification tracking
+  modificationHistory: jsonb("modification_history").default([]),
+  modifiedBy: uuid("modified_by"),
+  modificationReason: text("modification_reason"),
+  
+  // Soft delete with audit
+  isDeleted: boolean("is_deleted").default(false),
+  deletedBy: uuid("deleted_by"),
+  deletionReason: text("deletion_reason"),
+  
+  // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("timecard_entries_tenant_timecard_idx").on(table.tenantId, table.timecardId),
+  index("timecard_entries_tenant_user_idx").on(table.tenantId, table.userId),
+  index("timecard_entries_nsr_idx").on(table.tenantId, table.nsr),
+  index("timecard_entries_status_idx").on(table.tenantId, table.status),
+  index("timecard_entries_hash_chain_idx").on(table.recordHash, table.previousRecordHash),
 ]);
 
 // Projects table
@@ -701,19 +742,76 @@ export const holidays = pgTable("holidays", {
 export const complianceReports = pgTable("compliance_reports", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const timecardBackups = pgTable("timecard_backups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const ticketListViews = pgTable("ticket_list_views", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const digitalSignatureKeys = pgTable("digital_signature_keys", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const digitalSignatureKeys = pgTable("digital_signature_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  keyType: varchar("key_type", { length: 20 }).notNull().default("RSA"), // RSA, ECDSA
+  publicKey: text("public_key").notNull(),
+  keyFingerprint: varchar("key_fingerprint", { length: 64 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  revokedAt: timestamp("revoked_at"),
+  revokedBy: uuid("revoked_by"),
+}, (table) => [
+  index("digital_signature_keys_tenant_user_idx").on(table.tenantId, table.userId),
+  index("digital_signature_keys_fingerprint_idx").on(table.keyFingerprint),
+  unique("digital_signature_keys_active_user").on(table.tenantId, table.userId, table.isActive),
+]);
 export const auditLogs = pgTable("audit_logs", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const roles = pgTable("roles", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const permissions = pgTable("permissions", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const nsrSequences = pgTable("nsr_sequences", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const nsrSequences = pgTable("nsr_sequences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  currentNsr: integer("current_nsr").notNull().default(0),
+  lastReset: timestamp("last_reset"),
+  resetPeriod: varchar("reset_period", { length: 20 }).default("yearly"), // yearly, monthly, daily
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("nsr_sequences_tenant_unique").on(table.tenantId),
+]);
 export const userRoleAssignments = pgTable("user_role_assignments", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), userId: uuid("user_id").notNull(), roleId: uuid("role_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const assignmentGroups = pgTable("assignment_groups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const customFields = pgTable("custom_fields", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const timecardAuditLog = pgTable("timecard_audit_log", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const timecardAuditLog = pgTable("timecard_audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  timecardEntryId: uuid("timecard_entry_id").notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // create, update, delete, approve, reject
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  performedBy: uuid("performed_by").notNull(),
+  reason: text("reason"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  deviceInfo: jsonb("device_info"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("timecard_audit_log_tenant_entry_idx").on(table.tenantId, table.timecardEntryId),
+  index("timecard_audit_log_performed_by_idx").on(table.performedBy),
+]);
 export const approvalGroupMembers = pgTable("approval_group_members", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const approvalGroups = pgTable("approval_groups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const approvalWorkflows = pgTable("approval_workflows", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const timecardApprovalHistory = pgTable("timecard_approval_history", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const timecardApprovalHistory = pgTable("timecard_approval_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  timecardEntryId: uuid("timecard_entry_id").notNull(),
+  approvedBy: uuid("approved_by").notNull(),
+  previousStatus: varchar("previous_status", { length: 20 }).notNull(),
+  newStatus: varchar("new_status", { length: 20 }).notNull(),
+  approvalReason: text("approval_reason"),
+  rejectionReason: text("rejection_reason"),
+  approvalLevel: integer("approval_level").default(1),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  deviceInfo: jsonb("device_info"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("timecard_approval_history_tenant_entry_idx").on(table.tenantId, table.timecardEntryId),
+  index("timecard_approval_history_approved_by_idx").on(table.approvedBy),
+]);
 export const templateFields = pgTable("template_fields", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const timecardApprovalSettings = pgTable("timecard_approval_settings", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const activities = pgTable("activities", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
