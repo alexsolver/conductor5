@@ -272,7 +272,7 @@ router.put(
       // Validate request body using Zod schema
       const { updateUserSchema } = await import("@shared/schema");
       const validationResult = updateUserSchema.safeParse(req.body);
-      
+
       if (!validationResult.success) {
         console.log("❌ [USER-UPDATE] Validation failed:", validationResult.error.errors);
         return res.status(400).json({
@@ -341,7 +341,7 @@ router.put(
       });
     } catch (error: any) {
       console.error("❌ [USER-UPDATE] Error updating user:", error);
-      
+
       // Handle specific error types
       if (error.message?.includes("not found")) {
         return res.status(404).json({
@@ -1541,7 +1541,7 @@ router.post(
       const query = sql`
         INSERT INTO ${tableIdent}
           (tenant_id, name, description, permissions, is_active, is_system)
-        VALUES (${tenantId}, ${name}, ${descOrNull}, ${permsExpr}, true, false)
+        VALUES (${tenantId}, ${descOrNull}, ${permsExpr}, true, false)
         RETURNING *
       `;
 
