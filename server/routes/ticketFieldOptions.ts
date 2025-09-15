@@ -122,7 +122,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Try to get from ticket_field_options table first
     try {
-      const result = await db.execute(sql`
+      const result = await db.execute(sql.raw(`
         SELECT 
           id,
           field_name,
@@ -130,16 +130,16 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           label as display_label,
           color as color_hex,
           sort_order,
-          active as is_active,
+          is_active,
           company_id,
           created_at
-        FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-        WHERE tenant_id = ${tenantId} 
-        AND company_id = ${effectiveCompanyId} 
-        AND field_name = ${fieldName || 'status'}
-        AND active = true
+        FROM "${schemaName}".ticket_field_options 
+        WHERE tenant_id = $1
+        AND company_id = $2 
+        AND field_name = $3
+        AND is_active = true
         ORDER BY sort_order ASC, label ASC
-      `);
+      `, [tenantId, effectiveCompanyId, fieldName || 'status']));
 
       if (result.rows.length > 0) {
         console.log(`✅ Found ${result.rows.length} field options in database`);
@@ -152,7 +152,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
         });
       }
     } catch (dbError) {
-      console.log('⚠️ ticket_field_options table not found, using fallback');
+      console.log('⚠️ ticket_field_options table not found, using fallback:', dbError.message);
     }
 
     // Fallback to mock data if no database records found

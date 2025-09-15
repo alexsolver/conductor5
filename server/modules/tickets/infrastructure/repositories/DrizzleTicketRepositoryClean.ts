@@ -85,17 +85,17 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.updated_at as "updatedAt",
           t.opened_by_id as "createdBy",
           t.is_active as "isActive",
-          
+
           -- Dados da empresa
           c.name as "company_name",
           c.display_name as "company_display_name",
-          
+
           -- Dados do caller
           caller.first_name as "caller_first_name",
           caller.last_name as "caller_last_name",
           caller.email as "caller_email",
           CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name"
-          
+
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
@@ -191,23 +191,23 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
           t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
           t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.assignment_group as "assignmentGroupId",
-          
+
           -- Dados da empresa (company) - usar schema tenant
           c.name as "company_name",
           c.display_name as "company_display_name",
-          
+
           -- Dados do cliente/caller (customer que abriu o ticket) - usar schema tenant  
           caller.first_name as "caller_first_name",
           caller.last_name as "caller_last_name",
           caller.email as "caller_email",
           CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name",
-          
+
           -- Dados do beneficiário (se diferente do caller) - usar schema tenant
           beneficiary.first_name as "beneficiary_first_name",
           beneficiary.last_name as "beneficiary_last_name",
           beneficiary.email as "beneficiary_email",
           CONCAT(beneficiary.first_name, ' ', beneficiary.last_name) as "beneficiary_name"
-          
+
         FROM ${schemaName}.tickets t
         LEFT JOIN ${schemaName}.companies c ON t.company_id = c.id
         LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id
