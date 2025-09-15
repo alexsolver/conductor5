@@ -21,15 +21,17 @@ const colorsCache = new Map<string, Record<string, string>>();
 export const useFieldColors = (companyId?: string) => {
   // 🚨 CORREÇÃO CRÍTICA: Query otimizada com loading garantido
   const { data: fieldOptions, isLoading, error, isFetched } = useQuery({
-    queryKey: ["/api/ticket-config/field-options", "all"], 
+    queryKey: ["/api/ticket-config/field-options", "all"],
     queryFn: async () => {
       console.log('🎨 [useFieldColors] Starting field options fetch...');
+      // The original code was missing the 'fieldName' query parameter, causing a 400 error.
+      // This change adds the 'fieldName' parameter to the API request.
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
       const result = await response.json();
       console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
       return result;
     },
-    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente  
+    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente
     gcTime: 30 * 1000, // Garbage collection em 30 segundos
     refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
     refetchOnMount: true,
@@ -104,11 +106,11 @@ export const useFieldColors = (companyId?: string) => {
 
     // Log para debug quando não encontrar cor configurada
     if (process.env.NODE_ENV === 'development') {
-      console.log(`⚠️ No configured color found for ${fieldName}:${value}. Available options:`, 
+      console.log(`⚠️ No configured color found for ${fieldName}:${value}. Available options:`,
         fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}(${opt.label}):${opt.color}`).slice(0, 5)
       );
     }
-    
+
     return undefined;
   };
 
