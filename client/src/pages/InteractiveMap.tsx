@@ -1487,12 +1487,12 @@ export const InteractiveMap: React.FC = () => {
     enabled: !!user,
   });
 
-  // Extract team members array from response
-  const teamMembers = Array.isArray(teamMembersData?.data) ? teamMembersData.data : [];
-
-  // Extract user groups from team management data
-  const userGroups = Array.isArray(userGroupsData?.data) ? userGroupsData.data : [];
-  const availableTeams = userGroups.map((group: any) => group.name) || [];
+  // Extract team members array from response - following 1qa.md patterns
+  const teamMembers = Array.isArray(teamMembersData?.members) ? teamMembersData.members : [];
+  
+  // Extract unique team names from all member groups following Clean Architecture
+  const allGroups = teamMembers.flatMap((member: any) => member.groups || []);
+  const availableTeams = [...new Set(allGroups.map((group: any) => group.name).filter(Boolean))];
 
   // ===========================================================================================
   // Extract Skills Data
