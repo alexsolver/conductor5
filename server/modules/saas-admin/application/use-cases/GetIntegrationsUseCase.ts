@@ -1,5 +1,5 @@
 // ===========================================================================================
-// GET INTEGRATIONS USE CASE - SaaS Admin Application Layer
+// GET INTEGRATIONS USE CASE - SaaS Application Layer
 // ===========================================================================================
 // Seguindo rigorosamente o padrão Clean Architecture especificado em 1qa.md
 // Application Layer → Use Cases e Controllers (NUNCA importar Infrastructure diretamente)
@@ -56,15 +56,66 @@ export class GetIntegrationsUseCase {
     data: Integration | null;
   }> {
     try {
-      const openWeatherIntegration = await this.integrationRepository.getOpenWeatherConfig();
+      console.log('[GET-INTEGRATIONS-USE-CASE] Getting OpenWeather integration');
 
-      return {
+      const integration = await this.integrationRepository.findById('openweather');
+
+      if (!integration) {
+        console.log('[GET-INTEGRATIONS-USE-CASE] OpenWeather integration not found, creating default');
+
+        // Return default OpenWeather integration structure
+        return {
+          success: true,
+          data: {
+            id: 'openweather',
+            name: 'OpenWeather',
+            provider: 'OpenWeather',
+            description: 'Weather data integration',
+            status: 'disconnected',
+            apiKeyConfigured: false,
+            config: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        };
+      }
+
+      console.log('[GET-INTEGRATIONS-USE-CASE] Found OpenWeather integration:', {
+        id: integration.id,
+        status: integration.status,
+        hasConfig: !!integration.config,
+        configKeys: integration.config ? Object.keys(integration.config) : [],
+        configData: integration.config
+      });
+
+      // Check if API key is configured
+      const hasApiKey = integration.config?.apiKey && integration.config.apiKey.length >= 32;
+
+      const result = {
         success: true,
-        message: 'OpenWeather integration retrieved successfully',
-        data: openWeatherIntegration
+        data: {
+          id: integration.id,
+          name: integration.name,
+          provider: integration.provider,
+          description: integration.description || 'Weather data integration',
+          status: hasApiKey ? 'connected' : 'disconnected',
+          apiKeyConfigured: hasApiKey,
+          config: integration.config || {},
+          createdAt: integration.createdAt,
+          updatedAt: integration.updatedAt
+        }
       };
+
+      console.log('[GET-INTEGRATIONS-USE-CASE] Returning OpenWeather result:', {
+        hasApiKey,
+        status: result.data.status,
+        configKeys: Object.keys(result.data.config),
+        apiKeyPreview: result.data.config?.apiKey ? result.data.config.apiKey.substring(0, 8) + '...' : 'none'
+      });
+
+      return result;
     } catch (error) {
-      console.error('[GET-INTEGRATIONS-USECASE] Error getting OpenWeather:', error);
+      console.error('[GET-INTEGRATIONS-USE-CASE] Error getting OpenWeather integration:', error);
       throw new Error('Failed to get OpenWeather integration');
     }
   }

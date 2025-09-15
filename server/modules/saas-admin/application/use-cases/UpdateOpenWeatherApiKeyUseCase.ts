@@ -32,36 +32,44 @@ export class UpdateOpenWeatherApiKeyUseCase {
         throw new Error('OpenWeather API key must be at least 32 characters long');
       }
 
-      // Update the OpenWeather API key
-      const updatedIntegration = await this.integrationRepository.updateOpenWeatherApiKey(request.apiKey.trim());
+      // Create configuration object
+      const config = {
+        apiKey: request.apiKey,
+        baseUrl: 'https://api.openweathermap.org/data/2.5',
+        enabled: true,
+        maxRequests: 1000,
+        rateLimit: 60,
+        timeout: 5000,
+        retryAttempts: 3,
+        lastUpdated: new Date().toISOString()
+      };
 
-      // Test connection if requested
-      if (request.testConnection) {
-        const testResult = await this.integrationRepository.testConnection(updatedIntegration.id);
-        
-        if (!testResult.success) {
-          console.warn('[UPDATE-OPENWEATHER-USECASE] Connection test failed:', testResult.message);
-          // Still return success since the API key was saved, but include warning
-          return {
-            success: true,
-            message: `API key updated successfully, but connection test failed: ${testResult.message}`,
-            data: updatedIntegration
-          };
-        }
-      }
+      // Update the integration configuration
+      await this.integrationRepository.updateIntegrationConfig('openweather', config);
+
+      // Update integration status to connected since we have a valid API key
+      await this.integrationRepository.updateIntegrationStatus('openweather', 'connected');
+
+      console.log('✅ [UPDATE-OPENWEATHER-USE-CASE] API key updated successfully');
 
       return {
         success: true,
         message: 'OpenWeather API key updated successfully',
-        data: updatedIntegration
+        data: {
+          id: 'openweather',
+          status: 'connected',
+          apiKeyConfigured: true,
+          config: config,
+          lastUpdated: new Date().toISOString()
+        }
       };
     } catch (error) {
       console.error('[UPDATE-OPENWEATHER-USECASE] Error:', error);
-      
+
       if (error instanceof Error) {
         throw error;
       }
-      
+
       throw new Error('Failed to update OpenWeather API key');
     }
   }

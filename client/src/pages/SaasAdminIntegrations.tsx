@@ -479,32 +479,111 @@ export default function SaasAdminIntegrations() {
     }
   };
 
-  const onConfigureIntegration = (integration: Integration) => {
+  // Função para configurar integração
+  const handleConfigure = async (integration: Integration) => {
     console.log('🔧 [CONFIGURE] Opening config dialog for:', integration.id);
     console.log('🔧 [CONFIGURE] Integration config:', integration.config);
 
     setSelectedIntegration(integration);
 
-    // Check if integration has saved configuration
-    if (integration.config && Object.keys(integration.config).length > 0) {
-      console.log('✅ [CONFIGURE] Loading saved configuration');
-      configForm.reset({
-        apiKey: integration.config.apiKey || "",
-        baseUrl: integration.config.baseUrl || "",
-        maxTokens: integration.config.maxTokens !== undefined ? integration.config.maxTokens : 4000,
-        temperature: integration.config.temperature !== undefined ? integration.config.temperature : 0.7,
-        enabled: integration.config.enabled !== undefined ? integration.config.enabled : true
-      });
+    // For OpenWeather, get the latest config from the specific endpoint
+    if (integration.id === 'openweather') {
+      try {
+        console.log('🔧 [CONFIGURE-OW] Fetching latest OpenWeather config...');
+        await refetchOpenWeather();
+
+        const latestConfig = openWeatherData?.data?.config || openWeatherData?.config;
+        console.log('🔧 [CONFIGURE-OW] Latest config:', latestConfig);
+
+        if (latestConfig && latestConfig.apiKey) {
+          console.log('📋 [CONFIGURE-OW] Loading saved OpenWeather configuration');
+          configForm.reset({
+            apiKey: latestConfig.apiKey || "",
+            baseUrl: latestConfig.baseUrl || "https://api.openweathermap.org/data/2.5",
+            maxTokens: 4000,
+            temperature: 0.7,
+            enabled: latestConfig.enabled !== false
+          });
+        } else {
+          console.log('📋 [CONFIGURE-OW] No saved config, using defaults');
+          configForm.reset({
+            apiKey: "",
+            baseUrl: "https://api.openweathermap.org/data/2.5",
+            maxTokens: 4000,
+            temperature: 0.7,
+            enabled: true
+          });
+        }
+      } catch (error) {
+        console.error('❌ [CONFIGURE-OW] Error fetching config:', error);
+        configForm.reset({
+          apiKey: "",
+          baseUrl: "https://api.openweathermap.org/data/2.5",
+          maxTokens: 4000,
+          temperature: 0.7,
+          enabled: true
+        });
+      }
+    } else if (integration.id === 'openai') {
+      try {
+        console.log('🔧 [CONFIGURE-AI] Fetching latest OpenAI config...');
+        await refetchOpenAI();
+
+        const latestConfig = openAIData?.data?.config || openAIData?.config;
+        console.log('🔧 [CONFIGURE-AI] Latest config:', latestConfig);
+
+        if (latestConfig && latestConfig.apiKey) {
+          console.log('📋 [CONFIGURE-AI] Loading saved OpenAI configuration');
+          configForm.reset({
+            apiKey: latestConfig.apiKey || "",
+            baseUrl: latestConfig.baseUrl || "",
+            maxTokens: latestConfig.maxTokens || 4000,
+            temperature: latestConfig.temperature || 0.7,
+            enabled: latestConfig.enabled !== false
+          });
+        } else {
+          console.log('📋 [CONFIGURE-AI] No saved config, using defaults');
+          configForm.reset({
+            apiKey: "",
+            baseUrl: "",
+            maxTokens: 4000,
+            temperature: 0.7,
+            enabled: true
+          });
+        }
+      } catch (error) {
+        console.error('❌ [CONFIGURE-AI] Error fetching config:', error);
+        configForm.reset({
+          apiKey: "",
+          baseUrl: "",
+          maxTokens: 4000,
+          temperature: 0.7,
+          enabled: true
+        });
+      }
     } else {
-      console.log('📋 [CONFIGURE] Using default configuration');
-      configForm.reset({
-        apiKey: "",
-        baseUrl: "",
-        maxTokens: 4000,
-        temperature: 0.7,
-        enabled: true
-      });
+      // For other integrations, use the config from the integration object
+      if (integration.config && Object.keys(integration.config).length > 0) {
+        console.log('📋 [CONFIGURE] Found existing configuration');
+        configForm.reset({
+          apiKey: integration.config.apiKey || "",
+          baseUrl: integration.config.baseUrl || "",
+          maxTokens: integration.config.maxTokens || 4000,
+          temperature: integration.config.temperature || 0.7,
+          enabled: integration.config.enabled !== false
+        });
+      } else {
+        console.log('📋 [CONFIGURE] Using default configuration');
+        configForm.reset({
+          apiKey: "",
+          baseUrl: "",
+          maxTokens: 4000,
+          temperature: 0.7,
+          enabled: true
+        });
+      }
     }
+
     setIsConfigDialogOpen(true);
   };
 
@@ -529,7 +608,7 @@ export default function SaasAdminIntegrations() {
       <div className="flex gap-2">
         <Button 
           size="sm" 
-          onClick={() => onConfigureIntegration(integration)}
+          onClick={() => handleConfigure(integration)}
           className="flex-1"
         >
           <Settings className="h-4 w-4 mr-1" />
