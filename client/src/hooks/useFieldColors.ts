@@ -24,12 +24,28 @@ export const useFieldColors = (companyId?: string) => {
     queryKey: ["/api/ticket-config/field-options", "all"],
     queryFn: async () => {
       console.log('🎨 [useFieldColors] Starting field options fetch...');
-      // The original code was missing the 'fieldName' query parameter, causing a 400 error.
-      // This change adds the 'fieldName' parameter to the API request.
-      const response = await apiRequest("GET", "/api/ticket-config/field-options");
-      const result = await response.json();
-      console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
-      return result;
+      // Fetch all field options by making multiple requests for each field type
+      const fieldTypes = ['status', 'priority', 'category', 'subcategory', 'action', 'impact', 'urgency'];
+      const allOptions: any[] = [];
+
+      for (const fieldName of fieldTypes) {
+        try {
+          const response = await apiRequest("GET", `/api/ticket-config/field-options?fieldName=${fieldName}`);
+          if (!response.ok) {
+            console.warn(`Failed to fetch ${fieldName} options: ${response.status} ${response.statusText}`);
+            continue;
+          }
+          const result = await response.json();
+          if (result?.success && result?.data) {
+            allOptions.push(...result.data);
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch ${fieldName} options:`, error);
+        }
+      }
+
+      console.log('🎨 [useFieldColors] Field options loaded:', allOptions.length, 'options');
+      return { success: true, data: allOptions };
     },
     staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente
     gcTime: 30 * 1000, // Garbage collection em 30 segundos
