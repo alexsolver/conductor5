@@ -106,7 +106,7 @@ import ticketRelationshipsRoutes from "./modules/ticket-relationships/routes";
 
 // 🎯 IMPORT HISTORY SYSTEM FOR COMPREHENSIVE LOGGING per 1qa.md
 import { TicketHistoryApplicationService } from "./modules/ticket-history/application/services/TicketHistoryApplicationService";
-import { DrizzleTicketHistoryRepository } from "./modules/ticket-history/infrastructure/repositories/DrizzleTicketHistoryRepository";
+import { DrizzleTicketHistoryRepository } "./modules/ticket-history/infrastructure/repositories/DrizzleTicketHistoryRepository";
 import { TicketHistoryDomainService } from "./modules/ticket-history/domain/services/TicketHistoryDomainService";
 
 // Middleware to ensure JSON responses for API routes
@@ -3454,7 +3454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currencyCode: market.currency_code,
             displayConfig: market.display_config,
             validationRules: market.validation_rules,
-            legalFields: market.legal_field_mappings,
+            legalFieldMappings: market.legal_field_mappings,
           },
         });
       } catch (error) {
