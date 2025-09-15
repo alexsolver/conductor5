@@ -527,13 +527,15 @@
   transition: all 0.3s ease-in-out;
   filter: blur(0.5px);
   z-index: 1;
-  pointer-events: none;
+  pointer-events: auto !important;
+  cursor: pointer;
 }
 
 .weather-gradient-circle:hover {
   filter: blur(0px);
   opacity: 0.9 !important;
-  pointer-events: auto;
+  transform: scale(1.05);
+  cursor: pointer;
 }
 
 .weather-popup {
@@ -571,4 +573,21 @@
 
 .leaflet-popup-pane .weather-popup {
   z-index: 10000 !important;
+}
+
+/* Weather popup content wrapper styling */
+.weather-popup .leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  min-width: 300px;
+}
+
+/* Weather popup tip styling */
+.weather-popup .leaflet-popup-tip {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  border-right: none;
 }

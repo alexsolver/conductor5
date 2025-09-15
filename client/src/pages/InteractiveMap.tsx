@@ -393,34 +393,46 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
         const adjustedRadius = Math.max(20, baseRadius / Math.pow(2, Math.max(0, currentZoom - 10)));
 
         return (
-          <Circle
-            key={`${index}-${data.name}`}
-            center={[data.lat, data.lng]}
-            radius={adjustedRadius}
-            pathOptions={{
-              color: weatherInfo.color,
-              fillColor: weatherInfo.color,
-              fillOpacity: weatherInfo.opacity,
-              weight: 2,
-              opacity: 0.8,
-              className: 'weather-gradient-circle',
-              interactive: false,
-              bubblingMouseEvents: false
-            }}
-            eventHandlers={{
-              click: (e) => {
-                e.originalEvent.stopImmediatePropagation();
-                e.originalEvent.preventDefault();
-                return false;
-              },
-              mousedown: (e) => {
-                e.originalEvent.stopImmediatePropagation();
-                e.originalEvent.preventDefault();
-                return false;
-              }
-            }}
-          >
-            <Popup className="weather-popup" style={{ zIndex: 10000 }}>
+          <React.Fragment key={`weather-fragment-${index}-${data.name}`}>
+            <Circle
+              key={`weather-circle-${index}-${data.name}`}
+              center={[data.lat, data.lng]}
+              radius={adjustedRadius}
+              pathOptions={{
+                color: weatherInfo.color,
+                fillColor: weatherInfo.color,
+                fillOpacity: weatherInfo.opacity,
+                weight: 2,
+                opacity: 0.8,
+                className: 'weather-gradient-circle',
+                interactive: true,
+                bubblingMouseEvents: true
+              }}
+            />
+            <CircleMarker
+              key={`weather-marker-${index}-${data.name}`}
+              center={[data.lat, data.lng]}
+              radius={15}
+              pathOptions={{
+                fillOpacity: 0,
+                opacity: 0,
+                interactive: true,
+                className: 'weather-click-area'
+              }}
+              eventHandlers={{
+                click: (e) => {
+                  console.log('🌤️ [WEATHER-CLICK] Weather marker clicked:', data.name);
+                  e.target.openPopup();
+                }
+              }}
+            >
+              <Popup 
+                className="weather-popup" 
+                closeButton={true}
+                closeOnClick={false}
+                autoClose={false}
+                autoPan={true}
+              >
               <div style={{
                 minWidth: '280px',
                 textAlign: 'center',
