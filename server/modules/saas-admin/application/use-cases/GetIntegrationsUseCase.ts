@@ -89,10 +89,11 @@ export class GetIntegrationsUseCase {
       });
 
       // Check if API key is configured
-      const hasApiKey = integration.config?.apiKey && integration.config.apiKey.length >= 32;
+      const hasApiKey = integration.config?.apiKey && integration.config.apiKey.length >= 30;
 
       const result = {
         success: true,
+        message: 'OpenWeather integration retrieved successfully',
         data: {
           id: integration.id,
           name: integration.name,

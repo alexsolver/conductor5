@@ -73,7 +73,7 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         });
 
         if (savedConfig) {
-          const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length >= 32; // OpenWeather keys are 32 chars
+          const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length >= 30; // OpenWeather keys are 32 chars
           const integration = {
             ...baseIntegration,
             status: hasApiKey ? 'connected' : 'disconnected',

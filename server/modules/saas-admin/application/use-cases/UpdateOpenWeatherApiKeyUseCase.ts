@@ -28,8 +28,8 @@ export class UpdateOpenWeatherApiKeyUseCase {
         throw new Error('API key is required');
       }
 
-      if (request.apiKey.length < 32) {
-        throw new Error('OpenWeather API key must be at least 32 characters long');
+      if (request.apiKey.length < 30) {
+        throw new Error('OpenWeather API key must be at least 30 characters long');
       }
 
       // Create configuration object
