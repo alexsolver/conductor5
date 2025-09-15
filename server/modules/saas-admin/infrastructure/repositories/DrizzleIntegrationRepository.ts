@@ -21,36 +21,36 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
       // Definir integrações base disponíveis
       const baseIntegrations = [
-        {
-          id: 'openai',
-          name: 'OpenAI',
-          provider: 'OpenAI',
-          description: 'AI language model integration',
-          status: 'disconnected',
-          config: {},
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 'openweather',
-          name: 'OpenWeather',
-          provider: 'OpenWeather',
-          description: 'Weather data integration',
-          status: 'disconnected',
-          config: {},
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 'deepseek',
-          name: 'DeepSeek',
-          provider: 'DeepSeek',
-          description: 'AI model integration',
-          status: 'disconnected',
-          config: {},
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
+        new Integration(
+          'openai',
+          'OpenAI',
+          'OpenAI',
+          'AI language model integration',
+          { enabled: true },
+          'disconnected',
+          new Date(),
+          new Date()
+        ),
+        new Integration(
+          'openweather',
+          'OpenWeather',
+          'OpenWeather',
+          'Weather data integration',
+          { enabled: true },
+          'disconnected',
+          new Date(),
+          new Date()
+        ),
+        new Integration(
+          'deepseek',
+          'DeepSeek',
+          'DeepSeek',
+          'AI model integration',
+          { enabled: true },
+          'disconnected',
+          new Date(),
+          new Date()
+        )
       ];
 
       const pool = await this.getPool();
@@ -73,57 +73,44 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         });
 
         if (savedConfig) {
-          const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length > 0;
-          
-          // ✅ Use saved status from DB, or fallback to computed status only if no saved status exists
-          const finalStatus = savedConfig.status || (hasApiKey ? 'connected' : 'disconnected');
-          
-          const integration = {
-            ...baseIntegration,
-            status: finalStatus,
-            config: savedConfig.config || {},
-            updatedAt: new Date(savedConfig.updated_at),
-            // ✅ Adicionar propriedades que o frontend espera
-            apiKeyConfigured: hasApiKey,
-            hasApiKey: () => hasApiKey,
-            isActive: () => finalStatus === 'connected' && hasApiKey,
-            isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
-            canMakeRequest: () => finalStatus === 'connected' && hasApiKey,
-            getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
-            getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null,
-            getLastError: () => savedConfig.config?.lastError || null,
-            getDataSource: () => savedConfig.config?.lastDataSource || 'unknown'
+          // ✅ Use saved status from DB - don't compute status based on API key presence
+          // Status should only be set by health checks, not by API key presence
+          const finalStatus = savedConfig.status || 'disconnected';
+          const mergedConfig = {
+            enabled: true,
+            ...savedConfig.config
           };
+          
+          const integration = new Integration(
+            baseIntegration.id,
+            baseIntegration.name,
+            baseIntegration.provider,
+            baseIntegration.description,
+            mergedConfig,
+            finalStatus,
+            baseIntegration.createdAt,
+            new Date(savedConfig.updated_at)
+          );
 
           console.log(`[INTEGRATION-REPO] ${baseIntegration.id} final result:`, {
             id: integration.id,
             status: integration.status,
-            apiKeyConfigured: integration.apiKeyConfigured,
-            hasConfigKeys: Object.keys(integration.config || {})
+            hasApiKey: integration.hasApiKey(),
+            isActive: integration.isActive()
           });
 
           return integration;
         }
 
-        const integration = {
-          ...baseIntegration,
-          // ✅ Propriedades padrão para integrações não configuradas
-          apiKeyConfigured: false,
-          hasApiKey: () => false,
-          isActive: () => false,
-          isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
-          canMakeRequest: () => false,
-          getLastTestedAt: () => null,
-          getApiKeyMasked: () => null
-        };
-
+        // Return base integration if no saved config
         console.log(`[INTEGRATION-REPO] ${baseIntegration.id} default result:`, {
-          id: integration.id,
-          status: integration.status,
-          apiKeyConfigured: integration.apiKeyConfigured
+          id: baseIntegration.id,
+          status: baseIntegration.status,
+          hasApiKey: baseIntegration.hasApiKey(),
+          isActive: baseIntegration.isActive()
         });
 
-        return integration;
+        return baseIntegration;
       });
 
       console.log('[INTEGRATION-REPO] Found integrations in PUBLIC schema:', integrations.length);
@@ -144,16 +131,16 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       `, [integrationId]);
 
       if (result.rows[0]) {
-        return {
-          id: result.rows[0].integration_id,
-          name: result.rows[0].name,
-          provider: result.rows[0].provider,
-          description: `${result.rows[0].provider} integration`,
-          status: result.rows[0].status || 'disconnected',
-          config: result.rows[0].config || {},
-          createdAt: new Date(result.rows[0].created_at),
-          updatedAt: new Date(result.rows[0].updated_at)
-        };
+        return new Integration(
+          result.rows[0].integration_id,
+          result.rows[0].name,
+          result.rows[0].provider,
+          `${result.rows[0].provider} integration`,
+          result.rows[0].config || { enabled: true },
+          result.rows[0].status || 'disconnected',
+          new Date(result.rows[0].created_at),
+          new Date(result.rows[0].updated_at)
+        );
       }
 
       return null;
@@ -173,16 +160,16 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       `, [provider]);
 
       if (result.rows[0]) {
-        return {
-          id: result.rows[0].integration_id,
-          name: result.rows[0].name,
-          provider: result.rows[0].provider,
-          description: `${result.rows[0].provider} integration`,
-          status: result.rows[0].status || 'disconnected',
-          config: result.rows[0].config || {},
-          createdAt: new Date(result.rows[0].created_at),
-          updatedAt: new Date(result.rows[0].updated_at)
-        };
+        return new Integration(
+          result.rows[0].integration_id,
+          result.rows[0].name,
+          result.rows[0].provider,
+          `${result.rows[0].provider} integration`,
+          result.rows[0].config || { enabled: true },
+          result.rows[0].status || 'disconnected',
+          new Date(result.rows[0].created_at),
+          new Date(result.rows[0].updated_at)
+        );
       }
 
       return null;
@@ -235,16 +222,16 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         integration.status || 'disconnected'
       ]);
 
-      return {
-        id: result.rows[0].integration_id,
-        name: result.rows[0].name,
-        provider: result.rows[0].provider,
-        description: integration.description,
-        status: result.rows[0].status,
-        config: result.rows[0].config || {},
-        createdAt: new Date(result.rows[0].created_at),
-        updatedAt: new Date(result.rows[0].updated_at)
-      };
+      return new Integration(
+        result.rows[0].integration_id,
+        result.rows[0].name,
+        result.rows[0].provider,
+        integration.description,
+        result.rows[0].config || { enabled: true },
+        result.rows[0].status,
+        new Date(result.rows[0].created_at),
+        new Date(result.rows[0].updated_at)
+      );
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error creating integration:', error);
       throw new Error('Failed to create integration');
@@ -273,16 +260,16 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
       ]);
 
       if (result.rows[0]) {
-        return {
-          id: result.rows[0].integration_id,
-          name: result.rows[0].name,
-          provider: result.rows[0].provider,
-          description: updates.description || 'Integration',
-          status: result.rows[0].status,
-          config: result.rows[0].config || {},
-          createdAt: new Date(result.rows[0].created_at),
-          updatedAt: new Date(result.rows[0].updated_at)
-        };
+        return new Integration(
+          result.rows[0].integration_id,
+          result.rows[0].name,
+          result.rows[0].provider,
+          updates.description || 'Integration',
+          result.rows[0].config || { enabled: true },
+          result.rows[0].status,
+          new Date(result.rows[0].created_at),
+          new Date(result.rows[0].updated_at)
+        );
       }
 
       return null;
@@ -402,16 +389,16 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         WHERE status = $1
       `, [status]);
 
-      return result.rows.map(row => ({
-        id: row.integration_id,
-        name: row.name,
-        provider: row.provider,
-        description: `${row.provider} integration`,
-        status: row.status,
-        config: row.config || {},
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at)
-      }));
+      return result.rows.map(row => new Integration(
+        row.integration_id,
+        row.name,
+        row.provider,
+        `${row.provider} integration`,
+        row.config || { enabled: true },
+        row.status,
+        new Date(row.created_at),
+        new Date(row.updated_at)
+      ));
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error finding integrations by status:', error);
       throw new Error('Failed to fetch integrations by status');
@@ -441,21 +428,21 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         ON CONFLICT (integration_id) 
         DO UPDATE SET 
           config = $1,
-          status = 'connected',
+          status = 'disconnected', -- Status will be updated by health check, not by API key presence
           updated_at = NOW()
         RETURNING *
       `, [JSON.stringify({ apiKey })]);
 
-      return {
-        id: result.rows[0].integration_id,
-        name: result.rows[0].name,
-        provider: result.rows[0].provider,
-        description: 'Weather data integration',
-        status: result.rows[0].status,
-        config: result.rows[0].config || {},
-        createdAt: new Date(result.rows[0].created_at),
-        updatedAt: new Date(result.rows[0].updated_at)
-      };
+      return new Integration(
+        result.rows[0].integration_id,
+        result.rows[0].name,
+        result.rows[0].provider,
+        'Weather data integration',
+        result.rows[0].config || { enabled: true },
+        result.rows[0].status,
+        new Date(result.rows[0].created_at),
+        new Date(result.rows[0].updated_at)
+      );
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error updating OpenWeather API key:', error);
       throw new Error('Failed to update OpenWeather API key');
@@ -495,22 +482,22 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         ON CONFLICT (integration_id) 
         DO UPDATE SET 
           config = $2,
-          status = CASE WHEN $2::jsonb ? 'apiKey' THEN 'connected' ELSE 'disconnected' END,
+          status = 'disconnected', -- Always set to disconnected when API key changes, health check will update to real status
           updated_at = NOW()
         RETURNING *
       `, [integrationId, JSON.stringify(config)]);
 
       if (result.rows[0]) {
-        return {
-          id: result.rows[0].integration_id,
-          name: result.rows[0].name,
-          provider: result.rows[0].provider,
-          description: `${result.rows[0].provider} integration`,
-          status: result.rows[0].status,
-          config: result.rows[0].config || {},
-          createdAt: new Date(result.rows[0].created_at),
-          updatedAt: new Date(result.rows[0].updated_at)
-        };
+        return new Integration(
+          result.rows[0].integration_id,
+          result.rows[0].name,
+          result.rows[0].provider,
+          `${result.rows[0].provider} integration`,
+          result.rows[0].config || { enabled: true },
+          result.rows[0].status,
+          new Date(result.rows[0].created_at),
+          new Date(result.rows[0].updated_at)
+        );
       }
 
       return null;
