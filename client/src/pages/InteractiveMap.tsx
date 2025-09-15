@@ -2839,8 +2839,7 @@ export const InteractiveMap: React.FC = () => {
               )}
 
               {/* Weather Layer */}
-              {/* Removed old weather visualization circles - replaced with interactive weather pin */}
-              {showWeatherLayer && !weatherPinPosition && <WeatherVisualizationLayer radius={weatherRadius} />}
+              {/* Old weather visualization circles completely removed - now using interactive weather pin only */}
 
               {/* Traffic Layer */}
               {showTrafficLayer && (
