@@ -123,7 +123,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
     // Try to get from ticket_field_options table first
     try {
       console.log(`🔍 Checking if ticket_field_options table exists in schema ${schemaName}`);
-      
+
       // First check if table exists
       const tableCheck = await db.execute(sql.raw(`
         SELECT EXISTS (
@@ -134,7 +134,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
       if (!tableCheck.rows[0]?.exists) {
         console.log(`⚠️ ticket_field_options table does not exist in ${schemaName}, creating it`);
-        
+
         // Create the table with proper structure
         await db.execute(sql.raw(`
           CREATE TABLE IF NOT EXISTS "${schemaName}".ticket_field_options (
@@ -184,6 +184,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
           ORDER BY sort_order ASC, display_label ASC
         `, [tenantId, effectiveCompanyId, fieldName || 'status']));
       } catch (columnError) {
+        // Fallback to 'active' column if 'is_active' doesn't exist
         console.log('⚠️ is_active column not found, trying active column');
         try {
           result = await db.execute(sql.raw(`
@@ -205,14 +206,26 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
             ORDER BY sort_order ASC, display_label ASC
           `, [tenantId, effectiveCompanyId, fieldName || 'status']));
         } catch (secondError) {
-          console.log('⚠️ Both is_active and active columns failed, table might need column migration');
+          console.log('⚠️ Both is_active and active columns failed, adding is_active column');
           // Add the missing column if needed
           try {
             await db.execute(sql.raw(`
               ALTER TABLE "${schemaName}".ticket_field_options 
               ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
             `));
-            
+
+            // If we have active column, copy its values to is_active
+            try {
+              await db.execute(sql.raw(`
+                UPDATE "${schemaName}".ticket_field_options 
+                SET is_active = active 
+                WHERE is_active IS NULL;
+              `));
+              console.log('✅ Migrated active column values to is_active');
+            } catch (copyError) {
+              console.log('ℹ️ No active column to migrate from');
+            }
+
             // Try again with is_active
             result = await db.execute(sql.raw(`
               SELECT 
@@ -252,7 +265,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
         // If no data found, seed with default options for this field
         console.log(`🌱 No field options found, seeding default options for ${fieldName}`);
         const defaultOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
-        
+
         if (defaultOptions && defaultOptions.length > 0) {
           // Insert default options
           for (let i = 0; i < defaultOptions.length; i++) {
@@ -277,7 +290,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
               console.warn('⚠️ Failed to seed option:', option.value, seedError.message);
             }
           }
-          
+
           // Try to fetch again after seeding
           try {
             result = await db.execute(sql.raw(`
@@ -298,7 +311,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
               AND is_active = true
               ORDER BY sort_order ASC, display_label ASC
             `, [tenantId, effectiveCompanyId, fieldName || 'status']));
-            
+
             if (result.rows.length > 0) {
               console.log(`✅ Found ${result.rows.length} seeded field options`);
               return res.json({
@@ -321,9 +334,9 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Fallback to mock data if no database records found
     console.log('🔄 Using fallback field options data');
-    
+
     const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS] || FIELD_OPTIONS.status;
-    
+
     // Transform mock data to match expected format
     const transformedOptions = fallbackOptions.map((option, index) => ({
       id: `mock_${index}`,
