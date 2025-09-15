@@ -2555,9 +2555,10 @@ export const InteractiveMap: React.FC = () => {
                               setSelectedPoint({
                                 lat: weatherPinPosition.lat,
                                 lng: weatherPinPosition.lng,
-                                weatherData: {
+                                name: 'Clima Local',
+                                weather: {
                                   temperature: result.data.temperature,
-                                  condition: result.data.condition,
+                                  description: result.data.condition,
                                   humidity: result.data.humidity,
                                   windSpeed: result.data.windSpeed,
                                   visibility: result.data.visibility,
@@ -2575,9 +2576,10 @@ export const InteractiveMap: React.FC = () => {
                           setSelectedPoint({
                             lat: weatherPinPosition.lat,
                             lng: weatherPinPosition.lng,
-                            weatherData: {
+                            name: 'Clima Local',
+                            weather: {
                               temperature: 22,
-                              condition: 'Dados indisponíveis',
+                              description: 'Dados indisponíveis',
                               humidity: 65,
                               windSpeed: 8,
                               visibility: 10,
