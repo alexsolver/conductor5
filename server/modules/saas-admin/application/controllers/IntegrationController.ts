@@ -7,12 +7,14 @@
 import { Request, Response } from 'express';
 import { GetIntegrationsUseCase } from '../use-cases/GetIntegrationsUseCase';
 import { UpdateOpenWeatherApiKeyUseCase, UpdateOpenWeatherApiKeyRequest } from '../use-cases/UpdateOpenWeatherApiKeyUseCase';
+import { CheckIntegrationHealthUseCase } from '../use-cases/CheckIntegrationHealthUseCase';
 
 // ✅ SEMPRE seguir este padrão (1qa.md line 60)
 export class IntegrationController {
   constructor(
     private getIntegrationsUseCase: GetIntegrationsUseCase,
     private updateOpenWeatherApiKeyUseCase: UpdateOpenWeatherApiKeyUseCase,
+    private checkIntegrationHealthUseCase?: CheckIntegrationHealthUseCase,
     private logger: any = console // Logger injection for compliance
   ) {}
 
@@ -112,6 +114,46 @@ export class IntegrationController {
         });
       }
       
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // POST /api/saas-admin/integrations/:integrationId/health-check
+  async checkIntegrationHealth(req: Request, res: Response) {
+    try {
+      const { integrationId } = req.params;
+
+      if (!integrationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Integration ID is required'
+        });
+      }
+
+      if (!this.checkIntegrationHealthUseCase) {
+        return res.status(500).json({
+          success: false,
+          message: 'Health check service not available'
+        });
+      }
+
+      this.logger.info(`[INTEGRATION-CONTROLLER] Starting health check for integration: ${integrationId}`);
+
+      // Use Case execution only (1qa.md line 68)
+      const result = await this.checkIntegrationHealthUseCase.execute(integrationId);
+      
+      this.logger.info(`[INTEGRATION-CONTROLLER] Health check completed for ${integrationId}:`, {
+        status: result.data.status,
+        responseTime: result.data.responseTime
+      });
+      
+      res.json(result);
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error checking integration health:', error);
       res.status(500).json({ 
         success: false,
         message: 'Internal error',

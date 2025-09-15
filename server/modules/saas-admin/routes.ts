@@ -658,6 +658,34 @@ router.put('/integrations/openai/config', async (req: AuthorizedRequest, res) =>
 });
 
 /**
+ * POST /api/saas-admin/integrations/:integrationId/health-check
+ * Executar health check de uma integração específica
+ */
+router.post('/integrations/:integrationId/health-check', async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { CheckIntegrationHealthUseCase } = await import('./application/use-cases/CheckIntegrationHealthUseCase');
+    const { OpenWeatherHealthChecker } = await import('./infrastructure/health-checkers/OpenWeatherHealthChecker');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const healthChecker = new OpenWeatherHealthChecker();
+    const checkHealthUseCase = new CheckIntegrationHealthUseCase(integrationRepository, healthChecker);
+    
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase, checkHealthUseCase);
+
+    await controller.checkIntegrationHealth(req, res);
+  } catch (error) {
+    console.error('Error checking integration health:', error);
+    res.status(500).json({ success: false, message: 'Failed to check integration health' });
+  }
+});
+
+/**
  * POST /api/saas-admin/integrations/openweather/test
  * Testar integração OpenWeather
  */
