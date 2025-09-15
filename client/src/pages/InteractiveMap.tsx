@@ -1487,12 +1487,19 @@ export const InteractiveMap: React.FC = () => {
     enabled: !!user,
   });
 
+  // Fetch all groups directly to show in filter even without members - following 1qa.md patterns
+  const { data: allGroupsData, isLoading: groupsLoading } = useQuery({
+    queryKey: ['/api/user-management/groups'],
+    queryFn: () => apiRequest('GET', '/api/user-management/groups').then(res => res.json()),
+    enabled: !!user,
+  });
+
   // Extract team members array from response - following 1qa.md patterns
   const teamMembers = Array.isArray(teamMembersData?.members) ? teamMembersData.members : [];
   
-  // Extract unique team names from all member groups following Clean Architecture
-  const allGroups = teamMembers.flatMap((member: any) => member.groups || []);
-  const availableTeams = [...new Set(allGroups.map((group: any) => group.name).filter(Boolean))];
+  // Extract all available groups from direct API call - following Clean Architecture
+  const allGroups = Array.isArray(allGroupsData?.groups) ? allGroupsData.groups : [];
+  const availableTeams = allGroups.filter((group: any) => group.isActive).map((group: any) => group.name);
 
   // ===========================================================================================
   // Extract Skills Data
