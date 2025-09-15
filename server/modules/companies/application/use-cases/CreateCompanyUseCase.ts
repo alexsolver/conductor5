@@ -52,6 +52,18 @@ export class CreateCompanyUseCase {
 
     const createdCompany = await this.companyRepository.create(companyData);
     
+    // Aplicar template se esta for a primeira empresa do tenant
+    try {
+      const { FirstCompanyTemplateService } = await import('../../../services/FirstCompanyTemplateService');
+      await FirstCompanyTemplateService.applyTemplateIfFirstCompany(
+        createdCompany.tenantId,
+        createdCompany.id
+      );
+    } catch (templateError) {
+      console.error(`⚠️ [CREATE-COMPANY] Template application failed for company ${createdCompany.id}:`, templateError);
+      // Continue without failing company creation
+    }
+    
     return createdCompany;
   }
 

@@ -172,25 +172,33 @@ class TenantAutoProvisioningService {
           `🔧 [TENANT-PROVISIONING] Applying default company template for: ${savedTenant.id}`,
         );
 
-        try {
-          // Call the internal method to apply template
-          await this.applyDefaultCompanyTemplate(savedTenant.id, savedTenant.id); // Assuming companyId is same as tenantId for default template
+        // Check if this is the first tenant to apply the template
+        const { db } = await import("../db");
+        const { tenants } = await import("@shared/schema");
+        const { count } = await import("drizzle-orm");
+
+        const tenantCount = await db.select({ count: count() }).from(tenants);
+
+        if (tenantCount[0].count === 1) {
+          // This is the first tenant, apply the template
+          try {
+            await this.initializeTicketConfigurations(savedTenant.id, savedTenant.id); // Assuming companyId is same as tenantId for default config
+            console.log(
+              `✅ [TENANT-PROVISIONING] Default company template applied for: ${savedTenant.id}`,
+            );
+          } catch (templateError) {
+            console.error(
+              `⚠️ [TENANT-PROVISIONING] Template application failed for ${savedTenant.id}:`,
+              templateError,
+            );
+            // Continue without failing the entire tenant creation
+          }
+        } else {
           console.log(
-            `✅ [TENANT-PROVISIONING] Default company template applied for: ${savedTenant.id}`,
+            `ℹ️ [TENANT-PROVISIONING] Skipping template application for tenant ${savedTenant.id} as it's not the first tenant.`,
           );
-        } catch (templateError) {
-          console.error(
-            `⚠️ [TENANT-PROVISIONING] Template application failed for ${savedTenant.id}:`,
-            templateError,
-          );
-          // Continue without failing the entire tenant creation
         }
 
-        // Initialize ticket configurations with default data
-        console.log(
-          `🔧 [TENANT-PROVISIONING] Initializing ticket configurations for: ${savedTenant.id}`,
-        );
-        await this.initializeTicketConfigurations(savedTenant.id, savedTenant.id); // Assuming companyId is same as tenantId for default config
 
         console.log(
           `✅ [TENANT-PROVISIONING] Schema validated successfully for tenant: ${savedTenant.id}`,
@@ -388,20 +396,6 @@ class TenantAutoProvisioningService {
     return { ...this.config };
   }
 
-  private async applyDefaultCompanyTemplate(tenantId: string, companyId: string): Promise<void> {
-    try {
-      console.log('🎨 [TENANT-TEMPLATE] Applying default company template...');
-
-      const templateService = new TenantTemplateService();
-      await templateService.applyDefaultTemplate(tenantId, companyId);
-
-      console.log('✅ [TENANT-TEMPLATE] Default template applied successfully');
-    } catch (error: any) {
-      console.error('❌ [TENANT-TEMPLATE] Error applying template:', error);
-      throw new Error(`Failed to apply default template: ${error.message}`);
-    }
-  }
-
   public async initializeTicketConfigurations(tenantId: string, companyId: string): Promise<void> {
     try {
       console.log('🎫 [TICKET-CONFIG] Initializing ticket configurations...');
@@ -448,7 +442,7 @@ class TenantAutoProvisioningService {
           name: 'Usuários & Suporte',
           color: '#f59e0b',
           description: 'Solicitações de usuários, treinamentos e suporte geral',
-          icon: 'users'
+          icon: 'user-check'
         }
       ];
 

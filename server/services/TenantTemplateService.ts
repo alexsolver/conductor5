@@ -1909,6 +1909,28 @@ export class TenantTemplateService {
   }
 
   /**
+   * Aplica apenas as configurações de template (sem criar empresa)
+   */
+  static async applyTemplateConfigurationsOnly(
+    tenantId: string,
+    userId: string,
+    pool: any,
+    schemaName: string,
+  ): Promise<void> {
+    console.log(`[TENANT-TEMPLATE] Applying template configurations only for tenant ${tenantId}`);
+
+    try {
+      // Aplicar apenas as opções de campos de tickets
+      await this.createTicketFieldOptions(pool, schemaName, tenantId, null);
+      
+      console.log(`[TENANT-TEMPLATE] Template configurations applied successfully for tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`[TENANT-TEMPLATE] Error applying template configurations for tenant ${tenantId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Verifica se o template já foi aplicado para um tenant
    */
   static async isTemplateApplied(
