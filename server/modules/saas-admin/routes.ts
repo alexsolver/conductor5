@@ -686,6 +686,57 @@ router.post('/integrations/:integrationId/health-check', async (req: AuthorizedR
 });
 
 /**
+ * POST /api/saas-admin/integrations/health-check/all
+ * Executar health check de todas as integrações
+ */
+router.post('/integrations/health-check/all', async (req: AuthorizedRequest, res) => {
+  try {
+    console.log('🧪 [SAAS-ADMIN-HEALTH-CHECK] Starting health check for all integrations');
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { CheckAllIntegrationsHealthUseCase } = await import('./application/use-cases/CheckAllIntegrationsHealthUseCase');
+    const { OpenWeatherHealthChecker } = await import('./infrastructure/health-checkers/OpenWeatherHealthChecker');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const healthChecker = new OpenWeatherHealthChecker();
+    const checkAllHealthUseCase = new CheckAllIntegrationsHealthUseCase(integrationRepository, healthChecker);
+
+    console.log('🔧 [SAAS-ADMIN-HEALTH-CHECK] Executing health check for all integrations');
+    const result = await checkAllHealthUseCase.execute();
+
+    console.log('✅ [SAAS-ADMIN-HEALTH-CHECK] Health check completed for all integrations:', {
+      totalChecked: result.data.totalChecked,
+      connected: result.data.connected,
+      errors: result.data.errors,
+      disconnected: result.data.disconnected
+    });
+
+    res.json({
+      success: result.success,
+      message: result.message,
+      data: {
+        summary: {
+          totalChecked: result.data.totalChecked,
+          connected: result.data.connected,
+          errors: result.data.errors,
+          disconnected: result.data.disconnected,
+          checkedAt: result.data.checkedAt
+        },
+        results: result.data.results
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-HEALTH-CHECK] Error checking all integrations health:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno ao executar health check de todas as integrações',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * POST /api/saas-admin/integrations/openweather/test
  * Testar integração OpenWeather
  */
