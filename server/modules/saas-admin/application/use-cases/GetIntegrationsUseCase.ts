@@ -15,19 +15,19 @@ export class GetIntegrationsUseCase {
   async execute(): Promise<{
     success: boolean;
     message: string;
-    data: Integration[];
+    integrations: Integration[];
   }> {
     try {
       const integrations = await this.integrationRepository.findAll();
-      
+
       return {
         success: true,
         message: 'Integrations retrieved successfully',
-        data: integrations
+        integrations
       };
     } catch (error) {
       console.error('[GET-INTEGRATIONS-USECASE] Error:', error);
-      throw new Error('Failed to retrieve integrations');
+      throw new Error('Failed to get integrations');
     }
   }
 
@@ -38,7 +38,7 @@ export class GetIntegrationsUseCase {
   }> {
     try {
       const integrations = await this.integrationRepository.findByStatus(status);
-      
+
       return {
         success: true,
         message: `Integrations with status '${status}' retrieved successfully`,
@@ -57,15 +57,15 @@ export class GetIntegrationsUseCase {
   }> {
     try {
       const openWeatherIntegration = await this.integrationRepository.getOpenWeatherConfig();
-      
+
       return {
         success: true,
         message: 'OpenWeather integration retrieved successfully',
         data: openWeatherIntegration
       };
     } catch (error) {
-      console.error('[GET-OPENWEATHER-USECASE] Error:', error);
-      throw new Error('Failed to retrieve OpenWeather integration');
+      console.error('[GET-INTEGRATIONS-USECASE] Error getting OpenWeather:', error);
+      throw new Error('Failed to get OpenWeather integration');
     }
   }
 }

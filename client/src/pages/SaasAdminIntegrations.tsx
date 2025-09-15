@@ -388,7 +388,7 @@ export default function SaasAdminIntegrations() {
         updatedAt: new Date()
       });
     }
-    
+
     // Include OpenAI card if not already present
     const openaiExists = baseIntegrations.some(i => i.id === 'openai');
     if (!openaiExists) {

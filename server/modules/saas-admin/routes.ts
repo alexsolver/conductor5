@@ -20,7 +20,7 @@ const requireSaasAdmin = (req: AuthenticatedRequest, res: any, next: any) => {
     expectedRole: 'saas_admin',
     isMatch: req.user?.role === 'saas_admin'
   });
-  
+
   if (!req.user || req.user.role !== 'saas_admin') {
     console.log('❌ [SAAS-ADMIN-MIDDLEWARE] Access denied - user role mismatch');
     return res.status(403).json({
@@ -29,7 +29,7 @@ const requireSaasAdmin = (req: AuthenticatedRequest, res: any, next: any) => {
       code: 'FORBIDDEN'
     });
   }
-  
+
   console.log('✅ [SAAS-ADMIN-MIDDLEWARE] Access granted');
   next();
 };
@@ -421,24 +421,48 @@ router.get('/integrations/openweather', async (req: AuthorizedRequest, res) => {
  * PUT /api/saas-admin/integrations/openweather/api-key
  * Atualizar chave da API OpenWeather
  */
-router.put('/integrations/openweather/api-key', async (req: AuthorizedRequest, res) => {
-  try {
-    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
-    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
-    const { IntegrationController } = await import('./application/controllers/IntegrationController');
-    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+router.put('/integrations/openweather/api-key', 
+  async (req: AuthorizedRequest, res) => {
+    try {
+      const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+      const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+      const { IntegrationController } = await import('./application/controllers/IntegrationController');
+      const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
 
-    const integrationRepository = new DrizzleIntegrationRepository();
-    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
-    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
-    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+      const integrationRepository = new DrizzleIntegrationRepository();
+      const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+      const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+      const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
 
-    await controller.updateOpenWeatherApiKey(req, res);
-  } catch (error) {
-    console.error('Error updating OpenWeather API key:', error);
-    res.status(500).json({ success: false, message: 'Failed to update OpenWeather API key' });
+      await controller.updateOpenWeatherApiKey(req, res);
+    } catch (error) {
+      console.error('Error updating OpenWeather API key:', error);
+      res.status(500).json({ success: false, message: 'Failed to update OpenWeather API key' });
+    }
   }
-});
+);
+
+  // POST /api/saas-admin/integrations/openweather/test
+  router.post('/integrations/openweather/test', 
+    async (req: AuthorizedRequest, res) => {
+      try {
+        const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+        const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+        const { IntegrationController } = await import('./application/controllers/IntegrationController');
+        const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+  
+        const integrationRepository = new DrizzleIntegrationRepository();
+        const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+        const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+        const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+  
+        await controller.testOpenWeatherConnection(req, res);
+      } catch (error) {
+        console.error('Error testing OpenWeather connection:', error);
+        res.status(500).json({ success: false, message: 'Failed to test OpenWeather connection' });
+      }
+    }
+  );
 
 /**
  * POST /api/saas-admin/integrations/openai/test
@@ -1036,11 +1060,11 @@ router.get('/translation-completion/analyze', async (req: AuthorizedRequest, res
   try {
     const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
     const service = new TranslationCompletionService();
-    
+
     // Use the correct method from the service
     const scannedKeys = await service.scanCodebaseForTranslationKeys();
     const analysis = await service.generateCompletenessReportWithKeys(scannedKeys);
-    
+
     res.json({ 
       success: true, 
       data: analysis,
@@ -1139,7 +1163,7 @@ router.get('/users/stats', async (req: AuthorizedRequest, res) => {
 router.get('/users', async (req: AuthorizedRequest, res) => {
   try {
     console.log('🔍 [SAAS-ADMIN-USERS] Fetching all users from public schema');
-    
+
     // Usar o user repository para buscar todos os usuários
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
@@ -1274,16 +1298,16 @@ router.get('/module-integrity/monitoring', async (req: AuthorizedRequest, res) =
 router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdmin, async (req: AuthenticatedRequest, res: any) => {
   console.log('🔥 [DEBUG] ENDPOINT HIT! translation-completion/auto-complete-all');
   console.log('🔥 [DEBUG] User:', req.user?.email);
-  
+
   try {
     console.log('🤖 [AI-TRANSLATE] Auto-complete-all requested by:', req.user?.email);
-    
+
     console.log('🔥 [DEBUG] Importing TranslationCompletionService...');
     const { TranslationCompletionService } = await import('../../services/TranslationCompletionService');
     console.log('🔥 [DEBUG] Creating service instance...');
     const translationService = new TranslationCompletionService();
     console.log('🔥 [DEBUG] Service created successfully');
-    
+
     // Use AI to complete missing translations
     console.log('🔥 [DEBUG] Calling performAITranslationCompletion...');
     const aiResult = await translationService.performAITranslationCompletion();
@@ -1292,7 +1316,7 @@ router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdm
       success: aiResult.success,
       completed: aiResult.completed
     });
-    
+
     if (aiResult.success) {
       res.json({
         success: true,
@@ -1311,7 +1335,7 @@ router.post('/translation-completion/auto-complete-all', jwtAuth, requireSaasAdm
         data: aiResult.details
       });
     }
-    
+
   } catch (error) {
     console.error('❌ [AI-TRANSLATE] Auto-complete error:', error);
     res.status(500).json({

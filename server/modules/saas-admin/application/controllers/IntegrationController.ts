@@ -149,4 +149,65 @@ export class IntegrationController {
       });
     }
   }
+
+  // POST /api/saas-admin/integrations/openweather/test
+  async testOpenWeatherConnection(req: Request, res: Response) {
+    try {
+      this.logger.info('[INTEGRATION-CONTROLLER] Testing OpenWeather connection');
+      
+      // Get the OpenWeather configuration
+      const openWeatherConfig = await this.getIntegrationsUseCase.executeGetOpenWeather();
+      
+      if (!openWeatherConfig.data?.config?.apiKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'OpenWeather API key not configured'
+        });
+      }
+
+      // Test the API with a simple request
+      const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${openWeatherConfig.data.config.apiKey}`;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          res.json({
+            success: true,
+            message: 'OpenWeather API connection successful',
+            responseTime: Date.now() - Date.now()
+          });
+        } else {
+          res.json({
+            success: false,
+            message: `OpenWeather API returned status ${response.status}`,
+            error: response.statusText
+          });
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        res.json({
+          success: false,
+          message: 'Failed to connect to OpenWeather API',
+          error: fetchError.message
+        });
+      }
+
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error testing OpenWeather connection:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
