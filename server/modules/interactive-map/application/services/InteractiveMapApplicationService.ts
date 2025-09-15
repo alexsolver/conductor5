@@ -78,23 +78,14 @@ export class InteractiveMapApplicationService {
 
   // ✅ External API Service uses static methods - no instance needed
 
-  // ✅ Weather data retrieval
+  // ✅ Weather data retrieval - REAL DATA ONLY
   async getWeatherData(lat: number, lng: number): Promise<any> {
     try {
-      // Try to get real weather data from SaaS Admin OpenWeather integration
+      // Get real weather data from SaaS Admin OpenWeather integration
       return await ExternalApiService.getWeatherData(lat, lng);
     } catch (error) {
-      console.warn('[INTERACTIVE-MAP-SERVICE] Weather API failed, using fallback:', error);
-
-      // Fallback to mock data
-      return {
-        temperature: 20 + Math.random() * 10,
-        condition: 'Dados simulados',
-        humidity: 60 + Math.floor(Math.random() * 30),
-        windSpeed: Math.floor(Math.random() * 15),
-        visibility: 10,
-        icon: '01d'
-      };
+      console.error('[INTERACTIVE-MAP-SERVICE] Weather API failed - no fallback data:', error);
+      throw error; // Don't provide fallback data
     }
   }
 

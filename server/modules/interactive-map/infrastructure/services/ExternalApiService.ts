@@ -76,8 +76,8 @@ export class ExternalApiService {
       const apiKey = await this.getOpenWeatherApiKey();
       
       if (!apiKey) {
-        console.log(`🌤️ [WEATHER-API] Using fallback simulated data - API key not available or API failed`);
-        return this.getFallbackWeatherData(lat, lng, type);
+        console.error(`❌ [WEATHER-API] OpenWeather API key not configured`);
+        this.getErrorResponse('API key not configured in SaaS Admin');
       }
 
       const cacheKey = `weather_${type}_${lat}_${lng}`;
@@ -113,8 +113,7 @@ export class ExternalApiService {
           console.error(`❌ [WEATHER-API] OpenWeather API error: ${response.status} - ${response.statusText}`);
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error(`❌ [WEATHER-API] Error details: ${errorText}`);
-          console.log(`⚠️ [WEATHER-API] Using fallback simulated data - API key not available or API failed`);
-          return this.getFallbackWeatherData(lat, lng, type);
+          this.getErrorResponse(`API request failed: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -167,32 +166,18 @@ export class ExternalApiService {
           console.error('❌ [WEATHER-API] Network error:', fetchError.message);
         }
         
-        return this.getFallbackWeatherData(lat, lng);
+        this.getErrorResponse(`Network error: ${fetchError.message}`);
       }
 
     } catch (error) {
       console.error('❌ [WEATHER-API] Error getting weather data:', error);
-      return this.getFallbackWeatherData(lat, lng);
+      throw error;
     }
   }
 
-  // ✅ Fallback data when API is unavailable
-  private static getFallbackWeatherData(lat: number, lng: number, type: 'current' | 'forecast' = 'current'): WeatherData {
-    console.log(`⚠️ [WEATHER-API] Using fallback simulated data for ${type} - API key not available or API failed`);
-    // Generate realistic fallback data based on location
-    const temp = 20 + Math.random() * 10; // 20-30°C range
-    const condition = type === 'forecast' ? 'Previsão simulada' : 'Dados simulados';
-    
-    return {
-      temperature: Math.round(temp),
-      condition: condition,
-      humidity: 60 + Math.floor(Math.random() * 30), // 60-90%
-      windSpeed: Math.floor(Math.random() * 15), // 0-15 km/h
-      visibility: 10, // 10km default
-      icon: '01d', // Default clear sky icon
-      lastUpdated: new Date(),
-      isSimulated: true
-    };
+  // ✅ No fallback data - only real weather data
+  private static getErrorResponse(message: string): never {
+    throw new Error(`OpenWeather API: ${message}`);
   }
 
   // ✅ Traffic data (mock for now - can be extended)

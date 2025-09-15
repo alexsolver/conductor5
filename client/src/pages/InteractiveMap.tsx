@@ -321,7 +321,8 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
                 windSpeed: result.data.windSpeed,
                 visibility: result.data.visibility,
                 icon: result.data.icon,
-                isRealData: true
+                isRealData: true,
+                lastUpdated: result.data.lastUpdated || new Date().toISOString() // Ensure lastUpdated is present
               };
             } else {
               throw new Error('Invalid weather data response');
@@ -338,7 +339,8 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               windSpeed: Math.floor(Math.random() * 15),
               visibility: 10,
               icon: '01d',
-              isRealData: false
+              isRealData: false,
+              lastUpdated: new Date().toISOString()
             };
           }
         });
@@ -353,7 +355,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
         console.error('❌ [WEATHER-LAYER] Error fetching weather data:', error);
         // ✅ Complete fallback data
         setWeatherData([
-          { name: 'São Paulo', lat: -23.5505, lng: -46.6333, temp: 22, condition: 'Dados indisponíveis', humidity: 70, windSpeed: 5, isRealData: false }
+          { name: 'São Paulo', lat: -23.5505, lng: -46.6333, temp: 22, condition: 'Dados indisponíveis', humidity: 70, windSpeed: 5, isRealData: false, lastUpdated: new Date().toISOString() }
         ]);
       } finally {
         setIsLoading(false);
@@ -418,60 +420,86 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               }
             }}
           >
-            <Popup maxWidth={320}>
-              <div className="weather-popup p-3 space-y-4">
-                <div className="flex items-center gap-2 font-semibold text-lg">
-                  <span className="text-2xl">{weatherInfo.icon}</span>
-                  <span>Condições Climáticas - {data.name || 'Localização'}</span>
+            <Popup>
+              <div style={{
+                minWidth: '280px',
+                textAlign: 'center',
+                fontFamily: 'Inter, system-ui, sans-serif'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '12px',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#1f2937'
+                }}>
+                  <span style={{ marginRight: '8px' }}>{weatherInfo.icon}</span>
+                  {data.name}
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span>🌡️</span>
-                    <div className="flex-1">
-                      <span className="text-sm text-gray-600">Temperatura:</span>
-                      <div className="font-bold text-lg">{data.temp}°C</div>
-                    </div>
-                  </div>
+                <div style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  marginBottom: '12px',
+                  display: 'inline-block'
+                }}>
+                  ✅ DADOS REAIS OPENWEATHER
+                </div>
 
-                  <div className="flex items-center gap-2">
-                    <span>💧</span>
-                    <div className="flex-1">
-                      <span className="text-sm text-gray-600">Umidade:</span>
-                      <div className="font-bold text-lg">{data.humidity || 'N/A'}%</div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '8px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: weatherInfo.color }}>
+                      {Math.round(data.temp)}°C
                     </div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>Temperatura</div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span>💨</span>
-                    <div className="flex-1">
-                      <span className="text-sm text-gray-600">Vento:</span>
-                      <div className="font-bold">{data.windSpeed || 'N/A'} km/h</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '500' }}>
+                      {data.humidity}%
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span>🌤️</span>
-                    <div className="flex-1">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <div className="font-bold">{weatherInfo.condition}</div>
-                    </div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>Umidade</div>
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-600 border-t pt-2 space-y-1">
-                  <div>Condição: {data.condition}</div>
-                  {data.isRealData !== undefined && (
-                    <div className={`flex items-center gap-1 ${data.isRealData ? 'text-green-600' : 'text-orange-600'}`}>
-                      <span>{data.isRealData ? '🌐' : '📊'}</span>
-                      <span className="font-medium">
-                        {data.isRealData ? 'Dados OpenWeather' : 'Dados simulados'}
-                      </span>
-                    </div>
-                  )}
-                  <div className="text-xs text-gray-500">
-                    Atualizado: {new Date().toLocaleTimeString()}
-                  </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#374151',
+                  marginBottom: '8px',
+                  textTransform: 'capitalize'
+                }}>
+                  {data.condition}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  borderTop: '1px solid #e5e7eb',
+                  paddingTop: '8px',
+                  marginBottom: '8px'
+                }}>
+                  <span>💨 {data.windSpeed} km/h</span>
+                  <span>👁️ {data.visibility} km</span>
+                </div>
+
+                <div style={{
+                  fontSize: '10px',
+                  color: '#059669',
+                  fontWeight: '500'
+                }}>
+                  Atualizado: {new Date(data.lastUpdated).toLocaleTimeString('pt-BR')}
                 </div>
               </div>
             </Popup>
@@ -1201,7 +1229,7 @@ const LayersPanel: React.FC<{
                 step={1000}
                 className="w-full"
               />
-              
+
               {/* Weather Data Type Selection */}
               <div className="mb-3">
                 <label className="text-sm font-medium mb-2 block">Tipo de Dados:</label>
@@ -1528,16 +1556,66 @@ export const InteractiveMap: React.FC = () => {
   const [showWeatherLayer, setShowWeatherLayer] = useState(false);
   const [showTrafficLayer, setShowTrafficLayer] = useState(false);
   const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
-  
+
   // Weather pin positioning states - following 1qa.md patterns
   const [weatherPinPosition, setWeatherPinPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [isWeatherPinPlacement, setIsWeatherPinPlacement] = useState(false);
   const [weatherDataType, setWeatherDataType] = useState<'current' | 'forecast'>('current');
+  const [currentWeatherData, setCurrentWeatherData] = useState<any>(null); // State for the weather modal
 
   // Weather pin positioning handler - following 1qa.md patterns
   const handleWeatherPinPosition = useCallback((position: { lat: number; lng: number }) => {
     setWeatherPinPosition(position);
     setIsWeatherPinPlacement(false);
+
+    // Fetch real weather data for pin location
+    try {
+      fetch(
+        `/api/interactive-map/external/weather?lat=${position.lat}&lng=${position.lng}&type=current`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      ).then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Network response was not ok');
+      }).then(result => {
+        if (result.success && result.data && !result.data.isSimulated) {
+          setCurrentWeatherData({
+            location: `Lat: ${position.lat.toFixed(4)}, Lng: ${position.lng.toFixed(4)}`,
+            temperature: result.data.temperature,
+            condition: result.data.condition,
+            humidity: result.data.humidity,
+            windSpeed: result.data.windSpeed,
+            icon: result.data.icon,
+            isRealData: true,
+            lastUpdated: result.data.lastUpdated
+          });
+        } else {
+          setCurrentWeatherData({
+            location: `Lat: ${position.lat.toFixed(4)}, Lng: ${position.lng.toFixed(4)}`,
+            error: 'Dados climáticos reais não disponíveis para esta localização'
+          });
+        }
+      }).catch(error => {
+        console.error('Error fetching weather data:', error);
+        setCurrentWeatherData({
+          location: `Lat: ${position.lat.toFixed(4)}, Lng: ${position.lng.toFixed(4)}`,
+          error: 'Erro ao buscar dados climáticos'
+        });
+      });
+    } catch (error) {
+      console.error('Error during weather fetch setup:', error);
+      setCurrentWeatherData({
+        location: `Lat: ${position.lat.toFixed(4)}, Lng: ${position.lng.toFixed(4)}`,
+        error: 'Erro ao buscar dados climáticos'
+      });
+    }
   }, []);
 
   // Auto-hide sidebar when component mounts and show when unmounts
@@ -1557,6 +1635,7 @@ export const InteractiveMap: React.FC = () => {
     } else if (!showWeatherLayer) {
       setIsWeatherPinPlacement(false);
       setWeatherPinPosition(null);
+      setCurrentWeatherData(null); // Clear weather data when layer is turned off
     }
   }, [showWeatherLayer, weatherPinPosition]);
 
@@ -1594,7 +1673,7 @@ export const InteractiveMap: React.FC = () => {
 
   // Extract team members array from response - following 1qa.md patterns
   const teamMembers = Array.isArray(teamMembersData?.members) ? teamMembersData.members : [];
-  
+
   // Extract all available groups from direct API call - following Clean Architecture
   const allGroups = Array.isArray(allGroupsData?.groups) ? allGroupsData.groups : [];
   const availableTeams = allGroups.filter((group: any) => group.isActive).map((group: any) => group.name);
@@ -1603,7 +1682,7 @@ export const InteractiveMap: React.FC = () => {
   // Extract Skills Data - showing all available skills even without users - following 1qa.md patterns
   const skillsData = Array.isArray(technicalSkillsData?.data) ? technicalSkillsData.data : [];
   const userSkillsData = Array.isArray(userSkillsResponse?.data) ? userSkillsResponse.data : [];
-  
+
   // Show all active skills in filter, not just skills that users have
   const availableSkills = skillsData?.filter((skill: any) => skill.isActive !== false).map((skill: any) => skill.name) || [];
 
@@ -2590,7 +2669,7 @@ export const InteractiveMap: React.FC = () => {
                               const isSimulated = result.data.isSimulated || result.metadata?.isSimulated || false;
                               const dataSource = isSimulated ? '🔧 Dados Simulados' : '🌐 OpenWeather API';
                               const namePrefix = weatherDataType === 'current' ? '🌤️ Clima Atual' : '📊 Previsão do Tempo';
-                              
+
                               // Use setSelectedPoint to display weather modal
                               setSelectedPoint({
                                 lat: weatherPinPosition.lat,
@@ -2602,7 +2681,9 @@ export const InteractiveMap: React.FC = () => {
                                   humidity: result.data.humidity,
                                   windSpeed: result.data.windSpeed,
                                   visibility: result.data.visibility,
-                                  icon: result.data.icon
+                                  icon: result.data.icon,
+                                  isRealData: !isSimulated,
+                                  lastUpdated: result.data.lastUpdated || new Date().toISOString()
                                 }
                               });
                               console.log(`✅ [WEATHER-PIN] Weather modal opened with ${isSimulated ? 'simulated' : 'real'} ${weatherDataType} data`);
@@ -2624,7 +2705,8 @@ export const InteractiveMap: React.FC = () => {
                               humidity: 65,
                               windSpeed: 8,
                               visibility: 10,
-                              icon: '01d'
+                              icon: '01d',
+                              isRealData: false
                             }
                           });
                         }
@@ -3097,98 +3179,76 @@ export const InteractiveMap: React.FC = () => {
 
           {/* Weather/Point Details Modal */}
           {selectedPoint && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <div className="flex items-center gap-2">
-                    <Sun className="w-5 h-5 text-yellow-500" />
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {selectedPoint.name}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => setSelectedPoint(null)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+            <Dialog open={!!selectedPoint} onOpenChange={() => setSelectedPoint(null)}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <CloudRain className="h-5 w-5" />
+                    Dados Climáticos OpenWeather
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  {selectedPoint?.error ? (
+                    <div className="text-center p-6">
+                      <div className="text-4xl mb-3">⚠️</div>
+                      <div className="text-lg font-semibold text-red-600 mb-2">
+                        Dados Indisponíveis
+                      </div>
+                      <div className="text-gray-600 text-sm">
+                        {selectedPoint.error}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-3 bg-gray-50 p-2 rounded">
+                        📍 {selectedPoint.location}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-center">
+                        <div className="text-3xl mb-2">{selectedPoint.weather?.icon || '🌤️'}</div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {selectedPoint.weather?.temperature || '--'}°C
+                        </div>
+                        <div className="text-gray-600 capitalize">
+                          {selectedPoint.weather?.description || 'Carregando...'}
+                        </div>
+                        {selectedPoint.weather?.isRealData && (
+                          <div className="mt-2">
+                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                              ✅ Dados Reais OpenWeather
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="bg-gray-50 p-3 rounded-lg text-center">
+                          <div className="font-semibold text-blue-600">
+                            {selectedPoint.weather?.humidity || '--'}%
+                          </div>
+                          <div className="text-gray-600">Umidade</div>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-lg text-center">
+                          <div className="font-semibold text-blue-600">
+                            {selectedPoint.weather?.windSpeed || '--'} km/h
+                          </div>
+                          <div className="text-gray-600">Vento</div>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-gray-500 text-center bg-gray-50 p-2 rounded">
+                        📍 {selectedPoint.location}
+                        {selectedPoint.weather?.lastUpdated && (
+                          <div className="mt-1 text-green-600">
+                            Atualizado: {new Date(selectedPoint.weather.lastUpdated).toLocaleTimeString('pt-BR')}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                {/* Content */}
-                <div className="p-4 space-y-4">
-                  {/* Temperatura e Umidade */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-red-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Thermometer className="w-4 h-4 text-red-500" />
-                        <span className="text-xs font-medium text-red-700">Temperatura</span>
-                      </div>
-                      <div className="text-lg font-bold text-red-900">
-                        {selectedPoint.weather.temperature}°C
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Droplets className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs font-medium text-blue-700">Umidade</span>
-                      </div>
-                      <div className="text-lg font-bold text-blue-900">
-                        {selectedPoint.weather.humidity}%
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vento e Status */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Wind className="w-4 h-4 text-gray-500" />
-                        <span className="text-xs font-medium text-gray-700">Vento</span>
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {selectedPoint.weather.windSpeed} km/h
-                      </div>
-                    </div>
-
-                    <div className="bg-yellow-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sun className="w-4 h-4 text-yellow-500" />
-                        <span className="text-xs font-medium text-yellow-700">Status</span>
-                      </div>
-                      <div className="text-sm font-bold text-yellow-900 leading-tight">
-                        {selectedPoint.weather.description}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Condição */}
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Database className="w-4 h-4 text-green-500" />
-                      <span className="text-xs font-medium text-green-700">Condição</span>
-                    </div>
-                    <p className="text-sm text-green-800 font-medium">
-                      {selectedPoint.weather.condition}
-                    </p>
-                  </div>
-
-                  {/* Footer com fonte e atualização */}
-                  <div className="pt-3 border-t border-gray-200 bg-gray-50 -mx-4 px-4 pb-4 rounded-b-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Database className="w-3 h-3 text-green-500" />
-                        <span className="text-xs text-green-600 font-medium">Dados OpenWeather</span>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {selectedPoint.weather.lastUpdate}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
     </TooltipProvider>
