@@ -77,6 +77,15 @@
   z-index: 1000 !important;
 }
 
+/* Ensure popup pane has high z-index */
+.leaflet-popup-pane {
+  z-index: 10000 !important;
+}
+
+.leaflet-popup {
+  z-index: 10001 !important;
+}
+
 /* Leaflet Layers Control Positioning and Visibility */
 .leaflet-control-layers {
   margin-right: 10px !important;
@@ -529,6 +538,16 @@
 
 .weather-popup {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 10000 !important;
+}
+
+.weather-popup .leaflet-popup-content-wrapper {
+  z-index: 10001 !important;
+  position: relative;
+}
+
+.weather-popup .leaflet-popup-tip {
+  z-index: 10000 !important;
 }
 
 .weather-popup .grid {
@@ -543,4 +562,13 @@
 
 .weather-layer-container {
   animation: weatherFadeIn 0.5s ease-out;
+}
+
+/* Ensure weather popups appear above everything */
+.leaflet-popup.weather-popup {
+  z-index: 10000 !important;
+}
+
+.leaflet-popup-pane .weather-popup {
+  z-index: 10000 !important;
 }

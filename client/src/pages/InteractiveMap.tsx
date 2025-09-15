@@ -420,11 +420,13 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
               }
             }}
           >
-            <Popup>
+            <Popup className="weather-popup" style={{ zIndex: 10000 }}>
               <div style={{
                 minWidth: '280px',
                 textAlign: 'center',
-                fontFamily: 'Inter, system-ui, sans-serif'
+                fontFamily: 'Inter, system-ui, sans-serif',
+                zIndex: 10001,
+                position: 'relative'
               }}>
                 <div style={{
                   display: 'flex',
