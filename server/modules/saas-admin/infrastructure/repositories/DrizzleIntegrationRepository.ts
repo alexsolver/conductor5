@@ -74,19 +74,25 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
         if (savedConfig) {
           const hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length > 0;
+          
+          // ✅ Use saved status from DB, or fallback to computed status only if no saved status exists
+          const finalStatus = savedConfig.status || (hasApiKey ? 'connected' : 'disconnected');
+          
           const integration = {
             ...baseIntegration,
-            status: hasApiKey ? 'connected' : 'disconnected',
+            status: finalStatus,
             config: savedConfig.config || {},
             updatedAt: new Date(savedConfig.updated_at),
             // ✅ Adicionar propriedades que o frontend espera
             apiKeyConfigured: hasApiKey,
             hasApiKey: () => hasApiKey,
-            isActive: () => hasApiKey,
+            isActive: () => finalStatus === 'connected' && hasApiKey,
             isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
-            canMakeRequest: () => hasApiKey,
+            canMakeRequest: () => finalStatus === 'connected' && hasApiKey,
             getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
-            getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null
+            getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null,
+            getLastError: () => savedConfig.config?.lastError || null,
+            getDataSource: () => savedConfig.config?.lastDataSource || 'unknown'
           };
 
           console.log(`[INTEGRATION-REPO] ${baseIntegration.id} final result:`, {
