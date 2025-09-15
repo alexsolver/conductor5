@@ -114,11 +114,11 @@ export class TicketViewsRepository {
     if (updates.length === 0) return null;
 
     updates.push(`updated_at = NOW()`);
-    
+
     // Add WHERE clause parameters
     params.push(tenantId);
     const tenantParam = paramIndex++;
-    
+
     params.push(viewId);
     const idParam = paramIndex;
 

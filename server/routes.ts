@@ -5115,7 +5115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(ticketFieldOptions.tenantId, tenantId));
         await tenantDb
           .delete(ticketDefaultConfigurations)
-          .where(eq(ticketDefaultConfigurations.tenantId, tenantId));
+          .where(eq(ticketFieldConfigurations.tenantId, tenantId));
 
         // Field configurations
         const fieldConfigs = [
