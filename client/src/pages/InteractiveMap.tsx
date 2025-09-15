@@ -517,7 +517,7 @@ const WeatherVisualizationLayer: React.FC<{ radius: number }> = ({ radius }) => 
                 </div>
               </div>
             </Popup>
-          </Circle>
+            </CircleMarker>
         );
       })}
     </>
