@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, LayersControl, useMap, useMapEvents } from 'react-leaflet';
 import { Icon, divIcon, LatLngBounds, LatLng } from 'leaflet';
 import { useTranslation } from 'react-i18next';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -230,6 +230,24 @@ const getWeatherCondition = (temp: number, condition?: string): keyof typeof wea
   if (temp >= 15 && temp < 22) return 'normal';
   if (temp >= 8 && temp < 15) return 'bad';
   return 'stormy';
+};
+
+// Weather Pin Click Handler Component - following 1qa.md patterns
+const WeatherPinClickHandler: React.FC<{
+  isActive: boolean;
+  onPositionSet: (position: { lat: number; lng: number }) => void;
+}> = ({ isActive, onPositionSet }) => {
+  useMapEvents({
+    click: (e) => {
+      if (isActive) {
+        onPositionSet({
+          lat: e.latlng.lat,
+          lng: e.latlng.lng
+        });
+      }
+    }
+  });
+  return null;
 };
 
 // Add CSS style to completely disable weather layer pointer events
@@ -1174,6 +1192,32 @@ const LayersPanel: React.FC<{
                 step={1000}
                 className="w-full"
               />
+              
+              {/* Weather Pin Positioning Controls - following 1qa.md patterns */}
+              <div className="flex gap-2 mt-3">
+                {!weatherPinPosition ? (
+                  <button
+                    onClick={() => setIsWeatherPinPlacement(true)}
+                    disabled={isWeatherPinPlacement}
+                    className={`px-3 py-2 text-xs rounded-md font-medium transition-colors ${
+                      isWeatherPinPlacement
+                        ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                    data-testid="button-position-weather-pin"
+                  >
+                    {isWeatherPinPlacement ? '📍 Clique no mapa...' : '📍 Posicionar Alfinete'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setWeatherPinPosition(null)}
+                    className="px-3 py-2 text-xs rounded-md font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    data-testid="button-remove-weather-pin"
+                  >
+                    🗑️ Remover Alfinete
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -1439,6 +1483,24 @@ export const InteractiveMap: React.FC = () => {
   // State for the selected point to display in the modal
   const [selectedPoint, setSelectedPoint] = useState<any>(null); // Use 'any' for mock data structure
 
+  // Layer visibility states
+  const [showTickets, setShowTickets] = useState(false);
+  const [showTeamGroups, setShowTeamGroups] = useState(false);
+  const [showAreas, setShowAreas] = useState(false);
+  const [showWeatherLayer, setShowWeatherLayer] = useState(false);
+  const [showTrafficLayer, setShowTrafficLayer] = useState(false);
+  const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
+  
+  // Weather pin positioning states - following 1qa.md patterns
+  const [weatherPinPosition, setWeatherPinPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [isWeatherPinPlacement, setIsWeatherPinPlacement] = useState(false);
+
+  // Weather pin positioning handler - following 1qa.md patterns
+  const handleWeatherPinPosition = useCallback((position: { lat: number; lng: number }) => {
+    setWeatherPinPosition(position);
+    setIsWeatherPinPlacement(false);
+  }, []);
+
   // Auto-hide sidebar when component mounts and show when unmounts
   useEffect(() => {
     setSidebarHidden(true);
@@ -1449,13 +1511,15 @@ export const InteractiveMap: React.FC = () => {
     };
   }, [setSidebarHidden]);
 
-  // Layer visibility states
-  const [showTickets, setShowTickets] = useState(false);
-  const [showTeamGroups, setShowTeamGroups] = useState(false);
-  const [showAreas, setShowAreas] = useState(false);
-  const [showWeatherLayer, setShowWeatherLayer] = useState(false);
-  const [showTrafficLayer, setShowTrafficLayer] = useState(false);
-  const [weatherRadius, setWeatherRadius] = useState(8000); // Default 8km radius
+  // Weather layer activation effect - following 1qa.md patterns
+  useEffect(() => {
+    if (showWeatherLayer && !weatherPinPosition) {
+      setIsWeatherPinPlacement(true);
+    } else if (!showWeatherLayer) {
+      setIsWeatherPinPlacement(false);
+      setWeatherPinPosition(null);
+    }
+  }, [showWeatherLayer, weatherPinPosition]);
 
   // ===========================================================================================
   // Data Fetching and Integration
@@ -2408,6 +2472,58 @@ export const InteractiveMap: React.FC = () => {
                   attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
                   url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
                 />
+              )}
+
+              {/* Weather Pin Click Handler - following 1qa.md patterns */}
+              <WeatherPinClickHandler
+                isActive={isWeatherPinPlacement}
+                onPositionSet={handleWeatherPinPosition}
+              />
+
+              {/* Weather Pin Marker and Radius Circle - following 1qa.md patterns */}
+              {weatherPinPosition && showWeatherLayer && (
+                <>
+                  <Marker
+                    position={[weatherPinPosition.lat, weatherPinPosition.lng]}
+                    draggable={true}
+                    eventHandlers={{
+                      dragend: (e) => {
+                        const newPos = e.target.getLatLng();
+                        setWeatherPinPosition({ lat: newPos.lat, lng: newPos.lng });
+                      }
+                    }}
+                    icon={new Icon({
+                      iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                      `),
+                      iconSize: [32, 32],
+                      iconAnchor: [16, 32],
+                      popupAnchor: [0, -32]
+                    })}
+                  >
+                    <Popup>
+                      <div className="text-center">
+                        <h3 className="font-semibold text-blue-600">📍 Ponto do Clima</h3>
+                        <p className="text-sm text-gray-600">Raio: {weatherRadius / 1000} km</p>
+                        <p className="text-xs text-gray-500 mt-1">Arraste para reposicionar</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                  <Circle
+                    center={[weatherPinPosition.lat, weatherPinPosition.lng]}
+                    radius={weatherRadius}
+                    pathOptions={{
+                      color: '#2563eb',
+                      fillColor: '#3b82f6',
+                      fillOpacity: 0.1,
+                      weight: 2,
+                      dashArray: '5, 10'
+                    }}
+                  />
+                </>
               )}
 
               {/* Agent Markers - Hide all except selected agent during trajectory replay */}
