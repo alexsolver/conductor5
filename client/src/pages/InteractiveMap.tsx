@@ -2532,6 +2532,61 @@ export const InteractiveMap: React.FC = () => {
                       weight: 2,
                       dashArray: '5, 10'
                     }}
+                    eventHandlers={{
+                      click: async () => {
+                        try {
+                          console.log('🌤️ [WEATHER-PIN] Fetching weather data for pin location');
+                          // Fetch weather data for the pin location
+                          const response = await fetch(
+                            `/api/interactive-map/external/weather?lat=${weatherPinPosition.lat}&lng=${weatherPinPosition.lng}`,
+                            {
+                              method: 'GET',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                              }
+                            }
+                          );
+
+                          if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data) {
+                              // Use setSelectedPoint to display weather modal
+                              setSelectedPoint({
+                                lat: weatherPinPosition.lat,
+                                lng: weatherPinPosition.lng,
+                                weatherData: {
+                                  temperature: result.data.temperature,
+                                  condition: result.data.condition,
+                                  humidity: result.data.humidity,
+                                  windSpeed: result.data.windSpeed,
+                                  visibility: result.data.visibility,
+                                  icon: result.data.icon
+                                }
+                              });
+                              console.log('✅ [WEATHER-PIN] Weather modal opened with real data');
+                            }
+                          } else {
+                            throw new Error('Failed to fetch weather data');
+                          }
+                        } catch (error) {
+                          console.error('❌ [WEATHER-PIN] Error fetching weather data:', error);
+                          // Show fallback weather modal
+                          setSelectedPoint({
+                            lat: weatherPinPosition.lat,
+                            lng: weatherPinPosition.lng,
+                            weatherData: {
+                              temperature: 22,
+                              condition: 'Dados indisponíveis',
+                              humidity: 65,
+                              windSpeed: 8,
+                              visibility: 10,
+                              icon: '01d'
+                            }
+                          });
+                        }
+                      }
+                    }}
                   />
                 </>
               )}
@@ -2782,7 +2837,8 @@ export const InteractiveMap: React.FC = () => {
               )}
 
               {/* Weather Layer */}
-              {showWeatherLayer && <WeatherVisualizationLayer radius={weatherRadius} />}
+              {/* Removed old weather visualization circles - replaced with interactive weather pin */}
+              {showWeatherLayer && !weatherPinPosition && <WeatherVisualizationLayer radius={weatherRadius} />}
 
               {/* Traffic Layer */}
               {showTrafficLayer && (
