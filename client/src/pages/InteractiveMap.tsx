@@ -915,30 +915,25 @@ const FiltersPanel: React.FC<{
           </Label>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {availableSkills.length > 0 ? (
-              availableSkills.map((skill) => (
-                <div key={skill.id} className="flex items-center space-x-2">
+              availableSkills.map((skill, index) => (
+                <div key={`skill-${index}`} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`skill-${skill.id}`}
-                    checked={filters.skills.includes(skill.name)}
+                    id={`skill-${index}`}
+                    checked={filters.skills.includes(skill)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        handleFilterChange('skills', [...filters.skills, skill.name]);
+                        handleFilterChange('skills', [...filters.skills, skill]);
                       } else {
-                        handleFilterChange('skills', filters.skills.filter(s => s !== skill.name));
+                        handleFilterChange('skills', filters.skills.filter(s => s !== skill));
                       }
                     }}
                     className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                   />
                   <Label
-                    htmlFor={`skill-${skill.id}`}
+                    htmlFor={`skill-${index}`}
                     className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
                   >
-                    {skill.name}
-                    {skill.category && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {skill.category}
-                      </Badge>
-                    )}
+                    {skill}
                   </Label>
                 </div>
               ))
@@ -1505,6 +1500,7 @@ export const InteractiveMap: React.FC = () => {
   // Extract Skills Data - showing all available skills even without users - following 1qa.md patterns
   const skillsData = Array.isArray(technicalSkillsData?.data) ? technicalSkillsData.data : [];
   const userSkillsData = Array.isArray(userSkillsResponse?.data) ? userSkillsResponse.data : [];
+  
   // Show all active skills in filter, not just skills that users have
   const availableSkills = skillsData?.filter((skill: any) => skill.isActive !== false).map((skill: any) => skill.name) || [];
 
