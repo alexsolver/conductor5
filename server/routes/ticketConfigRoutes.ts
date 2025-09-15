@@ -29,9 +29,9 @@ router.get('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT *, sort_order as "sortOrder"
-      FROM "${sql.raw(schemaName)}"."ticket_categories"
-      WHERE tenant_id = ${tenantId}
+      SELECT *, sort_order as "sortOrder" 
+      FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      WHERE tenant_id = ${tenantId} 
       AND company_id = ${companyId}
       AND active = true
       ORDER BY sort_order, name
@@ -80,8 +80,8 @@ router.post('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
       INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" (
         id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
-        ${categoryId}, ${tenantId}, ${companyId}, ${name}, ${description || null},
-        ${color || '#3b82f6'}, ${icon || null}, ${active !== false}, ${sortOrder || 1},
+        ${categoryId}, ${tenantId}, ${companyId}, ${name}, ${description || null}, 
+        ${color || '#3b82f6'}, ${icon || null}, ${active !== false}, ${sortOrder || 1}, 
         NOW(), NOW()
       )
     `);
@@ -130,8 +130,8 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_categories"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_categories" 
+      SET 
         name = ${name},
         description = ${description || null},
         color = ${color || '#3b82f6'},
@@ -144,11 +144,11 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     // Sync color with ticket_field_options
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
         color = ${color || '#3b82f6'},
         updated_at = NOW()
-      WHERE field_name = 'category'
+      WHERE field_name = 'category' 
       AND value = ${name}
       AND tenant_id = ${tenantId}
     `);
@@ -182,7 +182,7 @@ router.delete('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // Check if category has subcategories
     const subcategoriesCheck = await db.execute(sql`
-      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_subcategories"
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
       WHERE category_id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -194,7 +194,7 @@ router.delete('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
     }
 
     await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_categories"
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -232,13 +232,13 @@ router.get('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT s.*,
+      SELECT s.*, 
              s.category_id as "categoryId",
              s.sort_order as "sortOrder",
-             c.name as category_name
+             c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-      WHERE s.tenant_id = ${tenantId}
+      WHERE s.tenant_id = ${tenantId} 
       AND c.company_id = ${companyId}
       AND s.active = true
       ORDER BY s.sort_order, s.name
@@ -281,9 +281,9 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
     // Validate required fields
     if (!categoryId || !name) {
       console.error('❌ Missing required fields:', { categoryId, name });
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
-        message: 'Category ID and name are required'
+        message: 'Category ID and name are required' 
       });
     }
 
@@ -293,7 +293,7 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     // Check if category exists
     const categoryCheck = await db.execute(sql`
-      SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories"
+      SELECT id FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -309,7 +309,7 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     // Insert subcategory with proper company_id field
     const result = await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories"
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
       (id, tenant_id, company_id, category_id, name, description, color, icon, sort_order, created_at, updated_at)
       VALUES (gen_random_uuid(), ${tenantId}, ${tenantId}, ${categoryId}, ${name}, ${description || null}, ${color}, ${icon || null}, ${sortOrder}, NOW(), NOW())
       RETURNING *
@@ -356,8 +356,8 @@ router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // Update subcategory
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_subcategories"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
+      SET 
         name = ${name},
         description = ${description || null},
         category_id = ${categoryId},
@@ -371,11 +371,11 @@ router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // Sync color with ticket_field_options
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
         color = ${color || '#3b82f6'},
         updated_at = NOW()
-      WHERE field_name = 'subcategory'
+      WHERE field_name = 'subcategory' 
       AND value = ${name}
       AND tenant_id = ${tenantId}
     `);
@@ -409,7 +409,7 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // Check if subcategory has actions
     const actionsCheck = await db.execute(sql`
-      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_actions"
+      SELECT COUNT(*) as count FROM "${sql.raw(schemaName)}"."ticket_actions" 
       WHERE subcategory_id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -421,7 +421,7 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
     }
 
     await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_subcategories"
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_subcategories" 
       WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
     `);
 
@@ -496,14 +496,14 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT a.*,
+      SELECT a.*, 
              a.sort_order as "sortOrder",
-             s.name as subcategory_name,
-             c.name as category_name
+             s.name as subcategory_name, 
+             c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_actions" a
       JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
-      WHERE a.tenant_id = ${tenantId}
+      WHERE a.tenant_id = ${tenantId} 
       AND c.company_id = ${companyId}
       AND a.active = true
       ORDER BY a.sort_order, a.name
@@ -561,8 +561,8 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         id, tenant_id, company_id, subcategory_id, name, description,
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
-        ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null},
-        ${color || '#3b82f6'}, ${icon || null},
+        ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
+        ${color || '#3b82f6'}, ${icon || null}, 
         ${active !== false}, ${sortOrder || 1}, NOW(), NOW()
       )
     `);
@@ -614,8 +614,8 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // Update action
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_actions"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_actions" 
+      SET 
         name = ${name},
         description = ${description || null},
         subcategory_id = ${subcategoryId},
@@ -629,11 +629,11 @@ router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // Sync color with ticket_field_options
     await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
         color = ${color || '#3b82f6'},
         updated_at = NOW()
-      WHERE field_name = 'action'
+      WHERE field_name = 'action' 
       AND value = ${name}
       AND tenant_id = ${tenantId}
     `);
@@ -666,7 +666,7 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_actions"
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_actions" 
       WHERE id = ${actionId} AND tenant_id = ${tenantId}
     `);
 
@@ -691,45 +691,327 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { fieldName, companyId } = req.query;
+    const companyId = req.query.companyId as string;
+    const fieldName = req.query.fieldName as string;
+    const dependsOn = req.query.dependsOn as string; // Para hierarquias (categoria → subcategoria → ação)
 
     if (!tenantId) {
-      return res.status(401).json({ message: 'Tenant required' });
+      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
-    if (!fieldName) {
-      return res.status(400).json({ message: 'Field name required' });
+    // Se nenhuma empresa foi selecionada, usar a empresa padrão Default
+    if (!companyId) {
+      // companyId = '00000000-0000-0000-0000-000000000001'; // Empresa Default
+      // console.log('🎯 No company selected, using Default company for field options');
     }
 
+    console.log(`🔍 Fetching field options for: {
+      tenantId: ${tenantId},
+      companyId: ${companyId},
+      fieldName: ${fieldName}
+    }`);
+
+    // Import db connection
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+
+    // Use default company if none specified
+    const effectiveCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    let result;
+    console.log(`🎯 Using company ${effectiveCompanyId} for field options`);
 
-    if (companyId) {
+    // Try to get from ticket_field_options table first
+    try {
+      // If no specific fieldName is provided, get all field options
+      let query;
+      if (fieldName) {
+        query = sql`
+          SELECT 
+            id,
+            field_name,
+            value as option_value,
+            display_label,
+            color,
+            sort_order,
+            active as is_active,
+            company_id,
+            created_at
+          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+          WHERE tenant_id = ${tenantId} 
+          AND company_id = ${effectiveCompanyId} 
+          AND field_name = ${fieldName}
+          AND active = true
+          ORDER BY sort_order ASC, display_label ASC
+        `;
+      } else {
+        query = sql`
+          SELECT 
+            id,
+            field_name,
+            value as option_value,
+            display_label,
+            color,
+            sort_order,
+            active as is_active,
+            company_id,
+            created_at
+          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+          WHERE tenant_id = ${tenantId} 
+          AND company_id = ${effectiveCompanyId} 
+          AND active = true
+          ORDER BY field_name, sort_order ASC, display_label ASC
+        `;
+      }
+
+      const result = await db.execute(query);
+
+      console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'}`);
+
+      if (result.rows.length > 0) {
+        console.log(`✅ Found ${result.rows.length} field options in database`);
+        return res.json({
+          success: true,
+          data: result.rows,
+          fieldName: fieldName || 'all',
+          companyId: effectiveCompanyId,
+          tenantId
+        });
+      }
+    } catch (dbError) {
+      console.log('⚠️ ticket_field_options table not found, using fallback:', dbError.message);
+    }
+
+    // CRÍTICO: Verificar se é campo hierárquico
+    const isHierarchical = ['category', 'subcategory', 'action'].includes(fieldName);
+    console.log(`🔧 Processing field: ${fieldName}, hierarchical: ${isHierarchical}, dependsOn: ${dependsOn}`);
+
+    // Handle hierarchical field types
+    let result;
+    if (fieldName === 'category') {
+      // Buscar categorias
       result = await db.execute(sql`
-        SELECT * FROM ${sql.raw(`"${schemaName}"."ticket_field_options"`)}
+        SELECT 
+          id,
+          name as label,
+          name as value,
+          color,
+          sort_order,
+          active as is_active,
+          created_at,
+          updated_at
+        FROM "${sql.raw(schemaName)}".ticket_categories 
         WHERE tenant_id = ${tenantId}
-        AND field_name = ${fieldName}
         AND company_id = ${companyId}
         AND active = true
-        ORDER BY sort_order, display_label
+        ORDER BY sort_order, name
       `);
+
+      // Sincronização automática: garantir que cores existam na ticket_field_options
+      for (const row of result.rows) {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+          (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
+          VALUES (${tenantId}, ${companyId}, 'category', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+          ON CONFLICT (tenant_id, company_id, field_name, value) 
+          DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+        `);
+      }
+      console.log(`🔄 Auto-synced ${result.rows.length} category colors to ticket_field_options`);
+    } else if (fieldName === 'subcategory') {
+      if (dependsOn) {
+        // Buscar subcategorias para uma categoria específica
+        result = await db.execute(sql`
+          SELECT 
+            s.id,
+            s.name as label,
+            s.name as value,
+            s.color,
+            s.sort_order,
+            s.active as is_active,
+            s.category_id,
+            s.created_at,
+            s.updated_at
+          FROM "${sql.raw(schemaName)}".ticket_subcategories s
+          JOIN "${sql.raw(schemaName)}".ticket_categories c ON s.category_id = c.id
+          WHERE s.tenant_id = ${tenantId}
+          AND s.company_id = ${companyId}
+          AND c.name = ${dependsOn}
+          AND s.active = true
+          ORDER BY s.sort_order, s.name
+        `);
+        console.log(`🏷️ Subcategories found for category '${dependsOn}': ${result.rows.length} records`);
+
+        // Sincronização automática: garantir que cores existam na ticket_field_options
+        for (const row of result.rows) {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
+            VALUES (${tenantId}, ${companyId}, 'subcategory', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+            ON CONFLICT (tenant_id, company_id, field_name, value) 
+            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+          `);
+        }
+        console.log(`🔄 Auto-synced ${result.rows.length} subcategory colors to ticket_field_options`);
+      } else {
+        // Retornar array vazio se não há dependência selecionada
+        result = { rows: [] };
+        console.log(`🏷️ Subcategory: No category selected, returning empty array`);
+      }
+    } else if (fieldName === 'action') {
+      if (dependsOn) {
+        // Buscar ações para uma subcategoria específica
+        result = await db.execute(sql`
+          SELECT 
+            a.id,
+            a.name as label,
+            a.name as value,
+            a.color,
+            a.sort_order,
+            a.active as is_active,
+            a.subcategory_id,
+            a.created_at,
+            a.updated_at
+          FROM "${sql.raw(schemaName)}".ticket_actions a
+          JOIN "${sql.raw(schemaName)}".ticket_subcategories s ON a.subcategory_id = s.id
+          WHERE a.tenant_id = ${tenantId}
+          AND a.company_id = ${companyId}
+          AND s.name = ${dependsOn}
+          AND a.active = true
+          ORDER BY a.sort_order, a.name
+        `);
+        console.log(`🏷️ Actions found for subcategory '${dependsOn}': ${result.rows.length} records`);
+
+        // Sincronização automática: garantir que cores existam na ticket_field_options
+        for (const row of result.rows) {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
+            VALUES (${tenantId}, ${companyId}, 'action', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+            ON CONFLICT (tenant_id, company_id, field_name, value) 
+            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+          `);
+        }
+        console.log(`🔄 Auto-synced ${result.rows.length} action colors to ticket_field_options`);
+      } else {
+        // Retornar array vazio se não há dependência selecionada
+        result = { rows: [] };
+        console.log(`🏷️ Action: No subcategory selected, returning empty array`);
+      }
     } else {
+      // Buscar opções de campos normais (status, priority, impact, urgency)
       result = await db.execute(sql`
-        SELECT * FROM ${sql.raw(`"${schemaName}"."ticket_field_options"`)}
+        SELECT 
+          id,
+          tenant_id,
+          customer_id,
+          field_name,
+          value,
+          label,
+          color,
+          sort_order,
+          is_active,
+          is_default,
+          status_type,
+          created_at,
+          updated_at
+        FROM "${sql.raw(schemaName)}".ticket_field_options 
         WHERE tenant_id = ${tenantId}
-        AND field_name = ${fieldName}
-        AND active = true
-        ORDER BY sort_order, display_label
+        AND customer_id = ${companyId}
+        AND is_active = true
+        ${fieldName ? sql`AND field_name = ${fieldName}` : sql``}
+        ORDER BY field_name, sort_order, label
       `);
     }
+
+    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${isHierarchical})`);
+
+    if (result.rows.length === 0) {
+      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
+
+      // Fallback to default field options for specific field types
+      const FIELD_OPTIONS = {
+        status: [
+          { value: 'new', label: 'Novo', color: '#3b82f6' },
+          { value: 'open', label: 'Aberto', color: '#f59e0b' },
+          { value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6' },
+          { value: 'pending', label: 'Pendente', color: '#ef4444' },
+          { value: 'resolved', label: 'Resolvido', color: '#10b981' },
+          { value: 'closed', label: 'Fechado', color: '#6b7280' }
+        ],
+        priority: [
+          { value: 'low', label: 'Baixa', color: '#10b981' },
+          { value: 'medium', label: 'Média', color: '#f59e0b' },
+          { value: 'high', label: 'Alta', color: '#ef4444' },
+          { value: 'urgent', label: 'Urgente', color: '#dc2626' },
+          { value: 'critical', label: 'Crítica', color: '#991b1b' }
+        ],
+        impact: [
+          { value: 'low', label: 'Baixo', color: '#10b981' },
+          { value: 'medium', label: 'Médio', color: '#f59e0b' },
+          { value: 'high', label: 'Alto', color: '#ef4444' },
+          { value: 'critical', color: '#dc2626' }
+        ],
+        urgency: [
+          { value: 'low', label: 'Baixa', color: '#10b981' },
+          { value: 'medium', label: 'Média', color: '#f59e0b' },
+          { value: 'high', label: 'Alta', color: '#ef4444' },
+          { value: 'urgent', label: 'Urgente', color: '#dc2626' }
+        ]
+      };
+
+      // Use fallback options if available for this field
+      const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
+      if (fallbackOptions) {
+        const transformedOptions = fallbackOptions.map((option, index) => ({
+          id: `fallback_${fieldName}_${index}`,
+          field_name: fieldName,
+          option_value: option.value,
+          display_label: option.label,
+          color: option.color,
+          sort_order: index + 1,
+          is_active: true,
+          company_id: effectiveCompanyId,
+          created_at: new Date().toISOString()
+        }));
+
+        console.log(`🏢 Field options found: ${transformedOptions.length} fallback records for ${fieldName}`);
+
+        return res.json({
+          success: true,
+          data: transformedOptions,
+          fieldName,
+          companyId: effectiveCompanyId,
+          tenantId,
+          source: 'fallback'
+        });
+      }
+
+      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
+
+      return res.json({
+        success: true,
+        data: [],
+        fieldName,
+        companyId: effectiveCompanyId,
+        tenantId,
+        source: 'empty'
+      });
+    }
+
+    // Force fresh response headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
 
     res.json({
       success: true,
       data: result.rows
     });
   } catch (error) {
-    console.error('Error fetching field options:', error);
+    console.error('❌ Error fetching field options:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch field options',
@@ -754,26 +1036,26 @@ router.delete('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, label, field_name FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      SELECT id, label, field_name FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Field option not found'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
       });
     }
 
     // Delete the field option
     const deleteResult = await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
-    console.log('✅ Field option deleted successfully:', {
+    console.log('✅ Field option deleted successfully:', { 
       optionId,
-      affectedRows: deleteResult.rowCount
+      affectedRows: deleteResult.rowCount 
     });
 
     // Force fresh response headers
@@ -789,7 +1071,7 @@ router.delete('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, r
     });
   } catch (error) {
     console.error('Error deleting field option:', error);
-    res.status(500).json({
+    res.status(500).json({ 
       success: false,
       error: 'Failed to delete field option',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -834,9 +1116,9 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
     // Se esta opção for marcada como padrão, desmarcar outras do mesmo campo
     if (isDefault) {
       await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-        SET is_default = false
-        WHERE tenant_id = ${tenantId}
+        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+        SET is_default = false 
+        WHERE tenant_id = ${tenantId} 
         AND customer_id = ${companyId}
         AND field_name = ${fieldName}
       `);
@@ -854,11 +1136,11 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     const insertResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
-        id, tenant_id, customer_id, field_name, value, label,
+        id, tenant_id, customer_id, field_name, value, label, 
         color, sort_order, is_default, is_active, status_type, created_at, updated_at
       ) VALUES (
-        ${optionId}, ${tenantId}, ${companyId}, ${fieldName}, ${value}, ${displayLabel},
-        ${color || '#3b82f6'}, ${sortOrder || 1}, ${isDefault || false},
+        ${optionId}, ${tenantId}, ${companyId}, ${fieldName}, ${value}, ${displayLabel}, 
+        ${color || '#3b82f6'}, ${sortOrder || 1}, ${isDefault || false}, 
         ${active !== false}, ${statusType || null}, NOW(), NOW()
       )
       RETURNING *
@@ -868,7 +1150,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     // Verify it was actually inserted
     const verifyResult = await db.execute(sql`
-      SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId} AND company_id = ${companyId}
     `);
 
@@ -930,8 +1212,8 @@ router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT * FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
-      WHERE tenant_id = ${tenantId}
+      SELECT * FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
+      WHERE tenant_id = ${tenantId} 
       AND company_id = ${companyId}
       LIMIT 1
     `);
@@ -976,7 +1258,7 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     // Verificar se já existe configuração para esta empresa
     const existingResult = await db.execute(sql`
-      SELECT id FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
+      SELECT id FROM "${sql.raw(schemaName)}"."ticket_numbering_config" 
       WHERE tenant_id = ${tenantId} AND company_id = ${companyId}
       LIMIT 1
     `);
@@ -984,8 +1266,8 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
     if (existingResult.rows.length > 0) {
       // Atualizar configuração existente
       await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_numbering_config"
-        SET
+        UPDATE "${sql.raw(schemaName)}"."ticket_numbering_config" 
+        SET 
           prefix = ${prefix},
           year_format = ${yearFormat || '4'},
           sequential_digits = ${sequentialDigits || 6},
@@ -1000,11 +1282,11 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
       const configId = randomUUID();
       await db.execute(sql`
         INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" (
-          id, tenant_id, company_id, prefix, year_format, sequential_digits,
+          id, tenant_id, company_id, prefix, year_format, sequential_digits, 
           separator, reset_yearly, created_at, updated_at, first_separator
         ) VALUES (
-          ${configId}, ${tenantId}, ${companyId}, ${prefix}, ${yearFormat || '4'},
-          ${sequentialDigits || 6}, ${separator || ''}, ${resetYearly !== false},
+          ${configId}, ${tenantId}, ${companyId}, ${prefix}, ${yearFormat || '4'}, 
+          ${sequentialDigits || 6}, ${separator || ''}, ${resetYearly !== false}, 
           NOW(), NOW(), ${firstSeparator || ''}
         )
       `);
@@ -1068,23 +1350,23 @@ router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, field_name, label FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      SELECT id, field_name, label FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Field option not found'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
       });
     }
 
     // Se esta opção for marcada como padrão, desmarcar outras do mesmo campo
     if (isDefault) {
       await db.execute(sql`
-        UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-        SET is_default = false
-        WHERE tenant_id = ${tenantId}
+        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+        SET is_default = false 
+        WHERE tenant_id = ${tenantId} 
         AND customer_id = ${companyId}
         AND field_name = ${fieldName}
         AND id != ${optionId}
@@ -1093,8 +1375,8 @@ router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // Update the field option
     const updateResult = await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
         field_name = ${fieldName},
         value = ${value},
         label = ${displayLabel},
@@ -1147,25 +1429,25 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
       return res.status(400).json({ message: 'Active status is required' });
     }
 
-    console.log('🔄 Updating field option status:', {
-      tenantId,
-      optionId,
+    console.log('🔄 Updating field option status:', { 
+      tenantId, 
+      optionId, 
       active,
-      companyId
+      companyId 
     });
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, field_name, label, is_active FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      SELECT id, field_name, label, is_active FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Field option not found'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
       });
     }
 
@@ -1180,31 +1462,31 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 
     // Update the active status
     const updateResult = await db.execute(sql`
-      UPDATE "${sql.raw(schemaName)}"."ticket_field_options"
-      SET
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
         is_active = ${active},
         updated_at = NOW()
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
-    console.log('✅ Field option status updated:', {
+    console.log('✅ Field option status updated:', { 
       optionId,
       previousStatus: existingOption.is_active,
       newStatus: active,
-      affectedRows: updateResult.rowCount
+      affectedRows: updateResult.rowCount 
     });
 
     // Verify the update
     const verifyResult = await db.execute(sql`
-      SELECT is_active FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      SELECT is_active FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
     const updatedStatus = verifyResult.rows[0]?.is_active;
-    console.log('🔍 Status verification:', {
-      expected: active,
+    console.log('🔍 Status verification:', { 
+      expected: active, 
       actual: updatedStatus,
-      matches: updatedStatus === active
+      matches: updatedStatus === active 
     });
 
     // Force fresh response headers
@@ -1226,7 +1508,7 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
     });
   } catch (error) {
     console.error('❌ Error updating field option status:', error);
-    res.status(500).json({
+    res.status(500).json({ 
       success: false,
       error: 'Failed to update field option status',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -1247,16 +1529,16 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     console.log('🔄 [COPY-STRUCTURE] Starting copy for:', { tenantId, companyId });
 
     if (!tenantId) {
-      return res.status(401).json({
+      return res.status(401).json({ 
         success: false,
-        message: 'Tenant required'
+        message: 'Tenant required' 
       });
     }
 
     if (!companyId) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
-        message: 'Company ID required'
+        message: 'Company ID required' 
       });
     }
 
@@ -1308,19 +1590,19 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT
+      SELECT 
         id,
         field_name as "fieldName",
         value,
-        display_label as "displayLabel",
+        display_label as "displayLabel", 
         color,
         icon,
         is_default as "isDefault",
         active,
         sort_order as "sortOrder",
         status_type as "statusType"
-      FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId}
+      FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+      WHERE tenant_id = ${tenantId} 
       AND company_id = ${companyId}
       AND active = true
       ORDER BY field_name, sort_order, display_label

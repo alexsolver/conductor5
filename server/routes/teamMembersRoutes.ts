@@ -1,9 +1,10 @@
+
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission } from '../middleware/rbacMiddleware';
 import { db } from '../db';
 import { users as usersTable } from '@shared/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 const router = Router();
 
@@ -38,7 +39,7 @@ router.get(
         })
         .from(usersTable)
         .where(
-          and(eq(usersTable.tenantId, sql`${tenantId}::uuid`), eq(usersTable.isActive, true))
+          and(eq(usersTable.tenantId, tenantId), eq(usersTable.isActive, true))
         )
         .orderBy(usersTable.firstName, usersTable.lastName);
 
@@ -47,7 +48,7 @@ router.get(
       );
 
       // Buscar memberships + grupos
-      const membershipsQuery = sql`
+      const membershipsQuery = `
         SELECT 
           ugm.user_id,
           ug.id AS group_id,
@@ -56,10 +57,10 @@ router.get(
           ugm.role,
           ugm.is_active,
           ugm.created_at
-        FROM ${sql.raw(`"${schemaName}"`)}."user_group_memberships" ugm
-        INNER JOIN ${sql.raw(`"${schemaName}"`)}."user_groups" ug
+        FROM "${schemaName}".user_group_memberships ugm
+        INNER JOIN "${schemaName}".user_groups ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id = ${tenantId}::uuid
+        WHERE ugm.tenant_id::text = '${tenantId}'::text
           AND ug.is_active = true
       `;
 

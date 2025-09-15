@@ -24,11 +24,11 @@ export class TicketViewsRepository {
     // Usuários comuns veem: suas próprias views + views públicas de tenant admins
     // Tenant admins veem: todas as views do tenant
     const sql = userRole === 'tenant_admin' ? `
-      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_views v
+      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views v
       WHERE v.tenant_id = $1 AND v.is_active = true
       ORDER BY v.is_default DESC, v.name ASC
     ` : `
-      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_views v
+      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views v
       WHERE v.tenant_id = $1 
         AND v.is_active = true
         AND (v.created_by_id = $2 OR v.is_public = true)
@@ -41,7 +41,7 @@ export class TicketViewsRepository {
 
   async getViewById(tenantId: string, viewId: string): Promise<TicketListView | null> {
     const sql = `
-      SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_views
+      SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views
       WHERE tenant_id = $1 AND id = $2 AND is_active = true
     `;
     const rows = await this.query(sql, [tenantId, viewId]);
@@ -50,7 +50,7 @@ export class TicketViewsRepository {
 
   async createView(tenantId: string, viewData: InsertTicketListView): Promise<TicketListView> {
     const sql = `
-      INSERT INTO tenant_${tenantId.replace(/-/g, '_')}.ticket_views (
+      INSERT INTO tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views (
         tenant_id, name, description, created_by_id, is_public, is_default,
         columns, filters, sorting, page_size
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -114,16 +114,16 @@ export class TicketViewsRepository {
     if (updates.length === 0) return null;
 
     updates.push(`updated_at = NOW()`);
-
+    
     // Add WHERE clause parameters
     params.push(tenantId);
     const tenantParam = paramIndex++;
-
+    
     params.push(viewId);
     const idParam = paramIndex;
 
     const sql = `
-      UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_views 
+      UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
       SET ${updates.join(', ')}
       WHERE tenant_id = $${tenantParam} AND id = $${idParam}
       RETURNING *
@@ -136,7 +136,7 @@ export class TicketViewsRepository {
   async deleteView(tenantId: string, viewId: string, userId: string): Promise<boolean> {
     // Verificar se o usuário pode deletar (criador ou tenant admin)
     const sql = `
-      UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_views 
+      UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
       SET is_active = false
       WHERE tenant_id = $1 AND id = $2 AND created_by_id = $3
       RETURNING id

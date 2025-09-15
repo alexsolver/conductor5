@@ -40,7 +40,7 @@ router.get(
       const users = await db
         .select()
         .from(usersTable)
-        .where(eq(usersTable.tenantId, sql`${tenantId}::uuid`))
+        .where(eq(usersTable.tenantId, tenantId))
         .orderBy(usersTable.firstName, usersTable.lastName);
 
       console.log(
@@ -272,7 +272,7 @@ router.put(
       // Validate request body using Zod schema
       const { updateUserSchema } = await import("@shared/schema");
       const validationResult = updateUserSchema.safeParse(req.body);
-
+      
       if (!validationResult.success) {
         console.log("❌ [USER-UPDATE] Validation failed:", validationResult.error.errors);
         return res.status(400).json({
@@ -341,7 +341,7 @@ router.put(
       });
     } catch (error: any) {
       console.error("❌ [USER-UPDATE] Error updating user:", error);
-
+      
       // Handle specific error types
       if (error.message?.includes("not found")) {
         return res.status(404).json({
@@ -397,10 +397,10 @@ router.get("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${currentUserTenantId!.replace(/-/g, "_")}`;
 
     // 🔎 Verificar se o schema existe
-    const schemaExistsQuery = sql`
+    const schemaExistsQuery = `
         SELECT schema_name 
         FROM information_schema.schemata 
-        WHERE schema_name = ${schemaName}
+        WHERE schema_name = '${schemaName}'
       `;
     const schemaResult = await db.execute(schemaExistsQuery);
 
@@ -413,7 +413,7 @@ router.get("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // 🔎 Query única que traz grupos + membros
-    const groupsQuery = sql`
+    const groupsQuery = `
         SELECT 
           ug.id,
           ug.name,
@@ -432,12 +432,12 @@ router.get("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
             ) FILTER (WHERE ugm.id IS NOT NULL),
             '[]'
           ) AS memberships
-        FROM ${sql.raw(`"${schemaName}"`)}."user_groups" ug
-        LEFT JOIN ${sql.raw(`"${schemaName}"`)}."user_group_memberships" ugm 
+        FROM "${schemaName}".user_groups ug
+        LEFT JOIN "${schemaName}".user_group_memberships ugm 
           ON ug.id = ugm.group_id AND ugm.is_active = true
         WHERE ug.is_active = true
         GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
-        ORDER BY ug.name
+        ORDER BY ug.name;
       `;
 
     const groupsResult = await db.execute(groupsQuery);
@@ -540,12 +540,12 @@ router.post("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
         INSERT INTO ${sql.raw(`"${schemaName}".user_groups`)} 
           (id, tenant_id, name, description, is_active, created_by_id, created_at, updated_at)
         VALUES (
-          ${groupId}::uuid, 
-          ${tenantId}::uuid, 
+          ${groupId}, 
+          ${tenantId}, 
           ${name.trim()}, 
           ${descOrNull}, 
           ${true}, 
-          ${userId}::uuid, 
+          ${userId}, 
           ${now}, 
           ${now}
         )
@@ -1009,10 +1009,10 @@ router.post(
       }
 
       // 1️⃣ Check if group exists
-      const groupQuery = sql`
+      const groupQuery = `
         SELECT id 
-        FROM ${sql.raw(`"${schemaName}"`)}."user_groups" 
-        WHERE id = ${groupId}::uuid 
+        FROM "${schemaName}".user_groups 
+        WHERE id = '${groupId}' 
           AND is_active = true
       `;
       const groupResult = await db.execute(groupQuery);
@@ -1028,11 +1028,11 @@ router.post(
       for (const userId of userIds) {
         try {
           // 2️⃣ Check if user exists
-          const userQuery = sql`
+          const userQuery = `
             SELECT id 
             FROM public.users 
-            WHERE id = ${userId}::uuid 
-              AND tenant_id = ${tenantId}::uuid 
+            WHERE id = '${userId}' 
+              AND tenant_id = '${tenantId}' 
               AND is_active = true
           `;
           const userResult = await db.execute(userQuery);
@@ -1043,11 +1043,11 @@ router.post(
           }
 
           // 3️⃣ Check if membership already exists
-          const existingQuery = sql`
+          const existingQuery = `
             SELECT id 
-            FROM ${sql.raw(`"${schemaName}"`)}."user_group_memberships" 
-            WHERE user_id = ${userId}::uuid 
-              AND group_id = ${groupId}::uuid 
+            FROM "${schemaName}".user_group_memberships 
+            WHERE user_id = '${userId}' 
+              AND group_id = '${groupId}' 
               AND is_active = true
           `;
           const existingResult = await db.execute(existingQuery);
@@ -1063,18 +1063,18 @@ router.post(
 
           // 4️⃣ Insert membership
           const membershipId = crypto.randomUUID();
-          const insertQuery = sql`
-            INSERT INTO ${sql.raw(`"${schemaName}"`)}."user_group_memberships" 
+          const insertQuery = `
+            INSERT INTO "${schemaName}".user_group_memberships 
             (id, tenant_id, user_id, group_id, role, is_active, created_at, updated_at)
             VALUES (
-              ${membershipId}::uuid, 
-              ${tenantId}::uuid, 
-              ${userId}::uuid, 
-              ${groupId}::uuid, 
+              '${membershipId}', 
+              '${tenantId}', 
+              '${userId}', 
+              '${groupId}', 
               'member', 
               true, 
-              ${now}::timestamptz, 
-              ${now}::timestamptz
+              '${now}', 
+              '${now}'
             )
           `;
           await db.execute(insertQuery);
@@ -1116,14 +1116,15 @@ router.delete(
     try {
       const { groupId, userId } = req.params;
       const tenantId = req.user!.tenantId;
-      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
       // Check if group exists and belongs to tenant
-      const groupQuery = sql`
-      SELECT id FROM ${sql.raw(`"${schemaName}"`)}."user_groups" 
-      WHERE id = ${groupId}::uuid AND tenant_id = ${tenantId}::uuid AND is_active = true
+      const groupQuery = `
+      SELECT id FROM "${schemaName}".user_groups 
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
     `;
-      const groupResult = await db.execute(groupQuery);
+      const groupResult = await db.execute(
+        sql.raw(groupQuery, [groupId, tenantId]),
+      );
 
       if (!groupResult.rows.length) {
         console.log(`Group ${groupId} not found for tenant ${tenantId}`);
@@ -1131,11 +1132,13 @@ router.delete(
       }
 
       // Check if active membership exists
-      const existingQuery = sql`
-      SELECT id FROM ${sql.raw(`"${schemaName}"`)}."user_group_memberships" 
-      WHERE user_id = ${userId}::uuid AND group_id = ${groupId}::uuid AND is_active = true
+      const existingQuery = `
+      SELECT id FROM "${schemaName}".user_group_memberships 
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
-      const existingResult = await db.execute(existingQuery);
+      const existingResult = await db.execute(
+        sql.raw(existingQuery, [userId, groupId]),
+      );
 
       if (!existingResult.rows.length) {
         console.log(
@@ -1201,7 +1204,7 @@ router.get(
           COUNT(ur.user_id) AS user_count
         FROM ${rolesTable} r
         LEFT JOIN ${userRolesTable} ur ON r.id = ur.role_id
-        WHERE r.tenant_id = ${tenantId}::uuid AND r.is_active = true
+        WHERE r.tenant_id = ${tenantId} AND r.is_active = true
         GROUP BY r.id, r.name, r.description, r.permissions, r.is_active, r.is_system, r.created_at, r.updated_at
         ORDER BY r.name
       `;
@@ -1541,7 +1544,7 @@ router.post(
       const query = sql`
         INSERT INTO ${tableIdent}
           (tenant_id, name, description, permissions, is_active, is_system)
-        VALUES (${tenantId}, ${descOrNull}, ${permsExpr}, true, false)
+        VALUES (${tenantId}, ${name}, ${descOrNull}, ${permsExpr}, true, false)
         RETURNING *
       `;
 
@@ -1574,7 +1577,7 @@ router.put(
       const query = sql`
         UPDATE ${tableIdent}
         SET name = ${name}, description = ${descOrNull}, permissions = ${permsExpr}, updated_at = now()
-        WHERE id = ${roleId}::uuid AND tenant_id = ${tenantId}::uuid
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}
         RETURNING *
       `;
 
@@ -1608,7 +1611,7 @@ router.delete(
       const query = sql`
         UPDATE ${tableIdent}
         SET is_active = false, updated_at = now()
-        WHERE id = ${roleId}::uuid AND tenant_id = ${tenantId}::uuid
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}
         RETURNING id
       `;
 

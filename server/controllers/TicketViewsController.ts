@@ -25,9 +25,9 @@ export class TicketViewsController {
   async getViews(req: AuthenticatedRequest, res: Response) {
     try {
       const { tenantId, id: userId, role } = req.user!;
-
+      
       const views = await this.ticketViewsRepository.getViewsForUser(tenantId, userId, role);
-
+      
       // Se não há views, criar visualização padrão
       if (views.length === 0) {
         const defaultView = await this.ticketViewsRepository.createDefaultView(tenantId, userId);
@@ -56,7 +56,7 @@ export class TicketViewsController {
       const { id } = req.params;
 
       const view = await this.ticketViewsRepository.getViewById(tenantId, id);
-
+      
       if (!view) {
         return res.status(404).json({
           success: false,
@@ -83,7 +83,7 @@ export class TicketViewsController {
   async createView(req: AuthenticatedRequest, res: Response) {
     try {
       const { tenantId, id: userId, role } = req.user!;
-
+      
       // Validar dados de entrada
       const validationResult = insertTicketListViewSchema.safeParse({
         ...req.body,
@@ -184,7 +184,7 @@ export class TicketViewsController {
       const { id } = req.params;
 
       const success = await this.ticketViewsRepository.deleteView(tenantId, id, userId);
-
+      
       if (!success) {
         return res.status(404).json({
           success: false,
