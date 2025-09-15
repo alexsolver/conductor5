@@ -575,6 +575,18 @@
   z-index: 10000 !important;
 }
 
+/* Weather interactive markers */
+.weather-interactive-marker {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.weather-interactive-marker:hover {
+  opacity: 1 !important;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
 /* Weather popup content wrapper styling */
 .weather-popup .leaflet-popup-content-wrapper {
   background: white;

@@ -70,14 +70,14 @@ export class ExternalApiService {
     }
   }
 
-  // ✅ Real OpenWeather API integration
+  // ✅ Real OpenWeather API integration with fallback
   static async getWeatherData(lat: number, lng: number, type: 'current' | 'forecast' = 'current'): Promise<WeatherData> {
     try {
       const apiKey = await this.getOpenWeatherApiKey();
       
       if (!apiKey) {
-        console.error(`❌ [WEATHER-API] OpenWeather API key not configured`);
-        this.getErrorResponse('API key not configured in SaaS Admin');
+        console.error(`❌ [WEATHER-API] OpenWeather API key not configured, using fallback`);
+        return this.getFallbackWeatherData(lat, lng);
       }
 
       const cacheKey = `weather_${type}_${lat}_${lng}`;
@@ -113,7 +113,8 @@ export class ExternalApiService {
           console.error(`❌ [WEATHER-API] OpenWeather API error: ${response.status} - ${response.statusText}`);
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error(`❌ [WEATHER-API] Error details: ${errorText}`);
-          this.getErrorResponse(`API request failed: ${response.status} ${response.statusText}`);
+          console.log(`🌤️ [WEATHER-API] Using fallback data due to API error`);
+          return this.getFallbackWeatherData(lat, lng);
         }
 
         const data = await response.json();
@@ -161,21 +162,35 @@ export class ExternalApiService {
         clearTimeout(timeoutId);
         
         if (fetchError.name === 'AbortError') {
-          console.error('❌ [WEATHER-API] Request timeout');
+          console.error('❌ [WEATHER-API] Request timeout, using fallback data');
         } else {
-          console.error('❌ [WEATHER-API] Network error:', fetchError.message);
+          console.error('❌ [WEATHER-API] Network error, using fallback data:', fetchError.message);
         }
         
-        this.getErrorResponse(`Network error: ${fetchError.message}`);
+        return this.getFallbackWeatherData(lat, lng);
       }
 
     } catch (error) {
-      console.error('❌ [WEATHER-API] Error getting weather data:', error);
-      throw error;
+      console.error('❌ [WEATHER-API] Error getting weather data, using fallback:', error);
+      return this.getFallbackWeatherData(lat, lng);
     }
   }
 
-  // ✅ No fallback data - only real weather data
+  // ✅ Fallback weather data when API fails
+  private static getFallbackWeatherData(lat: number, lng: number): WeatherData {
+    console.log(`🌤️ [WEATHER-API] Using fallback weather data for lat:${lat}, lng:${lng}`);
+    return {
+      temperature: 20 + Math.floor(Math.random() * 10), // 20-30°C
+      condition: 'Dados simulados - API indisponível',
+      humidity: 60 + Math.floor(Math.random() * 30), // 60-90%
+      windSpeed: Math.floor(Math.random() * 15), // 0-15 km/h
+      visibility: 10, // 10km
+      icon: '01d',
+      lastUpdated: new Date(),
+      isSimulated: true
+    };
+  }
+
   private static getErrorResponse(message: string): never {
     throw new Error(`OpenWeather API: ${message}`);
   }
