@@ -52,6 +52,13 @@ export class UpdateOpenWeatherApiKeyUseCase {
 
       console.log('✅ [UPDATE-OPENWEATHER-USE-CASE] API key updated successfully');
 
+      // Force update the config in database to ensure consistency
+      await this.integrationRepository.updateIntegrationConfig('openweather', {
+        ...config,
+        status: 'connected',
+        apiKeyConfigured: true
+      });
+
       return {
         success: true,
         message: 'OpenWeather API key updated successfully',

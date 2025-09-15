@@ -171,7 +171,7 @@ export type InsertSaasGroupMembership = z.infer<typeof insertSaasGroupMembership
 // ===========================================================================================
 
 export const openWeatherConfigSchema = z.object({
-  apiKey: z.string().min(32, 'OpenWeather API key must be at least 32 characters'),
+  apiKey: z.string().min(30, 'OpenWeather API key must be at least 30 characters'),
   baseUrl: z.string().url().optional().default('https://api.openweathermap.org/data/2.5'),
   enabled: z.boolean().default(true),
   maxRequests: z.number().min(1).max(10000).optional().default(1000),

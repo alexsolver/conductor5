@@ -92,7 +92,7 @@ export class Integration {
     
     // For OpenWeather, basic validation
     if (this.isOpenWeatherIntegration()) {
-      return config.apiKey.length >= 32 ? 'connected' : 'error';
+      return config.apiKey.length >= 30 ? 'connected' : 'error';
     }
     
     return 'connected';
@@ -105,8 +105,8 @@ export class Integration {
     }
 
     if (this.isOpenWeatherIntegration()) {
-      if (this.config.apiKey.length < 32) {
-        return { valid: false, message: 'OpenWeather API key must be at least 32 characters' };
+      if (this.config.apiKey.length < 30) {
+        return { valid: false, message: 'OpenWeather API key must be at least 30 characters' };
       }
     }
 
