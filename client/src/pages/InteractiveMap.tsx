@@ -1502,10 +1502,11 @@ export const InteractiveMap: React.FC = () => {
   const availableTeams = allGroups.filter((group: any) => group.isActive).map((group: any) => group.name);
 
   // ===========================================================================================
-  // Extract Skills Data
+  // Extract Skills Data - showing all available skills even without users - following 1qa.md patterns
   const skillsData = Array.isArray(technicalSkillsData?.data) ? technicalSkillsData.data : [];
   const userSkillsData = Array.isArray(userSkillsResponse?.data) ? userSkillsResponse.data : [];
-  const availableSkills = skillsData?.filter((skill: any) => skill.isActive).map((skill: any) => skill.name) || [];
+  // Show all active skills in filter, not just skills that users have
+  const availableSkills = skillsData?.filter((skill: any) => skill.isActive !== false).map((skill: any) => skill.name) || [];
 
   // Mock ticket data for visualization
   const mockTickets = [
