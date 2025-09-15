@@ -3181,7 +3181,7 @@ export const InteractiveMap: React.FC = () => {
           {/* Weather/Point Details Modal */}
           {selectedPoint && (
             <Dialog open={!!selectedPoint} onOpenChange={() => setSelectedPoint(null)}>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md z-[10000] fixed">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <CloudRain className="h-5 w-5" />
