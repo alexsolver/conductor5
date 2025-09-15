@@ -271,17 +271,23 @@ if (process.env.NODE_ENV === 'development') {
 // GET /api/interactive-map/external/weather - Get weather data
 router.get('/external/weather', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng, type = 'current' } = req.query;
 
     if (!lat || !lng) {
       return res.status(400).json({ success: false, error: 'Latitude and longitude required' });
     }
 
-    // ExternalApiService will handle API key validation internally
+    // Validate type parameter
+    if (type !== 'current' && type !== 'forecast') {
+      return res.status(400).json({ success: false, error: 'Type must be "current" or "forecast"' });
+    }
 
+    console.log(`🗺️ [SERVER] Interactive Map route hit: GET /external/weather?lat=${lat}&lng=${lng}&type=${type}`);
+
+    // ExternalApiService will handle API key validation internally
     const weather = await ExternalApiService.getCachedData(
-      `weather_${lat}_${lng}`,
-      () => ExternalApiService.getWeatherData(Number(lat), Number(lng)),
+      `weather_${type}_${lat}_${lng}`,
+      () => ExternalApiService.getWeatherData(Number(lat), Number(lng), type as 'current' | 'forecast'),
       10 // 10 minutes cache
     );
 
@@ -291,7 +297,7 @@ router.get('/external/weather', jwtAuth, async (req: AuthenticatedRequest, res: 
       req.user!.tenantId!,
       'weather_data',
       `${lat},${lng}`,
-      { source: 'OpenWeatherAPI' },
+      { source: 'OpenWeatherAPI', type },
       { userAgent: req.get('User-Agent'), ipAddress: req.ip }
     );
 

@@ -1106,6 +1106,8 @@ const LayersPanel: React.FC<{
   setWeatherPinPosition: (position: { lat: number; lng: number } | null) => void;
   isWeatherPinPlacement: boolean;
   setIsWeatherPinPlacement: (placement: boolean) => void;
+  weatherDataType: 'current' | 'forecast';
+  setWeatherDataType: (type: 'current' | 'forecast') => void;
 }> = ({
   showTickets, setShowTickets,
   showTeamGroups, setShowTeamGroups,
@@ -1114,7 +1116,8 @@ const LayersPanel: React.FC<{
   showTrafficLayer, setShowTrafficLayer,
   weatherRadius, setWeatherRadius,
   weatherPinPosition, setWeatherPinPosition,
-  isWeatherPinPlacement, setIsWeatherPinPlacement
+  isWeatherPinPlacement, setIsWeatherPinPlacement,
+  weatherDataType, setWeatherDataType
 }) => {
   return (
     <div className="space-y-6">
@@ -1199,6 +1202,35 @@ const LayersPanel: React.FC<{
                 className="w-full"
               />
               
+              {/* Weather Data Type Selection */}
+              <div className="mb-3">
+                <label className="text-sm font-medium mb-2 block">Tipo de Dados:</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setWeatherDataType('current')}
+                    className={`px-3 py-2 text-xs rounded-md font-medium transition-colors ${
+                      weatherDataType === 'current'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    data-testid="button-current-weather"
+                  >
+                    🌤️ Clima Atual
+                  </button>
+                  <button
+                    onClick={() => setWeatherDataType('forecast')}
+                    className={`px-3 py-2 text-xs rounded-md font-medium transition-colors ${
+                      weatherDataType === 'forecast'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    data-testid="button-forecast-weather"
+                  >
+                    📊 Previsão 5 Dias
+                  </button>
+                </div>
+              </div>
+
               {/* Weather Pin Positioning Controls - following 1qa.md patterns */}
               <div className="flex gap-2 mt-3">
                 {!weatherPinPosition ? (
@@ -1500,6 +1532,7 @@ export const InteractiveMap: React.FC = () => {
   // Weather pin positioning states - following 1qa.md patterns
   const [weatherPinPosition, setWeatherPinPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [isWeatherPinPlacement, setIsWeatherPinPlacement] = useState(false);
+  const [weatherDataType, setWeatherDataType] = useState<'current' | 'forecast'>('current');
 
   // Weather pin positioning handler - following 1qa.md patterns
   const handleWeatherPinPosition = useCallback((position: { lat: number; lng: number }) => {
@@ -2026,6 +2059,8 @@ export const InteractiveMap: React.FC = () => {
                     setWeatherPinPosition={setWeatherPinPosition}
                     isWeatherPinPlacement={isWeatherPinPlacement}
                     setIsWeatherPinPlacement={setIsWeatherPinPlacement}
+                    weatherDataType={weatherDataType}
+                    setWeatherDataType={setWeatherDataType}
                   />
                 </div>
               </SheetContent>
@@ -2535,10 +2570,10 @@ export const InteractiveMap: React.FC = () => {
                     eventHandlers={{
                       click: async () => {
                         try {
-                          console.log('🌤️ [WEATHER-PIN] Fetching weather data for pin location');
+                          console.log(`🌤️ [WEATHER-PIN] Fetching ${weatherDataType} weather data for pin location`);
                           // Fetch weather data for the pin location
                           const response = await fetch(
-                            `/api/interactive-map/external/weather?lat=${weatherPinPosition.lat}&lng=${weatherPinPosition.lng}`,
+                            `/api/interactive-map/external/weather?lat=${weatherPinPosition.lat}&lng=${weatherPinPosition.lng}&type=${weatherDataType}`,
                             {
                               method: 'GET',
                               headers: {
@@ -2551,11 +2586,16 @@ export const InteractiveMap: React.FC = () => {
                           if (response.ok) {
                             const result = await response.json();
                             if (result.success && result.data) {
+                              // Determine if data is simulated or real
+                              const isSimulated = result.data.isSimulated || result.metadata?.isSimulated || false;
+                              const dataSource = isSimulated ? '🔧 Dados Simulados' : '🌐 OpenWeather API';
+                              const namePrefix = weatherDataType === 'current' ? '🌤️ Clima Atual' : '📊 Previsão do Tempo';
+                              
                               // Use setSelectedPoint to display weather modal
                               setSelectedPoint({
                                 lat: weatherPinPosition.lat,
                                 lng: weatherPinPosition.lng,
-                                name: 'Clima Local',
+                                name: `${namePrefix} - ${dataSource}`,
                                 weather: {
                                   temperature: result.data.temperature,
                                   description: result.data.condition,
@@ -2565,21 +2605,22 @@ export const InteractiveMap: React.FC = () => {
                                   icon: result.data.icon
                                 }
                               });
-                              console.log('✅ [WEATHER-PIN] Weather modal opened with real data');
+                              console.log(`✅ [WEATHER-PIN] Weather modal opened with ${isSimulated ? 'simulated' : 'real'} ${weatherDataType} data`);
                             }
                           } else {
                             throw new Error('Failed to fetch weather data');
                           }
                         } catch (error) {
                           console.error('❌ [WEATHER-PIN] Error fetching weather data:', error);
-                          // Show fallback weather modal
+                          // Show fallback weather modal with clear simulation indication
+                          const namePrefix = weatherDataType === 'current' ? '🌤️ Clima Atual' : '📊 Previsão do Tempo';
                           setSelectedPoint({
                             lat: weatherPinPosition.lat,
                             lng: weatherPinPosition.lng,
-                            name: 'Clima Local',
+                            name: `${namePrefix} - 🔧 Dados Simulados (Erro de Conexão)`,
                             weather: {
                               temperature: 22,
-                              description: 'Dados indisponíveis',
+                              description: weatherDataType === 'current' ? 'Dados indisponíveis' : 'Previsão indisponível',
                               humidity: 65,
                               windSpeed: 8,
                               visibility: 10,

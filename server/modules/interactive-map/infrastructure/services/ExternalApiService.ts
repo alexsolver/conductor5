@@ -12,6 +12,7 @@ export interface WeatherData {
   visibility: number;
   icon: string;
   lastUpdated: Date;
+  isSimulated?: boolean;
 }
 
 export interface TrafficData {
@@ -70,39 +71,41 @@ export class ExternalApiService {
   }
 
   // ✅ Real OpenWeather API integration
-  static async getWeatherData(lat: number, lng: number): Promise<WeatherData> {
+  static async getWeatherData(lat: number, lng: number, type: 'current' | 'forecast' = 'current'): Promise<WeatherData> {
     try {
       const apiKey = await this.getOpenWeatherApiKey();
       
       if (!apiKey) {
-        console.log('🌤️ [WEATHER-API] Using fallback mock data - no API key configured');
-        return this.getFallbackWeatherData(lat, lng);
+        console.log(`🌤️ [WEATHER-API] Using fallback simulated data - API key not available or API failed`);
+        return this.getFallbackWeatherData(lat, lng, type);
       }
 
-      const cacheKey = `weather_${lat}_${lng}`;
+      const cacheKey = `weather_${type}_${lat}_${lng}`;
       const cached = this.cache.get(cacheKey);
       
       if (cached && cached.expires > Date.now()) {
-        console.log('🌤️ [WEATHER-API] Using cached weather data');
+        console.log(`🌤️ [WEATHER-API] Using cached ${type} weather data`);
         return cached.data;
       }
 
-      console.log(`🌤️ [WEATHER-API] Fetching real weather data for lat:${lat}, lng:${lng} with API key: ${apiKey.substring(0, 10)}...`);
+      // Choose API endpoint based on type
+      const apiUrl = type === 'forecast' 
+        ? `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&cnt=5`
+        : `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`;
+
+      console.log(`🌤️ [WEATHER-API] Fetching real ${type} weather data for lat:${lat}, lng:${lng} with API key: ${apiKey.substring(0, 10)}...`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`,
-          {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'Conductor-Interactive-Map/1.0'
-            },
-            signal: controller.signal
-          }
-        );
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Conductor-Interactive-Map/1.0'
+          },
+          signal: controller.signal
+        });
 
         clearTimeout(timeoutId);
 
@@ -110,21 +113,41 @@ export class ExternalApiService {
           console.error(`❌ [WEATHER-API] OpenWeather API error: ${response.status} - ${response.statusText}`);
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error(`❌ [WEATHER-API] Error details: ${errorText}`);
-          return this.getFallbackWeatherData(lat, lng);
+          console.log(`⚠️ [WEATHER-API] Using fallback simulated data - API key not available or API failed`);
+          return this.getFallbackWeatherData(lat, lng, type);
         }
 
         const data = await response.json();
-        console.log('🌤️ [WEATHER-API] Raw OpenWeather response:', JSON.stringify(data, null, 2));
+        console.log(`🌤️ [WEATHER-API] Raw OpenWeather ${type} response:`, JSON.stringify(data, null, 2));
         
-        const weatherData: WeatherData = {
-          temperature: Math.round(data.main.temp),
-          condition: data.weather[0].description,
-          humidity: data.main.humidity,
-          windSpeed: Math.round(data.wind?.speed * 3.6 || 0), // Convert m/s to km/h
-          visibility: Math.round((data.visibility || 10000) / 1000), // Convert to km
-          icon: data.weather[0].icon,
-          lastUpdated: new Date()
-        };
+        let weatherData: WeatherData;
+
+        if (type === 'forecast' && data.list && data.list.length > 0) {
+          // Use the first forecast entry (next 3 hours)
+          const forecastEntry = data.list[0];
+          weatherData = {
+            temperature: Math.round(forecastEntry.main.temp),
+            condition: `Previsão: ${forecastEntry.weather[0].description}`,
+            humidity: forecastEntry.main.humidity,
+            windSpeed: Math.round(forecastEntry.wind?.speed * 3.6 || 0), // Convert m/s to km/h
+            visibility: Math.round((forecastEntry.visibility || 10000) / 1000), // Convert to km
+            icon: forecastEntry.weather[0].icon,
+            lastUpdated: new Date(),
+            isSimulated: false
+          };
+        } else {
+          // Current weather
+          weatherData = {
+            temperature: Math.round(data.main.temp),
+            condition: data.weather[0].description,
+            humidity: data.main.humidity,
+            windSpeed: Math.round(data.wind?.speed * 3.6 || 0), // Convert m/s to km/h
+            visibility: Math.round((data.visibility || 10000) / 1000), // Convert to km
+            icon: data.weather[0].icon,
+            lastUpdated: new Date(),
+            isSimulated: false
+          };
+        }
 
         // Cache for 10 minutes
         this.cache.set(cacheKey, {
@@ -132,7 +155,7 @@ export class ExternalApiService {
           expires: Date.now() + (10 * 60 * 1000)
         });
 
-        console.log('✅ [WEATHER-API] Real weather data fetched successfully:', weatherData);
+        console.log(`✅ [WEATHER-API] Real ${type} weather data fetched successfully:`, weatherData);
         return weatherData;
 
       } catch (fetchError: any) {
@@ -154,12 +177,11 @@ export class ExternalApiService {
   }
 
   // ✅ Fallback data when API is unavailable
-  private static getFallbackWeatherData(lat: number, lng: number): WeatherData {
-    console.log('⚠️ [WEATHER-API] Using fallback simulated data - API key not available or API failed');
+  private static getFallbackWeatherData(lat: number, lng: number, type: 'current' | 'forecast' = 'current'): WeatherData {
+    console.log(`⚠️ [WEATHER-API] Using fallback simulated data for ${type} - API key not available or API failed`);
     // Generate realistic fallback data based on location
     const temp = 20 + Math.random() * 10; // 20-30°C range
-    const conditions = ['Dados simulados', 'clear sky', 'few clouds', 'scattered clouds', 'partly cloudy'];
-    const condition = conditions[0]; // Always show "Dados simulados" for fallback
+    const condition = type === 'forecast' ? 'Previsão simulada' : 'Dados simulados';
     
     return {
       temperature: Math.round(temp),
@@ -168,7 +190,8 @@ export class ExternalApiService {
       windSpeed: Math.floor(Math.random() * 15), // 0-15 km/h
       visibility: 10, // 10km default
       icon: '01d', // Default clear sky icon
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      isSimulated: true
     };
   }
 
