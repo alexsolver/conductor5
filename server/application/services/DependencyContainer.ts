@@ -1,6 +1,4 @@
 // Dependency Injection Container - Clean Architecture
-import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
-// Removed unused TenantRepository import
 import { PasswordHasher } from "../../infrastructure/services/PasswordHasher";
 import { SimpleTokenService } from "../../infrastructure/services/SimpleTokenService";
 import { LoginUseCase } from "../use-cases/auth/LoginUseCase";
@@ -8,7 +6,6 @@ import { RegisterUseCase } from "../use-cases/auth/RegisterUseCase";
 import { RefreshTokenUseCase } from "../use-cases/auth/RefreshTokenUseCase";
 import { storageSimple } from "../../storage-simple";
 import { UserRepository } from "../../infrastructure/repositories/UserRepository";
-// Removed duplicate import: import { DrizzleUserRepository } from "../../modules/auth/infrastructure/repositories/DrizzleUserRepository";
 import logger from "../../utils/logger";
 
 export class DependencyContainer {
@@ -17,7 +14,7 @@ export class DependencyContainer {
   private tenantRepository: any;
 
   // Repositories
-  private _userRepository?: DrizzleUserRepository;
+  private _userRepository?: UserRepository;
   private _tenantRepository?: any;
 
   // Services
@@ -77,10 +74,10 @@ export class DependencyContainer {
   }
 
   // Repositories
-  get userRepository(): DrizzleUserRepository {
+  get userRepository(): UserRepository {
     if (!this._userRepository) {
-      // Use the working Drizzle repository
-      this._userRepository = new DrizzleUserRepository();
+      // Use the UserRepository that has findByIdAndTenant method
+      this._userRepository = new UserRepository();
     }
     return this._userRepository;
   }
