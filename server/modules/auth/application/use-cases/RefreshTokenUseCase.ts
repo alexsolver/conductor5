@@ -36,17 +36,11 @@ export class RefreshTokenUseCase {
       throw error;
     }
 
-    // Verify JWT refresh token
+    // Verify refresh token using TokenManager singleton
+    const { tokenManager } = await import('../../../utils/tokenManager');
+    let decoded;
     try {
-      jwt.verify(
-        dto.refreshToken, 
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025',
-        {
-          issuer: 'conductor-platform',
-          audience: 'conductor-users',
-          algorithms: ['HS256']
-        }
-      );
+      decoded = tokenManager.verifyRefreshToken(dto.refreshToken);
     } catch (error) {
       // Invalidate invalid session
       await this.authRepository.invalidateSession(session.id);
@@ -70,9 +64,14 @@ export class RefreshTokenUseCase {
     // Create new token expiry dates
     const { accessTokenExpiry, refreshTokenExpiry } = this.authDomainService.createTokenExpiry(false);
 
-    // Generate new tokens
-    const newAccessToken = this.generateAccessToken(user, accessTokenExpiry);
-    const newRefreshToken = this.generateRefreshToken(user, refreshTokenExpiry);
+    // Generate new access token
+    const newAccessToken = tokenManager.generateAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId
+    });
+    const newRefreshToken = tokenManager.generateRefreshToken();
 
     // Update session with new tokens
     const updatedSession = await this.authRepository.updateSessionTokens(
