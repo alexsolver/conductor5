@@ -56,7 +56,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
 
     // Reset form data whenever modal opens
     let dataToUse = action;
-    
+
     // Use detailed data if available, otherwise use passed action data
     if (actionDetails?.success && actionDetails.data) {
       dataToUse = actionDetails.data;
@@ -64,7 +64,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     } else {
       console.log('🔍 EditModal: Loading passed action data:', dataToUse);
     }
-    
+
     // Convert datetime fields to proper format for input[type="datetime-local"]
     const formatDateTime = (dateTime: any) => {
       if (!dateTime) return "";
@@ -82,7 +82,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
       estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
       timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
-      actualMinutes: (dataToUse.actual_minutes || dataToUse.actualMinutes || 0).toString(),
+      actualMinutes: (dataToUse.tempo_realizado || dataToUse.actual_minutes || dataToUse.actualMinutes || 0).toString(),
       alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
       actionType: dataToUse.type || dataToUse.actionType || dataToUse.actiontype || "",
       workLog: dataToUse.work_log || dataToUse.workLog || "",
@@ -90,7 +90,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       status: dataToUse.status || "pending",
       assignedToId: dataToUse.assigned_to_id || dataToUse.assignedToId || ""
     });
-    
+
     setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
   }, [actionDetails, action, isOpen]);
 
@@ -122,9 +122,9 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         assignedToId: data.assignedToId,
         is_public: isPublic,
       };
-      
+
       console.log('🔧 PUT Update - Sending data:', payload);
-      
+
       const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
       return response.json();
     },
@@ -176,31 +176,31 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       ...formData,
       startDateTime: now
     };
-    
+
     setFormData(updatedFormData);
-    
+
     // Salvar automaticamente
     updateActionMutation.mutate(updatedFormData);
   };
 
   const handleFinishTimer = () => {
     const now = new Date().toISOString().slice(0, 16);
-    
+
     // Calcular minutos decorridos
     if (formData.startDateTime) {
       const startTime = new Date(formData.startDateTime);
       const endTime = new Date(now);
       const diffMs = endTime.getTime() - startTime.getTime();
       const diffMinutes = Math.round(diffMs / (1000 * 60));
-      
+
       const updatedFormData = {
         ...formData,
         endDateTime: now,
         actualMinutes: diffMinutes.toString()
       };
-      
+
       setFormData(updatedFormData);
-      
+
       // Salvar automaticamente
       updateActionMutation.mutate(updatedFormData);
     }
