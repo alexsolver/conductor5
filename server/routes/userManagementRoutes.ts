@@ -1577,7 +1577,7 @@ router.put(
       const query = sql`
         UPDATE ${tableIdent}
         SET name = ${name}, description = ${descOrNull}, permissions = ${permsExpr}, updated_at = now()
-        WHERE id = ${roleId} AND tenant_id = ${tenantId}
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}::uuid
         RETURNING *
       `;
 
@@ -1611,7 +1611,7 @@ router.delete(
       const query = sql`
         UPDATE ${tableIdent}
         SET is_active = false, updated_at = now()
-        WHERE id = ${roleId} AND tenant_id = ${tenantId}
+        WHERE id = ${roleId} AND tenant_id = ${tenantId}::uuid
         RETURNING id
       `;
 
