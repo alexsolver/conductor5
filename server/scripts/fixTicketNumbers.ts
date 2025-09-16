@@ -46,7 +46,7 @@ export async function fixTicketNumbers(tenantId: string) {
 }
 
 // Run for specific tenant if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const tenantId = process.argv[2] || '3f99462f-3621-4b1b-bea8-782acc50d62e';
   fixTicketNumbers(tenantId)
     .then(count => console.log(`Fixed ${count} tickets`))
