@@ -39,7 +39,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useAuth";
 
 
 interface InternalActionModalProps {
