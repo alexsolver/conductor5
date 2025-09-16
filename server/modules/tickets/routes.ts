@@ -619,27 +619,6 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       return sendError(res, "No update data provided", "Update data is required", 400);
     }
 
-    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Apenas subject é obrigatório em updates
-    if (frontendUpdates.subject !== undefined && (!frontendUpdates.subject || !frontendUpdates.subject.trim())) {
-      console.log('❌ [TICKETS-ROUTE] Empty subject provided');
-      return sendError(res, "Subject is required", "Subject cannot be empty", 400);
-    }
-
-    // Description pode ser vazia em updates, então só validamos se for null ou undefined
-    // mas permitimos string vazia para permitir limpar o campo
-
-    // DEBUG: Log incoming data for followers and customer_id investigation
-    console.log('🔍 DEBUGGING TICKET UPDATE - Incoming data:', {
-      ticketId,
-      hasFollowers: !!frontendUpdates.followers,
-      followersType: typeof frontendUpdates.followers,
-      followersValue: frontendUpdates.followers,
-      hasCustomerId: !!frontendUpdates.customer_id,
-      customerIdValue: frontendUpdates.customer_id,
-      assignedToId: frontendUpdates.assigned_to_id,
-      allKeys: Object.keys(frontendUpdates)
-    });
-
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
 
@@ -1499,7 +1478,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
           message: "Ticket not found" 
         });
       }
-      
+
       console.log('✅ [INTERNAL-ACTION-CREATE] Ticket exists:', ticketCheck.rows[0].id);
     } catch (ticketCheckError) {
       console.error('❌ [INTERNAL-ACTION-CREATE] Error checking ticket existence:', ticketCheckError);
@@ -1610,7 +1589,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       if (!result.rows || result.rows.length === 0) {
         throw new Error('No data returned from insert operation');
       }
-      
+
       console.log('✅ [INTERNAL-ACTION-CREATE] Insert successful:', {
         actionId: result.rows[0].id,
         actionNumber: result.rows[0].action_number
@@ -1644,7 +1623,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
 
       console.log(`✅ [AUDIT-ACTION-CREATE] Dados de sessão para auditoria:`, {
         ip_address: auditIpAddress,
-        user_agent: auditUserAgent?.substring(0, 50),
+        user_agent: auditUserAgent,
         session_id: auditSessionId,
         action_id: newAction.id
       });
@@ -1685,13 +1664,6 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
             ip_address: auditIpAddress,
             user_agent: auditUserAgent,
             session_id: auditSessionId
-          },
-          // ✅ BACKUP DOS DADOS DE SESSÃO NO METADATA
-          session_backup: {
-            ip_address: auditIpAddress,
-            user_agent: auditUserAgent,
-            session_id: auditSessionId,
-            captured_at: new Date().toISOString()
           }
         })
       ]);
@@ -2237,7 +2209,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
     `;
 
     const deleteResult = await pool.query(deleteQuery, [noteId, id, tenantId]);
-    console.log('✅ Note soft deleted:', { rowsAffected: deleteResult.rowCount });
+    console.log('✅ Note soft deleted:', { rowCount: deleteResult.rowCount });
 
     // 🚨 CORREÇÃO CRÍTICA: Criar entrada de auditoria com mais debugging
     try {
@@ -2277,7 +2249,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
           'note_deleted',
           `Nota excluída: "${deletedNote.content.substring(0, 100)}${deletedNote.content.length > 100 ? '...' : ''}"`,
           req.user.id,
-          userName,
+          'Sistema', // Placeholder for user name in fallback
           ipAddress,
           userAgent,
           sessionId,
@@ -2826,7 +2798,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
 
     // Check if both tickets exist
     const ticketCheck = await pool.query(
-      `SELECT id FROM "${schemaName}".tickets WHERE id IN ($1, $2) AND tenant_id = $3`,
+      `SELECT id, number FROM "${schemaName}".tickets WHERE id IN ($1, $2) AND tenant_id = $3`,
       [id, targetTicketId, tenantId]
     );
 
@@ -2924,9 +2896,13 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 
     // Get relationship info before deletion for audit trail
     const relationshipQuery = `
-      SELECT source_ticket_id, target_ticket_id, relationship_type, description 
-      FROM "${schemaName}".ticket_relationships 
-      WHERE id = $1 AND tenant_id = $2
+      SELECT source_ticket_id, target_ticket_id, relationship_type, description,
+             source_ticket.number as source_number,
+             target_ticket.number as target_number
+      FROM "${schemaName}".ticket_relationships tr
+      LEFT JOIN "${schemaName}".tickets source_ticket ON tr.source_ticket_id = source_ticket.id
+      LEFT JOIN "${schemaName}".tickets target_ticket ON tr.target_ticket_id = target_ticket.id
+      WHERE tr.id = $1 AND tr.tenant_id = $2
     `;
     const relationshipResult = await pool.query(relationshipQuery, [relationshipId, tenantId]);
     const relationshipInfo = relationshipResult.rows[0];
@@ -2944,30 +2920,16 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 
     // Create audit trail for relationship deletion
     if (relationshipInfo) {
-      // Get target ticket number for audit trail
-      let targetTicketNumber = relationshipInfo.target_ticket_id;
-      try {
-        const targetTicketQuery = `
-          SELECT COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number 
-          FROM "${schemaName}".tickets 
-          WHERE id = $1 AND tenant_id = $2
-        `;
-        const targetTicketResult = await pool.query(targetTicketQuery, [relationshipInfo.target_ticket_id, tenantId]);
-        targetTicketNumber = targetTicketResult.rows[0]?.number || relationshipInfo.target_ticket_id;
-      } catch (error) {
-        console.log('⚠️ Aviso: Não foi possível buscar número do ticket:', error.message);
-      }
-
       try {
         await createCompleteAuditEntry(
           pool, schemaName, tenantId, relationshipInfo.source_ticket_id, req,
           'relationship_deleted',
-          `Relacionamento removido: ${relationshipInfo.relationship_type} com ticket ${targetTicketNumber}`,
+          `Relacionamento removido com ticket ${relationshipInfo.target_number || relationshipInfo.target_ticket_id}: ${relationshipInfo.relationship_type}`,
           {
-            deleted_relationship_id: relationshipId,
+            relationship_id: relationshipId,
             source_ticket_id: relationshipInfo.source_ticket_id,
             target_ticket_id: relationshipInfo.target_ticket_id,
-            target_ticket_number: targetTicketNumber,
+            target_ticket_number: relationshipInfo.target_number,
             relationship_type: relationshipInfo.relationship_type,
             description: relationshipInfo.description,
             deletion_time: new Date().toISOString()
@@ -3039,7 +3001,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         AND tia.start_time >= $2::timestamp
         AND tia.start_time <= $3::timestamp
       ORDER BY tia.start_time ASC
-    `;;
+    `;
 
     const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
 
@@ -3219,9 +3181,9 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       SELECT * FROM "${schemaName}".ticket_internal_actions 
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
     `;
-    
+
     const existingAction = await pool.query(checkQuery, [actionId, tenantId, ticketId]);
-    
+
     if (existingAction.rows.length === 0) {
       return res.status(404).json({
         success: false,
@@ -3230,8 +3192,8 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     }
 
     // Build dynamic update query
-    const updateFields = [];
-    const values = [];
+    const updateFields: string[] = [];
+    const values: any[] = [];
     let paramIndex = 1;
 
     if (action_type !== undefined) {
@@ -3294,7 +3256,7 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     // Add WHERE clause parameters
     values.push(actionId, tenantId, ticketId);
 
-    if (updateFields.length === 1) {
+    if (updateFields.length === 1) { // Only 'updated_at' would be present if no other fields changed
       return res.status(400).json({
         success: false,
         message: "No fields to update"
@@ -3335,138 +3297,6 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       success: false,
       message: "Failed to update internal action",
       error: error.message
-    });
-  }
-});teTime,
-      status
-    });
-
-    // First, get the current action to calculate tempo_realizado if needed
-    let currentAction = null;
-    if (end_time !== undefined || start_time !== undefined) {
-      const currentQuery = `
-        SELECT start_time, end_time FROM "${schemaName}".ticket_internal_actions 
-        WHERE tenant_id = $1::uuid AND ticket_id = $2::uuid AND id = $3::uuid
-      `;
-      const currentResult = await pool.query(currentQuery, [tenantId, ticketId, actionId]);
-      if (currentResult.rows.length > 0) {
-        currentAction = currentResult.rows[0];
-      }
-    }
-
-    const updateFields: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
-
-    if (status !== undefined) {
-      updateFields.push(`status = $${paramIndex++}`);
-      values.push(status);
-    }
-    if (description !== undefined) {
-      updateFields.push(`description = $${paramIndex++}`);
-      values.push(description);
-    }
-    if (title !== undefined) {
-      updateFields.push(`title = $${paramIndex++}`);
-      values.push(title);
-    }
-    if (estimated_hours !== undefined) {
-      updateFields.push(`estimated_hours = $${paramIndex++}`);
-      values.push(estimated_hours);
-    }
-    if (start_time !== undefined) {
-      updateFields.push(`start_time = $${paramIndex++}`);
-      values.push(start_time);
-    }
-    if (end_time !== undefined) {
-      updateFields.push(`end_time = $${paramIndex++}`);
-      values.push(end_time);
-    }
-    if (action_type !== undefined) {
-      updateFields.push(`action_type = $${paramIndex++}`);
-      values.push(action_type);
-    }
-    if (agent_id !== undefined) {
-      updateFields.push(`agent_id = $${paramIndex++}`);
-      values.push(agent_id);
-    }
-    if (planned_start_time !== undefined) {
-      updateFields.push(`planned_start_time = $${paramIndex++}`);
-      values.push(planned_start_time || null);
-    }
-    if (planned_end_time !== undefined) {
-      updateFields.push(`planned_end_time = $${paramIndex++}`);
-      values.push(planned_end_time || null);
-    }
-    if (priority !== undefined) {
-      updateFields.push(`priority = $${paramIndex++}`);
-      values.push(priority);
-    }
-
-    // Calcular tempo_realizado automaticamente se temos start_time e end_time
-    let calculatedMinutes = null;
-    if (currentAction || (start_time !== undefined && end_time !== undefined)) {
-      const actionStartTime = start_time || currentAction?.start_time;
-      const actionEndTime = end_time || currentAction?.end_time;
-
-      if (actionStartTime && actionEndTime) {
-        const startDateTime = new Date(actionStartTime);
-        const endDateTime = new Date(actionEndTime);
-
-        if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime()) && endDateTime > startDateTime) {
-          const timeDiffMs = endDateTime.getTime() - startDateTime.getTime();
-          calculatedMinutes = Math.round(timeDiffMs / (1000 * 60)); // Converter para minutos
-
-          updateFields.push(`tempo_realizado = $${paramIndex++}`);
-          values.push(calculatedMinutes);
-
-          console.log('⏱️ [TEMPO-CALC] Calculated tempo_realizado:', {
-            start: actionStartTime,
-            end: actionEndTime,
-            minutes: calculatedMinutes
-          });
-        }
-      }
-    }
-
-    if (updateFields.length === 0) {
-      return res.status(400).json({ message: "No fields to update" });
-    }
-
-    const query = `
-      UPDATE "${schemaName}".ticket_internal_actions 
-      SET ${updateFields.join(', ')}, updated_at = NOW()
-      WHERE tenant_id = $${paramIndex++}::uuid 
-        AND ticket_id = $${paramIndex++}::uuid 
-        AND id = $${paramIndex++}::uuid
-      RETURNING *
-    `;
-
-    values.push(tenantId, ticketId, actionId);
-
-    console.log('🔧 [PATCH] Query:', query);
-    console.log('🔧 [PATCH] Values:', values);
-
-    const result = await pool.query(query, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Internal action not found" 
-      });
-    }
-
-    console.log('✅ [PATCH] Action updated successfully:', result.rows[0]);
-
-    res.json({
-      success: true,
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error("Error updating internal action:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to update internal action" 
     });
   }
 });
@@ -3630,7 +3460,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         action_type = COALESCE($1, action_type),
         title = COALESCE($2, title),
         description = COALESCE($3, description),
-        assigned_to_id = COALESCE($4::uuid, assigned_to_id),
+        agent_id = COALESCE($4::uuid, agent_id), -- corrected: assigned_to_id maps to agent_id
         start_time = COALESCE($5::timestamp, start_time),
         end_time = COALESCE($6::timestamp, end_time),
         estimated_hours = COALESCE($7::numeric, estimated_hours),
@@ -3646,7 +3476,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       action_type,
       title,
       description,
-      assigned_to_id,
+      assigned_to_id, // This should map to agent_id
       start_time,
       end_time,
       estimated_hours,
@@ -3667,17 +3497,10 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       const userAgent = getUserAgent(req);
       const sessionId = getSessionId(req);
 
-      console.log('✅ [AUDIT-ACTION-UPDATE] Dados de sessão para auditoria:', {
-        ip_address: ipAddress,
-        user_agent: userAgent?.substring(0, 50),
-        session_id: sessionId,
-        action_id: updatedAction.id
-      });
-
       // Detectar mudanças
       const changes = [];
-      const fieldsToCheck = ['action_type', 'title', 'description', 'status', 'priority'];
-      
+      const fieldsToCheck = ['action_type', 'title', 'description', 'status', 'priority', 'agent_id', 'start_time', 'end_time', 'estimated_hours', 'actual_hours'];
+
       for (const field of fieldsToCheck) {
         if (oldAction[field] !== updatedAction[field]) {
           changes.push({
@@ -3830,12 +3653,12 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
 
     // Verify both tickets exist
     const ticketCheckQuery = `
-      SELECT id, number, subject FROM "${schemaName}".tickets 
+      SELECT id, number FROM "${schemaName}".tickets 
       WHERE id IN ($1::uuid, $2::uuid) AND tenant_id = $3::uuid
     `;
-    
+
     const ticketCheckResult = await pool.query(ticketCheckQuery, [sourceTicketId, targetTicketId, tenantId]);
-    
+
     if (ticketCheckResult.rows.length !== 2) {
       return res.status(400).json({ message: "One or both tickets not found" });
     }
@@ -3843,8 +3666,8 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     // Create the relationship
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_relationships 
-      (tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by)
-      VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6::uuid)
+      (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by)
+      VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3::uuid, $4, $5, $6::uuid)
       RETURNING *
     `;
 
@@ -3867,7 +3690,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
       const sessionId = getSessionId(req);
 
       const targetTicket = ticketCheckResult.rows.find(t => t.id === targetTicketId);
-      
+
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
         (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
@@ -3924,13 +3747,13 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
 });
 
 // Delete ticket relationship
-ticketsRouter.delete('/:id/relationships/:relationshipId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const { id: ticketId, relationshipId } = req.params;
+    const { relationshipId } = req.params;
     const tenantId = req.user.tenantId;
     const userId = req.user.id;
     const { pool } = await import('../../db');
@@ -3938,79 +3761,48 @@ ticketsRouter.delete('/:id/relationships/:relationshipId', jwtAuth, async (req: 
 
     // Get relationship details before deletion for audit
     const getRelationshipQuery = `
-      SELECT tr.*, 
-        source_ticket.number as source_number,
-        target_ticket.number as target_number
+      SELECT tr.source_ticket_id, tr.target_ticket_id, tr.relationship_type, tr.description,
+             source_ticket.number as source_number,
+             target_ticket.number as target_number
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN "${schemaName}".tickets source_ticket ON tr.source_ticket_id = source_ticket.id
       LEFT JOIN "${schemaName}".tickets target_ticket ON tr.target_ticket_id = target_ticket.id
-      WHERE tr.id = $1::uuid AND tr.tenant_id = $2::uuid
+      WHERE tr.id = $1 AND tr.tenant_id = $2
     `;
-
     const relationshipResult = await pool.query(getRelationshipQuery, [relationshipId, tenantId]);
+    const relationshipInfo = relationshipResult.rows[0];
 
-    if (relationshipResult.rows.length === 0) {
+    // Delete the relationship (hard delete since no is_active column)
+    const result = await pool.query(
+      `DELETE FROM "${schemaName}".ticket_relationships 
+      WHERE id = $1 AND tenant_id = $2`,
+      [relationshipId, tenantId]
+    );
+
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Relationship not found" });
     }
 
-    const relationship = relationshipResult.rows[0];
-
-    // Delete the relationship
-    const deleteQuery = `
-      DELETE FROM "${schemaName}".ticket_relationships 
-      WHERE id = $1::uuid AND tenant_id = $2::uuid
-    `;
-
-    await pool.query(deleteQuery, [relationshipId, tenantId]);
-
-    // Create audit entry in ticket history
-    try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
-      `, [
-        tenantId,
-        ticketId,
-        'relationship_deleted',
-        `Vínculo removido com ticket ${relationship.target_number || relationship.source_number}: ${relationship.relationship_type}`,
-        userId,
-        req.user.name || 'Sistema',
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          relationship_id: relationshipId,
-          target_ticket_id: relationship.target_ticket_id,
-          source_ticket_id: relationship.source_ticket_id,
-          relationship_type: relationship.relationship_type,
-          description: relationship.description,
-          deleted_time: new Date().toISOString(),
-          // ✅ DADOS DE SESSÃO GARANTIDOS NO METADATA TAMBÉM
-          client_info: {
-            ip_address: ipAddress,
-            user_agent: userAgent,
-            session_id: sessionId,
-            action_context: 'relationship_deletion',
-            timestamp: new Date().toISOString()
-          },
-          session_backup: {
-            ip_address: ipAddress,
-            user_agent: userAgent,
-            session_id: sessionId
+    // Create audit trail for relationship deletion
+    if (relationshipInfo) {
+      try {
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, relationshipInfo.source_ticket_id, req,
+          'relationship_deleted',
+          `Relacionamento removido com ticket ${relationshipInfo.target_number || relationshipInfo.target_ticket_id}: ${relationshipInfo.relationship_type}`,
+          {
+            relationship_id: relationshipId,
+            source_ticket_id: relationshipInfo.source_ticket_id,
+            target_ticket_id: relationshipInfo.target_ticket_id,
+            target_ticket_number: relationshipInfo.target_number,
+            relationship_type: relationshipInfo.relationship_type,
+            description: relationshipInfo.description,
+            deletion_time: new Date().toISOString()
           }
-        })
-      ]);
-
-      console.log('✅ [AUDIT-RELATIONSHIP-DELETE] Entrada de auditoria criada com dados de sessão completos');
-
-    } catch (historyError) {
-      console.error('❌ Erro ao criar entrada no histórico:', historyError.message);
+        );
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
     }
 
     res.json({
@@ -4086,11 +3878,11 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
 
     const internalActions = result.rows.map(row => ({
       id: row.id,
-      actionNumber: row.action_number,
+      actionNumber: row.action_number, // Include the unique action number
       title: `${row.action_type}: ${row.title}`,
       description: row.description,
       startDateTime: row.startDateTime,
-      endDateTime: row.endDateTime || row.startDateTime,
+      endDateTime: row.endDateTime || row.startDateTime, // Use start time if no end time
       status: row.status,
       priority: row.priority,
       agentId: row.agentId,
@@ -4099,10 +3891,10 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       ticketSubject: row.ticketSubject,
       agentName: row.agentName,
       agentEmail: row.agentEmail,
-      type: 'internal_action',
+      type: 'internal_action', // Distinguish from regular schedules
       actionType: row.actionType,
       estimatedHours: row.estimated_hours,
-      actualHours: 0
+      actualHours: 0 // Default value since column doesn't exist
     }));
 
     res.json({
@@ -4116,101 +3908,6 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       success: false,
       message: "Failed to fetch internal actions for schedule",
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-      // DELETE ticket (soft delete) - CRITICAL FIX for ticket deletion functionality
-ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Tenant ID required" 
-      });
-    }
-
-    const { id } = req.params;
-    const tenantId = req.user.tenantId;
-    const userId = req.user.id;
-    const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    console.log(`[DELETE-TICKET] Attempting to delete ticket: ${id} for tenant: ${tenantId}`);
-
-    // First, verify the ticket exists and is active
-    const checkQuery = `
-      SELECT id, subject, status, priority, is_active 
-      FROM "${schemaName}".tickets 
-      WHERE id = $1 AND tenant_id = $2 AND is_active = true
-    `;
-    const checkResult = await pool.query(checkQuery, [id, tenantId]);
-
-    if (checkResult.rows.length === 0) {
-      console.log(`[DELETE-TICKET] Ticket not found or already deleted: ${id}`);
-      return res.status(404).json({
-        success: false,
-        message: 'Ticket not found or already deleted'
-      });
-    }
-
-    const ticket = checkResult.rows[0];
-    console.log(`[DELETE-TICKET] Found ticket to delete:`, ticket);
-
-    // Perform soft delete - set is_active to false
-    const deleteQuery = `
-      UPDATE "${schemaName}".tickets 
-      SET is_active = false, updated_at = NOW(), updated_by = $3
-      WHERE id = $1 AND tenant_id = $2 AND is_active = true
-      RETURNING id, subject
-    `;
-
-    const deleteResult = await pool.query(deleteQuery, [id, tenantId, userId]);
-
-    if (deleteResult.rowCount === 0) {
-      console.log(`[DELETE-TICKET] Failed to delete ticket: ${id}`);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to delete ticket'
-      });
-    }
-
-    console.log(`[DELETE-TICKET] Successfully deleted ticket: ${id}`);
-
-    // Create comprehensive audit trail for ticket deletion
-    try {
-      await createCompleteAuditEntry(
-        pool, schemaName, tenantId, id, req,
-        'ticket_deleted',
-        `Ticket excluído: ${ticket.subject}`,
-        {
-          deleted_ticket_id: id,
-          deleted_ticket_subject: ticket.subject,
-          deleted_ticket_status: ticket.status,
-          deleted_ticket_priority: ticket.priority,
-          deletion_time: new Date().toISOString(),
-          deleted_by: userId
-        }
-      );
-    } catch (historyError) {
-      console.log('⚠️ Warning: Could not create audit trail for ticket deletion:', historyError.message);
-    }
-
-    res.json({
-      success: true,
-      message: 'Ticket deleted successfully',
-      data: {
-        deletedTicketId: id,
-        deletedTicketSubject: ticket.subject
-      }
-    });
-
-  } catch (error) {
-    console.error("Error deleting ticket:", error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete ticket',
-      error: error.message
     });
   }
 });
