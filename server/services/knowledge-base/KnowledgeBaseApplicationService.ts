@@ -39,7 +39,7 @@ export class KnowledgeBaseApplicationService {
       const conditions = [
         eq(knowledgeBaseArticles.tenantId, this.tenantId)
       ];
-      
+
       this.logger.log(`[KB-SERVICE] Base condition: tenantId = ${this.tenantId}`);
 
       // Add search conditions
@@ -134,7 +134,7 @@ export class KnowledgeBaseApplicationService {
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: categoryMapping[articleData.category] || 'other',
+        categoryId: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
@@ -147,7 +147,7 @@ export class KnowledgeBaseApplicationService {
 
       // Debug: Log exactly what we're trying to insert
       console.log('[KB-DEBUG] Attempting to insert:', JSON.stringify(newArticle, null, 2));
-      
+
       // Insert article
       const [createdArticle] = await db
         .insert(knowledgeBaseArticles)
