@@ -230,10 +230,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         agent_id: currentUser?.id || "", // Keep assigning to the logged-in user
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
-        planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
-        planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
-        start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
-        end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+        planned_start_time: data.planned_start_time,
+        planned_end_time: data.planned_end_time,
+        start_time: data.start_time,
+        end_time: data.end_time,
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
         actual_minutes: data.actual_minutes ? parseInt(data.actual_minutes) : 0,
         status: data.status || 'pending',
@@ -243,13 +243,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
       console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData);
 
-      const response = await fetch(`/api/tickets/${ticketId}/actions/${editAction.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanedData)
-      });
+      const response = await apiRequest("PATCH", `/api/tickets/${ticketId}/actions/${editAction.id}`, cleanedData);
 
       if (!response.ok) {
         const errorData = await response.text();

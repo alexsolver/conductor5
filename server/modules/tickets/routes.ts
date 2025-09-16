@@ -3169,42 +3169,175 @@ ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) 
 });
 
 // Update internal action
-ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
     }
 
     const { ticketId, actionId } = req.params;
-    const { 
-      actionType, 
-      workLog, 
-      description, 
-      timeSpent, 
-      startDateTime, 
-      endDateTime,
-      assignedToId,
-      status = 'pending',
-      is_public = false,
-      title,
-      estimated_hours,
-      agent_id,
-      planned_start_time,
-      planned_end_time,
-      priority
-    } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log('🔧 PUT Update - Received data:', {
+    console.log('🔧 PATCH Update - Received data:', {
       ticketId,
       actionId,
-      actionType,
+      body: req.body
+    });
+
+    // Extract fields from request body with proper mapping
+    const {
+      action_type,
+      agent_id,
+      title,
       description,
-      workLog,
-      startDateTime,
-      endDateTime,
+      planned_start_time,
+      planned_end_time,
+      start_time,
+      end_time,
+      estimated_hours,
+      actual_minutes,
+      status = 'pending',
+      priority = 'medium',
+      is_public = false
+    } = req.body;
+
+    // Validate required fields
+    if (!action_type) {
+      return res.status(400).json({
+        success: false,
+        message: "Action type is required"
+      });
+    }
+
+    // Check if action exists
+    const checkQuery = `
+      SELECT * FROM "${schemaName}".ticket_internal_actions 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+    
+    const existingAction = await pool.query(checkQuery, [actionId, tenantId, ticketId]);
+    
+    if (existingAction.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Internal action not found"
+      });
+    }
+
+    // Build dynamic update query
+    const updateFields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (action_type !== undefined) {
+      updateFields.push(`action_type = $${paramIndex++}`);
+      values.push(action_type);
+    }
+    if (agent_id !== undefined) {
+      updateFields.push(`agent_id = $${paramIndex++}`);
+      values.push(agent_id);
+    }
+    if (title !== undefined) {
+      updateFields.push(`title = $${paramIndex++}`);
+      values.push(title || null);
+    }
+    if (description !== undefined) {
+      updateFields.push(`description = $${paramIndex++}`);
+      values.push(description || null);
+    }
+    if (planned_start_time !== undefined) {
+      updateFields.push(`planned_start_time = $${paramIndex++}`);
+      values.push(planned_start_time ? new Date(planned_start_time).toISOString() : null);
+    }
+    if (planned_end_time !== undefined) {
+      updateFields.push(`planned_end_time = $${paramIndex++}`);
+      values.push(planned_end_time ? new Date(planned_end_time).toISOString() : null);
+    }
+    if (start_time !== undefined) {
+      updateFields.push(`start_time = $${paramIndex++}`);
+      values.push(start_time ? new Date(start_time).toISOString() : null);
+    }
+    if (end_time !== undefined) {
+      updateFields.push(`end_time = $${paramIndex++}`);
+      values.push(end_time ? new Date(end_time).toISOString() : null);
+    }
+    if (estimated_hours !== undefined) {
+      updateFields.push(`estimated_hours = $${paramIndex++}`);
+      values.push(parseFloat(estimated_hours) || 0);
+    }
+    if (actual_minutes !== undefined) {
+      updateFields.push(`actual_minutes = $${paramIndex++}`);
+      values.push(parseInt(actual_minutes) || 0);
+    }
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
+    if (priority !== undefined) {
+      updateFields.push(`priority = $${paramIndex++}`);
+      values.push(priority);
+    }
+    if (is_public !== undefined) {
+      updateFields.push(`is_public = $${paramIndex++}`);
+      values.push(is_public);
+    }
+
+    // Always update updated_at
+    updateFields.push(`updated_at = $${paramIndex++}`);
+    values.push(new Date().toISOString());
+
+    // Add WHERE clause parameters
+    values.push(actionId, tenantId, ticketId);
+
+    if (updateFields.length === 1) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update"
+      });
+    }
+
+    const updateQuery = `
+      UPDATE "${schemaName}".ticket_internal_actions 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex++} AND tenant_id = $${paramIndex++} AND ticket_id = $${paramIndex++}
+      RETURNING *
+    `;
+
+    console.log('🔧 Update Query:', { updateQuery, values });
+
+    const result = await pool.query(updateQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to update internal action"
+      });
+    }
+
+    const updatedAction = result.rows[0];
+
+    console.log('✅ Internal Action Updated:', updatedAction);
+
+    return res.json({
+      success: true,
+      message: "Internal action updated successfully",
+      data: updatedAction
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error updating internal action:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update internal action",
+      error: error.message
+    });
+  }
+});teTime,
       status
     });
 
