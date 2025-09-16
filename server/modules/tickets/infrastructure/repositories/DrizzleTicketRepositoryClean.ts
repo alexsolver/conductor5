@@ -54,53 +54,56 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const result = await tenantDb.execute(sql`
         SELECT 
           t.id,
-          t.number,
-          t.subject,
+          t.tenant_id      as "tenantId",
+          t.ticket_number  as "ticketNumber",
+          t.title,
           t.description,
           t.status,
           t.priority,
-          t.urgency,
-          t.impact,
           t.category,
           t.subcategory,
-          t.action,
-          t.caller_id as "callerId",
-          t.caller_type as "callerType", 
-          t.beneficiary_id as "beneficiaryId",
-          t.beneficiary_type as "beneficiaryType",
-          t.assigned_to_id as "assignedToId",
-          t.assignment_group as "assignmentGroupId",
-          t.company_id as "companyId",
-          t.location,
-          t.contact_type as "contactType",
-          t.business_impact as "businessImpact",
-          t.symptoms,
-          t.workaround,
-          t.environment,
-          t.link_ticket_number as "linkTicketNumber",
-          t.link_type as "linkType",
-          t.link_comment as "linkComment",
-          t.tenant_id as "tenantId",
-          t.created_at as "createdAt",
-          t.updated_at as "updatedAt",
-          t.opened_by_id as "createdBy",
-          t.is_active as "isActive",
-          
+          t.customer_id    as "customerId",
+          t.assigned_to    as "assignedTo",
+          t.company_id     as "companyId",
+          t.location_id    as "locationId",
+          t.caller_id      as "callerId",
+          t.estimated_hours as "estimatedHours",
+          t.actual_hours    as "actualHours",
+          t.due_date        as "dueDate",
+          t.resolution_date as "resolutionDate",
+          t.satisfaction_rating  as "satisfactionRating",
+          t.satisfaction_comment as "satisfactionComment",
+          t.tags,
+          t.custom_fields   as "customFields",
+          t.metadata,
+          t.created_at      as "createdAt",
+          t.updated_at      as "updatedAt",
+          t.created_by_id   as "createdBy",
+          t.updated_by_id   as "updatedBy",
+          t.template_name   as "templateName",
+          t.template_alternative as "templateAlternative",
+          t.is_active       as "isActive",
+
           -- Dados da empresa
-          c.name as "company_name",
-          c.display_name as "company_display_name",
-          
-          -- Dados do caller
-          caller.first_name as "caller_first_name",
-          caller.last_name as "caller_last_name",
-          caller.email as "caller_email",
-          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name"
-          
+          c.name         as "companyName",
+          c.display_name as "companyDisplayName",
+
+          -- Dados do caller (se a tabela customers existe no schema)
+          caller.first_name,
+          caller.last_name,
+          caller.email,
+          CONCAT(caller.first_name, ' ', caller.last_name) as "callerName"
+
         FROM ${sql.identifier(schemaName)}.tickets t
-        LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
-        WHERE t.id = ${id} AND t.tenant_id = ${tenantId} AND t.is_active = true
+        LEFT JOIN ${sql.identifier(schemaName)}.companies c 
+          ON t.company_id = c.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers caller 
+          ON t.caller_id = caller.id
+        WHERE t.id = ${id} 
+          AND t.tenant_id = ${tenantId} 
+          AND t.is_active = true
       `);
+
 
       if (result.rows.length === 0) {
         console.log('❌ [DrizzleTicketRepositoryClean] Ticket not found');
@@ -187,35 +190,52 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       // Fetch paginated results with JOIN para incluir dados de clientes e empresas
       const results = await tenantDb.execute(sql.raw(`
         SELECT 
-          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
-          t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
-          t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
-          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.assignment_group as "assignmentGroupId",
-          
-          -- Dados da empresa (company) - usar schema tenant
-          c.name as "company_name",
-          c.display_name as "company_display_name",
-          
-          -- Dados do cliente/caller (customer que abriu o ticket) - usar schema tenant  
-          caller.first_name as "caller_first_name",
-          caller.last_name as "caller_last_name",
-          caller.email as "caller_email",
-          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_name",
-          
-          -- Dados do beneficiário (se diferente do caller) - usar schema tenant
-          beneficiary.first_name as "beneficiary_first_name",
-          beneficiary.last_name as "beneficiary_last_name",
-          beneficiary.email as "beneficiary_email",
-          CONCAT(beneficiary.first_name, ' ', beneficiary.last_name) as "beneficiary_name"
-          
+          t.id,
+          t.ticket_number    AS "number",
+          t.title            AS "subject",
+          t.description,
+          t.status,
+          t.priority,
+          t.category,
+          t.subcategory,
+          t.caller_id        AS "callerId",
+          t.assigned_to      AS "assignedTo",     -- corrigido
+          t.tenant_id        AS "tenantId",
+          t.created_at       AS "createdAt",
+          t.updated_at       AS "updatedAt",
+          t.company_id       AS "companyId",
+          t.customer_id      AS "customerId",
+
+          -- Dados da empresa
+          c.name             AS "company_name",
+          c.display_name     AS "company_display_name",
+
+          -- Dados do cliente/caller
+          caller.first_name  AS "caller_first_name",
+          caller.last_name   AS "caller_last_name",
+          caller.email       AS "caller_email",
+          CONCAT(caller.first_name, ' ', caller.last_name) AS "caller_name",
+
+          -- Dados do customer (beneficiário de fato)
+          customer.first_name AS "customer_first_name",
+          customer.last_name  AS "customer_last_name",
+          customer.email      AS "customer_email",
+          CONCAT(customer.first_name, ' ', customer.last_name) AS "customer_name"
+
         FROM ${schemaName}.tickets t
-        LEFT JOIN ${schemaName}.companies c ON t.company_id = c.id
-        LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id
-        LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
-        WHERE t.is_active = true ${whereClause}
+        LEFT JOIN ${schemaName}.companies c
+          ON t.company_id = c.id
+        LEFT JOIN ${schemaName}.customers caller
+          ON t.caller_id = caller.id
+        LEFT JOIN ${schemaName}.customers customer
+          ON t.customer_id = customer.id
+        WHERE t.is_active = true
+          ${whereClause}
         ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
       `, whereParams));
+
+
 
       return {
         tickets: results.rows,
@@ -318,13 +338,31 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
       // Map of allowed fields (only fields that exist in the database schema)
       const allowedFields = [
-        'subject', 'description', 'status', 'priority', 'urgency', 'impact',
-        'category', 'subcategory', 'action', 'caller_id', 'caller_type', 
-        'beneficiary_id', 'beneficiary_type', 'assigned_to_id', 'assignment_group',
-        'company_id', 'location', 'contact_type', 'business_impact', 'symptoms',
-        'workaround', 'environment', 'template_alternative',
-        'link_ticket_number', 'link_type', 'link_comment', 
-        'updated_at', 'updated_by_id'
+        'title',                // corresponde ao "subject"
+        'description',
+        'status',
+        'priority',
+        'category',
+        'subcategory',
+        'customer_id',
+        'assigned_to',
+        'company_id',
+        'location_id',
+        'caller_id',
+        'estimated_hours',
+        'actual_hours',
+        'due_date',
+        'resolution_date',
+        'satisfaction_rating',
+        'satisfaction_comment',
+        'tags',
+        'custom_fields',
+        'metadata',
+        'updated_at',
+        'updated_by_id',
+        'template_name',
+        'template_alternative',
+        'is_active'
       ];
 
       // Sanitize input data - only keep allowed fields with non-undefined values
