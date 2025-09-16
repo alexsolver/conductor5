@@ -27,6 +27,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     endDateTime: "",
     estimatedMinutes: "0",
     timeSpentMinutes: "0",
+    actualMinutes: "0",
     alterTimeSpent: false,
     actionType: "",
     workLog: "",
@@ -81,6 +82,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
       estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
       timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
+      actualMinutes: (dataToUse.actual_minutes || dataToUse.actualMinutes || 0).toString(),
       alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
       actionType: dataToUse.type || dataToUse.actionType || dataToUse.actiontype || "",
       workLog: dataToUse.work_log || dataToUse.workLog || "",
@@ -114,6 +116,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         startDateTime: data.startDateTime,
         endDateTime: data.endDateTime,
         estimatedMinutes: parseInt(data.estimatedMinutes) || 0,
+        actualMinutes: parseInt(data.actualMinutes) || 0,
         timeSpentMinutes: data.alterTimeSpent ? parseInt(data.timeSpentMinutes) || 0 : 0,
         status: data.status,
         assignedToId: data.assignedToId,
@@ -167,6 +170,42 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     }));
   };
 
+  const handleStartTimer = () => {
+    const now = new Date().toISOString().slice(0, 16);
+    const updatedFormData = {
+      ...formData,
+      startDateTime: now
+    };
+    
+    setFormData(updatedFormData);
+    
+    // Salvar automaticamente
+    updateActionMutation.mutate(updatedFormData);
+  };
+
+  const handleFinishTimer = () => {
+    const now = new Date().toISOString().slice(0, 16);
+    
+    // Calcular minutos decorridos
+    if (formData.startDateTime) {
+      const startTime = new Date(formData.startDateTime);
+      const endTime = new Date(now);
+      const diffMs = endTime.getTime() - startTime.getTime();
+      const diffMinutes = Math.round(diffMs / (1000 * 60));
+      
+      const updatedFormData = {
+        ...formData,
+        endDateTime: now,
+        actualMinutes: diffMinutes.toString()
+      };
+      
+      setFormData(updatedFormData);
+      
+      // Salvar automaticamente
+      updateActionMutation.mutate(updatedFormData);
+    }
+  };
+
   if (!action) return null;
 
   return (
@@ -185,10 +224,32 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         <Card>
           <CardContent className="p-6">
             <div className="space-y-6">
+              {/* Timer Control Buttons */}
+              <div className="flex gap-2 p-4 border rounded-lg bg-blue-50 mb-6">
+                <Button
+                  type="button"
+                  onClick={handleStartTimer}
+                  disabled={updateActionMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Iniciar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleFinishTimer}
+                  disabled={updateActionMutation.isPending || !formData.startDateTime}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Finalizar
+                </Button>
+              </div>
+
               {/* Date/Time and Time Controls */}
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="start-datetime">Data/Hora Início</Label>
+                  <Label htmlFor="start-datetime">Data/Hora Início Realizado</Label>
                   <Input
                     id="start-datetime"
                     type="datetime-local"
@@ -198,7 +259,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="end-datetime">Data/Hora Fim</Label>
+                  <Label htmlFor="end-datetime">Data/Hora Fim Realizado</Label>
                   <Input
                     id="end-datetime"
                     type="datetime-local"
@@ -208,7 +269,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="estimated-minutes">Tempo previsto (min)</Label>
+                  <Label htmlFor="estimated-minutes">Tempo Estimado (min)</Label>
                   <Input
                     id="estimated-minutes"
                     type="number"
@@ -220,25 +281,17 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   />
                 </div>
                 <div>
-                  <div className="flex items-center space-x-2 mb-1">
-                    <Switch
-                      id="alter-time"
-                      checked={formData.alterTimeSpent}
-                      onCheckedChange={handleTimeSpentToggle}
-                    />
-                    <Label htmlFor="alter-time" className="text-sm">Alterar tempo gasto</Label>
-                  </div>
+                  <Label htmlFor="actual-minutes">Tempo Realizado (min)</Label>
                   <Input
-                    id="time-spent"
+                    id="actual-minutes"
                     type="number"
                     min="0"
-                    value={formData.timeSpentMinutes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, timeSpentMinutes: e.target.value }))}
+                    value={formData.actualMinutes || "0"}
+                    onChange={(e) => setFormData(prev => ({ ...prev, actualMinutes: e.target.value }))}
                     placeholder="0"
-                    disabled={!formData.alterTimeSpent}
                     className="mt-1"
+                    readOnly
                   />
-                  <Label htmlFor="time-spent" className="text-xs text-gray-500">minutos</Label>
                 </div>
               </div>
 
