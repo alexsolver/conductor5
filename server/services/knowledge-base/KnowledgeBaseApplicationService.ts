@@ -50,7 +50,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
+        conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
       if (params.access_level) {
@@ -134,7 +134,7 @@ export class KnowledgeBaseApplicationService {
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        categoryId: categoryMapping[articleData.category] || 'other',
+        category: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
