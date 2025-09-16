@@ -64,6 +64,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     start_time: "",
     end_time: "",
     estimated_hours: "0",
+    actual_minutes: "0",
     status: "pending",
     priority: "medium",
 
@@ -87,6 +88,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       start_time: "",
       end_time: "",
       estimated_hours: "0",
+      actual_minutes: "0",
       status: "pending",
       priority: "medium",
       attachments: []
@@ -112,6 +114,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           start_time: editAction.start_time ? editAction.start_time.slice(0, 16) : "",
           end_time: editAction.end_time ? editAction.end_time.slice(0, 16) : "",
           estimated_hours: editAction.estimated_minutes ? (parseFloat(editAction.estimated_minutes) / 60).toString() : "0",
+          actual_minutes: editAction.actual_minutes || editAction.actualMinutes || "0",
           status: editAction.status || "pending",
           priority: editAction.priority || "medium",
           attachments: []
@@ -157,6 +160,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
         // Numeric fields with proper validation
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
+        actual_minutes: data.actual_minutes ? parseInt(data.actual_minutes) : 0,
 
         // Status and priority with defaults
         status: data.status || 'pending',
@@ -217,6 +221,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
         end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
+        actual_minutes: data.actual_minutes ? parseInt(data.actual_minutes) : 0,
         status: data.status || 'pending',
         priority: data.priority || 'medium',
         is_public: isPublic,
@@ -366,6 +371,49 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     }));
   };
 
+  // Timer control functions
+  const handleStartTimer = () => {
+    const now = new Date().toISOString().slice(0, 16);
+    const updatedFormData = {
+      ...formData,
+      start_time: now
+    };
+    
+    setFormData(updatedFormData);
+    
+    // Salvar automaticamente se estiver em modo de edição
+    if (editAction) {
+      updateActionMutation.mutate(updatedFormData);
+    }
+  };
+
+  const handleFinishTimer = () => {
+    const now = new Date().toISOString().slice(0, 16);
+    
+    // Calcular minutos decorridos
+    if (formData.start_time) {
+      const startTime = new Date(formData.start_time);
+      const endTime = new Date(now);
+      const diffMs = endTime.getTime() - startTime.getTime();
+      const diffMinutes = Math.round(diffMs / (1000 * 60));
+      
+      const updatedFormData = {
+        ...formData,
+        end_time: now,
+        actual_minutes: diffMinutes.toString()
+      };
+      
+      setFormData(updatedFormData);
+      
+      // Salvar automaticamente se estiver em modo de edição
+      if (editAction) {
+        updateActionMutation.mutate(updatedFormData);
+        // Não fechar o modal, apenas salvar
+        return;
+      }
+    }
+  };
+
 
 
   return (
@@ -385,6 +433,31 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Timer Control Buttons - Only show in edit mode */}
+          {editAction && (
+            <div className="flex gap-2 p-4 border rounded-lg bg-blue-50 mb-6">
+              <Button
+                type="button"
+                onClick={handleStartTimer}
+                disabled={updateActionMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+                data-testid="button-start-timer"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Iniciar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleFinishTimer}
+                disabled={updateActionMutation.isPending || !formData.start_time}
+                className="bg-red-600 hover:bg-red-700"
+                data-testid="button-finish-timer"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Finalizar
+              </Button>
+            </div>
+          )}
 
           <Card>
             <CardContent className="p-6">
@@ -507,51 +580,68 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   )}
                 </div>
 
-                {/* Tempo Estimado */}
-                <div>
-                  <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
-                  <Input
-                    id="estimated-hours"
-                    type="number"
-                    min="0"
-                    step="1"
-                    max="9999"
-                    value={formData.estimated_hours}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      setFormData(prev => {
-                        const newData = { ...prev, estimated_hours: newValue };
+                {/* Tempo Estimado e Tempo Realizado */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
+                    <Input
+                      id="estimated-hours"
+                      type="number"
+                      min="0"
+                      step="1"
+                      max="9999"
+                      value={formData.estimated_hours}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setFormData(prev => {
+                          const newData = { ...prev, estimated_hours: newValue };
 
-                        // Auto-calculate planned end time if both estimated time and planned start time are filled
-                        if (newValue && prev.planned_start_time) {
-                          const estimatedMinutes = parseInt(newValue);
-                          if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
-                            // Parse the datetime-local value directly without timezone conversion
-                            const [datePart, timePart] = prev.planned_start_time.split('T');
-                            const [year, month, day] = datePart.split('-').map(Number);
-                            const [hour, minute] = timePart.split(':').map(Number);
+                          // Auto-calculate planned end time if both estimated time and planned start time are filled
+                          if (newValue && prev.planned_start_time) {
+                            const estimatedMinutes = parseInt(newValue);
+                            if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                              // Parse the datetime-local value directly without timezone conversion
+                              const [datePart, timePart] = prev.planned_start_time.split('T');
+                              const [year, month, day] = datePart.split('-').map(Number);
+                              const [hour, minute] = timePart.split(':').map(Number);
 
-                            // Create date in local timezone
-                            const startTime = new Date(year, month - 1, day, hour, minute);
-                            const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                              // Create date in local timezone
+                              const startTime = new Date(year, month - 1, day, hour, minute);
+                              const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
 
-                            // Format back to datetime-local format
-                            const endYear = endTime.getFullYear();
-                            const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
-                            const endDay = String(endTime.getDate()).padStart(2, '0');
-                            const endHour = String(endTime.getHours()).padStart(2, '0');
-                            const endMinute = String(endTime.getMinutes()).padStart(2, '0');
+                              // Format back to datetime-local format
+                              const endYear = endTime.getFullYear();
+                              const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
+                              const endDay = String(endTime.getDate()).padStart(2, '0');
+                              const endHour = String(endTime.getHours()).padStart(2, '0');
+                              const endMinute = String(endTime.getMinutes()).padStart(2, '0');
 
-                            newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
+                              newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
+                            }
                           }
-                        }
 
-                        return newData;
-                      });
-                    }}
-                    placeholder="0"
-                    className="mt-1"
-                  />
+                          return newData;
+                        });
+                      }}
+                      placeholder="0"
+                      className="mt-1"
+                      data-testid="input-estimated-minutes"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="actual-minutes">Tempo Realizado (minutos)</Label>
+                    <Input
+                      id="actual-minutes"
+                      type="number"
+                      min="0"
+                      value={formData.actual_minutes || "0"}
+                      onChange={(e) => setFormData(prev => ({ ...prev, actual_minutes: e.target.value }))}
+                      placeholder="0"
+                      className="mt-1"
+                      readOnly
+                      data-testid="input-actual-minutes"
+                    />
+                  </div>
                 </div>
 
                 {/* Datas Previstas */}
