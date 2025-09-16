@@ -17,17 +17,9 @@ export class TokenManager {
   private readonly refreshSecret: string;
 
   private constructor() {
-    // ✅ CRITICAL FIX - Use consistent secrets for token generation and verification
-    const baseSecret = process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
-    this.accessSecret = baseSecret;
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET || baseSecret;
-    
-    console.log('🔑 [TOKEN-MANAGER] Initialized with secrets:', {
-      accessSecretLength: this.accessSecret.length,
-      refreshSecretLength: this.refreshSecret.length,
-      secretsMatch: this.accessSecret === this.refreshSecret,
-      baseSecret: baseSecret.substring(0, 10) + '...'
-    });
+    // ✅ CRITICAL FIX - Use same secrets as Use Cases per 1qa.md compliance
+    this.accessSecret = process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
+    this.refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
   }
 
   static getInstance(): TokenManager {
@@ -37,7 +29,11 @@ export class TokenManager {
     return TokenManager.instance;
   }
 
-  
+  private generateStableSecret(type: string): string {
+    // Fixed secret for development to prevent signature mismatches
+    const base = `conductor-platform-${type}-secret-fixed-development`;
+    return `${base}-stable-key-2025`;
+  }
 
   generateAccessToken(user: { id: string; email: string; role: string; tenantId: string | null }): string {
     const payload: TokenPayload = {
@@ -115,12 +111,6 @@ export class TokenManager {
         tokenLength: token.length,
         partsCount: tokenParts.length,
         timestamp: new Date().toISOString()
-      });
-
-      console.log('🔍 [TOKEN-MANAGER] Attempting verification with secret:', {
-        secretLength: this.accessSecret.length,
-        secretStart: this.accessSecret.substring(0, 10) + '...',
-        tokenStart: token.substring(0, 50) + '...'
       });
 
       const decoded = jwt.verify(token, this.accessSecret, {

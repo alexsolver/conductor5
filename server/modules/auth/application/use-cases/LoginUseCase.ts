@@ -56,18 +56,9 @@ export class LoginUseCase {
     // Create token expiry dates
     const { accessTokenExpiry, refreshTokenExpiry } = this.authDomainService.createTokenExpiry(dto.rememberMe);
 
-    // Generate access and refresh tokens using TokenManager singleton
-    const { tokenManager } = await import('../../../utils/tokenManager');
-    const accessToken = tokenManager.generateAccessToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantId
-    });
-
-    const refreshToken = tokenManager.generateRefreshToken({
-      id: user.id
-    });
+    // Generate tokens
+    const accessToken = this.generateAccessToken(user, accessTokenExpiry);
+    const refreshToken = this.generateRefreshToken(user, refreshTokenExpiry);
 
     // Create session metadata
     const sessionMetadata = this.authDomainService.createSessionMetadata(ipAddress, userAgent);
