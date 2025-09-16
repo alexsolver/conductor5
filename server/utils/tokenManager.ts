@@ -45,7 +45,7 @@ export class TokenManager {
     };
 
     return jwt.sign(payload, this.accessSecret, {
-      expiresIn: '24h', // ✅ 1QA.MD: Aumentado para 24 horas para reduzir logouts automáticos
+      expiresIn: '8h', // ✅ Reduzido para 8 horas para maior segurança mas evitar logouts frequentes
       issuer: 'conductor-platform',
       audience: 'conductor-users',
       algorithm: 'HS256'

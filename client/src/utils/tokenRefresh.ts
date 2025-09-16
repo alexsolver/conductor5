@@ -27,8 +27,8 @@ export class TokenRefresh {
       const currentTime = Date.now();
       const timeUntilExpiry = expiryTime - currentTime;
 
-      // Refresh 10 minutes before expiry, or immediately if less than 10 minutes remain
-      const refreshTime = Math.max(timeUntilExpiry - (10 * 60 * 1000), 1000);
+      // Refresh 30 minutes before expiry, or immediately if less than 30 minutes remain
+      const refreshTime = Math.max(timeUntilExpiry - (30 * 60 * 1000), 1000);
 
       console.log(`⏰ [TOKEN-REFRESH] Token expires in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes, refresh scheduled in ${Math.round(refreshTime / 1000 / 60)} minutes`);
 
@@ -102,7 +102,7 @@ export class TokenRefresh {
       document.addEventListener(event, updateActivity, true);
     });
 
-    // Check token status every 5 minutes
+    // Check token status every 2 minutes
     TokenRefresh.activityInterval = setInterval(() => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -114,15 +114,15 @@ export class TokenRefresh {
         const timeUntilExpiry = expiryTime - currentTime;
         const timeSinceActivity = currentTime - TokenRefresh.lastActivity;
 
-        // If user was active in the last 15 minutes and token expires in less than 15 minutes
-        if (timeSinceActivity < (15 * 60 * 1000) && timeUntilExpiry < (15 * 60 * 1000)) {
+        // If user was active in the last 10 minutes and token expires in less than 45 minutes
+        if (timeSinceActivity < (10 * 60 * 1000) && timeUntilExpiry < (45 * 60 * 1000)) {
           console.log('🔄 [TOKEN-REFRESH] User is active, refreshing token preemptively');
           TokenRefresh.performRefresh();
         }
       } catch (error) {
         console.warn('⚠️ [TOKEN-REFRESH] Error checking token in activity monitor:', error);
       }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 2 * 60 * 1000); // Check every 2 minutes
   }
 }
 

@@ -221,19 +221,23 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     res.setHeader('Content-Type', 'application/json');
 
     if (error instanceof jwt.TokenExpiredError) {
+      console.log('🔄 [JWT-AUTH] Token expired - sending refresh signal to client');
       res.status(401).json({
         success: false,
         message: 'Token expired',
         code: 'TOKEN_EXPIRED',
-        needsRefresh: true, // ✅ 1QA.MD: Indicar que precisa fazer refresh
+        needsRefresh: true,
+        refreshUrl: '/api/auth/refresh',
         timestamp: new Date().toISOString()
       });
     } else if (error instanceof jwt.JsonWebTokenError) {
+      console.log('🔄 [JWT-AUTH] Invalid token - sending refresh signal to client');
       res.status(401).json({
         success: false,
         message: 'Invalid token',
         code: 'INVALID_TOKEN',
-        needsRefresh: true, // ✅ 1QA.MD: Indicar que precisa fazer refresh
+        needsRefresh: true,
+        refreshUrl: '/api/auth/refresh',
         timestamp: new Date().toISOString()
       });
     } else {
