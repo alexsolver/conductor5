@@ -76,7 +76,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   content: text("content").notNull(),
 
   // Categorization - matching exact DB structure  
-  category: varchar("category", { length: 100 }).notNull(), // Use 'category' to match existing DB
+  category: varchar("category_id", { length: 100 }).notNull(), // Use 'category_id' to match existing DB
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - matching exact DB structure
