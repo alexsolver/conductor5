@@ -3244,10 +3244,6 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       updateFields.push(`priority = $${paramIndex++}`);
       values.push(priority);
     }
-    if (is_public !== undefined) {
-      updateFields.push(`is_public = $${paramIndex++}`);
-      values.push(is_public);
-    }
 
     // Always update updated_at
     updateFields.push(`updated_at = $${paramIndex++}`);
