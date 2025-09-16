@@ -435,7 +435,7 @@ router.get("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
         FROM "${schemaName}".user_groups ug
         LEFT JOIN "${schemaName}".user_group_memberships ugm 
           ON ug.id = ugm.group_id AND ugm.is_active = true
-        WHERE ug.is_active = true
+        WHERE ug.is_active = true AND ug.tenant_id = '${currentUserTenantId}'::uuid
         GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
         ORDER BY ug.name;
       `;
@@ -1204,7 +1204,7 @@ router.get(
           COUNT(ur.user_id) AS user_count
         FROM ${rolesTable} r
         LEFT JOIN ${userRolesTable} ur ON r.id = ur.role_id
-        WHERE r.tenant_id = ${tenantId} AND r.is_active = true
+        WHERE r.tenant_id = ${tenantId}::uuid AND r.is_active = true
         GROUP BY r.id, r.name, r.description, r.permissions, r.is_active, r.is_system, r.created_at, r.updated_at
         ORDER BY r.name
       `;
