@@ -158,8 +158,8 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const rbacInstance = RBACService.getInstance();
     
     // ✅ CRITICAL FIX: Handle different User entity structures
-    const userRole = typeof user.getRole === 'function' ? user.getRole() : user.role;
-    const userTenantId = typeof user.getTenantId === 'function' ? user.getTenantId() : user.tenantId;
+    const userRole = user.role;
+    const userTenantId = user.tenantId;
     
     const permissions = rbacInstance.getRolePermissions(userRole);
 

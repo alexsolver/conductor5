@@ -266,16 +266,14 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<void> {
     try {
       await db
         .delete(users)
         .where(eq(users.id, id));
-
-      return true;
     } catch (error) {
       logError('Error deleting user', error, { userId: id });
-      return false;
+      throw new Error('Failed to delete user');
     }
   }
 

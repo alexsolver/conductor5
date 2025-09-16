@@ -61,7 +61,7 @@ export class DependencyContainer {
    */
   static async getTenantDirect(tenantId: string) {
     const { db } = await import('../../db');
-    const { tenants } = await import('@shared/schema');
+    const { tenants } = await import('../../db');
     const { eq } = await import('drizzle-orm');
 
     const result = await db
