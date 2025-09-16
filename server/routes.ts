@@ -5394,7 +5394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[USERS-ENDPOINT] Fetching users for tenant:", tenantId);
 
       // Buscar usuários do schema da tenant usando SQL direto
-      const { schemaManager } = await import("./middleware/schemaManager.js");
+      const { schemaManager } = await import("./db");
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
       const { sql } = await import("drizzle-orm");
