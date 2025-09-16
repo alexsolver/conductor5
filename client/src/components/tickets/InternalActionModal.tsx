@@ -49,12 +49,20 @@ interface InternalActionModalProps {
   onStartTimer?: (ticketId: string) => Promise<void>;
 }
 
+// Dummy user object for demonstration purposes. In a real app, this would come from auth context or a global state.
+const user = {
+  id: "current-user-id", // Replace with actual logged-in user ID
+  name: "Nome do Usuário Logado", // Replace with actual logged-in user name
+  email: "usuario@example.com", // Replace with actual logged-in user email
+};
+
+
 export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
-    agent_id: "__none__",
+    agent_id: user.id, // Default to logged-in user
 
     // Campos opcionais da tabela
     title: "",
@@ -80,7 +88,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   const resetForm = () => {
     setFormData({
       action_type: "",
-      agent_id: "__none__",
+      agent_id: user.id, // Reset to logged-in user
       title: "",
       description: "",
       planned_start_time: "",
@@ -106,7 +114,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         console.log('🔧 [EDIT-MODE] Loading action data:', editAction);
         setFormData({
           action_type: editAction.type || editAction.action_type || "",
-          agent_id: editAction.assigned_to_id || "__none__",
+          agent_id: editAction.assigned_to_id || user.id, // Fallback to logged-in user if editAction has no assigned_to_id
           title: editAction.title || "",
           description: editAction.description || editAction.content || editAction.work_log || "",
           planned_start_time: editAction.planned_start_time || "",
@@ -128,11 +136,14 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   }, [isOpen, editAction]);
 
   // Fetch team members for assignment dropdown
-  const { data: teamMembers } = useQuery({
+  // This query is no longer strictly necessary for the agent assignment but can be kept for other potential uses or removed if unused.
+  const { data: teamMembersData } = useQuery({
     queryKey: ["/api/user-management/users"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/user-management/users");
-      return response.json();
+      const data = await response.json();
+      // Filter out the current user if they appear in the list, as they are handled separately
+      return { users: data.users?.filter((u: any) => u.id !== user.id) || [] };
     },
     enabled: isOpen,
   });
@@ -144,7 +155,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       const cleanedData = {
         // Required fields
         action_type: data.action_type,
-        agent_id: data.agent_id === "__none__" ? null : data.agent_id,
+        agent_id: user.id, // Always assign to the logged-in user
 
         // Optional text fields
         title: data.title?.trim() || null,
@@ -213,7 +224,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     mutationFn: async (data: any) => {
       const cleanedData = {
         action_type: data.action_type,
-        agent_id: data.agent_id === "__none__" ? null : data.agent_id,
+        agent_id: user.id, // Keep assigning to the logged-in user
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
         planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
@@ -281,14 +292,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       return;
     }
 
-    if (!formData.agent_id || formData.agent_id === "__none__") {
-      toast({
-        title: "Erro",
-        description: "Por favor, selecione um agente responsável",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Agent ID is now automatically set to the logged-in user, so no need to validate if it's "__none__"
 
     // Validate date logic
     if (formData.planned_start_time && formData.planned_end_time) {
@@ -378,9 +382,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       ...formData,
       start_time: now
     };
-    
+
     setFormData(updatedFormData);
-    
+
     // Salvar automaticamente se estiver em modo de edição
     if (editAction) {
       updateActionMutation.mutate(updatedFormData);
@@ -394,14 +398,14 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       ...formData,
       start_time: now
     };
-    
+
     setFormData(formDataWithTimer);
-    
+
     // Validação básica
-    if (!formDataWithTimer.action_type || !formDataWithTimer.agent_id || formDataWithTimer.agent_id === "__none__") {
+    if (!formDataWithTimer.action_type) {
       toast({
         title: "Erro de Validação",
-        description: "Tipo de Ação e Agente Responsável são obrigatórios",
+        description: "Tipo de Ação é obrigatório",
         variant: "destructive",
       });
       return;
@@ -413,22 +417,22 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   const handleFinishTimer = () => {
     const now = new Date().toISOString().slice(0, 16);
-    
+
     // Calcular minutos decorridos
     if (formData.start_time) {
       const startTime = new Date(formData.start_time);
       const endTime = new Date(now);
       const diffMs = endTime.getTime() - startTime.getTime();
       const diffMinutes = Math.round(diffMs / (1000 * 60));
-      
+
       const updatedFormData = {
         ...formData,
         end_time: now,
         actual_minutes: diffMinutes.toString()
       };
-      
+
       setFormData(updatedFormData);
-      
+
       // Salvar automaticamente se estiver em modo de edição
       if (editAction) {
         updateActionMutation.mutate(updatedFormData);
@@ -508,22 +512,20 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     </Select>
                   </div>
 
-                  {/* Agente Responsável */}
-                  <div>
-                    <Label htmlFor="agent">Agente Responsável *</Label>
-                    <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Selecione um agente..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">-- Selecione um agente --</SelectItem>
-                        {teamMembers?.users?.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Agente Responsável - Read Only */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Agente Responsável *
+                    </Label>
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-medium">{user?.name || user?.email || 'Usuário Logado'}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">(Você)</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      As ações internas são sempre atribuídas ao usuário logado
+                    </p>
                   </div>
                 </div>
 
@@ -872,8 +874,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                         disabled={
                           createActionMutation.isPending || 
                           !formData.action_type || 
-                          !formData.agent_id || 
-                          formData.agent_id === "__none__" ||
                           formData.title.length > 255 ||
                           formData.description.length > 1000
                         }
@@ -890,8 +890,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       disabled={
                         (editAction ? updateActionMutation.isPending : createActionMutation.isPending) || 
                         !formData.action_type || 
-                        !formData.agent_id || 
-                        formData.agent_id === "__none__" ||
                         formData.title.length > 255 ||
                         formData.description.length > 1000 ||
                         (formData.planned_start_time && formData.planned_end_time && 
