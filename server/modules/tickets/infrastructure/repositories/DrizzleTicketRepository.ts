@@ -1,4 +1,3 @@
-
 /**
  * INFRASTRUCTURE LAYER - DRIZZLE TICKET REPOSITORY
  * Seguindo Clean Architecture - 1qa.md compliance
@@ -62,12 +61,49 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   // ✅ 1QA.MD: Create ticket using tenant schema
-  async create(ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>, tenantId: string): Promise<Ticket> {
+  async create(ticket: Ticket, tenantId: string): Promise<Ticket> {
     try {
-      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-      console.log('[TICKET-REPOSITORY-QA] Creating ticket for schema:', tenantSchema);
+      console.log('🎯 [DrizzleTicketRepository] Creating ticket with data:', { 
+        ticket: { ...ticket, description: ticket.description?.substring(0, 100) + '...' },
+        tenantId 
+      });
 
-      const now = new Date();
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Generate ticket number if not provided
+      let ticketNumber = ticket.number;
+      if (!ticketNumber) {
+        const { ticketNumberGenerator } = await import('../../../utils/ticketNumberGenerator');
+        ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, ticket.companyId || '00000000-0000-0000-0000-000000000001');
+      }
+
+      const insertData = {
+        id: ticket.id,
+        tenant_id: tenantId,
+        number: ticketNumber,
+        subject: ticket.subject,
+        description: ticket.description,
+        status: ticket.status,
+        priority: ticket.priority,
+        urgency: ticket.urgency || 'medium',
+        impact: ticket.impact || 'medium',
+        customer_id: ticket.customerId,
+        beneficiary_id: ticket.beneficiaryId,
+        assigned_to_id: ticket.assignedToId,
+        company_id: ticket.companyId,
+        category: ticket.category,
+        subcategory: ticket.subcategory,
+        action: ticket.action,
+        tags: ticket.tags ? JSON.stringify(ticket.tags) : null,
+        custom_fields: ticket.customFields ? JSON.stringify(ticket.customFields) : null,
+        created_at: new Date(),
+        updated_at: new Date(),
+        created_by_id: ticket.createdById,
+        updated_by_id: ticket.updatedById || ticket.createdById,
+        is_active: true
+      };
+
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(tenantSchema)}.tickets (
           tenant_id, number, subject, description, status, priority, urgency, impact,
@@ -224,10 +260,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE is_active = true
       `;
-      
+
       // Apply filters to count query
       const countConditions: any[] = [sql`is_active = true`];
-      
+
       if (filters.status && filters.status.length > 0) {
         countConditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -262,7 +298,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       // Get paginated results using proper SQL template
       const dataConditions: any[] = [sql`is_active = true`];
-      
+
       if (filters.status && filters.status.length > 0) {
         dataConditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -291,17 +327,17 @@ export class DrizzleTicketRepository implements ITicketRepository {
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
           t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
           t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
-          
+
           -- Company data for display
           c.name as "company_name",
           c.display_name as "company_display_name",
-          
+
           -- Customer/Caller data for display  
           caller.first_name as "caller_first_name",
           caller.last_name as "caller_last_name",
           caller.email as "caller_email",
           CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name"
-          
+
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
@@ -422,9 +458,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async countByFilters(filters: TicketFilters, tenantId: string): Promise<number> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const conditions: any[] = [sql`is_active = true`];
-      
+
       if (filters.status && filters.status.length > 0) {
         conditions.push(sql`status = ANY(${filters.status})`);
       }
@@ -516,7 +552,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     };
 
     const paginationOptions = pagination || defaultPagination;
-    
+
     return await this.findByFilters(
       { search: searchTerm },
       paginationOptions,
