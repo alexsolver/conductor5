@@ -6,7 +6,7 @@ import { eq, desc, count, and } from "drizzle-orm";
 import { logError } from "../../utils/logger";
 
 export class UserRepository implements IUserRepository {
-  
+
   async findById(id: string): Promise<User | null> {
     try {
       // ✅ 1QA.MD COMPLIANCE: Sempre incluir isActive check
@@ -208,7 +208,7 @@ export class UserRepository implements IUserRepository {
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
     const limit = options?.limit || 50;
     const offset = options?.page ? (options.page - 1) * limit : 0;
-    
+
     try {
       const userData = await db
         .select()
@@ -278,7 +278,7 @@ export class UserRepository implements IUserRepository {
 
   async findAllWithPagination(options: { limit: number; offset: number }): Promise<User[]> {
     const { limit, offset } = options;
-    
+
     try {
       const userData = await db
         .select()
@@ -312,7 +312,7 @@ export class UserRepository implements IUserRepository {
       const result = await db
         .select({ count: count() })
         .from(users);
-      
+
       return result[0]?.count || 0;
     } catch (error) {
       logError('Error counting all users', error);
@@ -326,7 +326,7 @@ export class UserRepository implements IUserRepository {
         .select({ count: count() })
         .from(users)
         .where(eq(users.isActive, true));
-      
+
       return result[0]?.count || 0;
     } catch (error) {
       logError('Error counting active users', error);

@@ -61,7 +61,8 @@ authRouter.post(
         });
       }
 
-      const user = await userRepository.findById(payload.userId);
+      // ✅ CRITICAL FIX - Use tenant-aware method per 1qa.md compliance
+      const user = await userRepository.findByIdAndTenant(payload.userId, null);
       if (!user || !user.active) {
         console.log("❌ [REFRESH] User not found or inactive");
         // Clear the refresh token cookie for inactive users

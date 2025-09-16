@@ -139,7 +139,8 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return;
     }
 
-    const user = await userRepository.findById(userId);
+    // ✅ CRITICAL FIX - Use tenant-aware method per 1qa.md compliance
+    const user = await userRepository.findByIdAndTenant(userId, payload.tenantId);
 
     if (!user || !user.isActive) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
