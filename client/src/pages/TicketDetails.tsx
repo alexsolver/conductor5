@@ -2309,12 +2309,20 @@ const TicketDetails = React.memo(() => {
                               className={`text-xs ${
                                 action.status === 'in_progress' ? 'bg-green-100 text-green-800 border-green-300' :
                                 action.status === 'completed' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                                ''
+                                'bg-yellow-100 text-yellow-800 border-yellow-300'
                               }`}
                             >
-                              {action.status === 'completed' ? 'Concluída' :
+                              {action.status === 'completed' ? 'Concluído' :
                                action.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
                             </Badge>
+                            {(action.start_time && !action.end_time) && (
+                              <Badge
+                                variant="default"
+                                className="text-xs bg-orange-100 text-orange-800 border-orange-300"
+                              >
+                                Iniciado
+                              </Badge>
+                            )}
                             {action.assigned_to_name && (
                               <Badge
                                 variant="outline"
@@ -3179,7 +3187,7 @@ const TicketDetails = React.memo(() => {
                 ) : (
                   <div className="p-2 bg-gray-50 rounded text-sm">
                     {(() => {
-                      const groupId = form.getValues('assignmentGroup') || ticket.assignment_group;
+                      const groupId = form.getValues('assignmentGroup') || ticket.assignment_group_id || ticket.assignment_group;
                       if (!groupId) return <span className="text-gray-500">Não especificado</span>;
                       const groups = userGroupsData?.data || [];
                       const group = groups.find((g: any) => g.id === groupId);
