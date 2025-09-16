@@ -25,6 +25,8 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
+    actualStartDateTime: "",
+    actualEndDateTime: "",
     estimatedMinutes: "0",
     timeSpentMinutes: "0",
     actualMinutes: "0",
@@ -56,7 +58,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
 
     // Reset form data whenever modal opens
     let dataToUse = action;
-    
+
     // Use detailed data if available, otherwise use passed action data
     if (actionDetails?.success && actionDetails.data) {
       dataToUse = actionDetails.data;
@@ -64,7 +66,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     } else {
       console.log('🔍 EditModal: Loading passed action data:', dataToUse);
     }
-    
+
     // Convert datetime fields to proper format for input[type="datetime-local"]
     const formatDateTime = (dateTime) => {
       if (!dateTime) return "";
@@ -80,9 +82,11 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     setFormData({
       startDateTime: formatDateTime(dataToUse.start_time || dataToUse.startDateTime),
       endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
+      actualStartDateTime: formatDateTime(dataToUse.actual_start_time || dataToUse.actualStartDateTime),
+      actualEndDateTime: formatDateTime(dataToUse.actual_end_time || dataToUse.actualEndDateTime),
       estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
       timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
-      actualMinutes: (dataToUse.actual_minutes || dataToUse.actualMinutes || 0).toString(),
+      actualMinutes: (dataToUse.actual_minutes || dataToUse.actualMinutes || dataToUse.tempo_realizado || 0).toString(),
       alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
       actionType: dataToUse.type || dataToUse.actionType || dataToUse.actiontype || "",
       workLog: dataToUse.work_log || dataToUse.workLog || "",
@@ -90,7 +94,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       status: dataToUse.status || "pending",
       assignedToId: dataToUse.assigned_to_id || dataToUse.assignedToId || ""
     });
-    
+
     setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
   }, [actionDetails, action, isOpen]);
 
@@ -115,6 +119,8 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         workLog: data.workLog,
         startDateTime: data.startDateTime,
         endDateTime: data.endDateTime,
+        actualStartDateTime: data.actualStartDateTime,
+        actualEndDateTime: data.actualEndDateTime,
         estimatedMinutes: parseInt(data.estimatedMinutes) || 0,
         actualMinutes: parseInt(data.actualMinutes) || 0,
         timeSpentMinutes: data.alterTimeSpent ? parseInt(data.timeSpentMinutes) || 0 : 0,
@@ -122,9 +128,9 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
         assignedToId: data.assignedToId,
         is_public: isPublic,
       };
-      
+
       console.log('🔧 PUT Update - Sending data:', payload);
-      
+
       const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
       return response.json();
     },
@@ -174,34 +180,45 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     const now = new Date().toISOString().slice(0, 16);
     const updatedFormData = {
       ...formData,
-      startDateTime: now
+      actualStartDateTime: now,
+      startDateTime: now // Also update startDateTime for consistency if it's not set
     };
-    
+
     setFormData(updatedFormData);
-    
+
     // Salvar automaticamente
     updateActionMutation.mutate(updatedFormData);
   };
 
   const handleFinishTimer = () => {
     const now = new Date().toISOString().slice(0, 16);
-    
+
     // Calcular minutos decorridos
-    if (formData.startDateTime) {
-      const startTime = new Date(formData.startDateTime);
+    if (formData.actualStartDateTime) {
+      const startTime = new Date(formData.actualStartDateTime);
       const endTime = new Date(now);
       const diffMs = endTime.getTime() - startTime.getTime();
       const diffMinutes = Math.round(diffMs / (1000 * 60));
-      
+
       const updatedFormData = {
         ...formData,
-        endDateTime: now,
-        actualMinutes: diffMinutes.toString()
+        actualEndDateTime: now,
+        actualMinutes: diffMinutes.toString(),
+        endDateTime: now // Also update endDateTime for consistency if it's not set
       };
-      
+
       setFormData(updatedFormData);
-      
+
       // Salvar automaticamente
+      updateActionMutation.mutate(updatedFormData);
+    } else {
+      // If start time wasn't recorded, just set end time and clear actual minutes
+      const updatedFormData = {
+        ...formData,
+        actualEndDateTime: now,
+        actualMinutes: "0"
+      };
+      setFormData(updatedFormData);
       updateActionMutation.mutate(updatedFormData);
     }
   };
@@ -229,7 +246,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 <Button
                   type="button"
                   onClick={handleStartTimer}
-                  disabled={updateActionMutation.isPending}
+                  disabled={updateActionMutation.isPending || !!formData.actualStartDateTime}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Clock className="w-4 h-4 mr-2" />
@@ -238,7 +255,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 <Button
                   type="button"
                   onClick={handleFinishTimer}
-                  disabled={updateActionMutation.isPending || !formData.startDateTime}
+                  disabled={updateActionMutation.isPending || !formData.actualStartDateTime}
                   className="bg-red-600 hover:bg-red-700"
                 >
                   <Clock className="w-4 h-4 mr-2" />
@@ -249,7 +266,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
               {/* Date/Time and Time Controls */}
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="start-datetime">Data/Hora Início Realizado</Label>
+                  <Label htmlFor="start-datetime">Data/Hora Início Estimado</Label>
                   <Input
                     id="start-datetime"
                     type="datetime-local"
@@ -259,7 +276,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   />
                 </div>
                 <div>
-                  <Label htmlFor="end-datetime">Data/Hora Fim Realizado</Label>
+                  <Label htmlFor="end-datetime">Data/Hora Fim Estimado</Label>
                   <Input
                     id="end-datetime"
                     type="datetime-local"
@@ -294,6 +311,31 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   />
                 </div>
               </div>
+
+              {/* Actual Start/End Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="actual-start-datetime">Data/Hora Início Realizado</Label>
+                  <Input
+                    id="actual-start-datetime"
+                    type="datetime-local"
+                    value={formData.actualStartDateTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, actualStartDateTime: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="actual-end-datetime">Data/Hora Fim Realizado</Label>
+                  <Input
+                    id="actual-end-datetime"
+                    type="datetime-local"
+                    value={formData.actualEndDateTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, actualEndDateTime: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
 
               {/* Assigned To - Highlighted */}
               <Card className="border-blue-200 bg-blue-50">
