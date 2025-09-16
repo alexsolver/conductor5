@@ -66,7 +66,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
     }
     
     // Convert datetime fields to proper format for input[type="datetime-local"]
-    const formatDateTime = (dateTime) => {
+    const formatDateTime = (dateTime: any) => {
       if (!dateTime) return "";
       try {
         const date = new Date(dateTime);
