@@ -1032,7 +1032,7 @@ router.post(
             SELECT id 
             FROM public.users 
             WHERE id = '${userId}' 
-              AND tenant_id = '${tenantId}' 
+              AND tenant_id = '${tenantId}'::uuid 
               AND is_active = true
           `;
           const userResult = await db.execute(userQuery);

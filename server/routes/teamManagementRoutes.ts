@@ -39,7 +39,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
          WHERE u.department_id = d.id 
          AND u.is_active = true) as member_count
       FROM ${sql.identifier(tenantSchema)}.departments d
-      WHERE d.tenant_id = ${user.tenantId} 
+      WHERE d.tenant_id = ${user.tenantId}::uuid 
       AND d.is_active = true
     `);
 
@@ -67,7 +67,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
         al.created_at
       FROM ${sql.identifier(tenantSchema)}.user_activity_logs al
       LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON al.user_id = u.id
-      WHERE al.tenant_id = ${user.tenantId}
+      WHERE al.tenant_id = ${user.tenantId}::uuid
       ORDER BY al.created_at DESC
       LIMIT 10
     `);
@@ -119,7 +119,7 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
         created_at,
         cargo as position
       FROM users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       ORDER BY first_name, last_name
     `);
@@ -166,7 +166,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const totalMembersResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
     `);
 
@@ -176,7 +176,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const activeTodayResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       AND last_login_at >= ${today}
     `);
@@ -185,7 +185,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const pendingApprovalsResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.approval_requests
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND status = 'pending'
     `);
 
@@ -193,7 +193,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const avgPerformanceResult = await db.execute(sql`
       SELECT ROUND(AVG(performance), 1) as average
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       AND performance IS NOT NULL
     `);
@@ -235,7 +235,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         COALESCE(d.name, 'Sem departamento') as department
       FROM ${sql.identifier(tenantSchema)}.users u
       LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
-      WHERE u.tenant_id = ${user.tenantId}
+      WHERE u.tenant_id = ${user.tenantId}::uuid
       AND u.is_active = true
     `);
 
@@ -252,7 +252,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         period_start,
         period_end
       FROM ${sql.identifier(tenantSchema)}.performance_evaluations
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       ORDER BY period_start DESC
     `);
 
@@ -276,7 +276,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         SUM(completed_goals) as total_completed_goals,
         ROUND(AVG(CASE WHEN goals > 0 THEN (completed_goals::float / goals) * 100 ELSE 0 END), 2) as average_completion
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       AND goals IS NOT NULL
     `);
@@ -346,7 +346,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
         u.performance
       FROM ${sql.identifier(tenantSchema)}.users u
       LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
-      WHERE u.tenant_id = ${user.tenantId}
+      WHERE u.tenant_id = ${user.tenantId}::uuid
       AND u.is_active = true
       AND u.position IS NOT NULL
     `);
@@ -410,7 +410,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
         status,
         COUNT(*) as user_count
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       GROUP BY role, status
     `);
@@ -422,7 +422,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       const rolePerformanceResult = await db.execute(sql`
         SELECT ROUND(AVG(performance), 2) as avg_performance
         FROM ${sql.identifier(tenantSchema)}.users
-        WHERE tenant_id = ${user.tenantId}
+        WHERE tenant_id = ${user.tenantId}::uuid
         AND role = ${dist.role}
         AND status = ${dist.status}
         AND performance IS NOT NULL
@@ -448,7 +448,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
         COUNT(u.id) as user_count
       FROM ${sql.identifier(tenantSchema)}.departments d
       LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON u.department_id = d.id AND u.is_active = true
-      WHERE d.tenant_id = ${user.tenantId}
+      WHERE d.tenant_id = ${user.tenantId}::uuid
       GROUP BY d.name
     `);
 
@@ -492,7 +492,7 @@ router.get('/departments', async (req: AuthenticatedRequest, res) => {
         is_active,
         created_at
       FROM ${sql.identifier(tenantSchema)}.departments
-      WHERE tenant_id = ${user.tenantId}
+      WHERE tenant_id = ${user.tenantId}::uuid
       AND is_active = true
       ORDER BY name
     `);
@@ -608,7 +608,7 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
         // First, remove existing memberships
         await db.execute(sql`
           DELETE FROM ${sql.identifier(tenantSchema)}.user_group_memberships 
-          WHERE tenant_id = ${user.tenantId} AND user_id = ${id}
+          WHERE tenant_id = ${user.tenantId}::uuid AND user_id = ${id}
         `);
 
         // Then add new memberships
