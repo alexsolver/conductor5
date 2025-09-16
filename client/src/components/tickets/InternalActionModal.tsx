@@ -39,6 +39,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
+import { useAuth } from "@/hooks/use-auth";
 
 
 interface InternalActionModalProps {
@@ -50,19 +51,21 @@ interface InternalActionModalProps {
 }
 
 // Dummy user object for demonstration purposes. In a real app, this would come from auth context or a global state.
-const user = {
-  id: "current-user-id", // Replace with actual logged-in user ID
-  name: "Nome do Usuário Logado", // Replace with actual logged-in user name
-  email: "usuario@example.com", // Replace with actual logged-in user email
-};
+// const user = {
+//   id: "current-user-id", // Replace with actual logged-in user ID
+//   name: "Nome do Usuário Logado", // Replace with actual logged-in user name
+//   email: "usuario@example.com", // Replace with actual logged-in user email
+// };
 
 
 export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth(); // Get current user from useAuth hook
+
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
-    agent_id: user.id, // Default to logged-in user
+    agent_id: currentUser?.id || "", // Default to logged-in user's ID
 
     // Campos opcionais da tabela
     title: "",
@@ -88,7 +91,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   const resetForm = () => {
     setFormData({
       action_type: "",
-      agent_id: user.id, // Reset to logged-in user
+      agent_id: currentUser?.id || "", // Reset to logged-in user's ID
       title: "",
       description: "",
       planned_start_time: "",
@@ -114,7 +117,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         console.log('🔧 [EDIT-MODE] Loading action data:', editAction);
         setFormData({
           action_type: editAction.type || editAction.action_type || "",
-          agent_id: editAction.assigned_to_id || user.id, // Fallback to logged-in user if editAction has no assigned_to_id
+          agent_id: editAction.assigned_to_id || currentUser?.id || "", // Fallback to logged-in user if editAction has no assigned_to_id
           title: editAction.title || "",
           description: editAction.description || editAction.content || editAction.work_log || "",
           planned_start_time: editAction.planned_start_time || "",
@@ -133,7 +136,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         resetForm();
       }
     }
-  }, [isOpen, editAction]);
+  }, [isOpen, editAction, currentUser?.id]); // Depend on currentUser?.id
 
   // Fetch team members for assignment dropdown
   // This query is no longer strictly necessary for the agent assignment but can be kept for other potential uses or removed if unused.
@@ -143,7 +146,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       const response = await apiRequest("GET", "/api/user-management/users");
       const data = await response.json();
       // Filter out the current user if they appear in the list, as they are handled separately
-      return { users: data.users?.filter((u: any) => u.id !== user.id) || [] };
+      return { users: data.users?.filter((u: any) => u.id !== currentUser?.id) || [] }; // Use currentUser?.id
     },
     enabled: isOpen,
   });
@@ -155,7 +158,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       const cleanedData = {
         // Required fields
         action_type: data.action_type,
-        agent_id: user.id, // Always assign to the logged-in user
+        agent_id: currentUser?.id || "", // Always assign to the logged-in user
 
         // Optional text fields
         title: data.title?.trim() || null,
@@ -224,7 +227,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     mutationFn: async (data: any) => {
       const cleanedData = {
         action_type: data.action_type,
-        agent_id: user.id, // Keep assigning to the logged-in user
+        agent_id: currentUser?.id || "", // Keep assigning to the logged-in user
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
         planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
@@ -520,7 +523,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     </Label>
                     <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                       <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{user?.name || user?.email || 'Usuário Logado'}</span>
+                      <span className="font-medium">{currentUser?.name || currentUser?.email || 'Usuário Logado'}</span>
                       <span className="text-xs text-muted-foreground ml-auto">(Você)</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
