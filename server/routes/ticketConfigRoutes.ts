@@ -900,6 +900,32 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       }
     } else {
       // Buscar opções de campos normais (status, priority, impact, urgency)
+      console.log("FIELD NAME: [!!!] -> " + fieldName)
+
+
+      const conditions: any[] = [];
+
+      // tenant sempre deve existir
+      if (tenantId) {
+        conditions.push(sql`tenant_id = ${tenantId}`);
+      }
+
+      // só adiciona se companyId for válido de verdade
+      if (companyId && companyId !== "undefined") {
+        conditions.push(sql`customer_id = ${companyId}`);
+      }
+
+      conditions.push(sql`is_active = true`);
+
+      if (fieldName && fieldName !== "undefined") {
+        conditions.push(sql`field_name = ${fieldName}`);
+      }
+
+      // se não tiver nenhuma condição válida, evita WHERE vazio
+      if (conditions.length === 0) {
+        throw new Error("Nenhuma condição válida para montar a query.");
+      }
+
       result = await db.execute(sql`
         SELECT 
           id,
@@ -915,13 +941,12 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           status_type,
           created_at,
           updated_at
-        FROM "${sql.raw(schemaName)}".ticket_field_options 
-        WHERE tenant_id = ${tenantId}
-        AND customer_id = ${companyId}
-        AND is_active = true
-        ${fieldName ? sql`AND field_name = ${fieldName}` : sql``}
+        FROM ${sql.raw(schemaName)}.ticket_field_options
+        WHERE ${sql.join(conditions, sql` AND `)}
         ORDER BY field_name, sort_order, label
       `);
+
+
     }
 
     console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${isHierarchical})`);

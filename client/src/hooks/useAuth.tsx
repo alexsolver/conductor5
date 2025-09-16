@@ -280,35 +280,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; tenant?: { id: string; name: string; subdomain: string } }) => {
-      // Validate that we have a user object
-      if (!result || !result.user) {
-        console.error('❌ [REGISTER-SUCCESS] Invalid registration response - missing user data');
+    onSuccess: async (
+      result: { user: User; tenant?: { id: string; name: string; subdomain: string } },
+      variables, // <- aqui o react-query passa o mesmo objeto enviado (RegisterData)
+    ) => {
+      try {
+        if (!result?.user) {
+          console.error('❌ [REGISTER-SUCCESS] Invalid registration response - missing user data');
+          toast({
+            title: 'Registration failed',
+            description: 'Invalid response from server. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Salva tenantId
+        if (result.user.tenantId) {
+          localStorage.setItem('tenantId', result.user.tenantId);
+        }
+
+        // Feedback inicial de registro
+        if (result.tenant) {
+          toast({
+            title: 'Workspace criado com sucesso!',
+            description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
+          });
+        } else {
+          toast({
+            title: 'Registro realizado com sucesso',
+            description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email || 'usuário'}!`,
+          });
+        }
+
+        // 🔑 Login automático usando os dados do formulário
+        if (variables?.email && variables?.password) {
+          console.log('🔐 [REGISTER-SUCCESS] Auto-login com as credenciais do registro...');
+          loginMutation.mutate({
+            email: variables.email,
+            password: variables.password,
+          });
+        } else {
+          console.warn('⚠️ [REGISTER-SUCCESS] Não foi possível auto-logar: email/senha não disponíveis');
+        }
+      } catch (err) {
+        console.error('❌ [REGISTER-SUCCESS] Erro inesperado:', err);
         toast({
-          title: 'Registration failed',
-          description: 'Invalid response from server. Please try again.',
+          title: 'Erro no registro',
+          description: 'Ocorreu um problema após criar sua conta. Tente logar manualmente.',
           variant: 'destructive',
-        });
-        return;
-      }
-
-      // Store tenantId for quick access by components (tokens are now HTTP-only cookies)
-      if (result.user?.tenantId) {
-        localStorage.setItem('tenantId', result.user.tenantId);
-      }
-      queryClient.setQueryData(['/api/auth/user'], result.user);
-      setUser(result.user); // Update local state
-      setIsAuthenticated(true); // Set isAuthenticated to true
-
-      if (result.tenant) {
-        toast({
-          title: 'Workspace criado com sucesso!',
-          description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
-        });
-      } else {
-        toast({
-          title: 'Registro realizado com sucesso',
-          description: `Bem-vindo ao Conductor, ${result.user?.firstName || result.user?.email || 'usuário'}!`,
         });
       }
     },

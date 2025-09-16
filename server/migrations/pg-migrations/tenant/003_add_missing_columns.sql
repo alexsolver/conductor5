@@ -40,3 +40,21 @@ CREATE TABLE IF NOT EXISTS ticket_numbering_config (
     updated_at TIMESTAMP DEFAULT now(),
     CONSTRAINT ticket_numbering_config_company_unique UNIQUE (tenant_id, company_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS ticket_list_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_by_id UUID NOT NULL,
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    columns JSONB NOT NULL,
+    filters JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sorting JSONB NOT NULL DEFAULT '[]'::jsonb,
+    page_size INTEGER NOT NULL DEFAULT 25,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
