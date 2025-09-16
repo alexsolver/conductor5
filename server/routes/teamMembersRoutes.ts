@@ -1,9 +1,9 @@
 
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requirePermission } from '../middleware/rbacMiddleware';
+import { requirePermission, AuthorizedRequest } from '../middleware/rbacMiddleware';
 import { db } from '../db';
-import { users as usersTable } from '@shared/schema';
+import { users as usersTable } from '@shared/schema-master';
 import { eq, and } from 'drizzle-orm';
 
 const router = Router();
@@ -13,9 +13,11 @@ router.get(
   '/members',
   jwtAuth,
   requirePermission('tenant', 'manage_users'),
-  async (req: AuthenticatedRequest, res) => {
+  async (req, res: Response) => {
+    // Type assertion after middleware chain
+    const authorizedReq = req as AuthorizedRequest;
     try {
-      const tenantId = req.user!.tenantId;
+      const tenantId = authorizedReq.user!.tenantId;
       const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
       console.log(`🔍 [TEAM-MEMBERS] Fetching team members for tenant: ${tenantId}`);
@@ -60,7 +62,7 @@ router.get(
         FROM "${schemaName}".user_group_memberships ugm
         INNER JOIN "${schemaName}".user_groups ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id::text = '${tenantId}'::text
+        WHERE ugm.tenant_id = '${tenantId}'::uuid
           AND ug.is_active = true
       `;
 
@@ -112,7 +114,7 @@ router.get(
       res.status(500).json({
         success: false,
         message: 'Failed to fetch team members',
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
