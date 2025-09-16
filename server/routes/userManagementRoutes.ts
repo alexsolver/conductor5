@@ -1720,8 +1720,8 @@ router.get(
       const userResult = await db.execute(`
         SELECT id 
         FROM public.users 
-        WHERE id::text = '${userId}'::text
-          AND tenant_id::text = '${tenantId}'::text
+        WHERE id = '${userId}'::uuid
+          AND tenant_id = '${tenantId}'::uuid
           AND is_active = true
         LIMIT 1
       `);
@@ -1745,8 +1745,8 @@ router.get(
           ugm.role
         FROM "${schemaName}".user_group_memberships ugm
         INNER JOIN "${schemaName}".user_groups ug
-          ON ug.id::text = ugm.group_id::text
-        WHERE ugm.user_id::text = '${userId}'::text
+          ON ug.id = ugm.group_id
+        WHERE ugm.user_id = '${userId}'::uuid
           AND ugm.is_active = true
           AND ug.is_active = true
         ORDER BY ug.name
