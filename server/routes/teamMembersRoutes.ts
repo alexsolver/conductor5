@@ -3,8 +3,8 @@ import { Router, Response } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission, AuthorizedRequest } from '../middleware/rbacMiddleware';
 import { db } from '../db';
-import { users as usersTable } from '@shared/schema-master';
-import { eq, and } from 'drizzle-orm';
+import { users as usersTable } from '@shared/schema-public';
+import { eq, and, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -49,8 +49,8 @@ router.get(
         `✅ [TEAM-MEMBERS] Found ${members.length} team members for tenant ${tenantId}`
       );
 
-      // Buscar memberships + grupos
-      const membershipsQuery = `
+      // Buscar memberships + grupos using sql with proper parameterization
+      const membershipsQuery = sql`
         SELECT 
           ugm.user_id,
           ug.id AS group_id,
@@ -59,10 +59,10 @@ router.get(
           ugm.role,
           ugm.is_active,
           ugm.created_at
-        FROM "${schemaName}".user_group_memberships ugm
-        INNER JOIN "${schemaName}".user_groups ug
+        FROM ${sql.raw(`"${schemaName}".user_group_memberships`)} ugm
+        INNER JOIN ${sql.raw(`"${schemaName}".user_groups`)} ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id = '${tenantId}'::uuid
+        WHERE ugm.tenant_id = ${tenantId}::uuid
           AND ug.is_active = true
       `;
 

@@ -35,13 +35,18 @@ export class TimecardController {
   }
 
   // Get current status for user
-  getCurrentStatus = async (req: Request, res: Response) => {
+  getCurrentStatus = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ 
+          success: false,
+          message: 'Invalid token',
+          code: 'INVALID_TOKEN',
+          timestamp: new Date().toISOString()
+        });
       }
 
       // Get today's records
