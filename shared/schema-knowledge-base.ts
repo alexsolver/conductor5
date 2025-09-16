@@ -80,7 +80,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - matching exact DB structure
-  accessLevel: text("access_level").default("public"), // Consistent naming  
   visibility: text("visibility").default("public"), // text
   status: text("status").default("draft"), // text
 
@@ -281,7 +280,6 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
   category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
-  accessLevel: z.enum(["public", "internal", "restricted", "private"]).optional(),
   tags: z.array(z.string()).optional(),
   keywords: z.array(z.string()).optional(),
 });
