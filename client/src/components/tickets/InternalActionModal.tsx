@@ -387,6 +387,30 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     }
   };
 
+  // Função para criar a ação e iniciar o timer em uma única operação
+  const handleCreateAndStart = () => {
+    const now = new Date().toISOString().slice(0, 16);
+    const formDataWithTimer = {
+      ...formData,
+      start_time: now
+    };
+    
+    setFormData(formDataWithTimer);
+    
+    // Validação básica
+    if (!formDataWithTimer.action_type || !formDataWithTimer.agent_id || formDataWithTimer.agent_id === "__none__") {
+      toast({
+        title: "Erro de Validação",
+        description: "Tipo de Ação e Agente Responsável são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Criar a ação com timer iniciado
+    createActionMutation.mutate(formDataWithTimer);
+  };
+
   const handleFinishTimer = () => {
     const now = new Date().toISOString().slice(0, 16);
     
@@ -433,31 +457,29 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Timer Control Buttons - Only show in edit mode */}
-          {editAction && (
-            <div className="flex gap-2 p-4 border rounded-lg bg-blue-50 mb-6">
-              <Button
-                type="button"
-                onClick={handleStartTimer}
-                disabled={updateActionMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
-                data-testid="button-start-timer"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Iniciar
-              </Button>
-              <Button
-                type="button"
-                onClick={handleFinishTimer}
-                disabled={updateActionMutation.isPending || !formData.start_time}
-                className="bg-red-600 hover:bg-red-700"
-                data-testid="button-finish-timer"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Finalizar
-              </Button>
-            </div>
-          )}
+          {/* Timer Control Buttons - Show in both create and edit modes */}
+          <div className="flex gap-2 p-4 border rounded-lg bg-blue-50 mb-6">
+            <Button
+              type="button"
+              onClick={handleStartTimer}
+              disabled={(editAction ? updateActionMutation.isPending : createActionMutation.isPending)}
+              className="bg-green-600 hover:bg-green-700"
+              data-testid="button-start-timer"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              {editAction ? "Iniciar" : "Marcar Início"}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleFinishTimer}
+              disabled={(editAction ? updateActionMutation.isPending : createActionMutation.isPending) || !formData.start_time}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-finish-timer"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Finalizar
+            </Button>
+          </div>
 
           <Card>
             <CardContent className="p-6">
@@ -844,6 +866,25 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       Cancelar
                     </Button>
 
+                    {!editAction && (
+                      <Button
+                        onClick={handleCreateAndStart}
+                        disabled={
+                          createActionMutation.isPending || 
+                          !formData.action_type || 
+                          !formData.agent_id || 
+                          formData.agent_id === "__none__" ||
+                          formData.title.length > 255 ||
+                          formData.description.length > 1000
+                        }
+                        className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:opacity-50"
+                        data-testid="button-create-and-start"
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        {createActionMutation.isPending ? "Criando..." : "Criar e Iniciar"}
+                      </Button>
+                    )}
+
                     <Button
                       onClick={handleSubmit}
                       disabled={
@@ -864,7 +905,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       <Send className="w-4 h-4 mr-2" />
                       {(editAction ? updateActionMutation.isPending : createActionMutation.isPending) 
                         ? "Salvando..." 
-                        : (editAction ? "Atualizar Ação" : "Salvar Ação")
+                        : (editAction ? "Atualizar Ação" : "Criar Ação")
                       }
                     </Button>
                   </div>
