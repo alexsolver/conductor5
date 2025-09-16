@@ -47,6 +47,49 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  async findByIdAndTenant(id: string, tenantId: string | null): Promise<User | null> {
+    try {
+      // ✅ 1QA.MD COMPLIANCE: Use tenant-aware method for authentication
+      const whereConditions = [
+        eq(users.id, id),
+        eq(users.isActive, true)
+      ];
+
+      // Add tenant filter if tenantId is provided
+      if (tenantId) {
+        whereConditions.push(eq(users.tenantId, tenantId));
+      }
+
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(and(...whereConditions));
+
+      if (!userData) return null;
+
+      const user = new User(
+        userData.id,
+        userData.email!,
+        userData.passwordHash!,
+        userData.firstName || null,
+        userData.lastName || null,
+        userData.role as any,
+        userData.tenantId,
+        userData.profileImageUrl || userData.avatar || null,
+        userData.isActive ?? true,
+        userData.lastLoginAt || null,
+        userData.createdAt || new Date(),
+        userData.updatedAt || new Date(),
+        userData.employmentType as 'clt' | 'autonomo' || 'clt'
+      );
+
+      return user;
+    } catch (error) {
+      logError('Error finding user by ID and tenant', error, { userId: id, tenantId });
+      return null;
+    }
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     try {
       const [userData] = await db
@@ -73,6 +116,37 @@ export class UserRepository implements IUserRepository {
       );
     } catch (error) {
       logError('Error finding user by email', error, { email: email.toLowerCase() });
+      return null;
+    }
+  }
+
+  async findByEmailForAuth(email: string): Promise<User | null> {
+    try {
+      // ✅ 1QA.MD COMPLIANCE: Special method for authentication - includes inactive users
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email.toLowerCase()));
+
+      if (!userData) return null;
+
+      return new User(
+        userData.id,
+        userData.email!,
+        userData.passwordHash!,
+        userData.firstName,
+        userData.lastName,
+        userData.role as any,
+        userData.tenantId,
+        userData.profileImageUrl,
+        userData.isActive ?? true,
+        userData.lastLoginAt,
+        userData.createdAt || new Date(),
+        userData.updatedAt || new Date(),
+        userData.employmentType as 'clt' | 'autonomo' || 'clt'
+      );
+    } catch (error) {
+      logError('Error finding user by email for auth', error, { email: email.toLowerCase() });
       return null;
     }
   }
