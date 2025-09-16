@@ -130,13 +130,16 @@ export class TokenManager {
         return null;
       }
 
-      // Check if token is close to expiry (within 4 hours para 24h token)
-      if (decoded.exp && (decoded.exp * 1000) < (Date.now() + 4 * 60 * 60 * 1000)) {
+      // Check if token is close to expiry (within 30 minutes for better UX)
+      if (decoded.exp) {
         const minutesToExpiry = Math.round(((decoded.exp * 1000) - Date.now()) / 1000 / 60);
-        console.log('🔄 [TOKEN-MANAGER] Token will expire soon:', {
-          minutesToExpiry,
-          expiresAt: new Date(decoded.exp * 1000).toISOString()
-        });
+        if (minutesToExpiry < 30) {
+          console.log('🔄 [TOKEN-MANAGER] Token will expire soon:', {
+            minutesToExpiry,
+            expiresAt: new Date(decoded.exp * 1000).toISOString(),
+            shouldRefresh: minutesToExpiry < 15
+          });
+        }
       }
 
       const result = {

@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useContext, useState, useEffect, useCa
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { TokenRefresh } from '../utils/tokenRefresh';
 
 interface User {
   id: string;
@@ -236,10 +237,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async (credentials: RegisterData) => {
       try {
         console.log('🔐 [REGISTER] Starting registration process...');
-        
+
         // Using apiRequest here, assuming it correctly handles POST requests
         const res = await apiRequest('POST', '/api/auth/register', credentials);
-        
+
         if (!res.ok) {
           let errorMessage = 'Registration failed';
           try {
@@ -254,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const responseData = await res.json();
         console.log('🔍 [REGISTER] Response data structure:', Object.keys(responseData));
-        
+
         // Validate response structure
         if (!responseData || (!responseData.user && !responseData.data?.user)) {
           console.error('❌ [REGISTER] Invalid response structure:', responseData);
