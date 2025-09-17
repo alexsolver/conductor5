@@ -566,7 +566,7 @@ export default function Tickets() {
                       name="companyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">Empresa *</FormLabel>
                           <Select 
                             onValueChange={(value) => {
                               field.onChange(value);
@@ -578,27 +578,27 @@ export default function Tickets() {
                           >
                             <FormControl>
                               <SelectTrigger className="h-10">
-                                <SelectValue placeholder={t('tickets.forms.create.select_company')} />
+                                <SelectValue placeholder="Selecione a empresa" />
                               </SelectTrigger>
                             </FormControl>
-                          <SelectContent>
-                            {companies.length === 0 ? (
-                              <SelectItem value="no-companies" disabled>
-                                {t('tickets.forms.create.no_companies')}
-                              </SelectItem>
-                            ) : (
-                              companies.map((company: any) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {company.name || company.company_name || company.displayName}
+                            <SelectContent>
+                              {companies.length === 0 ? (
+                                <SelectItem value="no-companies" disabled>
+                                  Nenhuma empresa disponível
                                 </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                              ) : (
+                                companies.map((company: any) => (
+                                  <SelectItem key={company.id} value={company.id}>
+                                    {company.name || company.company_name || company.displayName}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
@@ -609,7 +609,7 @@ export default function Tickets() {
                           const templateId = value === '__none__' ? undefined : value;
                           setSelectedTemplateId(templateId);
 
-                          // ✅ 1QA.MD: Aplicar campos do template quando selecionado
+                          // ✅ 1QA.MD: AplicAR campos do template quando selecionado
                           if (templateId && templatesData?.data) {
                             const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
                             if (selectedTemplate?.fields) {
