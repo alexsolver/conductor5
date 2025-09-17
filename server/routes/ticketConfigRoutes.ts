@@ -740,368 +740,72 @@ function getFallbackFieldOptions(fieldName: string | undefined): Array<{ id: str
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const companyId = req.query.companyId as string;
+    const customerId = req.query.companyId as string; // ⚡ ainda vem como companyId, mas é tratado como customerId
     const fieldName = req.query.fieldName as string;
-    const dependsOn = req.query.dependsOn as string; // Para hierarquias (categoria → subcategoria → ação)
 
     if (!tenantId) {
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
-    // Use default company if none specified
-    const effectiveCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
+    // se não passar, usa o default
+    const effectiveCustomerId = customerId || '00000000-0000-0000-0000-000000000001';
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log(`🔍 Fetching field options for: {
-      tenantId: ${tenantId},
-      companyId: ${companyId},
-      fieldName: ${fieldName},
-      effectiveCompanyId: ${effectiveCompanyId}
-    }`);
+    console.log(`🔍 Fetching field options for:
+      tenantId=${tenantId},
+      customerId=${effectiveCustomerId},
+      fieldName=${fieldName}
+    `);
 
-    // Try to get from ticket_field_options table first
-    try {
-      // Build query parameters properly
-      let whereConditions = [];
-      let queryParams = [];
-      let paramIndex = 1;
+    // monta condições dinamicamente
+    const where: string[] = [];
+    const params: any[] = [];
+    let i = 1;
 
-      // Always add tenant_id condition
-      whereConditions.push(`tenant_id = $${paramIndex}`);
-      queryParams.push(tenantId);
-      paramIndex++;
+    where.push(`tenant_id = $${i++}`);
+    params.push(tenantId);
 
-      // Always add active condition
-      whereConditions.push('active = true');
+    where.push(`is_active = true`);
 
-      // Add field_name condition if provided
-      if (fieldName) {
-        whereConditions.push(`field_name = $${paramIndex}`);
-        queryParams.push(fieldName);
-        paramIndex++;
-      }
-
-      // Add company condition
-      if (companyId && companyId !== '00000000-0000-0000-0000-000000000001') {
-        whereConditions.push(`(company_id = $${paramIndex} OR company_id IS NULL)`);
-        queryParams.push(companyId);
-        paramIndex++;
-      } else {
-        whereConditions.push('company_id IS NULL');
-      }
-
-      // Execute the query with proper WHERE clause construction
-      const query = `
-        SELECT 
-          id,
-          field_name as "fieldName",
-          option_value as "value", 
-          display_label as "label",
-          color_hex as "color",
-          sort_order as "sortOrder",
-          is_default as "isDefault",
-          active
-        FROM "${schemaName}".ticket_field_options 
-        WHERE ${whereConditions.join(' AND ')}
-        ORDER BY sort_order ASC, display_label ASC
-      `;
-
-      const result = await db.execute(sql.raw(query), queryParams);
-
-      console.log(`🏢 Field options found in DB: ${result.rows.length} records for ${fieldName || 'all fields'}`);
-
-      if (result.rows.length > 0) {
-        console.log(`✅ Found ${result.rows.length} field options in database`);
-        return res.json({
-          success: true,
-          data: result.rows,
-          fieldName: fieldName || 'all',
-          companyId: effectiveCompanyId,
-          tenantId
-        });
-      }
-    } catch (error) {
-      // If ticket_field_options table doesn't exist, use fallback
-      console.log('⚠️ ticket_field_options table not found, using fallback:', error.message);
-
-      const fallbackOptions = getFallbackFieldOptions(fieldName);
-      if (fallbackOptions.length > 0) {
-        console.log(`🏢 Fallback options found: ${fallbackOptions.length} records for ${fieldName}`);
-        return res.json({
-          success: true,
-          data: fallbackOptions
-        });
-      } else {
-        console.log(`⚠️ No fallback options available for field: ${fieldName}`);
-        return res.json({
-          success: true,
-          data: []
-        });
-      }
+    if (fieldName) {
+      where.push(`field_name = $${i++}`);
+      params.push(fieldName);
     }
 
-    // Handle hierarchical field types if not found in ticket_field_options
-    let result;
-    if (fieldName === 'category') {
-      // Buscar categorias
-      result = await db.execute(sql`
-        SELECT 
-          id,
-          name as label,
-          name as value,
-          color,
-          sort_order,
-          active as is_active,
-          created_at,
-          updated_at
-        FROM "${sql.raw(schemaName)}".ticket_categories 
-        WHERE tenant_id = ${tenantId}
-        AND company_id = ${companyId}
-        AND active = true
-        ORDER BY sort_order, name
-      `);
-
-      // Sincronização automática: garantir que cores existam na ticket_field_options
-      for (const row of result.rows) {
-        await db.execute(sql`
-          INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-          (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
-          VALUES (${tenantId}, ${companyId}, 'category', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-          ON CONFLICT (tenant_id, company_id, field_name, value) 
-          DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
-        `);
-      }
-      console.log(`🔄 Auto-synced ${result.rows.length} category colors to ticket_field_options`);
-    } else if (fieldName === 'subcategory') {
-      if (dependsOn) {
-        // Buscar subcategorias para uma categoria específica
-        result = await db.execute(sql`
-          SELECT 
-            s.id,
-            s.name as label,
-            s.name as value,
-            s.color,
-            s.sort_order,
-            s.active as is_active,
-            s.category_id,
-            s.created_at,
-            s.updated_at
-          FROM "${sql.raw(schemaName)}".ticket_subcategories s
-          JOIN "${sql.raw(schemaName)}".ticket_categories c ON s.category_id = c.id
-          WHERE s.tenant_id = ${tenantId}
-          AND s.company_id = ${companyId}
-          AND c.name = ${dependsOn}
-          AND s.active = true
-          ORDER BY s.sort_order, s.name
-        `);
-        console.log(`🏷️ Subcategories found for category '${dependsOn}': ${result.rows.length} records`);
-
-        // Sincronização automática: garantir que cores existam na ticket_field_options
-        for (const row of result.rows) {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
-            VALUES (${tenantId}, ${companyId}, 'subcategory', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-            ON CONFLICT (tenant_id, company_id, field_name, value) 
-            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
-          `);
-        }
-        console.log(`🔄 Auto-synced ${result.rows.length} subcategory colors to ticket_field_options`);
-      } else {
-        // Retornar array vazio se não há dependência selecionada
-        result = { rows: [] };
-        console.log(`🏷️ Subcategory: No category selected, returning empty array`);
-      }
-    } else if (fieldName === 'action') {
-      if (dependsOn) {
-        // Buscar ações para uma subcategoria específica
-        result = await db.execute(sql`
-          SELECT 
-            a.id,
-            a.name as label,
-            a.name as value,
-            a.color,
-            a.sort_order,
-            a.active as is_active,
-            a.subcategory_id,
-            a.created_at,
-            a.updated_at
-          FROM "${sql.raw(schemaName)}".ticket_actions a
-          JOIN "${sql.raw(schemaName)}".ticket_subcategories s ON a.subcategory_id = s.id
-          WHERE a.tenant_id = ${tenantId}
-          AND a.company_id = ${companyId}
-          AND s.name = ${dependsOn}
-          AND a.active = true
-          ORDER BY a.sort_order, a.name
-        `);
-        console.log(`🏷️ Actions found for subcategory '${dependsOn}': ${result.rows.length} records`);
-
-        // Sincronização automática: garantir que cores existam na ticket_field_options
-        for (const row of result.rows) {
-          await db.execute(sql`
-            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
-            (tenant_id, company_id, field_name, value, label, color, sort_order, is_active, is_default)
-            VALUES (${tenantId}, ${companyId}, 'action', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
-            ON CONFLICT (tenant_id, company_id, field_name, value) 
-            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
-          `);
-        }
-        console.log(`🔄 Auto-synced ${result.rows.length} action colors to ticket_field_options`);
-      } else {
-        // Retornar array vazio se não há dependência selecionada
-        result = { rows: [] };
-        console.log(`🏷️ Action: No subcategory selected, returning empty array`);
-      }
+    if (effectiveCustomerId && effectiveCustomerId !== '00000000-0000-0000-0000-000000000001') {
+      where.push(`(customer_id = $${i++} OR customer_id IS NULL)`);
+      params.push(effectiveCustomerId);
     } else {
-      // Buscar opções de campos normais (status, priority, impact, urgency)
-      console.log("FIELD NAME: [!!!] -> " + fieldName)
-
-      const conditions: any[] = [];
-      let queryParamsFallback: any[] = [];
-      let paramIndexFallback = 1;
-
-      // tenant sempre deve existir
-      if (tenantId) {
-        conditions.push(`tenant_id = $${paramIndexFallback}`);
-        queryParamsFallback.push(tenantId);
-        paramIndexFallback++;
-      }
-
-      // só adiciona se companyId for válido de verdade
-      if (companyId && companyId !== "undefined") {
-        conditions.push(`(company_id = $${paramIndexFallback} OR company_id IS NULL)`);
-        queryParamsFallback.push(companyId);
-        paramIndexFallback++;
-      } else {
-        conditions.push('company_id IS NULL');
-      }
-
-      conditions.push(`is_active = true`);
-
-      if (fieldName && fieldName !== "undefined") {
-        conditions.push(`field_name = $${paramIndexFallback}`);
-        queryParamsFallback.push(fieldName);
-      }
-
-      // se não tiver nenhuma condição válida, evita WHERE vazio
-      if (conditions.length === 0) {
-        throw new Error("Nenhuma condição válida para montar a query.");
-      }
-
-      result = await db.execute(sql.raw(`
-        SELECT 
-          id,
-          tenant_id,
-          customer_id,
-          field_name,
-          value,
-          label,
-          color,
-          sort_order,
-          is_active,
-          is_default,
-          status_type,
-          created_at,
-          updated_at
-        FROM ${sql.raw(schemaName)}.ticket_field_options
-        WHERE ${conditions.join(' AND ')}
-        ORDER BY field_name, sort_order, label
-      `), queryParamsFallback);
+      where.push(`(customer_id IS NULL OR customer_id = '00000000-0000-0000-0000-000000000001')`);
     }
 
-    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${fieldName === 'category' || fieldName === 'subcategory' || fieldName === 'action'})`);
+    const result = await db.execute(sql`
+      SELECT * 
+      FROM ${sql.raw(schemaName)}.ticket_field_options
+      WHERE tenant_id = ${tenantId}
+        AND is_active = true
+        AND (customer_id = ${effectiveCustomerId} OR customer_id IS NULL)
+    `);
 
-    if (result.rows.length === 0) {
-      console.log(`⚠️ No field options found in DB or from hierarchy for field ${fieldName} in company ${effectiveCompanyId}`);
+    console.log(`✅ Found ${result.rows.length} records for field=${fieldName || 'all'} / customer=${effectiveCustomerId}`);
 
-      // Use fallback options if available for this field and none were found
-      const fallbackOptions = getFallbackFieldOptions(fieldName);
-      if (fallbackOptions.length > 0) {
-        const transformedOptions = fallbackOptions.map((option) => ({
-          // Map to the expected output format
-          id: option.id,
-          fieldName: option.field_name,
-          value: option.value,
-          displayLabel: option.display_label,
-          color: option.color,
-          sortOrder: option.sort_order,
-          isDefault: option.is_active, // Assuming is_active maps to isDefault if not explicitly provided
-          active: option.is_active,
-          company_id: option.company_id,
-          created_at: option.created_at
-        }));
-
-        console.log(`🏢 Field options found: ${transformedOptions.length} fallback records for ${fieldName}`);
-
-        return res.json({
-          success: true,
-          data: transformedOptions,
-          fieldName,
-          companyId: effectiveCompanyId,
-          tenantId,
-          source: 'fallback'
-        });
-      }
-
-      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
-
-      return res.json({
-        success: true,
-        data: [],
-        fieldName,
-        companyId: effectiveCompanyId,
-        tenantId,
-        source: 'empty'
-      });
-    }
-
-    // Force fresh response headers
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0'
     });
 
-    res.json({
+    return res.json({
       success: true,
-      data: result.rows
+      data: result.rows,
+      fieldName: fieldName || 'all',
+      customerId: effectiveCustomerId,
+      tenantId
     });
   } catch (error) {
     console.error('❌ Error fetching field options:', error);
 
-    // Try fallback options first
-    try {
-      const fallbackOptions = getFallbackFieldOptions(req.query.fieldName as string);
-      if (fallbackOptions.length > 0) {
-        const transformedOptions = fallbackOptions.map((option) => ({
-          // Map to the expected output format
-          id: option.id,
-          fieldName: option.field_name,
-          value: option.value,
-          displayLabel: option.display_label,
-          color: option.color,
-          sortOrder: option.sort_order,
-          isDefault: option.is_active, // Assuming is_active maps to isDefault if not explicitly provided
-          active: option.is_active,
-          company_id: option.company_id,
-          created_at: option.created_at
-        }));
-        console.log(`🏢 Using fallback options: ${transformedOptions.length} records for ${req.query.fieldName}`);
-        return res.json({
-          success: true,
-          data: transformedOptions,
-          fieldName: req.query.fieldName,
-          companyId: req.query.companyId || '00000000-0000-0000-0000-000000000001',
-          tenantId: req.user?.tenantId,
-          source: 'fallback'
-        });
-      }
-    } catch (fallbackError) {
-      console.error('❌ Fallback also failed:', fallbackError);
-    }
-
-    // If everything fails, return error
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch field options',
       error: error instanceof Error ? error.message : 'Unknown error'
