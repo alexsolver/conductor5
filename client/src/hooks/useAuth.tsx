@@ -389,36 +389,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Refactored token refresh logic
   const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('🔄 [REFRESH] Attempting token refresh via HTTP-only cookies...');
+      console.log('🔄 [TOKEN-REFRESH] Attempting to refresh token...');
 
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
-        credentials: 'include', // Include HTTP-only cookies
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ [REFRESH] Token refreshed successfully via HTTP-only cookies');
+        const data = await response.json();
+        console.log('✅ [TOKEN-REFRESH] Token refreshed successfully');
+
+        // Update user state if user data is returned
+        if (data.user) {
+          queryClient.setQueryData(['/api/auth/user'], data.user);
+          setUser(data.user);
+          setIsAuthenticated(true);
+        } else if (data.data?.user) {
+          queryClient.setQueryData(['/api/auth/user'], data.data.user);
+          setUser(data.data.user);
+          setIsAuthenticated(true);
+        }
+
         return true;
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [REFRESH] Refresh failed:', response.status, errorData.message || response.statusText);
+        const errorData = await response.json().catch(() => ({ message: 'Token refresh failed' }));
+        console.log('❌ [TOKEN-REFRESH] Failed:', response.status, errorData.message);
 
-        // If refresh token is expired/invalid, logout user
-        if (response.status === 401 || response.status === 400) {
-          console.log('🔄 [REFRESH] Refresh token expired, logging out user...');
+        // If refresh token is also expired/invalid, clear everything
+        if (response.status === 401) {
+          console.log('🧹 [TOKEN-REFRESH] Refresh token expired, clearing session');
           await logout();
         }
+
         return false;
       }
     } catch (error) {
-      console.error('❌ [REFRESH] Token refresh error:', error);
-      // On network errors, also logout to force re-authentication
-      console.log('🔄 [REFRESH] Network error during refresh, logging out user...');
-      await logout();
+      console.error('❌ [TOKEN-REFRESH] Error during token refresh:', error);
       return false;
     }
   }, [logout]);
