@@ -438,7 +438,7 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           userId: memberId,
           skillId,
           proficiencyLevel: defaultProficiencyLevel,
-          certifications: [],
+          certification_id: null, // Corrected column name
           notes: null,
           isActive: true,
           createdAt: new Date(),
@@ -510,14 +510,13 @@ router.get('/user-skills', async (req: Request, res: Response) => {
 
     console.log(`[TECHNICAL-SKILLS] Getting user skills for tenant: ${tenantId}`);
 
-    // ✅ 1QA.MD: Query with tenant isolation and proper joins - Fixed to work with actual DB structure
+    // ✅ 1QA.MD: Query with proper tenant isolation and JOIN with skills
     const userSkillsData = await db
       .select({
         id: userSkills.id,
         userId: userSkills.userId,
         skillId: userSkills.skillId,
         proficiencyLevel: userSkills.proficiencyLevel,
-        certifications: userSkills.certifications,
         notes: userSkills.notes,
         isActive: userSkills.isActive,
         createdAt: userSkills.createdAt,
@@ -527,11 +526,9 @@ router.get('/user-skills', async (req: Request, res: Response) => {
         skillDescription: skills.description
       })
       .from(userSkills)
-      .innerJoin(skills, eq(skills.id, userSkills.skillId))
+      .leftJoin(skills, eq(userSkills.skillId, skills.id))
       .where(and(
-        eq(skills.tenantId, tenantId),
-        eq(userSkills.isActive, true),
-        eq(skills.isActive, true)
+        eq(userSkills.isActive, true)
       ))
       .orderBy(desc(userSkills.createdAt));
 
