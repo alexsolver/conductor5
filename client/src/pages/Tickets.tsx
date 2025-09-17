@@ -21,6 +21,7 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
+import { useFieldColors } from "@/hooks/useFieldColors"; // Import useFieldColors
 
 import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
 
@@ -559,52 +560,6 @@ export default function Tickets() {
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-sm font-medium text-blue-900 mb-3">Informações da Empresa</h3>
-
-                    {/* Company Selection (primeiro campo) */}
-                    <FormField
-                      control={form.control}
-                      name="companyId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-900">Empresa *</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              console.log('🏢 Company selected:', value);
-                              field.onChange(value);
-                              setSelectedCompanyId(value);
-                              // Reset customer when company changes
-                              form.setValue("customerId", "");
-                            }}
-                            value={field.value || ""}
-                            disabled={companies.length === 0}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-10 border-gray-300">
-                                <SelectValue placeholder="Selecione a empresa" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {companies.length === 0 ? (
-                                <SelectItem value="no-companies" disabled>
-                                  Nenhuma empresa disponível
-                                </SelectItem>
-                              ) : (
-                                companies.map((company: any) => (
-                                  <SelectItem key={company.id} value={company.id}>
-                                    {company.name || company.company_name || company.displayName}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
                   {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
                     <div>
