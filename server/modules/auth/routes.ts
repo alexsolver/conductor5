@@ -90,6 +90,20 @@ authRouter.post(
         tenantId: user.tenantId,
       });
 
+      // Generate new refresh token
+      const newRefreshToken = tokenManager.generateRefreshToken({
+        userId: user.id,
+        email: user.email,
+      });
+
+      // Update refresh token cookie
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
       console.log("✅ [REFRESH] Token refreshed successfully for user:", user.email);
 
       res.json({
@@ -98,6 +112,7 @@ authRouter.post(
         data: {
           tokens: {
             accessToken,
+            refreshToken: newRefreshToken, // Include for fallback storage
           },
         },
       });

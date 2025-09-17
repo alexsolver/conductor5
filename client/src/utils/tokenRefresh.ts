@@ -64,8 +64,20 @@ export class TokenRefresh {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        console.log('Token refreshed successfully');
+        if (data.success && data.data && data.data.tokens) {
+          // Handle the standardized response format
+          localStorage.setItem('accessToken', data.data.tokens.accessToken);
+          if (data.data.tokens.refreshToken) {
+            localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+          }
+        } else if (data.accessToken) {
+          // Handle legacy response format
+          localStorage.setItem('accessToken', data.accessToken);
+          if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
+          }
+        }
+        console.log('✅ [TOKEN-REFRESH] Token refreshed successfully');
         
         // Setup next auto-refresh
         TokenRefresh.setupAutoRefresh();
