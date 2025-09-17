@@ -1,10 +1,10 @@
 /**
  * Technical Skills Routes - Clean Architecture Implementation
- * 
+ *
  * ✅ 1QA.MD COMPLIANCE: Following Clean Architecture patterns
  * ✅ MULTITENANT: Proper tenant isolation with tenant_id
  * ✅ PRESERVAÇÃO: Não quebrar código existente
- * 
+ *
  * @module TechnicalSkillsRoutes
  * @version 1.0.0
  * @created 2025-09-10 - Clean Architecture Implementation
@@ -438,7 +438,6 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           userId: memberId,
           skillId,
           proficiencyLevel: defaultProficiencyLevel,
-          yearsOfExperience: 0,
           certifications: [],
           notes: null,
           isActive: true,
@@ -449,9 +448,9 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
         console.log(`[TECHNICAL-SKILLS] Creating assignment:`, newAssignment);
 
         const insertResult = await db.insert(userSkills).values(newAssignment).returning();
-        
+
         console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}`);
-        
+
         successCount++;
         results.push({
           memberId,
@@ -518,7 +517,6 @@ router.get('/user-skills', async (req: Request, res: Response) => {
         userId: userSkills.userId,
         skillId: userSkills.skillId,
         proficiencyLevel: userSkills.proficiencyLevel,
-        yearsOfExperience: userSkills.yearsOfExperience,
         certifications: userSkills.certifications,
         notes: userSkills.notes,
         isActive: userSkills.isActive,

@@ -326,7 +326,6 @@ export const userSkills = pgTable('user_skills', {
   userId: uuid('user_id').notNull(),
   skillId: uuid('skill_id').notNull(),
   proficiencyLevel: varchar('proficiency_level', { length: 50 }).notNull().default('beginner'),
-  yearsOfExperience: integer('years_of_experience').default(0),
   certifications: jsonb('certifications').default([]),
   notes: text('notes'),
   isActive: boolean('is_active').default(true),
