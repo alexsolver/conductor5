@@ -323,15 +323,15 @@ export * from './schema-tenant';
 export const userSkills = pgTable('user_skills', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
-  skillId: uuid('skill_id').references(() => skills.id).notNull(),
-  proficiencyLevel: varchar('proficiency_level', { length: 50 }).default('beginner'),
-  yearsOfExperience: integer('years_of_experience').default(0),
-  certifications: jsonb('certifications').default([]),
+  userId: uuid('user_id').notNull(),
+  skillId: uuid('skill_id').notNull(),
+  proficiencyLevel: varchar('proficiency_level', { length: 50 }).default('beginner').notNull(),
+  yearsOfExperience: integer('years_of_experience').default(0).notNull(),
+  certifications: text('certifications').default('[]'),
   notes: text('notes'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 }, (table) => {
   return {
     tenantIdIdx: index('user_skills_tenant_id_idx').on(table.tenantId),

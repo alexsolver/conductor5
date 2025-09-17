@@ -378,7 +378,7 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
       });
     }
 
-    if (!skillId || !memberIds || !Array.isArray(memberIds)) {
+    if (!skillId || !memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'Skill ID e array de member IDs são obrigatórios'
@@ -411,6 +411,18 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
       try {
         console.log(`[TECHNICAL-SKILLS] Processing member: ${memberId}`);
 
+        // Validate member ID is valid UUID
+        if (!memberId || typeof memberId !== 'string') {
+          console.error(`[TECHNICAL-SKILLS] Invalid member ID: ${memberId}`);
+          errorCount++;
+          results.push({
+            memberId,
+            status: 'error',
+            message: 'ID de membro inválido'
+          });
+          continue;
+        }
+
         // Check if assignment already exists
         const existingAssignment = await db.select()
           .from(userSkills)
@@ -434,33 +446,38 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
         }
 
         // Create new assignment with all required fields including tenantId
+        const assignmentId = crypto.randomUUID();
         const newAssignment = {
-          id: crypto.randomUUID(),
+          id: assignmentId,
           tenantId: tenantId,
           userId: memberId,
           skillId: skillId,
           proficiencyLevel: defaultProficiencyLevel,
           yearsOfExperience: 0,
-          certifications: [],
+          certifications: JSON.stringify([]),
           notes: null,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
         };
 
-        console.log(`[TECHNICAL-SKILLS] Creating assignment:`, newAssignment);
+        console.log(`[TECHNICAL-SKILLS] Creating assignment with ID ${assignmentId}:`, newAssignment);
 
         // Insert the assignment
         const insertResult = await db.insert(userSkills).values(newAssignment).returning();
 
-        console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}:`, insertResult);
-
-        successCount++;
-        results.push({
-          memberId,
-          status: 'success',
-          message: 'Atribuído com sucesso'
-        });
+        if (insertResult && insertResult.length > 0) {
+          console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}:`, insertResult[0]);
+          successCount++;
+          results.push({
+            memberId,
+            status: 'success',
+            message: 'Atribuído com sucesso',
+            assignmentId: assignmentId
+          });
+        } else {
+          throw new Error('Falha ao inserir no banco de dados');
+        }
 
       } catch (memberError) {
         console.error(`[TECHNICAL-SKILLS] Error assigning skill to member ${memberId}:`, memberError);
@@ -475,14 +492,18 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
 
     console.log(`[TECHNICAL-SKILLS] Assignment completed: ${successCount} successful, ${errorCount} failed`);
 
-    res.status(200).json({
-      success: true,
+    // Return appropriate status code based on results
+    const statusCode = errorCount === 0 ? 200 : (successCount === 0 ? 400 : 207); // 207 for partial success
+
+    res.status(statusCode).json({
+      success: successCount > 0,
       message: `Atribuição concluída: ${successCount} sucesso, ${errorCount} falha`,
       data: {
         skillId,
         successCount,
         errorCount,
-        results
+        results,
+        totalProcessed: memberIds.length
       }
     });
 
