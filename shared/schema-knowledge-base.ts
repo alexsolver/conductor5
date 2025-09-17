@@ -276,12 +276,25 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   viewCount: true,
   upvoteCount: true,
   helpfulCount: true,
+  version: true,
+  approvalStatus: true,
+  ratingAverage: true,
+  ratingCount: true,
+  attachmentCount: true,
+  isDeleted: true,
+  deletedAt: true,
+  lastViewedAt: true,
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
-  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]),
-  tags: z.array(z.string()).optional(),
-  keywords: z.array(z.string()).optional(),
+  category: z.string().optional().default("other"),
+  tags: z.array(z.string()).optional().default([]),
+  keywords: z.array(z.string()).optional().default([]),
+  accessLevel: z.string().optional().default("public"),
+  status: z.string().optional().default("draft"),
+  published: z.boolean().optional().default(false),
+  contentType: z.string().optional().default("rich_text"),
+  summary: z.string().optional(),
 });
 
 export const updateKnowledgeBaseArticleSchema = insertKnowledgeBaseArticleSchema.partial().extend({

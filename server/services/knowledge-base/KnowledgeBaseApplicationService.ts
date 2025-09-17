@@ -114,6 +114,12 @@ export class KnowledgeBaseApplicationService {
   }> {
     try {
       this.logger.log(`[KB-SERVICE] Creating article for tenant: ${this.tenantId}`);
+      this.logger.log(`[KB-SERVICE] Article data received:`, JSON.stringify(articleData, null, 2));
+
+      // Validate required fields
+      if (!articleData.title || !articleData.content) {
+        throw new Error('Title and content are required');
+      }
 
       // Map category string to categoryId (using category as ID for now)
       const categoryMapping: Record<string, string> = {
@@ -140,13 +146,24 @@ export class KnowledgeBaseApplicationService {
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
-        // Use accessLevel which exists in the database
-        accessLevel: articleData.access_level || articleData.visibility || 'public',
+        accessLevel: articleData.accessLevel || articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
+        summary: articleData.summary || null,
+        contentType: articleData.contentType || 'rich_text',
+        viewCount: 0,
+        helpfulCount: 0,
+        upvoteCount: 0,
+        version: 1,
+        approvalStatus: 'pending',
+        ratingAverage: '0',
+        ratingCount: 0,
+        attachmentCount: 0,
+        keywords: articleData.keywords || [],
+        isDeleted: false
       };
 
       // Debug: Log exactly what we're trying to insert
-      console.log('[KB-DEBUG] Attempting to insert:', JSON.stringify(newArticle, null, 2));
+      this.logger.log('[KB-DEBUG] Attempting to insert:', JSON.stringify(newArticle, null, 2));
 
       // Insert article
       const [createdArticle] = await db
@@ -163,7 +180,15 @@ export class KnowledgeBaseApplicationService {
       };
     } catch (error) {
       this.logger.error(`[KB-SERVICE] Error creating article:`, error);
-      throw new Error('Failed to create article');
+      this.logger.error(`[KB-SERVICE] Error details:`, error.message);
+      this.logger.error(`[KB-SERVICE] Error stack:`, error.stack);
+      
+      // Return a more detailed error message
+      return {
+        success: false,
+        message: `Failed to create article: ${error.message}`,
+        data: null as any
+      };
     }
   }
 
