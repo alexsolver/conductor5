@@ -1,5 +1,5 @@
 // Enhanced Token Refresh Utility
-export class TokenRefresh {
+class TokenRefresh {
   private static refreshTimeout: NodeJS.Timeout | null = null;
   private static activityInterval: NodeJS.Timeout | null = null;
   private static isRefreshing = false;
@@ -54,14 +54,16 @@ export class TokenRefresh {
       
       console.log('🔄 [TOKEN-REFRESH] Attempting refresh with token:', refreshToken ? 'present' : 'missing');
       
+      // Always include the refresh token in the request body if we have it
+      const requestBody = refreshToken ? { refreshToken } : {};
+      
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         credentials: 'include', // This ensures cookies are sent
         headers: {
           'Content-Type': 'application/json'
         },
-        // Always send refresh token in body if available
-        body: JSON.stringify(refreshToken ? { refreshToken } : {})
+        body: JSON.stringify(requestBody)
       });
 
       if (response.ok) {
