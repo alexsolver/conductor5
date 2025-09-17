@@ -74,7 +74,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Basic Article Info - matching actual DB structure
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content"),
-  excerpt: text("excerpt"),
 
   // Authoring
   authorId: uuid("author_id"),

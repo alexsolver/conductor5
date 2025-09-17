@@ -65,7 +65,29 @@ export class KnowledgeBaseApplicationService {
       this.logger.log(`[KB-SERVICE] Conditions count: ${conditions.length}`);
 
       const articles = await db
-        .select()
+        .select({
+          id: knowledgeBaseArticles.id,
+          tenantId: knowledgeBaseArticles.tenantId,
+          title: knowledgeBaseArticles.title,
+          content: knowledgeBaseArticles.content,
+          authorId: knowledgeBaseArticles.authorId,
+          category: knowledgeBaseArticles.category,
+          status: knowledgeBaseArticles.status,
+          visibility: knowledgeBaseArticles.visibility,
+          tags: knowledgeBaseArticles.tags,
+          viewCount: knowledgeBaseArticles.viewCount,
+          helpfulCount: knowledgeBaseArticles.helpfulCount,
+          notHelpfulCount: knowledgeBaseArticles.notHelpfulCount,
+          featured: knowledgeBaseArticles.featured,
+          seoTitle: knowledgeBaseArticles.seoTitle,
+          seoDescription: knowledgeBaseArticles.seoDescription,
+          slug: knowledgeBaseArticles.slug,
+          publishedAt: knowledgeBaseArticles.publishedAt,
+          archivedAt: knowledgeBaseArticles.archivedAt,
+          metadata: knowledgeBaseArticles.metadata,
+          createdAt: knowledgeBaseArticles.createdAt,
+          updatedAt: knowledgeBaseArticles.updatedAt
+        })
         .from(knowledgeBaseArticles)
         .where(and(...conditions))
         .limit(limit + 1) // +1 to check if there are more
