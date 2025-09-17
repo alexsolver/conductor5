@@ -141,11 +141,27 @@ export class KnowledgeBaseApplicationService {
         throw new Error('Title and content are required');
       }
 
+      // Map category values to match actual DB enum (kb_category_enum: 'general', 'technical')
+      const categoryMapping: Record<string, string> = {
+        'technical_support': 'technical',
+        'troubleshooting': 'technical', 
+        'user_guide': 'general',
+        'faq': 'general',
+        'policy': 'general',
+        'policies': 'general',
+        'process': 'general',
+        'training': 'general',
+        'announcement': 'general',
+        'best_practice': 'general',
+        'configuration': 'technical',
+        'other': 'general'
+      };
+
       // Prepare article for insertion with correct field mapping - only use existing columns
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: articleData.category || 'other',
+        category: categoryMapping[articleData.category] || 'general',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
