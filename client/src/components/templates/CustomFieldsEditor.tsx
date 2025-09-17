@@ -37,6 +37,7 @@ interface CustomFieldsEditorProps {
 
 export default function CustomFieldsEditor({ fields, onChange, readOnly = false }: CustomFieldsEditorProps) {
   const [editingField, setEditingField] = useState<string | null>(null);
+  const [showAddField, setShowAddField] = useState(false);
   const [newField, setNewField] = useState<Partial<CustomField>>({
     name: '',
     label: '',
@@ -84,6 +85,7 @@ export default function CustomFieldsEditor({ fields, onChange, readOnly = false 
       hidden: false,
       order: fields.length + 2
     });
+    setShowAddField(false);
   };
 
   const updateField = (id: string, updates: Partial<CustomField>) => {
@@ -123,8 +125,9 @@ export default function CustomFieldsEditor({ fields, onChange, readOnly = false 
     };
 
     const saveField = () => {
-      if (isNew) {
-        setNewField(localField);
+      if (isNew && localField.name && localField.label) {
+        // Adicionar o campo diretamente
+        addField();
       } else if (field.id) {
         updateField(field.id, localField);
         setEditingField(null);
@@ -298,7 +301,23 @@ export default function CustomFieldsEditor({ fields, onChange, readOnly = false 
   if (readOnly) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Campos Customizados</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Campos Customizados</h3>
+          {!readOnly && (
+            <Button size="sm" variant="outline" onClick={() => setShowAddField(!showAddField)}>
+              <Plus className="w-3 h-3 mr-1" />
+              {showAddField ? 'Cancelar' : 'Novo Campo'}
+            </Button>
+          )}
+        </div>
+        
+        {/* Formulário para adicionar novo campo */}
+        {showAddField && !readOnly && (
+          <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+            <FieldEditor field={newField} isNew={true} />
+          </div>
+        )}
+        
         {fields.length === 0 ? (
           <p className="text-muted-foreground">Nenhum campo customizado definido.</p>
         ) : (
