@@ -128,7 +128,6 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         content: content.trim(),
         category,
         access_level: access_level || 'public',
-        published: published,
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         status: published ? 'published' : 'draft'
       };

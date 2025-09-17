@@ -86,7 +86,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   authorId: uuid("author_id").notNull(), // UUID for user references
 
   // Publishing & Metadata - matching exact DB column names and defaults
-  published: boolean("published").default(false), // boolean default false
   publishedAt: timestamp("published_at", { withTimezone: true }),
   viewCount: integer("view_count").default(0), // integer default 0
   helpfulCount: integer("helpful_count").default(0), // integer default 0

@@ -132,7 +132,7 @@ export class KnowledgeBaseApplicationService {
         'other': 'other'
       };
 
-      // Prepare article for insertion with correct field mapping
+      // Prepare article for insertion with correct field mapping - only use existing columns
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
@@ -140,9 +140,7 @@ export class KnowledgeBaseApplicationService {
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
-        published: articleData.published || false,
         tags: articleData.tags || [],
-        publishedAt: articleData.published ? new Date() : null,
         summary: articleData.summary || null,
         contentType: articleData.contentType || 'rich_text',
         viewCount: 0,
