@@ -117,22 +117,33 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
 
       // Try multiple endpoints to get complete user data
       try {
-        const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
-        console.log('EditMemberDialog - Got complete member details:', response);
-
-        // If the response is empty object or doesn't have essential fields, use member data
-        if (!response || Object.keys(response).length === 0 || !response.email) {
-          console.log('EditMemberDialog - API returned empty/invalid data, using member data:', member);
-          return member;
+        // First try the team management endpoint
+        const teamResponse = await apiRequest('GET', `/api/team/members/${member.id}`);
+        console.log('EditMemberDialog - Team API response:', teamResponse);
+        
+        if (teamResponse && teamResponse.id) {
+          return teamResponse;
         }
 
-        return response;
+        // Then try user management endpoint
+        const userResponse = await apiRequest('GET', `/api/user-management/users/${member.id}`);
+        console.log('EditMemberDialog - User API response:', userResponse);
+        
+        if (userResponse && userResponse.data && userResponse.data.id) {
+          return userResponse.data;
+        }
+
+        // If both fail, use the member data passed as prop
+        console.log('EditMemberDialog - Using fallback member data:', member);
+        return member;
       } catch (error) {
         console.log('EditMemberDialog - API error, fallback to basic member data:', member);
         return member;
       }
     },
     enabled: open && !!member?.id,
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   // Fetch member's current groups
@@ -163,9 +174,11 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
 
   // Reset form when member details are loaded
   useEffect(() => {
-    if (open && member && !memberLoading) {
-      // Use member data as source since API returns empty object
-      const sourceData = member;
+    if (open && !memberLoading) {
+      // Use memberDetails if available, otherwise fallback to member
+      const sourceData = memberDetails || member;
+
+      if (!sourceData) return;
 
       console.log('EditMemberDialog - Setting form data for member:', sourceData);
       console.log('EditMemberDialog - Available data keys:', Object.keys(sourceData));
@@ -181,10 +194,10 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         email: sourceData.email || '',
         integrationCode: sourceData.integrationCode || sourceData.integration_code || '',
         alternativeEmail: sourceData.alternativeEmail || sourceData.alternative_email || '',
-        cellPhone: sourceData.cellPhone || sourceData.cell_phone || '',
-        phone: sourceData.phone || '',
+        cellPhone: sourceData.cellPhone || sourceData.cell_phone || sourceData.phoneNumber || '',
+        phone: sourceData.phone || sourceData.phoneNumber || '',
         ramal: sourceData.ramal || '',
-        timeZone: sourceData.timeZone || sourceData.time_zone || 'America/Sao_Paulo',
+        timeZone: sourceData.timeZone || sourceData.time_zone || sourceData.timezone || 'America/Sao_Paulo',
         vehicleType: sourceData.vehicleType || sourceData.vehicle_type || 'nenhum',
         cpfCnpj: sourceData.cpfCnpj || sourceData.cpf_cnpj || '',
 
@@ -218,14 +231,24 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       console.log('EditMemberDialog - Final form data:', formDataToSet);
       form.reset(formDataToSet);
     }
-  }, [member, open, memberLoading, form]);
+  }, [memberDetails, member, open, memberLoading, form]);
 
   // Update member mutation
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('EditMemberDialog - Updating member with data:', data);
-      const response = await apiRequest('PUT', `/api/user-management/users/${member.id}`, data);
-      return response;
+      
+      // Try team management endpoint first, then user management
+      try {
+        const response = await apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
+        console.log('EditMemberDialog - Team API update response:', response);
+        return response;
+      } catch (error) {
+        console.log('EditMemberDialog - Team API failed, trying user management API');
+        const response = await apiRequest('PUT', `/api/user-management/users/${member.id}`, data);
+        console.log('EditMemberDialog - User API update response:', response);
+        return response;
+      }
     },
     onSuccess: () => {
       // Invalidate all user/member related queries to ensure UI updates
