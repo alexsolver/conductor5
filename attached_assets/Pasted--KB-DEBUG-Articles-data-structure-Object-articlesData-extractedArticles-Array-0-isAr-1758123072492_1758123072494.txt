@@ -1,0 +1,29 @@
+🔍 [KB-DEBUG] Articles data structure: 
+Object {articlesData: {…}, extractedArticles: Array(0), isArray: true}
+🔍 [KB-DEBUG] Articles data structure: 
+Object {articlesData: {…}, extractedArticles: Array(0), isArray: true}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: "malex@ask.com", role: "tenant_admin", employmentType: "clt", position: undefined}
+[EMPLOYMENT-DETECTION] Using employmentType field: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: "malex@ask.com", role: "tenant_admin", employmentType: "clt", detectedType: "clt"}
+🔍 [KB-DEBUG] Articles data structure: 
+Object {articlesData: {…}, extractedArticles: Array(0), isArray: true}
+📝 [CREATE-ARTICLE] Submitting: 
+Object {title: "sad", content: "saddsa", category: "troubleshooting", access_level: "public", tags: Array(0), …}
+🌐 [API-REQUEST] POST /api/knowledge-base/articles
+🔍 [API-REQUEST-DEBUG] POST request details: 
+Object {method: "POST", url: "/api/knowledge-base/articles", hasData: true, credentials: "include", cookiesWillBeSent: true}
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+❌ [CREATE-ARTICLE] Error: 
+Error {}
+message: "Failed to create article: column "view_count" of relation "knowledge_base_articles" does not exist"
+stack: "Error: Failed to create article: column "view_count" of relation "knowledge_base_articles" does not exist↵ at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/knowledge-base/CreateArticleDialog.tsx:62:15)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
