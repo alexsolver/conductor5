@@ -87,8 +87,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
 
   // Publishing & Metadata - matching exact DB column names and defaults
   viewsCount: integer("views_count").default(0), // integer default 0
-  helpfulCount: integer("helpful_count").default(0), // integer default 0
-  upvoteCount: integer("upvote_count").default(0), // integer default 0
 
   // Additional fields matching DB exactly
   isDeleted: boolean("is_deleted").default(false), // boolean default false
@@ -97,12 +95,6 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   slug: varchar("slug"), // character varying
   version: integer("version").default(1), // integer default 1
   contentType: varchar("content_type").default("article"), // character varying
-  approvalStatus: text("approval_status").default("pending"), // text default 'pending'
-  ratingAverage: numeric("rating_average").default("0"), // numeric, not integer!
-  ratingCount: integer("rating_count").default(0), // integer default 0
-  attachmentCount: integer("attachment_count").default(0), // integer default 0
-  keywords: text("keywords").array().default(sql`ARRAY[]::text[]`), // ARRAY type
-  lastViewedAt: timestamp("last_viewed_at", { withTimezone: false }), // timestamp without time zone
 
   // Audit - matching DB defaults exactly
   createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),

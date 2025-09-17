@@ -144,14 +144,7 @@ export class KnowledgeBaseApplicationService {
         summary: articleData.summary || null,
         contentType: articleData.contentType || 'rich_text',
         viewsCount: 0,
-        helpfulCount: 0,
-        upvoteCount: 0,
         version: 1,
-        approvalStatus: 'pending',
-        ratingAverage: '0',
-        ratingCount: 0,
-        attachmentCount: 0,
-        keywords: articleData.keywords || [],
         isDeleted: false
       };
 
@@ -216,8 +209,7 @@ export class KnowledgeBaseApplicationService {
       await db
         .update(knowledgeBaseArticles)
         .set({ 
-          viewsCount: sql`${knowledgeBaseArticles.viewsCount} + 1`,
-          lastViewedAt: new Date()
+          viewsCount: sql`${knowledgeBaseArticles.viewsCount} + 1`
         })
         .where(eq(knowledgeBaseArticles.id, id));
 
