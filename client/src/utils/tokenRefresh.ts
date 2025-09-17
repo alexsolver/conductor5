@@ -49,12 +49,17 @@ export class TokenRefresh {
     TokenRefresh.isRefreshing = true;
     
     try {
+      // Try to get refresh token from localStorage as fallback
+      const refreshToken = localStorage.getItem('refreshToken');
+      
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // This ensures cookies are sent
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        // Send refresh token in body as fallback if not in cookies
+        body: refreshToken ? JSON.stringify({ refreshToken }) : JSON.stringify({})
       });
 
       if (response.ok) {
@@ -141,11 +146,13 @@ export const apiRequestWithRefresh = async (
 
   let response = await fetch(url, {
     ...options,
+    credentials: 'include', // Always include credentials for cookies
     headers
   });
 
-  // If 401 and we have a token, try refreshing
-  if (response.status === 401 && token) {
+  // If 401, try refreshing regardless of whether we have a local token
+  if (response.status === 401) {
+    console.log('🔄 [API-REQUEST] 401 detected, attempting token refresh');
     const refreshed = await TokenRefresh.performRefresh();
     
     if (refreshed) {
@@ -153,9 +160,10 @@ export const apiRequestWithRefresh = async (
       const newToken = localStorage.getItem('accessToken');
       response = await fetch(url, {
         ...options,
+        credentials: 'include',
         headers: {
           ...headers,
-          Authorization: `Bearer ${newToken}`
+          ...(newToken && { Authorization: `Bearer ${newToken}` })
         }
       });
     }

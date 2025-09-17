@@ -34,6 +34,12 @@ authRouter.post(
 
       // Check for refresh token in body or cookies
       const tokenToUse = refreshToken || cookieRefreshToken;
+      
+      console.log('🔄 [REFRESH] Token sources:', {
+        hasBodyToken: !!refreshToken,
+        hasCookieToken: !!cookieRefreshToken,
+        hasTokenToUse: !!tokenToUse
+      });
 
       if (!tokenToUse) {
         console.log("❌ [REFRESH] No refresh token provided");
