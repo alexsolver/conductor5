@@ -53,10 +53,6 @@ export class KnowledgeBaseApplicationService {
         conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
-      if (params.access_level || params.visibility) {
-        conditions.push(eq(knowledgeBaseArticles.accessLevel, params.access_level || params.visibility));
-      }
-
       if (params.status) {
         conditions.push(eq(knowledgeBaseArticles.status, params.status));
       }
@@ -146,7 +142,6 @@ export class KnowledgeBaseApplicationService {
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
-        accessLevel: articleData.accessLevel || articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
         summary: articleData.summary || null,
         contentType: articleData.contentType || 'rich_text',
