@@ -116,11 +116,11 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_created_idx").on(table.tenantId, table.createdAt),
 
-  // Unique title per tenant (removed slug reference)
+  // Unique title per tenant
   unique("kb_articles_tenant_title_unique").on(table.tenantId, table.title),
 
   // Search optimization
