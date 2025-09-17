@@ -38,16 +38,24 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Enhanced API request function with automatic retries and error handling
 export const apiRequest = async (
   method: string,
-  endpoint: string,
+  url: string,
   data?: any,
   options: RequestInit = {}
 ): Promise<Response> => {
-  const url = endpoint.startsWith('http') ? endpoint : `/api${endpoint}`;
+  console.log(`🌐 [API-REQUEST] ${method} ${url}`);
 
-  console.log(`🌐 [API-REQUEST] ${method} ${endpoint}`);
+  // 🔍 Debug tokens for POST requests
+  if (method === 'POST') {
+    console.log('🔍 [API-REQUEST-DEBUG] POST request details:', {
+      method,
+      url,
+      hasData: !!data,
+      credentials: 'include',
+      cookiesWillBeSent: true
+    });
+  }
 
   const config: RequestInit = {
     method,
@@ -55,7 +63,7 @@ export const apiRequest = async (
       'Content-Type': 'application/json',
       ...options.headers,
     },
-    credentials: 'include', // Always include credentials for cookies
+    credentials: 'include', // ✅ 1QA.MD: Ensure cookies are included for authentication
     ...options,
   };
 
@@ -63,36 +71,9 @@ export const apiRequest = async (
     config.body = JSON.stringify(data);
   }
 
-  console.log('🔍 [API-REQUEST-FINAL] Making request with credentials:', config.credentials);
+  console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
 
-  try {
-    let response = await fetch(url, config);
-
-    // If we get a 401 and it's not an auth endpoint, try to refresh the token
-    if (response.status === 401 && !endpoint.includes('/auth/')) {
-      console.log('🔄 [API-REQUEST] Got 401, attempting token refresh...');
-
-      const refreshResponse = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (refreshResponse.ok) {
-        console.log('✅ [API-REQUEST] Token refreshed, retrying original request...');
-        // Retry the original request
-        response = await fetch(url, config);
-      } else {
-        console.log('❌ [API-REQUEST] Token refresh failed, request will fail');
-      }
-    }
-
-    console.log(`✅ [API-REQUEST] ${method} ${endpoint} - ${response.status}`);
-    return response;
-  } catch (error: any) {
-    console.error(`❌ [API-REQUEST] ${method} ${endpoint} failed:`, error.message);
-    throw error;
-  }
+  return fetch(url, config);
 };
 
 type UnauthorizedBehavior = "returnNull" | "throwError";

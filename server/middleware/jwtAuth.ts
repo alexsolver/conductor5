@@ -40,9 +40,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       hasAuthHeader: !!authHeader,
       tokenSource: tokenFromCookie ? 'cookie' : (tokenFromHeader ? 'header' : 'none'),
       tokenStart: token?.substring(0, 20) || 'none',
-      tokenLength: token?.length || 0,
-      cookies: Object.keys(req.cookies || {}),
-      userAgent: req.headers['user-agent']?.substring(0, 50)
+      tokenLength: token?.length || 0
     });
 
     if (!token) {
