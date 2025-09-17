@@ -604,7 +604,7 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
     if (updateData.groupIds && Array.isArray(updateData.groupIds)) {
       try {
         const tenantSchema = `tenant_${user.tenantId.replace(/-/g, '_')}`;
-        
+
         // First, remove existing memberships
         await db.execute(sql`
           DELETE FROM ${sql.identifier(tenantSchema)}.user_group_memberships 
