@@ -150,6 +150,72 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// ✅ Get departments endpoint implementation
+router.get('/departments', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Return default departments structure for team management
+    const defaultDepartments = [
+      {
+        id: 'dept_engineering',
+        tenantId: user.tenantId,
+        name: 'Engenharia',
+        code: 'ENG',
+        description: 'Departamento de Engenharia e Desenvolvimento',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'dept_sales',
+        tenantId: user.tenantId,
+        name: 'Vendas',
+        code: 'SALES',
+        description: 'Departamento Comercial e Vendas',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'dept_support',
+        tenantId: user.tenantId,
+        name: 'Suporte',
+        code: 'SUP',
+        description: 'Departamento de Suporte ao Cliente',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'dept_hr',
+        tenantId: user.tenantId,
+        name: 'Recursos Humanos',
+        code: 'HR',
+        description: 'Departamento de Recursos Humanos',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    console.log(`[TEAM-MANAGEMENT] Returning ${defaultDepartments.length} departments for tenant: ${user.tenantId}`);
+
+    res.json({
+      success: true,
+      data: defaultDepartments,
+      message: 'Departments retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[TEAM-MANAGEMENT] Error fetching departments:', error);
+    res.status(500).json({ message: 'Failed to fetch departments' });
+  }
+});
+
 // ✅ 1QA.MD: Get team statistics with real data using tenant schema
 router.get('/stats', async (req: AuthenticatedRequest, res) => {
   try {
