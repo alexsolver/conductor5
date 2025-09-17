@@ -1,0 +1,48 @@
+Pasted-Available-companies-error-Error-Available-companies-error-Error-Available-companies-erro-1758136971365_1758136971365.txt
+Available companies error: 
+Error {}
+
+Available companies error: 
+Error {}
+
+Available companies error: 
+Error {}
+
+❌ [ASSIGN-MEMBERS] API Error: {"success":false,"message":"Atribuição concluída: 0 sucesso, 1 falha","data":{"skillId":"c6a90da1-8c5c-4bbc-9594-5943587dbbe2","successCount":0,"errorCount":1,"results":[{"memberId":"53126612-9a08-4d04-8197-64f479c2d7b4","status":"error","message":"Falha na atribuição: column \"tenant_id\" does not exist"}],"totalProcessed":1}}
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ [ASSIGN-MEMBERS] Mutation error: 
+Error {}
+message: "Erro ao atribuir membros à habilidade"
+stack: "Error: Erro ao atribuir membros à habilidade↵ at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/team-management/TechnicalSkillsTab.tsx:269:15)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+constructor: ƒ Error()
+message: "Erro ao atribuir membros à habilidade"
+name: "Error"
+toString: ƒ toString()
+[[Prototype]]: Object
+
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+❌ [ASSIGN-MEMBERS] API Error: {"success":false,"message":"Atribuição concluída: 0 sucesso, 1 falha","data":{"skillId":"c6a90da1-8c5c-4bbc-9594-5943587dbbe2","successCount":0,"errorCount":1,"results":[{"memberId":"53126612-9a08-4d04-8197-64f479c2d7b4","status":"error","message":"Falha na atribuição: column \"tenant_id\" does not exist"}],"totalProcessed":1}}
+❌ [ASSIGN-MEMBERS] Mutation error: 
+Error {}
+
+❌ [ASSIGN-MEMBERS] API Error: {"success":false,"message":"Atribuição concluída: 0 sucesso, 1 falha","data":{"skillId":"c6a90da1-8c5c-4bbc-9594-5943587dbbe2","successCount":0,"errorCount":1,"results":[{"memberId":"53126612-9a08-4d04-8197-64f479c2d7b4","status":"error","message":"Falha na atribuição: column \"tenant_id\" does not exist"}],"totalProcessed":1}}
+❌ [ASSIGN-MEMBERS] Mutation error: 
+Error {}
+
+❌ [ASSIGN-MEMBERS] API Error: {"success":false,"message":"Atribuição concluída: 0 sucesso, 1 falha","data":{"skillId":"c6a90da1-8c5c-4bbc-9594-5943587dbbe2","successCount":0,"errorCount":1,"results":[{"memberId":"53126612-9a08-4d04-8197-64f479c2d7b4","status":"error","message":"Falha na atribuição: column \"tenant_id\" does not exist"}],"totalProcessed":1}}
+❌ [ASSIGN-MEMBERS] Mutation error: 
+Error {}
+message: "Erro ao atribuir membros à habilidade"
+stack: "Error: Erro ao atribuir membros à habilidade↵ at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/team-management/TechnicalSkillsTab.tsx:269:15)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
