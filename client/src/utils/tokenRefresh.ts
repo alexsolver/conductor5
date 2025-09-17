@@ -52,14 +52,16 @@ export class TokenRefresh {
       // Try to get refresh token from localStorage as fallback
       const refreshToken = localStorage.getItem('refreshToken');
       
+      console.log('🔄 [TOKEN-REFRESH] Attempting refresh with token:', refreshToken ? 'present' : 'missing');
+      
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         credentials: 'include', // This ensures cookies are sent
         headers: {
           'Content-Type': 'application/json'
         },
-        // Send refresh token in body as fallback if not in cookies
-        body: refreshToken ? JSON.stringify({ refreshToken }) : JSON.stringify({})
+        // Always send refresh token in body if available
+        body: JSON.stringify(refreshToken ? { refreshToken } : {})
       });
 
       if (response.ok) {
@@ -83,10 +85,17 @@ export class TokenRefresh {
         TokenRefresh.setupAutoRefresh();
         return true;
       } else {
-        console.warn('Token refresh failed:', response.status);
-        // Don't force redirect following 1qa.md - let components handle auth state
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.warn('🔄 [TOKEN-REFRESH] Failed:', {
+          status: response.status,
+          message: errorData.message || 'Unknown error'
+        });
+        
+        // Clear tokens if refresh failed due to invalid token
         if (response.status === 401) {
-          console.log('Token refresh failed - components will handle auth state');
+          console.log('🔄 [TOKEN-REFRESH] Clearing invalid tokens');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
         }
         return false;
       }

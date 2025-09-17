@@ -38,12 +38,20 @@ authRouter.post(
       console.log('🔄 [REFRESH] Token sources:', {
         hasBodyToken: !!refreshToken,
         hasCookieToken: !!cookieRefreshToken,
-        hasTokenToUse: !!tokenToUse
+        hasTokenToUse: !!tokenToUse,
+        bodyTokenLength: refreshToken?.length || 0,
+        cookieTokenLength: cookieRefreshToken?.length || 0
       });
 
       if (!tokenToUse) {
         console.log("❌ [REFRESH] No refresh token provided");
-        return res.status(400).json({
+        // Clear any invalid cookies
+        res.clearCookie("refreshToken", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        });
+        return res.status(401).json({
           success: false,
           message: "Refresh token required"
         });
