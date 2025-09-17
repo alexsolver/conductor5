@@ -323,18 +323,20 @@ export * from './schema-tenant';
 export const userSkills = pgTable('user_skills', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  userId: uuid('user_id').notNull(),
-  skillId: uuid('skill_id').notNull(),
-  proficiencyLevel: varchar('proficiency_level', { length: 50 }).notNull().default('beginner'),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  skillId: uuid('skill_id').references(() => skills.id).notNull(),
+  proficiencyLevel: varchar('proficiency_level', { length: 50 }).default('beginner'),
+  yearsOfExperience: integer('years_of_experience').default(0),
   certifications: jsonb('certifications').default([]),
   notes: text('notes'),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  tenantIdx: index('user_skills_tenant_idx').on(table.tenantId),
-  userIdx: index('user_skills_user_idx').on(table.userId),
-  skillIdx: index('user_skills_skill_idx').on(table.skillId),
-  tenantUserSkillIdx: index('user_skills_tenant_user_skill_idx').on(table.tenantId, table.userId, table.skillId),
-  uniqueUserSkill: unique('user_skills_tenant_user_skill_unique').on(table.tenantId, table.userId, table.skillId)
-}));
+  updatedAt: timestamp('updated_at').defaultNow()
+}, (table) => {
+  return {
+    tenantIdIdx: index('user_skills_tenant_id_idx').on(table.tenantId),
+    userIdIdx: index('user_skills_user_id_idx').on(table.userId),
+    skillIdIdx: index('user_skills_skill_id_idx').on(table.skillId),
+    uniqueUserSkill: unique('unique_user_skill').on(table.tenantId, table.userId, table.skillId)
+  };
+});

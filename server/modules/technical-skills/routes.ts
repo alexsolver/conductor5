@@ -411,13 +411,14 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
       try {
         console.log(`[TECHNICAL-SKILLS] Processing member: ${memberId}`);
 
-        // Check if assignment already exists - Fixed to work with actual DB structure
+        // Check if assignment already exists
         const existingAssignment = await db.select()
           .from(userSkills)
           .where(
             and(
               eq(userSkills.userId, memberId),
-              eq(userSkills.skillId, skillId)
+              eq(userSkills.skillId, skillId),
+              eq(userSkills.tenantId, tenantId)
             )
           )
           .limit(1);
@@ -432,12 +433,16 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           continue;
         }
 
-        // Create new assignment - Fixed to work with actual DB structure
+        // Create new assignment with all required fields including tenantId
         const newAssignment = {
           id: crypto.randomUUID(),
+          tenantId: tenantId,
           userId: memberId,
-          skillId,
+          skillId: skillId,
           proficiencyLevel: defaultProficiencyLevel,
+          yearsOfExperience: 0,
+          certifications: [],
+          notes: null,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -445,9 +450,10 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
 
         console.log(`[TECHNICAL-SKILLS] Creating assignment:`, newAssignment);
 
+        // Insert the assignment
         const insertResult = await db.insert(userSkills).values(newAssignment).returning();
 
-        console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}`);
+        console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}:`, insertResult);
 
         successCount++;
         results.push({
@@ -462,7 +468,7 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
         results.push({
           memberId,
           status: 'error',
-          message: 'Falha na atribuição'
+          message: 'Falha na atribuição: ' + (memberError instanceof Error ? memberError.message : 'Erro desconhecido')
         });
       }
     }
