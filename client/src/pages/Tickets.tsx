@@ -18,7 +18,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
-import { useFieldColors } from "@/hooks/useFieldColors";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
@@ -132,7 +131,7 @@ export default function Tickets() {
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
-  
+
   // ✅ 1QA.MD: Log errors
   if (templatesError) {
     console.error('❌ [TEMPLATE-QUERY] Error loading templates:', templatesError);
@@ -197,7 +196,7 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  
+
   // Handle customer loading errors
   if (customersData?.error || customersError) {
     console.error('Customer loading error:', customersData?.error || customersError);
@@ -232,7 +231,7 @@ export default function Tickets() {
 
   console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
   console.log('🔍 Filtered companies for dropdown:', companies.length);
-  
+
   // ✅ 1QA.MD: Debug template data loading - FORCE ALWAYS LOG
   console.log('🔍 [TEMPLATE-DEBUG] Template data status:', {
     isLoading: templatesLoading,
@@ -242,7 +241,7 @@ export default function Tickets() {
     hasError: !!templatesError,
     errorMessage: templatesError?.message || 'no error'
   });
-  
+
   // ✅ 1QA.MD: Force debug always for template investigation
   console.log('🚨 [TEMPLATE-FORCE-DEBUG] Always logging templates state:', {
     templatesData,
@@ -379,20 +378,20 @@ export default function Tickets() {
       description: data.description,
       priority: data.priority,
       urgency: data.urgency,
-      
+
       // Hierarchical classification
       category: data.category,
       subcategory: data.subcategory,
       action: data.action,
-      
+
       // Person relationships (standardized)
       caller_id: data.customerId,
       beneficiary_id: data.beneficiaryId || null,
       company_id: data.companyId,
-      
+
       // Assignment
       assignment_group_id: data.assignmentGroup,
-      
+
       // Location and context
       location: data.location,
       symptoms: data.symptoms || null,
@@ -488,44 +487,44 @@ export default function Tickets() {
 
   // Parse consistente dos dados de tickets seguindo Clean Architecture
   console.log('🎫 [Tickets] Raw API response:', tickets);
-  
+
   const ticketsList = (() => {
     if (!tickets) {
       console.log('🎫 [Tickets] No tickets data received');
       return [];
     }
-    
+
     // Standard Clean Architecture response structure
     if (tickets?.success && tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using standard Clean Architecture structure');
       return tickets.data.tickets;
     }
-    
+
     // Legacy support for direct data property
     if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using legacy data.tickets structure');
       return tickets.data.tickets;
     }
-    
+
     // Direct tickets array (fallback)
     if ((tickets as any)?.tickets && Array.isArray((tickets as any).tickets)) {
       console.log('🎫 [Tickets] Using direct tickets array');
       return (tickets as any).tickets;
     }
-    
+
     // Raw array (ultimate fallback)
     if (Array.isArray(tickets)) {
       console.log('🎫 [Tickets] Using raw array');
       return tickets;
     }
-    
+
     console.warn('⚠️ [Tickets] Unexpected response structure:', tickets);
     console.warn('⚠️ [Tickets] Available keys:', Object.keys(tickets || {}));
     return [];
   })();
-  
+
   const ticketsCount = ticketsList.length;
-  
+
   console.log('🎫 [Tickets] Final parsed result:', {
     hasData: !!tickets,
     isSuccess: tickets?.success,
@@ -560,8 +559,8 @@ export default function Tickets() {
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  
-                  {/* Company Selection - Must be first */}
+
+                  {/* Empresa (primeiro campo - obrigatório) */}
                     <FormField
                       control={form.control}
                       name="companyId"
@@ -601,26 +600,24 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* ✅ 1QA.MD: Template Selection - After company selection */}
+                  {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Template (Opcional)
-                      </label>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('tickets.forms.create.template')}</label>
                       <Select 
                         onValueChange={async (value) => {
                           const templateId = value === '__none__' ? undefined : value;
                           setSelectedTemplateId(templateId);
-                          
+
                           // ✅ 1QA.MD: Aplicar campos do template quando selecionado
                           if (templateId && templatesData?.data) {
                             const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
                             if (selectedTemplate?.fields) {
                               try {
                                 const fields = JSON.parse(selectedTemplate.fields);
-                                console.log('🔄 [TEMPLATE-INTEGRATION] Aplicando campos do template:', fields);
-                                
-                                // Aplicar campos do template ao formulário
+                                console.log('🔄 [TEMPLATE-INTEGRATION] AplicANDO campos do template:', fields);
+
+                                // AplicAR CAMPOS DO TEMPLATE AO FORMULÁRIO
                                 if (fields.subject) form.setValue('subject', fields.subject);
                                 if (fields.description) form.setValue('description', fields.description);
                                 if (fields.category) form.setValue('category', fields.category);
@@ -633,7 +630,7 @@ export default function Tickets() {
                                 if (fields.workaround) form.setValue('workaround', fields.workaround);
                                 if (fields.location) form.setValue('location', fields.location);
                                 if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
-                                
+
                                 toast({
                                   title: "Template aplicado",
                                   description: `Campos do template "${selectedTemplate.name}" foram preenchidos automaticamente.`,
@@ -720,7 +717,7 @@ export default function Tickets() {
                                     const lastName = customer.last_name || customer.lastName || '';
                                     const fullName = customer.fullName || customer.full_name || '';
                                     const name = customer.name || '';
-                                    
+
                                     if (fullName) return fullName;
                                     if (firstName && lastName) return `${firstName} ${lastName}`;
                                     if (firstName) return firstName;
@@ -1102,7 +1099,7 @@ export default function Tickets() {
                       </DynamicBadge>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 mb-3">
                     <DynamicBadge 
                       fieldName="category" 
