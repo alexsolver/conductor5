@@ -90,14 +90,26 @@ export class TokenRefresh {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.warn('🔄 [TOKEN-REFRESH] Failed:', {
           status: response.status,
-          message: errorData.message || 'Unknown error'
+          message: errorData.message || 'Unknown error',
+          error: errorData.error
         });
         
         // Clear tokens if refresh failed due to invalid token
         if (response.status === 401) {
-          console.log('🔄 [TOKEN-REFRESH] Clearing invalid tokens');
+          console.log('🔄 [TOKEN-REFRESH] Clearing invalid tokens due to 401');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+          
+          // If the refresh token is invalid, user needs to login again
+          if (errorData.message?.includes('Invalid refresh token') || 
+              errorData.message?.includes('expired') ||
+              errorData.message?.includes('malformed')) {
+            console.log('🔄 [TOKEN-REFRESH] Refresh token is invalid, redirecting to login');
+            // Only redirect if we're not already on the login page
+            if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
+              window.location.href = '/auth';
+            }
+          }
         }
         return false;
       }

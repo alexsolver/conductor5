@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import { AuthDomainService, AuthTokens } from '../../domain/entities/AuthSession';
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { IUserRepository } from '../../../users/domain/repositories/IUserRepository';
-import { RefreshTokenDTO } from '../dto/AuthDTO';
+import { RefreshTokenDTO, RefreshTokenResponseDTO } from '../dto/AuthDTO';
 
 export class RefreshTokenUseCase {
   constructor(
@@ -17,86 +17,111 @@ export class RefreshTokenUseCase {
     private authDomainService: AuthDomainService
   ) {}
 
-  async execute(dto: RefreshTokenDTO): Promise<{
-    tokens: AuthTokens;
-    expiresAt: string;
-  }> {
-    // Find session by refresh token
-    const session = await this.authRepository.findSessionByRefreshToken(dto.refreshToken);
-    if (!session) {
-      throw new Error('Invalid refresh token');
-    }
-
-    // Validate refresh token
+  async execute({ refreshToken }: RefreshTokenDTO): Promise<RefreshTokenResponseDTO> {
     try {
-      this.authDomainService.validateRefreshToken(session);
+      console.log('🔄 [REFRESH-USE-CASE] Starting token refresh process', {
+        tokenLength: refreshToken?.length,
+        tokenStart: refreshToken?.substring(0, 20)
+      });
+
+      if (!refreshToken || typeof refreshToken !== 'string') {
+        throw new Error('Invalid refresh token format');
+      }
+
+      // Verify the refresh token
+      let decoded: any;
+      try {
+        decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'your-refresh-secret');
+        console.log('✅ [REFRESH-USE-CASE] Refresh token verified', {
+          userId: decoded.userId,
+          email: decoded.email,
+          exp: decoded.exp,
+          iat: decoded.iat
+        });
+      } catch (jwtError: any) {
+        console.error('❌ [REFRESH-USE-CASE] JWT verification failed:', {
+          message: jwtError.message,
+          name: jwtError.name,
+          tokenProvided: !!refreshToken
+        });
+
+        if (jwtError.name === 'TokenExpiredError') {
+          throw new Error('Refresh token has expired');
+        } else if (jwtError.name === 'JsonWebTokenError') {
+          throw new Error('Refresh token is malformed');
+        } else {
+          throw new Error('Invalid refresh token');
+        }
+      }
+
+      // Find session by refresh token
+      const session = await this.authRepository.findSessionByRefreshToken(refreshToken);
+      if (!session) {
+        throw new Error('Invalid refresh token');
+      }
+
+      // Validate refresh token using domain service
+      try {
+        this.authDomainService.validateRefreshToken(session);
+      } catch (error: any) {
+        // Invalidate expired session
+        await this.authRepository.invalidateSession(session.id);
+        throw error; // Re-throw the error from the domain service
+      }
+
+      // Find user to generate new tokens
+      const user = await this.userRepository.findById(session.userId);
+      if (!user) {
+        // Invalidate session for non-existent user
+        await this.authRepository.invalidateSession(session.id);
+        throw new Error('User not found');
+      }
+
+      // Check if user is still active
+      if (!user.isActive) {
+        await this.authRepository.invalidateSession(session.id);
+        throw new Error('Account is deactivated');
+      }
+
+      // Create new token expiry dates
+      const { accessTokenExpiry, refreshTokenExpiry } = this.authDomainService.createTokenExpiry(false);
+
+      // Generate new tokens
+      const newAccessToken = this.generateAccessToken(user, accessTokenExpiry);
+      const newRefreshToken = this.generateRefreshToken(user, refreshTokenExpiry);
+
+      // Update session with new tokens
+      const updatedSession = await this.authRepository.updateSessionTokens(
+        session.id,
+        newAccessToken,
+        newRefreshToken,
+        accessTokenExpiry,
+        refreshTokenExpiry
+      );
+
+      // Update last used timestamp
+      await this.authRepository.updateLastUsed(session.id);
+
+      const tokens: AuthTokens = {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: Math.floor((accessTokenExpiry.getTime() - Date.now()) / 1000),
+        tokenType: 'Bearer'
+      };
+
+      return {
+        tokens,
+        expiresAt: updatedSession.expiresAt.toISOString()
+      };
     } catch (error: any) {
-      // Invalidate expired session
-      await this.authRepository.invalidateSession(session.id);
+      console.error('❌ [REFRESH-USE-CASE] Error during token refresh:', {
+        message: error.message,
+        stack: error.stack,
+        errorObject: error
+      });
+      // Rethrow the error to be handled by the controller or middleware
       throw error;
     }
-
-    // Verify JWT refresh token
-    try {
-      jwt.verify(
-        dto.refreshToken, 
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025',
-        {
-          issuer: 'conductor-platform',
-          audience: 'conductor-users',
-          algorithms: ['HS256']
-        }
-      );
-    } catch (error) {
-      // Invalidate invalid session
-      await this.authRepository.invalidateSession(session.id);
-      throw new Error('Invalid refresh token');
-    }
-
-    // Find user to generate new tokens
-    const user = await this.userRepository.findById(session.userId);
-    if (!user) {
-      // Invalidate session for non-existent user
-      await this.authRepository.invalidateSession(session.id);
-      throw new Error('User not found');
-    }
-
-    // Check if user is still active
-    if (!user.isActive) {
-      await this.authRepository.invalidateSession(session.id);
-      throw new Error('Account is deactivated');
-    }
-
-    // Create new token expiry dates
-    const { accessTokenExpiry, refreshTokenExpiry } = this.authDomainService.createTokenExpiry(false);
-
-    // Generate new tokens
-    const newAccessToken = this.generateAccessToken(user, accessTokenExpiry);
-    const newRefreshToken = this.generateRefreshToken(user, refreshTokenExpiry);
-
-    // Update session with new tokens
-    const updatedSession = await this.authRepository.updateSessionTokens(
-      session.id,
-      newAccessToken,
-      newRefreshToken,
-      accessTokenExpiry,
-      refreshTokenExpiry
-    );
-
-    // Update last used timestamp
-    await this.authRepository.updateLastUsed(session.id);
-
-    const tokens: AuthTokens = {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-      expiresIn: Math.floor((accessTokenExpiry.getTime() - Date.now()) / 1000),
-      tokenType: 'Bearer'
-    };
-
-    return {
-      tokens,
-      expiresAt: updatedSession.expiresAt.toISOString()
-    };
   }
 
   private generateAccessToken(user: any, expiresAt: Date): string {
