@@ -447,32 +447,23 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
 
         // Create new assignment with all required fields including tenantId
         const assignmentId = crypto.randomUUID();
-        const newAssignment = {
+        
+        console.log(`[TECHNICAL-SKILLS] Creating assignment with ID ${assignmentId} for member ${memberId}`);
+
+        // Insert the assignment using Drizzle ORM with proper column mapping
+        const insertResult = await db.insert(userSkills).values({
           id: assignmentId,
-          tenant_id: tenantId, // Use snake_case to match database column
-          user_id: memberId,   // Use snake_case to match database column
-          skill_id: skillId,   // Use snake_case to match database column
-          proficiency_level: defaultProficiencyLevel,
-          years_of_experience: 0,
+          tenantId: tenantId,
+          userId: memberId,
+          skillId: skillId,
+          proficiencyLevel: defaultProficiencyLevel,
+          yearsOfExperience: 0,
           certifications: JSON.stringify([]),
           notes: null,
-          is_active: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        };
-
-        console.log(`[TECHNICAL-SKILLS] Creating assignment with ID ${assignmentId}:`, newAssignment);
-
-        // Insert the assignment using raw SQL to ensure proper column mapping
-        const insertResult = await db.execute(sql`
-          INSERT INTO user_skills (
-            id, tenant_id, user_id, skill_id, proficiency_level, 
-            years_of_experience, certifications, notes, is_active, created_at, updated_at
-          ) VALUES (
-            ${assignmentId}, ${tenantId}, ${memberId}, ${skillId}, ${defaultProficiencyLevel},
-            0, ${JSON.stringify([])}, null, true, ${new Date()}, ${new Date()}
-          ) RETURNING *
-        `);
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }).returning();
 
         if (insertResult && insertResult.length > 0) {
           console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}:`, insertResult[0]);
