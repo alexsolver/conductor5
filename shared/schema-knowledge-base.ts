@@ -80,8 +80,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   authorId: uuid("author_id"),
 
   // Categorization - using enum as in actual DB (corrected field name)
-  // TEMPORARY: Commented out category field due to schema drift between tenants
-  // category: knowledgeBaseCategoryEnum("category"),
+  category: knowledgeBaseCategoryEnum("category"),
   
   // Status & Visibility - using enums as in actual DB
   status: knowledgeBaseStatusEnum("status"),
@@ -118,8 +117,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  // TEMPORARY: Commented out category index due to schema drift
-  // index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_created_idx").on(table.tenantId, table.createdAt),
 
@@ -284,8 +282,7 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
   excerpt: z.string().optional(),
-  // TEMPORARY: Commented out category field due to schema drift between tenants
-  // category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]).optional().default("other"),
+  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]).optional().default("other"),
   status: z.enum(["draft", "pending_approval", "approved", "published", "archived", "rejected"]).optional().default("draft"),
   visibility: z.enum(["public", "internal", "restricted", "private"]).optional().default("public"),
   tags: z.array(z.string()).optional().default([]),
