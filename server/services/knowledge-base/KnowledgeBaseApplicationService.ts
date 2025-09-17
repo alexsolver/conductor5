@@ -54,7 +54,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.access_level || params.visibility) {
-        conditions.push(eq(knowledgeBaseArticles.visibility, params.access_level || params.visibility));
+        conditions.push(eq(knowledgeBaseArticles.accessLevel, params.access_level || params.visibility));
       }
 
       if (params.status) {
@@ -140,8 +140,8 @@ export class KnowledgeBaseApplicationService {
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
-        // Use visibility which exists in the database
-        visibility: articleData.access_level || articleData.visibility || 'public',
+        // Use accessLevel which exists in the database
+        accessLevel: articleData.access_level || articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
       };
 

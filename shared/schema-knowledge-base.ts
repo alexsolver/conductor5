@@ -80,7 +80,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
 
   // Status & Visibility - matching exact DB structure
-  visibility: text("visibility").default("public"), // text
+  accessLevel: text("access_level").default("public"), // text
   status: text("status").default("draft"), // text
 
   // Authoring

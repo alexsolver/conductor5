@@ -35,7 +35,7 @@ export function createKnowledgeBaseRoutes(): Router {
         query: req.query.q || req.query.query || undefined, // Query opcional
         category: req.query.category,
         tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags : [req.query.tags]) : undefined,
-        visibility: req.query.access_level || req.query.visibility,
+        access_level: req.query.access_level || req.query.visibility,
         status: req.query.status,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
         offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
