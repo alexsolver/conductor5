@@ -53,7 +53,9 @@ export class KnowledgeBaseApplicationService {
         conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
-      // Remove access_level filter since column doesn't exist in database
+      if (params.access_level) {
+        conditions.push(eq(knowledgeBaseArticles.access_level, params.access_level));
+      }
 
       if (params.status) {
         conditions.push(eq(knowledgeBaseArticles.status, params.status));
@@ -138,8 +140,8 @@ export class KnowledgeBaseApplicationService {
         status: articleData.status || 'draft',
         published: articleData.published || false,
         tags: articleData.tags || [],
-        // Remove accessLevel since column doesn't exist in database
-        visibility: articleData.visibility || 'internal', // Match DB default
+        // Use access_level which exists in the database
+        access_level: articleData.access_level || articleData.visibility || 'public',
         publishedAt: articleData.published ? new Date() : null,
       };
 
