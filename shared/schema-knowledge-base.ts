@@ -74,17 +74,18 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // Basic Article Info - matching actual DB structure
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content"),
+  excerpt: text("excerpt"),
 
   // Authoring
   authorId: uuid("author_id"),
 
-  // Categorization - using enum as in actual DB
-  categoryId: varchar("category_id", { length: 50 }),
+  // Categorization - using enum as in actual DB (corrected field name)
+  category: knowledgeBaseCategoryEnum("category"),
   
-  // Status & Visibility
-  status: varchar("status", { length: 50 }),
-  visibility: varchar("visibility", { length: 50 }),
-  approvalStatus: varchar("approval_status", { length: 50 }),
+  // Status & Visibility - using enums as in actual DB
+  status: knowledgeBaseStatusEnum("status"),
+  visibility: knowledgeBaseVisibilityEnum("visibility"),
+  approvalStatus: knowledgeBaseApprovalStatusEnum("approval_status"),
 
   // Tags as JSONB like in actual DB
   tags: jsonb("tags").default(sql`'[]'::jsonb`),
@@ -116,7 +117,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_created_idx").on(table.tenantId, table.createdAt),
 
@@ -275,27 +276,16 @@ export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBase
   createdAt: true,
   updatedAt: true,
   viewCount: true,
-  upvoteCount: true,
   helpfulCount: true,
-  version: true,
-  approvalStatus: true,
-  ratingAverage: true,
-  ratingCount: true,
-  attachmentCount: true,
-  isDeleted: true,
-  deletedAt: true,
-  lastViewedAt: true,
+  notHelpfulCount: true,
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
-  category: z.string().optional().default("other"),
+  excerpt: z.string().optional(),
+  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]).optional().default("other"),
+  status: z.enum(["draft", "pending_approval", "approved", "published", "archived", "rejected"]).optional().default("draft"),
+  visibility: z.enum(["public", "internal", "restricted", "private"]).optional().default("public"),
   tags: z.array(z.string()).optional().default([]),
-  keywords: z.array(z.string()).optional().default([]),
-  accessLevel: z.string().optional().default("public"),
-  status: z.string().optional().default("draft"),
-  published: z.boolean().optional().default(false),
-  contentType: z.string().optional().default("rich_text"),
-  summary: z.string().optional(),
 });
 
 export const updateKnowledgeBaseArticleSchema = insertKnowledgeBaseArticleSchema.partial().extend({
