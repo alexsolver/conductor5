@@ -561,7 +561,47 @@ export default function Tickets() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   
-                  {/* ✅ 1QA.MD: Template Selection - First field */}
+                  {/* Company Selection - Must be first */}
+                    <FormField
+                      control={form.control}
+                      name="companyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setSelectedCompanyId(value);
+                              // Reset customer selection when company changes
+                              form.setValue("customerId", "");
+                            }} 
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder={t('tickets.forms.create.select_company')} />
+                              </SelectTrigger>
+                            </FormControl>
+                          <SelectContent>
+                            {companies.length === 0 ? (
+                              <SelectItem value="no-companies" disabled>
+                                {t('tickets.forms.create.no_companies')}
+                              </SelectItem>
+                            ) : (
+                              companies.map((company: any) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name || company.company_name || company.displayName}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* ✅ 1QA.MD: Template Selection - After company selection */}
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -637,46 +677,6 @@ export default function Tickets() {
                       </Select>
                     </div>
                   </div>
-
-                  {/* Company Selection - Must be first */}
-                    <FormField
-                      control={form.control}
-                      name="companyId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              setSelectedCompanyId(value);
-                              // Reset customer selection when company changes
-                              form.setValue("customerId", "");
-                            }} 
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-10">
-                                <SelectValue placeholder={t('tickets.forms.create.select_company')} />
-                              </SelectTrigger>
-                            </FormControl>
-                          <SelectContent>
-                            {companies.length === 0 ? (
-                              <SelectItem value="no-companies" disabled>
-                                {t('tickets.forms.create.no_companies')}
-                              </SelectItem>
-                            ) : (
-                              companies.map((company: any) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {company.name || company.company_name || company.displayName}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   {/* Customer Selection - Filtered by Company */}
                     <FormField
