@@ -438,8 +438,6 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           userId: memberId,
           skillId,
           proficiencyLevel: defaultProficiencyLevel,
-          certification_id: null, // Corrected column name
-          notes: null,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -517,7 +515,6 @@ router.get('/user-skills', async (req: Request, res: Response) => {
         userId: userSkills.userId,
         skillId: userSkills.skillId,
         proficiencyLevel: userSkills.proficiencyLevel,
-        notes: userSkills.notes,
         isActive: userSkills.isActive,
         createdAt: userSkills.createdAt,
         updatedAt: userSkills.updatedAt,
