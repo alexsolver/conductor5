@@ -365,21 +365,40 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     const user = (req as any).user;
     const tenantId = user?.tenantId;
     const { skillId } = req.params;
-    const { memberIds, defaultProficiencyLevel = 'intermediate' } = req.body;
+    const { memberIds, defaultProficiencyLevel = 'beginner' } = req.body;
+
+    console.log(`[TECHNICAL-SKILLS] Assigning members to skill ${skillId} for tenant: ${tenantId}`);
+    console.log(`[TECHNICAL-SKILLS] Member IDs:`, memberIds);
+    console.log(`[TECHNICAL-SKILLS] Default proficiency:`, defaultProficiencyLevel);
 
     if (!tenantId) {
       return res.status(401).json({
         success: false,
-        error: 'Authentication required',
-        message: 'Tenant ID not found'
+        message: 'Tenant ID é obrigatório'
       });
     }
 
     if (!skillId || !memberIds || !Array.isArray(memberIds)) {
       return res.status(400).json({
         success: false,
-        error: 'Validation error',
-        message: 'Skill ID and member IDs array are required'
+        message: 'Skill ID e array de member IDs são obrigatórios'
+      });
+    }
+
+    // Validate skill exists
+    const skillExists = await db.select()
+      .from(skills)
+      .where(and(
+        eq(skills.id, skillId),
+        eq(skills.tenantId, tenantId),
+        eq(skills.isActive, true)
+      ))
+      .limit(1);
+
+    if (skillExists.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Habilidade não encontrada'
       });
     }
 
@@ -390,6 +409,8 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     // Process each member
     for (const memberId of memberIds) {
       try {
+        console.log(`[TECHNICAL-SKILLS] Processing member: ${memberId}`);
+
         // Check if assignment already exists
         const existingAssignment = await db.select()
           .from(userSkills)
@@ -403,10 +424,11 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           .limit(1);
 
         if (existingAssignment.length > 0) {
+          console.log(`[TECHNICAL-SKILLS] Member ${memberId} already has this skill`);
           results.push({
             memberId,
             status: 'skipped',
-            message: 'Already assigned'
+            message: 'Já atribuído'
           });
           continue;
         }
@@ -421,32 +443,40 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           yearsOfExperience: 0,
           certifications: [],
           notes: null,
+          isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
         };
 
-        await db.insert(userSkills).values(newAssignment);
+        console.log(`[TECHNICAL-SKILLS] Creating assignment:`, newAssignment);
+
+        const insertResult = await db.insert(userSkills).values(newAssignment).returning();
+        
+        console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}`);
+        
         successCount++;
         results.push({
           memberId,
           status: 'success',
-          message: 'Successfully assigned'
+          message: 'Atribuído com sucesso'
         });
 
       } catch (memberError) {
-        console.error('Error assigning skill to member:', memberId, memberError);
+        console.error(`[TECHNICAL-SKILLS] Error assigning skill to member ${memberId}:`, memberError);
         errorCount++;
         results.push({
           memberId,
           status: 'error',
-          message: 'Assignment failed'
+          message: 'Falha na atribuição'
         });
       }
     }
 
+    console.log(`[TECHNICAL-SKILLS] Assignment completed: ${successCount} successful, ${errorCount} failed`);
+
     res.status(200).json({
       success: true,
-      message: `Assignment completed: ${successCount} successful, ${errorCount} failed`,
+      message: `Atribuição concluída: ${successCount} sucesso, ${errorCount} falha`,
       data: {
         skillId,
         successCount,
@@ -456,11 +486,70 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     });
 
   } catch (error) {
-    console.error('Error in assign members endpoint:', error);
+    console.error('[TECHNICAL-SKILLS] Error in assign members endpoint:', error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to assign members to skill'
+      message: 'Erro interno do servidor',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * ✅ 1QA.MD: Get user skills with proper tenant isolation
+ * GET /api/technical-skills/user-skills
+ */
+router.get('/user-skills', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const tenantId = user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID é obrigatório'
+      });
+    }
+
+    console.log(`[TECHNICAL-SKILLS] Getting user skills for tenant: ${tenantId}`);
+
+    // ✅ 1QA.MD: Query with tenant isolation and proper joins
+    const userSkillsData = await db
+      .select({
+        id: userSkills.id,
+        tenantId: userSkills.tenantId,
+        userId: userSkills.userId,
+        skillId: userSkills.skillId,
+        proficiencyLevel: userSkills.proficiencyLevel,
+        yearsOfExperience: userSkills.yearsOfExperience,
+        certifications: userSkills.certifications,
+        notes: userSkills.notes,
+        isActive: userSkills.isActive,
+        createdAt: userSkills.createdAt,
+        updatedAt: userSkills.updatedAt,
+        skillName: skills.name,
+        skillCategory: skills.category,
+        skillDescription: skills.description
+      })
+      .from(userSkills)
+      .innerJoin(skills, eq(skills.id, userSkills.skillId))
+      .where(and(
+        eq(userSkills.tenantId, tenantId),
+        eq(userSkills.isActive, true),
+        eq(skills.isActive, true)
+      ))
+      .orderBy(desc(userSkills.createdAt));
+
+    console.log(`[TECHNICAL-SKILLS] Found ${userSkillsData.length} user skills`);
+
+    res.json(userSkillsData);
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS] Error fetching user skills:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar habilidades dos usuários',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

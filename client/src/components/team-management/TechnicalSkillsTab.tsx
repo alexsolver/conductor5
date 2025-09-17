@@ -356,24 +356,41 @@ export default function TechnicalSkillsTab() {
   // Assign members to skill mutation
   const assignMembersToSkillMutation = useMutation({
     mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
+      console.log('🔄 [ASSIGN-MEMBERS] Starting assignment:', { skillId, memberIds });
+      
       const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
         memberIds,
         defaultProficiencyLevel: 'beginner'
       });
 
       if (!res.ok) {
+        const errorData = await res.text();
+        console.error('❌ [ASSIGN-MEMBERS] API Error:', errorData);
         throw new Error('Erro ao atribuir membros à habilidade');
       }
 
-      return res.json();
+      const result = await res.json();
+      console.log('✅ [ASSIGN-MEMBERS] API Response:', result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log('✅ [ASSIGN-MEMBERS] Mutation success:', data);
+      
+      // Force refetch all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/skills'] });
+      
+      // Force immediate refetch
+      queryClient.refetchQueries({ 
+        queryKey: ['/api/technical-skills/user-skills'],
+        type: 'active'
+      });
+
       setShowAssignMembers(false);
       setSelectedMembers([]);
       setSelectedSkillForAssignment(null);
 
-      const { successCount, errorCount } = data.data;
+      const { successCount, errorCount } = data.data || { successCount: 0, errorCount: 0 };
 
       if (errorCount > 0) {
         toast({
@@ -389,6 +406,7 @@ export default function TechnicalSkillsTab() {
       }
     },
     onError: (error) => {
+      console.error('❌ [ASSIGN-MEMBERS] Mutation error:', error);
       toast({
         title: 'Erro',
         description: error.message,
