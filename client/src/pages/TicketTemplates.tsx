@@ -219,6 +219,7 @@ export default function TicketTemplates() {
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
   const [templateCustomFields, setTemplateCustomFields] = useState<any[]>([]);
   const [availableCustomFields, setAvailableCustomFields] = useState<any[]>([]);
+  const [selectedCustomFieldIds, setSelectedCustomFieldIds] = useState<string[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -304,6 +305,7 @@ export default function TicketTemplates() {
       setIsCreateOpen(false);
       form.reset();
       setTemplateCustomFields([]); // Limpa os campos customizados após a criação
+      setSelectedCustomFieldIds([]); // Limpa os IDs selecionados
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
@@ -373,6 +375,7 @@ export default function TicketTemplates() {
       });
       setIsEditOpen(false);
       setTemplateCustomFields([]); // Limpa os campos customizados após a atualização
+      setSelectedCustomFieldIds([]); // Limpa os IDs selecionados
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
@@ -414,6 +417,10 @@ export default function TicketTemplates() {
       return;
     }
 
+    // Adiciona os campos customizados selecionados ao form data
+    const finalCustomFields = availableCustomFields.filter(field => selectedCustomFieldIds.includes(field.id));
+    data.customFields = finalCustomFields;
+
     console.log('🎯 [HANDLE-CREATE] Validations passed, calling mutation...');
     createTemplateMutation.mutate(data);
   };
@@ -437,6 +444,7 @@ export default function TicketTemplates() {
       isSystem: template.isSystem,
     });
     setTemplateCustomFields(template.customFields || []); // Define os campos customizados para edição
+    setSelectedCustomFieldIds(template.customFields?.map((cf: any) => cf.id) || []); // Define os IDs selecionados para edição
     setIsEditOpen(true);
   };
 
@@ -454,7 +462,7 @@ export default function TicketTemplates() {
       requiredFields: data.templateType === 'creation' 
         ? (data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields())
         : [],
-      customFields: [...(data.customFields || []), ...templateCustomFields]
+      customFields: templateCustomFields, // Usa os campos customizados do estado para atualização
     };
 
     console.log('🔄 [UPDATE-TEMPLATE] Including custom fields:', {
@@ -483,25 +491,26 @@ export default function TicketTemplates() {
   const categories = categoriesResponse?.data?.categories || categoriesResponse?.data || [];
 
   // ✅ 1QA.MD: Buscar campos customizados do módulo /custom-fields-admin
-  const { data: customFieldsResponse } = useQuery({
+  const { data: availableCustomFieldsResponse } = useQuery({
     queryKey: ['/api/custom-fields/fields/ticket'],
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', '/api/custom-fields/fields/ticket');
-        return response.json();
+        // Retorna um objeto com sucesso e os dados para facilitar o acesso
+        return { success: true, data: response }; 
       } catch (error) {
         console.error('Erro ao buscar campos customizados:', error);
-        return { data: [] };
+        return { success: false, data: [] };
       }
     }
   });
 
   // Set available custom fields for the component
   React.useEffect(() => {
-    if (customFieldsResponse?.data) {
-      setAvailableCustomFields(customFieldsResponse.data);
+    if (availableCustomFieldsResponse?.success && availableCustomFieldsResponse.data) {
+      setAvailableCustomFields(availableCustomFieldsResponse.data);
     }
-  }, [customFieldsResponse]);
+  }, [availableCustomFieldsResponse]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -1065,44 +1074,44 @@ export default function TicketTemplates() {
 
                             <div>
                               <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
-                              {availableCustomFields.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {availableCustomFields.map((field: any) => (
-                                    <label key={field.id} className="flex items-center space-x-2 text-sm">
-                                      <input
-                                        type="checkbox"
-                                        checked={form.watch('customFields')?.some((cf: any) => cf.id === field.id) || false}
-                                        onChange={(e) => {
-                                          const currentFields = form.getValues('customFields') || [];
-                                          if (e.target.checked) {
-                                            // Ensure the field has an order and is added correctly
-                                            const newField = { ...field, order: currentFields.length + 1 };
-                                            form.setValue('customFields', [...currentFields, newField]);
-                                            setTemplateCustomFields(prev => [...prev, newField]); // Add to state for dialog
-                                          } else {
-                                            form.setValue('customFields', currentFields.filter((cf: any) => cf.id !== field.id));
-                                            setTemplateCustomFields(prev => prev.filter((cf: any) => cf.id !== field.id)); // Remove from state for dialog
-                                          }
-                                        }}
-                                        className="rounded border-orange-300"
-                                      />
-                                      <span className="text-orange-800">{field.label} ({field.type})</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-sm text-orange-600 italic">
-                                  Nenhum campo customizado configurado. 
-                                  <Button
-                                    type="button"
-                                    variant="link"
-                                    size="sm"
-                                    className="text-orange-700 p-0 h-auto"
-                                    onClick={() => window.open('/custom-fields-admin', '_blank')}
-                                  >
-                                    Criar campos customizados
-                                  </Button>
-                                </div>
+                              <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
+                                {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {availableCustomFieldsResponse.data.map((field: any) => (
+                                      <div key={field.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`custom-field-${field.id}`}
+                                          checked={selectedCustomFieldIds.includes(field.id)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                            } else {
+                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                            }
+                                          }}
+                                        />
+                                        <Label 
+                                          htmlFor={`custom-field-${field.id}`}
+                                          className="text-sm font-medium cursor-pointer"
+                                        >
+                                          {field.label}
+                                        </Label>
+                                        <Badge variant="outline" className="text-xs">
+                                          {field.fieldType}
+                                        </Badge>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    Nenhum campo customizado disponível
+                                  </p>
+                                )}
+                              </div>
+                              {selectedCustomFieldIds.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {selectedCustomFieldIds.length} campo(s) selecionado(s)
+                                </p>
                               )}
                             </div>
                           </div>
@@ -1147,6 +1156,7 @@ export default function TicketTemplates() {
                 <Button type="button" variant="outline" onClick={() => {
                   setIsCreateOpen(false);
                   setTemplateCustomFields([]);
+                  setSelectedCustomFieldIds([]);
                 }}>
                   Cancelar
                 </Button>
@@ -1440,43 +1450,44 @@ export default function TicketTemplates() {
 
                             <div>
                               <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
-                              {availableCustomFields.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {availableCustomFields.map((field: any) => (
-                                    <label key={field.id} className="flex items-center space-x-2 text-sm">
-                                      <input
-                                        type="checkbox"
-                                        checked={form.watch('customFields')?.some((cf: any) => cf.id === field.id) || false}
-                                        onChange={(e) => {
-                                          const currentFields = form.getValues('customFields') || [];
-                                          if (e.target.checked) {
-                                            const newField = { ...field, order: currentFields.length + 1 };
-                                            form.setValue('customFields', [...currentFields, newField]);
-                                            setTemplateCustomFields(prev => [...prev, newField]);
-                                          } else {
-                                            form.setValue('customFields', currentFields.filter((cf: any) => cf.id !== field.id));
-                                            setTemplateCustomFields(prev => prev.filter((cf: any) => cf.id !== field.id));
-                                          }
-                                        }}
-                                        className="rounded border-orange-300"
-                                      />
-                                      <span className="text-orange-800">{field.label} ({field.type})</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-sm text-orange-600 italic">
-                                  Nenhum campo customizado configurado. 
-                                  <Button
-                                    type="button"
-                                    variant="link"
-                                    size="sm"
-                                    className="text-orange-700 p-0 h-auto"
-                                    onClick={() => window.open('/custom-fields-admin', '_blank')}
-                                  >
-                                    Criar campos customizados
-                                  </Button>
-                                </div>
+                              <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
+                                {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {availableCustomFieldsResponse.data.map((field: any) => (
+                                      <div key={field.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`custom-field-${field.id}`}
+                                          checked={selectedCustomFieldIds.includes(field.id)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                            } else {
+                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                            }
+                                          }}
+                                        />
+                                        <Label 
+                                          htmlFor={`custom-field-${field.id}`}
+                                          className="text-sm font-medium cursor-pointer"
+                                        >
+                                          {field.label}
+                                        </Label>
+                                        <Badge variant="outline" className="text-xs">
+                                          {field.fieldType}
+                                        </Badge>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    Nenhum campo customizado disponível
+                                  </p>
+                                )}
+                              </div>
+                              {selectedCustomFieldIds.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {selectedCustomFieldIds.length} campo(s) selecionado(s)
+                                </p>
                               )}
                             </div>
                           </div>
@@ -1520,6 +1531,7 @@ export default function TicketTemplates() {
                 <Button type="button" variant="outline" onClick={() => {
                   setIsEditOpen(false);
                   setTemplateCustomFields([]);
+                  setSelectedCustomFieldIds([]);
                 }}>
                   Cancelar
                 </Button>
