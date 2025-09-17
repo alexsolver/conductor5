@@ -159,6 +159,8 @@ export default function Companies() {
       console.log("❌ [COMPANIES-DEBUG] No data received");
       return [];
     }
+
+    // Direct array format
     if (Array.isArray(companiesData)) {
       console.log(
         "✅ [COMPANIES-DEBUG] Array format:",
@@ -167,8 +169,13 @@ export default function Companies() {
       );
       return companiesData;
     }
+
+    // Success wrapper with data array
     if (
-      (companiesData as any).success &&
+      companiesData && 
+      typeof companiesData === 'object' &&
+      'success' in companiesData &&
+      'data' in companiesData &&
       Array.isArray((companiesData as any).data)
     ) {
       console.log(
@@ -178,8 +185,12 @@ export default function Companies() {
       );
       return (companiesData as any).data;
     }
+
+    // Data wrapper format
     if (
-      (companiesData as any).data &&
+      companiesData &&
+      typeof companiesData === 'object' &&
+      'data' in companiesData &&
       Array.isArray((companiesData as any).data)
     ) {
       console.log(
@@ -189,7 +200,34 @@ export default function Companies() {
       );
       return (companiesData as any).data;
     }
-    console.log("❌ [COMPANIES-DEBUG] Unknown format, returning empty array");
+
+    // Check if the response itself has company-like properties
+    if (
+      companiesData &&
+      typeof companiesData === 'object' &&
+      'id' in companiesData &&
+      'name' in companiesData
+    ) {
+      console.log("✅ [COMPANIES-DEBUG] Single company object format");
+      return [companiesData];
+    }
+
+    // Handle nested data structures
+    const dataKeys = ['companies', 'items', 'results'];
+    for (const key of dataKeys) {
+      if (
+        companiesData &&
+        typeof companiesData === 'object' &&
+        key in companiesData &&
+        Array.isArray((companiesData as any)[key])
+      ) {
+        console.log(`✅ [COMPANIES-DEBUG] Found data in ${key} property:`, (companiesData as any)[key].length);
+        return (companiesData as any)[key];
+      }
+    }
+
+    console.log("❌ [COMPANIES-DEBUG] Unknown format, data structure:", Object.keys(companiesData || {}));
+    console.log("❌ [COMPANIES-DEBUG] Full response:", JSON.stringify(companiesData, null, 2));
     return [];
   })();
 
