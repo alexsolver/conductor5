@@ -120,7 +120,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         // First try the team management endpoint
         const teamResponse = await apiRequest('GET', `/api/team/members/${member.id}`);
         console.log('EditMemberDialog - Team API response:', teamResponse);
-        
+
         if (teamResponse && teamResponse.id) {
           return teamResponse;
         }
@@ -128,7 +128,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         // Then try user management endpoint
         const userResponse = await apiRequest('GET', `/api/user-management/users/${member.id}`);
         console.log('EditMemberDialog - User API response:', userResponse);
-        
+
         if (userResponse && userResponse.data && userResponse.data.id) {
           return userResponse.data;
         }
@@ -237,7 +237,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
   const updateMemberMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('EditMemberDialog - Updating member with data:', data);
-      
+
       // Try team management endpoint first, then user management
       try {
         const response = await apiRequest('PUT', `/api/team-management/members/${member.id}`, data);
@@ -309,7 +309,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       if (JSON.stringify(selectedGroups.sort()) !== JSON.stringify(currentGroupIds.sort())) {
         await updateGroupsMutation.mutateAsync(selectedGroups);
       }
-      
+
       onOpenChange(false); // Close dialog only after both mutations succeed
     } catch (error) {
       console.error('EditMemberDialog - Submit error:', error);

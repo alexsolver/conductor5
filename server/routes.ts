@@ -4503,10 +4503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Customer companies direct route for testing
-  // =============================
   // Companies Routes - CLEAN ARCHITECTURE IMPLEMENTATION (Phase 5)
-  // =============================
   // ✅ LEGACY companies routes-integration eliminated per 1qa.md
   console.log(
     "✅ Companies Clean Architecture routes registered at /api/companies-integration & /api/companies-integration/v2",
@@ -4625,7 +4622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "for tenant:",
         tenantId,
       );
-      console.log(
+      console    .log(
         "📊 [/api/companies] Company names:",
         companies.map((c) => ({ name: c.name, displayName: c.displayName })),
       );
@@ -5388,7 +5385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        return res.status(401).json({ message: "Tenant ID required" });
+        return res.status(401).json({ message: "Tenant required" });
       }
 
       console.log("[USERS-ENDPOINT] Fetching users for tenant:", tenantId);
@@ -5565,75 +5562,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     jwtAuth,
     async (req: AuthenticatedRequest, res) => {
       try {
+        const { tenantId } = req.user;
         const { memberId } = req.params;
-        const tenantId = req.user?.tenantId;
 
-        if (!tenantId) {
-          return res.status(401).json({ message: "Tenant required" });
+        // Get tenant database connection
+        const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        const member = await db.execute(sql`
+      SELECT 
+        id,
+        tenant_id as "tenantId",
+        email,
+        first_name as "firstName", 
+        last_name as "lastName",
+        role,
+        department,
+        position,
+        phone,
+        is_active as "isActive",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM ${sql.identifier(tenantSchema)}.users 
+      WHERE id = ${memberId} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+        if (member.rows.length === 0) {
+          return res.status(404).json({ message: 'Member not found' });
         }
 
-        console.log(`[TEAM-MEMBER-DETAIL] Getting member ${memberId} for tenant ${tenantId}`);
-
-        // Get complete user data from public.users table
-        const memberResult = await db
-          .select({
-            id: users.id,
-            email: users.email,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            name: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
-            role: users.role,
-            employmentType: users.employmentType,
-            isActive: users.isActive,
-            phoneNumber: users.phoneNumber,
-            position: users.position,
-            department: users.department,
-            avatar: users.avatar,
-            language: users.language,
-            timezone: users.timezone,
-            theme: users.theme,
-            lastLoginAt: users.lastLoginAt,
-            loginCount: users.loginCount,
-            createdAt: users.createdAt,
-            updatedAt: users.updatedAt,
-            // Additional fields
-            integrationCode: users.integrationCode,
-            alternativeEmail: users.alternativeEmail,
-            cellPhone: users.cellPhone,
-            ramal: users.ramal,
-            vehicleType: users.vehicleType,
-            cpfCnpj: users.cpfCnpj,
-            cep: users.cep,
-            country: users.country,
-            state: users.state,
-            city: users.city,
-            streetAddress: users.streetAddress,
-            houseType: users.houseType,
-            houseNumber: users.houseNumber,
-            complement: users.complement,
-            neighborhood: users.neighborhood,
-            employeeCode: users.employeeCode,
-            pis: users.pis,
-            ctps: users.ctps,
-            serieNumber: users.serieNumber,
-            admissionDate: users.admissionDate,
-            costCenter: users.costCenter,
-          })
-          .from(users)
-          .where(and(eq(users.id, memberId), eq(users.tenantId, tenantId)))
-          .limit(1);
-
-        if (memberResult.length === 0) {
-          return res.status(404).json({ message: "Member not found" });
-        }
-
-        const member = memberResult[0];
-        console.log(`[TEAM-MEMBER-DETAIL] Found member:`, member);
-
-        res.json(member);
+        res.json(member.rows[0]);
       } catch (error) {
-        console.error("[TEAM-MEMBER-DETAIL] Error:", error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error('Error fetching team member:', error);
+        res.status(500).json({ message: 'Internal server error' });
       }
     }
   );
@@ -5677,7 +5638,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // HR data
           employeeCode,
           pis,
-          cargo,
           ctps,
           serieNumber,
           admissionDate,
