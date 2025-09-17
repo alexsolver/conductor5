@@ -50,7 +50,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
+        conditions.push(eq(knowledgeBaseArticles.category, params.category));
       }
 
       if (params.status) {
@@ -70,10 +70,12 @@ export class KnowledgeBaseApplicationService {
           tenantId: knowledgeBaseArticles.tenantId,
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
+          excerpt: knowledgeBaseArticles.excerpt,
           authorId: knowledgeBaseArticles.authorId,
-          categoryId: knowledgeBaseArticles.categoryId,
+          category: knowledgeBaseArticles.category,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
+          approvalStatus: knowledgeBaseArticles.approvalStatus,
           tags: knowledgeBaseArticles.tags,
           viewCount: knowledgeBaseArticles.viewCount,
           helpfulCount: knowledgeBaseArticles.helpfulCount,
@@ -139,26 +141,11 @@ export class KnowledgeBaseApplicationService {
         throw new Error('Title and content are required');
       }
 
-      // Map category string to categoryId (using category as ID for now)
-      const categoryMapping: Record<string, string> = {
-        'technical_support': 'technical_support',
-        'troubleshooting': 'troubleshooting', 
-        'user_guide': 'user_guide',
-        'faq': 'faq',
-        'policy': 'policy',
-        'process': 'process',
-        'training': 'training',
-        'announcement': 'announcement',
-        'best_practice': 'best_practice',
-        'configuration': 'configuration',
-        'other': 'other'
-      };
-
       // Prepare article for insertion with correct field mapping - only use existing columns
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        categoryId: categoryMapping[articleData.category] || 'other',
+        category: articleData.category || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
