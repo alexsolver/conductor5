@@ -273,7 +273,7 @@ app.use((req, res, next) => {
   // Initialize production systems - 1qa.md Compliance
   // CRITICAL FIX: Database connection validation before server startup
   await validateDatabaseConnection();
-  await productionInitializer.initialize();
+  // MOVED: productionInitializer.initialize() moved to after server.listen() to prevent startup blocking
 
   // Initialize activity tracking cleanup service
   ActivityTrackingService.initializeCleanup();
@@ -630,16 +630,37 @@ app.use((req, res, next) => {
       backupService.scheduleDaily();
       console.log('✅ [CLT-COMPLIANCE] Backup automático iniciado com sucesso');
 
-      // CRITICAL: Initialize tenant schema monitoring
+      // CRITICAL: Initialize tenant schema monitoring - but in background to not block server
       console.log('🔍 [SCHEMA-VALIDATION] Inicializando monitoramento de schemas...');
 
-      // Verificar saúde dos schemas na inicialização
-      const healthCheck = await tenantSchemaManager.healthCheck();
-      console.log(`🏥 [SCHEMA-VALIDATION] Health check: ${healthCheck.length} tenant connections monitored`);
+      // Start background initialization to prevent blocking startup
+      setImmediate(async () => {
+        try {
+          console.log('🚀 [BACKGROUND-INIT] Starting background initialization...');
+          
+          // Initialize production systems in background
+          const tenantValidationMode = process.env.TENANT_VALIDATION_MODE || 'fast';
+          console.log(`🔍 [BACKGROUND-INIT] Using validation mode: ${tenantValidationMode}`);
+          
+          if (tenantValidationMode !== 'off') {
+            await productionInitializer.initialize();
+            console.log('✅ [BACKGROUND-INIT] Production initializer completed');
 
-      // Initialize daily schema checker
-      console.log('⏰ [SCHEMA-VALIDATION] Configurando verificações diárias...');
-      await dailySchemaChecker.scheduleRecurring();
+            // Verificar saúde dos schemas - only in background
+            const healthCheck = await tenantSchemaManager.healthCheck();
+            console.log(`🏥 [SCHEMA-VALIDATION] Health check: ${healthCheck.length} tenant connections monitored`);
+
+            // Initialize daily schema checker
+            console.log('⏰ [SCHEMA-VALIDATION] Configurando verificações diárias...');
+            await dailySchemaChecker.scheduleRecurring();
+          } else {
+            console.log('⚠️ [BACKGROUND-INIT] Tenant validation disabled (TENANT_VALIDATION_MODE=off)');
+          }
+        } catch (error) {
+          console.error('❌ [BACKGROUND-INIT] Background initialization failed:', error);
+          // Don't crash the server - just log the error
+        }
+      });
 
     } catch (error) {
       console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);

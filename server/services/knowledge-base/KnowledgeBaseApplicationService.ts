@@ -158,10 +158,11 @@ export class KnowledgeBaseApplicationService {
       };
 
       // Prepare article for insertion with correct field mapping - only use existing columns
+      // TEMPORARY FIX: Omit category field due to schema drift issues between tenants
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: categoryMapping[articleData.category] || 'general',
+        // category: categoryMapping[articleData.category] || 'general', // Temporarily disabled
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
