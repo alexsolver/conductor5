@@ -71,99 +71,120 @@ async function ensurePostgreSQLRunning() {
 async function validateDatabaseConnection() {
   const { Pool } = await import('pg');
 
-  // CRITICAL FIX: Enhanced environment detection for external production
+  // Environment detection
   const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
   const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
   const isExternalDeploy = isProduction && !isReplit;
 
-  console.log(`🔍 [DATABASE] Environment detection: production=${isProduction}, replit=${isReplit}, external=${isExternalDeploy}`);
+  console.log(`🔍 [DATABASE] Environment detection: production=${isProduction}, development=${isDevelopment}, replit=${isReplit}, external=${isExternalDeploy}`);
 
-  // CRITICAL FIX: Progressive SSL configuration with multiple fallback strategies
+  // SECURITY: Secure SSL configuration with environment variable controls
   let sslConfig = {};
+  
+  // Check for explicit SSL configuration override
+  const sslOverride = process.env.DATABASE_SSL;
+  const allowUnsafeSSL = process.env.ALLOW_UNSAFE_DATABASE_SSL === 'true';
 
-  if (isExternalDeploy) {
-    // External production - completely disable SSL validation
-    sslConfig = {
-      ssl: false  // Most aggressive SSL disable for external production
-    };
-    console.log("🔧 [DATABASE] Using external production SSL config: SSL completely disabled");
-  } else if (isProduction && isReplit) {
-    // Replit production - standard SSL disable
-    sslConfig = { ssl: false };
-    console.log("🔧 [DATABASE] Using Replit production SSL config");
+  if (sslOverride) {
+    if (sslOverride === 'false' || sslOverride === 'disable') {
+      if (isProduction && !allowUnsafeSSL) {
+        console.error("🚨 [SECURITY] WARNING: Attempted to disable SSL in production without ALLOW_UNSAFE_DATABASE_SSL=true");
+        console.error("🚨 [SECURITY] This is a security risk. Using SSL for production database connection.");
+        sslConfig = { ssl: { rejectUnauthorized: true } };
+      } else {
+        sslConfig = { ssl: false };
+        console.warn(`⚠️ [SECURITY] SSL disabled via DATABASE_SSL=${sslOverride}${isProduction ? ' (UNSAFE IN PRODUCTION!)' : ''}`);
+      }
+    } else if (sslOverride === 'require') {
+      sslConfig = { ssl: { rejectUnauthorized: true } };
+      console.log("🔒 [DATABASE] SSL required via DATABASE_SSL=require");
+    } else {
+      sslConfig = { ssl: { rejectUnauthorized: false } };
+      console.log(`🔒 [DATABASE] SSL enabled with custom mode: ${sslOverride}`);
+    }
   } else {
-    // Development - no SSL
-    sslConfig = { ssl: false };
-    console.log("🔧 [DATABASE] Using development SSL config");
+    // Default SSL configuration based on environment
+    if (isProduction) {
+      if (isReplit) {
+        // Replit production - use default SSL behavior (usually managed databases support SSL)
+        sslConfig = { ssl: { rejectUnauthorized: false } };
+        console.log("🔒 [DATABASE] Replit production: Using SSL with flexible certificate validation");
+      } else {
+        // External production - secure SSL by default
+        sslConfig = { ssl: { rejectUnauthorized: true } };
+        console.log("🔒 [DATABASE] External production: Using secure SSL with strict certificate validation");
+      }
+    } else {
+      // Development - SSL disabled for local development
+      sslConfig = { ssl: false };
+      console.log("🔧 [DATABASE] Development: SSL disabled for local development");
+    }
   }
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    connectionTimeoutMillis: 15000, // Extended timeout for external deployments
+    connectionTimeoutMillis: isExternalDeploy ? 15000 : 10000,
     idleTimeoutMillis: 30000,
     allowExitOnIdle: false,
-    max: isExternalDeploy ? 20 : 10, // Adjust pool size for external deployments
+    max: isExternalDeploy ? 20 : 10,
     ...sslConfig
   });
 
   try {
-    console.log("🔄 [DATABASE] Attempting initial connection...");
+    console.log("🔄 [DATABASE] Attempting database connection...");
     await pool.query('SELECT 1');
     console.log("✅ [DATABASE] Successfully connected to the database.");
     await pool.end();
     return true;
   } catch (error) {
-    console.error("❌ [DATABASE] Initial connection failed:", error);
+    console.error("❌ [DATABASE] Database connection failed:", error);
 
-    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
-      console.error("🔒 [SSL ERROR] Certificate validation failed. Applying ultimate SSL bypass...");
-
+    // SECURITY: Only allow SSL fallback in development or when explicitly allowed
+    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' && 
+        (isDevelopment || allowUnsafeSSL)) {
+      
+      console.warn("⚠️ [DATABASE] SSL certificate validation failed. Attempting connection with relaxed SSL settings...");
+      
       try {
-        // ULTIMATE FALLBACK: Complete SSL bypass with all certificates ignored
-        const ultimateFallbackPool = new Pool({
+        const fallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
-          ssl: false, // Complete SSL disable
-          connectionTimeoutMillis: 20000,
-          // Remove any SSL-related query parameters from connection string
-          options: '--disable-ssl'
+          ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
+          connectionTimeoutMillis: 15000,
+          idleTimeoutMillis: 30000,
+          allowExitOnIdle: false,
+          max: 10
         });
 
-        console.log("🔄 [DATABASE] Trying ultimate SSL bypass...");
-        await ultimateFallbackPool.query('SELECT 1');
-        await ultimateFallbackPool.end();
-        console.log("✅ [DATABASE] Connected with ultimate SSL bypass configuration.");
-        return true;
-      } catch (ultimateError) {
-        console.error("❌ [DATABASE] Ultimate fallback also failed:", ultimateError);
-
-        // Final attempt with modified connection string
-        try {
-          let modifiedUrl = process.env.DATABASE_URL;
-          if (modifiedUrl.includes('?')) {
-            modifiedUrl = modifiedUrl.split('?')[0]; // Remove all query parameters
-          }
-          modifiedUrl += '?sslmode=disable'; // Force SSL disable
-
-          const finalPool = new Pool({
-            connectionString: modifiedUrl,
-            connectionTimeoutMillis: 25000
-          });
-
-          console.log("🔄 [DATABASE] Final attempt with modified connection string...");
-          await finalPool.query('SELECT 1');
-          await finalPool.end();
-          console.log("✅ [DATABASE] Connected with modified connection string.");
-          return true;
-        } catch (finalError) {
-          console.error("❌ [DATABASE] All connection attempts failed:", finalError);
+        console.log("🔄 [DATABASE] Retrying with relaxed SSL certificate validation...");
+        await fallbackPool.query('SELECT 1');
+        await fallbackPool.end();
+        console.log("✅ [DATABASE] Connected with relaxed SSL certificate validation.");
+        
+        if (isProduction) {
+          console.warn("🚨 [SECURITY] WARNING: Using relaxed SSL in production. This reduces security!");
         }
+        
+        return true;
+      } catch (fallbackError) {
+        console.error("❌ [DATABASE] Fallback connection also failed:", fallbackError);
       }
     }
 
-    // Enhanced error message for external deployments
-    const errorMessage = isExternalDeploy
-      ? "Database connection failed in external production. Verify DATABASE_URL and ensure PostgreSQL server accepts non-SSL connections."
-      : "Database connection failed. Ensure DATABASE_URL is correctly set and SSL certificates are valid.";
+    // Provide helpful error messages
+    let errorMessage = "Database connection failed.";
+    
+    if (isProduction) {
+      errorMessage += " In production, ensure your DATABASE_URL includes proper SSL configuration and certificates are valid.";
+      if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+        errorMessage += " If using self-signed certificates, set ALLOW_UNSAFE_DATABASE_SSL=true (not recommended).";
+      }
+    } else {
+      errorMessage += " Ensure DATABASE_URL is correctly set.";
+      if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+        errorMessage += " For development with SSL issues, set DATABASE_SSL=false to disable SSL.";
+      }
+    }
 
     throw new Error(errorMessage);
   }
