@@ -411,12 +411,11 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
       try {
         console.log(`[TECHNICAL-SKILLS] Processing member: ${memberId}`);
 
-        // Check if assignment already exists
+        // Check if assignment already exists - Fixed to work with actual DB structure
         const existingAssignment = await db.select()
           .from(userSkills)
           .where(
             and(
-              eq(userSkills.tenantId, tenantId),
               eq(userSkills.userId, memberId),
               eq(userSkills.skillId, skillId)
             )
@@ -433,10 +432,9 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
           continue;
         }
 
-        // Create new assignment
+        // Create new assignment - Fixed to work with actual DB structure
         const newAssignment = {
           id: crypto.randomUUID(),
-          tenantId,
           userId: memberId,
           skillId,
           proficiencyLevel: defaultProficiencyLevel,
@@ -513,11 +511,10 @@ router.get('/user-skills', async (req: Request, res: Response) => {
 
     console.log(`[TECHNICAL-SKILLS] Getting user skills for tenant: ${tenantId}`);
 
-    // ✅ 1QA.MD: Query with tenant isolation and proper joins
+    // ✅ 1QA.MD: Query with tenant isolation and proper joins - Fixed to work with actual DB structure
     const userSkillsData = await db
       .select({
         id: userSkills.id,
-        tenantId: userSkills.tenantId,
         userId: userSkills.userId,
         skillId: userSkills.skillId,
         proficiencyLevel: userSkills.proficiencyLevel,
@@ -534,7 +531,7 @@ router.get('/user-skills', async (req: Request, res: Response) => {
       .from(userSkills)
       .innerJoin(skills, eq(skills.id, userSkills.skillId))
       .where(and(
-        eq(userSkills.tenantId, tenantId),
+        eq(skills.tenantId, tenantId),
         eq(userSkills.isActive, true),
         eq(skills.isActive, true)
       ))
