@@ -141,11 +141,11 @@ export class KnowledgeBaseApplicationService {
         authorId,
         status: articleData.status || 'draft',
         tags: articleData.tags || [],
-        summary: articleData.summary || null,
-        contentType: articleData.contentType || 'rich_text',
-        viewsCount: 0,
-        version: 1,
-        isDeleted: false
+        visibility: articleData.access_level || 'public',
+        viewCount: 0,
+        helpfulCount: 0,
+        notHelpfulCount: 0,
+        featured: false
       };
 
       // Debug: Log exactly what we're trying to insert
@@ -209,7 +209,7 @@ export class KnowledgeBaseApplicationService {
       await db
         .update(knowledgeBaseArticles)
         .set({ 
-          viewsCount: sql`${knowledgeBaseArticles.viewsCount} + 1`
+          viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`
         })
         .where(eq(knowledgeBaseArticles.id, id));
 
@@ -218,7 +218,7 @@ export class KnowledgeBaseApplicationService {
       return {
         success: true,
         message: 'Article retrieved successfully',
-        data: { ...article, viewsCount: (article.viewsCount || 0) + 1 }
+        data: { ...article, viewCount: (article.viewCount || 0) + 1 }
       };
     } catch (error) {
       this.logger.error(`[KB-SERVICE] Error getting article:`, error);
@@ -283,8 +283,8 @@ export class KnowledgeBaseApplicationService {
       const [deletedArticle] = await db
         .update(knowledgeBaseArticles)
         .set({
-          isDeleted: true,
-          deletedAt: new Date()
+          archivedAt: new Date(),
+          status: 'archived'
         })
         .where(and(
           eq(knowledgeBaseArticles.id, id),
@@ -296,15 +296,15 @@ export class KnowledgeBaseApplicationService {
         throw new Error('Article not found or not authorized');
       }
 
-      this.logger.log(`[KB-SERVICE] Article deleted successfully: ${deletedArticle.id}`);
+      this.logger.log(`[KB-SERVICE] Article archived successfully: ${deletedArticle.id}`);
 
       return {
         success: true,
-        message: 'Article deleted successfully'
+        message: 'Article archived successfully'
       };
     } catch (error) {
-      this.logger.error(`[KB-SERVICE] Error deleting article:`, error);
-      throw new Error('Failed to delete article');
+      this.logger.error(`[KB-SERVICE] Error archiving article:`, error);
+      throw new Error('Failed to archive article');
     }
   }
 }

@@ -68,37 +68,51 @@ export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_s
 
 // Knowledge Base Articles - Exactly matching existing database structure
 export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
-  id: uuid("id").primaryKey().defaultRandom(), // UUID type for consistency
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id), // UUID reference
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
 
-  // Basic Article Info - exactly matching DB types and lengths
-  title: varchar("title", { length: 500 }).notNull(), // character varying with length
-  content: text("content").notNull(),
-
-  // Categorization - matching exact DB structure  
-  category: varchar("category_id", { length: 100 }).notNull(), // Use 'category_id' to match existing DB
-  tags: text("tags").array().default(sql`ARRAY[]::text[]`), // ARRAY type with default
-
-  // Status & Visibility - matching exact DB structure
-  status: text("status").default("draft"), // text
+  // Basic Article Info - matching actual DB structure
+  title: varchar("title", { length: 500 }).notNull(),
+  content: text("content"),
+  excerpt: text("excerpt"),
 
   // Authoring
-  authorId: uuid("author_id").notNull(), // UUID for user references
+  authorId: uuid("author_id"),
 
-  // Publishing & Metadata - matching exact DB column names and defaults
-  viewsCount: integer("views_count").default(0), // integer default 0
+  // Categorization - using enum as in actual DB
+  category: varchar("category", { length: 50 }),
+  
+  // Status & Visibility
+  status: varchar("status", { length: 50 }),
+  visibility: varchar("visibility", { length: 50 }),
+  approvalStatus: varchar("approval_status", { length: 50 }),
 
-  // Additional fields matching DB exactly
-  isDeleted: boolean("is_deleted").default(false), // boolean default false
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  summary: text("summary"), // text
-  slug: varchar("slug"), // character varying
-  version: integer("version").default(1), // integer default 1
-  contentType: varchar("content_type").default("article"), // character varying
+  // Tags as JSONB like in actual DB
+  tags: jsonb("tags").default(sql`'[]'::jsonb`),
 
-  // Audit - matching DB defaults exactly
-  createdAt: timestamp("created_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`CURRENT_TIMESTAMP`),
+  // Counters
+  viewCount: integer("view_count").default(0),
+  helpfulCount: integer("helpful_count").default(0),
+  notHelpfulCount: integer("not_helpful_count").default(0),
+
+  // Features
+  featured: boolean("featured").default(false),
+
+  // SEO
+  seoTitle: varchar("seo_title", { length: 255 }),
+  seoDescription: varchar("seo_description", { length: 500 }),
+  slug: varchar("slug", { length: 500 }),
+
+  // Publishing
+  publishedAt: timestamp("published_at"),
+  archivedAt: timestamp("archived_at"),
+
+  // Metadata
+  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+
+  // Audit
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
