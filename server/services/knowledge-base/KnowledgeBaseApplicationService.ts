@@ -143,7 +143,7 @@ export class KnowledgeBaseApplicationService {
         tags: articleData.tags || [],
         summary: articleData.summary || null,
         contentType: articleData.contentType || 'rich_text',
-        viewCount: 0,
+        viewsCount: 0,
         helpfulCount: 0,
         upvoteCount: 0,
         version: 1,
@@ -216,7 +216,7 @@ export class KnowledgeBaseApplicationService {
       await db
         .update(knowledgeBaseArticles)
         .set({ 
-          viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`,
+          viewsCount: sql`${knowledgeBaseArticles.viewsCount} + 1`,
           lastViewedAt: new Date()
         })
         .where(eq(knowledgeBaseArticles.id, id));
@@ -226,7 +226,7 @@ export class KnowledgeBaseApplicationService {
       return {
         success: true,
         message: 'Article retrieved successfully',
-        data: { ...article, viewCount: (article.viewCount || 0) + 1 }
+        data: { ...article, viewsCount: (article.viewsCount || 0) + 1 }
       };
     } catch (error) {
       this.logger.error(`[KB-SERVICE] Error getting article:`, error);
