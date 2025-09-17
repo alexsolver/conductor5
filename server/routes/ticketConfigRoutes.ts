@@ -687,6 +687,55 @@ router.delete('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
 // FIELD OPTIONS - Configuração de campos (status, priority, impact, urgency)
 // ============================================================================
 
+// Helper function to get fallback options
+function getFallbackFieldOptions(fieldName: string | undefined): Array<{ id: string; field_name: string; value: string; display_label: string; color: string; sort_order: number; is_active: boolean; company_id: string; created_at: string }> {
+  const FIELD_OPTIONS = {
+    status: [
+      { value: 'new', label: 'Novo', color: '#3b82f6' },
+      { value: 'open', label: 'Aberto', color: '#f59e0b' },
+      { value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6' },
+      { value: 'pending', label: 'Pendente', color: '#ef4444' },
+      { value: 'resolved', label: 'Resolvido', color: '#10b981' },
+      { value: 'closed', label: 'Fechado', color: '#6b7280' }
+    ],
+    priority: [
+      { value: 'low', label: 'Baixa', color: '#10b981' },
+      { value: 'medium', label: 'Média', color: '#f59e0b' },
+      { value: 'high', label: 'Alta', color: '#ef4444' },
+      { value: 'urgent', label: 'Urgente', color: '#dc2626' },
+      { value: 'critical', label: 'Crítica', color: '#991b1b' }
+    ],
+    impact: [
+      { value: 'low', label: 'Baixo', color: '#10b981' },
+      { value: 'medium', label: 'Médio', color: '#f59e0b' },
+      { value: 'high', label: 'Alto', color: '#ef4444' },
+      { value: 'critical', color: '#dc2626' }
+    ],
+    urgency: [
+      { value: 'low', label: 'Baixa', color: '#10b981' },
+      { value: 'medium', label: 'Média', color: '#f59e0b' },
+      { value: 'high', label: 'Alta', color: '#ef4444' },
+      { value: 'urgent', label: 'Urgente', color: '#dc2626' }
+    ]
+  };
+
+  const options = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
+  if (!options) return [];
+
+  return options.map((option, index) => ({
+    id: `fallback_${fieldName}_${index}`,
+    field_name: fieldName || '',
+    value: option.value,
+    display_label: option.label,
+    color: option.color,
+    sort_order: index + 1,
+    is_active: true,
+    company_id: 'fallback', // Indicate it's a fallback
+    created_at: new Date().toISOString()
+  }));
+}
+
+
 // GET /api/ticket-config/field-options
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -699,74 +748,67 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
-    // Se nenhuma empresa foi selecionada, usar a empresa padrão Default
-    if (!companyId) {
-      // companyId = '00000000-0000-0000-0000-000000000001'; // Empresa Default
-      // console.log('🎯 No company selected, using Default company for field options');
-    }
-
-    console.log(`🔍 Fetching field options for: {
-      tenantId: ${tenantId},
-      companyId: ${companyId},
-      fieldName: ${fieldName}
-    }`);
-
-    // Import db connection
-    const { db } = await import('../db');
-    const { sql } = await import('drizzle-orm');
-
     // Use default company if none specified
     const effectiveCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log(`🎯 Using company ${effectiveCompanyId} for field options`);
+    console.log(`🔍 Fetching field options for: {
+      tenantId: ${tenantId},
+      companyId: ${companyId},
+      fieldName: ${fieldName},
+      effectiveCompanyId: ${effectiveCompanyId}
+    }`);
 
     // Try to get from ticket_field_options table first
     try {
-      // If no specific fieldName is provided, get all field options
-      let query;
+      // Build query parameters properly
+      let whereConditions = [];
+      let queryParams = [];
+      let paramIndex = 1;
+
+      // Always add tenant_id condition
+      whereConditions.push(`tenant_id = $${paramIndex}`);
+      queryParams.push(tenantId);
+      paramIndex++;
+
+      // Always add active condition
+      whereConditions.push('active = true');
+
+      // Add field_name condition if provided
       if (fieldName) {
-        query = sql`
-          SELECT 
-            id,
-            field_name,
-            value as option_value,
-            display_label,
-            color,
-            sort_order,
-            active as is_active,
-            company_id,
-            created_at
-          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-          WHERE tenant_id = ${tenantId} 
-          AND company_id = ${effectiveCompanyId} 
-          AND field_name = ${fieldName}
-          AND active = true
-          ORDER BY sort_order ASC, display_label ASC
-        `;
-      } else {
-        query = sql`
-          SELECT 
-            id,
-            field_name,
-            value as option_value,
-            display_label,
-            color,
-            sort_order,
-            active as is_active,
-            company_id,
-            created_at
-          FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-          WHERE tenant_id = ${tenantId} 
-          AND company_id = ${effectiveCompanyId} 
-          AND active = true
-          ORDER BY field_name, sort_order ASC, display_label ASC
-        `;
+        whereConditions.push(`field_name = $${paramIndex}`);
+        queryParams.push(fieldName);
+        paramIndex++;
       }
 
-      const result = await db.execute(query);
+      // Add company condition
+      if (companyId && companyId !== '00000000-0000-0000-0000-000000000001') {
+        whereConditions.push(`(company_id = $${paramIndex} OR company_id IS NULL)`);
+        queryParams.push(companyId);
+        paramIndex++;
+      } else {
+        whereConditions.push('company_id IS NULL');
+      }
 
-      console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'}`);
+      // Execute the query with proper WHERE clause construction
+      const query = `
+        SELECT 
+          id,
+          field_name as "fieldName",
+          option_value as "value", 
+          display_label as "label",
+          color_hex as "color",
+          sort_order as "sortOrder",
+          is_default as "isDefault",
+          active
+        FROM "${schemaName}".ticket_field_options 
+        WHERE ${whereConditions.join(' AND ')}
+        ORDER BY sort_order ASC, display_label ASC
+      `;
+
+      const result = await db.execute(sql.raw(query), queryParams);
+
+      console.log(`🏢 Field options found in DB: ${result.rows.length} records for ${fieldName || 'all fields'}`);
 
       if (result.rows.length > 0) {
         console.log(`✅ Found ${result.rows.length} field options in database`);
@@ -778,15 +820,27 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           tenantId
         });
       }
-    } catch (dbError) {
-      console.log('⚠️ ticket_field_options table not found, using fallback:', dbError.message);
+    } catch (error) {
+      // If ticket_field_options table doesn't exist, use fallback
+      console.log('⚠️ ticket_field_options table not found, using fallback:', error.message);
+
+      const fallbackOptions = getFallbackFieldOptions(fieldName);
+      if (fallbackOptions.length > 0) {
+        console.log(`🏢 Fallback options found: ${fallbackOptions.length} records for ${fieldName}`);
+        return res.json({
+          success: true,
+          data: fallbackOptions
+        });
+      } else {
+        console.log(`⚠️ No fallback options available for field: ${fieldName}`);
+        return res.json({
+          success: true,
+          data: []
+        });
+      }
     }
 
-    // CRÍTICO: Verificar se é campo hierárquico
-    const isHierarchical = ['category', 'subcategory', 'action'].includes(fieldName);
-    console.log(`🔧 Processing field: ${fieldName}, hierarchical: ${isHierarchical}, dependsOn: ${dependsOn}`);
-
-    // Handle hierarchical field types
+    // Handle hierarchical field types if not found in ticket_field_options
     let result;
     if (fieldName === 'category') {
       // Buscar categorias
@@ -902,23 +956,31 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       // Buscar opções de campos normais (status, priority, impact, urgency)
       console.log("FIELD NAME: [!!!] -> " + fieldName)
 
-
       const conditions: any[] = [];
+      let queryParamsFallback: any[] = [];
+      let paramIndexFallback = 1;
 
       // tenant sempre deve existir
       if (tenantId) {
-        conditions.push(sql`tenant_id = ${tenantId}`);
+        conditions.push(`tenant_id = $${paramIndexFallback}`);
+        queryParamsFallback.push(tenantId);
+        paramIndexFallback++;
       }
 
       // só adiciona se companyId for válido de verdade
       if (companyId && companyId !== "undefined") {
-        conditions.push(sql`customer_id = ${companyId}`);
+        conditions.push(`(company_id = $${paramIndexFallback} OR company_id IS NULL)`);
+        queryParamsFallback.push(companyId);
+        paramIndexFallback++;
+      } else {
+        conditions.push('company_id IS NULL');
       }
 
-      conditions.push(sql`is_active = true`);
+      conditions.push(`is_active = true`);
 
       if (fieldName && fieldName !== "undefined") {
-        conditions.push(sql`field_name = ${fieldName}`);
+        conditions.push(`field_name = $${paramIndexFallback}`);
+        queryParamsFallback.push(fieldName);
       }
 
       // se não tiver nenhuma condição válida, evita WHERE vazio
@@ -926,7 +988,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         throw new Error("Nenhuma condição válida para montar a query.");
       }
 
-      result = await db.execute(sql`
+      result = await db.execute(sql.raw(`
         SELECT 
           id,
           tenant_id,
@@ -942,62 +1004,31 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           created_at,
           updated_at
         FROM ${sql.raw(schemaName)}.ticket_field_options
-        WHERE ${sql.join(conditions, sql` AND `)}
+        WHERE ${conditions.join(' AND ')}
         ORDER BY field_name, sort_order, label
-      `);
-
-
+      `), queryParamsFallback);
     }
 
-    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${isHierarchical})`);
+    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${fieldName === 'category' || fieldName === 'subcategory' || fieldName === 'action'})`);
 
     if (result.rows.length === 0) {
-      console.log(`⚠️ No field options found for field ${fieldName} in company ${effectiveCompanyId}`);
+      console.log(`⚠️ No field options found in DB or from hierarchy for field ${fieldName} in company ${effectiveCompanyId}`);
 
-      // Fallback to default field options for specific field types
-      const FIELD_OPTIONS = {
-        status: [
-          { value: 'new', label: 'Novo', color: '#3b82f6' },
-          { value: 'open', label: 'Aberto', color: '#f59e0b' },
-          { value: 'in_progress', label: 'Em Progresso', color: '#8b5cf6' },
-          { value: 'pending', label: 'Pendente', color: '#ef4444' },
-          { value: 'resolved', label: 'Resolvido', color: '#10b981' },
-          { value: 'closed', label: 'Fechado', color: '#6b7280' }
-        ],
-        priority: [
-          { value: 'low', label: 'Baixa', color: '#10b981' },
-          { value: 'medium', label: 'Média', color: '#f59e0b' },
-          { value: 'high', label: 'Alta', color: '#ef4444' },
-          { value: 'urgent', label: 'Urgente', color: '#dc2626' },
-          { value: 'critical', label: 'Crítica', color: '#991b1b' }
-        ],
-        impact: [
-          { value: 'low', label: 'Baixo', color: '#10b981' },
-          { value: 'medium', label: 'Médio', color: '#f59e0b' },
-          { value: 'high', label: 'Alto', color: '#ef4444' },
-          { value: 'critical', color: '#dc2626' }
-        ],
-        urgency: [
-          { value: 'low', label: 'Baixa', color: '#10b981' },
-          { value: 'medium', label: 'Média', color: '#f59e0b' },
-          { value: 'high', label: 'Alta', color: '#ef4444' },
-          { value: 'urgent', label: 'Urgente', color: '#dc2626' }
-        ]
-      };
-
-      // Use fallback options if available for this field
-      const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
-      if (fallbackOptions) {
-        const transformedOptions = fallbackOptions.map((option, index) => ({
-          id: `fallback_${fieldName}_${index}`,
-          field_name: fieldName,
-          option_value: option.value,
-          display_label: option.label,
+      // Use fallback options if available for this field and none were found
+      const fallbackOptions = getFallbackFieldOptions(fieldName);
+      if (fallbackOptions.length > 0) {
+        const transformedOptions = fallbackOptions.map((option) => ({
+          // Map to the expected output format
+          id: option.id,
+          fieldName: option.field_name,
+          value: option.value,
+          displayLabel: option.display_label,
           color: option.color,
-          sort_order: index + 1,
-          is_active: true,
-          company_id: effectiveCompanyId,
-          created_at: new Date().toISOString()
+          sortOrder: option.sort_order,
+          isDefault: option.is_active, // Assuming is_active maps to isDefault if not explicitly provided
+          active: option.is_active,
+          company_id: option.company_id,
+          created_at: option.created_at
         }));
 
         console.log(`🏢 Field options found: ${transformedOptions.length} fallback records for ${fieldName}`);
@@ -1037,6 +1068,39 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     });
   } catch (error) {
     console.error('❌ Error fetching field options:', error);
+
+    // Try fallback options first
+    try {
+      const fallbackOptions = getFallbackFieldOptions(req.query.fieldName as string);
+      if (fallbackOptions.length > 0) {
+        const transformedOptions = fallbackOptions.map((option) => ({
+          // Map to the expected output format
+          id: option.id,
+          fieldName: option.field_name,
+          value: option.value,
+          displayLabel: option.display_label,
+          color: option.color,
+          sortOrder: option.sort_order,
+          isDefault: option.is_active, // Assuming is_active maps to isDefault if not explicitly provided
+          active: option.is_active,
+          company_id: option.company_id,
+          created_at: option.created_at
+        }));
+        console.log(`🏢 Using fallback options: ${transformedOptions.length} records for ${req.query.fieldName}`);
+        return res.json({
+          success: true,
+          data: transformedOptions,
+          fieldName: req.query.fieldName,
+          companyId: req.query.companyId || '00000000-0000-0000-0000-000000000001',
+          tenantId: req.user?.tenantId,
+          source: 'fallback'
+        });
+      }
+    } catch (fallbackError) {
+      console.error('❌ Fallback also failed:', fallbackError);
+    }
+
+    // If everything fails, return error
     res.status(500).json({
       success: false,
       message: 'Failed to fetch field options',
