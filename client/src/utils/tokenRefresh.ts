@@ -1,5 +1,5 @@
 // Enhanced Token Refresh Utility
-class TokenRefresh {
+export class TokenRefresh {
   private static refreshTimeout: NodeJS.Timeout | null = null;
   private static activityInterval: NodeJS.Timeout | null = null;
   private static isRefreshing = false;
