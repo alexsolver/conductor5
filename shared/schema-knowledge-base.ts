@@ -79,7 +79,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   authorId: uuid("author_id"),
 
   // Categorization - using enum as in actual DB
-  category: varchar("category", { length: 50 }),
+  categoryId: varchar("category_id", { length: 50 }),
   
   // Status & Visibility
   status: varchar("status", { length: 50 }),

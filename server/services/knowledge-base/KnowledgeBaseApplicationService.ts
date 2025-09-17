@@ -50,7 +50,7 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.category, params.category));
+        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
       }
 
       if (params.status) {
@@ -71,7 +71,7 @@ export class KnowledgeBaseApplicationService {
           title: knowledgeBaseArticles.title,
           content: knowledgeBaseArticles.content,
           authorId: knowledgeBaseArticles.authorId,
-          category: knowledgeBaseArticles.category,
+          categoryId: knowledgeBaseArticles.categoryId,
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
           tags: knowledgeBaseArticles.tags,
@@ -158,7 +158,7 @@ export class KnowledgeBaseApplicationService {
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: categoryMapping[articleData.category] || 'other',
+        categoryId: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
