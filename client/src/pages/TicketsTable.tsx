@@ -544,7 +544,8 @@ const TicketsTable = React.memo(() => {
 
   // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
   const {
-    data: companiesResponse = { companies: [] }
+    data: companiesResponse = { companies: [] },
+    isLoading: companiesLoading
   } = useOptimizedQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
@@ -1649,77 +1650,70 @@ const TicketsTable = React.memo(() => {
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Choose Template (Optional)
             </Label>
-            {templatesLoading ? (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span>Loading templates...</span>
-              </div>
-            ) : (
-              <Select
-                onValueChange={async (value) => {
-                  const templateId = value === '__none__' ? undefined : value;
-                  setSelectedTemplateId(templateId);
+            <Select
+              onValueChange={async (value) => {
+                const templateId = value === '__none__' ? undefined : value;
+                setSelectedTemplateId(templateId);
 
-                  if (templateId && templatesData?.data) {
-                    let templatesArray = null;
-                    if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
-                      templatesArray = templatesData.data.templates;
-                    } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
-                      templatesArray = templatesData.templates;
-                    } else if (Array.isArray(templatesData.data)) {
-                      templatesArray = templatesData.data;
-                    }
+                if (templateId && templatesData?.data) {
+                  let templatesArray = null;
+                  if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
+                    templatesArray = templatesData.data.templates;
+                  } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
+                    templatesArray = templatesData.templates;
+                  } else if (Array.isArray(templatesData.data)) {
+                    templatesArray = templatesData.data;
+                  }
 
-                    const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-                    if (selectedTemplate?.fields) {
-                      try {
-                        const fields = JSON.parse(selectedTemplate.fields);
-                        // Apply template fields to form
-                        Object.keys(fields).forEach(fieldKey => {
-                          form.setValue(fieldKey as any, fields[fieldKey]);
-                        });
-                        toast({
-                          title: "Template Applied",
-                          description: `Template "${selectedTemplate.name}" fields have been populated.`,
-                        });
-                      } catch (error) {
-                        console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', error);
-                        toast({
-                          title: "Erro ao aplicar template",
-                          description: "Ocorreu um erro ao aplicar os campos do template.",
-                          variant: "destructive"
-                        });
-                      }
+                  const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
+                  if (selectedTemplate?.fields) {
+                    try {
+                      const fields = JSON.parse(selectedTemplate.fields);
+                      // Apply template fields to form
+                      Object.keys(fields).forEach(fieldKey => {
+                        form.setValue(fieldKey as any, fields[fieldKey]);
+                      });
+                      toast({
+                        title: "Template Applied",
+                        description: `Template "${selectedTemplate.name}" fields have been populated.`,
+                      });
+                    } catch (error) {
+                      console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', error);
+                      toast({
+                        title: "Erro ao aplicar template",
+                        description: "Ocorreu um erro ao aplicar os campos do template.",
+                        variant: "destructive"
+                      });
                     }
                   }
-                }}
-                value={selectedTemplateId || '__none__'}
-              >
-                <SelectTrigger className="h-10 mt-1">
-                  <SelectValue placeholder="Selecione um template (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Sem template</SelectItem>
-                  {templatesLoading ? (
-                    <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
-                  ) : (
-                    templatesData?.data?.templates?.map((template: any) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    )) || templatesData?.templates?.map((template: any) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    )) : null)
-                  )}
-                </SelectContent>
-              </Select>
-            )}
+                }
+              }}
+              value={selectedTemplateId || '__none__'}
+            >
+              <SelectTrigger className="h-10 mt-1">
+                <SelectValue placeholder="Selecione um template (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem template</SelectItem>
+                {templatesLoading ? (
+                  <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                ) : (
+                  templatesData?.data?.templates?.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  )) || templatesData?.templates?.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  )) : null)
+                )}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -1850,25 +1844,67 @@ const TicketsTable = React.memo(() => {
           <h3 className="text-lg font-medium">Assignment</h3>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Cliente (Customer/Caller) */}
-                  <FormField
-                    control={form.control}
-                    name="callerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Cliente (Caller) *</FormLabel>
-                        <FilteredCustomerSelect
-                          value={field.value}
-                          onChange={handleCustomerChange}
-                          selectedCompanyId={form.getValues('companyId')}
-                          placeholder="Buscar cliente..."
-                          disabled={!form.getValues('companyId')}
-                          className="h-10"
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            {/* ✅ 1QA.MD: Company Selection First */}
+              <FormField
+                control={form.control}
+                name="companyId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Empresa *</FormLabel>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedCompanyId(value);
+                    }} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Selecionar empresa" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {companiesLoading ? (
+                          <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+                        ) : companies.length > 0 ? (
+                          companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-companies" disabled>Nenhuma empresa encontrada</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* ✅ 1QA.MD: Customer Selection - Filtered by Company */}
+              <FormField
+                control={form.control}
+                name="callerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">Cliente (Caller) *</FormLabel>
+                    <FormControl>
+                      <FilteredCustomerSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        selectedCompanyId={selectedCompanyId}
+                        placeholder="Buscar cliente..."
+                        disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
+                      />
+                    </FormControl>
+                    <div className="text-xs text-red-500 mt-1">
+                      {!selectedCompanyId || selectedCompanyId === 'unspecified' ? 
+                        'Cliente é obrigatório' : 
+                        ''
+                      }
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
             <FormField
               control={form.control}
