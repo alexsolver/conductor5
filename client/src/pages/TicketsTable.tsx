@@ -1719,8 +1719,114 @@ const TicketsTable = React.memo(() => {
         </div>
 
 
-        {/* Section Title and Template */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Template Selection - moved to position 2 */}
+        <div className="mb-4">
+          <Label htmlFor="template" className="text-sm font-medium mb-2 block">
+            Template (opcional)
+          </Label>
+          <Select
+            onValueChange={(templateId) => {
+              setSelectedTemplateId(templateId);
+
+              // ✅ 1QA.MD: Apply template fields when selected
+              if (templateId && templateId !== '__none__' && templatesData?.data) {
+                let templatesArray = null;
+                if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
+                  templatesArray = templatesData.data.templates;
+                } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
+                  templatesArray = templatesData.templates;
+                } else if (Array.isArray(templatesData.data)) {
+                  templatesArray = templatesData.data;
+                }
+
+                const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
+                if (selectedTemplate?.fields) {
+                  try {
+                    const parsedFields = typeof selectedTemplate.fields === 'string'
+                      ? JSON.parse(selectedTemplate.fields)
+                      : selectedTemplate.fields;
+
+                    // Apply template values to form
+                    Object.keys(parsedFields).forEach(fieldKey => {
+                      if (fieldKey in ticketSchema.shape) { // Only set if field exists in schema
+                        form.setValue(fieldKey as any, parsedFields[fieldKey]);
+                      }
+                    });
+                    toast({
+                      title: "Template Applied",
+                      description: `Template "${selectedTemplate.name}" fields have been populated.`,
+                    });
+                    console.log('✅ Template fields applied:', parsedFields);
+                  } catch (error) {
+                    console.error('❌ Error parsing template fields:', error);
+                    toast({
+                      title: "Erro ao aplicar template",
+                      description: "Ocorreu um erro ao aplicar os campos do template.",
+                      variant: "destructive"
+                    });
+                  }
+                }
+              }
+            }}
+            value={selectedTemplateId || '__none__'}
+          >
+            <SelectTrigger className="h-10 mt-1">
+              <SelectValue placeholder="Selecione um template (opcional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem template</SelectItem>
+              {templatesLoading ? (
+                <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+              ) : (
+                templatesData?.data?.templates?.map((template: any) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                )) || templatesData?.templates?.map((template: any) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                )) : null)
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Cliente Selection - moved to position 3 */}
+        <div className="mb-4">
+          <FormField
+            control={form.control}
+            name="callerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Cliente *</FormLabel>
+                <FormControl>
+                  <FilteredCustomerSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    selectedCompanyId={selectedCompanyId}
+                    placeholder="Buscar cliente..."
+                    disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
+                  />
+                </FormControl>
+                <div className="text-xs text-red-500 mt-1">
+                  {!selectedCompanyId || selectedCompanyId === 'unspecified' ?
+                    '' :
+                    ''
+                  }
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Título do ticket - moved to position 4 */}
+        <div className="mb-4">
           <FormField
             control={form.control}
             name="subject"
@@ -1734,88 +1840,24 @@ const TicketsTable = React.memo(() => {
               </FormItem>
             )}
           />
+        </div>
 
-          {/* Template Selection */}
+        {/* Descrição - moved to position 5 */}
+        <div className="mb-4">
           <FormField
             control={form.control}
-            name="template"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Template (opcional)</FormLabel>
+                <FormLabel>{t("tickets.fields.description") || "Descrição"} *</FormLabel>
                 <FormControl>
-                  <Select
-                    onValueChange={(templateId) => {
-                      field.onChange(templateId);
-                      setSelectedTemplateId(templateId);
-
-                      // ✅ 1QA.MD: Apply template fields when selected
-                      if (templateId && templatesData?.data) {
-                        let templatesArray = null;
-                        if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
-                          templatesArray = templatesData.data.templates;
-                        } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
-                          templatesArray = templatesData.templates;
-                        } else if (Array.isArray(templatesData.data)) {
-                          templatesArray = templatesData.data;
-                        }
-
-                        const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-                        if (selectedTemplate?.fields) {
-                          try {
-                            const parsedFields = typeof selectedTemplate.fields === 'string'
-                              ? JSON.parse(selectedTemplate.fields)
-                              : selectedTemplate.fields;
-
-                            // Apply template values to form
-                            Object.keys(parsedFields).forEach(fieldKey => {
-                              if (fieldKey in ticketSchema.shape) { // Only set if field exists in schema
-                                form.setValue(fieldKey as any, parsedFields[fieldKey]);
-                              }
-                            });
-                            toast({
-                              title: "Template Applied",
-                              description: `Template "${selectedTemplate.name}" fields have been populated.`,
-                            });
-                            console.log('✅ Template fields applied:', parsedFields);
-                          } catch (error) {
-                            console.error('❌ Error parsing template fields:', error);
-                            toast({
-                              title: "Erro ao aplicar template",
-                              description: "Ocorreu um erro ao aplicar os campos do template.",
-                              variant: "destructive"
-                            });
-                          }
-                        }
-                      }
-                    }}
-                    value={selectedTemplateId || '__none__'}
-                  >
-                    <SelectTrigger className="h-10 mt-1">
-                      <SelectValue placeholder="Selecione um template (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Sem template</SelectItem>
-                      {templatesLoading ? (
-                        <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
-                      ) : (
-                        templatesData?.data?.templates?.map((template: any) => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name}
-                          </SelectItem>
-                        )) || templatesData?.templates?.map((template: any) => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name}
-                          </SelectItem>
-                        )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name}
-                          </SelectItem>
-                        )) : null)
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Textarea
+                    placeholder={t("tickets.placeholders.description") || "Descrição detalhada do problema ou solicitação"}
+                    className="min-h-[100px]"
+                    {...field}
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -1825,24 +1867,6 @@ const TicketsTable = React.memo(() => {
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Basic Information</h3>
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("tickets.fields.description") || "Descrição Detalhada"} *</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder={t("tickets.placeholders.description") || "Descrição detalhada do problema ou solicitação"}
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -1949,32 +1973,6 @@ const TicketsTable = React.memo(() => {
           <h3 className="text-lg font-medium">Assignment</h3>
 
           <div className="grid grid-cols-2 gap-4">
-
-              <FormField
-                control={form.control}
-                name="callerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium">Cliente (Caller) *</FormLabel>
-                    <FormControl>
-                      <FilteredCustomerSelect
-                        value={field.value}
-                        onChange={field.onChange}
-                        selectedCompanyId={selectedCompanyId}
-                        placeholder="Buscar cliente..."
-                        disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
-                      />
-                    </FormControl>
-                    <div className="text-xs text-red-500 mt-1">
-                      {!selectedCompanyId || selectedCompanyId === 'unspecified' ?
-                        '' :
-                        ''
-                      }
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
             <FormField
               control={form.control}
