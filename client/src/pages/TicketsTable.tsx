@@ -1655,9 +1655,7 @@ const TicketsTable = React.memo(() => {
                   const templateId = value === '__none__' ? undefined : value;
                   setSelectedTemplateId(templateId);
 
-                  // ✅ 1QA.MD: Apply template fields when selected
                   if (templateId && templatesData?.data) {
-                    // Handle different possible data structures
                     let templatesArray = null;
                     if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
                       templatesArray = templatesData.data.templates;
@@ -1671,34 +1669,25 @@ const TicketsTable = React.memo(() => {
                     if (selectedTemplate?.fields) {
                       try {
                         const fields = JSON.parse(selectedTemplate.fields);
-
                         // Apply template fields to form
-                        if (fields.subject) form.setValue('subject', fields.subject);
-                        if (fields.description) form.setValue('description', fields.description);
-                        if (fields.category) form.setValue('category', fields.category);
-                        if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
-                        if (fields.priority) form.setValue('priority', fields.priority);
-                        if (fields.urgency) form.setValue('urgency', fields.urgency);
-                        if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
-                        if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
-                        if (fields.workaround) form.setValue('workaround', fields.workaround);
-                        if (fields.location) form.setValue('location', fields.location);
-                        if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
-
+                        Object.keys(fields).forEach(fieldKey => {
+                          form.setValue(fieldKey as any, fields[fieldKey]);
+                        });
                         toast({
                           title: "Template Applied",
                           description: `Template "${selectedTemplate.name}" fields have been populated.`,
                         });
-                    } catch (e) {
-                      console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', e);
-                      toast({
-                        title: "Erro ao aplicar template",
-                        description: "Ocorreu um erro ao aplicar os campos do template.",
-                        variant: "destructive"
-                      });
+                      } catch (error) {
+                        console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', error);
+                        toast({
+                          title: "Erro ao aplicar template",
+                          description: "Ocorreu um erro ao aplicar os campos do template.",
+                          variant: "destructive"
+                        });
+                      }
                     }
                   }
-                }} 
+                }}
                 value={selectedTemplateId || '__none__'}
               >
                 <SelectTrigger className="h-10 mt-1">
