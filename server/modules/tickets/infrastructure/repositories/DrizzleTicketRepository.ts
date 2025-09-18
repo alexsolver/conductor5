@@ -297,28 +297,28 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const totalPages = Math.ceil(total / pagination.limit);
 
       // Get paginated results using proper SQL template
-      const dataConditions: any[] = [sql`is_active = true`];
+      const dataConditions: any[] = [sql`t.is_active = true`];
 
       if (filters.status && filters.status.length > 0) {
-        dataConditions.push(sql`status = ANY(${filters.status})`);
+        dataConditions.push(sql`t.status = ANY(${filters.status})`);
       }
       if (filters.priority && filters.priority.length > 0) {
-        dataConditions.push(sql`priority = ANY(${filters.priority})`);
+        dataConditions.push(sql`t.priority = ANY(${filters.priority})`);
       }
       if (filters.assignedToId) {
-        dataConditions.push(sql`assigned_to_id = ${filters.assignedToId}`);
+        dataConditions.push(sql`t.assigned_to_id = ${filters.assignedToId}`);
       }
       if (filters.customerId) {
-        dataConditions.push(sql`caller_id = ${filters.customerId}`);
+        dataConditions.push(sql`t.caller_id = ${filters.customerId}`);
       }
       if (filters.companyId) {
-        dataConditions.push(sql`company_id = ${filters.companyId}`);
+        dataConditions.push(sql`t.company_id = ${filters.companyId}`);
       }
       if (filters.category) {
-        dataConditions.push(sql`category = ${filters.category}`);
+        dataConditions.push(sql`t.category = ${filters.category}`);
       }
       if (filters.search) {
-        dataConditions.push(sql`(subject ILIKE ${`%${filters.search}%`} OR description ILIKE ${`%${filters.search}%`})`);
+        dataConditions.push(sql`(t.subject ILIKE ${`%${filters.search}%`} OR t.description ILIKE ${`%${filters.search}%`})`);
       }
 
       const finalDataQuery = sql`
@@ -327,23 +327,17 @@ export class DrizzleTicketRepository implements ITicketRepository {
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
           t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
           t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
-
-          -- Company data for display
-          c.name as "company_name",
-          c.display_name as "company_display_name",
-
-          -- Customer/Caller data for display  
-          caller.first_name as "caller_first_name",
-          caller.last_name as "caller_last_name",
-          caller.email as "caller_email",
-          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name"
-
+          c.name as "company_name", c.display_name as "company_display_name",
+          cu.first_name as "caller_first_name", cu.last_name as "caller_last_name", 
+          cu.email as "caller_email",
+          COALESCE(cu.first_name || ' ' || cu.last_name, cu.email, 'N/A') as "caller_name"
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers cu ON t.caller_id = cu.id
         WHERE ${sql.join(dataConditions, sql` AND `)}
-        ORDER BY t.created_at DESC
-        LIMIT ${pagination.limit} OFFSET ${offset}
+        ORDER BY t.${sql.identifier(pagination.sortBy || 'created_at')} ${sql.raw(pagination.sortOrder === 'asc' ? 'ASC' : 'DESC')}
+        LIMIT ${pagination.limit}
+        OFFSET ${offset}
       `;
 
       const results = await db.execute(finalDataQuery);
@@ -563,26 +557,32 @@ export class DrizzleTicketRepository implements ITicketRepository {
   // ✅ CLEAN ARCHITECTURE - Private mapping method
   private mapToTicket(row: any): Ticket {
     return {
-      id: row.id || null,
-      number: row.number || null,
-      subject: row.subject || '',
+      id: row.id,
+      tenantId: row.tenantId || row.tenant_id,
+      number: row.number || `T2025-${String(row.id).substring(0, 6).toUpperCase()}`, // Ensure number is always present
+      subject: row.subject,
       description: row.description || '',
-      status: row.status || 'new',
-      priority: row.priority || 'medium',
-      urgency: row.urgency || 'medium',
-      impact: row.impact || 'medium',
-      category: row.category || null,
-      subcategory: row.subcategory || null,
-      action: row.action || null,
-      callerId: row.callerId || null,
-      assignedToId: row.assignedToId || null,
-      tenantId: row.tenantId,
-      createdAt: row.createdAt || new Date(),
-      updatedAt: row.updatedAt || new Date(),
-      createdById: row.createdById || null,
-      updatedById: row.updatedById || null,
-      companyId: row.companyId || null,
-      isActive: row.isActive !== false
-    } as Ticket;
+      status: row.status as any,
+      priority: row.priority as any,
+      urgency: row.urgency as any,
+      impact: row.impact as any,
+      customerId: row.customerId || row.caller_id,
+      beneficiaryId: row.beneficiaryId || row.beneficiary_id,
+      assignedToId: row.assignedToId || row.assigned_to_id,
+      companyId: row.companyId || row.company_id,
+      category: row.category,
+      subcategory: row.subcategory,
+      action: row.action,
+      tags: row.tags ? (typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags) : [],
+      customFields: row.customFields || row.custom_fields ? 
+        (typeof (row.customFields || row.custom_fields) === 'string' ? 
+          JSON.parse(row.customFields || row.custom_fields) : 
+          (row.customFields || row.custom_fields)) : {},
+      createdAt: row.createdAt || row.created_at,
+      updatedAt: row.updatedAt || row.updated_at,
+      createdById: row.createdById || row.created_by_id,
+      updatedById: row.updatedById || row.updated_by_id,
+      isActive: row.isActive !== false && row.is_active !== false
+    };
   }
 }
