@@ -181,9 +181,9 @@ export const ResponsiveTicketsTable = ({
                       <Link
                         href={`/tickets/${ticket.id}`}
                         className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
-                        aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id}`}
+                        aria-label={`Ver detalhes do ticket ${ticket.number ? `#${ticket.number}` : ticket.id}`}
                       >
-                        {ticket.number || ticket.id}
+                        {ticket.number ? `#${ticket.number}` : `UUID: ${ticket.id.substring(0, 8)}...`}
                       </Link>
                     </div>
                   </TableCell>

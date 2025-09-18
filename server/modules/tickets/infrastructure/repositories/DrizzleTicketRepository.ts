@@ -323,7 +323,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       const finalDataQuery = sql`
         SELECT 
-          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
+          t.id, 
+          COALESCE(t.number, CONCAT('T', EXTRACT(YEAR FROM t.created_at), '-', LPAD(ROW_NUMBER() OVER (ORDER BY t.created_at)::text, 6, '0'))) as "number",
+          t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
           t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
           t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
