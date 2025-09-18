@@ -1459,6 +1459,22 @@ const TicketsTable = React.memo(() => {
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false); // State to disable company selection during creation
+  
+  // Dynamic field visibility based on template
+  const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({
+    category: true,
+    subcategory: true,
+    priority: true, // Always visible as it's required
+    impact: true,
+    urgency: true,
+    assignedToId: true,
+    assignmentGroup: true,
+    location: true,
+    contactType: true,
+    businessImpact: true,
+    symptoms: true,
+    workaround: true
+  });
 
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
@@ -1746,17 +1762,47 @@ const TicketsTable = React.memo(() => {
                       ? JSON.parse(selectedTemplate.fields)
                       : selectedTemplate.fields;
 
-                    // Apply template values to form
+                    // Configure field visibility based on template with field mapping
+                    const templateFieldKeys = Object.keys(parsedFields);
+                    const fieldMapping: Record<string, string> = {
+                      'assignedTo': 'assignedToId', // Handle naming differences
+                    };
+                    
+                    const newVisibleFields: Record<string, boolean> = {
+                      category: templateFieldKeys.includes('category'),
+                      subcategory: templateFieldKeys.includes('subcategory'),
+                      priority: true, // Always show priority as it's required
+                      impact: templateFieldKeys.includes('impact'),
+                      urgency: templateFieldKeys.includes('urgency'),
+                      assignedToId: templateFieldKeys.includes('assignedToId') || templateFieldKeys.includes('assignedTo'),
+                      assignmentGroup: templateFieldKeys.includes('assignmentGroup'),
+                      location: templateFieldKeys.includes('location'),
+                      contactType: templateFieldKeys.includes('contactType'),
+                      businessImpact: templateFieldKeys.includes('businessImpact'),
+                      symptoms: templateFieldKeys.includes('symptoms'),
+                      workaround: templateFieldKeys.includes('workaround')
+                    };
+                    setVisibleFields(newVisibleFields);
+
+                    // Apply template values to form with defaults for required hidden fields
                     Object.keys(parsedFields).forEach(fieldKey => {
-                      if (fieldKey in ticketSchema.shape) { // Only set if field exists in schema
-                        form.setValue(fieldKey as any, parsedFields[fieldKey]);
+                      const mappedKey = fieldMapping[fieldKey] || fieldKey;
+                      if (mappedKey in ticketSchema.shape) { // Only set if field exists in schema
+                        form.setValue(mappedKey as any, parsedFields[fieldKey]);
                       }
                     });
+
+                    // Set defaults for required fields that are hidden
+                    if (!newVisibleFields.priority && !parsedFields.priority) {
+                      form.setValue('priority', 'medium');
+                    }
+
                     toast({
                       title: "Template Applied",
-                      description: `Template "${selectedTemplate.name}" fields have been populated.`,
+                      description: `Template "${selectedTemplate.name}" fields have been configured.`,
                     });
                     console.log('✅ Template fields applied:', parsedFields);
+                    console.log('✅ Field visibility configured:', newVisibleFields);
                   } catch (error) {
                     console.error('❌ Error parsing template fields:', error);
                     toast({
@@ -1766,6 +1812,22 @@ const TicketsTable = React.memo(() => {
                     });
                   }
                 }
+              } else {
+                // Reset to show all fields if no template selected
+                setVisibleFields({
+                  category: true,
+                  subcategory: true,
+                  priority: true, // Always visible as it's required
+                  impact: true,
+                  urgency: true,
+                  assignedToId: true,
+                  assignmentGroup: true,
+                  location: true,
+                  contactType: true,
+                  businessImpact: true,
+                  symptoms: true,
+                  workaround: true
+                });
               }
             }}
             value={selectedTemplateId || '__none__'}
@@ -1913,281 +1975,291 @@ const TicketsTable = React.memo(() => {
         <div className="border-t border-gray-200 my-6"></div>
 
 
-        {/* Basic Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Basic Information</h3>
+        {/* Basic Information - Show only if template has these fields */}
+        {(visibleFields.category || visibleFields.subcategory) && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Basic Information</h3>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("tickets.fields.category") || "Categoria"}</FormLabel>
-                  <FormControl>
-                    <DynamicSelect
-                      fieldName="category"
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder={t("common.selectCategory") || "Selecione a categoria"}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-2 gap-4">
+              {visibleFields.category && (
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("tickets.fields.category") || "Categoria"}</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="category"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder={t("common.selectCategory") || "Selecione a categoria"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            <FormField
-              control={form.control}
-              name="subcategory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("tickets.fields.subcategory") || "Subcategoria"}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t("tickets.placeholders.subcategory") || "Subcategoria específica"} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {visibleFields.subcategory && (
+                <FormField
+                  control={form.control}
+                  name="subcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("tickets.fields.subcategory") || "Subcategoria"}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t("tickets.placeholders.subcategory") || "Subcategoria específica"} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Priority & Impact */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Priority & Impact</h3>
+        {/* Priority & Impact - Show only if template has these fields */}
+        {(visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Priority & Impact</h3>
 
-          <div className="grid grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Priority *</FormLabel>
-                  <FormControl>
-                    <DynamicSelect
-                      fieldName="priority"
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder={t("common.selectPriority") || "Selecione a prioridade"}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-3 gap-4">
+              {visibleFields.priority && (
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority *</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="priority"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder={t("common.selectPriority") || "Selecione a prioridade"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            <FormField
-              control={form.control}
-              name="impact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Impact</FormLabel>
-                  <FormControl>
-                    <DynamicSelect
-                      fieldName="impact"
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder={t("common.selectImpact") || "Selecione o impacto"}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {visibleFields.impact && (
+                <FormField
+                  control={form.control}
+                  name="impact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Impact</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="impact"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder={t("common.selectImpact") || "Selecione o impacto"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            <FormField
-              control={form.control}
-              name="urgency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Urgency</FormLabel>
-                  <FormControl>
-                    <DynamicSelect
-                      fieldName="urgency"
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder={t("common.selectUrgency") || "Selecione a urgência"}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {visibleFields.urgency && (
+                <FormField
+                  control={form.control}
+                  name="urgency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Urgency</FormLabel>
+                      <FormControl>
+                        <DynamicSelect
+                          fieldName="urgency"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder={t("common.selectUrgency") || "Selecione a urgência"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Assignment */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Assignment</h3>
+        {/* Assignment - Show only if template has these fields */}
+        {(visibleFields.assignedToId || visibleFields.assignmentGroup || visibleFields.location || visibleFields.contactType) && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Assignment</h3>
 
-          <div className="grid grid-cols-2 gap-4">
-
-            <FormField
-              control={form.control}
-              name="beneficiaryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Favorecido (Beneficiary)</FormLabel>
-                  <FormControl>
-                    <PersonSelector
-                      value={field.value || ""}
-                      onValueChange={(personId, personType) => {
-                        field.onChange(personId);
-                        form.setValue('beneficiaryType', personType);
-                      }}
-                      placeholder="Buscar favorecido (opcional)..."
-                      allowedTypes={['user', 'customer']}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-2 gap-4">
+              {visibleFields.assignedToId && (
+                <FormField
+                  control={form.control}
+                  name="assignedToId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assign to Agent</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select agent" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {users && Array.isArray(users) ? users.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.firstName} {user.lastName} ({user.email})
+                            </SelectItem>
+                          )) : null}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            <FormField
-              control={form.control}
-              name="assignedToId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assign to Agent</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              {visibleFields.assignmentGroup && (
+                <FormField
+                  control={form.control}
+                  name="assignmentGroup"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo de Atribuição</FormLabel>
+                      <FormControl>
+                        <UserGroupSelect
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione um grupo"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {visibleFields.location && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Physical location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {visibleFields.contactType && (
+                <FormField
+                  control={form.control}
+                  name="contactType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select contact type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                          <SelectItem value="chat">Chat</SelectItem>
+                          <SelectItem value="self_service">Self Service</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Business Impact - Show only if template has these fields */}
+        {(visibleFields.businessImpact || visibleFields.symptoms || visibleFields.workaround) && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
+
+            {visibleFields.businessImpact && (
+              <FormField
+                control={form.control}
+                name="businessImpact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Impact</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select agent" />                      </SelectTrigger>
+                      <Textarea
+                        placeholder="Describe the business impact"
+                        className="min-h-[80px]"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="unassigned">Unassigned</SelectItem>
-                      {users && Array.isArray(users) ? users.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName} ({user.email})
-                        </SelectItem>
-                      )) : null}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="assignmentGroup"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Grupo de Atribuição</FormLabel>
-                  <FormControl>
-                    <UserGroupSelect
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Selecione um grupo"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Physical location" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="contactType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select contact type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="phone">Phone</SelectItem>
-                      <SelectItem value="chat">Chat</SelectItem>
-                      <SelectItem value="self_service">Self Service</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Business Impact */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
-
-          <FormField
-            control={form.control}
-            name="businessImpact"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Impact</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Describe the business impact"
-                    className="min-h-[80px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="symptoms"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Symptoms</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Observed symptoms"
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-2 gap-4">
+              {visibleFields.symptoms && (
+                <FormField
+                  control={form.control}
+                  name="symptoms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Symptoms</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Observed symptoms"
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            <FormField
-              control={form.control}
-              name="workaround"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Workaround</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Temporary solution or workaround"
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {visibleFields.workaround && (
+                <FormField
+                  control={form.control}
+                  name="workaround"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Workaround</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Temporary solution or workaround"
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Legacy Fields (Hidden but mapped) */}
         <FormField
