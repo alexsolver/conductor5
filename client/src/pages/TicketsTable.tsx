@@ -589,6 +589,9 @@ const TicketsTable = React.memo(() => {
     }
   });
 
+  // Extract companies array from the query result
+  const companies = companiesData || [];
+
 
   // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
   const tickets = useMemo(() => {
