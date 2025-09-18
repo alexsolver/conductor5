@@ -447,26 +447,30 @@ export default function TicketTemplates() {
 
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
-    // ✅ Popular form com dados do template
+
+    // Se vier snake_case do backend, ajuste conforme seu form:
     form.reset({
       name: template.name,
       description: template.description || '',
-      templateType: template.templateType,
-      companyId: template.companyId,
+      templateType: (template as any).template_type || template.templateType,
+      companyId: (template as any).company_id ?? template.companyId ?? null,
       category: template.category || '',
       subcategory: template.subcategory || '',
       priority: template.priority,
       status: template.status,
-      requiredFields: template.requiredFields || [],
-      customFields: template.customFields || [],
-      tags: template.tags || [],
-      isDefault: template.isDefault,
-      isSystem: template.isSystem,
+      requiredFields: (template as any).required_fields || template.requiredFields || [],
+      customFields: (template as any).custom_fields || template.customFields || [],
+      tags: (template as any).tags || template.tags || [],
+      isDefault: (template as any).is_default ?? template.isDefault ?? false,
+      isSystem: (template as any).is_system ?? template.isSystem ?? false,
     });
-    setTemplateCustomFields(template.customFields || []); // Define os campos customizados para edição
-    setSelectedCustomFieldIds(template.customFields?.map((cf: any) => cf.id) || []); // Define os IDs selecionados para edição
+
+    const cf = ((template as any).custom_fields || template.customFields || []);
+    setTemplateCustomFields(cf);
+    setSelectedCustomFieldIds(cf.map((c: any) => c.id).filter(Boolean));
     setIsEditOpen(true);
   };
+
 
   const handleDeleteTemplate = (templateId: string) => {
     if (confirm('Tem certeza que deseja excluir este template?')) {
@@ -703,7 +707,9 @@ export default function TicketTemplates() {
                         {template.companyId ? (
                           <>
                             <Building2 className="w-4 h-4 mr-2" />
-                            Empresa específica
+                            {companies.find(c => c.id === template.company_id)?.displayName ||
+                             companies.find(c => c.id === template.company_id)?.name ||
+                             'Empresa específica'}
                           </>
                         ) : (
                           <>
@@ -712,6 +718,7 @@ export default function TicketTemplates() {
                           </>
                         )}
                       </div>
+
 
                       {/* Category & Priority */}
                       {template.category && (
@@ -1187,6 +1194,8 @@ export default function TicketTemplates() {
       </Dialog>
 
       {/* Edit Template Dialog */}
+;
+      {/* Editar */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1195,6 +1204,7 @@ export default function TicketTemplates() {
               Modifique as configurações do template selecionado.
             </DialogDescription>
           </DialogHeader>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleUpdateTemplate)} className="space-y-6">
               {/* Basic Information */}
@@ -1230,12 +1240,8 @@ export default function TicketTemplates() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="creation">
-                            Template de Criação
-                          </SelectItem>
-                          <SelectItem value="edit">
-                            Template de Edição
-                          </SelectItem>
+                          <SelectItem value="creation">Template de Criação</SelectItem>
+                          <SelectItem value="edit">Template de Edição</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -1459,53 +1465,50 @@ export default function TicketTemplates() {
                             </div>
 
                             <div>
-                              <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
-                              <div>
-                                <h5 className="text-sm font-medium text-orange-800 mb-2">
-                                  Campos Customizados (gerenciados em /custom-fields-admin)
-                                </h5>
-                                <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
-                                  {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
-                                    <div className="space-y-2">
-                                      {availableCustomFieldsResponse.data.map((field: any) => (
-                                        <div key={field.id} className="flex items-center space-x-2">
-                                          <Checkbox
-                                            id={`custom-field-${field.id}`}
-                                            checked={selectedCustomFieldIds.includes(field.id)}
-                                            onCheckedChange={(checked) => {
-                                              if (checked) {
-                                                setSelectedCustomFieldIds(prev => [...prev, field.id]);
-                                              } else {
-                                                setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                              }
-                                            }}
-                                          />
-                                          <Label 
-                                            htmlFor={`custom-field-${field.id}`}
-                                            className="text-sm font-medium cursor-pointer"
-                                          >
-                                            {field.fieldLabel}
-                                          </Label>
-                                          <Badge variant="outline" className="text-xs">
-                                            {field.fieldType}
-                                          </Badge>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-muted-foreground">
-                                      Nenhum campo customizado disponível
-                                    </p>
-                                  )}
-                                </div>
-                                {selectedCustomFieldIds.length > 0 && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {selectedCustomFieldIds.length} campo(s) selecionado(s)
+                              <h5 className="text-sm font-medium text-orange-800 mb-2">
+                                Campos Customizados (gerenciados em /custom-fields-admin)
+                              </h5>
+                              <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
+                                {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {availableCustomFieldsResponse.data.map((field: any) => (
+                                      <div key={field.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`custom-field-${field.id}`}
+                                          checked={selectedCustomFieldIds.includes(field.id)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                            } else {
+                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                            }
+                                          }}
+                                        />
+                                        <Label 
+                                          htmlFor={`custom-field-${field.id}`}
+                                          className="text-sm font-medium cursor-pointer"
+                                        >
+                                          {field.fieldLabel}
+                                        </Label>
+                                        <Badge variant="outline" className="text-xs">
+                                          {field.fieldType}
+                                        </Badge>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    Nenhum campo customizado disponível
                                   </p>
                                 )}
                               </div>
-
+                              {selectedCustomFieldIds.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {selectedCustomFieldIds.length} campo(s) selecionado(s)
+                                </p>
+                              )}
                             </div>
+
                           </div>
                         </div>
                       </div>
@@ -1514,29 +1517,7 @@ export default function TicketTemplates() {
                 </div>
               )}
 
-              {/* ✅ 1QA.MD: Seção de Campos Customizados na Edição */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Campos Customizados</Label>
-                  <Badge variant="outline" className="text-xs">
-                    {templateCustomFields.length} campos
-                  </Badge>
-                </div>
-
-                {availableCustomFields.length > 0 && (
-                  <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <Label className="text-sm font-medium mb-2 block">
-                      Campos Disponíveis no Sistema
-                    </Label>
-                    <DynamicCustomFields
-                      moduleType="tickets"
-                      readOnly={true}
-                      className="space-y-2"
-                    />
-                  </div>
-                )}
-              </div>
-
+              {/* Actions */}
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => {
                   setIsEditOpen(false);
@@ -1560,6 +1541,8 @@ export default function TicketTemplates() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      
     </div>
   );
 }

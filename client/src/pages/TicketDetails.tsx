@@ -46,6 +46,8 @@ import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
+import EmailModal from "@/components/tickets/EmailModal";
+import MessagingModal from "@/components/tickets/MessagingModal";
 
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
@@ -118,6 +120,10 @@ const TicketDetails = React.memo(() => {
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
+  
+  // Estados dos modais de comunicação
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
 
   // 🚨 CRÍTICO: Form declaration must be BEFORE its first use
   const form = useForm<TicketFormData>({
@@ -1910,6 +1916,26 @@ const TicketDetails = React.memo(() => {
             </div>
 
             <div className="space-y-4">
+              {/* Botões de Ação de Comunicação */}
+              <div className="flex flex-col sm:flex-row gap-3 p-4 bg-gray-50 rounded-lg border">
+                <Button
+                  onClick={() => setIsEmailModalOpen(true)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  data-testid="button-send-email"
+                >
+                  <Mail className="w-4 h-4" />
+                  Enviar Email
+                </Button>
+                <Button
+                  onClick={() => setIsMessagingModalOpen(true)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-send-message"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Enviar Mensagem
+                </Button>
+              </div>
+
               <div className="flex items-center gap-4 mb-4">
                 <h3 className="font-medium text-gray-700">{t('tickets.fields.communicationTimeline')}</h3>
                 <div className="flex gap-2">
@@ -1918,6 +1944,14 @@ const TicketDetails = React.memo(() => {
                   <Badge variant="secondary" className="text-xs">Telefone</Badge>
                 </div>
               </div>
+
+              {communicationsData.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <MessageCircle className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <p>Nenhuma comunicação registrada ainda</p>
+                  <p className="text-sm">Use os botões acima para enviar emails ou mensagens</p>
+                </div>
+              )}
 
               {communicationsData.slice().reverse().map((comm: any) => (
                 <Card key={comm.id} className="p-4">
@@ -4265,6 +4299,22 @@ const TicketDetails = React.memo(() => {
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
         currentTicket={ticket}
+      />
+
+      {/* Email Modal */}
+      <EmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        ticketId={id}
+        ticketSubject={ticket?.subject}
+      />
+
+      {/* Messaging Modal */}
+      <MessagingModal
+        isOpen={isMessagingModalOpen}
+        onClose={() => setIsMessagingModalOpen(false)}
+        ticketId={id}
+        ticketNumber={ticket?.number}
       />
 
     </div>
