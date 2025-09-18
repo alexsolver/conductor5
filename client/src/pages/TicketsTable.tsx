@@ -1657,7 +1657,17 @@ const TicketsTable = React.memo(() => {
 
                   // ✅ 1QA.MD: Apply template fields when selected
                   if (templateId && templatesData?.data) {
-                    const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
+                    // Handle different possible data structures
+                    let templatesArray = null;
+                    if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
+                      templatesArray = templatesData.data.templates;
+                    } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
+                      templatesArray = templatesData.templates;
+                    } else if (Array.isArray(templatesData.data)) {
+                      templatesArray = templatesData.data;
+                    }
+
+                    const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
                     if (selectedTemplate?.fields) {
                       try {
                         const fields = JSON.parse(selectedTemplate.fields);
@@ -1688,34 +1698,33 @@ const TicketsTable = React.memo(() => {
                       });
                     }
                   }
-                }
-              }} 
-              value={selectedTemplateId || '__none__'}
-            >
-              <SelectTrigger className="h-10 mt-1">
-                <SelectValue placeholder="Selecione um template (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Sem template</SelectItem>
-                {templatesLoading ? (
-                  <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
-                ) : (
-                  templatesData?.data?.templates?.map((template: any) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  )) || templatesData?.templates?.map((template: any) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  )) : null)
-                )}
-              </SelectContent>
-            </Select>
+                }} 
+                value={selectedTemplateId || '__none__'}
+              >
+                <SelectTrigger className="h-10 mt-1">
+                  <SelectValue placeholder="Selecione um template (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Sem template</SelectItem>
+                  {templatesLoading ? (
+                    <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                  ) : (
+                    templatesData?.data?.templates?.map((template: any) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    )) || templatesData?.templates?.map((template: any) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    )) : null)
+                  )}
+                </SelectContent>
+              </Select>
             )}
           </div>
         </div>
