@@ -186,13 +186,6 @@ export default function TicketDetail() {
     select: (data: any) => data?.data || data,
   });
 
-  // 🔒 [1QA-COMPLIANCE] Filter sensitive information for display
-  const shouldDisplayBeneficiaryField = (fieldName: string, value: any) => {
-    // Hide sensitive fields like email, phone, address for beneficiaries
-    const sensitiveFields = ['email', 'telefone', 'endereco', 'clienteMaiusculas'];
-    return !sensitiveFields.includes(fieldName) && value && value !== 'Não informado' && value !== 'Não especificado';
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;

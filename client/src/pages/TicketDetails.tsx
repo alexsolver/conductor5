@@ -4217,11 +4217,31 @@ const TicketDetails = React.memo(() => {
                     <span className="font-semibold">{beneficiaryName}</span>
                   </div>
 
-                  {/* 🔒 [1QA-COMPLIANCE] Sensitive beneficiary data removed for security compliance */}
-                  {beneficiary.name && (
+                  {beneficiary.email && (
                     <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-600">Nome:</span>
-                      <span className="text-sm text-gray-900">{beneficiary.name}</span>
+                      <span className="text-sm font-medium text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.email}</span>
+                    </div>
+                  )}
+
+                  {beneficiary.phone && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.phone}</span>
+                    </div>
+                  )}
+
+                  {beneficiary.cpf && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">CPF:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.cpf}</span>
+                    </div>
+                  )}
+
+                  {beneficiary.address && (
+                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.address}</span>
                     </div>
                   )}
                 </div>
