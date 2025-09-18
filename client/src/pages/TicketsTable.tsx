@@ -1460,21 +1460,23 @@ const TicketsTable = React.memo(() => {
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false); // State to disable company selection during creation
   
-  // Dynamic field visibility based on template
+  // Dynamic field visibility based on template - Start with all hidden until template is selected
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({
-    category: true,
-    subcategory: true,
-    priority: true, // Always visible as it's required
-    impact: true,
-    urgency: true,
-    assignedToId: true,
-    assignmentGroup: true,
-    location: true,
-    contactType: true,
-    businessImpact: true,
-    symptoms: true,
-    workaround: true
+    category: false,
+    subcategory: false,
+    priority: false, 
+    impact: false,
+    urgency: false,
+    assignedToId: false,
+    assignmentGroup: false,
+    location: false,
+    contactType: false,
+    businessImpact: false,
+    symptoms: false,
+    workaround: false
   });
+  
+  const [templateSelected, setTemplateSelected] = useState<boolean>(false);
 
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
@@ -1510,7 +1512,7 @@ const TicketsTable = React.memo(() => {
       description: '',
       category: '',
       subcategory: '',
-      priority: 'medium',
+      priority: 'medium', // Ensure priority always has default
       impact: 'medium',
       urgency: 'medium',
       state: 'new',
@@ -1746,6 +1748,8 @@ const TicketsTable = React.memo(() => {
 
               // ✅ 1QA.MD: Apply template fields when selected
               if (templateId && templateId !== '__none__' && templatesData?.data) {
+                setTemplateSelected(true);
+                
                 let templatesArray = null;
                 if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
                   templatesArray = templatesData.data.templates;
@@ -1771,7 +1775,7 @@ const TicketsTable = React.memo(() => {
                     const newVisibleFields: Record<string, boolean> = {
                       category: templateFieldKeys.includes('category'),
                       subcategory: templateFieldKeys.includes('subcategory'),
-                      priority: true, // Always show priority as it's required
+                      priority: templateFieldKeys.includes('priority'), // Show only if in template
                       impact: templateFieldKeys.includes('impact'),
                       urgency: templateFieldKeys.includes('urgency'),
                       assignedToId: templateFieldKeys.includes('assignedToId') || templateFieldKeys.includes('assignedTo'),
@@ -1784,6 +1788,13 @@ const TicketsTable = React.memo(() => {
                     };
                     setVisibleFields(newVisibleFields);
 
+                    // Clear all fields first, then apply template values
+                    Object.keys(visibleFields).forEach(fieldKey => {
+                      if (fieldKey in ticketSchema.shape) {
+                        form.setValue(fieldKey as any, '');
+                      }
+                    });
+
                     // Apply template values to form with defaults for required hidden fields
                     Object.keys(parsedFields).forEach(fieldKey => {
                       const mappedKey = fieldMapping[fieldKey] || fieldKey;
@@ -1793,13 +1804,13 @@ const TicketsTable = React.memo(() => {
                     });
 
                     // Set defaults for required fields that are hidden
-                    if (!newVisibleFields.priority && !parsedFields.priority) {
-                      form.setValue('priority', 'medium');
+                    if (!newVisibleFields.priority) {
+                      form.setValue('priority', 'medium'); // Default value when hidden
                     }
 
                     toast({
-                      title: "Template Applied",
-                      description: `Template "${selectedTemplate.name}" fields have been configured.`,
+                      title: "Template aplicado",
+                      description: `Template "${selectedTemplate.name}" foi configurado com sucesso.`,
                     });
                     console.log('✅ Template fields applied:', parsedFields);
                     console.log('✅ Field visibility configured:', newVisibleFields);
@@ -1813,21 +1824,30 @@ const TicketsTable = React.memo(() => {
                   }
                 }
               } else {
-                // Reset to show all fields if no template selected
+                // Reset to hide all fields when no template selected
+                setTemplateSelected(false);
                 setVisibleFields({
-                  category: true,
-                  subcategory: true,
-                  priority: true, // Always visible as it's required
-                  impact: true,
-                  urgency: true,
-                  assignedToId: true,
-                  assignmentGroup: true,
-                  location: true,
-                  contactType: true,
-                  businessImpact: true,
-                  symptoms: true,
-                  workaround: true
+                  category: false,
+                  subcategory: false,
+                  priority: false,
+                  impact: false,
+                  urgency: false,
+                  assignedToId: false,
+                  assignmentGroup: false,
+                  location: false,
+                  contactType: false,
+                  businessImpact: false,
+                  symptoms: false,
+                  workaround: false
                 });
+
+                // Clear all secondary fields and set default priority
+                Object.keys(visibleFields).forEach(fieldKey => {
+                  if (fieldKey in ticketSchema.shape) {
+                    form.setValue(fieldKey as any, '');
+                  }
+                });
+                form.setValue('priority', 'medium'); // Ensure priority has default
               }
             }}
             value={selectedTemplateId || '__none__'}
@@ -1974,9 +1994,16 @@ const TicketsTable = React.memo(() => {
         {/* Visual separator after description */}
         <div className="border-t border-gray-200 my-6"></div>
 
+        {/* Show message to select template if none is selected */}
+        {!templateSelected && (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-lg font-medium mb-2">Selecione um template</p>
+            <p className="text-sm">Escolha um template acima para configurar os campos específicos do ticket</p>
+          </div>
+        )}
 
-        {/* Basic Information - Show only if template has these fields */}
-        {(visibleFields.category || visibleFields.subcategory) && (
+        {/* Basic Information - Show only if template is selected and has these fields */}
+        {templateSelected && (visibleFields.category || visibleFields.subcategory) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Basic Information</h3>
 
@@ -2021,8 +2048,8 @@ const TicketsTable = React.memo(() => {
           </div>
         )}
 
-        {/* Priority & Impact - Show only if template has these fields */}
-        {(visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
+        {/* Priority & Impact - Show only if template is selected and has these fields */}
+        {templateSelected && (visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Priority & Impact</h3>
 
@@ -2093,8 +2120,8 @@ const TicketsTable = React.memo(() => {
           </div>
         )}
 
-        {/* Assignment - Show only if template has these fields */}
-        {(visibleFields.assignedToId || visibleFields.assignmentGroup || visibleFields.location || visibleFields.contactType) && (
+        {/* Assignment - Show only if template is selected and has these fields */}
+        {templateSelected && (visibleFields.assignedToId || visibleFields.assignmentGroup || visibleFields.location || visibleFields.contactType) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Assignment</h3>
 
@@ -2192,8 +2219,8 @@ const TicketsTable = React.memo(() => {
           </div>
         )}
 
-        {/* Business Impact - Show only if template has these fields */}
-        {(visibleFields.businessImpact || visibleFields.symptoms || visibleFields.workaround) && (
+        {/* Business Impact - Show only if template is selected and has these fields */}
+        {templateSelected && (visibleFields.businessImpact || visibleFields.symptoms || visibleFields.workaround) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
 
