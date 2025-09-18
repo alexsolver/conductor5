@@ -117,6 +117,9 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
   next();
 };
 
+// Get instance of poolManager
+import { poolManager } from "./db";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
@@ -5805,7 +5808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - EXPENSE APPROVAL MODULE
-    // Corporate Expense Management Routes - Complete expense approval workflow system
+    //    // Complete expense approval workflow system
     const expenseApprovalRoutes = await import(
       "./modules/expense-approval/routes/expenseApprovalRoutes"
     );
@@ -6244,7 +6247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // 🚨 ADD MISSING POST ENDPOINT for template creation
     // POST /api/ticket-templates - Criar template
-    router.post(
+    app.post(
       "/api/ticket-templates",
       jwtAuth,
       enhancedTenantValidator,
