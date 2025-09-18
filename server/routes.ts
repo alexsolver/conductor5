@@ -118,8 +118,6 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
 };
 
 // Get instance of poolManager
-import { poolManager } from "./db";
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
