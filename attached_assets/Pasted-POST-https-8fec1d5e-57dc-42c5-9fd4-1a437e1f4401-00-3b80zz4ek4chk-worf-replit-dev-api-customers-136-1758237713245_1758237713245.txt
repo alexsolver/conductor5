@@ -1,0 +1,37 @@
+POST https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/customers/136c10f5-cbdf-4961-9458-33b98e807c20/companies 500
+
+Request Data
+
+{"companyId":"00000000-0000-0000-0000-000000000001","role":"member"}
+
+Request Headers
+
+Content-Type: application/json
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 65
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Thu, 18 Sep 2025 23:21:42 GMT
+etag: W/"41-Ews9Hobr5zlkR8LbifFc/2aneXY"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: authenticated
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-19T23:21:42.041Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"message":"Erro ao associar cliente à empresa"}

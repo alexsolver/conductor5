@@ -133,7 +133,7 @@ interface TicketTemplate {
   companyId: string | null;
   name: string;
   description: string | null;
-  templateType: 'creation' | 'edit';
+  template_type: 'creation' | 'edit';
   category: string | null;
   subcategory: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent';
@@ -467,6 +467,7 @@ export default function TicketTemplates() {
 
     const cf = ((template as any).custom_fields || template.customFields || []);
     setTemplateCustomFields(cf);
+    form.setValue('customFields', cf, { shouldDirty: false });
     setSelectedCustomFieldIds(cf.map((c: any) => c.id).filter(Boolean));
     setIsEditOpen(true);
   };
@@ -544,12 +545,64 @@ export default function TicketTemplates() {
   }, [availableCustomFields, selectedCustomFieldIds]);
 
 
+  // Garante boolean (shadcn Checkbox pode mandar true/false)
+  const toBool = (v: unknown) => v === true;
+
+  const remapSelectedToCustomFields = React.useCallback(
+    (ids: string[]) => {
+      return availableCustomFields
+        .filter((f: any) => ids.includes(f.id))
+        .map((f: any) => ({
+          id: f.id,
+          name: f.fieldName,
+          label: f.fieldLabel,
+          type: f.fieldType,
+          required: !!f.isRequired,
+          order: typeof f.displayOrder === 'number' ? f.displayOrder : 0,
+          placeholder: f.placeholder || undefined,
+          helpText: f.helpText || undefined,
+        }));
+    },
+    [availableCustomFields]
+  );
+
+  const handleToggleCustomField = React.useCallback(
+    (field: any, checkedLike: boolean | string) => {
+      const checked = toBool(checkedLike);
+      setSelectedCustomFieldIds(prev => {
+        const nextIds = checked ? [...prev, field.id] : prev.filter(id => id !== field.id);
+
+        // 1) re-mapeia para objetos completos
+        const mapped = remapSelectedToCustomFields(nextIds);
+
+        // 2) atualiza estado usado no Edit
+        setTemplateCustomFields(mapped);
+
+        // 3) atualiza o form (RHF) com shouldDirty
+        form.setValue('customFields', mapped, { shouldDirty: true });
+
+        return nextIds;
+      });
+    },
+    [form, remapSelectedToCustomFields, setTemplateCustomFields]
+  );
+
+
+  
   // Set available custom fields for the component
   React.useEffect(() => {
     if (availableCustomFieldsResponse?.success && availableCustomFieldsResponse.data) {
       setAvailableCustomFields(availableCustomFieldsResponse.data);
     }
   }, [availableCustomFieldsResponse]);
+
+  React.useEffect(() => {
+    // sempre que ids/available mudarem, remapeia e injeta no form
+    const mapped = remapSelectedToCustomFields(selectedCustomFieldIds);
+    setTemplateCustomFields(mapped);
+    form.setValue('customFields', mapped, { shouldDirty: true });
+  }, [selectedCustomFieldIds, availableCustomFields, remapSelectedToCustomFields]);
+
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -688,10 +741,10 @@ export default function TicketTemplates() {
                       {/* Template Type & Status */}
                       <div className="flex items-center space-x-2">
                         <Badge 
-                          variant={template.templateType === 'creation' ? 'default' : 'secondary'}
+                          variant={template.template_type === 'creation' ? 'default' : 'secondary'}
                           data-testid={`badge-type-${template.id}`}
                         >
-                          {template.templateType === 'creation' ? 'Criação' : 'Edição'}
+                          {template.template_type === 'creation' ? 'Criação' : 'Edição'}
                         </Badge>
                         <Badge 
                           variant={template.status === 'active' ? 'default' : 'secondary'}
@@ -1194,7 +1247,7 @@ export default function TicketTemplates() {
       </Dialog>
 
       {/* Edit Template Dialog */}
-;
+
       {/* Editar */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1476,13 +1529,7 @@ export default function TicketTemplates() {
                                         <Checkbox
                                           id={`custom-field-${field.id}`}
                                           checked={selectedCustomFieldIds.includes(field.id)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
-                                            } else {
-                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                            }
-                                          }}
+                                          onCheckedChange={(checked) => handleToggleCustomField(field, checked)}
                                         />
                                         <Label 
                                           htmlFor={`custom-field-${field.id}`}

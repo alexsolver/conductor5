@@ -355,7 +355,11 @@ export class TicketTemplateController {
         tags,
         isDefault,
         permissions,
-        userRole
+        userRole,
+        status,          
+        requiredFields,  
+        customFields,
+
       } = req.body;
 
       // Check if template exists
@@ -440,6 +444,59 @@ export class TicketTemplateController {
         updateFields.push(`user_role = $${paramCounter++}`);
         updateValues.push(userRole);
       }
+
+      if (status !== undefined) {
+        updateFields.push(`status = $${paramCounter++}`);
+        updateValues.push(String(status));
+      }
+
+      // ✅ custom_fields (array)
+      if (customFields !== undefined) {
+        updateFields.push(`custom_fields = $${paramCounter++}::jsonb`);
+
+        let cfValue: any;
+
+        if (customFields === null) {
+          cfValue = '[]'; // null -> []
+        } else if (Array.isArray(customFields)) {
+          cfValue = customFields.length === 0
+            ? '[]'                       // [] -> []
+            : JSON.stringify(customFields);
+        } else if (typeof customFields === 'string') {
+          cfValue = customFields.trim() === ''
+            ? '[]'                       // '' -> []
+            : customFields;              // assume string JSON válida
+        } else {
+          // objeto inesperado -> serializa (fallback seguro)
+          cfValue = JSON.stringify(customFields);
+        }
+
+        updateValues.push(cfValue);
+      }
+
+      // ✅ required_fields (array) — mesmo tratamento
+      if (requiredFields !== undefined) {
+        updateFields.push(`required_fields = $${paramCounter++}::jsonb`);
+
+        let rfValue: any;
+
+        if (requiredFields === null) {
+          rfValue = '[]';
+        } else if (Array.isArray(requiredFields)) {
+          rfValue = requiredFields.length === 0
+            ? '[]'
+            : JSON.stringify(requiredFields);
+        } else if (typeof requiredFields === 'string') {
+          rfValue = requiredFields.trim() === ''
+            ? '[]'
+            : requiredFields;
+        } else {
+          rfValue = JSON.stringify(requiredFields);
+        }
+
+        updateValues.push(rfValue);
+      }
+
 
       // Always update the updated_at timestamp
       updateFields.push(`updated_at = NOW()`);
@@ -561,14 +618,6 @@ export class TicketTemplateController {
       // --------- Valida enums básicos ----------
       const PRIORITIES = new Set(['low', 'medium', 'high', 'urgent']);
       const TEMPLATE_TYPES = new Set(['standard', 'quick', 'escalation', 'auto_response', 'workflow']);
-      if (templateType && !TEMPLATE_TYPES.has(String(templateType))) {
-        res.status(400).json({
-          success: false,
-          errors: ['templateType inválido: use standard | quick | escalation | auto_response | workflow']
-        });
-        return;
-      }
-
       // --------- Confere existência da tabela ----------
       const tableCheck = await pool.query(
         `SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = 'ticket_templates'`,
@@ -732,57 +781,6 @@ export class TicketTemplateController {
       });
     }
   };
-
-  /**
-   * Update ticket template
-   * PUT /ticket-templates/:id
-   */
-  updateTemplate = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
-      const userRole = req.user?.role;
-      const templateId = req.params.id;
-
-      if (!tenantId || !userId || !userRole) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication required'
-        });
-      }
-
-      const result = await this.updateTicketTemplateUseCase.execute({
-        tenantId,
-        templateId,
-        updates: req.body,
-        updatedBy: userId,
-        userRole,
-        versionInfo: req.body.versionInfo
-      });
-
-      if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          message: 'Update failed',
-          errors: result.errors
-        });
-      }
-
-      return res.json({
-        success: true,
-        message: 'Template updated successfully',
-        data: result.data
-      });
-
-    } catch (error) {
-      console.error('[TicketTemplateController] updateTemplate error:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Internal server error'
-      });
-    }
-  };
-
   /**
    * Get template categories
    * GET /ticket-templates/categories
