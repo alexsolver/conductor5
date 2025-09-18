@@ -1768,17 +1768,33 @@ const TicketsTable = React.memo(() => {
 
                 const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
                 console.log('🎯 Selected template:', selectedTemplate);
-                if (selectedTemplate?.fields) {
+                
+                // Check both fields and required_fields
+                const templateFields = selectedTemplate?.fields || selectedTemplate?.required_fields;
+                if (templateFields) {
                   try {
-                    const parsedFields = typeof selectedTemplate.fields === 'string'
-                      ? JSON.parse(selectedTemplate.fields)
-                      : selectedTemplate.fields;
+                    const parsedFields = typeof templateFields === 'string'
+                      ? JSON.parse(templateFields)
+                      : templateFields;
                     console.log('🎯 Parsed template fields:', parsedFields);
 
                     // Configure field visibility based on template with field mapping
-                    const templateFieldKeys = Object.keys(parsedFields);
+                    // Handle both object format and array format (required_fields)
+                    let templateFieldKeys: string[] = [];
+                    if (Array.isArray(parsedFields)) {
+                      // required_fields format: array of {fieldName, ...}
+                      templateFieldKeys = parsedFields.map((field: any) => field.fieldName || field.name);
+                    } else if (typeof parsedFields === 'object') {
+                      // fields format: object with keys
+                      templateFieldKeys = Object.keys(parsedFields);
+                    }
+                    
                     const fieldMapping: Record<string, string> = {
                       'assignedTo': 'assignedToId', // Handle naming differences
+                      'client': 'callerId', // Map client to caller
+                      'beneficiary': 'beneficiaryId', // Map beneficiary
+                      'company': 'companyId', // Map company
+                      'summary': 'subject', // Map summary to subject
                     };
                     
                     const newVisibleFields: Record<string, boolean> = {
@@ -1807,12 +1823,24 @@ const TicketsTable = React.memo(() => {
                     });
 
                     // Apply template values to form with defaults for required hidden fields
-                    Object.keys(parsedFields).forEach(fieldKey => {
-                      const mappedKey = fieldMapping[fieldKey] || fieldKey;
-                      if (mappedKey in ticketSchema.shape) { // Only set if field exists in schema
-                        form.setValue(mappedKey as any, parsedFields[fieldKey]);
-                      }
-                    });
+                    if (Array.isArray(parsedFields)) {
+                      // Handle required_fields format: array of field objects
+                      parsedFields.forEach((field: any) => {
+                        const fieldKey = field.fieldName || field.name;
+                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
+                        if (mappedKey in ticketSchema.shape && field.defaultValue) {
+                          form.setValue(mappedKey as any, field.defaultValue);
+                        }
+                      });
+                    } else if (typeof parsedFields === 'object') {
+                      // Handle fields format: object with keys and values
+                      Object.keys(parsedFields).forEach(fieldKey => {
+                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
+                        if (mappedKey in ticketSchema.shape) { // Only set if field exists in schema
+                          form.setValue(mappedKey as any, parsedFields[fieldKey]);
+                        }
+                      });
+                    }
 
                     // Set defaults for required fields that are hidden
                     if (!newVisibleFields.priority) {
