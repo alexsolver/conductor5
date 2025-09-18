@@ -1427,15 +1427,15 @@ const TicketsTable = React.memo(() => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
-  
+
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
     if (templatesData) return; // Already loaded
-    
+
     try {
       setTemplatesLoading(true);
       const response = await apiRequest('GET', '/api/ticket-templates');
-      
+
       if (response.ok) {
         const data = await response.json();
         setTemplatesData(data);
@@ -1636,7 +1636,7 @@ const TicketsTable = React.memo(() => {
   const renderTicketForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
+
         {/* ✅ 1QA.MD: Template Selection - Clean implementation */}
         <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Template Selection</h3>
@@ -1654,14 +1654,14 @@ const TicketsTable = React.memo(() => {
                 onValueChange={async (value) => {
                   const templateId = value === '__none__' ? undefined : value;
                   setSelectedTemplateId(templateId);
-                  
+
                   // ✅ 1QA.MD: Apply template fields when selected
                   if (templateId && templatesData?.data) {
                     const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
                     if (selectedTemplate?.fields) {
                       try {
                         const fields = JSON.parse(selectedTemplate.fields);
-                        
+
                         // Apply template fields to form
                         if (fields.subject) form.setValue('subject', fields.subject);
                         if (fields.description) form.setValue('description', fields.description);
@@ -1674,7 +1674,7 @@ const TicketsTable = React.memo(() => {
                         if (fields.workaround) form.setValue('workaround', fields.workaround);
                         if (fields.location) form.setValue('location', fields.location);
                         if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
-                        
+
                         toast({
                           title: "Template Applied",
                           description: `Template "${selectedTemplate.name}" fields have been populated.`,
@@ -1700,11 +1700,19 @@ const TicketsTable = React.memo(() => {
                 {templatesLoading ? (
                   <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
                 ) : (
-                  templatesData?.data?.map((template: any) => (
+                  templatesData?.data?.templates?.map((template: any) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
                     </SelectItem>
-                  ))
+                  )) || templatesData?.templates?.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  )) : null)
                 )}
               </SelectContent>
             </Select>
