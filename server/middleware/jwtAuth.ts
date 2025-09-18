@@ -19,6 +19,11 @@ export interface AuthenticatedRequest extends Request {
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // ✅ Skip auth for HEAD requests to root and health checks
+    if (req.method === 'HEAD' && (req.path === '/' || req.path === '/health')) {
+      return next();
+    }
+
     // ✅ CRITICAL FIX - Force API response headers per 1qa.md compliance
     if (req.path.includes('/api/')) {
       res.setHeader('Content-Type', 'application/json');
@@ -33,18 +38,24 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     
     const token = tokenFromCookie || tokenFromHeader;
     
-    console.log('🔍 [JWT-AUTH] Processing request:', {
-      method: req.method,
-      path: req.path,
-      hasTokenCookie: !!tokenFromCookie,
-      hasAuthHeader: !!authHeader,
-      tokenSource: tokenFromCookie ? 'cookie' : (tokenFromHeader ? 'header' : 'none'),
-      tokenStart: token?.substring(0, 20) || 'none',
-      tokenLength: token?.length || 0
-    });
+    // ✅ Only log for API routes to reduce noise
+    if (req.path.includes('/api/')) {
+      console.log('🔍 [JWT-AUTH] Processing request:', {
+        method: req.method,
+        path: req.path,
+        hasTokenCookie: !!tokenFromCookie,
+        hasAuthHeader: !!authHeader,
+        tokenSource: tokenFromCookie ? 'cookie' : (tokenFromHeader ? 'header' : 'none'),
+        tokenStart: token?.substring(0, 20) || 'none',
+        tokenLength: token?.length || 0
+      });
+    }
 
     if (!token) {
-      console.log('❌ [JWT-AUTH] No access token found in cookies or headers');
+      // ✅ Only log token missing errors for API routes
+      if (req.path.includes('/api/')) {
+        console.log('❌ [JWT-AUTH] No access token found in cookies or headers');
+      }
 
       // ✅ CRITICAL FIX - Ensure JSON response for API routes per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
