@@ -1,4 +1,4 @@
-import type { Express, Response } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
@@ -118,7 +118,7 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
 };
 
 // Get instance of poolManager
-import { schemaManager } from "./db";
+import { poolManager } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -4714,109 +4714,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/customers/:customerId/companies",
     jwtAuth,
-    enhancedTenantValidator,
     async (req: AuthenticatedRequest, res) => {
       try {
-        console.log('🔗 [CUSTOMER-COMPANY] Associating customer with company');
-
         const { customerId } = req.params;
-        const { companyId, role = 'member', isPrimary = false } = req.body;
+        const {
+          companyId,
+          relationshipType = "client",
+          isPrimary = false,
+        } = req.body;
         const tenantId = req.user?.tenantId;
-        const userId = req.user?.id;
 
         if (!tenantId) {
-          return res.status(401).json({
-            success: false,
-            message: 'Authentication required'
-          });
+          return res.status(401).json({ message: "Tenant required" });
         }
 
-        const { pool } = await import('./db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+        const schemaName = schemaManager.getSchemaName(tenantId);
 
-        // Verify customer exists
-        const customerCheck = await pool.query(
-          `SELECT id FROM "${schemaName}".customers WHERE id = $1 AND tenant_id = $2`,
-          [customerId, tenantId]
-        );
+        // Check if relationship already exists (including inactive ones)
+        const existing = await tenantDb.execute(sql`
+        SELECT id, is_active FROM ${sql.identifier(schemaName)}.companies_relationships
+        WHERE customer_id = ${customerId} AND company_id = ${companyId}
+      `);
 
-        if (customerCheck.rows.length === 0) {
-          return res.status(404).json({
-            success: false,
-            message: 'Customer not found'
-          });
+        if (existing.rows.length > 0) {
+          const existingRelation = existing.rows[0];
+
+          if (existingRelation.is_active) {
+            return res.status(400).json({
+              success: false,
+              message: "Cliente já está associado a esta empresa",
+            });
+          } else {
+            // Reactivate existing relationship
+            const reactivated = await tenantDb.execute(sql`
+            UPDATE ${sql.identifier(schemaName)}.companies_relationships
+            SET is_active = true, relationship_type = ${relationshipType},
+                is_primary = ${isPrimary}, start_date = CURRENT_DATE,
+                updated_at = CURRENT_TIMESTAMP, end_date = NULL
+            WHERE id = ${existingRelation.id}
+            RETURNING *
+          `);
+
+            return res.status(200).json({
+              success: true,
+              message: "Associação reativada com sucesso",
+              data: reactivated.rows[0],
+            });
+          }
         }
 
-        // Verify company exists
-        const companyCheck = await pool.query(
-          `SELECT id FROM "${schemaName}".companies WHERE id = $1 AND tenant_id = $2`,
-          [companyId, tenantId]
-        );
-
-        if (companyCheck.rows.length === 0) {
-          return res.status(404).json({
-            success: false,
-            message: 'Company not found'
-          });
-        }
-
-        // Check if relationship already exists
-        const existingRelationship = await pool.query(
-          `SELECT id FROM "${schemaName}".companies_relationships 
-           WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
-          [customerId, companyId, tenantId]
-        );
-
-        if (existingRelationship.rows.length > 0) {
-          return res.status(409).json({
-            success: false,
-            message: 'Customer is already associated with this company'
-          });
-        }
-
-        // If setting as primary, remove primary status from other relationships
-        if (isPrimary) {
-          await pool.query(
-            `UPDATE "${schemaName}".companies_relationships 
-             SET is_primary = false 
-             WHERE customer_id = $1 AND tenant_id = $2`,
-            [customerId, tenantId]
-          );
-        }
-
-        // Create new relationship
-        const relationshipId = crypto.randomUUID();
-        const now = new Date();
-
-        const result = await pool.query(
-          `INSERT INTO "${schemaName}"."companies_relationships"
-           (id, tenant_id, customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9)
-           RETURNING *`,
-          [
-            relationshipId,
-            tenantId,
-            customerId,
-            companyId,
-            role,
-            isPrimary,
-            now,
-            now,
-            userId
-          ]
-        );
+        // Create new customer-company relationship
+        const relationship = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships
+        (tenant_id, customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
+        VALUES (${tenantId},${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *
+      `);
 
         res.status(201).json({
           success: true,
-          message: 'Customer associated with company successfully',
-          data: result.rows[0]
+          message: "Cliente associado à empresa com sucesso",
+          data: relationship.rows[0],
         });
       } catch (error) {
-        console.error('❌ [CUSTOMER-COMPANY] Error associating customer:', error);
+        console.error("Error adding customer to company:", error);
         res.status(500).json({
           success: false,
-          message: 'Error associating customer with company',
-          error: error instanceof Error ? error.message : 'Unknown error'
+          message: "Erro ao associar cliente à empresa",
         });
       }
     },
