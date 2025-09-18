@@ -164,7 +164,6 @@ export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
   
   return async (req: Request, res: Response, next: NextFunction) => {
     // 🔧 [1QA-COMPLIANCE] DEVELOPMENT MODE: Rate limiting completely bypassed
-    console.log('🚀 [MEMORY-RATE-LIMIT] Development mode - all requests allowed');
     
     // Set permissive headers for development
     res.set({
@@ -229,7 +228,6 @@ export function createSlidingWindowRateLimitMiddleware(config: RateLimitConfig) 
   
   return async (req: Request, res: Response, next: NextFunction) => {
     // 🔧 [1QA-COMPLIANCE] DEVELOPMENT MODE: Sliding window rate limiting completely bypassed
-    console.log('🚀 [SLIDING-WINDOW-RATE-LIMIT] Development mode - all requests allowed');
     
     // Set permissive headers for development
     res.set({

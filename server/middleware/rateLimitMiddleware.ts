@@ -14,7 +14,6 @@ const memoryStore = new Map<string, { count: number; resetTime: number; blockedU
 export function createRateLimitMiddleware(config: RateLimitConfig) {
   return (req: Request, res: Response, next: NextFunction) => {
     // ✅ 1QA.MD: Development mode - rate limiting bypassed for development
-    console.log('🚀 [RATE-LIMIT] Development mode - all requests allowed');
     
     // Set permissive headers for development
     res.set({
@@ -30,7 +29,6 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 
 export function recordLoginAttempt(req: Request, res: Response, next: NextFunction) {
   // ✅ 1QA.MD: Development mode - login attempt recording bypassed
-  console.log('🚀 [LOGIN-ATTEMPT] Development mode - recording bypassed');
   next();
 }
 
