@@ -525,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // ✅ 1QA.MD: Mount at correct path per specification with auth
     // TEMPORARILY DISABLED - Using emergency endpoint instead
-    // app.use("/api/ticket-templates", authMiddleware, tenantValidationMiddleware, ticketTemplateRoutes.default);
+    app.use("/api/ticket-templates", jwtAuth, ticketTemplateRoutes.default);
 
     console.log(
       "✅ [TICKET-TEMPLATES-MODULE] Routes mounted successfully at /api/ticket-templates",
@@ -6243,52 +6243,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
 
     // 🚨 ADD MISSING POST ENDPOINT for template creation
-    app.post(
+    // POST /api/ticket-templates - Criar template
+    router.post(
       "/api/ticket-templates",
       jwtAuth,
       enhancedTenantValidator,
       tenantSchemaEnforcer,
-      async (req: any, res) => {
-        console.log(
-          "🎯 [EMERGENCY-ENDPOINT] POST /api/ticket-templates called",
-        );
-        console.log("🎯 [EMERGENCY-ENDPOINT] Request body:", req.body);
-        console.log("🎯 [EMERGENCY-ENDPOINT] User info:", (req as any).user);
-        console.log(
-          "🎯 [EMERGENCY-ENDPOINT] Controller instance:",
-          ticketTemplateController ? "EXISTS" : "MISSING",
-        );
-        console.log(
-          "🎯 [EMERGENCY-ENDPOINT] CreateTemplate method:",
-          typeof ticketTemplateController?.createTemplate,
-        );
+      async (req: Request, res: Response) => {
+        console.log("🎯 [ROUTES] POST /api/ticket-templates called");
+        console.log("📦 Body:", req.body);
+        console.log("👤 User:", (req as any).user);
 
         try {
-          console.log(
-            "🔥 [EMERGENCY-ENDPOINT] About to call controller.createTemplate...",
-          );
-          await ticketTemplateController.createTemplate(req, res);
-          console.log(
-            "🎯 [EMERGENCY-ENDPOINT] POST Controller execution completed",
-          );
-        } catch (error) {
-          console.error(
-            "❌ [EMERGENCY-ENDPOINT] POST Controller error:",
-            error,
-          );
-          console.error(
-            "❌ [EMERGENCY-ENDPOINT] POST Error stack:",
-            error?.stack,
-          );
+          const result = await ticketTemplateController.createTemplate(req as any, res);
+
+          // fallback: caso o controller não tenha enviado resposta
           if (!res.headersSent) {
-            res.status(500).json({
+            return res.status(201).json({
+              success: true,
+              message: "Template created successfully",
+              data: result,
+            });
+          }
+        } catch (error: any) {
+          console.error("❌ [ROUTES] Error in POST /api/ticket-templates:", error);
+
+          if (!res.headersSent) {
+            return res.status(500).json({
               success: false,
-              error: error?.message || "Unknown error",
+              message: "Internal server error",
+              errors: [error?.message || "Unknown error"],
             });
           }
         }
-      },
+      }
     );
+
 
     // 🚨 ADD MISSING DELETE ENDPOINT for template deletion
     app.delete(

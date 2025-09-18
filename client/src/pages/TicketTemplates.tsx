@@ -277,58 +277,56 @@ export default function TicketTemplates() {
   });
 
   // ✅ 1QA.MD: Mutation para criar template
+  // ✅ Mutation para criar template — payload alinhado ao controller
   const createTemplateMutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      console.log('🚀 [CREATE-TEMPLATE] Creating template:', {
-        name: data.name,
-        templateType: data.templateType,
-        companyId: data.companyId
-      });
+      // requiredFields: garante os fixos quando for 'creation'
+      const requiredFieldsPayload =
+        data.templateType === 'creation'
+          ? (Array.isArray(data.requiredFields) && data.requiredFields.length > 0
+              ? data.requiredFields
+              : getDefaultRequiredFields())
+          : [];
+
+      // customFields: usa os selecionados da listagem (ou editor, se quiser manter)
+      const customFieldsPayload = mapSelectedCustomFields();
 
       const payload = {
-        ...data,
-        // ✅ Garantir que templates de criação tenham campos obrigatórios
-        requiredFields: data.templateType === 'creation' 
-          ? (data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields())
-          : [],
-        customFields: templateCustomFields, // Adiciona os campos customizados aqui
+        // ⬇️ o controller espera camelCase no body (ele converte para colunas internamente)
+        name: data.name,
+        description: data.description || null,
+        category: data.category,
+        subcategory: data.subcategory || null,
+        companyId: data.companyId || null,
+        priority: data.priority,
+        templateType: data.templateType,
+        status: data.status || 'draft',
+        isDefault: !!data.isDefault,
+        isSystem: !!data.isSystem,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        // ✅ enviado separado (sem "fields")
+        requiredFields: requiredFieldsPayload,
+        customFields: customFieldsPayload,
+        // opcionais — backend trata defaults
+        automation: (data as any)?.automation ?? {},
+        workflow: (data as any)?.workflow ?? {},
+        permissions: (data as any)?.permissions ?? [],
       };
 
       console.log('📤 [CREATE-TEMPLATE] Payload:', payload);
       return await apiRequest('POST', '/api/ticket-templates', payload);
     },
     onSuccess: () => {
-      toast({
-        title: 'Sucesso',
-        description: 'Template criado com sucesso!',
-      });
+      toast({ title: 'Sucesso', description: 'Template criado com sucesso!' });
       setIsCreateOpen(false);
       form.reset();
-      setTemplateCustomFields([]); // Limpa os campos customizados após a criação
-      setSelectedCustomFieldIds([]); // Limpa os IDs selecionados
+      setSelectedCustomFieldIds([]);
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
-      console.error('❌ [CREATE-TEMPLATE] Error:', error);
-      console.error('❌ [CREATE-TEMPLATE] Error type:', typeof error);
-      console.error('❌ [CREATE-TEMPLATE] Error constructor:', error?.constructor?.name);
-      console.error('❌ [CREATE-TEMPLATE] Error keys:', Object.keys(error || {}));
-      console.error('❌ [CREATE-TEMPLATE] Error message:', error?.message);
-      console.error('❌ [CREATE-TEMPLATE] Error stack:', error?.stack);
-
-      // ✅ 1QA.MD: Error handling melhorado
-      let errorMessage = 'Erro ao criar template';
-      if (error?.message && error.message.trim() !== '') {
-        errorMessage = error.message;
-      } else if (typeof error === 'string' && error.trim() !== '') {
-        errorMessage = error;
-      } else if (error?.error && error.error.trim() !== '') {
-        errorMessage = error.error;
-      }
-
       toast({
         title: 'Erro',
-        description: errorMessage,
+        description: error?.message || 'Erro ao criar template',
         variant: 'destructive',
       });
     },
@@ -356,32 +354,54 @@ export default function TicketTemplates() {
   });
 
   // ✅ 1QA.MD: Mutation para atualizar template
+  // ✅ Mutation para atualizar template — mesmo formato do create
   const updateTemplateMutation = useMutation({
     mutationFn: async ({ templateId, data }: { templateId: string; data: TemplateFormData }) => {
-      console.log('🚀 [UPDATE-TEMPLATE] Updating template:', { templateId, data });
+      const requiredFieldsPayload =
+        data.templateType === 'creation'
+          ? (Array.isArray(data.requiredFields) && data.requiredFields.length > 0
+              ? data.requiredFields
+              : getDefaultRequiredFields())
+          : [];
+
+      // Se você edita no CustomFieldsEditor, priorize o estado dele; senão use os selecionados
+      const customFieldsPayload =
+        Array.isArray(templateCustomFields) && templateCustomFields.length > 0
+          ? templateCustomFields
+          : mapSelectedCustomFields();
+
       const payload = {
-        ...data,
-        requiredFields: data.templateType === 'creation'
-          ? (data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields())
-          : [],
-        customFields: templateCustomFields, // Adiciona os campos customizados aqui
+        name: data.name,
+        description: data.description || null,
+        category: data.category,
+        subcategory: data.subcategory || null,
+        companyId: data.companyId || null,
+        priority: data.priority,
+        templateType: data.templateType,
+        status: data.status || 'draft',
+        isDefault: !!data.isDefault,
+        isSystem: !!data.isSystem,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        requiredFields: requiredFieldsPayload,
+        customFields: customFieldsPayload,
+        automation: (data as any)?.automation ?? {},
+        workflow: (data as any)?.workflow ?? {},
+        permissions: (data as any)?.permissions ?? [],
       };
+
+      console.log('📤 [UPDATE-TEMPLATE] Payload:', payload);
       return await apiRequest('PUT', `/api/ticket-templates/${templateId}`, payload);
     },
     onSuccess: () => {
-      toast({
-        title: 'Sucesso',
-        description: 'Template atualizado com sucesso!',
-      });
+      toast({ title: 'Sucesso', description: 'Template atualizado com sucesso!' });
       setIsEditOpen(false);
-      setTemplateCustomFields([]); // Limpa os campos customizados após a atualização
-      setSelectedCustomFieldIds([]); // Limpa os IDs selecionados
+      setSelectedCustomFieldIds([]);
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao atualizar template',
+        description: error?.message || 'Erro ao atualizar template',
         variant: 'destructive',
       });
     },
@@ -418,10 +438,10 @@ export default function TicketTemplates() {
     }
 
     // Adiciona os campos customizados selecionados ao form data
-    const finalCustomFields = availableCustomFields.filter(field => selectedCustomFieldIds.includes(field.id));
-    data.customFields = finalCustomFields;
+    // const finalCustomFields = availableCustomFields.filter(field => selectedCustomFieldIds.includes(field.id));
+    // data.customFields = finalCustomFields;
 
-    console.log('🎯 [HANDLE-CREATE] Validations passed, calling mutation...');
+    // console.log('🎯 [HANDLE-CREATE] Validations passed, calling mutation...');
     createTemplateMutation.mutate(data);
   };
 
@@ -492,18 +512,33 @@ export default function TicketTemplates() {
 
   // ✅ 1QA.MD: Buscar campos customizados do módulo /custom-fields-admin
   const { data: availableCustomFieldsResponse } = useQuery({
-    queryKey: ['/api/custom-fields/fields/ticket'],
+    queryKey: ['/api/custom-fields/fields/tickets'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('GET', '/api/custom-fields/fields/ticket');
-        // Retorna um objeto com sucesso e os dados para facilitar o acesso
-        return { success: true, data: response }; 
+        const response = await apiRequest('GET', '/api/custom-fields/fields/tickets');
+        return { success: true, data: response.data }; // 👈 pega só o array
       } catch (error) {
-        console.error('Erro ao buscar campos customizados:', error);
         return { success: false, data: [] };
       }
     }
   });
+
+  // ✅ Converte os campos da API para o formato do template
+  const mapSelectedCustomFields = React.useCallback(() => {
+    return availableCustomFields
+      .filter((f: any) => selectedCustomFieldIds.includes(f.id))
+      .map((f: any) => ({
+        id: f.id,
+        name: f.fieldName,
+        label: f.fieldLabel,
+        type: f.fieldType,
+        required: !!f.isRequired,
+        order: typeof f.displayOrder === 'number' ? f.displayOrder : 0,
+        placeholder: f.placeholder || undefined,
+        helpText: f.helpText || undefined,
+      }));
+  }, [availableCustomFields, selectedCustomFieldIds]);
+
 
   // Set available custom fields for the component
   React.useEffect(() => {
@@ -688,7 +723,6 @@ export default function TicketTemplates() {
 
                       <div className="flex items-center justify-between text-sm text-gray-600">
                         <span>Prioridade: {template.priority}</span>
-                        <span>Uso: {template.usageCount || 0}x</span>
                       </div>
 
                       {/* Required Fields (for creation templates) */}
@@ -1073,7 +1107,9 @@ export default function TicketTemplates() {
                             </div>
 
                             <div>
-                              <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
+                              <h5 className="text-sm font-medium text-orange-800 mb-2">
+                                Campos Customizados (gerenciados em /custom-fields-admin)
+                              </h5>
                               <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
                                 {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
                                   <div className="space-y-2">
@@ -1094,7 +1130,7 @@ export default function TicketTemplates() {
                                           htmlFor={`custom-field-${field.id}`}
                                           className="text-sm font-medium cursor-pointer"
                                         >
-                                          {field.label}
+                                          {field.fieldLabel}
                                         </Label>
                                         <Badge variant="outline" className="text-xs">
                                           {field.fieldType}
@@ -1114,6 +1150,7 @@ export default function TicketTemplates() {
                                 </p>
                               )}
                             </div>
+
                           </div>
                         </div>
                       </div>
@@ -1123,33 +1160,6 @@ export default function TicketTemplates() {
               )}
 
               {/* ✅ 1QA.MD: Seção de Campos Customizados */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Campos Customizados</Label>
-                  <Badge variant="outline" className="text-xs">
-                    {templateCustomFields.length} campos
-                  </Badge>
-                </div>
-
-                <CustomFieldsEditor
-                  fields={templateCustomFields}
-                  onChange={setTemplateCustomFields}
-                  readOnly={false}
-                />
-
-                {availableCustomFields.length > 0 && (
-                  <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <Label className="text-sm font-medium mb-2 block">
-                      Campos Disponíveis no Sistema
-                    </Label>
-                    <DynamicCustomFields
-                      moduleType="tickets"
-                      readOnly={true}
-                      className="space-y-2"
-                    />
-                  </div>
-                )}
-              </div>
 
               {/* Actions */}
               <div className="flex justify-end gap-2">
@@ -1450,45 +1460,51 @@ export default function TicketTemplates() {
 
                             <div>
                               <h5 className="text-sm font-medium text-orange-800 mb-2">Campos Customizados (gerenciados em /custom-fields-admin)</h5>
-                              <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
-                                {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
-                                  <div className="space-y-2">
-                                    {availableCustomFieldsResponse.data.map((field: any) => (
-                                      <div key={field.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`custom-field-${field.id}`}
-                                          checked={selectedCustomFieldIds.includes(field.id)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
-                                            } else {
-                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                            }
-                                          }}
-                                        />
-                                        <Label 
-                                          htmlFor={`custom-field-${field.id}`}
-                                          className="text-sm font-medium cursor-pointer"
-                                        >
-                                          {field.label}
-                                        </Label>
-                                        <Badge variant="outline" className="text-xs">
-                                          {field.fieldType}
-                                        </Badge>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">
-                                    Nenhum campo customizado disponível
+                              <div>
+                                <h5 className="text-sm font-medium text-orange-800 mb-2">
+                                  Campos Customizados (gerenciados em /custom-fields-admin)
+                                </h5>
+                                <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
+                                  {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {availableCustomFieldsResponse.data.map((field: any) => (
+                                        <div key={field.id} className="flex items-center space-x-2">
+                                          <Checkbox
+                                            id={`custom-field-${field.id}`}
+                                            checked={selectedCustomFieldIds.includes(field.id)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                              } else {
+                                                setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                              }
+                                            }}
+                                          />
+                                          <Label 
+                                            htmlFor={`custom-field-${field.id}`}
+                                            className="text-sm font-medium cursor-pointer"
+                                          >
+                                            {field.fieldLabel}
+                                          </Label>
+                                          <Badge variant="outline" className="text-xs">
+                                            {field.fieldType}
+                                          </Badge>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                      Nenhum campo customizado disponível
+                                    </p>
+                                  )}
+                                </div>
+                                {selectedCustomFieldIds.length > 0 && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {selectedCustomFieldIds.length} campo(s) selecionado(s)
                                   </p>
                                 )}
                               </div>
-                              {selectedCustomFieldIds.length > 0 && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {selectedCustomFieldIds.length} campo(s) selecionado(s)
-                                </p>
-                              )}
+
                             </div>
                           </div>
                         </div>
@@ -1506,12 +1522,6 @@ export default function TicketTemplates() {
                     {templateCustomFields.length} campos
                   </Badge>
                 </div>
-
-                <CustomFieldsEditor
-                  fields={templateCustomFields}
-                  onChange={setTemplateCustomFields}
-                  readOnly={false}
-                />
 
                 {availableCustomFields.length > 0 && (
                   <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">

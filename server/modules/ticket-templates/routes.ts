@@ -48,7 +48,7 @@ router.post('/', async (req: Request, res: Response) => {
   console.log('🎯 [ROUTES] POST / called - Creating template');
   console.log('🎯 [ROUTES] Request body:', req.body);
   try {
-    await ticketTemplateController.createTemplate(req as any, res);
+    return await ticketTemplateController.createTemplate(req as any, res);
   } catch (error) {
     console.error('❌ [ROUTES] Error in POST /', error);
     res.status(500).json({

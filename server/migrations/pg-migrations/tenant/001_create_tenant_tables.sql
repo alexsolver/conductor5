@@ -217,7 +217,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     is_active BOOLEAN DEFAULT true
 );
 
-
 CREATE TABLE IF NOT EXISTS ticket_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id TEXT NOT NULL,
@@ -228,15 +227,25 @@ CREATE TABLE IF NOT EXISTS ticket_templates (
     company_id UUID,
     department_id UUID,
     priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
-    template_type TEXT NOT NULL CHECK (template_type IN ('standard', 'quick', 'escalation', 'auto_response', 'workflow')),
-    fields JSONB NOT NULL,
-    automation JSONB,
-    workflow JSONB,
+    template_type TEXT NOT NULL CHECK (template_type IN ('creation', 'edit')),
+
+    -- colunas novas no lugar de "fields"
+    required_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
+    custom_fields   JSONB NOT NULL DEFAULT '[]'::jsonb,
+    fields JSONB,
+
+    automation JSONB DEFAULT '{}'::jsonb,
+    workflow JSONB DEFAULT '{}'::jsonb,
     tags TEXT[],
     is_default BOOLEAN DEFAULT FALSE,
-    permissions JSONB,
-    created_by UUID NOT NULL,
-    user_role TEXT NOT NULL,
+    is_system  BOOLEAN DEFAULT FALSE,
+    status TEXT DEFAULT 'draft',
+    permissions JSONB DEFAULT '[]'::jsonb,
+
+    created_by UUID,
+    updated_by UUID,
+    user_role UUID,
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

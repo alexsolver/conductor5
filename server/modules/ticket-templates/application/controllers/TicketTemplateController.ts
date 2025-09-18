@@ -621,11 +621,7 @@ export class TicketTemplateController {
       const countSql = `SELECT COUNT(*)::int AS total FROM "${schemaName}".ticket_templates ${whereSql};`;
       const dataSql = `
         SELECT
-          id, tenant_id, name, description, category, subcategory,
-          company_id, priority, template_type,
-          required_fields, custom_fields, automation, workflow, tags, is_default,
-          permissions, created_by, created_at, updated_at, status,
-          is_system, usage_count, last_used
+          *, 0 as usage_count
         FROM "${schemaName}".ticket_templates
         ${whereSql}
         ORDER BY created_at DESC
