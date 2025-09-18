@@ -1796,36 +1796,82 @@ const TicketsTable = React.memo(() => {
           </Select>
         </div>
 
-        {/* Cliente Selection - moved to position 3 */}
+        {/* Cliente and Beneficiary Selection - moved to position 3 */}
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="callerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">Cliente *</FormLabel>
+                  <FormControl>
+                    <FilteredCustomerSelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      selectedCompanyId={selectedCompanyId}
+                      placeholder="Buscar cliente..."
+                      disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
+                    />
+                  </FormControl>
+                  <div className="text-xs text-red-500 mt-1">
+                    {!selectedCompanyId || selectedCompanyId === 'unspecified' ?
+                      '' :
+                      ''
+                    }
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="beneficiaryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Favorecido (Beneficiary)</FormLabel>
+                  <FormControl>
+                    <PersonSelector
+                      value={field.value || ""}
+                      onValueChange={(personId, personType) => {
+                        field.onChange(personId);
+                        form.setValue('beneficiaryType', personType);
+                      }}
+                      placeholder="Buscar favorecido (opcional)..."
+                      allowedTypes={['user', 'customer']}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Status - added before ticket title */}
         <div className="mb-4">
           <FormField
             control={form.control}
-            name="callerId"
+            name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Cliente *</FormLabel>
+                <FormLabel>Status</FormLabel>
                 <FormControl>
-                  <FilteredCustomerSelect
+                  <DynamicSelect
+                    fieldName="status"
                     value={field.value}
-                    onChange={field.onChange}
-                    selectedCompanyId={selectedCompanyId}
-                    placeholder="Buscar cliente..."
-                    disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
+                    onValueChange={field.onChange}
+                    placeholder="Selecione o status"
                   />
                 </FormControl>
-                <div className="text-xs text-red-500 mt-1">
-                  {!selectedCompanyId || selectedCompanyId === 'unspecified' ?
-                    '' :
-                    ''
-                  }
-                </div>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        {/* Título do ticket - moved to position 4 */}
+        {/* Título do ticket - moved to position 5 */}
         <div className="mb-4">
           <FormField
             control={form.control}
@@ -1842,7 +1888,7 @@ const TicketsTable = React.memo(() => {
           />
         </div>
 
-        {/* Descrição - moved to position 5 */}
+        {/* Descrição - moved to position 6 */}
         <div className="mb-4">
           <FormField
             control={form.control}
@@ -1862,6 +1908,9 @@ const TicketsTable = React.memo(() => {
             )}
           />
         </div>
+
+        {/* Visual separator after description */}
+        <div className="border-t border-gray-200 my-6"></div>
 
 
         {/* Basic Information */}
