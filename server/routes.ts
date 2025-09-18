@@ -6033,7 +6033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               `🧪 [SAAS-ADMIN-TEST] API key length: ${config.apiKey?.length || 0}`,
             );
             console.log(
-              `🧪 [SAAS-ADMIN-TEST] API key startswith: "undefined..."`,
+              `🧪 [SAAS-ADMIN-TEST] API key starts with: ${config.apiKey?.substring(0, 7) || "undefined"}...`,
             );
 
             const response = await fetch(`${baseUrl}/models`, {
