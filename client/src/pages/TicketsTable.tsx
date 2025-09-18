@@ -1744,27 +1744,36 @@ const TicketsTable = React.memo(() => {
           </Label>
           <Select
             onValueChange={(templateId) => {
+              console.log('🎯 Template selection changed:', { templateId, templatesData });
               setSelectedTemplateId(templateId);
 
               // ✅ 1QA.MD: Apply template fields when selected
               if (templateId && templateId !== '__none__' && templatesData?.data) {
+                console.log('🎯 Setting template as selected');
                 setTemplateSelected(true);
                 
                 let templatesArray = null;
                 if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
                   templatesArray = templatesData.data.templates;
+                  console.log('🎯 Using templatesData.data.templates:', templatesArray);
                 } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
                   templatesArray = templatesData.templates;
+                  console.log('🎯 Using templatesData.templates:', templatesArray);
                 } else if (Array.isArray(templatesData.data)) {
                   templatesArray = templatesData.data;
+                  console.log('🎯 Using templatesData.data as array:', templatesArray);
+                } else {
+                  console.log('🎯 Templates structure unknown:', templatesData);
                 }
 
                 const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
+                console.log('🎯 Selected template:', selectedTemplate);
                 if (selectedTemplate?.fields) {
                   try {
                     const parsedFields = typeof selectedTemplate.fields === 'string'
                       ? JSON.parse(selectedTemplate.fields)
                       : selectedTemplate.fields;
+                    console.log('🎯 Parsed template fields:', parsedFields);
 
                     // Configure field visibility based on template with field mapping
                     const templateFieldKeys = Object.keys(parsedFields);
@@ -1786,6 +1795,8 @@ const TicketsTable = React.memo(() => {
                       symptoms: templateFieldKeys.includes('symptoms'),
                       workaround: templateFieldKeys.includes('workaround')
                     };
+                    console.log('🎯 Template field keys:', templateFieldKeys);
+                    console.log('🎯 New visible fields:', newVisibleFields);
                     setVisibleFields(newVisibleFields);
 
                     // Clear all fields first, then apply template values
@@ -1825,6 +1836,7 @@ const TicketsTable = React.memo(() => {
                 }
               } else {
                 // Reset to hide all fields when no template selected
+                console.log('🎯 No template selected, hiding all fields');
                 setTemplateSelected(false);
                 setVisibleFields({
                   category: false,
@@ -1996,9 +2008,17 @@ const TicketsTable = React.memo(() => {
 
         {/* Show message to select template if none is selected */}
         {!templateSelected && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500" data-testid="template-selection-message">
             <p className="text-lg font-medium mb-2">Selecione um template</p>
             <p className="text-sm">Escolha um template acima para configurar os campos específicos do ticket</p>
+          </div>
+        )}
+
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
+            <p>Debug: templateSelected = {templateSelected.toString()}</p>
+            <p>Debug: visibleFields = {JSON.stringify(visibleFields)}</p>
           </div>
         )}
 
