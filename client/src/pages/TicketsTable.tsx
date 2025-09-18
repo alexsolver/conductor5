@@ -33,6 +33,7 @@ import { LoadingStateProvider } from "@/components/LoadingStateManager";
 import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTable";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
+import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -1459,35 +1460,39 @@ const TicketsTable = React.memo(() => {
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
-      description: "",
-      category: "",
-      subcategory: "",
-      priority: "medium",
-      impact: "medium",
-      urgency: "medium",
-      state: "new",
-      companyId: "",
-      callerId: "",
-      callerType: "customer",
-      beneficiaryId: "",
-      beneficiaryType: "customer",
-
-      assignedToId: "unassigned",
-      assignmentGroup: "",
-      location: "",
-      contactType: "email",
-      businessImpact: "",
-      symptoms: "",
-      workaround: "",
-      subject: "",
-      status: "open",
+      description: '',
+      category: '',
+      subcategory: '',
+      priority: 'medium',
+      impact: 'medium',
+      urgency: 'medium',
+      state: 'new',
+      companyId: '',
+      callerId: '',
+      callerType: 'customer',
+      beneficiaryId: '',
+      beneficiaryType: 'customer',
+      assignedToId: '',
+      assignmentGroup: '',
+      location: '',
+      contactType: '',
+      businessImpact: '',
+      symptoms: '',
+      workaround: '',
+      subject: '',
+      status: 'open',
       tags: [],
     },
   });
 
-  // Remove synchronization logic - no longer needed
+  // Handle customer selection changes
+  const handleCustomerChange = (customerId: string) => {
+    form.setValue('callerId', customerId);
+    // Reset beneficiary when caller changes
+    form.setValue('beneficiaryId', '');
+  };
 
-  // Mutação para criar ticket
+  // Mutations for ticket creation
   const createTicketMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log('🚀 Starting ticket creation with data:', data);
@@ -1650,7 +1655,7 @@ const TicketsTable = React.memo(() => {
                 <span>Loading templates...</span>
               </div>
             ) : (
-              <Select 
+              <Select
                 onValueChange={async (value) => {
                   const templateId = value === '__none__' ? undefined : value;
                   setSelectedTemplateId(templateId);
@@ -1845,36 +1850,25 @@ const TicketsTable = React.memo(() => {
           <h3 className="text-lg font-medium">Assignment</h3>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="callerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente (Caller) *</FormLabel>
-                  <FormControl>
-                    <PersonSelector
-                      value={field.value}
-                      onValueChange={(personId, personType) => {
-                        field.onChange(personId);
-                        form.setValue('callerType', personType);
-                        // Auto-set legacy customer field if caller is customer
-                        if (personType === 'customer') {
-                          form.setValue('companyId', personId);
-                        }
-                        // Auto-set beneficiary to caller if not already set
-                        if (!form.getValues('beneficiaryId')) {
-                          form.setValue('beneficiaryId', personId);
-                          form.setValue('beneficiaryType', personType);
-                        }
-                      }}
-                      placeholder="Buscar cliente..."
-                      allowedTypes={['user', 'customer']}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Cliente (Customer/Caller) */}
+                  <FormField
+                    control={form.control}
+                    name="callerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Cliente (Caller) *</FormLabel>
+                        <FilteredCustomerSelect
+                          value={field.value}
+                          onChange={handleCustomerChange}
+                          selectedCompanyId={form.getValues('companyId')}
+                          placeholder="Buscar cliente..."
+                          disabled={!form.getValues('companyId')}
+                          className="h-10"
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
             <FormField
               control={form.control}
