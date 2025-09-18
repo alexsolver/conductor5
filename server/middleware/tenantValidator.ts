@@ -29,9 +29,6 @@ interface AuthenticatedRequest extends Request {
 export function enhancedTenantValidator() {
   return async (req: TenantValidatedRequest, res: Response, next: NextFunction) => {
     try {
-      // Debug log to check path
-      console.log(`[TENANT-VALIDATOR] Processing path: ${req.path}, method: ${req.method}`);
-      
       // Skip tenant validation for auth routes
       if (req.path.startsWith('/auth/')) {
         console.log(`[TENANT-VALIDATOR] Skipping validation for auth route: ${req.path}`);
