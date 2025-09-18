@@ -38,12 +38,7 @@ export function enhancedTenantValidator() {
       const user = (req as any).user;
 
       if (!user || !user.tenantId) {
-        logger.warn('Request without valid tenant context', {
-          path: req.path,
-          method: req.method,
-          userAgent: req.get('User-Agent'),
-          ip: req.ip
-        });
+        
         return res.status(401).json({
           success: false,
           message: 'Tenant context required'
