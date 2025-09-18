@@ -288,7 +288,6 @@ export default function Tickets() {
       businessImpact: "",
       workaround: "",
       location: "",
-      templateId: "" // Adicionado para o campo de template
     },
   });
 
@@ -561,147 +560,104 @@ export default function Tickets() {
                 <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* 1 - Empresa */}
-                  <FormField
-                    control={form.control}
-                    name="companyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('common.company')} *</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            setSelectedCompanyId(value);
-                            // Reset customer when company changes
-                            form.setValue("customerId", "");
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('common.selectCompany')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {companies.map((company) => (
-                              <SelectItem key={company.id} value={company.id}>
-                                {company.name || company.displayName || `Company ${company.id}`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Template Selection (segundo campo) */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t('tickets.forms.create.template')}</label>
+                      <Select 
+                        onValueChange={async (value) => {
+                          const templateId = value === '__none__' ? undefined : value;
+                          setSelectedTemplateId(templateId);
 
-                  {/* 2 - Template */}
-                  <FormField
-                    control={form.control}
-                    name="templateId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Template (opcional)</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            setSelectedTemplateId(value);
-                            // ✅ 1QA.MD: AplicAR campos do template quando selecionado
-                            if (value && templatesData?.data) {
-                              const selectedTemplate = templatesData.data.find((t: any) => t.id === value);
-                              if (selectedTemplate?.fields) {
-                                try {
-                                  const fields = JSON.parse(selectedTemplate.fields);
-                                  console.log('🔄 [TEMPLATE-INTEGRATION] AplicANDO campos do template:', fields);
+                          // ✅ 1QA.MD: AplicAR campos do template quando selecionado
+                          if (templateId && templatesData?.data) {
+                            const selectedTemplate = templatesData.data.find((t: any) => t.id === templateId);
+                            if (selectedTemplate?.fields) {
+                              try {
+                                const fields = JSON.parse(selectedTemplate.fields);
+                                console.log('🔄 [TEMPLATE-INTEGRATION] AplicANDO campos do template:', fields);
 
-                                  // AplicAR CAMPOS DO TEMPLATE AO FORMULÁRIO
-                                  if (fields.subject) form.setValue('subject', fields.subject);
-                                  if (fields.description) form.setValue('description', fields.description);
-                                  if (fields.category) form.setValue('category', fields.category);
-                                  if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
-                                  if (fields.action) form.setValue('action', fields.action);
-                                  if (fields.priority) form.setValue('priority', fields.priority);
-                                  if (fields.urgency) form.setValue('urgency', fields.urgency);
-                                  if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
-                                  if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
-                                  if (fields.workaround) form.setValue('workaround', fields.workaround);
-                                  if (fields.location) form.setValue('location', fields.location);
-                                  if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
-                                  // Se o template tiver um customerId associado, preencher também
-                                  if (fields.customerId) {
-                                    form.setValue('customerId', fields.customerId);
-                                    // Pode ser necessário atualizar filteredCustomers ou setSelectedCompanyId dependendo da lógica
-                                  }
+                                // AplicAR CAMPOS DO TEMPLATE AO FORMULÁRIO
+                                if (fields.subject) form.setValue('subject', fields.subject);
+                                if (fields.description) form.setValue('description', fields.description);
+                                if (fields.category) form.setValue('category', fields.category);
+                                if (fields.subcategory) form.setValue('subcategory', fields.subcategory);
+                                if (fields.action) form.setValue('action', fields.action);
+                                if (fields.priority) form.setValue('priority', fields.priority);
+                                if (fields.urgency) form.setValue('urgency', fields.urgency);
+                                if (fields.symptoms) form.setValue('symptoms', fields.symptoms);
+                                if (fields.businessImpact) form.setValue('businessImpact', fields.businessImpact);
+                                if (fields.workaround) form.setValue('workaround', fields.workaround);
+                                if (fields.location) form.setValue('location', fields.location);
+                                if (fields.assignmentGroup) form.setValue('assignmentGroup', fields.assignmentGroup);
 
-                                  toast({
-                                    title: "Template aplicado",
-                                    description: `Campos do template "${selectedTemplate.name}" foram preenchidos automaticamente.`,
-                                    variant: "default"
-                                  });
-                                } catch (e) {
-                                  console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', e);
-                                  toast({
-                                    title: "Erro ao aplicar template",
-                                    description: "Não foi possível aplicar os campos do template.",
-                                    variant: "destructive"
-                                  });
-                                }
+                                toast({
+                                  title: "Template aplicado",
+                                  description: `Campos do template "${selectedTemplate.name}" foram preenchidos automaticamente.`,
+                                  variant: "default"
+                                });
+                              } catch (e) {
+                                console.error('❌ [TEMPLATE-INTEGRATION] Erro ao aplicar template:', e);
+                                toast({
+                                  title: "Erro ao aplicar template",
+                                  description: "Não foi possível aplicar os campos do template.",
+                                  variant: "destructive"
+                                });
                               }
                             }
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sem template" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">Sem template</SelectItem>
-                            {templatesLoading ? (
-                              <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
-                            ) : Array.isArray(templatesData?.data) && templatesData.data.length > 0 ? (
-                              templatesData.data
-                                .filter((template: any) => template.templateType === 'creation')
-                                .map((template: any) => {
-                                  console.log('🔍 [TEMPLATE-RENDER] Template:', template);
-                                  return (
-                                    <SelectItem key={template.id} value={template.id}>
-                                      {template.name} - {template.category}
-                                    </SelectItem>
-                                  );
-                                })
-                            ) : (
-                              <SelectItem value="no-templates" disabled>Nenhum template encontrado</SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          }
+                        }} 
+                        value={selectedTemplateId || '__none__'}
+                      >
+                        <SelectTrigger className="h-10 mt-1">
+                          <SelectValue placeholder="Selecione um template (opcional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sem template</SelectItem>
+                          {templatesLoading ? (
+                            <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
+                          ) : templatesData?.data?.length ? (
+                            templatesData.data
+                              .filter((template: any) => template.templateType === 'creation')
+                              .map((template: any) => {
+                                console.log('🔍 [TEMPLATE-RENDER] Template:', template);
+                                return (
+                                  <SelectItem key={template.id} value={template.id}>
+                                    {template.name} - {template.category}
+                                  </SelectItem>
+                                );
+                              })
+                          ) : (
+                            <SelectItem value="no-templates" disabled>Nenhum template encontrado</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                  {/* 3 - Cliente */}
-                  <FormField
-                    control={form.control}
-                    name="customerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('common.customer')} *</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          value={field.value}
-                          disabled={!selectedCompanyId}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={
-                                !selectedCompanyId 
-                                  ? t('tickets.selectCompanyFirst') 
-                                  : t('common.selectCustomer')
-                              } />
-                            </SelectTrigger>
-                          </FormControl>
+                  {/* Customer Selection - Filtered by Company */}
+                    <FormField
+                      control={form.control}
+                      name="customerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">{t('tickets.customer')} *</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={!selectedCompanyId}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-10">
+                                <SelectValue 
+                                  placeholder={
+                                    !selectedCompanyId 
+                                      ? t('tickets.forms.create.first_select_company') 
+                                      : t('tickets.forms.create.select_customer')
+                                  } 
+                                />
+                              </SelectTrigger>
+                            </FormControl>
                           <SelectContent>
                             {customersLoading ? (
                               <SelectItem value="loading" disabled>{t('tickets.messages.loading')}</SelectItem>
@@ -740,16 +696,43 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 4 - Título do Ticket */}
+                  {/* 3. FAVORECIDO */}
+                  <FormField
+                    control={form.control}
+                    name="beneficiaryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('tickets.beneficiary')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('tickets.forms.create.select_beneficiary')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="__none__">{t('tickets.forms.create.no_beneficiary')}</SelectItem>
+                            {favorecidos.map((favorecido: any) => (
+                              <SelectItem key={favorecido.id} value={favorecido.id}>
+                                {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 4. ASSUNTO/TÍTULO */}
                     <FormField
                       control={form.control}
                       name="subject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('tickets.subject')} *</FormLabel>
+                          <FormLabel className="text-sm font-medium">{t('tickets.subject')} *</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder={t('tickets.subjectPlaceholder')} 
+                              placeholder={t('tickets.forms.create.subject_placeholder')} 
                               className="h-10"
                               {...field} 
                             />
@@ -759,136 +742,115 @@ export default function Tickets() {
                       )}
                     />
 
-                  {/* 5 - Descrição */}
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('common.description')}</FormLabel>
+                  {/* 5. CATEGORIA */}
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('tickets.category')} *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedCategoryId(value);
+                          }} 
+                          value={field.value}
+                        >
                           <FormControl>
-                            <Textarea 
-                              placeholder={t('tickets.descriptionPlaceholder')}
-                              className="min-h-[80px] max-h-[120px] resize-none"
-                              {...field} 
-                            />
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('tickets.forms.create.select_category')} />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          <SelectContent>
+                            {categories.map((category: any) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  {/* Hierarchical Classification */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('tickets.category')} *</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              setSelectedCategoryId(value);
-                            }} 
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('tickets.forms.create.select_category')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((category: any) => (
-                                <SelectItem key={category.id} value={category.id}>
-                                  {category.name}
+                  {/* 6. SUB CATEGORIA */}
+                  <FormField
+                    control={form.control}
+                    name="subcategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('tickets.subcategory')} *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedSubcategoryId(value);
+                          }} 
+                          value={field.value}
+                          disabled={!selectedCategoryId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={!selectedCategoryId ? t('tickets.forms.create.first_select_category') : t('tickets.forms.create.select_subcategory')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!selectedCategoryId ? (
+                              <SelectItem value="no-category" disabled>{t('tickets.forms.create.first_select_category')}</SelectItem>
+                            ) : subcategories.length === 0 ? (
+                              <SelectItem value="no-subcategories" disabled>{t('tickets.forms.create.no_subcategories')}</SelectItem>
+                            ) : (
+                              subcategories.map((subcategory: any) => (
+                                <SelectItem key={subcategory.id} value={subcategory.id}>
+                                  {subcategory.name}
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    {/* Sub Category */}
-                    <FormField
-                      control={form.control}
-                      name="subcategory"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('tickets.subcategory')} *</FormLabel>
-                          <Select 
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              setSelectedSubcategoryId(value);
-                            }} 
-                            value={field.value}
-                            disabled={!selectedCategoryId}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={!selectedCategoryId ? t('tickets.forms.create.first_select_category') : t('tickets.forms.create.select_subcategory')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {!selectedCategoryId ? (
-                                <SelectItem value="no-category" disabled>{t('tickets.forms.create.first_select_category')}</SelectItem>
-                              ) : subcategories.length === 0 ? (
-                                <SelectItem value="no-subcategories" disabled>{t('tickets.forms.create.no_subcategories')}</SelectItem>
-                              ) : (
-                                subcategories.map((subcategory: any) => (
-                                  <SelectItem key={subcategory.id} value={subcategory.id}>
-                                    {subcategory.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Action */}
-                    <FormField
-                      control={form.control}
-                      name="action"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('tickets.action')} *</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            value={field.value}
-                            disabled={!selectedSubcategoryId}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={!selectedSubcategoryId ? t('tickets.forms.create.first_select_subcategory') : t('tickets.forms.create.select_action')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {!selectedSubcategoryId ? (
-                                <SelectItem value="no-subcategory" disabled>{t('tickets.forms.create.first_select_subcategory')}</SelectItem>
-                              ) : actions.length === 0 ? (
-                                <SelectItem value="no-actions" disabled>{t('tickets.forms.create.no_actions')}</SelectItem>
-                              ) : (
-                                actions.map((action: any) => (
-                                  <SelectItem key={action.id} value={action.id}>
-                                    {action.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {/* 7. AÇÃO */}
+                  <FormField
+                    control={form.control}
+                    name="action"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('tickets.action')} *</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!selectedSubcategoryId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={!selectedSubcategoryId ? t('tickets.forms.create.first_select_subcategory') : t('tickets.forms.create.select_action')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!selectedSubcategoryId ? (
+                              <SelectItem value="no-subcategory" disabled>{t('tickets.forms.create.first_select_subcategory')}</SelectItem>
+                            ) : actions.length === 0 ? (
+                              <SelectItem value="no-actions" disabled>{t('tickets.forms.create.no_actions')}</SelectItem>
+                            ) : (
+                              actions.map((action: any) => (
+                                <SelectItem key={action.id} value={action.id}>
+                                  {action.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Priority */}
+                    {/* 8. PRIORIDADE */}
                     <FormField
                       control={form.control}
                       name="priority"
@@ -908,7 +870,7 @@ export default function Tickets() {
                       )}
                     />
 
-                    {/* Urgency */}
+                    {/* 9. URGÊNCIA */}
                     <FormField
                       control={form.control}
                       name="urgency"
@@ -929,7 +891,26 @@ export default function Tickets() {
                     />
                   </div>
 
-                  {/* Symptoms */}
+                  {/* 10. DESCRIÇÃO DETALHADA */}
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">{t('tickets.description')} *</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder={t('tickets.forms.create.description_placeholder')}
+                              className="min-h-[80px] max-h-[120px] resize-none"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                  {/* 11. SINTOMAS */}
                     <FormField
                       control={form.control}
                       name="symptoms"
@@ -948,7 +929,7 @@ export default function Tickets() {
                       )}
                     />
 
-                    {/* Business Impact */}
+                    {/* 12. IMPACTO NO NEGÓCIO */}
                     <FormField
                       control={form.control}
                       name="businessImpact"
@@ -967,7 +948,7 @@ export default function Tickets() {
                       )}
                     />
 
-                    {/* Workaround */}
+                    {/* 13. SOLUÇÃO TEMPORÁRIA */}
                     <FormField
                       control={form.control}
                       name="workaround"
@@ -986,7 +967,7 @@ export default function Tickets() {
                       )}
                     />
 
-                  {/* Location */}
+                  {/* 14. LOCAL */}
                   <FormField
                     control={form.control}
                     name="location"
