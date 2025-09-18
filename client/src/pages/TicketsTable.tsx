@@ -1744,30 +1744,22 @@ const TicketsTable = React.memo(() => {
           </Label>
           <Select
             onValueChange={(templateId) => {
-              console.log('🎯 Template selection changed:', { templateId, templatesData });
               setSelectedTemplateId(templateId);
 
               // ✅ 1QA.MD: Apply template fields when selected
               if (templateId && templateId !== '__none__' && templatesData?.data) {
-                console.log('🎯 Setting template as selected');
                 setTemplateSelected(true);
                 
                 let templatesArray = null;
                 if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
                   templatesArray = templatesData.data.templates;
-                  console.log('🎯 Using templatesData.data.templates:', templatesArray);
                 } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
                   templatesArray = templatesData.templates;
-                  console.log('🎯 Using templatesData.templates:', templatesArray);
                 } else if (Array.isArray(templatesData.data)) {
                   templatesArray = templatesData.data;
-                  console.log('🎯 Using templatesData.data as array:', templatesArray);
-                } else {
-                  console.log('🎯 Templates structure unknown:', templatesData);
                 }
 
                 const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-                console.log('🎯 Selected template:', selectedTemplate);
                 
                 // Check both fields and required_fields
                 const templateFields = selectedTemplate?.fields || selectedTemplate?.required_fields;
@@ -1776,7 +1768,6 @@ const TicketsTable = React.memo(() => {
                     const parsedFields = typeof templateFields === 'string'
                       ? JSON.parse(templateFields)
                       : templateFields;
-                    console.log('🎯 Parsed template fields:', parsedFields);
 
                     // Configure field visibility based on template with field mapping
                     // Handle both object format and array format (required_fields)
@@ -1811,8 +1802,6 @@ const TicketsTable = React.memo(() => {
                       symptoms: templateFieldKeys.includes('symptoms'),
                       workaround: templateFieldKeys.includes('workaround')
                     };
-                    console.log('🎯 Template field keys:', templateFieldKeys);
-                    console.log('🎯 New visible fields:', newVisibleFields);
                     setVisibleFields(newVisibleFields);
 
                     // Clear all fields first, then apply template values
@@ -1851,10 +1840,7 @@ const TicketsTable = React.memo(() => {
                       title: "Template aplicado",
                       description: `Template "${selectedTemplate.name}" foi configurado com sucesso.`,
                     });
-                    console.log('✅ Template fields applied:', parsedFields);
-                    console.log('✅ Field visibility configured:', newVisibleFields);
                   } catch (error) {
-                    console.error('❌ Error parsing template fields:', error);
                     toast({
                       title: "Erro ao aplicar template",
                       description: "Ocorreu um erro ao aplicar os campos do template.",
@@ -1864,7 +1850,6 @@ const TicketsTable = React.memo(() => {
                 }
               } else {
                 // Reset to hide all fields when no template selected
-                console.log('🎯 No template selected, hiding all fields');
                 setTemplateSelected(false);
                 setVisibleFields({
                   category: false,
@@ -2042,13 +2027,6 @@ const TicketsTable = React.memo(() => {
           </div>
         )}
 
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
-            <p>Debug: templateSelected = {templateSelected.toString()}</p>
-            <p>Debug: visibleFields = {JSON.stringify(visibleFields)}</p>
-          </div>
-        )}
 
         {/* Basic Information - Show only if template is selected and has these fields */}
         {templateSelected && (visibleFields.category || visibleFields.subcategory) && (
