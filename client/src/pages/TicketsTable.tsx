@@ -1674,7 +1674,7 @@ const TicketsTable = React.memo(() => {
 
   const renderTicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pl-[2px] pr-[2px] ml-[0px] mr-[0px]">
 
         {/* Company Selection - First field */}
         <div className="mb-4">
