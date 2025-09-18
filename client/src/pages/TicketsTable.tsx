@@ -222,6 +222,8 @@ const TicketsTable = React.memo(() => {
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+
 
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
@@ -542,27 +544,51 @@ const TicketsTable = React.memo(() => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // 🔧 [1QA-COMPLIANCE] Query para empresas seguindo Clean Architecture
-  const {
-    data: companiesResponse = { companies: [] },
-    isLoading: companiesLoading
-  } = useOptimizedQuery({
+  // ✅ FETCH COMPANIES for company selection
+  const { 
+    data: companiesData, 
+    isLoading: companiesLoading, 
+    error: companiesError 
+  } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
+      console.log('🏢 [COMPANIES-QUERY] Fetching companies...');
       const response = await apiRequest('GET', '/api/companies');
-      if (!response.ok) throw new Error('Failed to fetch companies');
-      const data = await response.json();
-      // O endpoint retorna { success: true, data: { companies: [...] } }
-      if (data.success && data.data && data.data.companies) {
-        return { companies: data.data.companies };
-      }
-      // Fallback para resposta direta como array
-      return { companies: Array.isArray(data) ? data : [] };
+      const result = await response.json();
+      console.log('🏢 [COMPANIES-QUERY] API response:', result);
+      return result;
     },
+    enabled: true, // Always fetch companies
     staleTime: 5 * 60 * 1000,
+    select: (data: any) => {
+      console.log('🏢 [COMPANIES-QUERY] Raw response:', data);
+
+      // Handle different possible response formats
+      let companies = [];
+
+      if (Array.isArray(data)) {
+        companies = data;
+      } else if (data?.success && data?.data) {
+        if (Array.isArray(data.data)) {
+          companies = data.data;
+        } else if (data.data?.companies) {
+          companies = data.data.companies;
+        }
+      } else if (data?.companies) {
+        companies = data.companies;
+      }
+
+      console.log('🏢 [COMPANIES-QUERY] Processed companies:', companies);
+
+      // Filter out inactive companies if needed
+      return companies.filter((company: any) => 
+        company && 
+        (company.isActive !== false) && 
+        (company.status !== 'inactive')
+      );
+    }
   });
 
-  const companies = companiesResponse?.companies || [];
 
   // 🔧 [1QA-COMPLIANCE] Processar dados de tickets seguindo Clean Architecture
   const tickets = useMemo(() => {
@@ -1647,33 +1673,48 @@ const TicketsTable = React.memo(() => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-        {/* ✅ 1QA.MD: Company Selection First */}
-        {/* Moved to the top */}
-        <FormField
-          control={form.control}
-          name="companyId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium">Empresa *</FormLabel>
-              <FormControl>
-                <DynamicSelect
-                  endpoint="/api/companies"
-                  placeholder="Selecione uma empresa..."
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setSelectedCompanyId(value);
-                    // Reset customer when company changes
-                    form.setValue('callerId', '');
-                  }}
-                  disabled={isCreatingTicket}
-                  className="h-10"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        {/* Company Selection - First field */}
+        <div className="mb-4">
+          <Label htmlFor="companyId" className="text-sm font-medium mb-2 block">
+            Empresa *
+          </Label>
+          <Select
+            onValueChange={(value) => {
+              console.log('🏢 [COMPANY-SELECT] Company selected:', value);
+              setSelectedCompanyId(value);
+              form.setValue('companyId', value);
+
+              // Reset dependent fields when company changes
+              form.setValue('callerId', '');
+              setSelectedCustomerId('');
+              console.log('🔄 [COMPANY-SELECT] Reset dependent customer field');
+            }}
+            value={selectedCompanyId}
+          >
+            <SelectTrigger className="h-10 mt-1">
+              <SelectValue placeholder="Selecione uma empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              {companiesLoading ? (
+                <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+              ) : companiesError ? (
+                <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
+              ) : companiesData && companiesData.length > 0 ? (
+                companiesData.map((company: any) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.displayName || company.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-companies" disabled>Nenhuma empresa disponível</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          {!selectedCompanyId && (
+            <p className="text-sm text-red-500 mt-1">Empresa é obrigatória</p>
           )}
-        />
+        </div>
+
 
         {/* Section Title and Template */}
         <div className="grid grid-cols-2 gap-4">
