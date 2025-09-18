@@ -4658,7 +4658,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("[CUSTOMER-COMPANIES] No tenant ID found");
           return res.status(401).json({ message: "Tenant required" });
         }
-
+        
+        const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
 
