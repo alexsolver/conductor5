@@ -60,7 +60,6 @@ export const apiRequest = async (
   const config: RequestInit = {
     method,
     headers: {
-      'Content-Type': 'application/json',
       ...options.headers,
     },
     credentials: 'include', // ✅ 1QA.MD: Ensure cookies are included for authentication
@@ -68,7 +67,17 @@ export const apiRequest = async (
   };
 
   if (data && method !== 'GET') {
-    config.body = JSON.stringify(data);
+    if (data instanceof FormData) {
+      // 🔧 Para FormData, não definir Content-Type (browser define automaticamente)
+      config.body = data;
+    } else {
+      // 🔧 Para dados JSON, definir Content-Type e stringify
+      config.headers = {
+        'Content-Type': 'application/json',
+        ...config.headers,
+      };
+      config.body = JSON.stringify(data);
+    }
   }
 
   console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);

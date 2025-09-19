@@ -85,6 +85,8 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
   // Mutation para enviar email
   const sendEmailMutation = useMutation({
     mutationFn: async (data: EmailFormData) => {
+      console.log('🔧 [EMAIL-MODAL] Form data received:', data);
+      
       const formData = new FormData();
       formData.append('ticketId', ticketId);
       formData.append('to', data.to);
@@ -98,6 +100,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       attachments.forEach((file, index) => {
         formData.append(`attachments`, file);
       });
+
+      console.log('🔧 [EMAIL-MODAL] FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
 
       const response = await apiRequest("POST", `/api/tickets/${ticketId}/send-email`, formData);
       return response.json();

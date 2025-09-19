@@ -113,6 +113,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
   // Mutation para enviar mensagem
   const sendMessageMutation = useMutation({
     mutationFn: async (data: MessagingFormData) => {
+      console.log('🔧 [MESSAGING-MODAL] Form data received:', data);
+      
       const formData = new FormData();
       formData.append('ticketId', ticketId);
       formData.append('channel', data.channel);
@@ -123,6 +125,11 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       mediaFiles.forEach((file, index) => {
         formData.append(`media`, file);
       });
+
+      console.log('🔧 [MESSAGING-MODAL] FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
 
       const response = await apiRequest("POST", `/api/tickets/${ticketId}/send-message`, formData);
       return response.json();
