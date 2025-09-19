@@ -1928,10 +1928,11 @@ const TicketDetails = React.memo(() => {
               )}
 
               {communicationsData.slice().reverse().map((comm: any) => {
-                const isEmail = comm.communication_type === 'email' || comm.type === 'email';
-                const isWhatsApp = comm.communication_type === 'whatsapp' || comm.type === 'whatsapp';
-                const isTelegram = comm.communication_type === 'telegram' || comm.type === 'telegram'; 
-                const isSMS = comm.communication_type === 'sms' || comm.type === 'sms';
+                // Use the correct field: channel
+                const isEmail = comm.channel === 'email';
+                const isWhatsApp = comm.channel === 'whatsapp';
+                const isTelegram = comm.channel === 'telegram'; 
+                const isSMS = comm.channel === 'sms';
                 
                 return (
                   <Card 
@@ -1980,7 +1981,7 @@ const TicketDetails = React.memo(() => {
                                isWhatsApp ? '💬 WhatsApp' :
                                isTelegram ? '📨 Telegram' :
                                isSMS ? '📱 SMS' :
-                               `📨 ${comm.communication_type || comm.channel || 'Mensagem'}`}
+                               `📨 ${comm.channel || 'Mensagem'}`}
                             </Badge>
                             <span className="text-sm font-medium text-gray-800">
                               {isEmail ? 
