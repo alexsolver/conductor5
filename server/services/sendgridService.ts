@@ -56,8 +56,19 @@ export class SendGridService {
       
       console.log('✅ [SENDGRID] Email sent successfully to:', params.to);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [SENDGRID] Email error:', error);
+      
+      // Log detailed SendGrid error information
+      if (error.response) {
+        console.error('❌ [SENDGRID] Response status:', error.response.status);
+        console.error('❌ [SENDGRID] Response headers:', error.response.headers);
+        console.error('❌ [SENDGRID] Response body:', error.response.body);
+        
+        if (error.response.body && error.response.body.errors) {
+          console.error('❌ [SENDGRID] Detailed errors:', JSON.stringify(error.response.body.errors, null, 2));
+        }
+      }
       return false;
     }
   }

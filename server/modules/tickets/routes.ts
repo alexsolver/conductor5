@@ -1894,7 +1894,7 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
     // Send email using SendGrid
     const emailSent = await SendGridService.sendEmail({
       to,
-      from: 'noreply@conductor.com', // You can make this configurable
+      from: 'test@example.com', // Generic test email for development
       subject,
       text: message,
       cc,
