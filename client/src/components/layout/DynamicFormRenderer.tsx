@@ -194,12 +194,9 @@ const renderFieldByType = (
                     <SelectValue placeholder={`Selecione ${field.label.toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    {options.map((option: any, index: number) => (
-                      <SelectItem 
-                        key={option.value || `option-${index}`} 
-                        value={option.value && option.value !== '' ? option.value : `fallback-${index}`}
-                      >
-                        {option.label || 'Opção sem nome'}
+                    {options.map((option: any) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
