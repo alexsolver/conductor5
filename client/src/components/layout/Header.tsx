@@ -200,7 +200,7 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link href="/timecard" className="flex items-center">
                     <Clock className="mr-2 h-4 w-4" />
-                    <span>Registro de Ponto</span>
+                    <span>{userProfile?.employmentType === 'autonomo' ? 'Registro de Trabalho' : 'Registro de Ponto'}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
