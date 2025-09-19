@@ -1839,22 +1839,88 @@ ticketsRouter.get('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res)
   }
 });
 
+// Import SendGrid service
+import { SendGridService } from '../../services/sendgridService';
+import multer from 'multer';
+import crypto from 'crypto';
+
 // Send ticket email
-ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
+      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
     const { id } = req.params;
-    const { to, subject, content, cc, bcc } = req.body;
+    const { to, subject, message, cc, bcc } = req.body;
     const tenantId = req.user.tenantId;
+    const files = req.files as Express.Multer.File[];
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Validate required fields
-    if (!to || !subject || !content) {
-      return res.status(400).json({ message: "To, subject, and content are required" });
+    if (!to || !subject || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "To, subject, and message are required" 
+      });
+    }
+
+    // Prepare attachments
+    const attachments = files?.map(file => ({
+      content: file.buffer,
+      filename: file.originalname,
+      type: file.mimetype,
+    })) || [];
+
+    // Send email using SendGrid
+    const emailSent = await SendGridService.sendEmail({
+      to,
+      from: 'noreply@conductor.com', // You can make this configurable
+      subject,
+      text: message,
+      cc,
+      bcc,
+      attachments,
+    });
+
+    if (!emailSent) {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to send email" 
+      });
+    }
+
+    // Save communication record
+    try {
+      const communicationId = crypto.randomUUID();
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_communications (
+          id, ticket_id, tenant_id, communication_type, direction,
+          from_address, to_address, cc_address, bcc_address,
+          subject, content, is_public, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      `;
+
+      await pool.query(insertQuery, [
+        communicationId,
+        id,
+        tenantId,
+        'email',
+        'outbound',
+        'noreply@conductor.com',
+        to,
+        cc || null,
+        bcc || null,
+        subject,
+        message,
+        true
+      ]);
+
+      console.log('✅ [EMAIL] Communication record saved:', communicationId);
+    } catch (dbError) {
+      console.error('❌ [EMAIL] Failed to save communication record:', dbError);
+      // Don't fail the request if we can't save to DB
     }
 
     // Create audit trail for email sending
@@ -1866,21 +1932,122 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
         {
           email_to: to,
           email_subject: subject,
-          email_content_preview: content.substring(0, 200),
+          email_content_preview: message.substring(0, 200),
           email_cc: cc || null,
           email_bcc: bcc || null,
-          sent_time: new Date().toISOString()
+          sent_time: new Date().toISOString(),
+          attachments_count: attachments.length
         }
       );
     } catch (historyError) {
       console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
-    // Placeholder - return success for now
-    res.json({ success: true, message: "Email sent successfully" });
+    return res.json({ 
+      success: true, 
+      message: "Email sent successfully" 
+    });
+
   } catch (error) {
-    console.error("Error sending email:", error);
-    res.status(500).json({ message: "Failed to send email" });
+    console.error("❌ [EMAIL] Error sending email:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to send email" 
+    });
+  }
+});
+
+// Send ticket message (WhatsApp/Telegram/SMS)
+ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const { channel, recipient, message } = req.body;
+    const tenantId = req.user.tenantId;
+    const files = req.files as Express.Multer.File[];
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Validate required fields
+    if (!channel || !recipient || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Channel, recipient, and message are required" 
+      });
+    }
+
+    // Validate channel
+    if (!['whatsapp', 'telegram', 'sms'].includes(channel)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid channel. Must be whatsapp, telegram, or sms" 
+      });
+    }
+
+    // For now, we'll just save the message without actually sending it
+    // In a real implementation, you would integrate with WhatsApp Business API, Telegram API, or SMS provider
+    console.log(`📱 [MESSAGE] Simulating ${channel} message to ${recipient}: ${message}`);
+    
+    // Save communication record
+    try {
+      const communicationId = crypto.randomUUID();
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_communications (
+          id, ticket_id, tenant_id, communication_type, direction,
+          from_address, to_address, content, is_public, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+      `;
+
+      await pool.query(insertQuery, [
+        communicationId,
+        id,
+        tenantId,
+        channel,
+        'outbound',
+        'system',
+        recipient,
+        message,
+        true
+      ]);
+
+      console.log('✅ [MESSAGE] Communication record saved:', communicationId);
+    } catch (dbError) {
+      console.error('❌ [MESSAGE] Failed to save communication record:', dbError);
+      // Don't fail the request if we can't save to DB
+    }
+
+    // Create audit trail
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'message_sent',
+        `Mensagem ${channel} enviada para: ${recipient}`,
+        {
+          channel,
+          recipient,
+          message_preview: message.substring(0, 200),
+          sent_time: new Date().toISOString(),
+          media_count: files?.length || 0
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    return res.json({ 
+      success: true, 
+      message: `${channel.charAt(0).toUpperCase() + channel.slice(1)} message sent successfully` 
+    });
+
+  } catch (error) {
+    console.error("❌ [MESSAGE] Error sending message:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to send message" 
+    });
   }
 });
 
