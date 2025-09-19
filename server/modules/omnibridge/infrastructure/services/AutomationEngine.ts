@@ -1,5 +1,8 @@
 import { AutomationRule, AutomationTrigger, AutomationAction } from '../../domain/entities/AutomationRule';
-import { AIAnalysisService, MessageAnalysis } from './AIAnalysisService';
+import { IAIAnalysisPort, MessageAnalysis } from '../../domain/ports/IAIAnalysisPort';
+import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
+import { AIAnalysisService } from './AIAnalysisService';
+import { ActionExecutor } from './ActionExecutor';
 
 export interface AutomationMetrics {
   rulesExecuted: number;
@@ -12,7 +15,8 @@ export interface AutomationMetrics {
 
 export class AutomationEngine {
   private rules: Map<string, AutomationRule> = new Map();
-  private aiService: AIAnalysisService;
+  private aiService: IAIAnalysisPort;
+  private actionExecutor: IActionExecutorPort;
   private metrics: AutomationMetrics = {
     rulesExecuted: 0,
     actionsTriggered: 0,
@@ -22,9 +26,13 @@ export class AutomationEngine {
     lastExecution: new Date()
   };
 
-  constructor(private tenantId: string) {
+  constructor(private tenantId: string, aiService?: IAIAnalysisPort, actionExecutor?: IActionExecutorPort) {
     console.log(`🤖 [AUTOMATION-ENGINE] Initialized for tenant: ${tenantId}`);
-    this.aiService = new AIAnalysisService();
+    
+    // Usar dependências injetadas ou criar padrão
+    this.aiService = aiService || new AIAnalysisService();
+    this.actionExecutor = actionExecutor || new ActionExecutor(this.aiService);
+    
     this.loadRulesFromDatabase();
   }
 
@@ -90,7 +98,7 @@ export class AutomationEngine {
           if (matches) {
             console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
             
-            await rule.execute(messageData, aiAnalysis, this.aiService);
+            await rule.execute(messageData, aiAnalysis, this.actionExecutor);
             
             executedRules++;
             triggeredActions += rule.actions.length;
@@ -141,7 +149,7 @@ export class AutomationEngine {
         if (matches) {
           console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched event, executing actions...`);
 
-          await rule.execute(data);
+          await rule.execute(data, undefined, this.actionExecutor);
           executedRules++;
           triggeredActions += rule.actions.length;
 
@@ -499,7 +507,7 @@ export class AutomationEngine {
     console.log(`✅ [AUTOMATION-ENGINE] Created ${this.rules.size} default rules for tenant: ${this.tenantId}`);
   }
 
-  public getAIService(): AIAnalysisService {
+  public getAIService(): IAIAnalysisPort {
     return this.aiService;
   }
 

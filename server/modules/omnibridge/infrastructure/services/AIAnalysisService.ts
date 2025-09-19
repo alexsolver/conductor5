@@ -1,19 +1,7 @@
 import OpenAI from "openai";
+import { IAIAnalysisPort, MessageData, MessageAnalysis } from '../../domain/ports/IAIAnalysisPort';
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-
-export interface MessageAnalysis {
-  intent: 'complaint' | 'question' | 'request' | 'emergency' | 'compliment' | 'other';
-  sentiment: 'positive' | 'negative' | 'neutral';
-  urgency: 'low' | 'medium' | 'high' | 'critical';
-  category: string;
-  keywords: string[];
-  suggestedActions: string[];
-  confidence: number;
-  summary: string;
-  shouldCreateTicket: boolean;
-  suggestedResponse?: string;
-}
 
 export interface AIPromptConfig {
   id: string;
@@ -28,7 +16,7 @@ export interface AIPromptConfig {
   updatedAt: Date;
 }
 
-export class AIAnalysisService {
+export class AIAnalysisService implements IAIAnalysisPort {
   private openai: OpenAI;
   private defaultPrompts: Map<string, AIPromptConfig> = new Map();
 
@@ -124,13 +112,7 @@ Gere uma resposta profissional e empática em português.`,
     this.defaultPrompts.set('response', responsePrompt);
   }
 
-  async analyzeMessage(messageData: {
-    content: string;
-    sender?: string;
-    subject?: string;
-    channel?: string;
-    timestamp?: string;
-  }, customPrompt?: AIPromptConfig): Promise<MessageAnalysis> {
+  async analyzeMessage(messageData: MessageData, customPrompt?: AIPromptConfig): Promise<MessageAnalysis> {
     try {
       const prompt = customPrompt || this.defaultPrompts.get('analysis')!;
       
@@ -168,11 +150,11 @@ Gere uma resposta profissional e empática em português.`,
         urgency: analysis.urgency || 'medium',
         category: analysis.category || 'Geral',
         keywords: Array.isArray(analysis.keywords) ? analysis.keywords : [],
-        suggestedActions: Array.isArray(analysis.suggestedActions) ? analysis.suggestedActions : [],
         confidence: typeof analysis.confidence === 'number' ? analysis.confidence : 0.5,
         summary: analysis.summary || 'Mensagem recebida',
-        shouldCreateTicket: Boolean(analysis.shouldCreateTicket),
-        suggestedResponse: analysis.suggestedResponse || undefined
+        suggestedResponse: analysis.suggestedResponse || undefined,
+        requiresHumanAttention: Boolean(analysis.shouldCreateTicket || analysis.urgency === 'critical' || analysis.intent === 'emergency'),
+        language: analysis.language || 'pt-BR'
       };
 
       console.log(`✅ [AI-ANALYSIS] Analysis completed - Intent: ${normalizedAnalysis.intent}, Urgency: ${normalizedAnalysis.urgency}`);
@@ -188,10 +170,11 @@ Gere uma resposta profissional e empática em português.`,
         urgency: 'medium',
         category: 'Geral',
         keywords: [],
-        suggestedActions: ['Revisar manualmente'],
         confidence: 0,
         summary: 'Erro na análise automática',
-        shouldCreateTicket: false
+        suggestedResponse: undefined,
+        requiresHumanAttention: true,
+        language: 'pt-BR'
       };
     }
   }

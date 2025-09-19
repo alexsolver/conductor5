@@ -1,4 +1,5 @@
-import { AIAnalysisService, MessageAnalysis } from '../../infrastructure/services/AIAnalysisService';
+import { IAIAnalysisPort, MessageAnalysis } from '../ports/IAIAnalysisPort';
+import { IActionExecutorPort, ActionExecutionContext } from '../ports/IActionExecutorPort';
 
 export interface AutomationTrigger {
   type: 'message_received' | 'email_received' | 'keyword_match' | 'ai_analysis' | 'time_based' | 'channel_specific';
@@ -49,7 +50,7 @@ export class AutomationRule {
   public async evaluate(
     messageData: any, 
     aiAnalysis?: MessageAnalysis, 
-    aiService?: AIAnalysisService
+    aiService?: IAIAnalysisPort
   ): Promise<boolean> {
     if (!this.enabled) {
       console.log(`🔇 [AutomationRule] Rule "${this.name}" is disabled, skipping evaluation`);
@@ -258,242 +259,41 @@ export class AutomationRule {
     });
   }
 
-  public async execute(messageData: any, aiAnalysis?: MessageAnalysis, aiService?: AIAnalysisService): Promise<void> {
+  public async execute(
+    messageData: any, 
+    aiAnalysis?: MessageAnalysis, 
+    actionExecutor?: IActionExecutorPort
+  ): Promise<void> {
     console.log(`🚀 [AutomationRule] Executing rule "${this.name}" with ${this.actions.length} actions`);
 
     // Ordenar ações por prioridade
     const sortedActions = [...this.actions].sort((a, b) => (a.priority || 0) - (b.priority || 0));
 
-    for (const action of sortedActions) {
-      try {
-        await this.executeAction(action, messageData, aiAnalysis, aiService);
-      } catch (error) {
-        console.error(`❌ [AutomationRule] Error executing action ${action.type}:`, error);
-      }
+    if (actionExecutor) {
+      const context: ActionExecutionContext = {
+        tenantId: this.tenantId,
+        messageData,
+        aiAnalysis,
+        ruleId: this.id,
+        ruleName: this.name
+      };
+
+      const results = await actionExecutor.executeActions(sortedActions, context);
+      
+      // Log resultados
+      results.forEach((result, index) => {
+        const action = sortedActions[index];
+        if (result.success) {
+          console.log(`✅ [AutomationRule] Action ${action.type} executed successfully: ${result.message}`);
+        } else {
+          console.error(`❌ [AutomationRule] Action ${action.type} failed: ${result.error || result.message}`);
+        }
+      });
+    } else {
+      console.warn(`⚠️ [AutomationRule] No action executor provided, actions will not be executed`);
     }
 
     console.log(`✅ [AutomationRule] Rule "${this.name}" execution completed`);
   }
 
-  private async executeAction(
-    action: AutomationAction, 
-    messageData: any, 
-    aiAnalysis?: MessageAnalysis,
-    aiService?: AIAnalysisService
-  ): Promise<void> {
-    console.log(`🎯 [AutomationRule] Executing action: ${action.type}`);
-
-    switch (action.type) {
-      case 'create_ticket':
-        await this.createTicketAction(action, messageData, aiAnalysis);
-        break;
-      
-      case 'send_auto_reply':
-      case 'ai_response':
-        await this.sendAutoReplyAction(action, messageData, aiAnalysis, aiService);
-        break;
-        
-      case 'forward_message':
-        await this.forwardMessageAction(action, messageData);
-        break;
-        
-      case 'assign_user':
-        await this.assignUserAction(action, messageData);
-        break;
-        
-      case 'add_tag':
-        await this.addTagAction(action, messageData);
-        break;
-        
-      case 'escalate':
-        await this.escalateAction(action, messageData, aiAnalysis);
-        break;
-        
-      case 'webhook':
-        await this.webhookAction(action, messageData, aiAnalysis);
-        break;
-
-      case 'notify_team':
-        await this.notifyTeamAction(action, messageData, aiAnalysis);
-        break;
-        
-      default:
-        console.warn(`⚠️ [AutomationRule] Unknown action type: ${action.type}`);
-    }
-  }
-
-  private async createTicketAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
-    try {
-      console.log(`🎫 [AutomationRule] Creating ticket from automation rule: ${this.name}`);
-      
-      // Usar análise de IA se disponível para melhorar os dados do ticket
-      const subject = action.params?.subject || 
-                     aiAnalysis?.summary || 
-                     messageData.subject || 
-                     `Ticket automático - ${messageData.channel || 'Sistema'}`;
-
-      const description = action.params?.description || 
-                         `${aiAnalysis?.summary || messageData.content || 'Conteúdo não disponível'}\n\n` +
-                         `Categoria sugerida: ${aiAnalysis?.category || 'Geral'}\n` +
-                         `Urgência detectada: ${aiAnalysis?.urgency || 'medium'}\n` +
-                         `Sentimento: ${aiAnalysis?.sentiment || 'neutral'}\n` +
-                         `Palavras-chave: ${aiAnalysis?.keywords?.join(', ') || 'Nenhuma'}`;
-
-      const priority = aiAnalysis?.urgency === 'critical' ? 'urgent' : 
-                      aiAnalysis?.urgency === 'high' ? 'high' :
-                      aiAnalysis?.urgency === 'low' ? 'low' : 'medium';
-
-      const ticketData = {
-        subject,
-        description,
-        status: action.params?.status || 'open',
-        priority,
-        urgency: aiAnalysis?.urgency || 'medium',
-        impact: 'medium',
-        category: aiAnalysis?.category || action.params?.category || 'Atendimento ao Cliente',
-        subcategory: action.params?.subcategory || 'Automação',
-        assignedToId: action.params?.assignedToId || null,
-        tenantId: this.tenantId,
-        source: messageData.channel || messageData.channelType || 'omnibridge',
-        metadata: {
-          automationRule: {
-            ruleId: this.id,
-            ruleName: this.name,
-            executedAt: new Date().toISOString(),
-            aiAnalysis: aiAnalysis
-          },
-          originalMessage: {
-            content: messageData.content,
-            sender: messageData.sender,
-            channel: messageData.channel,
-            timestamp: messageData.timestamp
-          }
-        }
-      };
-
-      // Fazer requisição para criar o ticket
-      const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Tenant-ID': this.tenantId
-        },
-        body: JSON.stringify(ticketData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log(`✅ [AutomationRule] Ticket created successfully: ${result.data?.number || result.data?.id || 'Unknown'}`);
-      } else {
-        const errorText = await response.text();
-        console.error(`❌ [AutomationRule] Failed to create ticket:`, errorText);
-      }
-    } catch (error) {
-      console.error(`❌ [AutomationRule] Error creating ticket:`, error);
-    }
-  }
-
-  private async sendAutoReplyAction(
-    action: AutomationAction, 
-    messageData: any, 
-    aiAnalysis?: MessageAnalysis,
-    aiService?: AIAnalysisService
-  ): Promise<void> {
-    try {
-      let responseText = action.params?.message || action.params?.template;
-
-      // Se a ação é do tipo ai_response, usar IA para gerar resposta
-      if (action.type === 'ai_response' && aiService && aiAnalysis) {
-        console.log(`🤖 [AutomationRule] Generating AI response`);
-        responseText = await aiService.generateResponse(
-          aiAnalysis, 
-          messageData.content || messageData.body,
-          { channel: messageData.channel, sender: messageData.sender }
-        );
-      }
-
-      // Substituir variáveis na mensagem
-      if (responseText) {
-        responseText = responseText
-          .replace(/\{sender\}/g, messageData.sender || 'Cliente')
-          .replace(/\{subject\}/g, messageData.subject || 'Sua mensagem')
-          .replace(/\{channel\}/g, messageData.channel || 'nosso sistema')
-          .replace(/\{category\}/g, aiAnalysis?.category || 'suporte')
-          .replace(/\{urgency\}/g, aiAnalysis?.urgency || 'normal');
-      }
-
-      console.log(`📤 [AutomationRule] Sending auto-reply to ${messageData.sender}`);
-      console.log(`📝 [AutomationRule] Reply content: ${responseText?.substring(0, 100)}...`);
-
-      // Aqui você implementaria a lógica real de envio baseada no canal
-      // Por enquanto, apenas log
-      console.log(`✅ [AutomationRule] Auto-reply sent successfully`);
-    } catch (error) {
-      console.error(`❌ [AutomationRule] Error sending auto-reply:`, error);
-    }
-  }
-
-  private async forwardMessageAction(action: AutomationAction, messageData: any): Promise<void> {
-    console.log(`⏩ [AutomationRule] Forwarding message to ${action.target}`);
-    // Implementar lógica de encaminhamento
-  }
-
-  private async assignUserAction(action: AutomationAction, messageData: any): Promise<void> {
-    console.log(`👤 [AutomationRule] Assigning to user ${action.target}`);
-    // Implementar lógica de atribuição
-  }
-
-  private async addTagAction(action: AutomationAction, messageData: any): Promise<void> {
-    console.log(`🏷️ [AutomationRule] Adding tag ${action.params?.tag}`);
-    // Implementar lógica de adição de tag
-  }
-
-  private async escalateAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
-    console.log(`⬆️ [AutomationRule] Escalating message based on ${aiAnalysis ? 'AI analysis' : 'rule conditions'}`);
-    // Implementar lógica de escalação
-  }
-
-  private async webhookAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
-    try {
-      const webhookUrl = action.params?.url;
-      if (!webhookUrl) {
-        console.error(`❌ [AutomationRule] Webhook URL not provided`);
-        return;
-      }
-
-      const payload = {
-        rule: {
-          id: this.id,
-          name: this.name
-        },
-        message: messageData,
-        aiAnalysis: aiAnalysis,
-        timestamp: new Date().toISOString()
-      };
-
-      console.log(`🔗 [AutomationRule] Sending webhook to ${webhookUrl}`);
-      
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'OmniBridge-Automation/1.0'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        console.log(`✅ [AutomationRule] Webhook sent successfully`);
-      } else {
-        console.error(`❌ [AutomationRule] Webhook failed:`, response.status, response.statusText);
-      }
-    } catch (error) {
-      console.error(`❌ [AutomationRule] Error sending webhook:`, error);
-    }
-  }
-
-  private async notifyTeamAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
-    console.log(`🔔 [AutomationRule] Notifying team about ${aiAnalysis?.intent || 'message'} with urgency: ${aiAnalysis?.urgency || 'medium'}`);
-    // Implementar notificação da equipe
-  }
 }

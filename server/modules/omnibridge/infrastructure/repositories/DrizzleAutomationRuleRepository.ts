@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from '@shared/schema';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
-import { AutomationRuleEntity } from '../../domain/entities/AutomationRule';
+import { AutomationRule } from '../../domain/entities/AutomationRule';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
   // ✅ 1QA.MD: Get tenant-specific database instance
@@ -22,7 +22,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
-  async create(rule: AutomationRuleEntity): Promise<AutomationRuleEntity> {
+  async create(rule: AutomationRule): Promise<AutomationRule> {
     try {
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
 
@@ -76,7 +76,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async findById(id: string, tenantId: string): Promise<AutomationRuleEntity | null> {
+  async findById(id: string, tenantId: string): Promise<AutomationRule | null> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
@@ -98,7 +98,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async findByTenant(tenantId: string, filters?: any): Promise<AutomationRuleEntity[]> {
+  async findByTenantId(tenantId: string, filters?: any): Promise<AutomationRule[]> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
 
     try {
@@ -151,7 +151,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async update(rule: AutomationRuleEntity): Promise<AutomationRuleEntity> {
+  async update(rule: AutomationRule): Promise<AutomationRule> {
     try {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
 
@@ -196,7 +196,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  private mapRowToEntity(row: any): AutomationRuleEntity {
+  private mapRowToEntity(row: any): AutomationRule {
     // Parse JSON fields safely
     const parseJsonField = (field: any, defaultValue: any = []) => {
       if (typeof field === 'string') {
@@ -210,7 +210,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       return field || defaultValue;
     };
 
-    return new AutomationRuleEntity(
+    return new AutomationRule(
       row.id,
       row.name,
       parseJsonField(row.trigger_conditions, []),
