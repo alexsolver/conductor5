@@ -1882,7 +1882,7 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
     // Send email using SendGrid
     const emailSent = await SendGridService.sendEmail({
       to,
-      from: 'test@example.com', // Generic test email for development
+      from: 'acesso@lansolver.com',
       subject,
       text: message,
       cc: cleanCc,
@@ -1908,7 +1908,7 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
         tenantId,
         'email',
         'outbound',
-        'test@example.com',
+        'acesso@lansolver.com',
         to,
         cleanCc || null,
         cleanBcc || null,
