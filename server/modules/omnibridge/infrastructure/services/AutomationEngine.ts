@@ -1,26 +1,30 @@
-import { AutomationRule, AutomationCondition, AutomationAction } from '../../domain/entities/AutomationRule';
+import { AutomationRule, AutomationTrigger, AutomationAction } from '../../domain/entities/AutomationRule';
+import { AIAnalysisService, MessageAnalysis } from './AIAnalysisService';
 
 export interface AutomationMetrics {
   rulesExecuted: number;
   actionsTriggered: number;
   successRate: number;
   avgExecutionTime: number;
+  aiAnalysisCount: number;
   lastExecution: Date;
 }
 
 export class AutomationEngine {
   private rules: Map<string, AutomationRule> = new Map();
+  private aiService: AIAnalysisService;
   private metrics: AutomationMetrics = {
     rulesExecuted: 0,
     actionsTriggered: 0,
     successRate: 100,
     avgExecutionTime: 0,
+    aiAnalysisCount: 0,
     lastExecution: new Date()
   };
 
   constructor(private tenantId: string) {
     console.log(`🤖 [AUTOMATION-ENGINE] Initialized for tenant: ${tenantId}`);
-    // Carregar regras do banco de dados ao inicializar
+    this.aiService = new AIAnalysisService();
     this.loadRulesFromDatabase();
   }
 
@@ -37,6 +41,87 @@ export class AutomationEngine {
     return deleted;
   }
 
+  public updateRule(rule: AutomationRule): void {
+    this.rules.set(rule.id, rule);
+    console.log(`🔄 [AUTOMATION-ENGINE] Updated rule: ${rule.name} (${rule.id})`);
+  }
+
+  public async processMessage(messageData: any): Promise<void> {
+    const startTime = Date.now();
+    let executedRules = 0;
+    let triggeredActions = 0;
+    let aiAnalysis: MessageAnalysis | undefined;
+
+    try {
+      console.log(`📨 [AUTOMATION-ENGINE] Processing message for tenant ${this.tenantId}:`, {
+        sender: messageData.sender || messageData.from,
+        channel: messageData.channel || messageData.channelType,
+        contentPreview: (messageData.content || messageData.body || '').substring(0, 100)
+      });
+
+      // Verificar se alguma regra precisa de análise de IA
+      const activeRules = Array.from(this.rules.values()).filter(rule => rule.enabled);
+      const aiEnabledRules = activeRules.filter(rule => rule.aiEnabled);
+
+      if (aiEnabledRules.length > 0) {
+        console.log(`🤖 [AUTOMATION-ENGINE] ${aiEnabledRules.length} rules require AI analysis`);
+        
+        aiAnalysis = await this.aiService.analyzeMessage({
+          content: messageData.content || messageData.body,
+          sender: messageData.sender || messageData.from,
+          subject: messageData.subject,
+          channel: messageData.channel || messageData.channelType,
+          timestamp: messageData.timestamp
+        });
+
+        this.metrics.aiAnalysisCount++;
+        console.log(`🧠 [AUTOMATION-ENGINE] AI Analysis complete: ${aiAnalysis.intent} (${aiAnalysis.urgency})`);
+      }
+
+      console.log(`🔍 [AUTOMATION-ENGINE] Evaluating ${activeRules.length} active rules`);
+
+      // Ordenar regras por prioridade (maior primeiro)
+      const sortedRules = activeRules.sort((a, b) => b.priority - a.priority);
+
+      for (const rule of sortedRules) {
+        try {
+          const matches = await rule.evaluate(messageData, aiAnalysis, this.aiService);
+          
+          if (matches) {
+            console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
+            
+            await rule.execute(messageData, aiAnalysis, this.aiService);
+            
+            executedRules++;
+            triggeredActions += rule.actions.length;
+            
+            console.log(`🎯 [AUTOMATION-ENGINE] Rule "${rule.name}" executed successfully`);
+
+            // Se a regra tem prioridade alta, pode interromper outras regras
+            if (rule.priority >= 8) {
+              console.log(`🔝 [AUTOMATION-ENGINE] High priority rule executed, skipping remaining rules`);
+              break;
+            }
+          } else {
+            console.log(`⏭️ [AUTOMATION-ENGINE] Rule "${rule.name}" did not match`);
+          }
+        } catch (error) {
+          console.error(`❌ [AUTOMATION-ENGINE] Error executing rule "${rule.name}":`, error);
+        }
+      }
+
+      // Atualizar métricas
+      const executionTime = Date.now() - startTime;
+      this.updateMetrics(executedRules, triggeredActions, executionTime, true);
+
+      console.log(`📊 [AUTOMATION-ENGINE] Processing complete: ${executedRules} rules executed, ${triggeredActions} actions in ${executionTime}ms`);
+    } catch (error) {
+      console.error(`❌ [AUTOMATION-ENGINE] Error processing message:`, error);
+      this.updateMetrics(0, 0, Date.now() - startTime, false);
+      throw error;
+    }
+  }
+
   public async processEvent(eventType: string, data: Record<string, any>): Promise<void> {
     const startTime = Date.now();
     let executedRules = 0;
@@ -51,10 +136,10 @@ export class AutomationEngine {
 
     for (const rule of sortedRules) {
       try {
-        const matches = rule.evaluate({ ...data, eventType });
+        const matches = await rule.evaluate({ ...data, eventType });
 
         if (matches) {
-          console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
+          console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched event, executing actions...`);
 
           await rule.execute(data);
           executedRules++;
@@ -69,15 +154,22 @@ export class AutomationEngine {
 
     // Atualizar métricas
     const executionTime = Date.now() - startTime;
-    this.updateMetrics(executedRules, triggeredActions, executionTime);
+    this.updateMetrics(executedRules, triggeredActions, executionTime, true);
 
     console.log(`📊 [AUTOMATION-ENGINE] Event processed: ${executedRules} rules executed, ${triggeredActions} actions triggered in ${executionTime}ms`);
   }
 
-  private updateMetrics(rulesExecuted: number, actionsTriggered: number, executionTime: number): void {
+  private updateMetrics(rulesExecuted: number, actionsTriggered: number, executionTime: number, success: boolean): void {
     this.metrics.rulesExecuted += rulesExecuted;
     this.metrics.actionsTriggered += actionsTriggered;
-    this.metrics.avgExecutionTime = (this.metrics.avgExecutionTime + executionTime) / 2;
+    
+    // Calcular taxa de sucesso média
+    const totalExecCount = this.metrics.rulesExecuted || 1;
+    const successCount = success ? 1 : 0;
+    this.metrics.successRate = ((this.metrics.successRate * (totalExecCount - 1)) + (successCount * 100)) / totalExecCount;
+    
+    // Calcular tempo médio de execução
+    this.metrics.avgExecutionTime = ((this.metrics.avgExecutionTime + executionTime) / 2);
     this.metrics.lastExecution = new Date();
   }
 
@@ -96,51 +188,10 @@ export class AutomationEngine {
     }
   }
 
-  public async processMessage(messageData: any): Promise<void> {
-    try {
-      console.log(`📨 [AutomationEngine] Processing message for tenant ${this.tenantId}:`, {
-        type: messageData.type,
-        content: messageData.content?.substring(0, 100),
-        sender: messageData.sender,
-        channel: messageData.channel
-      });
-
-      const activeRules = Array.from(this.rules.values()).filter(rule => rule.enabled);
-      console.log(`🔍 [AutomationEngine] Found ${activeRules.length} active rules to evaluate`);
-
-      for (const rule of activeRules) {
-        try {
-          const matches = rule.evaluate(messageData);
-          
-          if (matches) {
-            console.log(`✅ [AutomationEngine] Rule "${rule.name}" matched message, executing actions...`);
-            
-            // Executar ações da regra
-            await rule.execute(messageData);
-            
-            // Atualizar métricas
-            this.updateMetrics('execution', true);
-            
-            console.log(`🎯 [AutomationEngine] Rule "${rule.name}" executed successfully`);
-          } else {
-            console.log(`⏭️ [AutomationEngine] Rule "${rule.name}" did not match message`);
-          }
-        } catch (error) {
-          console.error(`❌ [AutomationEngine] Error executing rule "${rule.name}":`, error);
-          this.updateMetrics('execution', false);
-        }
-      }
-
-      console.log(`✅ [AutomationEngine] Message processing completed for tenant ${this.tenantId}`);
-    } catch (error) {
-      console.error(`❌ [AutomationEngine] Error processing message for tenant ${this.tenantId}:`, error);
-      throw error;
-    }
+  public getRule(ruleId: string): AutomationRule | undefined {
+    return this.rules.get(ruleId);
   }
 
-  /**
-   * Carrega regras do banco de dados para a memória
-   */
   public async loadRulesFromDatabase(): Promise<void> {
     try {
       console.log(`📋 [AUTOMATION-ENGINE] Loading rules from database for tenant: ${this.tenantId}`);
@@ -153,22 +204,27 @@ export class AutomationEngine {
       
       // Converter regras do banco para entidades e adicionar ao engine
       for (const savedRule of savedRules) {
-        const { AutomationRule, AutomationCondition, AutomationAction } = await import('../../domain/entities/AutomationRule');
-        
-        // Converter condições
-        const conditions: AutomationCondition[] = savedRule.triggers.map((trigger: any) => ({
-          type: trigger.type || 'message_received',
-          field: trigger.field || 'content',
-          operator: trigger.operator || 'contains',
-          value: trigger.value || '',
-          condition: trigger.condition || 'equals'
-        }));
-        
-        // Converter ações
-        const actions: AutomationAction[] = savedRule.actions.map((action: any) => ({
+        const trigger: AutomationTrigger = {
+          type: savedRule.triggers?.[0]?.type || 'message_received',
+          conditions: (savedRule.triggers || []).map((t: any) => ({
+            id: t.id || `condition-${Date.now()}`,
+            type: t.type || 'content',
+            operator: t.operator || 'contains',
+            value: t.value || '',
+            field: t.field,
+            caseSensitive: t.caseSensitive || false,
+            aiAnalysisRequired: t.aiAnalysisRequired || false
+          }))
+        };
+
+        const actions: AutomationAction[] = (savedRule.actions || []).map((action: any, index: number) => ({
+          id: action.id || `action-${index}`,
           type: action.type || 'create_ticket',
-          target: action.target || 'system',
-          params: action.params || {}
+          target: action.target,
+          params: action.params || {},
+          priority: action.priority || 0,
+          aiEnabled: action.aiEnabled || false,
+          templateId: action.templateId
         }));
         
         // Criar regra em memória
@@ -177,10 +233,17 @@ export class AutomationEngine {
           savedRule.tenantId,
           savedRule.name,
           savedRule.description || '',
-          conditions,
+          trigger,
           actions,
           savedRule.isEnabled,
-          savedRule.priority || 1
+          savedRule.priority || 1,
+          savedRule.aiEnabled || false,
+          savedRule.aiPromptId,
+          savedRule.executionCount || 0,
+          savedRule.successCount || 0,
+          savedRule.lastExecuted,
+          savedRule.createdAt,
+          savedRule.updatedAt
         );
         
         this.rules.set(rule.id, rule);
@@ -190,12 +253,11 @@ export class AutomationEngine {
       console.log(`✅ [AUTOMATION-ENGINE] Successfully loaded ${savedRules.length} rules from database`);
     } catch (error) {
       console.error(`❌ [AUTOMATION-ENGINE] Error loading rules from database:`, error);
+      // Criar regras padrão se não conseguir carregar do banco
+      this.createDefaultRules();
     }
   }
 
-  /**
-   * Sincroniza regra específica do banco para a memória
-   */
   public async syncRuleFromDatabase(ruleId: string): Promise<void> {
     try {
       console.log(`🔄 [AUTOMATION-ENGINE] Syncing rule ${ruleId} from database`);
@@ -209,22 +271,27 @@ export class AutomationEngine {
         return;
       }
       
-      const { AutomationRule, AutomationCondition, AutomationAction } = await import('../../domain/entities/AutomationRule');
-      
-      // Converter condições
-      const conditions: AutomationCondition[] = savedRule.triggers.map((trigger: any) => ({
-        type: trigger.type || 'message_received',
-        field: trigger.field || 'content',
-        operator: trigger.operator || 'contains',
-        value: trigger.value || '',
-        condition: trigger.condition || 'equals'
-      }));
-      
-      // Converter ações
-      const actions: AutomationAction[] = savedRule.actions.map((action: any) => ({
+      const trigger: AutomationTrigger = {
+        type: savedRule.triggers?.[0]?.type || 'message_received',
+        conditions: (savedRule.triggers || []).map((t: any) => ({
+          id: t.id || `condition-${Date.now()}`,
+          type: t.type || 'content',
+          operator: t.operator || 'contains',
+          value: t.value || '',
+          field: t.field,
+          caseSensitive: t.caseSensitive || false,
+          aiAnalysisRequired: t.aiAnalysisRequired || false
+        }))
+      };
+
+      const actions: AutomationAction[] = (savedRule.actions || []).map((action: any, index: number) => ({
+        id: action.id || `action-${index}`,
         type: action.type || 'create_ticket',
-        target: action.target || 'system',
-        params: action.params || {}
+        target: action.target,
+        params: action.params || {},
+        priority: action.priority || 0,
+        aiEnabled: action.aiEnabled || false,
+        templateId: action.templateId
       }));
       
       // Criar/atualizar regra em memória
@@ -233,10 +300,17 @@ export class AutomationEngine {
         savedRule.tenantId,
         savedRule.name,
         savedRule.description || '',
-        conditions,
+        trigger,
         actions,
         savedRule.isEnabled,
-        savedRule.priority || 1
+        savedRule.priority || 1,
+        savedRule.aiEnabled || false,
+        savedRule.aiPromptId,
+        savedRule.executionCount || 0,
+        savedRule.successCount || 0,
+        savedRule.lastExecuted,
+        savedRule.createdAt,
+        savedRule.updatedAt
       );
       
       this.rules.set(rule.id, rule);
@@ -247,157 +321,226 @@ export class AutomationEngine {
   }
 
   public createDefaultRules(): void {
-    // Regra 1: Auto-resposta para mensagens específicas
-    const autoResponseRule = new AutomationRule(
-      'auto-response-keywords',
-      this.tenantId,
-      'Auto-resposta por palavras-chave',
-      'Resposta automática baseada em palavras-chave específicas',
-      [
-        {
-          field: 'message',
-          operator: 'contains',
-          value: 'suporte'
-        }
-      ],
-      [
-        {
-          type: 'send_message',
-          target: 'telegram',
-          params: {
-            template: 'auto_response',
-            message: 'Olá! Recebemos sua mensagem sobre suporte. Nossa equipe entrará em contato em breve.'
-          }
-        }
-      ]
-    );
+    console.log(`🔧 [AUTOMATION-ENGINE] Creating default rules for tenant: ${this.tenantId}`);
 
-    // Regra 2: Escalação automática para prioridade alta
-    const escalationRule = new AutomationRule(
-      'escalate-high-priority',
+    // Regra 1: Análise automática de reclamações com IA
+    const aiComplaintRule = new AutomationRule(
+      `ai-complaint-analysis-${this.tenantId}`,
       this.tenantId,
-      'Escalação automática - Alta prioridade',
-      'Escala automaticamente tickets de alta prioridade',
+      'Análise Inteligente de Reclamações',
+      'Detecta automaticamente reclamações usando IA e cria tickets prioritários',
+      {
+        type: 'ai_analysis',
+        conditions: [
+          {
+            id: 'ai-intent-complaint',
+            type: 'ai_intent',
+            operator: 'equals',
+            value: 'complaint',
+            aiAnalysisRequired: true
+          },
+          {
+            id: 'ai-urgency-high',
+            type: 'ai_urgency',
+            operator: 'equals',
+            value: 'high',
+            aiAnalysisRequired: true
+          }
+        ],
+        aiEnabled: true
+      },
       [
         {
-          field: 'priority',
-          operator: 'equals',
-          value: 'high'
+          id: 'create-priority-ticket',
+          type: 'create_ticket',
+          params: {
+            priority: 'high',
+            category: 'Reclamação',
+            assignToManager: true
+          },
+          priority: 1
         },
         {
-          field: 'status',
-          operator: 'equals',
-          value: 'open',
-          logicalOperator: 'AND'
-        }
-      ],
-      [
-        {
-          type: 'assign_user',
-          target: 'manager',
+          id: 'send-ai-response',
+          type: 'ai_response',
           params: {
-            reason: 'high_priority_escalation'
-          }
-        },
-        {
-          type: 'send_message',
-          target: 'telegram',
-          params: {
-            message: '🚨 Ticket de alta prioridade escalado: #{ticketId}'
-          }
+            responseType: 'empathetic_acknowledgment'
+          },
+          priority: 2,
+          aiEnabled: true
         }
       ],
       true,
-      10
+      9,
+      true
     );
 
-    // Regra 3: Tag automática por horário
-    const afterHoursRule = new AutomationRule(
-      'after-hours-tagging',
+    // Regra 2: Auto-resposta inteligente para perguntas
+    const aiQuestionRule = new AutomationRule(
+      `ai-question-response-${this.tenantId}`,
       this.tenantId,
-      'Marcação fora do horário comercial',
-      'Adiciona tag para mensagens recebidas fora do horário comercial',
-      [
-        {
-          field: 'hour',
-          operator: 'greaterThan',
-          value: 18
-        }
-      ],
-      [
-        {
-          type: 'add_tag',
-          target: 'after_hours',
-          params: {
-            color: 'orange',
-            priority: 'medium'
+      'Resposta Automática Inteligente',
+      'Responde automaticamente perguntas comuns usando análise de IA',
+      {
+        type: 'ai_analysis',
+        conditions: [
+          {
+            id: 'ai-intent-question',
+            type: 'ai_intent',
+            operator: 'equals',
+            value: 'question',
+            aiAnalysisRequired: true
           }
+        ],
+        aiEnabled: true
+      },
+      [
+        {
+          id: 'generate-ai-response',
+          type: 'ai_response',
+          params: {
+            responseType: 'helpful_answer',
+            includeNextSteps: true
+          },
+          priority: 1,
+          aiEnabled: true
         }
       ],
       true,
-      5
+      7,
+      true
     );
 
-    this.addRule(autoResponseRule);
-    this.addRule(escalationRule);
-    this.addRule(afterHoursRule);
+    // Regra 3: Escalação de emergências
+    const emergencyRule = new AutomationRule(
+      `emergency-escalation-${this.tenantId}`,
+      this.tenantId,
+      'Escalação de Emergências',
+      'Escalação imediata para mensagens de emergência detectadas por IA',
+      {
+        type: 'ai_analysis',
+        conditions: [
+          {
+            id: 'ai-intent-emergency',
+            type: 'ai_intent',
+            operator: 'equals',
+            value: 'emergency',
+            aiAnalysisRequired: true
+          }
+        ],
+        aiEnabled: true
+      },
+      [
+        {
+          id: 'notify-emergency-team',
+          type: 'notify_team',
+          params: {
+            urgency: 'immediate',
+            channels: ['email', 'sms', 'phone']
+          },
+          priority: 1
+        },
+        {
+          id: 'create-critical-ticket',
+          type: 'create_ticket',
+          params: {
+            priority: 'critical',
+            category: 'Emergência',
+            autoAssign: true
+          },
+          priority: 2
+        }
+      ],
+      true,
+      10,
+      true
+    );
+
+    // Regra 4: Palavras-chave específicas (método tradicional)
+    const keywordRule = new AutomationRule(
+      `keyword-support-${this.tenantId}`,
+      this.tenantId,
+      'Detecção por Palavras-chave',
+      'Auto-resposta baseada em palavras-chave específicas',
+      {
+        type: 'keyword_match',
+        conditions: [
+          {
+            id: 'keyword-suporte',
+            type: 'content',
+            operator: 'contains',
+            value: 'suporte',
+            caseSensitive: false
+          }
+        ]
+      },
+      [
+        {
+          id: 'send-support-info',
+          type: 'send_auto_reply',
+          params: {
+            message: 'Olá! Recebemos sua mensagem sobre suporte. Nossa equipe entrará em contato em breve. Para urgências, ligue para (11) 9999-9999.',
+            template: 'support_acknowledgment'
+          },
+          priority: 1
+        }
+      ],
+      true,
+      5,
+      false
+    );
+
+    // Adicionar regras ao engine
+    this.addRule(aiComplaintRule);
+    this.addRule(aiQuestionRule);
+    this.addRule(emergencyRule);
+    this.addRule(keywordRule);
 
     console.log(`✅ [AUTOMATION-ENGINE] Created ${this.rules.size} default rules for tenant: ${this.tenantId}`);
   }
 
-  // Métodos para ação:
-  private async sendMessage(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    try {
-      const template = action.params.template;
-      const message = this.processTemplate(action.params.message || '', data);
-
-      console.log(`📤 [AUTOMATION] Sending message to ${action.target}:`, { template, message });
-
-      if (action.target === 'telegram') {
-        const { GlobalTelegramMetricsManager } = await import('./TelegramMetricsService');
-        const metricsManager = GlobalTelegramMetricsManager.getInstance();
-        const metricsService = metricsManager.getService(this.tenantId);
-
-        metricsService.logEvent('automation_message_sent', {
-          level: 'info',
-          success: true,
-          metadata: {
-            template: template,
-            target: action.target,
-            ruleId: 'automation-rule'
-          }
-        });
-      }
-
-      if (action.target === 'whatsapp') {
-        const { GlobalWhatsAppManager } = await import('./WhatsAppBusinessService');
-        const whatsAppManager = GlobalWhatsAppManager.getInstance();
-        const whatsAppService = whatsAppManager.getService(this.tenantId);
-
-        // Implementar envio para WhatsApp quando configurado
-        console.log(`📱 [AUTOMATION] WhatsApp message prepared:`, { message, template });
-      }
-
-    } catch (error) {
-      console.error(`❌ [AUTOMATION] Error sending message:`, error);
-    }
+  public getAIService(): AIAnalysisService {
+    return this.aiService;
   }
 
-  private processTemplate(template: string, data: Record<string, any>): string {
-    let processedMessage = template;
+  public async testRule(ruleId: string, testMessage: any): Promise<{
+    matched: boolean;
+    aiAnalysis?: MessageAnalysis;
+    executionTime: number;
+    error?: string;
+  }> {
+    const startTime = Date.now();
+    
+    try {
+      const rule = this.rules.get(ruleId);
+      if (!rule) {
+        return {
+          matched: false,
+          executionTime: Date.now() - startTime,
+          error: 'Rule not found'
+        };
+      }
 
-    // Substituir variáveis no template
-    Object.entries(data).forEach(([key, value]) => {
-      const placeholder = `{${key}}`;
-      processedMessage = processedMessage.replace(new RegExp(placeholder, 'g'), String(value));
-    });
+      let aiAnalysis: MessageAnalysis | undefined;
+      
+      if (rule.aiEnabled) {
+        aiAnalysis = await this.aiService.analyzeMessage(testMessage);
+      }
 
-    // Substituir placeholders padrão
-    processedMessage = processedMessage.replace(/{date}/g, new Date().toLocaleDateString('pt-BR'));
-    processedMessage = processedMessage.replace(/{time}/g, new Date().toLocaleTimeString('pt-BR'));
-    processedMessage = processedMessage.replace(/{timestamp}/g, new Date().toISOString());
+      const matched = await rule.evaluate(testMessage, aiAnalysis, this.aiService);
 
-    return processedMessage;
+      return {
+        matched,
+        aiAnalysis,
+        executionTime: Date.now() - startTime
+      };
+    } catch (error) {
+      return {
+        matched: false,
+        executionTime: Date.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 }
 
@@ -418,7 +561,6 @@ export class GlobalAutomationManager {
   public getEngine(tenantId: string): AutomationEngine {
     if (!this.engines.has(tenantId)) {
       const engine = new AutomationEngine(tenantId);
-      engine.createDefaultRules();
       this.engines.set(tenantId, engine);
     }
     return this.engines.get(tenantId)!;
@@ -440,6 +582,11 @@ export class GlobalAutomationManager {
     await engine.syncRuleFromDatabase(ruleId);
   }
 
+  public async processMessage(tenantId: string, messageData: any): Promise<void> {
+    const engine = this.getEngine(tenantId);
+    return engine.processMessage(messageData);
+  }
+
   public processGlobalEvent(tenantId: string, eventType: string, data: Record<string, any>): Promise<void> {
     const engine = this.getEngine(tenantId);
     return engine.processEvent(eventType, data);
@@ -451,5 +598,10 @@ export class GlobalAutomationManager {
       metrics[tenantId] = engine.getMetrics();
     }
     return metrics;
+  }
+
+  public getEngineMetrics(tenantId: string): AutomationMetrics | undefined {
+    const engine = this.engines.get(tenantId);
+    return engine?.getMetrics();
   }
 }

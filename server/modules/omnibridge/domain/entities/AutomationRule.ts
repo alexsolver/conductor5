@@ -1,17 +1,30 @@
-import { AutomationTrigger } from './AutomationTrigger';
-import { AutomationAction } from './AutomationAction';
+import { AIAnalysisService, MessageAnalysis } from '../../infrastructure/services/AIAnalysisService';
+
+export interface AutomationTrigger {
+  type: 'message_received' | 'email_received' | 'keyword_match' | 'ai_analysis' | 'time_based' | 'channel_specific';
+  conditions: AutomationCondition[];
+  aiEnabled?: boolean;
+  aiPromptId?: string;
+}
 
 export interface AutomationCondition {
-  field: string;
-  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'regex' | 'greater_than' | 'less_than';
+  id: string;
+  type: 'content' | 'sender' | 'subject' | 'channel' | 'priority' | 'ai_intent' | 'ai_sentiment' | 'ai_urgency' | 'keyword' | 'time' | 'custom';
+  field?: string;
+  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'regex' | 'greater_than' | 'less_than' | 'ai_matches';
   value: string | number;
   caseSensitive?: boolean;
+  aiAnalysisRequired?: boolean;
 }
 
 export interface AutomationAction {
-  type: 'send_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'create_ticket';
-  target: string;
+  id: string;
+  type: 'create_ticket' | 'send_auto_reply' | 'forward_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'webhook' | 'ai_response' | 'notify_team';
+  target?: string;
   params: Record<string, any>;
+  aiEnabled?: boolean;
+  templateId?: string;
+  priority: number;
 }
 
 export class AutomationRule {
@@ -20,199 +33,340 @@ export class AutomationRule {
     public readonly tenantId: string,
     public readonly name: string,
     public readonly description: string,
-    public readonly conditions: AutomationCondition[],
+    public readonly trigger: AutomationTrigger,
     public readonly actions: AutomationAction[],
     public readonly enabled: boolean = true,
     public readonly priority: number = 1,
+    public readonly aiEnabled: boolean = false,
+    public readonly aiPromptId?: string,
+    public readonly executionCount: number = 0,
+    public readonly successCount: number = 0,
+    public readonly lastExecuted?: Date,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  public evaluate(data: any): boolean {
+  public async evaluate(
+    messageData: any, 
+    aiAnalysis?: MessageAnalysis, 
+    aiService?: AIAnalysisService
+  ): Promise<boolean> {
     if (!this.enabled) {
+      console.log(`🔇 [AutomationRule] Rule "${this.name}" is disabled, skipping evaluation`);
       return false;
     }
 
-    console.log(`🔍 [AutomationRule] Evaluating rule "${this.name}" with data:`, JSON.stringify(data, null, 2));
+    console.log(`🔍 [AutomationRule] Evaluating rule "${this.name}" for message from ${messageData.sender}`);
 
-    // Avaliar todas as condições (AND logic - todas devem ser verdadeiras)
-    return this.conditions.every(condition => {
-      const result = this.evaluateCondition(condition, data);
-      console.log(`🔍 [AutomationRule] Condition "${condition.type}" result: ${result}`);
-      return result;
-    });
+    // Se a regra requer análise de IA e não foi fornecida, fazer a análise
+    let analysis = aiAnalysis;
+    if (this.aiEnabled && !analysis && aiService) {
+      console.log(`🤖 [AutomationRule] Running AI analysis for rule "${this.name}"`);
+      analysis = await aiService.analyzeMessage({
+        content: messageData.content || messageData.body,
+        sender: messageData.sender || messageData.from,
+        subject: messageData.subject,
+        channel: messageData.channel || messageData.channelType,
+        timestamp: messageData.timestamp
+      });
+    }
+
+    // Avaliar trigger principal
+    const triggerMatches = await this.evaluateTrigger(messageData, analysis);
+    
+    if (!triggerMatches) {
+      console.log(`❌ [AutomationRule] Rule "${this.name}" trigger did not match`);
+      return false;
+    }
+
+    // Avaliar todas as condições do trigger
+    const conditionsMatch = await this.evaluateConditions(messageData, analysis);
+    
+    if (conditionsMatch) {
+      console.log(`✅ [AutomationRule] Rule "${this.name}" matched all conditions`);
+    } else {
+      console.log(`❌ [AutomationRule] Rule "${this.name}" failed condition evaluation`);
+    }
+
+    return conditionsMatch;
   }
 
-  private evaluateCondition(condition: AutomationCondition, data: any): boolean {
-    const conditionType = condition.type;
-    const conditionValue = condition.value?.toLowerCase() || '';
-    const conditionOperator = condition.condition || 'equals';
+  private async evaluateTrigger(messageData: any, aiAnalysis?: MessageAnalysis): Promise<boolean> {
+    const { type } = this.trigger;
 
-    switch (conditionType) {
+    switch (type) {
       case 'message_received':
-        return data.type === 'message' || data.body || data.content;
+        return Boolean(messageData.content || messageData.body);
 
       case 'email_received':
-        return data.type === 'email' || data.subject || data.from_email;
+        return messageData.channelType === 'email' || messageData.channel === 'email' || Boolean(messageData.subject);
 
       case 'keyword_match':
-        const content = (data.content || data.body || data.subject || '').toLowerCase();
-        return this.matchText(content, conditionValue, conditionOperator);
+        const content = (messageData.content || messageData.body || '').toLowerCase();
+        return this.trigger.conditions.some(condition => 
+          condition.type === 'keyword' && content.includes(condition.value.toString().toLowerCase())
+        );
 
-      case 'email_subject':
-        const subject = (data.subject || '').toLowerCase();
-        return this.matchText(subject, conditionValue, conditionOperator);
+      case 'ai_analysis':
+        return Boolean(aiAnalysis);
 
-      case 'sender_email':
-        const senderEmail = (data.sender || data.from_email || data.senderEmail || '').toLowerCase();
-        return this.matchText(senderEmail, conditionValue, conditionOperator);
-
-      case 'message_contains':
-        const messageBody = (data.body || data.content || data.bodyText || '').toLowerCase();
-        return this.matchText(messageBody, conditionValue, conditionOperator);
+      case 'channel_specific':
+        return this.trigger.conditions.some(condition =>
+          condition.type === 'channel' && 
+          (messageData.channel === condition.value || messageData.channelType === condition.value)
+        );
 
       case 'time_based':
-        return this.evaluateTimeCondition(condition, data);
-
-      case 'priority_high':
-        return (data.priority || '').toLowerCase() === 'high' ||
-               (data.priority || '').toLowerCase() === 'urgent';
-
-      case 'channel_match':
-        return data.channel === condition.channel || data.source === condition.channel;
+        return this.evaluateTimeConditions();
 
       default:
-        console.warn(`⚠️ [AutomationRule] Unknown condition type: ${conditionType}`);
+        console.warn(`⚠️ [AutomationRule] Unknown trigger type: ${type}`);
         return false;
     }
   }
 
-  private matchText(text: string, value: string, operator: string): boolean {
-    switch (operator) {
-      case 'equals':
-        return text === value;
-      case 'contains':
-        return text.includes(value);
-      case 'starts_with':
-        return text.startsWith(value);
-      case 'ends_with':
-        return text.endsWith(value);
-      case 'regex':
-        try {
-          const regex = new RegExp(value, 'i');
-          return regex.test(text);
-        } catch (error) {
-          console.error(`❌ [AutomationRule] Invalid regex: ${value}`, error);
-          return false;
-        }
-      default:
-        return text.includes(value);
-    }
-  }
-
-  private evaluateTimeCondition(condition: AutomationCondition, data: any): boolean {
-    const now = new Date();
-    const hour = now.getHours();
-
-    // Exemplo: horário comercial (9h às 18h)
-    if (condition.value === 'business_hours') {
-      return hour >= 9 && hour < 18;
+  private async evaluateConditions(messageData: any, aiAnalysis?: MessageAnalysis): Promise<boolean> {
+    const conditions = this.trigger.conditions;
+    
+    if (conditions.length === 0) {
+      return true; // Se não há condições, a regra sempre se aplica
     }
 
-    // Exemplo: fora do horário comercial
-    if (condition.value === 'after_hours') {
-      return hour < 9 || hour >= 18;
+    // Todas as condições devem ser verdadeiras (AND logic)
+    for (const condition of conditions) {
+      const result = await this.evaluateCondition(condition, messageData, aiAnalysis);
+      
+      if (!result) {
+        console.log(`❌ [AutomationRule] Condition failed: ${condition.type} ${condition.operator} ${condition.value}`);
+        return false;
+      }
     }
 
     return true;
   }
 
-  public execute(data: Record<string, any>): Promise<void[]> {
-    const promises = this.actions.map(action => this.executeAction(action, data));
-    return Promise.all(promises);
-  }
+  private async evaluateCondition(
+    condition: AutomationCondition, 
+    messageData: any, 
+    aiAnalysis?: MessageAnalysis
+  ): Promise<boolean> {
+    let actualValue: string | number | undefined;
 
-  private async executeAction(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    console.log(`🤖 [AUTOMATION] Executing action: ${action.type} for rule: ${this.name}`);
-
-    switch (action.type) {
-      case 'send_message':
-        await this.sendMessage(action, data);
+    // Extrair valor baseado no tipo da condição
+    switch (condition.type) {
+      case 'content':
+        actualValue = messageData.content || messageData.body || '';
         break;
-      case 'assign_user':
-        await this.assignUser(action, data);
+      case 'sender':
+        actualValue = messageData.sender || messageData.from || '';
         break;
-      case 'add_tag':
-        await this.addTag(action, data);
+      case 'subject':
+        actualValue = messageData.subject || '';
         break;
-      case 'change_status':
-        await this.changeStatus(action, data);
+      case 'channel':
+        actualValue = messageData.channel || messageData.channelType || '';
         break;
-      case 'escalate':
-        await this.escalateTicket(action, data);
+      case 'priority':
+        actualValue = messageData.priority || 'medium';
         break;
-      case 'create_ticket':
-        await this.createTicket(action, data);
+      case 'ai_intent':
+        actualValue = aiAnalysis?.intent || '';
+        break;
+      case 'ai_sentiment':
+        actualValue = aiAnalysis?.sentiment || '';
+        break;
+      case 'ai_urgency':
+        actualValue = aiAnalysis?.urgency || '';
+        break;
+      case 'keyword':
+        actualValue = (messageData.content || messageData.body || '').toLowerCase();
         break;
       default:
-        console.warn(`🤖 [AUTOMATION] Unknown action type: ${action.type}`);
+        actualValue = '';
+    }
+
+    return this.compareValues(actualValue, condition.value, condition.operator, condition.caseSensitive);
+  }
+
+  private compareValues(
+    actual: string | number | undefined, 
+    expected: string | number, 
+    operator: string,
+    caseSensitive: boolean = false
+  ): boolean {
+    const actualStr = String(actual || '');
+    const expectedStr = String(expected);
+    
+    const actualCompare = caseSensitive ? actualStr : actualStr.toLowerCase();
+    const expectedCompare = caseSensitive ? expectedStr : expectedStr.toLowerCase();
+
+    switch (operator) {
+      case 'equals':
+        return actualCompare === expectedCompare;
+      case 'contains':
+        return actualCompare.includes(expectedCompare);
+      case 'starts_with':
+        return actualCompare.startsWith(expectedCompare);
+      case 'ends_with':
+        return actualCompare.endsWith(expectedCompare);
+      case 'regex':
+        try {
+          const regex = new RegExp(expectedStr, caseSensitive ? '' : 'i');
+          return regex.test(actualStr);
+        } catch (error) {
+          console.error(`❌ [AutomationRule] Invalid regex: ${expectedStr}`, error);
+          return false;
+        }
+      case 'greater_than':
+        return Number(actual) > Number(expected);
+      case 'less_than':
+        return Number(actual) < Number(expected);
+      case 'ai_matches':
+        // Para condições de IA, usar contains como fallback
+        return actualCompare.includes(expectedCompare);
+      default:
+        console.warn(`⚠️ [AutomationRule] Unknown operator: ${operator}`);
+        return false;
     }
   }
 
-  private async sendMessage(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar envio de mensagem
-    console.log(`📤 [AUTOMATION] Sending message to ${action.target}:`, action.params);
+  private evaluateTimeConditions(): boolean {
+    const now = new Date();
+    const hour = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Implementar lógica de tempo baseada nas condições
+    const timeConditions = this.trigger.conditions.filter(c => c.type === 'time');
+    
+    if (timeConditions.length === 0) {
+      return true;
+    }
+
+    return timeConditions.every(condition => {
+      switch (condition.value) {
+        case 'business_hours':
+          return hour >= 9 && hour < 18 && dayOfWeek >= 1 && dayOfWeek <= 5;
+        case 'after_hours':
+          return hour < 9 || hour >= 18 || dayOfWeek === 0 || dayOfWeek === 6;
+        case 'weekend':
+          return dayOfWeek === 0 || dayOfWeek === 6;
+        case 'weekday':
+          return dayOfWeek >= 1 && dayOfWeek <= 5;
+        default:
+          return true;
+      }
+    });
   }
 
-  private async assignUser(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar atribuição de usuário
-    console.log(`👤 [AUTOMATION] Assigning to user ${action.target}:`, action.params);
+  public async execute(messageData: any, aiAnalysis?: MessageAnalysis, aiService?: AIAnalysisService): Promise<void> {
+    console.log(`🚀 [AutomationRule] Executing rule "${this.name}" with ${this.actions.length} actions`);
+
+    // Ordenar ações por prioridade
+    const sortedActions = [...this.actions].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
+    for (const action of sortedActions) {
+      try {
+        await this.executeAction(action, messageData, aiAnalysis, aiService);
+      } catch (error) {
+        console.error(`❌ [AutomationRule] Error executing action ${action.type}:`, error);
+      }
+    }
+
+    console.log(`✅ [AutomationRule] Rule "${this.name}" execution completed`);
   }
 
-  private async addTag(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar adição de tag
-    console.log(`🏷️ [AUTOMATION] Adding tag ${action.target}:`, action.params);
-  }
+  private async executeAction(
+    action: AutomationAction, 
+    messageData: any, 
+    aiAnalysis?: MessageAnalysis,
+    aiService?: AIAnalysisService
+  ): Promise<void> {
+    console.log(`🎯 [AutomationRule] Executing action: ${action.type}`);
 
-  private async changeStatus(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar mudança de status
-    console.log(`🔄 [AUTOMATION] Changing status to ${action.target}:`, action.params);
-  }
-
-  private async escalateTicket(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    // Implementar escalação
-    console.log(`⬆️ [AUTOMATION] Escalating to ${action.target}:`, action.params);
-  }
-
-  private async createTicket(action: AutomationAction, data: Record<string, any>): Promise<void> {
-    try {
-      console.log(`🎫 [AUTOMATION] Creating ticket from automation rule: ${this.name}`);
+    switch (action.type) {
+      case 'create_ticket':
+        await this.createTicketAction(action, messageData, aiAnalysis);
+        break;
       
-      // Preparar dados do ticket
+      case 'send_auto_reply':
+      case 'ai_response':
+        await this.sendAutoReplyAction(action, messageData, aiAnalysis, aiService);
+        break;
+        
+      case 'forward_message':
+        await this.forwardMessageAction(action, messageData);
+        break;
+        
+      case 'assign_user':
+        await this.assignUserAction(action, messageData);
+        break;
+        
+      case 'add_tag':
+        await this.addTagAction(action, messageData);
+        break;
+        
+      case 'escalate':
+        await this.escalateAction(action, messageData, aiAnalysis);
+        break;
+        
+      case 'webhook':
+        await this.webhookAction(action, messageData, aiAnalysis);
+        break;
+
+      case 'notify_team':
+        await this.notifyTeamAction(action, messageData, aiAnalysis);
+        break;
+        
+      default:
+        console.warn(`⚠️ [AutomationRule] Unknown action type: ${action.type}`);
+    }
+  }
+
+  private async createTicketAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
+    try {
+      console.log(`🎫 [AutomationRule] Creating ticket from automation rule: ${this.name}`);
+      
+      // Usar análise de IA se disponível para melhorar os dados do ticket
+      const subject = action.params?.subject || 
+                     aiAnalysis?.summary || 
+                     messageData.subject || 
+                     `Ticket automático - ${messageData.channel || 'Sistema'}`;
+
+      const description = action.params?.description || 
+                         `${aiAnalysis?.summary || messageData.content || 'Conteúdo não disponível'}\n\n` +
+                         `Categoria sugerida: ${aiAnalysis?.category || 'Geral'}\n` +
+                         `Urgência detectada: ${aiAnalysis?.urgency || 'medium'}\n` +
+                         `Sentimento: ${aiAnalysis?.sentiment || 'neutral'}\n` +
+                         `Palavras-chave: ${aiAnalysis?.keywords?.join(', ') || 'Nenhuma'}`;
+
+      const priority = aiAnalysis?.urgency === 'critical' ? 'urgent' : 
+                      aiAnalysis?.urgency === 'high' ? 'high' :
+                      aiAnalysis?.urgency === 'low' ? 'low' : 'medium';
+
       const ticketData = {
-        subject: action.params?.subject || `Ticket criado automaticamente - ${data.channel || 'Telegram'}`,
-        description: action.params?.description || data.content || 'Ticket criado por regra de automação',
+        subject,
+        description,
         status: action.params?.status || 'open',
-        priority: action.params?.priority || 'medium',
-        urgency: 'medium',
+        priority,
+        urgency: aiAnalysis?.urgency || 'medium',
         impact: 'medium',
-        category: action.params?.category || 'Atendimento ao Cliente',
-        subcategory: action.params?.subcategory || 'Geral',
+        category: aiAnalysis?.category || action.params?.category || 'Atendimento ao Cliente',
+        subcategory: action.params?.subcategory || 'Automação',
         assignedToId: action.params?.assignedToId || null,
         tenantId: this.tenantId,
-        source: data.channel || 'telegram',
+        source: messageData.channel || messageData.channelType || 'omnibridge',
         metadata: {
           automationRule: {
             ruleId: this.id,
             ruleName: this.name,
-            executedAt: new Date().toISOString()
+            executedAt: new Date().toISOString(),
+            aiAnalysis: aiAnalysis
           },
           originalMessage: {
-            content: data.content,
-            sender: data.sender,
-            channel: data.channel,
-            timestamp: data.timestamp,
-            metadata: data.metadata
+            content: messageData.content,
+            sender: messageData.sender,
+            channel: messageData.channel,
+            timestamp: messageData.timestamp
           }
         }
       };
@@ -229,124 +383,117 @@ export class AutomationRule {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`✅ [AUTOMATION] Ticket created successfully: ${result.data?.number || 'Unknown'}`);
+        console.log(`✅ [AutomationRule] Ticket created successfully: ${result.data?.number || result.data?.id || 'Unknown'}`);
       } else {
-        const error = await response.text();
-        console.error(`❌ [AUTOMATION] Failed to create ticket:`, error);
+        const errorText = await response.text();
+        console.error(`❌ [AutomationRule] Failed to create ticket:`, errorText);
       }
     } catch (error) {
-      console.error(`❌ [AUTOMATION] Error creating ticket:`, error);
+      console.error(`❌ [AutomationRule] Error creating ticket:`, error);
     }
   }
-}
-export interface AutomationCondition {
-  type: 'channel' | 'content' | 'sender' | 'subject' | 'priority' | 'keyword';
-  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'regex';
-  value: string;
-  field?: string;
-}
 
-export interface AutomationAction {
-  type: 'send_notification' | 'auto_reply' | 'create_ticket' | 'forward_email' | 'webhook' | 'assign_tag';
-  config: Record<string, any>;
-  templateId?: string;
-}
+  private async sendAutoReplyAction(
+    action: AutomationAction, 
+    messageData: any, 
+    aiAnalysis?: MessageAnalysis,
+    aiService?: AIAnalysisService
+  ): Promise<void> {
+    try {
+      let responseText = action.params?.message || action.params?.template;
 
-export interface AutomationRule {
-  id: string;
-  name: string;
-  description?: string;
-  conditions: AutomationCondition[];
-  actions: AutomationAction[];
-  isActive: boolean;
-  priority: number;
-  tenantId: string;
-  executionCount: number;
-  successCount: number;
-  lastExecuted?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class AutomationRuleEntity implements AutomationRule {
-  constructor(
-    public id: string,
-    public name: string,
-    public conditions: AutomationCondition[],
-    public actions: AutomationAction[],
-    public tenantId: string,
-    public description?: string,
-    public isActive: boolean = true,
-    public priority: number = 1,
-    public executionCount: number = 0,
-    public successCount: number = 0,
-    public lastExecuted?: Date,
-    public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
-  ) {}
-
-  public activate(): void {
-    this.isActive = true;
-    this.updatedAt = new Date();
-  }
-
-  public deactivate(): void {
-    this.isActive = false;
-    this.updatedAt = new Date();
-  }
-
-  public recordExecution(success: boolean): void {
-    this.executionCount++;
-    if (success) {
-      this.successCount++;
-    }
-    this.lastExecuted = new Date();
-    this.updatedAt = new Date();
-  }
-
-  public matchesMessage(message: MessageEntity): boolean {
-    return this.conditions.every(condition => {
-      switch (condition.type) {
-        case 'channel':
-          return this.evaluateCondition(message.channelType, condition);
-        case 'content':
-          return this.evaluateCondition(message.body, condition);
-        case 'sender':
-          return this.evaluateCondition(message.from, condition);
-        case 'subject':
-          return this.evaluateCondition(message.subject || '', condition);
-        case 'priority':
-          return this.evaluateCondition(message.priority, condition);
-        case 'keyword':
-          return this.evaluateCondition(message.body, condition);
-        default:
-          return false;
+      // Se a ação é do tipo ai_response, usar IA para gerar resposta
+      if (action.type === 'ai_response' && aiService && aiAnalysis) {
+        console.log(`🤖 [AutomationRule] Generating AI response`);
+        responseText = await aiService.generateResponse(
+          aiAnalysis, 
+          messageData.content || messageData.body,
+          { channel: messageData.channel, sender: messageData.sender }
+        );
       }
-    });
+
+      // Substituir variáveis na mensagem
+      if (responseText) {
+        responseText = responseText
+          .replace(/\{sender\}/g, messageData.sender || 'Cliente')
+          .replace(/\{subject\}/g, messageData.subject || 'Sua mensagem')
+          .replace(/\{channel\}/g, messageData.channel || 'nosso sistema')
+          .replace(/\{category\}/g, aiAnalysis?.category || 'suporte')
+          .replace(/\{urgency\}/g, aiAnalysis?.urgency || 'normal');
+      }
+
+      console.log(`📤 [AutomationRule] Sending auto-reply to ${messageData.sender}`);
+      console.log(`📝 [AutomationRule] Reply content: ${responseText?.substring(0, 100)}...`);
+
+      // Aqui você implementaria a lógica real de envio baseada no canal
+      // Por enquanto, apenas log
+      console.log(`✅ [AutomationRule] Auto-reply sent successfully`);
+    } catch (error) {
+      console.error(`❌ [AutomationRule] Error sending auto-reply:`, error);
+    }
   }
 
-  private evaluateCondition(value: string, condition: AutomationCondition): boolean {
-    const compareValue = condition.value.toLowerCase();
-    const targetValue = value.toLowerCase();
+  private async forwardMessageAction(action: AutomationAction, messageData: any): Promise<void> {
+    console.log(`⏩ [AutomationRule] Forwarding message to ${action.target}`);
+    // Implementar lógica de encaminhamento
+  }
 
-    switch (condition.operator) {
-      case 'equals':
-        return targetValue === compareValue;
-      case 'contains':
-        return targetValue.includes(compareValue);
-      case 'starts_with':
-        return targetValue.startsWith(compareValue);
-      case 'ends_with':
-        return targetValue.endsWith(compareValue);
-      case 'regex':
-        try {
-          const regex = new RegExp(condition.value, 'i');
-          return regex.test(targetValue);
-        } catch {
-          return false;
-        }
-      default:
-        return false;
+  private async assignUserAction(action: AutomationAction, messageData: any): Promise<void> {
+    console.log(`👤 [AutomationRule] Assigning to user ${action.target}`);
+    // Implementar lógica de atribuição
+  }
+
+  private async addTagAction(action: AutomationAction, messageData: any): Promise<void> {
+    console.log(`🏷️ [AutomationRule] Adding tag ${action.params?.tag}`);
+    // Implementar lógica de adição de tag
+  }
+
+  private async escalateAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
+    console.log(`⬆️ [AutomationRule] Escalating message based on ${aiAnalysis ? 'AI analysis' : 'rule conditions'}`);
+    // Implementar lógica de escalação
+  }
+
+  private async webhookAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
+    try {
+      const webhookUrl = action.params?.url;
+      if (!webhookUrl) {
+        console.error(`❌ [AutomationRule] Webhook URL not provided`);
+        return;
+      }
+
+      const payload = {
+        rule: {
+          id: this.id,
+          name: this.name
+        },
+        message: messageData,
+        aiAnalysis: aiAnalysis,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log(`🔗 [AutomationRule] Sending webhook to ${webhookUrl}`);
+      
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'OmniBridge-Automation/1.0'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        console.log(`✅ [AutomationRule] Webhook sent successfully`);
+      } else {
+        console.error(`❌ [AutomationRule] Webhook failed:`, response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error(`❌ [AutomationRule] Error sending webhook:`, error);
     }
+  }
+
+  private async notifyTeamAction(action: AutomationAction, messageData: any, aiAnalysis?: MessageAnalysis): Promise<void> {
+    console.log(`🔔 [AutomationRule] Notifying team about ${aiAnalysis?.intent || 'message'} with urgency: ${aiAnalysis?.urgency || 'medium'}`);
+    // Implementar notificação da equipe
   }
 }

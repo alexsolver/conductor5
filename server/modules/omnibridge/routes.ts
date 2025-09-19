@@ -33,6 +33,8 @@ router.post('/channels/:channelId/toggle', (req, res) => omniBridgeController.to
 
 router.get('/messages', (req, res) => omniBridgeController.getMessages(req, res));
 router.post('/messages/:messageId/process', (req, res) => omniBridgeController.processMessage(req, res));
+router.post('/messages/process-direct', (req, res) => omniBridgeController.processDirectMessage(req, res));
+router.post('/automation-rules/:ruleId/test', (req, res) => omniBridgeController.testAutomationRule(req, res));
 
 // Message interaction routes
 router.post('/messages/send', (req, res) => omniBridgeController.sendMessage(req, res));

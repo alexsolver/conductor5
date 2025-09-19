@@ -118,24 +118,90 @@ export class OmniBridgeController {
     try {
       const { messageId } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
+      const { action } = req.body;
 
-      console.log(`🔧 [OMNIBRIDGE-CONTROLLER] Processing message ${messageId} for tenant: ${tenantId}`);
+      console.log(`🔧 [OMNIBRIDGE-CONTROLLER] Processing message ${messageId} for tenant: ${tenantId} with action: ${action || 'analyze_and_automate'}`);
 
       const result = await this.processMessageUseCase.execute({
         messageId,
-        tenantId
+        tenantId,
+        action: action || 'analyze_and_automate'
       });
 
       res.json({
-        success: true,
-        message: 'Message processed successfully',
-        data: result
+        success: result.success,
+        message: result.message,
+        data: {
+          aiAnalysis: result.aiAnalysis,
+          automationResults: result.automationResults
+        }
       });
     } catch (error) {
       console.error('❌ [OMNIBRIDGE-CONTROLLER] Error processing message:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to process message'
+        error: 'Failed to process message',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async processDirectMessage(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const messageData = req.body;
+
+      console.log(`🎯 [OMNIBRIDGE-CONTROLLER] Processing direct message for tenant: ${tenantId}`);
+
+      if (!messageData.content && !messageData.body) {
+        res.status(400).json({
+          success: false,
+          error: 'Message content is required'
+        });
+        return;
+      }
+
+      const result = await this.processMessageUseCase.processDirectMessage(messageData, tenantId);
+
+      res.json({
+        success: result.success,
+        message: result.message,
+        data: {
+          aiAnalysis: result.aiAnalysis,
+          automationResults: result.automationResults
+        }
+      });
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-CONTROLLER] Error processing direct message:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process direct message',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async testAutomationRule(req: Request, res: Response): Promise<void> {
+    try {
+      const { ruleId } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const testMessage = req.body;
+
+      console.log(`🧪 [OMNIBRIDGE-CONTROLLER] Testing automation rule ${ruleId} for tenant: ${tenantId}`);
+
+      const result = await this.processMessageUseCase.testAutomationRule(ruleId, testMessage, tenantId);
+
+      res.json({
+        success: result.success,
+        message: result.message,
+        data: result.result
+      });
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-CONTROLLER] Error testing automation rule:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to test automation rule',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
