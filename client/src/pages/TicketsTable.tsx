@@ -545,10 +545,10 @@ const TicketsTable = React.memo(() => {
   });
 
   // ✅ FETCH COMPANIES for company selection
-  const {
-    data: companiesData,
-    isLoading: companiesLoading,
-    error: companiesError
+  const { 
+    data: companiesData, 
+    isLoading: companiesLoading, 
+    error: companiesError 
   } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
@@ -581,9 +581,9 @@ const TicketsTable = React.memo(() => {
       console.log('🏢 [COMPANIES-QUERY] Processed companies:', companies);
 
       // Filter out inactive companies if needed
-      return companies.filter((company: any) =>
-        company &&
-        (company.isActive !== false) &&
+      return companies.filter((company: any) => 
+        company && 
+        (company.isActive !== false) && 
         (company.status !== 'inactive')
       );
     }
@@ -1459,12 +1459,12 @@ const TicketsTable = React.memo(() => {
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false); // State to disable company selection during creation
-
+  
   // Dynamic field visibility based on template - Start with all hidden until template is selected
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({
     category: false,
     subcategory: false,
-    priority: false,
+    priority: false, 
     impact: false,
     urgency: false,
     assignedToId: false,
@@ -1475,7 +1475,7 @@ const TicketsTable = React.memo(() => {
     symptoms: false,
     workaround: false
   });
-
+  
   const [templateSelected, setTemplateSelected] = useState<boolean>(false);
 
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
@@ -1544,16 +1544,10 @@ const TicketsTable = React.memo(() => {
   // Mutations for ticket creation
   const createTicketMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('🚀 Starting ticket creation with data:', data);
+      setIsCreatingTicket(true); // Set creating state
       try {
-        console.log('🌐 Making API request to create ticket with data:', data);
-        const response = await fetch("/api/tickets", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(data),
-        });
+        const response = await apiRequest("POST", "/api/tickets", data);
         console.log('📡 API Response status:', response.status);
 
         if (!response.ok) {
@@ -1568,6 +1562,8 @@ const TicketsTable = React.memo(() => {
       } catch (error) {
         console.error('💥 Mutation Error:', error);
         throw error;
+      } finally {
+        setIsCreatingTicket(false); // Reset creating state
       }
     },
     onSuccess: (data) => {
@@ -1696,7 +1692,7 @@ const TicketsTable = React.memo(() => {
 
   const renderTicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pl-[2px] pr-[2px] ml-[0px] mr-[0px]" noValidate>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pl-[2px] pr-[2px] ml-[0px] mr-[0px]">
 
         {/* Company Selection - First field */}
         <div className="mb-4">
@@ -1753,7 +1749,7 @@ const TicketsTable = React.memo(() => {
               // ✅ 1QA.MD: Apply template fields when selected
               if (templateId && templateId !== '__none__' && templatesData?.data) {
                 setTemplateSelected(true);
-
+                
                 let templatesArray = null;
                 if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
                   templatesArray = templatesData.data.templates;
@@ -1764,7 +1760,7 @@ const TicketsTable = React.memo(() => {
                 }
 
                 const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-
+                
                 // Check both fields and required_fields
                 const templateFields = selectedTemplate?.fields || selectedTemplate?.required_fields;
                 if (templateFields) {
@@ -1783,7 +1779,7 @@ const TicketsTable = React.memo(() => {
                       // fields format: object with keys
                       templateFieldKeys = Object.keys(parsedFields);
                     }
-
+                    
                     const fieldMapping: Record<string, string> = {
                       'assignedTo': 'assignedToId', // Handle naming differences
                       'client': 'callerId', // Map client to caller
@@ -1791,7 +1787,7 @@ const TicketsTable = React.memo(() => {
                       'company': 'companyId', // Map company
                       'summary': 'subject', // Map summary to subject
                     };
-
+                    
                     const newVisibleFields: Record<string, boolean> = {
                       category: templateFieldKeys.includes('category'),
                       subcategory: templateFieldKeys.includes('subcategory'),
@@ -2331,25 +2327,31 @@ const TicketsTable = React.memo(() => {
         />
 
 
-        <div className="flex-shrink-0 flex justify-end space-x-2 pt-4 border-t bg-white dark:bg-gray-800">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsNewTicketModalOpen(false)}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                        disabled={createTicketMutation.isPending}
-                      >
-                        {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
-                      </Button>
-                    </div>
-                  </form>
-                  </Form>
-                </div>
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setIsNewTicketModalOpen(false);
+              form.reset();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            disabled={createTicketMutation.isPending}
+          >
+            {createTicketMutation.isPending
+              ? "Creating..."
+              : "Create Ticket"
+            }
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 
 
