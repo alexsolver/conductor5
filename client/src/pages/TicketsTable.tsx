@@ -1860,8 +1860,8 @@ const TicketsTable = React.memo(() => {
                 <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
               ) : companiesData && companiesData.length > 0 ? (
                 companiesData.map((company: any, index: number) => (
-                  <SelectItem 
-                    key={company.id || `company-${index}`} 
+                  <SelectItem
+                    key={company.id || `company-${index}`}
                     value={company.id && company.id !== '' ? company.id : `fallback-${index}`}
                   >
                     <div className="flex items-center space-x-2">
@@ -1901,9 +1901,12 @@ const TicketsTable = React.memo(() => {
               {templatesLoading ? (
                 <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
               ) : (
-                availableTemplates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
+                availableTemplates.map((template: any, index: number) => (
+                  <SelectItem
+                    key={template.id || `template-${index}`}
+                    value={template.id && template.id !== '' ? template.id : `template-fallback-${index}`}
+                  >
+                    {template.name || 'Template sem nome'}
                   </SelectItem>
                 ))
               )}
