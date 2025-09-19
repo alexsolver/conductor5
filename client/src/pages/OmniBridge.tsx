@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -82,15 +85,24 @@ interface AutomationRule {
   name: string;
   description: string;
   enabled: boolean;
-  trigger: {
+  isEnabled?: boolean;
+  trigger?: {
     type: 'new_message' | 'keyword' | 'time' | 'channel';
     conditions: string[];
   };
+  triggers?: {
+    type: 'new_message' | 'keyword' | 'time_based' | 'channel_specific' | 'priority_based' | 'sender_pattern' | 'content_pattern' | 'ai_analysis';
+    conditions: any;
+  }[];
   actions: {
-    type: 'reply' | 'forward' | 'create_ticket' | 'notify' | 'tag';
+    type: 'reply' | 'forward' | 'create_ticket' | 'notify' | 'tag' | 'auto_reply' | 'forward_message' | 'send_notification' | 'add_tags' | 'assign_agent' | 'mark_priority' | 'archive' | 'webhook_call' | 'ai_response';
     parameters: Record<string, any>;
   }[];
   priority: number;
+  executionStats?: {
+    totalExecutions: number;
+    successRate: number;
+  };
 }
 
 interface Template {
@@ -179,6 +191,39 @@ export default function OmniBridge() {
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
+
+  // AI Configuration state
+  const [aiConfig, setAiConfig] = useState({
+    model: 'gpt-4',
+    temperature: 0.7,
+    maxTokens: 1000,
+    confidenceThreshold: 0.8,
+    enabledAnalysis: {
+      intention: true,
+      priority: true,
+      sentiment: true,
+      language: true,
+      entities: true
+    }
+  });
+  const [aiPrompts, setAiPrompts] = useState({
+    intentionAnalysis: 'Analise a mensagem e identifique a intenção principal:\n- reclamacao: Cliente insatisfeito\n- duvida: Pergunta ou esclarecimento\n- solicitacao: Pedido de serviço\n- elogio: Feedback positivo\n- urgente: Situação urgente\n\nResponda apenas com a categoria.',
+    priorityClassification: 'Classifique a prioridade da mensagem:\n- baixa: Dúvidas gerais\n- media: Solicitações padrão\n- alta: Problemas operacionais\n- critica: Emergências\n\nConsidere palavras como "urgente", "parou", "não funciona".',
+    autoResponse: 'Responda de forma profissional e prestativa. Se for dúvida técnica, forneça informações úteis. Se for reclamação, seja empático e ofereça soluções.',
+    sentimentAnalysis: 'Analise o sentimento da mensagem:\n- positivo: Satisfação, elogio\n- neutro: Informativo, neutro\n- negativo: Insatisfação, reclamação\n\nResponda apenas com a categoria.',
+    entityExtraction: 'Extraia informações importantes da mensagem:\n- nomes de pessoas\n- números de pedido/protocolo\n- datas\n- produtos/serviços mencionados\n\nRetorne em formato JSON.'
+  });
+  const [aiMetrics, setAiMetrics] = useState({
+    totalAnalyses: 0,
+    accuracyRate: 0,
+    responseTime: 0,
+    autoResponseRate: 0,
+    escalationRate: 0,
+    dailyAnalyses: []
+  });
+  const [showAiPromptEditor, setShowAiPromptEditor] = useState(false);
+  const [selectedPromptType, setSelectedPromptType] = useState('intentionAnalysis');
+  const [tempPromptContent, setTempPromptContent] = useState('');
 
   // Add automation state
   useEffect(() => {
@@ -855,6 +900,10 @@ export default function OmniBridge() {
             <FileText className="h-4 w-4" />
             Templates
           </TabsTrigger>
+          <TabsTrigger value="ai-config" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Configuração IA
+          </TabsTrigger>
         </TabsList>
 
         {/* Inbox Tab */}
@@ -1293,8 +1342,8 @@ export default function OmniBridge() {
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${rule.isEnabled ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                <Workflow className={`h-5 w-5 ${rule.isEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                              <div className={`p-2 rounded-lg ${(rule.enabled || rule.isEnabled) ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                <Workflow className={`h-5 w-5 ${(rule.enabled || rule.isEnabled) ? 'text-green-600' : 'text-gray-500'}`} />
                               </div>
                               <div>
                                 <h3 className="font-medium">{rule.name}</h3>
@@ -1303,7 +1352,7 @@ export default function OmniBridge() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
-                                checked={rule.isEnabled}
+                                checked={rule.enabled || rule.isEnabled || false}
                                 onCheckedChange={(enabled) => handleToggleAutomationRule(rule.id, enabled)}
                               />
                               <Button variant="ghost" size="sm">
@@ -1318,7 +1367,7 @@ export default function OmniBridge() {
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {rule.triggers && rule.triggers.map((trigger, index) => (
+                                {(rule.triggers || (rule.trigger ? [rule.trigger] : [])).map((trigger: any, index: number) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     {trigger.type === 'keyword' && 'Palavras-chave'}
                                     {trigger.type === 'new_message' && 'Nova mensagem'}
@@ -1416,6 +1465,314 @@ export default function OmniBridge() {
         {/* Chatbots Tab */}
         <TabsContent value="chatbots" className="space-y-4">
           <ChatbotKanban />
+        </TabsContent>
+
+        {/* AI Configuration Tab */}
+        <TabsContent value="ai-config" className="space-y-4">
+          {/* AI Dashboard */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Análises Hoje</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{aiMetrics.totalAnalyses}</div>
+                <p className="text-xs text-muted-foreground">
+                  +12% vs ontem
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Taxa de Precisão</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{aiMetrics.accuracyRate}%</div>
+                <Progress value={aiMetrics.accuracyRate} className="mt-2" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Respostas Automáticas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{aiMetrics.autoResponseRate}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {aiMetrics.escalationRate}% escaladas
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Configuration Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* OpenAI Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Configurações OpenAI
+                </CardTitle>
+                <CardDescription>
+                  Ajuste os parâmetros do modelo de IA para otimizar a análise
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Modelo</Label>
+                  <Select value={aiConfig.model} onValueChange={(value) => setAiConfig(prev => ({...prev, model: value}))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4">GPT-4 (Mais Preciso)</SelectItem>
+                      <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Rápido)</SelectItem>
+                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Temperatura: {aiConfig.temperature}</Label>
+                  <Slider
+                    value={[aiConfig.temperature]}
+                    onValueChange={([value]) => setAiConfig(prev => ({...prev, temperature: value}))}
+                    max={1}
+                    step={0.1}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Menor = mais consistente, Maior = mais criativo
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Max Tokens: {aiConfig.maxTokens}</Label>
+                  <Slider
+                    value={[aiConfig.maxTokens]}
+                    onValueChange={([value]) => setAiConfig(prev => ({...prev, maxTokens: value}))}
+                    min={100}
+                    max={4000}
+                    step={100}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Limite de Confiança: {aiConfig.confidenceThreshold}</Label>
+                  <Slider
+                    value={[aiConfig.confidenceThreshold]}
+                    onValueChange={([value]) => setAiConfig(prev => ({...prev, confidenceThreshold: value}))}
+                    max={1}
+                    step={0.1}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Confiança mínima para ações automáticas
+                  </p>
+                </div>
+
+                <Button className="w-full">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Salvar Configurações
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Types */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Tipos de Análise
+                </CardTitle>
+                <CardDescription>
+                  Ative os tipos de análise que deseja usar
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(aiConfig.enabledAnalysis).map(([key, enabled]) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-medium">
+                        {key === 'intention' && 'Análise de Intenção'}
+                        {key === 'priority' && 'Classificação de Prioridade'}
+                        {key === 'sentiment' && 'Análise de Sentimento'}
+                        {key === 'language' && 'Detecção de Idioma'}
+                        {key === 'entities' && 'Extração de Entidades'}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {key === 'intention' && 'Identifica o propósito da mensagem'}
+                        {key === 'priority' && 'Classifica urgência e importância'}
+                        {key === 'sentiment' && 'Detecta emoções e tom'}
+                        {key === 'language' && 'Identifica idioma automaticamente'}
+                        {key === 'entities' && 'Extrai nomes, datas, produtos'}
+                      </p>
+                    </div>
+                    <Checkbox
+                      checked={enabled}
+                      onCheckedChange={(checked) => 
+                        setAiConfig(prev => ({
+                          ...prev,
+                          enabledAnalysis: {
+                            ...prev.enabledAnalysis,
+                            [key]: checked
+                          }
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Prompts Manager */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  Editor de Prompts IA
+                </span>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    setTempPromptContent(aiPrompts[selectedPromptType as keyof typeof aiPrompts]);
+                    setShowAiPromptEditor(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Editar Prompt
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Configure os prompts utilizados para cada tipo de análise de IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(aiPrompts).map(([key, prompt]) => (
+                  <Card key={key} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                    setSelectedPromptType(key);
+                    setTempPromptContent(prompt);
+                    setShowAiPromptEditor(true);
+                  }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">
+                        {key === 'intentionAnalysis' && 'Análise de Intenção'}
+                        {key === 'priorityClassification' && 'Classificação de Prioridade'}
+                        {key === 'autoResponse' && 'Resposta Automática'}
+                        {key === 'sentimentAnalysis' && 'Análise de Sentimento'}
+                        {key === 'entityExtraction' && 'Extração de Entidades'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-muted-foreground line-clamp-3">
+                        {prompt.length > 100 ? `${prompt.substring(0, 100)}...` : prompt}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {prompt.split('\\n').length} linhas
+                        </Badge>
+                        <Button variant="ghost" size="sm">
+                          <Settings className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Rules Templates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Templates de Regras Inteligentes
+              </CardTitle>
+              <CardDescription>
+                Modelos prontos de regras que usam análise de IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="cursor-pointer hover:bg-muted/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Detector de Reclamações</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Detecta automaticamente reclamações e cria tickets prioritários
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="text-xs">IA: Intenção</Badge>
+                      <Badge variant="outline" className="text-xs">IA: Sentimento</Badge>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      Usar Template
+                    </Button>
+                  </CardContent>
+                </Card>
+                
+                <Card className="cursor-pointer hover:bg-muted/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Resposta Inteligente</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Gera respostas contextualizadas baseadas na análise da mensagem
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="text-xs">IA: Resposta</Badge>
+                      <Badge variant="outline" className="text-xs">IA: Contexto</Badge>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      Usar Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="cursor-pointer hover:bg-muted/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Escalação Automática</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Escala mensagens críticas para supervisores automaticamente
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="text-xs">IA: Prioridade</Badge>
+                      <Badge variant="outline" className="text-xs">IA: Urgência</Badge>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      Usar Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="cursor-pointer hover:bg-muted/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Extração de Dados</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Extrai informações importantes e preenche campos automaticamente
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="text-xs">IA: Entidades</Badge>
+                      <Badge variant="outline" className="text-xs">IA: Dados</Badge>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      Usar Template
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -1609,6 +1966,117 @@ export default function OmniBridge() {
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Regra
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Prompt Editor Modal */}
+      <Dialog open={showAiPromptEditor} onOpenChange={setShowAiPromptEditor}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Editor de Prompt IA</DialogTitle>
+            <DialogDescription>
+              Edite o prompt para: {
+                selectedPromptType === 'intentionAnalysis' ? 'Análise de Intenção' :
+                selectedPromptType === 'priorityClassification' ? 'Classificação de Prioridade' :
+                selectedPromptType === 'autoResponse' ? 'Resposta Automática' :
+                selectedPromptType === 'sentimentAnalysis' ? 'Análise de Sentimento' :
+                selectedPromptType === 'entityExtraction' ? 'Extração de Entidades' : selectedPromptType
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="prompt-content">Conteúdo do Prompt</Label>
+                <Textarea
+                  id="prompt-content"
+                  value={tempPromptContent}
+                  onChange={(e) => setTempPromptContent(e.target.value)}
+                  className="min-h-[300px] font-mono text-sm"
+                  placeholder="Digite o prompt aqui..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Preview & Dicas</Label>
+                <div className="border rounded p-4 bg-muted min-h-[300px] space-y-3">
+                  <div className="text-sm">
+                    <strong>Dicas para prompts eficazes:</strong>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-xs text-muted-foreground">
+                      <li>Seja específico e claro nas instruções</li>
+                      <li>Use exemplos quando necessário</li>
+                      <li>Defina o formato de saída esperado</li>
+                      <li>Inclua contexto relevante</li>
+                      <li>Use linguagem consistente</li>
+                    </ul>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="text-sm">
+                    <strong>Variáveis disponíveis:</strong>
+                    <div className="mt-2 space-y-1 text-xs text-muted-foreground font-mono">
+                      <div>{'{{message_content}}'} - Conteúdo da mensagem</div>
+                      <div>{'{{sender_info}}'} - Informações do remetente</div>
+                      <div>{'{{channel_type}}'} - Tipo do canal</div>
+                      <div>{'{{previous_context}}'} - Contexto anterior</div>
+                      <div>{'{{user_history}}'} - Histórico do usuário</div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="text-sm">
+                    <strong>Análise do prompt:</strong>
+                    <div className="mt-2 space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span>Linhas:</span>
+                        <span>{tempPromptContent.split('\n').length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Caracteres:</span>
+                        <span>{tempPromptContent.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tokens (aprox):</span>
+                        <span>{Math.ceil(tempPromptContent.length / 4)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm">
+                  <Target className="h-4 w-4 mr-2" />
+                  Testar Prompt
+                </Button>
+                <Button variant="outline" size="sm">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Usar Template
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowAiPromptEditor(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setAiPrompts(prev => ({
+                      ...prev,
+                      [selectedPromptType]: tempPromptContent
+                    }));
+                    setShowAiPromptEditor(false);
+                  }}
+                  disabled={!tempPromptContent.trim()}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Salvar Prompt
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

@@ -66,3 +66,48 @@ export const omnibridgeRules = pgTable('omnibridge_rules', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+export const omnibridgeAiConfig = pgTable('omnibridge_ai_config', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  model: varchar('model', { length: 100 }).notNull().default('gpt-4'),
+  temperature: integer('temperature').notNull().default(7), // stored as int * 10 (0.7 = 7)
+  maxTokens: integer('max_tokens').notNull().default(1000),
+  confidenceThreshold: integer('confidence_threshold').notNull().default(8), // stored as int * 10 (0.8 = 8)
+  enabledAnalysis: jsonb('enabled_analysis').notNull().default({
+    intention: true,
+    priority: true,
+    sentiment: true,
+    language: true,
+    entities: true
+  }),
+  prompts: jsonb('prompts').notNull().default({
+    intentionAnalysis: 'Analise a mensagem e identifique a intenção principal:\\n- reclamacao: Cliente insatisfeito\\n- duvida: Pergunta ou esclarecimento\\n- solicitacao: Pedido de serviço\\n- elogio: Feedback positivo\\n- urgente: Situação urgente\\n\\nResponda apenas com a categoria.',
+    priorityClassification: 'Classifique a prioridade da mensagem:\\n- baixa: Dúvidas gerais\\n- media: Solicitações padrão\\n- alta: Problemas operacionais\\n- critica: Emergências\\n\\nConsidere palavras como "urgente", "parou", "não funciona".',
+    autoResponse: 'Responda de forma profissional e prestativa. Se for dúvida técnica, forneça informações úteis. Se for reclamação, seja empático e ofereça soluções.',
+    sentimentAnalysis: 'Analise o sentimento da mensagem:\\n- positivo: Satisfação, elogio\\n- neutro: Informativo, neutro\\n- negativo: Insatisfação, reclamação\\n\\nResponda apenas com a categoria.',
+    entityExtraction: 'Extraia informações importantes da mensagem:\\n- nomes de pessoas\\n- números de pedido/protocolo\\n- datas\\n- produtos/serviços mencionados\\n\\nRetorne em formato JSON.'
+  }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const omnibridgeAiMetrics = pgTable('omnibridge_ai_metrics', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+  totalAnalyses: integer('total_analyses').default(0),
+  accuracyRate: integer('accuracy_rate').default(0), // stored as percentage * 100
+  responseTime: integer('response_time').default(0), // in milliseconds
+  autoResponseRate: integer('auto_response_rate').default(0), // stored as percentage * 100
+  escalationRate: integer('escalation_rate').default(0), // stored as percentage * 100
+  analysisBreakdown: jsonb('analysis_breakdown').default({
+    intention: 0,
+    priority: 0,
+    sentiment: 0,
+    language: 0,
+    entities: 0
+  }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
