@@ -1927,7 +1927,14 @@ const TicketDetails = React.memo(() => {
                 </div>
               )}
 
-              {communicationsData.slice().reverse().map((comm: any) => {
+              {communicationsData
+                .slice()
+                .sort((a: any, b: any) => {
+                  const dateA = new Date(a.timestamp || a.created_at || 0);
+                  const dateB = new Date(b.timestamp || b.created_at || 0);
+                  return dateB.getTime() - dateA.getTime(); // Mais recente primeiro
+                })
+                .map((comm: any) => {
                 // Use the correct field: channel
                 const isEmail = comm.channel === 'email';
                 const isWhatsApp = comm.channel === 'whatsapp';
