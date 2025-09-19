@@ -34,6 +34,7 @@ import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTa
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
+import { DynamicFormRenderer } from "@/components/layout/DynamicFormRenderer";
 
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -69,6 +70,9 @@ const ticketSchema = z.object({
   subject: z.string().min(1, "Título do ticket é obrigatório"),
   status: z.string().refine(val => ["open", "in_progress", "resolved", "closed"].includes(val), "Status inválido").optional(),
   tags: z.array(z.string()).default([]),
+
+  // Template field (hidden, used internally)
+  templateId: z.string().optional(),
 });
 
 type TicketFormData = z.infer<typeof ticketSchema>;
@@ -545,10 +549,10 @@ const TicketsTable = React.memo(() => {
   });
 
   // ✅ FETCH COMPANIES for company selection
-  const { 
-    data: companiesData, 
-    isLoading: companiesLoading, 
-    error: companiesError 
+  const {
+    data: companiesData,
+    isLoading: companiesLoading,
+    error: companiesError
   } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
@@ -581,9 +585,9 @@ const TicketsTable = React.memo(() => {
       console.log('🏢 [COMPANIES-QUERY] Processed companies:', companies);
 
       // Filter out inactive companies if needed
-      return companies.filter((company: any) => 
-        company && 
-        (company.isActive !== false) && 
+      return companies.filter((company: any) =>
+        company &&
+        (company.isActive !== false) &&
         (company.status !== 'inactive')
       );
     }
@@ -1459,12 +1463,14 @@ const TicketsTable = React.memo(() => {
   const [templatesData, setTemplatesData] = useState<any>(null);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false); // State to disable company selection during creation
-  
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null); // State to hold the currently selected template
+
+
   // Dynamic field visibility based on template - Start with all hidden until template is selected
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({
     category: false,
     subcategory: false,
-    priority: false, 
+    priority: false,
     impact: false,
     urgency: false,
     assignedToId: false,
@@ -1473,10 +1479,12 @@ const TicketsTable = React.memo(() => {
     contactType: false,
     businessImpact: false,
     symptoms: false,
-    workaround: false
+    workaround: false,
+    templateId: true // Ensure template selector is visible by default
   });
-  
-  const [templateSelected, setTemplateSelected] = useState<boolean>(false);
+
+  const templateSelected = !!selectedTemplateId; // Simplified state check
+
 
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
@@ -1505,6 +1513,22 @@ const TicketsTable = React.memo(() => {
     }
   };
 
+  // Get available templates from fetched data
+  const availableTemplates = useMemo(() => {
+    if (!templatesData) return [];
+
+    let templatesArray: any[] = [];
+    if (templatesData.data?.templates && Array.isArray(templatesData.data.templates)) {
+      templatesArray = templatesData.data.templates;
+    } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
+      templatesArray = templatesData.templates;
+    } else if (Array.isArray(templatesData.data)) {
+      templatesArray = templatesData.data;
+    }
+    return templatesArray;
+  }, [templatesData]);
+
+
   // Form setup
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
@@ -1531,6 +1555,7 @@ const TicketsTable = React.memo(() => {
       subject: '',
       status: 'open',
       tags: [],
+      templateId: '', // Initialize templateId
     },
   });
 
@@ -1576,6 +1601,7 @@ const TicketsTable = React.memo(() => {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       setIsNewTicketModalOpen(false);
       form.reset();
+      setSelectedTemplate(null); // Reset selected template state
     },
     onError: (error: Error) => {
       console.error("❌ Erro ao criar ticket:", error);
@@ -1664,6 +1690,15 @@ const TicketsTable = React.memo(() => {
 
       // Additional fields
       tags: data.tags || [],
+
+      // Include template-specific custom fields if they exist and were mapped
+      ...(selectedTemplate && selectedTemplate.customFields &&
+        Object.fromEntries(
+          selectedTemplate.customFields
+            .filter((field: any) => field.name in data && data[field.name] !== undefined)
+            .map((field: any) => [field.name, data[field.name]])
+        )
+      )
     };
 
     console.log('Submitting ticket data:', submitData);
@@ -1689,6 +1724,109 @@ const TicketsTable = React.memo(() => {
     setCurrentPage(1);
     return tickets;
   }, [searchTerm, statusFilter, priorityFilter]);
+
+  // Template handling
+  const handleTemplateSelection = (templateId: string) => {
+    const template = availableTemplates.find(t => t.id === templateId);
+    setSelectedTemplateId(templateId); // Update selected template ID
+
+    if (template) {
+      setSelectedTemplate(template);
+      console.log('🎯 [TEMPLATE-SELECTION] Template selected:', template);
+
+      // Apply template defaults if available
+      if (template.customFields && Array.isArray(template.customFields)) {
+        template.customFields.forEach(field => {
+          if (field.defaultValue) {
+            form.setValue(field.name, field.defaultValue);
+          }
+        });
+      }
+
+      // Apply required fields defaults if template is for creation
+      if (template.templateType === 'creation' && template.requiredFields) {
+        template.requiredFields.forEach(field => {
+          if (field.defaultValue) {
+            form.setValue(field.fieldName, field.defaultValue);
+          }
+        });
+      }
+
+      // Update visible fields based on template
+      const newVisibleFields: Record<string, boolean> = {
+        category: !!template.customFields?.some((f: any) => f.name === 'category'),
+        subcategory: !!template.customFields?.some((f: any) => f.name === 'subcategory'),
+        priority: !!template.customFields?.some((f: any) => f.name === 'priority'),
+        impact: !!template.customFields?.some((f: any) => f.name === 'impact'),
+        urgency: !!template.customFields?.some((f: any) => f.name === 'urgency'),
+        assignedToId: !!template.customFields?.some((f: any) => f.name === 'assignedToId'),
+        assignmentGroup: !!template.customFields?.some((f: any) => f.name === 'assignmentGroup'),
+        location: !!template.customFields?.some((f: any) => f.name === 'location'),
+        contactType: !!template.customFields?.some((f: any) => f.name === 'contactType'),
+        businessImpact: !!template.customFields?.some((f: any) => f.name === 'businessImpact'),
+        symptoms: !!template.customFields?.some((f: any) => f.name === 'symptoms'),
+        workaround: !!template.customFields?.some((f: any) => f.name === 'workaround'),
+        templateId: true // Keep template selector visible
+      };
+      setVisibleFields(newVisibleFields);
+
+    } else {
+      setSelectedTemplate(null);
+      // Reset visibility and clear fields when no template is selected
+      setVisibleFields({
+        category: false,
+        subcategory: false,
+        priority: false,
+        impact: false,
+        urgency: false,
+        assignedToId: false,
+        assignmentGroup: false,
+        location: false,
+        contactType: false,
+        businessImpact: false,
+        symptoms: false,
+        workaround: false,
+        templateId: true // Keep template selector visible
+      });
+      // Clear all form fields except core ones
+      const fieldsToClear = ['category', 'subcategory', 'priority', 'impact', 'urgency', 'assignedToId', 'assignmentGroup', 'location', 'contactType', 'businessImpact', 'symptoms', 'workaround'];
+      fieldsToClear.forEach(fieldKey => {
+        if (fieldKey in ticketSchema.shape) {
+          form.setValue(fieldKey as any, '');
+        }
+      });
+      form.setValue('priority', 'medium'); // Reset to default priority
+    }
+  };
+
+  // Map template fields to FieldConfiguration format
+  const mapTemplateFieldsToConfiguration = (templateFields: any[]) => {
+    return templateFields.map((field, index) => ({
+      id: field.id || `template_field_${index}`,
+      customId: field.name, // Use 'name' as the customId for form value mapping
+      label: field.label || field.name,
+      fieldType: field.type,
+      isRequired: field.required || false,
+      isVisible: !field.hidden,
+      position: field.order || index,
+      section: field.section || 'template',
+      componentProps: {
+        placeholder: field.placeholder || `Digite ${field.label || field.name}`,
+        helpText: field.helpText,
+        options: field.options || [],
+        ...field.componentProps
+      },
+      validation: field.validation || {},
+      conditionalLogic: field.conditional || null
+    }));
+  };
+
+  // Handle template field changes
+  const handleTemplateFieldChange = (fieldKey: string, value: any) => {
+    console.log('🎯 [TEMPLATE-FIELD-CHANGE]', { fieldKey, value });
+    form.setValue(fieldKey, value);
+  };
+
 
   const renderTicketForm = () => (
     <Form {...form}>
@@ -1744,164 +1882,44 @@ const TicketsTable = React.memo(() => {
           </Label>
           <Select
             onValueChange={(templateId) => {
-              setSelectedTemplateId(templateId);
-
-              // ✅ 1QA.MD: Apply template fields when selected
-              if (templateId && templateId !== '__none__' && templatesData?.data) {
-                setTemplateSelected(true);
-                
-                let templatesArray = null;
-                if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
-                  templatesArray = templatesData.data.templates;
-                } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
-                  templatesArray = templatesData.templates;
-                } else if (Array.isArray(templatesData.data)) {
-                  templatesArray = templatesData.data;
-                }
-
-                const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-                
-                // Check both fields and required_fields
-                const templateFields = selectedTemplate?.fields || selectedTemplate?.required_fields;
-                if (templateFields) {
-                  try {
-                    const parsedFields = typeof templateFields === 'string'
-                      ? JSON.parse(templateFields)
-                      : templateFields;
-
-                    // Configure field visibility based on template with field mapping
-                    // Handle both object format and array format (required_fields)
-                    let templateFieldKeys: string[] = [];
-                    if (Array.isArray(parsedFields)) {
-                      // required_fields format: array of {fieldName, ...}
-                      templateFieldKeys = parsedFields.map((field: any) => field.fieldName || field.name);
-                    } else if (typeof parsedFields === 'object') {
-                      // fields format: object with keys
-                      templateFieldKeys = Object.keys(parsedFields);
-                    }
-                    
-                    const fieldMapping: Record<string, string> = {
-                      'assignedTo': 'assignedToId', // Handle naming differences
-                      'client': 'callerId', // Map client to caller
-                      'beneficiary': 'beneficiaryId', // Map beneficiary
-                      'company': 'companyId', // Map company
-                      'summary': 'subject', // Map summary to subject
-                    };
-                    
-                    const newVisibleFields: Record<string, boolean> = {
-                      category: templateFieldKeys.includes('category'),
-                      subcategory: templateFieldKeys.includes('subcategory'),
-                      priority: templateFieldKeys.includes('priority'), // Show only if in template
-                      impact: templateFieldKeys.includes('impact'),
-                      urgency: templateFieldKeys.includes('urgency'),
-                      assignedToId: templateFieldKeys.includes('assignedToId') || templateFieldKeys.includes('assignedTo'),
-                      assignmentGroup: templateFieldKeys.includes('assignmentGroup'),
-                      location: templateFieldKeys.includes('location'),
-                      contactType: templateFieldKeys.includes('contactType'),
-                      businessImpact: templateFieldKeys.includes('businessImpact'),
-                      symptoms: templateFieldKeys.includes('symptoms'),
-                      workaround: templateFieldKeys.includes('workaround')
-                    };
-                    setVisibleFields(newVisibleFields);
-
-                    // Clear all fields first, then apply template values
-                    Object.keys(visibleFields).forEach(fieldKey => {
-                      if (fieldKey in ticketSchema.shape) {
-                        form.setValue(fieldKey as any, '');
-                      }
-                    });
-
-                    // Apply template values to form with defaults for required hidden fields
-                    if (Array.isArray(parsedFields)) {
-                      // Handle required_fields format: array of field objects
-                      parsedFields.forEach((field: any) => {
-                        const fieldKey = field.fieldName || field.name;
-                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
-                        if (mappedKey in ticketSchema.shape && field.defaultValue) {
-                          form.setValue(mappedKey as any, field.defaultValue);
-                        }
-                      });
-                    } else if (typeof parsedFields === 'object') {
-                      // Handle fields format: object with keys and values
-                      Object.keys(parsedFields).forEach(fieldKey => {
-                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
-                        if (mappedKey in ticketSchema.shape) { // Only set if field exists in schema
-                          form.setValue(mappedKey as any, parsedFields[fieldKey]);
-                        }
-                      });
-                    }
-
-                    // Set defaults for required fields that are hidden
-                    if (!newVisibleFields.priority) {
-                      form.setValue('priority', 'medium'); // Default value when hidden
-                    }
-
-                    toast({
-                      title: "Template aplicado",
-                      description: `Template "${selectedTemplate.name}" foi configurado com sucesso.`,
-                    });
-                  } catch (error) {
-                    toast({
-                      title: "Erro ao aplicar template",
-                      description: "Ocorreu um erro ao aplicar os campos do template.",
-                      variant: "destructive"
-                    });
-                  }
-                }
-              } else {
-                // Reset to hide all fields when no template selected
-                setTemplateSelected(false);
-                setVisibleFields({
-                  category: false,
-                  subcategory: false,
-                  priority: false,
-                  impact: false,
-                  urgency: false,
-                  assignedToId: false,
-                  assignmentGroup: false,
-                  location: false,
-                  contactType: false,
-                  businessImpact: false,
-                  symptoms: false,
-                  workaround: false
-                });
-
-                // Clear all secondary fields and set default priority
-                Object.keys(visibleFields).forEach(fieldKey => {
-                  if (fieldKey in ticketSchema.shape) {
-                    form.setValue(fieldKey as any, '');
-                  }
-                });
-                form.setValue('priority', 'medium'); // Ensure priority has default
-              }
+              handleTemplateSelection(templateId);
             }}
-            value={selectedTemplateId || '__none__'}
+            value={selectedTemplateId || ""}
           >
             <SelectTrigger className="h-10 mt-1">
               <SelectValue placeholder="Selecione um template (opcional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">Sem template</SelectItem>
+              <SelectItem value="">Nenhum template</SelectItem>
               {templatesLoading ? (
                 <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
               ) : (
-                templatesData?.data?.templates?.map((template: any) => (
+                availableTemplates.map((template) => (
                   <SelectItem key={template.id} value={template.id}>
                     {template.name}
                   </SelectItem>
-                )) || templatesData?.templates?.map((template: any) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                )) : null)
+                ))
               )}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Template Custom Fields - Renderização dos campos do template selecionado */}
+        {selectedTemplate && selectedTemplate.customFields && selectedTemplate.customFields.length > 0 && (
+          <div className="space-y-4 border-t pt-4">
+            <h4 className="font-medium text-gray-900">
+              Campos do Template: {selectedTemplate.name}
+            </h4>
+            <DynamicFormRenderer
+              form={form}
+              fields={mapTemplateFieldsToConfiguration(selectedTemplate.customFields)}
+              onFieldChange={handleTemplateFieldChange}
+              isReadOnly={false}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            />
+          </div>
+        )}
+
 
         {/* Cliente and Beneficiary Selection - moved to position 3 */}
         <div className="mb-4">
@@ -2019,8 +2037,8 @@ const TicketsTable = React.memo(() => {
         {/* Visual separator after description */}
         <div className="border-t border-gray-200 my-6"></div>
 
-        {/* Show message to select template if none is selected */}
-        {!templateSelected && (
+        {/* Message to select template if none is selected */}
+        {!selectedTemplate && (
           <div className="text-center py-8 text-gray-500" data-testid="template-selection-message">
             <p className="text-lg font-medium mb-2">Selecione um template</p>
             <p className="text-sm">Escolha um template acima para configurar os campos específicos do ticket</p>
@@ -2029,7 +2047,7 @@ const TicketsTable = React.memo(() => {
 
 
         {/* Basic Information - Show only if template is selected and has these fields */}
-        {templateSelected && (visibleFields.category || visibleFields.subcategory) && (
+        {selectedTemplate && (visibleFields.category || visibleFields.subcategory) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Basic Information</h3>
 
@@ -2075,7 +2093,7 @@ const TicketsTable = React.memo(() => {
         )}
 
         {/* Priority & Impact - Show only if template is selected and has these fields */}
-        {templateSelected && (visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
+        {selectedTemplate && (visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Priority & Impact</h3>
 
@@ -2147,7 +2165,7 @@ const TicketsTable = React.memo(() => {
         )}
 
         {/* Assignment - Show only if template is selected and has these fields */}
-        {templateSelected && (visibleFields.assignedToId || visibleFields.assignmentGroup || visibleFields.location || visibleFields.contactType) && (
+        {selectedTemplate && (visibleFields.assignedToId || visibleFields.assignmentGroup || visibleFields.location || visibleFields.contactType) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Assignment</h3>
 
@@ -2246,7 +2264,7 @@ const TicketsTable = React.memo(() => {
         )}
 
         {/* Business Impact - Show only if template is selected and has these fields */}
-        {templateSelected && (visibleFields.businessImpact || visibleFields.symptoms || visibleFields.workaround) && (
+        {selectedTemplate && (visibleFields.businessImpact || visibleFields.symptoms || visibleFields.workaround) && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Business Impact & Analysis</h3>
 
@@ -2334,6 +2352,7 @@ const TicketsTable = React.memo(() => {
             variant="outline"
             onClick={() => {
               setIsNewTicketModalOpen(false);
+              setSelectedTemplate(null); // Reset selected template state
               form.reset();
             }}
           >
