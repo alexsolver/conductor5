@@ -6,6 +6,8 @@ interface AuthenticatedRequest extends Request {
     tenantId: string;
     id: string;
     role: string;
+    roles: string[];
+    email?: string;
   };
 }
 

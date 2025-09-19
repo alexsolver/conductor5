@@ -1954,11 +1954,11 @@ const TicketDetails = React.memo(() => {
                         isSMS ? 'bg-purple-500 text-white' :
                         'bg-gray-500 text-white'
                       }`}>
-                        {isEmail && <Mail className="h-5 w-5" />}
-                        {isWhatsApp && <MessageCircle className="h-5 w-5" />}
-                        {isTelegram && <Send className="h-5 w-5" />}
-                        {isSMS && <MessageSquare className="h-5 w-5" />}
-                        {!isEmail && !isWhatsApp && !isTelegram && !isSMS && <MessageSquare className="h-5 w-5" />}
+                        {isEmail ? <Mail className="h-5 w-5" /> :
+                         isWhatsApp ? <MessageCircle className="h-5 w-5" /> :
+                         isTelegram ? <Send className="h-5 w-5" /> :
+                         isSMS ? <MessageSquare className="h-5 w-5" /> :
+                         <MessageSquare className="h-5 w-5" />}
                       </div>
 
                       {/* Enhanced Communication Content */}
