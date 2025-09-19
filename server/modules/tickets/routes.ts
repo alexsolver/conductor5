@@ -1847,16 +1847,7 @@ import crypto from 'crypto';
 // Send ticket email
 ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), async (req: AuthenticatedRequest, res) => {
   try {
-    console.log('🔍 [EMAIL-DEBUG] Request received:', {
-      params: req.params,
-      body: req.body,
-      files: req.files?.length || 0,
-      user: req.user?.id,
-      tenantId: req.user?.tenantId
-    });
-
     if (!req.user?.tenantId) {
-      console.log('❌ [EMAIL-DEBUG] User not associated with tenant');
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
@@ -1867,22 +1858,19 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log('🔍 [EMAIL-DEBUG] Extracted fields:', {
-      to: to || 'MISSING',
-      subject: subject || 'MISSING', 
-      message: message || 'MISSING',
-      cc: cc || 'EMPTY',
-      bcc: bcc || 'EMPTY'
-    });
-
     // Validate required fields
     if (!to || !subject || !message) {
-      console.log('❌ [EMAIL-DEBUG] Missing required fields');
       return res.status(400).json({ 
         success: false, 
         message: "To, subject, and message are required" 
       });
     }
+
+    // Remove duplicate emails between to, cc, and bcc (SendGrid requirement)
+    const allEmails = new Set([to]);
+    const cleanCc = cc && !allEmails.has(cc) ? cc : undefined;
+    if (cleanCc) allEmails.add(cleanCc);
+    const cleanBcc = bcc && !allEmails.has(bcc) ? bcc : undefined;
 
     // Prepare attachments
     const attachments = files?.map(file => ({
@@ -1897,19 +1885,13 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       from: 'test@example.com', // Generic test email for development
       subject,
       text: message,
-      cc,
-      bcc,
+      cc: cleanCc,
+      bcc: cleanBcc,
       attachments,
     });
 
-    if (!emailSent) {
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to send email" 
-      });
-    }
-
-    // Save communication record
+    // Save communication record (regardless of email send status)
+    const emailStatus = emailSent ? 'sent' : 'failed';
     try {
       const communicationId = crypto.randomUUID();
       const insertQuery = `
@@ -1926,10 +1908,10 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
         tenantId,
         'email',
         'outbound',
-        'noreply@conductor.com',
+        'test@example.com',
         to,
-        cc || null,
-        bcc || null,
+        cleanCc || null,
+        cleanBcc || null,
         subject,
         message,
         true
@@ -1961,10 +1943,17 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
-    return res.json({ 
-      success: true, 
-      message: "Email sent successfully" 
-    });
+    if (emailSent) {
+      return res.json({ 
+        success: true, 
+        message: "Email sent successfully" 
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to send email, but communication was recorded" 
+      });
+    }
 
   } catch (error) {
     console.error("❌ [EMAIL] Error sending email:", error);
@@ -1978,16 +1967,7 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
 // Send ticket message (WhatsApp/Telegram/SMS)
 ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (req: AuthenticatedRequest, res) => {
   try {
-    console.log('🔍 [MESSAGE-DEBUG] Request received:', {
-      params: req.params,
-      body: req.body,
-      files: req.files?.length || 0,
-      user: req.user?.id,
-      tenantId: req.user?.tenantId
-    });
-
     if (!req.user?.tenantId) {
-      console.log('❌ [MESSAGE-DEBUG] User not associated with tenant');
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
     }
 
@@ -1998,15 +1978,8 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log('🔍 [MESSAGE-DEBUG] Extracted fields:', {
-      channel: channel || 'MISSING',
-      recipient: recipient || 'MISSING', 
-      message: message || 'MISSING'
-    });
-
     // Validate required fields
     if (!channel || !recipient || !message) {
-      console.log('❌ [MESSAGE-DEBUG] Missing required fields');
       return res.status(400).json({ 
         success: false, 
         message: "Channel, recipient, and message are required" 
