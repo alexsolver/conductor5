@@ -1912,9 +1912,10 @@ const TicketDetails = React.memo(() => {
               <div className="flex items-center gap-4 mb-4">
                 <h3 className="font-medium text-gray-700">{t('tickets.fields.communicationTimeline')}</h3>
                 <div className="flex gap-2">
-                  <Badge variant="secondary" className="text-xs">Email</Badge>
-                  <Badge variant="secondary" className="text-xs">WhatsApp</Badge>
-                  <Badge variant="secondary" className="text-xs">Telefone</Badge>
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">📧 Email</Badge>
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">💬 WhatsApp</Badge>
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">📨 Telegram</Badge>
+                  <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">📱 SMS</Badge>
                 </div>
               </div>
 
@@ -1926,63 +1927,120 @@ const TicketDetails = React.memo(() => {
                 </div>
               )}
 
-              {communicationsData.slice().reverse().map((comm: any) => (
-                <Card key={comm.id} className="p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Channel Icon */}
-                    <div className={`p-2 rounded-full ${
-                      comm.type === 'email' ? 'bg-blue-100 text-blue-600' :
-                      comm.type === 'whatsapp' ? 'bg-green-100 text-green-600' :
-                      comm.type === 'call' ? 'bg-purple-100 text-purple-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {comm.type === 'email' && <MessageSquare className="h-4 w-4" />}
-                      {comm.type === 'whatsapp' && <Send className="h-4 w-4" />}
-                      {comm.type === 'call' && <Clock className="h-4 w-4" />}
-                    </div>
+              {communicationsData.slice().reverse().map((comm: any) => {
+                const isEmail = comm.communication_type === 'email' || comm.type === 'email';
+                const isWhatsApp = comm.communication_type === 'whatsapp' || comm.type === 'whatsapp';
+                const isTelegram = comm.communication_type === 'telegram' || comm.type === 'telegram'; 
+                const isSMS = comm.communication_type === 'sms' || comm.type === 'sms';
+                
+                return (
+                  <Card 
+                    key={comm.id} 
+                    className={`p-4 border-l-4 ${
+                      isEmail ? 'border-l-blue-500 bg-blue-50/30' :
+                      isWhatsApp ? 'border-l-green-500 bg-green-50/30' :
+                      isTelegram ? 'border-l-blue-500 bg-blue-50/30' :
+                      isSMS ? 'border-l-purple-500 bg-purple-50/30' :
+                      'border-l-gray-400 bg-gray-50/30'
+                    }`}
+                    data-testid={`communication-card-${comm.id}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Enhanced Channel Icon */}
+                      <div className={`p-3 rounded-lg shadow-sm ${
+                        isEmail ? 'bg-blue-500 text-white' :
+                        isWhatsApp ? 'bg-green-500 text-white' :
+                        isTelegram ? 'bg-blue-600 text-white' :
+                        isSMS ? 'bg-purple-500 text-white' :
+                        'bg-gray-500 text-white'
+                      }`}>
+                        {isEmail && <Mail className="h-5 w-5" />}
+                        {isWhatsApp && <MessageCircle className="h-5 w-5" />}
+                        {isTelegram && <Send className="h-5 w-5" />}
+                        {isSMS && <MessageSquare className="h-5 w-5" />}
+                        {!isEmail && !isWhatsApp && !isTelegram && !isSMS && <MessageSquare className="h-5 w-5" />}
+                      </div>
 
-                    {/* Communication Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {comm.channel}
-                          </Badge>
-                          <span className="text-sm font-medium text-gray-800">
-                            {comm.from} → {comm.to}
+                      {/* Enhanced Communication Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs font-medium ${
+                                isEmail ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                isWhatsApp ? 'bg-green-100 text-green-800 border-green-300' :
+                                isTelegram ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                isSMS ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                                'bg-gray-100 text-gray-800 border-gray-300'
+                              }`}
+                              data-testid={`badge-communication-type-${comm.id}`}
+                            >
+                              {isEmail ? '📧 Email' :
+                               isWhatsApp ? '💬 WhatsApp' :
+                               isTelegram ? '📨 Telegram' :
+                               isSMS ? '📱 SMS' :
+                               `📨 ${comm.communication_type || comm.channel || 'Mensagem'}`}
+                            </Badge>
+                            <span className="text-sm font-medium text-gray-800">
+                              {isEmail ? 
+                                `${comm.from_address || comm.from} → ${comm.to_address || comm.to}` :
+                                `Para: ${comm.to_address || comm.recipient || comm.to}`
+                              }
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {comm.created_at ? new Date(comm.created_at).toLocaleString('pt-BR') : 
+                             comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 
+                             t('tickets.fields.dateNotAvailable')}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : t('tickets.fields.dateNotAvailable')}
-                        </span>
-                      </div>
 
-                      {comm.subject && (
-                        <p className="text-sm font-medium text-gray-700 mb-1">
-                          Assunto: {comm.subject}
-                        </p>
-                      )}
+                        {/* Enhanced Subject Display for Emails */}
+                        {isEmail && comm.subject && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
+                            <p className="text-sm font-medium text-blue-900">
+                              ✉️ {comm.subject}
+                            </p>
+                          </div>
+                        )}
 
-                      <p className="text-gray-800 text-sm mb-2">{comm.content}</p>
+                        {/* Enhanced Content Display */}
+                        <div className={`rounded-lg p-3 mb-3 ${
+                          isEmail ? 'bg-white border border-blue-100' :
+                          'bg-white border border-gray-100'
+                        }`}>
+                          <p className="text-gray-800 text-sm leading-relaxed">{comm.content}</p>
+                        </div>
 
-                      <div className="flex items-center justify-between">
-                        <Badge
-                          variant={comm.status === 'sent' ? 'default' :
-                                  comm.status === 'received' ? 'secondary' : 'outline'}
-                          className="text-xs"
-                        >
-                          {comm.status === 'sent' ? 'Enviado' :
-                           comm.status === 'received' ? 'Recebido' :
-                           comm.status === 'completed' ? 'Concluído' : comm.status}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
+                        {/* Enhanced Footer */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={comm.status === 'sent' ? 'default' :
+                                      comm.status === 'received' ? 'secondary' : 'outline'}
+                              className="text-xs"
+                              data-testid={`badge-status-${comm.id}`}
+                            >
+                              {comm.status === 'sent' ? '✅ Enviado' :
+                               comm.status === 'received' ? '📥 Recebido' :
+                               comm.status === 'completed' ? '✅ Concluído' : comm.status}
+                            </Badge>
+                            {isEmail && (comm.cc_address || comm.bcc_address) && (
+                              <Badge variant="secondary" className="text-xs">
+                                {comm.cc_address && 'CC'} {comm.bcc_address && 'BCC'}
+                              </Badge>
+                            )}
+                          </div>
+                          <Button variant="ghost" size="sm" data-testid={`button-view-details-${comm.id}`}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         );

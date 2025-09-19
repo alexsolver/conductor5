@@ -108,9 +108,12 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
         description: "O email foi enviado com sucesso.",
       });
       
-      // Invalidar cache das comunicações
+      // Invalidar cache das comunicações e histórico
       queryClient.invalidateQueries({
         queryKey: ["/api/tickets", ticketId, "communications"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/tickets", ticketId, "history"],
       });
       
       onClose();
