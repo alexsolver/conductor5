@@ -80,17 +80,7 @@ export class UserManagementService {
 
       if (!user) return null;
 
-      return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName || undefined,
-        lastName: user.lastName || undefined,
-        role: user.role,
-        tenantId: user.tenantId || '',
-        isActive: user.isActive || false,
-        lastLogin: user.lastLoginAt || undefined,
-        createdAt: user.createdAt || new Date()
-      };
+      return user;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       throw error;

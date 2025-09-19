@@ -118,6 +118,8 @@ const ensureJSONResponse = (req: any, res: any, next: any) => {
 };
 
 // Get instance of poolManager
+import { poolManager } from "./db";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
@@ -4656,8 +4658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("[CUSTOMER-COMPANIES] No tenant ID found");
           return res.status(401).json({ message: "Tenant required" });
         }
-        
-        const { schemaManager } = await import("./db");
+
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
 
@@ -4726,7 +4727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!tenantId) {
           return res.status(401).json({ message: "Tenant required" });
         }
-
+        const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
 

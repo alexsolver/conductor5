@@ -4,14 +4,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 // Import user management components from old system
@@ -26,15 +38,15 @@ import { InviteUserDialog } from "@/components/user-management/InviteUserDialog"
 import { EditMemberDialog } from "@/components/user-management/EditMemberDialog";
 // Import technical skills component
 import TechnicalSkillsTab from "@/components/team-management/TechnicalSkillsTab";
-import { 
-  Users, 
-  UserCheck, 
+import {
+  Users,
+  UserCheck,
   UserX,
   Edit,
-  Clock, 
-  Calendar, 
-  Award, 
-  TrendingUp, 
+  Clock,
+  Calendar,
+  Award,
+  TrendingUp,
   AlertTriangle,
   MapPin,
   Settings,
@@ -57,7 +69,7 @@ import {
   AlertCircle,
   User,
   Globe,
-  Monitor
+  Monitor,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -82,8 +94,12 @@ export default function TeamManagement() {
   const handleUserCreated = () => {
     setShowCreateUser(false);
     // Invalidate working queries
-    queryClientInstance.invalidateQueries({ queryKey: ['/api/user-management/users'] });
-    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
+    queryClientInstance.invalidateQueries({
+      queryKey: ["/api/user-management/users"],
+    });
+    queryClientInstance.invalidateQueries({
+      queryKey: ["/api/tenant-admin/team/stats"],
+    });
     toast({
       title: "Usuário criado",
       description: "O usuário foi criado com sucesso.",
@@ -94,8 +110,12 @@ export default function TeamManagement() {
   const handleUserInvited = () => {
     setShowInviteUser(false);
     // Invalidate working queries
-    queryClientInstance.invalidateQueries({ queryKey: ['/api/user-management/users'] });
-    queryClientInstance.invalidateQueries({ queryKey: ['/api/tenant-admin/team/stats'] });
+    queryClientInstance.invalidateQueries({
+      queryKey: ["/api/user-management/users"],
+    });
+    queryClientInstance.invalidateQueries({
+      queryKey: ["/api/tenant-admin/team/stats"],
+    });
     toast({
       title: "Usuário convidado",
       description: "O convite foi enviado com sucesso.",
@@ -103,7 +123,11 @@ export default function TeamManagement() {
   };
 
   // Fetch team members data
-  const { data: teamMembersData, isLoading: teamMembersLoading, error: teamMembersError } = useQuery({
+  const {
+    data: teamMembersData,
+    isLoading: teamMembersLoading,
+    error: teamMembersError,
+  } = useQuery({
     queryKey: ["/api/team/members"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/team/members");
@@ -114,7 +138,11 @@ export default function TeamManagement() {
   });
 
   // Fetch user management data
-  const { data: userManagementData, isLoading: membersLoading, error: membersError } = useQuery({
+  const {
+    data: userManagementData,
+    isLoading: membersLoading,
+    error: membersError,
+  } = useQuery({
     queryKey: ["/api/user-management/users"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user-management/users");
@@ -131,7 +159,8 @@ export default function TeamManagement() {
   console.log("TeamManagement - teamMembersLoading:", teamMembersLoading);
 
   // Get members data from team API first, fallback to user management API
-  const membersData = teamMembersData?.members || userManagementData?.users || [];
+  const membersData =
+    teamMembersData?.members || userManagementData?.users || [];
   const isLoadingMembers = teamMembersLoading || membersLoading;
 
   console.log("TeamManagement - Final membersData:", membersData);
@@ -140,13 +169,19 @@ export default function TeamManagement() {
   // Create team overview from available data
   const teamOverview = {
     totalMembers: Array.isArray(membersData) ? membersData.length : 0,
-    activeMembers: Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0,
-    departments: Array.isArray(membersData) ? Array.from(new Set(membersData.map(m => m.department).filter(Boolean))).length : 0,
-    recentActivity: []
+    activeMembers: Array.isArray(membersData)
+      ? membersData.filter((m) => m.isActive).length
+      : 0,
+    departments: Array.isArray(membersData)
+      ? Array.from(
+          new Set(membersData.map((m) => m.department).filter(Boolean)),
+        ).length
+      : 0,
+    recentActivity: [],
   };
   const overviewLoading = isLoadingMembers;
 
-  // Fetch team stats - using working endpoint  
+  // Fetch team stats - using working endpoint
   const { data: tenantStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/tenant-admin/team/stats"],
     queryFn: async () => {
@@ -161,14 +196,16 @@ export default function TeamManagement() {
   // Use tenant stats as team stats
   const teamStats = {
     totalMembers: Array.isArray(membersData) ? membersData.length : 0,
-    activeToday: Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0,
+    activeToday: Array.isArray(membersData)
+      ? membersData.filter((m) => m.isActive).length
+      : 0,
     pendingApprovals: 0,
-    averagePerformance: 85
+    averagePerformance: 85,
   };
 
   // Fetch performance data
   const { data: performanceData } = useQuery({
-    queryKey: ['/api/team-management/performance'],
+    queryKey: ["/api/team-management/performance"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/team-management/performance");
       if (!res.ok) throw new Error("Erro ao buscar performance");
@@ -179,7 +216,7 @@ export default function TeamManagement() {
 
   // Fetch skills matrix
   const { data: skillsMatrix, isLoading: skillsLoading } = useQuery({
-    queryKey: ['/api/team-management/skills-matrix'],
+    queryKey: ["/api/team-management/skills-matrix"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/team-management/skills-matrix");
       if (!res.ok) throw new Error("Erro ao buscar matriz de habilidades");
@@ -193,10 +230,10 @@ export default function TeamManagement() {
 
   // Fetch groups for filter
   const { data: groupsData } = useQuery({
-    queryKey: ['/api/user-management/groups'],
+    queryKey: ["/api/user-management/groups"],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/user-management/groups');
-      if (!res.ok) throw new Error('Erro ao buscar grupos');
+      const res = await apiRequest("GET", "/api/user-management/groups");
+      if (!res.ok) throw new Error("Erro ao buscar grupos");
       return res.json(); // esperado: { groups: [...] }
     },
     enabled: !!user,
@@ -204,10 +241,10 @@ export default function TeamManagement() {
 
   // Fetch departments for filter
   const { data: departmentsData } = useQuery({
-    queryKey: ['/api/team-management/departments'],
+    queryKey: ["/api/team-management/departments"],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/team-management/departments');
-      if (!res.ok) throw new Error('Erro ao buscar departamentos');
+      const res = await apiRequest("GET", "/api/team-management/departments");
+      if (!res.ok) throw new Error("Erro ao buscar departamentos");
       return res.json(); // esperado: { departments: [...] }
     },
     enabled: !!user,
@@ -215,10 +252,10 @@ export default function TeamManagement() {
 
   // Fetch roles for filter
   const { data: rolesData } = useQuery({
-    queryKey: ['/api/user-management/roles'],
+    queryKey: ["/api/user-management/roles"],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/user-management/roles');
-      if (!res.ok) throw new Error('Erro ao buscar papéis');
+      const res = await apiRequest("GET", "/api/user-management/roles");
+      if (!res.ok) throw new Error("Erro ao buscar papéis");
       return res.json(); // esperado: { roles: [...] }
     },
     enabled: !!user,
@@ -227,43 +264,64 @@ export default function TeamManagement() {
   // Filter team members - using membersData that works
   const filteredMembers = membersData.filter((member: any) => {
     // Build full name for search
-    const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
-    const displayName = member.name || fullName || member.email || 'Unknown User';
+    const fullName =
+      `${member.firstName || ""} ${member.lastName || ""}`.trim();
+    const displayName =
+      member.name || fullName || member.email || "Unknown User";
 
-    const matchesSearch = searchTerm === "" || 
-                         displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      searchTerm === "" ||
+      displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesDepartment = filterDepartment === "all" || 
-                             member.department === filterDepartment ||
-                             member.departmentName === filterDepartment;
+    const matchesDepartment =
+      filterDepartment === "all" ||
+      member.department === filterDepartment ||
+      member.departmentName === filterDepartment;
 
-    const matchesStatus = filterStatus === "all" || 
-                         member.status === filterStatus || 
-                         (member.isActive && filterStatus === "active") ||
-                         (!member.isActive && filterStatus === "inactive");
+    const matchesStatus =
+      filterStatus === "all" ||
+      member.status === filterStatus ||
+      (member.isActive && filterStatus === "active") ||
+      (!member.isActive && filterStatus === "inactive");
 
     const matchesRole = filterRole === "all" || member.role === filterRole;
 
     // Group filter - handle different group data structures
-    const matchesGroup = filterGroup === "all" || 
-                        (Array.isArray(member.groupIds) && member.groupIds.some((groupId: string) => 
-                          String(groupId) === String(filterGroup)
-                        )) ||
-                        (member.groupId && String(member.groupId) === String(filterGroup));
+    const matchesGroup =
+      filterGroup === "all" ||
+      (Array.isArray(member.groupIds) &&
+        member.groupIds.some(
+          (groupId: string) => String(groupId) === String(filterGroup),
+        )) ||
+      (member.groupId && String(member.groupId) === String(filterGroup));
 
-    return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
+    return (
+      matchesSearch &&
+      matchesDepartment &&
+      matchesStatus &&
+      matchesRole &&
+      matchesGroup
+    );
   });
 
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({
-    mutationFn: async ({ memberId, newStatus }: { memberId: string, newStatus: string }) => {
-      return apiRequest('PUT', `/api/user-management/users/${memberId}`, { 
-        isActive: newStatus === 'active' 
+    mutationFn: async ({
+      memberId,
+      newStatus,
+    }: {
+      memberId: string;
+      newStatus: string;
+    }) => {
+      return apiRequest("PUT", `/api/user-management/users/${memberId}`, {
+        isActive: newStatus === "active",
       });
     },
     onSuccess: () => {
-      queryClientInstance.invalidateQueries({ queryKey: ['/api/user-management/users'] });
+      queryClientInstance.invalidateQueries({
+        queryKey: ["/api/user-management/users"],
+      });
       toast({
         title: "Status atualizado",
         description: "O status do membro foi atualizado com sucesso.",
@@ -280,7 +338,7 @@ export default function TeamManagement() {
 
   // Handle edit member
   const handleEditMember = (member: any) => {
-    console.log('TeamManagement - Opening edit dialog with member:', member);
+    console.log("TeamManagement - Opening edit dialog with member:", member);
     if (!member || !member.id) {
       toast({
         title: "Erro",
@@ -304,11 +362,11 @@ export default function TeamManagement() {
       return;
     }
 
-    const newStatus = member.status === 'active' ? 'inactive' : 'active';
+    const newStatus = member.status === "active" ? "inactive" : "active";
     try {
       toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
     } catch (error) {
-      console.error('Error toggling member status:', error);
+      console.error("Error toggling member status:", error);
       toast({
         title: "Erro",
         description: "Falha ao alterar status do membro",
@@ -335,28 +393,42 @@ export default function TeamManagement() {
         Email: member.email,
         Posição: member.position,
         Departamento: member.department,
-        Status: member.status === 'active' ? 'Ativo' : member.status === 'inactive' ? 'Inativo' : 'Pendente',
+        Status:
+          member.status === "active"
+            ? "Ativo"
+            : member.status === "inactive"
+              ? "Inativo"
+              : "Pendente",
         Telefone: member.phone,
         Performance: `${member.performance}%`,
         Metas: member.goals,
-        'Metas Concluídas': member.completedGoals,
-        'Última Atividade': new Date(member.lastActive).toLocaleDateString('pt-BR')
+        "Metas Concluídas": member.completedGoals,
+        "Última Atividade": new Date(member.lastActive).toLocaleDateString(
+          "pt-BR",
+        ),
       }));
 
       // Convert to CSV
-      const headers = Object.keys(exportData[0]).join(',');
+      const headers = Object.keys(exportData[0]).join(",");
       const csvContent = [
         headers,
-        ...exportData.map((row: any) => Object.values(row).map(value => `"${value}"`).join(','))
-      ].join('\n');
+        ...exportData.map((row: any) =>
+          Object.values(row)
+            .map((value) => `"${value}"`)
+            .join(","),
+        ),
+      ].join("\n");
 
       // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `equipe_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `equipe_${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -395,25 +467,26 @@ export default function TeamManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestão de Equipe</h1>
-          <p className="text-gray-600 dark:text-gray-400">Sistema integrado de gestão de recursos humanos</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Gestão de Equipe
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Sistema integrado de gestão de recursos humanos
+          </p>
         </div>
         <div className="flex space-x-2">
-          <Button 
+          <Button
             onClick={() => setShowCreateUser(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             <UserPlus className="mr-2 h-4 w-4" />
             Criar Usuário
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => setShowInviteUser(true)}
-          >
+          <Button variant="outline" onClick={() => setShowInviteUser(true)}>
             <Mail className="mr-2 h-4 w-4" />
             Convidar Usuário
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={handleExportTeamData}
             disabled={!membersData || membersData.length === 0}
@@ -430,7 +503,9 @@ export default function TeamManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total de Membros
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {Array.isArray(membersData) ? membersData.length : 0}
                 </p>
@@ -444,9 +519,13 @@ export default function TeamManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ativos Hoje</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Ativos Hoje
+                </p>
                 <p className="text-2xl font-bold text-green-600">
-                  {Array.isArray(membersData) ? membersData.filter(m => m.isActive).length : 0}
+                  {Array.isArray(membersData)
+                    ? membersData.filter((m) => m.isActive).length
+                    : 0}
                 </p>
               </div>
               <UserCheck className="h-8 w-8 text-green-600" />
@@ -458,7 +537,9 @@ export default function TeamManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Approval</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Pending Approval
+                </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {teamStats?.pendingApprovals ?? 0}
                 </p>
@@ -472,7 +553,9 @@ export default function TeamManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Performance Média</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Performance Média
+                </p>
                 <p className="text-2xl font-bold text-purple-600">
                   {teamStats?.averagePerformance ?? 0}%
                 </p>
@@ -484,7 +567,11 @@ export default function TeamManagement() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center space-x-1">
             <BarChart3 className="h-3 w-3" />
@@ -502,7 +589,10 @@ export default function TeamManagement() {
             <Building className="h-3 w-3" />
             <span className="text-xs">Grupos</span>
           </TabsTrigger>
-          <TabsTrigger value="permissions" className="flex items-center space-x-1">
+          <TabsTrigger
+            value="permissions"
+            className="flex items-center space-x-1"
+          >
             <Shield className="h-3 w-3" />
             <span className="text-xs">Permissões</span>
           </TabsTrigger>
@@ -523,35 +613,45 @@ export default function TeamManagement() {
             <Card>
               <CardHeader>
                 <CardTitle>Distribuição por Departamento</CardTitle>
-                <CardDescription>Membros ativos por departamento</CardDescription>
+                <CardDescription>
+                  Membros ativos por departamento
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {overviewLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between"
+                      >
                         <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
                         <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
-                    <div key={dept.name} className="flex items-center justify-between">
+                ) : Array.isArray(teamOverview?.departments) ? (
+                  teamOverview.departments.map((dept: any) => (
+                    <div
+                      key={dept.name}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center space-x-2">
                         <Building className="h-4 w-4 text-gray-500" />
                         <span className="font-medium">{dept.name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">{dept.count}</span>
+                        <span className="text-sm text-gray-600">
+                          {dept.count}
+                        </span>
                         <Progress value={dept.percentage} className="w-20" />
                       </div>
                     </div>
-                  )) : (
-                    <div className="text-center py-4 text-gray-500">
-                      Nenhum departamento encontrado
-                    </div>
-                  )
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    Nenhum departamento encontrado
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -566,7 +666,10 @@ export default function TeamManagement() {
                 {overviewLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <div
+                        key={i}
+                        className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800"
+                      >
                         <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
                         <div className="flex-1 space-y-1">
                           <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
@@ -575,23 +678,34 @@ export default function TeamManagement() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  Array.isArray(teamOverview?.recentActivity) ? teamOverview.recentActivity.map((activity: any, index: number) => (
-                    <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                      <Activity className="h-4 w-4 text-blue-500" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{activity.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {activity.user && `${activity.user} - `}
-                          {typeof activity.timestamp === 'string' ? activity.timestamp : new Date(activity.timestamp).toLocaleString('pt-BR')}
-                        </p>
+                ) : Array.isArray(teamOverview?.recentActivity) ? (
+                  teamOverview.recentActivity.map(
+                    (activity: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800"
+                      >
+                        <Activity className="h-4 w-4 text-blue-500" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {activity.user && `${activity.user} - `}
+                            {typeof activity.timestamp === "string"
+                              ? activity.timestamp
+                              : new Date(activity.timestamp).toLocaleString(
+                                  "pt-BR",
+                                )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )) : (
-                    <div className="text-center py-4 text-gray-500">
-                      Nenhuma atividade recente
-                    </div>
+                    ),
                   )
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    Nenhuma atividade recente
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -606,31 +720,43 @@ export default function TeamManagement() {
                 {skillsLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between"
+                      >
                         <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
                         <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  Array.isArray(skillsMatrix?.topSkills) ? skillsMatrix.topSkills.map((skill: any) => (
-                    <div key={skill.name} className="flex items-center justify-between">
+                ) : Array.isArray(skillsMatrix?.topSkills) ? (
+                  skillsMatrix.topSkills.map((skill: any) => (
+                    <div
+                      key={skill.name}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center space-x-2">
                         <Award className="h-4 w-4 text-yellow-500" />
                         <span className="font-medium">{skill.name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">{skill.count} pessoas</span>
-                        <Badge variant={skill.level === 'Avançado' ? 'default' : 'secondary'}>
+                        <span className="text-sm text-gray-600">
+                          {skill.count} pessoas
+                        </span>
+                        <Badge
+                          variant={
+                            skill.level === "Avançado" ? "default" : "secondary"
+                          }
+                        >
                           {skill.level}
                         </Badge>
                       </div>
                     </div>
-                  )) : (
-                    <div className="text-center py-4 text-gray-500">
-                      Nenhuma habilidade encontrada
-                    </div>
-                  )
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    Nenhuma habilidade encontrada
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -642,8 +768,8 @@ export default function TeamManagement() {
                 <CardDescription>Módulos integrados do sistema</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start"
                   onClick={() => setActiveTab("skills")}
                   data-testid="button-quick-skills"
@@ -713,21 +839,28 @@ export default function TeamManagement() {
                 </div>
                 <div>
                   <Label htmlFor="department">Departamento</Label>
-                  <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                  <Select
+                    value={filterDepartment}
+                    onValueChange={setFilterDepartment}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      {Array.isArray(departmentsData?.departments) ? departmentsData.departments.map((dept: any) => (
-                        <SelectItem key={dept.id} value={dept.name}>
-                          {dept.name}
-                        </SelectItem>
-                      )) : Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
-                        <SelectItem key={dept.id} value={dept.name}>
-                          {dept.name}
-                        </SelectItem>
-                      )) : null}
+                      {Array.isArray(departmentsData?.departments)
+                        ? departmentsData.departments.map((dept: any) => (
+                            <SelectItem key={dept.id} value={dept.name}>
+                              {dept.name}
+                            </SelectItem>
+                          ))
+                        : Array.isArray(teamOverview?.departments)
+                          ? teamOverview.departments.map((dept: any) => (
+                              <SelectItem key={dept.id} value={dept.name}>
+                                {dept.name}
+                              </SelectItem>
+                            ))
+                          : null}
                     </SelectContent>
                   </Select>
                 </div>
@@ -739,11 +872,13 @@ export default function TeamManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas</SelectItem>
-                      {Array.isArray(rolesData?.roles) ? rolesData.roles.map((role: any) => (
-                        <SelectItem key={role.id} value={role.id}>
-                          {role.name}
-                        </SelectItem>
-                      )) : null}
+                      {Array.isArray(rolesData?.roles)
+                        ? rolesData.roles.map((role: any) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))
+                        : null}
                     </SelectContent>
                   </Select>
                 </div>
@@ -755,22 +890,24 @@ export default function TeamManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      {Array.isArray(groupsData?.groups) ? groupsData.groups
-                        .filter((group: any) => group?.id && group?.name)
-                        .map((group: any) => (
-                          <SelectItem key={group.id} value={String(group.id)}>
-                            {group.name}
-                            {group.description && (
-                              <span className="text-xs text-gray-500 ml-1">
-                                - {group.description}
-                              </span>
-                            )}
-                          </SelectItem>
-                        )) : (
-                          <SelectItem value="no-groups" disabled>
-                            Nenhum grupo disponível
-                          </SelectItem>
-                        )}
+                      {Array.isArray(groupsData?.groups) ? (
+                        groupsData.groups
+                          .filter((group: any) => group?.id && group?.name)
+                          .map((group: any) => (
+                            <SelectItem key={group.id} value={String(group.id)}>
+                              {group.name}
+                              {group.description && (
+                                <span className="text-xs text-gray-500 ml-1">
+                                  - {group.description}
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))
+                      ) : (
+                        <SelectItem value="no-groups" disabled>
+                          Nenhum grupo disponível
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -804,117 +941,145 @@ export default function TeamManagement() {
 
                 {/* Table Body */}
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredMembers && filteredMembers.length > 0 ? filteredMembers.map((member: any) => (
-                    <div key={member.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                      {/* Member Info */}
-                      <div className="col-span-3 flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-semibold text-sm">
-                            {(member.name || member.email || 'U').charAt(0).toUpperCase()}
+                  {filteredMembers && filteredMembers.length > 0 ? (
+                    filteredMembers.map((member: any) => (
+                      <div
+                        key={member.id}
+                        className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                      >
+                        {/* Member Info */}
+                        <div className="col-span-3 flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-semibold text-sm">
+                              {(member.name || member.email || "U")
+                                .charAt(0)
+                                .toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                              {member.name ||
+                                `${member.firstName || ""} ${member.lastName || ""}`.trim() ||
+                                member.email ||
+                                "Usuário"}
+                            </h3>
+                            <p className="text-xs text-gray-500 truncate">
+                              ID: {member.id ? member.id.slice(-8) : "N/A"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Position */}
+                        <div className="col-span-2 flex items-center">
+                          <span className="text-sm text-gray-900 dark:text-gray-300 truncate">
+                            {member.position || "Não informado"}
                           </span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário'}
-                          </h3>
-                          <p className="text-xs text-gray-500 truncate">
-                            ID: {member.id ? member.id.slice(-8) : 'N/A'}
-                          </p>
-                        </div>
-                      </div>
 
-                      {/* Position */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-sm text-gray-900 dark:text-gray-300 truncate">
-                          {member.position || 'Não informado'}
-                        </span>
-                      </div>
-
-                      {/* Department */}
-                      <div className="col-span-2 flex items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {member.department || 'Geral'}
-                        </span>
-                      </div>
-
-                      {/* Email */}
-                      <div className="col-span-2 flex items-center">
-                        <div className="flex items-center space-x-1 min-w-0">
-                          <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                        {/* Department */}
+                        <div className="col-span-2 flex items-center">
                           <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                            {member.email}
+                            {member.department || "Geral"}
                           </span>
                         </div>
-                      </div>
 
-                      {/* Status */}
-                      <div className="col-span-1 flex items-center">
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={
-                              (member.status === 'active' || member.isActive) ? 'default' : 
-                              (member.status === 'inactive' || !member.isActive) ? 'destructive' : 'secondary'
-                            }
-                            className="text-xs"
+                        {/* Email */}
+                        <div className="col-span-2 flex items-center">
+                          <div className="flex items-center space-x-1 min-w-0">
+                            <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                              {member.email}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="col-span-1 flex items-center">
+                          <div className="flex items-center space-x-2">
+                            <Badge
+                              variant={
+                                member.status === "active" || member.isActive
+                                  ? "default"
+                                  : member.status === "inactive" ||
+                                      !member.isActive
+                                    ? "destructive"
+                                    : "secondary"
+                              }
+                              className="text-xs"
+                            >
+                              {member.status === "active" || member.isActive
+                                ? "Ativo"
+                                : member.status === "inactive" ||
+                                    !member.isActive
+                                  ? "Inativo"
+                                  : "Pendente"}
+                            </Badge>
+                            {(member.status === "active" ||
+                              member.isActive) && (
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                            )}
+                            {(member.status === "inactive" ||
+                              !member.isActive) && (
+                              <XCircle className="h-3 w-3 text-red-500" />
+                            )}
+                            {member.status === "pending" && (
+                              <AlertCircle className="h-3 w-3 text-yellow-500" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="col-span-2 flex items-center justify-end space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditMember(member)}
+                            className="h-8"
                           >
-                            {(member.status === 'active' || member.isActive) ? 'Ativo' : 
-                             (member.status === 'inactive' || !member.isActive) ? 'Inativo' : 'Pendente'}
-                          </Badge>
-                          {(member.status === 'active' || member.isActive) && (
-                            <CheckCircle className="h-3 w-3 text-green-500" />
-                          )}
-                          {(member.status === 'inactive' || !member.isActive) && (
-                            <XCircle className="h-3 w-3 text-red-500" />
-                          )}
-                          {member.status === 'pending' && (
-                            <AlertCircle className="h-3 w-3 text-yellow-500" />
-                          )}
+                            <Edit className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={
+                              member.status === "active" || member.isActive
+                                ? "destructive"
+                                : "default"
+                            }
+                            onClick={() => handleToggleMemberStatus(member)}
+                            className="h-8"
+                            disabled={
+                              !user ||
+                              (user.role !== "tenant_admin" &&
+                                user.role !== "saas_admin" &&
+                                user.role !== "manager")
+                            }
+                          >
+                            {member.status === "active" || member.isActive ? (
+                              <>
+                                <UserX className="h-3 w-3 mr-1" />
+                                Desativar
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="h-3 w-3 mr-1" />
+                                Ativar
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Actions */}
-                      <div className="col-span-2 flex items-center justify-end space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditMember(member)}
-                          className="h-8"
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Editar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={(member.status === 'active' || member.isActive) ? 'destructive' : 'default'}
-                          onClick={() => handleToggleMemberStatus(member)}
-                          className="h-8"
-                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin' && user.role !== 'manager')}
-                        >
-                          {(member.status === 'active' || member.isActive) ? (
-                            <>
-                              <UserX className="h-3 w-3 mr-1" />
-                              Desativar
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="h-3 w-3 mr-1" />
-                              Ativar
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  )) : (
+                    ))
+                  ) : (
                     <div className="p-8 text-center">
                       <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                         Nenhum membro encontrado
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {membersData && membersData.length === 0 
+                        {membersData && membersData.length === 0
                           ? "Nenhum membro foi adicionado à equipe ainda."
-                          : "Ajuste os filtros para encontrar membros da equipe."
-                        }
+                          : "Ajuste os filtros para encontrar membros da equipe."}
                       </p>
                     </div>
                   )}
@@ -937,7 +1102,9 @@ export default function TeamManagement() {
               {filteredMembers.length === 0 && (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Nenhum membro encontrado com os filtros aplicados</p>
+                  <p className="text-gray-500">
+                    Nenhum membro encontrado com os filtros aplicados
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -950,28 +1117,42 @@ export default function TeamManagement() {
             <Card>
               <CardHeader>
                 <CardTitle>Avaliação de Performance</CardTitle>
-                <CardDescription>Métricas de desempenho da equipe</CardDescription>
+                <CardDescription>
+                  Métricas de desempenho da equipe
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Array.isArray(performanceData?.individuals) ? performanceData.individuals.map((person: any) => (
-                  <div key={person.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-                        <span className="text-white text-sm font-semibold">
-                          {person.name?.charAt(0)}
-                        </span>
+                {Array.isArray(performanceData?.individuals)
+                  ? performanceData.individuals.map((person: any) => (
+                      <div
+                        key={person.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                            <span className="text-white text-sm font-semibold">
+                              {person.name?.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{person.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {person.role}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Progress
+                            value={person.performance}
+                            className="w-20"
+                          />
+                          <span className="text-sm font-medium">
+                            {person.performance}%
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{person.name}</p>
-                        <p className="text-sm text-gray-600">{person.role}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Progress value={person.performance} className="w-20" />
-                      <span className="text-sm font-medium">{person.performance}%</span>
-                    </div>
-                  </div>
-                )) : []}
+                    ))
+                  : []}
               </CardContent>
             </Card>
 
@@ -982,18 +1163,33 @@ export default function TeamManagement() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Dynamic goals data from performance API */}
-                {Array.isArray(performanceData?.goals) && performanceData.goals.length > 0 ? (
+                {Array.isArray(performanceData?.goals) &&
+                performanceData.goals.length > 0 ? (
                   performanceData.goals.map((goal: any, index: number) => (
                     <div key={index} className="p-3 rounded-lg border">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{goal.name}</h4>
-                        <Badge variant={goal.percentage >= 100 ? 'default' : goal.percentage >= 75 ? 'secondary' : 'destructive'}>
-                          {goal.percentage >= 100 ? 'Concluído' : goal.percentage >= 75 ? 'Em Progresso' : 'Atrasado'}
+                        <Badge
+                          variant={
+                            goal.percentage >= 100
+                              ? "default"
+                              : goal.percentage >= 75
+                                ? "secondary"
+                                : "destructive"
+                          }
+                        >
+                          {goal.percentage >= 100
+                            ? "Concluído"
+                            : goal.percentage >= 75
+                              ? "Em Progresso"
+                              : "Atrasado"}
                         </Badge>
                       </div>
                       <Progress value={goal.percentage} className="mb-2" />
                       <div className="flex justify-between text-sm text-gray-600">
-                        <span>{goal.completed} de {goal.total}</span>
+                        <span>
+                          {goal.completed} de {goal.total}
+                        </span>
                         <span>{goal.percentage}%</span>
                       </div>
                     </div>
@@ -1039,7 +1235,9 @@ export default function TeamManagement() {
         <TabsContent value="sessions" className="space-y-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Sessões Ativas dos Usuários</h3>
+              <h3 className="text-lg font-medium">
+                Sessões Ativas dos Usuários
+              </h3>
               <div className="flex space-x-2">
                 <Select value={filterRole} onValueChange={setFilterRole}>
                   <SelectTrigger className="w-48">
@@ -1047,7 +1245,9 @@ export default function TeamManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Papéis</SelectItem>
-                    <SelectItem value="tenant_admin">Admin do Tenant</SelectItem>
+                    <SelectItem value="tenant_admin">
+                      Admin do Tenant
+                    </SelectItem>
                     <SelectItem value="agent">Agente</SelectItem>
                     <SelectItem value="manager">Gerente</SelectItem>
                     <SelectItem value="user">Usuário</SelectItem>
@@ -1064,10 +1264,19 @@ export default function TeamManagement() {
                       <Monitor className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Sessões Ativas</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Sessões Ativas
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
-                          new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
+                        {Array.isArray(membersData)
+                          ? membersData.filter(
+                              (m) =>
+                                m.isActive &&
+                                m.lastLogin &&
+                                new Date(m.lastLogin) >
+                                  new Date(Date.now() - 30 * 60 * 1000),
+                            ).length
+                          : 0}
                       </p>
                     </div>
                   </div>
@@ -1081,10 +1290,18 @@ export default function TeamManagement() {
                       <Globe className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Sessões Hoje</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Sessões Hoje
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
-                          new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
+                        {Array.isArray(membersData)
+                          ? membersData.filter(
+                              (m) =>
+                                m.lastLogin &&
+                                new Date(m.lastLogin) >
+                                  new Date(Date.now() - 24 * 60 * 60 * 1000),
+                            ).length
+                          : 0}
                       </p>
                     </div>
                   </div>
@@ -1098,7 +1315,9 @@ export default function TeamManagement() {
                       <Clock className="h-6 w-6 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Tempo Médio</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Tempo Médio
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">2.5h</p>
                     </div>
                   </div>
@@ -1112,9 +1331,13 @@ export default function TeamManagement() {
                       <User className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Usuários Únicos</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Usuários Únicos
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin).length : 0}
+                        {Array.isArray(membersData)
+                          ? membersData.filter((m) => m.lastLogin).length
+                          : 0}
                       </p>
                     </div>
                   </div>
@@ -1130,9 +1353,16 @@ export default function TeamManagement() {
                 <div className="space-y-4">
                   {Array.isArray(membersData) && membersData.length > 0 ? (
                     membersData
-                      .filter(member => filterRole === "all" || member.role === filterRole)
-                      .filter(member => member.lastLogin)
-                      .sort((a, b) => new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime())
+                      .filter(
+                        (member) =>
+                          filterRole === "all" || member.role === filterRole,
+                      )
+                      .filter((member) => member.lastLogin)
+                      .sort(
+                        (a, b) =>
+                          new Date(b.lastLogin || 0).getTime() -
+                          new Date(a.lastLogin || 0).getTime(),
+                      )
                       .slice(0, 15)
                       .map((member, index) => {
                         const lastLogin = new Date(member.lastLogin);
@@ -1142,32 +1372,59 @@ export default function TeamManagement() {
                         const isRecentlyActive = timeDiff < 24 * 60 * 60 * 1000; // 24 horas
 
                         return (
-                          <div key={member.id || index} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div
+                            key={member.id || index}
+                            className="flex items-center justify-between p-4 border rounded-lg"
+                          >
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
-                                  {(member.firstName || member.name || member.email || 'U').charAt(0).toUpperCase()}
+                                  {(
+                                    member.firstName ||
+                                    member.name ||
+                                    member.email ||
+                                    "U"
+                                  )
+                                    .charAt(0)
+                                    .toUpperCase()}
                                 </div>
-                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                  isOnline ? 'bg-green-500' : isRecentlyActive ? 'bg-yellow-500' : 'bg-gray-400'
-                                }`}></div>
+                                <div
+                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                    isOnline
+                                      ? "bg-green-500"
+                                      : isRecentlyActive
+                                        ? "bg-yellow-500"
+                                        : "bg-gray-400"
+                                  }`}
+                                ></div>
                               </div>
                               <div>
                                 <h4 className="font-medium">
-                                  {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário Desconhecido'}
+                                  {member.name ||
+                                    `${member.firstName || ""} ${member.lastName || ""}`.trim() ||
+                                    member.email ||
+                                    "Usuário Desconhecido"}
                                 </h4>
-                                <p className="text-sm text-gray-600">{member.email}</p>
+                                <p className="text-sm text-gray-600">
+                                  {member.email}
+                                </p>
                                 <div className="flex items-center space-x-2 mt-1">
                                   <Badge variant="outline" className="text-xs">
-                                    {member.role || 'Sem papel'}
+                                    {member.role || "Sem papel"}
                                   </Badge>
                                   {isOnline && (
-                                    <Badge variant="default" className="text-xs bg-green-500">
+                                    <Badge
+                                      variant="default"
+                                      className="text-xs bg-green-500"
+                                    >
                                       Online
                                     </Badge>
                                   )}
                                   {!isOnline && isRecentlyActive && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
                                       Recente
                                     </Badge>
                                   )}
@@ -1176,24 +1433,33 @@ export default function TeamManagement() {
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium">
-                                {lastLogin.toLocaleString('pt-BR')}
+                                {lastLogin.toLocaleString("pt-BR")}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {timeDiff < 60 * 1000 ? 
-                                  'Agora mesmo' :
-                                  timeDiff < 60 * 60 * 1000 ? 
-                                    `${Math.floor(timeDiff / (60 * 1000))} min atrás` :
-                                    timeDiff < 24 * 60 * 60 * 1000 ?
-                                      `${Math.floor(timeDiff / (60 * 60 * 1000))} h atrás` :
-                                      `${Math.floor(timeDiff / (24 * 60 * 60 * 1000))} dias atrás`
-                                }
+                                {timeDiff < 60 * 1000
+                                  ? "Agora mesmo"
+                                  : timeDiff < 60 * 60 * 1000
+                                    ? `${Math.floor(timeDiff / (60 * 1000))} min atrás`
+                                    : timeDiff < 24 * 60 * 60 * 1000
+                                      ? `${Math.floor(timeDiff / (60 * 60 * 1000))} h atrás`
+                                      : `${Math.floor(timeDiff / (24 * 60 * 60 * 1000))} dias atrás`}
                               </p>
                               <div className="flex items-center space-x-1 mt-1">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  isOnline ? 'bg-green-500' : isRecentlyActive ? 'bg-yellow-500' : 'bg-gray-400'
-                                }`}></div>
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    isOnline
+                                      ? "bg-green-500"
+                                      : isRecentlyActive
+                                        ? "bg-yellow-500"
+                                        : "bg-gray-400"
+                                  }`}
+                                ></div>
                                 <span className="text-xs text-gray-500">
-                                  {isOnline ? 'Ativo' : isRecentlyActive ? 'Recente' : 'Inativo'}
+                                  {isOnline
+                                    ? "Ativo"
+                                    : isRecentlyActive
+                                      ? "Recente"
+                                      : "Inativo"}
                                 </span>
                               </div>
                             </div>
@@ -1239,10 +1505,19 @@ export default function TeamManagement() {
                       <Activity className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Usuários Online</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Usuários Online
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.isActive && m.lastLogin && 
-                          new Date(m.lastLogin) > new Date(Date.now() - 30 * 60 * 1000)).length : 0}
+                        {Array.isArray(membersData)
+                          ? membersData.filter(
+                              (m) =>
+                                m.isActive &&
+                                m.lastLogin &&
+                                new Date(m.lastLogin) >
+                                  new Date(Date.now() - 30 * 60 * 1000),
+                            ).length
+                          : 0}
                       </p>
                     </div>
                   </div>
@@ -1256,10 +1531,18 @@ export default function TeamManagement() {
                       <Clock className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Últimas 24h</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Últimas 24h
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {Array.isArray(membersData) ? membersData.filter(m => m.lastLogin && 
-                          new Date(m.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length : 0}
+                        {Array.isArray(membersData)
+                          ? membersData.filter(
+                              (m) =>
+                                m.lastLogin &&
+                                new Date(m.lastLogin) >
+                                  new Date(Date.now() - 24 * 60 * 60 * 1000),
+                            ).length
+                          : 0}
                       </p>
                     </div>
                   </div>
@@ -1273,7 +1556,9 @@ export default function TeamManagement() {
                       <Users className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total de Membros</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Total de Membros
+                      </p>
                       <p className="text-2xl font-bold text-gray-900">
                         {Array.isArray(membersData) ? membersData.length : 0}
                       </p>
@@ -1291,23 +1576,47 @@ export default function TeamManagement() {
                 <div className="space-y-4">
                   {Array.isArray(membersData) && membersData.length > 0 ? (
                     membersData
-                      .filter(member => filterStatus === "all" || 
-                        (filterStatus === "active" && member.isActive) ||
-                        (filterStatus === "inactive" && !member.isActive))
-                      .sort((a, b) => new Date(b.lastLogin || 0).getTime() - new Date(a.lastLogin || 0).getTime())
+                      .filter(
+                        (member) =>
+                          filterStatus === "all" ||
+                          (filterStatus === "active" && member.isActive) ||
+                          (filterStatus === "inactive" && !member.isActive),
+                      )
+                      .sort(
+                        (a, b) =>
+                          new Date(b.lastLogin || 0).getTime() -
+                          new Date(a.lastLogin || 0).getTime(),
+                      )
                       .slice(0, 20)
                       .map((member, index) => (
-                        <div key={member.id || index} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div
+                          key={member.id || index}
+                          className="flex items-center justify-between p-4 border rounded-lg"
+                        >
                           <div className="flex items-center space-x-4">
                             <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
-                              {(member.firstName || member.name || member.email || 'U').charAt(0).toUpperCase()}
+                              {(
+                                member.firstName ||
+                                member.name ||
+                                member.email ||
+                                "U"
+                              )
+                                .charAt(0)
+                                .toUpperCase()}
                             </div>
                             <div>
                               <h4 className="font-medium">
-                                {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário Desconhecido'}
+                                {member.name ||
+                                  `${member.firstName || ""} ${member.lastName || ""}`.trim() ||
+                                  member.email ||
+                                  "Usuário Desconhecido"}
                               </h4>
-                              <p className="text-sm text-gray-600">{member.email}</p>
-                              <p className="text-xs text-gray-500">{member.role || 'Sem papel definido'}</p>
+                              <p className="text-sm text-gray-600">
+                                {member.email}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {member.role || "Sem papel definido"}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -1317,22 +1626,30 @@ export default function TeamManagement() {
                               ) : (
                                 <XCircle className="h-4 w-4 text-red-500" />
                               )}
-                              <span className={`text-sm ${member.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                                {member.isActive ? 'Ativo' : 'Inativo'}
+                              <span
+                                className={`text-sm ${member.isActive ? "text-green-600" : "text-red-600"}`}
+                              >
+                                {member.isActive ? "Ativo" : "Inativo"}
                               </span>
                             </div>
                             <p className="text-xs text-gray-500">
-                              {member.lastLogin ? 
-                                `Último acesso: ${new Date(member.lastLogin).toLocaleString('pt-BR')}` : 
-                                'Nunca acessou'}
+                              {member.lastLogin
+                                ? `Último acesso: ${new Date(member.lastLogin).toLocaleString("pt-BR")}`
+                                : "Nunca acessou"}
                             </p>
                             {member.groups && member.groups.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {member.groups.slice(0, 2).map((group: any, idx: number) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {group.name}
-                                  </Badge>
-                                ))}
+                                {member.groups
+                                  .slice(0, 2)
+                                  .map((group: any, idx: number) => (
+                                    <Badge
+                                      key={idx}
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {group.name}
+                                    </Badge>
+                                  ))}
                                 {member.groups.length > 2 && (
                                   <Badge variant="outline" className="text-xs">
                                     +{member.groups.length - 2}
@@ -1409,9 +1726,7 @@ export default function TeamManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    Gestão de Ausências
-                  </p>
+                  <p className="text-gray-600 mb-4">Gestão de Ausências</p>
                   <Link href="/absence-management">
                     <Button>
                       <Calendar className="h-4 w-4 mr-2" />
@@ -1422,9 +1737,7 @@ export default function TeamManagement() {
 
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    Banco de Horas
-                  </p>
+                  <p className="text-gray-600 mb-4">Banco de Horas</p>
                   <Link href="/hour-bank">
                     <Button>
                       <Clock className="h-4 w-4 mr-2" />
@@ -1436,17 +1749,16 @@ export default function TeamManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
       </Tabs>
 
       {/* User Management Dialogs */}
-      <CreateUserDialog 
-        open={showCreateUser} 
+      <CreateUserDialog
+        open={showCreateUser}
         onOpenChange={setShowCreateUser}
         tenantAdmin={true}
       />
-      <InviteUserDialog 
-        open={showInviteUser} 
+      <InviteUserDialog
+        open={showInviteUser}
         onOpenChange={setShowInviteUser}
         tenantAdmin={true}
       />
