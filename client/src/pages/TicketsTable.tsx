@@ -1859,8 +1859,11 @@ const TicketsTable = React.memo(() => {
               ) : companiesError ? (
                 <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
               ) : companiesData && companiesData.length > 0 ? (
-                companiesData.map((company: any) => (
-                  <SelectItem key={company.id || 'default'} value={company.id || 'default'}>
+                companiesData.map((company: any, index: number) => (
+                  <SelectItem 
+                    key={company.id || `company-${index}`} 
+                    value={company.id && company.id !== '' ? company.id : `fallback-${index}`}
+                  >
                     <div className="flex items-center space-x-2">
                       <div className="text-sm font-medium">
                         {company.displayName || company.name || 'Empresa sem nome'}
