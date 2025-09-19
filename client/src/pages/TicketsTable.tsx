@@ -1860,8 +1860,12 @@ const TicketsTable = React.memo(() => {
                 <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
               ) : companiesData && companiesData.length > 0 ? (
                 companiesData.map((company: any) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.displayName || company.name}
+                  <SelectItem key={company.id || 'default'} value={company.id || 'default'}>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-sm font-medium">
+                        {company.displayName || company.name || 'Empresa sem nome'}
+                      </div>
+                    </div>
                   </SelectItem>
                 ))
               ) : (
