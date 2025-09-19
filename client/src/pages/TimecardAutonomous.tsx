@@ -98,9 +98,9 @@ export default function TimecardAutonomous() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{terminology.pageTitle}</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Registro de Trabalho</h1>
           <p className="text-sm text-gray-500">
-            Sistema de {terminology.recordLabel.toLowerCase()} para profissionais autônomos
+            Sistema de registro de trabalho para profissionais autônomos
           </p>
         </div>
         <div className="text-right">
@@ -118,7 +118,7 @@ export default function TimecardAutonomous() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Status Atual da Jornada
+            Status Atual
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -245,32 +245,7 @@ export default function TimecardAutonomous() {
         </CardContent>
       </Card>
 
-      {/* Quick Access */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <FileText className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-            <h3 className="font-medium">{terminology.reportLabel}</h3>
-            <p className="text-sm text-gray-500">Visualizar registros mensais</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <Clock className="mx-auto h-8 w-8 text-purple-500 mb-2" />
-            <h3 className="font-medium">{terminology.timeControlLabel}</h3>
-            <p className="text-sm text-gray-500">Acompanhar horas trabalhadas</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardContent className="p-4 text-center">
-            <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
-            <h3 className="font-medium">{terminology.approvalLabel}</h3>
-            <p className="text-sm text-gray-500">Status de validação</p>
-          </CardContent>
-        </Card>
-      </div>
+      
     </div>
   );
 }
