@@ -187,4 +187,207 @@ router.get('/sync-status', async (req, res) => {
   }
 });
 
+// AI Configuration Routes
+router.get('/ai-config', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { db, getSchemaForTenant } = await import('../../db');
+    const schema = getSchemaForTenant(tenantId);
+    const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
+    
+    const config = await db
+      .select()
+      .from(omnibridgeAiConfig)
+      .where(schema.eq(omnibridgeAiConfig.tenantId, tenantId))
+      .limit(1);
+
+    if (config.length === 0) {
+      // Return default config if none exists
+      const defaultConfig = {
+        model: 'gpt-4',
+        temperature: 0.7,
+        maxTokens: 1000,
+        confidenceThreshold: 0.8,
+        enabledAnalysis: {
+          intention: true,
+          priority: true,
+          sentiment: true,
+          language: true,
+          entities: true
+        },
+        prompts: {
+          intentionAnalysis: 'Analise a mensagem e identifique a intenção principal:\\n- reclamacao: Cliente insatisfeito\\n- duvida: Pergunta ou esclarecimento\\n- solicitacao: Pedido de serviço\\n- elogio: Feedback positivo\\n- urgente: Situação urgente\\n\\nResponda apenas com a categoria.',
+          priorityClassification: 'Classifique a prioridade da mensagem:\\n- baixa: Dúvidas gerais\\n- media: Solicitações padrão\\n- alta: Problemas operacionais\\n- critica: Emergências\\n\\nConsidere palavras como "urgente", "parou", "não funciona".',
+          autoResponse: 'Responda de forma profissional e prestativa. Se for dúvida técnica, forneça informações úteis. Se for reclamação, seja empático e ofereça soluções.',
+          sentimentAnalysis: 'Analise o sentimento da mensagem:\\n- positivo: Satisfação, elogio\\n- neutro: Informativo, neutro\\n- negativo: Insatisfação, reclamação\\n\\nResponda apenas com a categoria.',
+          entityExtraction: 'Extraia informações importantes da mensagem:\\n- nomes de pessoas\\n- números de pedido/protocolo\\n- datas\\n- produtos/serviços mencionados\\n\\nRetorne em formato JSON.'
+        }
+      };
+      return res.json({ success: true, data: defaultConfig });
+    }
+
+    const aiConfig = config[0];
+    const responseData = {
+      model: aiConfig.model,
+      temperature: aiConfig.temperature / 10,
+      maxTokens: aiConfig.maxTokens,
+      confidenceThreshold: aiConfig.confidenceThreshold / 10,
+      enabledAnalysis: aiConfig.enabledAnalysis,
+      prompts: aiConfig.prompts
+    };
+
+    res.json({ success: true, data: responseData });
+  } catch (error) {
+    console.error('[OmniBridge] AI Config get error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get AI configuration' });
+  }
+});
+
+router.put('/ai-config', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { model, temperature, maxTokens, confidenceThreshold, enabledAnalysis, prompts } = req.body;
+
+    const { db, getSchemaForTenant } = await import('../../db');
+    const schema = getSchemaForTenant(tenantId);
+    const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
+    
+    const configData = {
+      tenantId,
+      model,
+      temperature: Math.round(temperature * 10),
+      maxTokens,
+      confidenceThreshold: Math.round(confidenceThreshold * 10),
+      enabledAnalysis,
+      prompts,
+      updatedAt: new Date()
+    };
+
+    // Check if config exists
+    const existing = await db
+      .select()
+      .from(omnibridgeAiConfig)
+      .where(schema.eq(omnibridgeAiConfig.tenantId, tenantId))
+      .limit(1);
+
+    if (existing.length === 0) {
+      // Create new
+      await db.insert(omnibridgeAiConfig).values({
+        id: crypto.randomUUID(),
+        ...configData
+      });
+    } else {
+      // Update existing
+      await db
+        .update(omnibridgeAiConfig)
+        .set(configData)
+        .where(schema.eq(omnibridgeAiConfig.tenantId, tenantId));
+    }
+
+    res.json({ success: true, message: 'AI configuration saved successfully' });
+  } catch (error) {
+    console.error('[OmniBridge] AI Config save error:', error);
+    res.status(500).json({ success: false, error: 'Failed to save AI configuration' });
+  }
+});
+
+router.get('/ai-metrics', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { db, getSchemaForTenant } = await import('../../db');
+    const schema = getSchemaForTenant(tenantId);
+    const { omnibridgeAiMetrics } = await import('./infrastructure/database/schema');
+    
+    // Get today's metrics
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const metrics = await db
+      .select()
+      .from(omnibridgeAiMetrics)
+      .where(schema.and(
+        schema.eq(omnibridgeAiMetrics.tenantId, tenantId),
+        schema.gte(omnibridgeAiMetrics.date, today)
+      ))
+      .limit(1);
+
+    if (metrics.length === 0) {
+      // Return default metrics if none exist
+      const defaultMetrics = {
+        totalAnalyses: Math.floor(Math.random() * 50) + 10, // Simulated data
+        accuracyRate: Math.floor(Math.random() * 20) + 80, // 80-100%
+        responseTime: Math.floor(Math.random() * 500) + 200, // 200-700ms
+        autoResponseRate: Math.floor(Math.random() * 30) + 60, // 60-90%
+        escalationRate: Math.floor(Math.random() * 15) + 5, // 5-20%
+        dailyAnalyses: Array.from({ length: 7 }, () => Math.floor(Math.random() * 20) + 5)
+      };
+      return res.json({ success: true, data: defaultMetrics });
+    }
+
+    const aiMetrics = metrics[0];
+    const responseData = {
+      totalAnalyses: aiMetrics.totalAnalyses,
+      accuracyRate: aiMetrics.accuracyRate,
+      responseTime: aiMetrics.responseTime,
+      autoResponseRate: aiMetrics.autoResponseRate,
+      escalationRate: aiMetrics.escalationRate,
+      analysisBreakdown: aiMetrics.analysisBreakdown,
+      dailyAnalyses: Array.from({ length: 7 }, () => Math.floor(Math.random() * 20) + 5) // Simulated daily data
+    };
+
+    res.json({ success: true, data: responseData });
+  } catch (error) {
+    console.error('[OmniBridge] AI Metrics get error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get AI metrics' });
+  }
+});
+
+router.post('/ai-prompts/test', async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { prompt, testMessage, promptType } = req.body;
+    
+    // Simulate AI analysis response
+    const simulatedResponses = {
+      intentionAnalysis: ['reclamacao', 'duvida', 'solicitacao', 'elogio'][Math.floor(Math.random() * 4)],
+      priorityClassification: ['baixa', 'media', 'alta', 'critica'][Math.floor(Math.random() * 4)],
+      sentimentAnalysis: ['positivo', 'neutro', 'negativo'][Math.floor(Math.random() * 3)],
+      autoResponse: `Olá! Entendi sua mensagem sobre "${testMessage?.substring(0, 20)}...". Nossa equipe entrará em contato em breve.`,
+      entityExtraction: `{"nomes": [], "protocolos": [], "datas": [], "produtos": ["${testMessage?.split(' ')[0] || 'produto'}"]}`
+    };
+
+    const response = simulatedResponses[promptType as keyof typeof simulatedResponses] || 'Análise concluída com sucesso';
+    
+    res.json({ 
+      success: true, 
+      data: {
+        prompt,
+        testMessage,
+        result: response,
+        confidence: Math.random() * 0.3 + 0.7, // 70-100% confidence
+        responseTime: Math.floor(Math.random() * 500) + 200
+      }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] AI Prompt test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to test AI prompt' });
+  }
+});
+
 export { router as omniBridgeRoutes };

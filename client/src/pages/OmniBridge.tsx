@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -192,38 +199,125 @@ export default function OmniBridge() {
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
 
-  // AI Configuration state
-  const [aiConfig, setAiConfig] = useState({
-    model: 'gpt-4',
-    temperature: 0.7,
-    maxTokens: 1000,
-    confidenceThreshold: 0.8,
-    enabledAnalysis: {
-      intention: true,
-      priority: true,
-      sentiment: true,
-      language: true,
-      entities: true
+  // AI Configuration with react-query
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Zod schemas for validation with numeric preprocessing
+  const aiConfigSchema = z.object({
+    model: z.string(),
+    temperature: z.preprocess((val) => Number(val), z.number().min(0).max(1)),
+    maxTokens: z.preprocess((val) => Number(val), z.number().min(100).max(4000)),
+    confidenceThreshold: z.preprocess((val) => Number(val), z.number().min(0).max(1)),
+    enabledAnalysis: z.object({
+      intention: z.boolean(),
+      priority: z.boolean(),
+      sentiment: z.boolean(),
+      language: z.boolean(),
+      entities: z.boolean()
+    }),
+    prompts: z.object({
+      intentionAnalysis: z.string(),
+      priorityClassification: z.string(),
+      autoResponse: z.string(),
+      sentimentAnalysis: z.string(),
+      entityExtraction: z.string()
+    })
+  });
+  
+  // Load AI Configuration
+  const { data: aiConfigData, isLoading: aiConfigLoading } = useQuery({
+    queryKey: ['/api/omnibridge/ai-config'],
+    enabled: activeTab === 'ai-config'
+  });
+  
+  // Load AI Metrics
+  const { data: aiMetricsData, isLoading: aiMetricsLoading } = useQuery({
+    queryKey: ['/api/omnibridge/ai-metrics'],
+    enabled: activeTab === 'ai-config'
+  });
+  
+  // Save AI Configuration mutation
+  const saveAiConfigMutation = useMutation({
+    mutationFn: (config: any) => apiRequest('/api/omnibridge/ai-config', {
+      method: 'PUT',
+      body: JSON.stringify(config)
+    }),
+    onSuccess: () => {
+      toast({ title: 'Configuração salva', description: 'Configurações de IA atualizadas com sucesso!' });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-config'] });
+    },
+    onError: (error) => {
+      toast({ title: 'Erro', description: 'Falha ao salvar configurações de IA', variant: 'destructive' });
     }
   });
-  const [aiPrompts, setAiPrompts] = useState({
-    intentionAnalysis: 'Analise a mensagem e identifique a intenção principal:\n- reclamacao: Cliente insatisfeito\n- duvida: Pergunta ou esclarecimento\n- solicitacao: Pedido de serviço\n- elogio: Feedback positivo\n- urgente: Situação urgente\n\nResponda apenas com a categoria.',
-    priorityClassification: 'Classifique a prioridade da mensagem:\n- baixa: Dúvidas gerais\n- media: Solicitações padrão\n- alta: Problemas operacionais\n- critica: Emergências\n\nConsidere palavras como "urgente", "parou", "não funciona".',
-    autoResponse: 'Responda de forma profissional e prestativa. Se for dúvida técnica, forneça informações úteis. Se for reclamação, seja empático e ofereça soluções.',
-    sentimentAnalysis: 'Analise o sentimento da mensagem:\n- positivo: Satisfação, elogio\n- neutro: Informativo, neutro\n- negativo: Insatisfação, reclamação\n\nResponda apenas com a categoria.',
-    entityExtraction: 'Extraia informações importantes da mensagem:\n- nomes de pessoas\n- números de pedido/protocolo\n- datas\n- produtos/serviços mencionados\n\nRetorne em formato JSON.'
+  
+  // Test AI Prompt mutation
+  const testPromptMutation = useMutation({
+    mutationFn: ({ prompt, testMessage, promptType }: any) => 
+      apiRequest('/api/omnibridge/ai-prompts/test', {
+        method: 'POST',
+        body: JSON.stringify({ prompt, testMessage, promptType })
+      }),
+    onSuccess: (data) => {
+      toast({ 
+        title: 'Teste concluído', 
+        description: `Resultado: ${data.data.result}`,
+        duration: 5000
+      });
+    }
   });
-  const [aiMetrics, setAiMetrics] = useState({
+  
+  // Form for AI Configuration
+  const aiForm = useForm({
+    resolver: zodResolver(aiConfigSchema),
+    defaultValues: {
+      model: 'gpt-4',
+      temperature: 0.7,
+      maxTokens: 1000,
+      confidenceThreshold: 0.8,
+      enabledAnalysis: {
+        intention: true,
+        priority: true,
+        sentiment: true,
+        language: true,
+        entities: true
+      },
+      prompts: {
+        intentionAnalysis: 'Analise a mensagem e identifique a intenção principal:\n- reclamacao: Cliente insatisfeito\n- duvida: Pergunta ou esclarecimento\n- solicitacao: Pedido de serviço\n- elogio: Feedback positivo\n- urgente: Situação urgente\n\nResponda apenas com a categoria.',
+        priorityClassification: 'Classifique a prioridade da mensagem:\n- baixa: Dúvidas gerais\n- media: Solicitações padrão\n- alta: Problemas operacionais\n- critica: Emergências\n\nConsidere palavras como "urgente", "parou", "não funciona".',
+        autoResponse: 'Responda de forma profissional e prestativa. Se for dúvida técnica, forneça informações úteis. Se for reclamação, seja empático e ofereça soluções.',
+        sentimentAnalysis: 'Analise o sentimento da mensagem:\n- positivo: Satisfação, elogio\n- neutro: Informativo, neutro\n- negativo: Insatisfação, reclamação\n\nResponda apenas com a categoria.',
+        entityExtraction: 'Extraia informações importantes da mensagem:\n- nomes de pessoas\n- números de pedido/protocolo\n- datas\n- produtos/serviços mencionados\n\nRetorne em formato JSON.'
+      }
+    }
+  });
+  
+  // Update form when data loads
+  React.useEffect(() => {
+    if (aiConfigData?.data) {
+      aiForm.reset(aiConfigData.data);
+    }
+  }, [aiConfigData, aiForm]);
+  
+  const handleSaveAiConfig = (data: any) => {
+    saveAiConfigMutation.mutate(data);
+  };
+  const [showAiPromptEditor, setShowAiPromptEditor] = useState(false);
+  const [selectedPromptType, setSelectedPromptType] = useState('intentionAnalysis');
+  const [tempPromptContent, setTempPromptContent] = useState('');
+  const [promptTestMessage, setPromptTestMessage] = useState('');
+  
+  // Get current values from form or API data
+  const currentAiConfig = aiForm.watch();
+  const currentMetrics = aiMetricsData?.data || {
     totalAnalyses: 0,
     accuracyRate: 0,
     responseTime: 0,
     autoResponseRate: 0,
     escalationRate: 0,
     dailyAnalyses: []
-  });
-  const [showAiPromptEditor, setShowAiPromptEditor] = useState(false);
-  const [selectedPromptType, setSelectedPromptType] = useState('intentionAnalysis');
-  const [tempPromptContent, setTempPromptContent] = useState('');
+  };
 
   // Add automation state
   useEffect(() => {
@@ -1469,6 +1563,7 @@ export default function OmniBridge() {
 
         {/* AI Configuration Tab */}
         <TabsContent value="ai-config" className="space-y-4">
+          <Form {...aiForm}>
           {/* AI Dashboard */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card>
@@ -1476,7 +1571,9 @@ export default function OmniBridge() {
                 <CardTitle className="text-sm font-medium">Análises Hoje</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{aiMetrics.totalAnalyses}</div>
+                <div className="text-2xl font-bold" data-testid="text-ai-analyses">
+                  {aiMetricsLoading ? '...' : currentMetrics.totalAnalyses}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   +12% vs ontem
                 </p>
@@ -1487,8 +1584,10 @@ export default function OmniBridge() {
                 <CardTitle className="text-sm font-medium">Taxa de Precisão</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{aiMetrics.accuracyRate}%</div>
-                <Progress value={aiMetrics.accuracyRate} className="mt-2" />
+                <div className="text-2xl font-bold" data-testid="text-ai-accuracy">
+                  {aiMetricsLoading ? '...' : currentMetrics.accuracyRate}%
+                </div>
+                <Progress value={currentMetrics.accuracyRate} className="mt-2" />
               </CardContent>
             </Card>
             <Card>
@@ -1496,9 +1595,11 @@ export default function OmniBridge() {
                 <CardTitle className="text-sm font-medium">Respostas Automáticas</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{aiMetrics.autoResponseRate}%</div>
+                <div className="text-2xl font-bold" data-testid="text-ai-auto-response">
+                  {aiMetricsLoading ? '...' : currentMetrics.autoResponseRate}%
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {aiMetrics.escalationRate}% escaladas
+                  {currentMetrics.escalationRate}% escaladas
                 </p>
               </CardContent>
             </Card>
@@ -1518,63 +1619,107 @@ export default function OmniBridge() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">Modelo</Label>
-                  <Select value={aiConfig.model} onValueChange={(value) => setAiConfig(prev => ({...prev, model: value}))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4">GPT-4 (Mais Preciso)</SelectItem>
-                      <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Rápido)</SelectItem>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FormField
+                  control={aiForm.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Modelo</FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={field.onChange} data-testid="select-ai-model">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="gpt-4">GPT-4 (Mais Preciso)</SelectItem>
+                            <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Rápido)</SelectItem>
+                            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                <div>
-                  <Label className="text-sm font-medium">Temperatura: {aiConfig.temperature}</Label>
-                  <Slider
-                    value={[aiConfig.temperature]}
-                    onValueChange={([value]) => setAiConfig(prev => ({...prev, temperature: value}))}
-                    max={1}
-                    step={0.1}
-                    className="mt-2"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Menor = mais consistente, Maior = mais criativo
-                  </p>
-                </div>
+                <FormField
+                  control={aiForm.control}
+                  name="temperature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Temperatura: {field.value.toFixed(1)}</FormLabel>
+                      <FormControl>
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={([value]) => field.onChange(value)}
+                          max={1}
+                          step={0.1}
+                          className="mt-2"
+                          data-testid="slider-ai-temperature"
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Menor = mais consistente, Maior = mais criativo
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div>
-                  <Label className="text-sm font-medium">Max Tokens: {aiConfig.maxTokens}</Label>
-                  <Slider
-                    value={[aiConfig.maxTokens]}
-                    onValueChange={([value]) => setAiConfig(prev => ({...prev, maxTokens: value}))}
-                    min={100}
-                    max={4000}
-                    step={100}
-                    className="mt-2"
-                  />
-                </div>
+                <FormField
+                  control={aiForm.control}
+                  name="maxTokens"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Tokens: {field.value}</FormLabel>
+                      <FormControl>
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={([value]) => field.onChange(value)}
+                          min={100}
+                          max={4000}
+                          step={100}
+                          className="mt-2"
+                          data-testid="slider-ai-max-tokens"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div>
-                  <Label className="text-sm font-medium">Limite de Confiança: {aiConfig.confidenceThreshold}</Label>
-                  <Slider
-                    value={[aiConfig.confidenceThreshold]}
-                    onValueChange={([value]) => setAiConfig(prev => ({...prev, confidenceThreshold: value}))}
-                    max={1}
-                    step={0.1}
-                    className="mt-2"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Confiança mínima para ações automáticas
-                  </p>
-                </div>
+                <FormField
+                  control={aiForm.control}
+                  name="confidenceThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Limite de Confiança: {field.value.toFixed(1)}</FormLabel>
+                      <FormControl>
+                        <Slider
+                          value={[field.value]}
+                          onValueChange={([value]) => field.onChange(value)}
+                          max={1}
+                          step={0.1}
+                          className="mt-2"
+                          data-testid="slider-ai-confidence"
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Confiança mínima para ações automáticas
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <Button className="w-full">
+                <Button 
+                  className="w-full" 
+                  onClick={aiForm.handleSubmit(handleSaveAiConfig)}
+                  disabled={saveAiConfigMutation.isPending}
+                  data-testid="button-save-ai-config"
+                >
                   <Settings className="h-4 w-4 mr-2" />
-                  Salvar Configurações
+                  {saveAiConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
                 </Button>
               </CardContent>
             </Card>
@@ -1591,37 +1736,37 @@ export default function OmniBridge() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(aiConfig.enabledAnalysis).map(([key, enabled]) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">
-                        {key === 'intention' && 'Análise de Intenção'}
-                        {key === 'priority' && 'Classificação de Prioridade'}
-                        {key === 'sentiment' && 'Análise de Sentimento'}
-                        {key === 'language' && 'Detecção de Idioma'}
-                        {key === 'entities' && 'Extração de Entidades'}
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {key === 'intention' && 'Identifica o propósito da mensagem'}
-                        {key === 'priority' && 'Classifica urgência e importância'}
-                        {key === 'sentiment' && 'Detecta emoções e tom'}
-                        {key === 'language' && 'Identifica idioma automaticamente'}
-                        {key === 'entities' && 'Extrai nomes, datas, produtos'}
-                      </p>
-                    </div>
-                    <Checkbox
-                      checked={enabled}
-                      onCheckedChange={(checked) => 
-                        setAiConfig(prev => ({
-                          ...prev,
-                          enabledAnalysis: {
-                            ...prev.enabledAnalysis,
-                            [key]: checked
-                          }
-                        }))
-                      }
-                    />
-                  </div>
+                {Object.entries(currentAiConfig.enabledAnalysis).map(([key, enabled]) => (
+                  <FormField
+                    key={key}
+                    control={aiForm.control}
+                    name={`enabledAnalysis.${key}` as any}
+                    render={({ field }) => (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">
+                            {key === 'intention' && 'Análise de Intenção'}
+                            {key === 'priority' && 'Classificação de Prioridade'}
+                            {key === 'sentiment' && 'Análise de Sentimento'}
+                            {key === 'language' && 'Detecção de Idioma'}
+                            {key === 'entities' && 'Extração de Entidades'}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {key === 'intention' && 'Identifica o propósito da mensagem'}
+                            {key === 'priority' && 'Classifica urgência e importância'}
+                            {key === 'sentiment' && 'Detecta emoções e tom'}
+                            {key === 'language' && 'Identifica idioma automaticamente'}
+                            {key === 'entities' && 'Extrai nomes, datas, produtos'}
+                          </p>
+                        </div>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid={`checkbox-analysis-${key}`}
+                        />
+                      </div>
+                    )}
+                  />
                 ))}
               </CardContent>
             </Card>
@@ -1638,9 +1783,10 @@ export default function OmniBridge() {
                 <Button 
                   size="sm" 
                   onClick={() => {
-                    setTempPromptContent(aiPrompts[selectedPromptType as keyof typeof aiPrompts]);
+                    setTempPromptContent(currentAiConfig.prompts[selectedPromptType as keyof typeof currentAiConfig.prompts]);
                     setShowAiPromptEditor(true);
                   }}
+                  data-testid="button-edit-prompt"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Editar Prompt
@@ -1652,12 +1798,12 @@ export default function OmniBridge() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(aiPrompts).map(([key, prompt]) => (
+                {Object.entries(currentAiConfig.prompts).map(([key, prompt]) => (
                   <Card key={key} className="cursor-pointer hover:bg-muted/50" onClick={() => {
                     setSelectedPromptType(key);
                     setTempPromptContent(prompt);
                     setShowAiPromptEditor(true);
-                  }}>
+                  }} data-testid={`card-prompt-${key}`}>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm">
                         {key === 'intentionAnalysis' && 'Análise de Intenção'}
@@ -1675,7 +1821,7 @@ export default function OmniBridge() {
                         <Badge variant="outline" className="text-xs">
                           {prompt.split('\\n').length} linhas
                         </Badge>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" data-testid={`button-edit-prompt-${key}`}>
                           <Settings className="h-3 w-3" />
                         </Button>
                       </div>
@@ -1773,6 +1919,7 @@ export default function OmniBridge() {
               </div>
             </CardContent>
           </Card>
+          </Form>
         </TabsContent>
       </Tabs>
 
@@ -1996,7 +2143,19 @@ export default function OmniBridge() {
                   onChange={(e) => setTempPromptContent(e.target.value)}
                   className="min-h-[300px] font-mono text-sm"
                   placeholder="Digite o prompt aqui..."
+                  data-testid="textarea-prompt-content"
                 />
+                <div className="space-y-2">
+                  <Label htmlFor="test-message">Mensagem de Teste</Label>
+                  <Textarea
+                    id="test-message"
+                    value={promptTestMessage}
+                    onChange={(e) => setPromptTestMessage(e.target.value)}
+                    className="min-h-[100px] text-sm"
+                    placeholder="Digite uma mensagem para testar o prompt..."
+                    data-testid="textarea-test-message"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Preview & Dicas</Label>
@@ -2050,11 +2209,25 @@ export default function OmniBridge() {
 
             <div className="flex items-center justify-between border-t pt-4">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    if (tempPromptContent.trim() && promptTestMessage.trim()) {
+                      testPromptMutation.mutate({
+                        prompt: tempPromptContent,
+                        testMessage: promptTestMessage,
+                        promptType: selectedPromptType
+                      });
+                    }
+                  }}
+                  disabled={testPromptMutation.isPending || !tempPromptContent.trim() || !promptTestMessage.trim()}
+                  data-testid="button-test-prompt"
+                >
                   <Target className="h-4 w-4 mr-2" />
-                  Testar Prompt
+                  {testPromptMutation.isPending ? 'Testando...' : 'Testar Prompt'}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" data-testid="button-use-template">
                   <FileText className="h-4 w-4 mr-2" />
                   Usar Template
                 </Button>
@@ -2065,13 +2238,13 @@ export default function OmniBridge() {
                 </Button>
                 <Button 
                   onClick={() => {
-                    setAiPrompts(prev => ({
-                      ...prev,
-                      [selectedPromptType]: tempPromptContent
-                    }));
+                    const currentPrompts = { ...currentAiConfig.prompts };
+                    currentPrompts[selectedPromptType as keyof typeof currentPrompts] = tempPromptContent;
+                    aiForm.setValue('prompts', currentPrompts);
                     setShowAiPromptEditor(false);
                   }}
                   disabled={!tempPromptContent.trim()}
+                  data-testid="button-save-prompt"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Salvar Prompt
