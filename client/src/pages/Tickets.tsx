@@ -559,6 +559,7 @@ export default function Tickets() {
               </DialogHeader>
               <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                 <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
                     <div>
@@ -1029,25 +1030,25 @@ export default function Tickets() {
 
                   </div>
 
-                  {/* Submit button */}
-                  <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      {t('common.cancel')}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={form.handleSubmit(onSubmit)}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                      disabled={createTicketMutation.isPending}
-                      data-testid="button-submit-ticket"
-                    >
-                      {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
-                    </Button>
-                  </div>
+                    {/* Submit button */}
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsCreateDialogOpen(false)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        disabled={createTicketMutation.isPending}
+                        data-testid="button-submit-ticket"
+                      >
+                        {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
+                      </Button>
+                    </div>
+                  </form>
                 </Form>
               </div>
             </DialogContent>
