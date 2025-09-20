@@ -1053,22 +1053,14 @@ export default function Tickets() {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                        disabled={createTicketMutation.isPending}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold"
                         data-testid="button-submit-ticket"
-                        onClick={(e) => {
-                          console.log('🎫 [BUTTON-CLICK] Button clicked SUCCESSFULLY!!!');
-                          console.log('🎫 [BUTTON-CLICK] Form valid?', form.formState.isValid);
-                          console.log('🎫 [BUTTON-CLICK] Form errors:', form.formState.errors);
-                          console.log('🎫 [BUTTON-CLICK] Form values:', form.getValues());
-                          
-                          // Forçar submit manual
-                          const formData = form.getValues();
-                          console.log('🎫 [MANUAL-SUBMIT] Calling onSubmit directly with:', formData);
-                          onSubmit(formData);
+                        onClick={() => {
+                          alert('BOTÃO FUNCIONOU! 🎉');
+                          console.log('🚨 TESTE BÁSICO: Botão funcionou!');
                         }}
                       >
-                        {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
+                        TESTE BOTÃO
                       </Button>
                     </div>
                   </form>
