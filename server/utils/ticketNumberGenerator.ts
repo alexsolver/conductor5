@@ -91,14 +91,14 @@ class TicketNumberGenerator {
       if (!row) return null;
 
       return {
-        id: row.id,
-        prefix: row.prefix,
-        first_separator: row.first_separator || '',
-        year_format: row.year_format === '2' ? '2' : '4',
+        id: String(row.id),
+        prefix: String(row.prefix),
+        first_separator: String(row.first_separator || ''),
+        year_format: String(row.year_format) === '2' ? '2' : '4',
         sequential_digits: Number(row.sequential_digits) || 6,
-        separator: row.separator || '',
-        reset_yearly: row.reset_yearly !== false,
-        company_id: row.company_id
+        separator: String(row.separator || ''),
+        reset_yearly: Boolean(row.reset_yearly !== false),
+        company_id: String(row.company_id)
       };
     } catch (error) {
       console.error('Error fetching numbering config:', error);
@@ -128,7 +128,7 @@ class TicketNumberGenerator {
       `);
 
       if (result.rows && result.rows.length > 0) {
-        const lastNumber = result.rows[0].number;
+        const lastNumber = String(result.rows[0].number);
         
         // Extract the sequential part from the last ticket number
         const sequentialMatch = lastNumber.match(/(\d+)$/);
