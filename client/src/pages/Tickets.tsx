@@ -548,17 +548,17 @@ export default function Tickets() {
         <div className="flex space-x-2">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" data-testid="button-create-ticket">
                 <Plus className="h-4 w-4 mr-2" />
                 {t('tickets.new_ticket')}
               </Button>
             </DialogTrigger>
-              <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
-                <DialogHeader className="flex-shrink-0 pb-4 border-b">
-                  <DialogTitle>{t('tickets.forms.create.title')}</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
-                  <Form {...form}>
+            <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
+              <DialogHeader className="flex-shrink-0 pb-4 border-b">
+                <DialogTitle>{t('tickets.forms.create.title')}</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
+                <Form {...form}>
                   {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
                     <div>
@@ -633,6 +633,40 @@ export default function Tickets() {
                       </Select>
                     </div>
                   </div>
+
+                  {/* Company Selection */}
+                  <FormField
+                    control={form.control}
+                    name="companyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">{t('tickets.company')} *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedCompanyId(value);
+                            // Reset customer when company changes
+                            form.setValue("customerId", "");
+                          }} 
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder={t('tickets.forms.create.select_company')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {companies.map((company: any) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.displayName || company.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {/* Customer Selection - Filtered by Company */}
                     <FormField
@@ -1009,6 +1043,7 @@ export default function Tickets() {
                       onClick={form.handleSubmit(onSubmit)}
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                       disabled={createTicketMutation.isPending}
+                      data-testid="button-submit-ticket"
                     >
                       {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
                     </Button>
