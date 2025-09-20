@@ -601,10 +601,12 @@ const TicketsTable = React.memo(() => {
   } = useOptimizedQuery({
     queryKey: ['/api/ticket-views'],
     queryFn: async () => {
+      console.log('🔍 [TICKET-VIEWS] Fetching ticket views...');
       const response = await apiRequest('GET', '/api/ticket-views');
       if (!response.ok) throw new Error('Failed to fetch views');
       const data = await response.json();
-      return data.views || [];
+      console.log('🔍 [TICKET-VIEWS] Response:', data);
+      return data.data || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
