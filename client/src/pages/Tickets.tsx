@@ -1028,8 +1028,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  </div>
-
                     {/* Submit button */}
                     <div className="flex justify-end gap-3 pt-4 border-t">
                       <Button
