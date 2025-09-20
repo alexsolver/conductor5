@@ -548,32 +548,14 @@ export default function Tickets() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <div
-            onClick={(e) => {
-              console.log('🎫 [DIV-CLICK] DIV BUTTON CLICKED!!!', e);
-              console.log('🎫 [MODAL-STATE] Setting dialog open to true');
-              setIsCreateDialogOpen(true);
-            }}
-            onMouseEnter={() => console.log('🎫 [DIV-HOVER] Mouse entered div')}
-            onMouseMove={() => console.log('🎫 [DIV-MOVE] Mouse moving over div')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#ff0000',
-              color: 'white',
-              border: '2px solid yellow',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              zIndex: 99999,
-              position: 'fixed',
-              top: '100px',
-              left: '100px',
-              fontSize: '18px',
-              fontWeight: 'bold'
-            }}
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             data-testid="button-create-ticket"
           >
-            CLIQUE AQUI - NOVO TICKET
-          </div>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('tickets.actions.create')}
+          </Button>
           
           <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
             console.log('🎫 [MODAL-STATE] Dialog open changed to:', open);
@@ -1068,6 +1050,15 @@ export default function Tickets() {
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                         disabled={createTicketMutation.isPending}
                         data-testid="button-submit-ticket"
+                        onClick={(e) => {
+                          console.log('🎫 [SUBMIT-BUTTON] Button clicked!!!', e);
+                          console.log('🎫 [SUBMIT-BUTTON] Form valid?', form.formState.isValid);
+                          console.log('🎫 [SUBMIT-BUTTON] Form errors:', form.formState.errors);
+                          console.log('🎫 [SUBMIT-BUTTON] Form values:', form.getValues());
+                          console.log('🎫 [SUBMIT-BUTTON] Mutation pending?', createTicketMutation.isPending);
+                        }}
+                        onMouseDown={() => console.log('🎫 [SUBMIT-BUTTON] Mouse down')}
+                        onMouseUp={() => console.log('🎫 [SUBMIT-BUTTON] Mouse up')}
                       >
                         {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
                       </Button>
