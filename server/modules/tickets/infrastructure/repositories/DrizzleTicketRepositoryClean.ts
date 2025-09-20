@@ -195,7 +195,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       let mainQuery = `
         SELECT 
           t.id,
-          t.number           AS "number",
+          t.ticket_number    AS "number",
           t.title            AS "subject",
           t.description,
           t.status,
@@ -203,7 +203,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           t.category,
           t.subcategory,
           t.caller_id        AS "callerId",
-          t.assigned_to      AS "assignedTo",     -- corrigido
+          t.assigned_to      AS "assignedTo",
           t.tenant_id        AS "tenantId",
           t.created_at       AS "createdAt",
           t.updated_at       AS "updatedAt",
@@ -264,10 +264,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          id, ticket_number as "number", title as "subject", description, status, priority,
+          category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
+          company_id as "companyId", customer_id as "customerId"
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE is_active = true
         ORDER BY created_at DESC
@@ -287,12 +287,12 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, subject, description, status, priority, urgency, impact,
-          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          id, ticket_number as "number", title as "subject", description, status, priority,
+          category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
-          company_id as "companyId", beneficiary_id as "beneficiaryId", assignment_group as "assignmentGroupId"
+          company_id as "companyId", customer_id as "customerId"
         FROM ${sql.identifier(schemaName)}.tickets
-        WHERE assigned_to_id = ${userId}
+        WHERE assigned_to = ${userId}
         ORDER BY created_at DESC
       `);
 
