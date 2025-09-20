@@ -3611,7 +3611,7 @@ const TicketDetails = React.memo(() => {
           aria-label="Seções do ticket"
           aria-orientation="vertical"
         >
-          {/* Informações Tab */}
+          {/* 1. Detalhes */}
           <button
             onClick={() => setActiveTab("informacoes")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3627,175 +3627,7 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.details')}</span>
           </button>
 
-          {/* Campos Especiais - Nova ordem */}
-          <button
-            onClick={() => setActiveTab("communications")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
-              activeTab === "communications"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.tabs.communication')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
-              {communicationsData?.length || 0}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("attachments")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "attachments"
-                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "attachments"}
-            aria-controls="tab-content"
-          >
-            <div className="flex items-center gap-3">
-              <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("notes")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "notes"
-                ? 'bg-indigo-100 text-indigo-900 border-2 border-indigo-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "notes"}
-            aria-controls="tab-content"
-            aria-label={`Notas - ${notesData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.notes')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              {notesData?.length || 0}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("materials")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "materials"
-                ? 'bg-amber-100 text-amber-900 border-2 border-amber-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "materials"}
-            aria-controls="tab-content"
-          >
-            <Package className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
-          </button>
-
-          {/* Base de Conhecimento Tab */}
-          <button
-            onClick={() => setActiveTab("knowledge-base")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "knowledge-base"
-                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "knowledge-base"}
-            aria-controls="tab-content"
-            data-testid="tab-knowledge-base"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("internal-actions")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "internal-actions"
-                ? 'bg-violet-100 text-violet-900 border-2 border-violet-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "internal-actions"}
-            aria-controls="tab-content"
-            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {internalActionsData?.length || 0}
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("external-actions")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "external-actions"
-                ? 'bg-teal-100 text-teal-900 border-2 border-teal-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "external-actions"}
-            aria-controls="tab-content"
-            aria-label={`Ações Externas - 0 itens`}
-          >
-            <div className="flex items-center gap-3">
-              <ExternalLink className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.externalActions')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              0
-            </Badge>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "history"
-                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "history"}
-            aria-controls="tab-content"
-          >
-            <History className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.history')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "links"
-                ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "links"}
-            aria-controls="tab-content"
-            aria-label={`Vínculos - ${relatedTicketsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <Link className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.links')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
-              {relatedTicketsData?.length || 0}
-            </Badge>
-          </button>
-
+          {/* 2. Campos Customizados */}
           <button
             onClick={() => setActiveTab("custom-fields")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3817,6 +3649,167 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
+          {/* 3. Comunicação */}
+          <button
+            onClick={() => setActiveTab("communications")}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "communications"
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <MessageSquare className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.tabs.communication')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
+              {communicationsData?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 4. Notas */}
+          <button
+            onClick={() => setActiveTab("notes")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "notes"
+                ? 'bg-indigo-100 text-indigo-900 border-2 border-indigo-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "notes"}
+            aria-controls="tab-content"
+            aria-label={`Notas - ${notesData?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.notes')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
+              {notesData?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 5. Anexos */}
+          <button
+            onClick={() => setActiveTab("attachments")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "attachments"
+                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "attachments"}
+            aria-controls="tab-content"
+          >
+            <div className="flex items-center gap-3">
+              <Paperclip className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 6. Materiais e Serviços */}
+          <button
+            onClick={() => setActiveTab("materials")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "materials"
+                ? 'bg-amber-100 text-amber-900 border-2 border-amber-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "materials"}
+            aria-controls="tab-content"
+          >
+            <Package className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
+          </button>
+
+          {/* 7. Ações Internas */}
+          <button
+            onClick={() => setActiveTab("internal-actions")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "internal-actions"
+                ? 'bg-violet-100 text-violet-900 border-2 border-violet-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "internal-actions"}
+            aria-controls="tab-content"
+            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+              {internalActionsData?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 8. Ações Externas */}
+          <button
+            onClick={() => setActiveTab("external-actions")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "external-actions"
+                ? 'bg-teal-100 text-teal-900 border-2 border-teal-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "external-actions"}
+            aria-controls="tab-content"
+            aria-label={`Ações Externas - 0 itens`}
+          >
+            <div className="flex items-center gap-3">
+              <ExternalLink className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.externalActions')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
+              0
+            </Badge>
+          </button>
+
+          {/* 9. Base de Conhecimento */}
+          <button
+            onClick={() => setActiveTab("knowledge-base")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "knowledge-base"
+                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "knowledge-base"}
+            aria-controls="tab-content"
+            data-testid="tab-knowledge-base"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
+          </button>
+
+          {/* 10. Vínculos */}
+          <button
+            onClick={() => setActiveTab("links")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "links"
+                ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "links"}
+            aria-controls="tab-content"
+            aria-label={`Vínculos - ${relatedTicketsData?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <Link className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.links')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
+              {relatedTicketsData?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 11. Interações Recentes */}
           <button
             onClick={() => setActiveTab("latest-interactions")}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
@@ -3827,6 +3820,22 @@ const TicketDetails = React.memo(() => {
           >
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">{t('tickets.latestInteractions')}</span>
+          </button>
+
+          {/* 12. Histórico */}
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "history"
+                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "history"}
+            aria-controls="tab-content"
+          >
+            <History className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('tickets.history')}</span>
           </button>
         </div>
 
