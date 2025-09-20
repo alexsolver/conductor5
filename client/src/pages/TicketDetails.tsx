@@ -21,7 +21,8 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen, 
+  FormInput
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelec
 import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniSystem";
 import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
+import DynamicCustomFields from "@/components/DynamicCustomFields";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -91,7 +93,7 @@ const TicketDetails = React.memo(() => {
   // Handle hash-based navigation for direct tab access
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions', 'knowledge-base'].includes(hash)) {
+    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions', 'knowledge-base', 'custom-fields'].includes(hash)) {
       setActiveTab(hash);
     }
   }, []);
@@ -445,6 +447,25 @@ const TicketDetails = React.memo(() => {
     queryKey: ["/api/users"],
   });
 
+  // Fetch custom fields from ticket template
+  const { data: ticketTemplateCustomFields, isLoading: customFieldsLoading } = useQuery({
+    queryKey: ["/api/tickets", id, "template-custom-fields"],
+    queryFn: async () => {
+      if (!ticket?.templateId && !ticket?.template_id) {
+        return { success: true, data: [] };
+      }
+      
+      const templateId = ticket.templateId || ticket.template_id;
+      const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!id && !!ticket && (!!ticket?.templateId || !!ticket?.template_id),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
 
   // Use company-specific customers if available, otherwise fall back to all customers
@@ -542,6 +563,15 @@ const TicketDetails = React.memo(() => {
     }
     return [];
   }, [ticketActions]);
+
+  const templateCustomFieldsData = useMemo(() => {
+    if (ticketTemplateCustomFields?.success && Array.isArray(ticketTemplateCustomFields.data)) {
+      return ticketTemplateCustomFields.data;
+    } else if (ticketTemplateCustomFields?.data && Array.isArray(ticketTemplateCustomFields.data)) {
+      return ticketTemplateCustomFields.data;
+    }
+    return [];
+  }, [ticketTemplateCustomFields]);
 
   const relatedTicketsData = useMemo(() => {
     if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
@@ -2825,6 +2855,85 @@ const TicketDetails = React.memo(() => {
       case "knowledge-base":
         return <KnowledgeBaseTicketTab ticketId={id} />;
 
+      case "custom-fields":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🔧 Campos Customizados do Template</h2>
+              <Badge variant="outline" className="text-xs">
+                {templateCustomFieldsData?.length || 0} campos configurados
+              </Badge>
+            </div>
+
+            {customFieldsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500">Carregando campos customizados...</p>
+                </div>
+              </div>
+            ) : templateCustomFieldsData && templateCustomFieldsData.length > 0 ? (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FormInput className="h-4 w-4 text-blue-600" />
+                    <h3 className="font-medium text-blue-900">Campos do Template</h3>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    Estes campos foram configurados no template "{ticket?.templateName || 'Template atual'}" 
+                    e são específicos para este tipo de ticket.
+                  </p>
+                </div>
+
+                <DynamicCustomFields
+                  moduleType="tickets"
+                  entityId={ticket?.id}
+                  readOnly={!isEditMode}
+                  className="bg-white border rounded-lg p-4"
+                />
+
+                {!isEditMode && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500 mb-3">
+                      Para editar os campos customizados, ative o modo de edição.
+                    </p>
+                    <Button
+                      onClick={() => setIsEditMode(true)}
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Ativar Edição
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <FormInput className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    Nenhum Campo Customizado
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Este ticket não possui campos customizados configurados no template 
+                    ou o template não foi definido.
+                  </p>
+                  <div className="bg-gray-50 border rounded-lg p-4 text-left">
+                    <h4 className="font-medium text-gray-700 mb-2">Como adicionar campos:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Configure campos no template do ticket</li>
+                      <li>• Os campos aparecerão automaticamente aqui</li>
+                      <li>• Entre em contato com o administrador se necessário</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-4">
@@ -3684,6 +3793,27 @@ const TicketDetails = React.memo(() => {
             </div>
             <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
               {relatedTicketsData?.length || 0}
+            </Badge>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("custom-fields")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "custom-fields"
+                ? 'bg-green-100 text-green-900 border-2 border-green-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "custom-fields"}
+            aria-controls="tab-content"
+            aria-label={`Campos Customizados - ${templateCustomFieldsData?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <FormInput className="h-4 w-4" />
+              <span className="text-sm font-medium">Campos Customizados</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
+              {templateCustomFieldsData?.length || 0}
             </Badge>
           </button>
 

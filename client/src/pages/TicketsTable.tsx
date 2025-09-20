@@ -224,6 +224,13 @@ const TicketsTable = React.memo(() => {
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
+  // Campos customizaveis e obrigatorios
+  const [templateRequiredKeys, setTemplateRequiredKeys] = useState<string[]>([]);
+  const [templateOptionalKeys, setTemplateOptionalKeys] = useState<string[]>([]);
+  const [templateFieldOrder, setTemplateFieldOrder] = useState<string[]>([]);
+  const [activeTemplateType, setActiveTemplateType] = useState<'creation' | 'edit' | string>('creation');
+  const [activeCustomFields, setActiveCustomFields] = useState<any[]>([]);
+
 
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
@@ -393,6 +400,78 @@ const TicketsTable = React.memo(() => {
     }
   }), [statusMapping, priorityMapping, impactMapping, urgencyMapping, categoryMapping]);
 
+
+  // mapeia nomes vindos do template para suas keys de form
+  const fieldMapping: Record<string, string> = {
+    company: 'companyId',
+    client: 'callerId',
+    beneficiary: 'beneficiaryId',
+    status: 'status',
+    summary: 'subject',
+    description: 'description',
+    urgency: 'urgency',
+    location: 'location',
+    tags: 'tags',
+    comments: 'comments',
+    estimated_hours: 'estimated_hours',
+    materials_services: 'materials_services',
+    due_date: 'due_date',
+    attachment: 'attachment',
+    // se precisar: assignedTo -> assignedToId, etc.
+  };
+
+  // retorna arrays de obrigatórios/opcionais + ordem
+  function extractTemplateInfo(tpl: any) {
+    const req = Array.isArray(tpl?.required_fields) ? tpl.required_fields : [];
+    const custom = Array.isArray(tpl?.custom_fields) ? tpl.custom_fields : [];
+
+    const requiredKeys = req.map((f: any) => String(f.fieldName).trim()).filter(Boolean);
+    const order = req
+      .slice()
+      .sort((a: any, b: any) => (a.order ?? 999) - (b.order ?? 999))
+      .map((f: any) => String(f.fieldName).trim());
+
+    // opcionais: (por hora, considere custom como opcionais)
+    const optionalKeys = custom.map((cf: any) => cf.name).filter(Boolean);
+
+    return { requiredKeys, optionalKeys, order };
+  }
+
+  // liga/desliga visibleFields conforme template
+  function buildVisibleFlags(requiredKeys: string[], optionalKeys: string[]) {
+    const flags: Record<string, boolean> = {};
+    const allKeys = [...new Set([...requiredKeys, ...optionalKeys])];
+    allKeys.forEach((k) => {
+      if (!TEMPLATE_UI_EXCLUDE.has(k)) {
+        flags[k] = true; // mostra só o que não está excluído
+      }
+    });
+    return flags;
+  }
+
+
+  // aplica defaults caso venham no template (se usar defaultValue mais tarde)
+  function applyDefaultsFromTemplate(tpl: any) {
+    const req = Array.isArray(tpl?.required_fields) ? tpl.required_fields : [];
+    req.forEach((f: any) => {
+      const raw = f.fieldName?.trim();
+      const mapped = fieldMapping[raw] || raw;
+      if (f.defaultValue != null) {
+        // tags pode precisar array
+        form.setValue(mapped as any, mapped === 'tags' && typeof f.defaultValue === 'string'
+          ? f.defaultValue.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : f.defaultValue);
+      }
+    });
+    const custom = Array.isArray(tpl?.custom_fields) ? tpl.custom_fields : [];
+    custom.forEach((cf: any) => {
+      if (cf?.defaultValue != null) {
+        form.setValue(cf.name as any, cf.defaultValue);
+      }
+    });
+  }
+
+  
   // Função de mapeamento para status
   const mapStatusValue = (value: string): string => {
     return dataMapper.status(value);
@@ -1462,9 +1541,10 @@ const TicketsTable = React.memo(() => {
   
   // Dynamic field visibility based on template - Start with all hidden until template is selected
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({
+    // já existentes
     category: false,
     subcategory: false,
-    priority: false, 
+    priority: false,
     impact: false,
     urgency: false,
     assignedToId: false,
@@ -1473,33 +1553,47 @@ const TicketsTable = React.memo(() => {
     contactType: false,
     businessImpact: false,
     symptoms: false,
-    workaround: false
+    workaround: false,
+
+    // novos do template
+    status: false,
+    summary: false,             // mapeado para subject
+    description: false,         // você já tem, mas mantenha o flag
+    company: false,             // mapeado para companyId
+    client: false,              // mapeado para callerId
+    beneficiary: false,         // mapeado para beneficiaryId
+    attachment: false,
+    tags: false,
+    comments: false,
+    estimated_hours: false,
+    materials_services: false,
+    due_date: false,
   });
+
   
   const [templateSelected, setTemplateSelected] = useState<boolean>(false);
+  const TEMPLATE_UI_EXCLUDE = new Set<string>(['client', 'beneficiary']);
 
   // ✅ 1QA.MD: Load templates following Clean Architecture patterns
   const loadTemplates = async () => {
-    if (templatesData) return; // Already loaded
-
+    if (templatesData) return;
     try {
       setTemplatesLoading(true);
       const response = await apiRequest('GET', '/api/ticket-templates');
+      const json = await response.json();
 
-      if (response.ok) {
-        const data = await response.json();
-        setTemplatesData(data);
-      } else {
-        if (response.status === 401) {
-          // Token expired, redirect to login
-          window.location.href = '/login';
-          return;
-        }
-        setTemplatesData({ success: false, data: [] });
-      }
-    } catch (error) {
-      console.error('Error loading templates:', error);
-      setTemplatesData({ success: false, data: [] });
+      const normalized = Array.isArray(json?.data?.templates)
+        ? json.data.templates
+        : Array.isArray(json?.templates)
+          ? json.templates
+          : Array.isArray(json)
+            ? json
+            : [];
+
+      setTemplatesData({ success: true, templates: normalized });
+    } catch (e) {
+      console.error('Error loading templates:', e);
+      setTemplatesData({ success: false, templates: [] });
     } finally {
       setTemplatesLoading(false);
     }
@@ -1627,6 +1721,7 @@ const TicketsTable = React.memo(() => {
 
     // Use subject field directly
     const subject = data.subject || data.description?.substring(0, 100) || "";
+    const customFieldsValues = form.getValues().customFields || {};
 
     const submitData = {
       // Core ticket fields (using ServiceNow-style naming)
@@ -1664,9 +1759,49 @@ const TicketsTable = React.memo(() => {
 
       // Additional fields
       tags: data.tags || [],
+      custom_fields_values: customFieldsValues, // 👈 envia os personalizados
+
     };
 
     console.log('Submitting ticket data:', submitData);
+
+    if (templateSelected && templateRequiredKeys.length > 0) {
+      let hasError = false;
+
+      for (const raw of templateRequiredKeys) {
+        const mapped = fieldMapping[raw] || raw;
+
+        // pega do form (client->callerId, beneficiary->beneficiaryId)
+        const v = (form.getValues() as any)[mapped];
+        const isEmpty =
+          v == null ||
+          (typeof v === 'string' && v.trim() === '') ||
+          (Array.isArray(v) && v.length === 0);
+
+        if (isEmpty) {
+          hasError = true;
+          form.setError(mapped as any, { type: 'required', message: 'Campo obrigatório pelo template' });
+        }
+      }
+
+      for (const cf of activeCustomFields) {
+        if (cf.required) {
+          const v = (form.getValues() as any)?.customFields?.[cf.name];
+          const empty = v == null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0);
+          if (empty) {
+            form.setError(`customFields.${cf.name}` as any, { type: 'required', message: 'Campo obrigatório' });
+            hasError = true;
+          }
+        }
+      }
+      if (hasError) {
+        toast({ title: "Campos obrigatórios", description: "Preencha os campos exigidos pelo template.", variant: "destructive" });
+        return;
+      }
+    }
+
+    
+    
     createTicketMutation.mutate(submitData);
   };
 
@@ -1746,137 +1881,83 @@ const TicketsTable = React.memo(() => {
             onValueChange={(templateId) => {
               setSelectedTemplateId(templateId);
 
-              // ✅ 1QA.MD: Apply template fields when selected
-              if (templateId && templateId !== '__none__' && templatesData?.data) {
+              if (templateId && templateId !== '__none__' && Array.isArray(templatesData?.templates)) {
                 setTemplateSelected(true);
+
+                const tpl = templatesData.templates.find((t: any) => t.id === templateId);
+                if (!tpl) return;
                 
-                let templatesArray = null;
-                if (templatesData.data.templates && Array.isArray(templatesData.data.templates)) {
-                  templatesArray = templatesData.data.templates;
-                } else if (templatesData.templates && Array.isArray(templatesData.templates)) {
-                  templatesArray = templatesData.templates;
-                } else if (Array.isArray(templatesData.data)) {
-                  templatesArray = templatesData.data;
-                }
-
-                const selectedTemplate = templatesArray?.find((t: any) => t.id === templateId);
-                
-                // Check both fields and required_fields
-                const templateFields = selectedTemplate?.fields || selectedTemplate?.required_fields;
-                if (templateFields) {
-                  try {
-                    const parsedFields = typeof templateFields === 'string'
-                      ? JSON.parse(templateFields)
-                      : templateFields;
-
-                    // Configure field visibility based on template with field mapping
-                    // Handle both object format and array format (required_fields)
-                    let templateFieldKeys: string[] = [];
-                    if (Array.isArray(parsedFields)) {
-                      // required_fields format: array of {fieldName, ...}
-                      templateFieldKeys = parsedFields.map((field: any) => field.fieldName || field.name);
-                    } else if (typeof parsedFields === 'object') {
-                      // fields format: object with keys
-                      templateFieldKeys = Object.keys(parsedFields);
-                    }
-                    
-                    const fieldMapping: Record<string, string> = {
-                      'assignedTo': 'assignedToId', // Handle naming differences
-                      'client': 'callerId', // Map client to caller
-                      'beneficiary': 'beneficiaryId', // Map beneficiary
-                      'company': 'companyId', // Map company
-                      'summary': 'subject', // Map summary to subject
-                    };
-                    
-                    const newVisibleFields: Record<string, boolean> = {
-                      category: templateFieldKeys.includes('category'),
-                      subcategory: templateFieldKeys.includes('subcategory'),
-                      priority: templateFieldKeys.includes('priority'), // Show only if in template
-                      impact: templateFieldKeys.includes('impact'),
-                      urgency: templateFieldKeys.includes('urgency'),
-                      assignedToId: templateFieldKeys.includes('assignedToId') || templateFieldKeys.includes('assignedTo'),
-                      assignmentGroup: templateFieldKeys.includes('assignmentGroup'),
-                      location: templateFieldKeys.includes('location'),
-                      contactType: templateFieldKeys.includes('contactType'),
-                      businessImpact: templateFieldKeys.includes('businessImpact'),
-                      symptoms: templateFieldKeys.includes('symptoms'),
-                      workaround: templateFieldKeys.includes('workaround')
-                    };
-                    setVisibleFields(newVisibleFields);
-
-                    // Clear all fields first, then apply template values
-                    Object.keys(visibleFields).forEach(fieldKey => {
-                      if (fieldKey in ticketSchema.shape) {
-                        form.setValue(fieldKey as any, '');
-                      }
-                    });
-
-                    // Apply template values to form with defaults for required hidden fields
-                    if (Array.isArray(parsedFields)) {
-                      // Handle required_fields format: array of field objects
-                      parsedFields.forEach((field: any) => {
-                        const fieldKey = field.fieldName || field.name;
-                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
-                        if (mappedKey in ticketSchema.shape && field.defaultValue) {
-                          form.setValue(mappedKey as any, field.defaultValue);
-                        }
-                      });
-                    } else if (typeof parsedFields === 'object') {
-                      // Handle fields format: object with keys and values
-                      Object.keys(parsedFields).forEach(fieldKey => {
-                        const mappedKey = fieldMapping[fieldKey] || fieldKey;
-                        if (mappedKey in ticketSchema.shape) { // Only set if field exists in schema
-                          form.setValue(mappedKey as any, parsedFields[fieldKey]);
-                        }
-                      });
-                    }
-
-                    // Set defaults for required fields that are hidden
-                    if (!newVisibleFields.priority) {
-                      form.setValue('priority', 'medium'); // Default value when hidden
-                    }
-
-                    toast({
-                      title: "Template aplicado",
-                      description: `Template "${selectedTemplate.name}" foi configurado com sucesso.`,
-                    });
-                  } catch (error) {
-                    toast({
-                      title: "Erro ao aplicar template",
-                      description: "Ocorreu um erro ao aplicar os campos do template.",
-                      variant: "destructive"
-                    });
+                setActiveCustomFields(Array.isArray(tpl?.custom_fields) ? tpl.custom_fields : []);
+                const custom = Array.isArray(tpl?.custom_fields) ? tpl.custom_fields : [];
+                custom.forEach((cf: any) => {
+                  if (cf?.defaultValue != null) {
+                    form.setValue(`customFields.${cf.name}` as any, cf.defaultValue);
                   }
+                });
+
+                setActiveTemplateType(tpl.template_type || 'creation');
+
+                const { requiredKeys, optionalKeys, order } = extractTemplateInfo(tpl);
+                setTemplateRequiredKeys(requiredKeys);
+                setTemplateOptionalKeys(optionalKeys);
+                setTemplateFieldOrder(order);
+
+                // zera flags e ativa só os citados
+                setVisibleFields((prev) => {
+                  const base = Object.fromEntries(Object.keys(prev).map(k => [k, false])) as typeof prev;
+                  const flagsByTemplate = buildVisibleFlags(requiredKeys, optionalKeys);
+                  return { ...base, ...flagsByTemplate };
+                });
+
+                // limpar valores antigos dos campos controlados pelo template
+                [...requiredKeys, ...optionalKeys].forEach((raw) => {
+                  const mapped = fieldMapping[raw] || raw;
+                  // não zere companyId/callerId se já estiverem setados e o template exigir
+                  if (!['companyId','callerId'].includes(mapped)) {
+                    form.setValue(mapped as any, '' as any);
+                  }
+                });
+
+                // defaults se existirem
+                applyDefaultsFromTemplate(tpl);
+
+                if (templateRequiredKeys.includes('status') && !form.getValues('status')) {
+                  form.setValue('status', 'open');
                 }
+                if (templateRequiredKeys.includes('urgency') && !form.getValues('urgency')) {
+                  form.setValue('urgency', 'medium');
+                }
+                if (templateRequiredKeys.includes('summary') && !form.getValues('subject')) {
+                  form.setValue('subject', '');
+                }
+
+                
+                // se o template exige, garanta defaults mínimos coerentes
+                if (requiredKeys.includes('status') && !form.getValues('status')) {
+                  form.setValue('status', 'open');
+                }
+                if (requiredKeys.includes('urgency') && !form.getValues('urgency')) {
+                  form.setValue('urgency', 'medium');
+                }
+
+                toast({
+                  title: "Template aplicado",
+                  description: `Template "${tpl.name}" configurado.`,
+                });
               } else {
-                // Reset to hide all fields when no template selected
+                // Reset
                 setTemplateSelected(false);
-                setVisibleFields({
-                  category: false,
-                  subcategory: false,
-                  priority: false,
-                  impact: false,
-                  urgency: false,
-                  assignedToId: false,
-                  assignmentGroup: false,
-                  location: false,
-                  contactType: false,
-                  businessImpact: false,
-                  symptoms: false,
-                  workaround: false
-                });
-
-                // Clear all secondary fields and set default priority
-                Object.keys(visibleFields).forEach(fieldKey => {
-                  if (fieldKey in ticketSchema.shape) {
-                    form.setValue(fieldKey as any, '');
-                  }
-                });
-                form.setValue('priority', 'medium'); // Ensure priority has default
+                setTemplateRequiredKeys([]);
+                setTemplateOptionalKeys([]);
+                setTemplateFieldOrder([]);
+                setVisibleFields(Object.fromEntries(Object.keys(visibleFields).map(k => [k, false])) as any);
+                // mantenha priority default
+                form.setValue('priority', 'medium');
               }
             }}
             value={selectedTemplateId || '__none__'}
           >
+
             <SelectTrigger className="h-10 mt-1">
               <SelectValue placeholder="Selecione um template (opcional)" />
             </SelectTrigger>
@@ -1885,21 +1966,14 @@ const TicketsTable = React.memo(() => {
               {templatesLoading ? (
                 <SelectItem value="loading" disabled>Carregando templates...</SelectItem>
               ) : (
-                templatesData?.data?.templates?.map((template: any) => (
+                templatesData?.templates?.map((template: any) => (
                   <SelectItem key={template.id} value={template.id}>
-                    {template.name}
+                    {template.name} {template.status ? `(${template.status})` : ''}
                   </SelectItem>
-                )) || templatesData?.templates?.map((template: any) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                )) || (Array.isArray(templatesData?.data) ? templatesData.data.map((template: any) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                )) : null)
+                ))
               )}
             </SelectContent>
+
           </Select>
         </div>
 
@@ -2074,6 +2148,473 @@ const TicketsTable = React.memo(() => {
           </div>
         )}
 
+
+        {/* Campos vindos do Template (na ordem informada) */}
+        {templateSelected && templateFieldOrder.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Campos do Template</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {templateFieldOrder.map((rawKey) => {
+                if (TEMPLATE_UI_EXCLUDE.has(rawKey)) return null; // 👈 não renderiza client/beneficiary
+                const mapped = fieldMapping[rawKey] || rawKey;
+                const isRequired = templateRequiredKeys.includes(rawKey);
+                const show = (visibleFields as any)[rawKey];
+                if (!show) return null;
+
+                switch (mapped) {
+                  case 'companyId':
+                    return (
+                      <div key={rawKey} className="space-y-2">
+                        <Label>Empresa {isRequired && <span className="text-red-500">*</span>}</Label>
+                        <Select
+                          onValueChange={(v) => {
+                            setSelectedCompanyId(v);
+                            form.setValue('companyId', v);
+                            // ao trocar empresa, limpe o cliente
+                            form.setValue('callerId', '');
+                          }}
+                          value={selectedCompanyId}
+                        >
+                          <SelectTrigger className="h-10 mt-1">
+                            <SelectValue placeholder="Selecione uma empresa" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {companiesLoading ? (
+                              <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+                            ) : companiesError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
+                            ) : companies.length > 0 ? (
+                              companies.map((company: any) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.displayName || company.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-companies" disabled>Nenhuma empresa disponível</SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+
+                  case 'callerId': // client
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="callerId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cliente {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <FilteredCustomerSelect
+                                value={field.value}
+                                onChange={field.onChange}
+                                selectedCompanyId={selectedCompanyId}
+                                placeholder="Buscar cliente..."
+                                disabled={!selectedCompanyId || selectedCompanyId === 'unspecified'}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'beneficiaryId':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="beneficiaryId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Beneficiário {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <PersonSelector
+                                value={field.value || ""}
+                                onValueChange={(personId, personType) => {
+                                  field.onChange(personId);
+                                  form.setValue('beneficiaryType', personType);
+                                }}
+                                placeholder="Buscar favorecido..."
+                                allowedTypes={['user', 'customer']}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'status':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Status {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <DynamicSelect fieldName="status" value={field.value} onValueChange={field.onChange} placeholder="Selecione o status" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'subject': // summary
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Resumo {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Resumo do ticket..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'description':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Descrição detalhada" className="min-h-[100px]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'urgency':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="urgency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Urgência {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <DynamicSelect fieldName="urgency" value={field.value} onValueChange={field.onChange} placeholder="Selecione a urgência" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'location':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Localização {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Endereço/local" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'tags':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="tags"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tags {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="tag1, tag2, tag3"
+                                value={Array.isArray(field.value) ? field.value.join(', ') : (field.value || '')}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'comments':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="comments"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Comentários {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Comentários" className="min-h-[80px]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'estimated_hours':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="estimated_hours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Horas Estimadas {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.1" placeholder="Ex.: 2.5" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'materials_services':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="materials_services"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Materiais e Serviços {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Descreva materiais/serviços" className="min-h-[80px]" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'due_date':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="due_date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Data de Vencimento {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  case 'attachment':
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name="attachment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Anexos {isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input type="text" placeholder="URL do anexo (exemplo simples)" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+
+                  default:
+                    // fallback genérico (texto)
+                    return (
+                      <FormField
+                        key={rawKey}
+                        control={form.control}
+                        name={mapped as any}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{rawKey}{isRequired && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormControl>
+                              <Input placeholder={`Valor para ${rawKey}`} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                }
+              })}
+            </div>
+          </div>
+        )}
+
+        {templateSelected && activeCustomFields.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Campos Personalizados</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {activeCustomFields
+                .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+                .map((cf) => {
+                  const fieldName = `customFields.${cf.name}`;
+                  const label = cf.label || cf.name;
+                  const required = !!cf.required;
+                  const placeholder = cf.placeholder || '';
+
+                  // Tipagem simples por tipo
+                  switch ((cf.type || 'text').toLowerCase()) {
+                    case 'number':
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{label} {required && <span className="text-red-500">*</span>}</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="any" placeholder={placeholder} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    case 'date':
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{label} {required && <span className="text-red-500">*</span>}</FormLabel>
+                              <FormControl>
+                                <Input type="date" placeholder={placeholder} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    case 'textarea':
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{label} {required && <span className="text-red-500">*</span>}</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder={placeholder} className="min-h-[80px]" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    case 'checkbox':
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={!!field.value}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                              />
+                              <FormLabel className="mb-0">{label}</FormLabel>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    case 'select':
+                      // se quiser suportar opções: cf.options = [{value,label}]
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{label} {required && <span className="text-red-500">*</span>}</FormLabel>
+                              <FormControl>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={placeholder || 'Selecione...'} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {(cf.options || []).map((opt: any) => (
+                                      <SelectItem key={opt.value} value={opt.value}>{opt.label || opt.value}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    default: // text
+                      return (
+                        <FormField
+                          key={cf.id || cf.name}
+                          control={form.control}
+                          name={fieldName as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{label} {required && <span className="text-red-500">*</span>}</FormLabel>
+                              <FormControl>
+                                <Input placeholder={placeholder} {...field} />
+                              </FormControl>
+                              {cf.helpText && <p className="text-xs text-gray-500">{cf.helpText}</p>}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      );
+                  }
+                })}
+            </div>
+          </div>
+        )}
+
+
+        
         {/* Priority & Impact - Show only if template is selected and has these fields */}
         {templateSelected && (visibleFields.priority || visibleFields.impact || visibleFields.urgency) && (
           <div className="space-y-4">
