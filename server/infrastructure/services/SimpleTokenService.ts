@@ -6,7 +6,7 @@ import { User } from '../../domain/entities/User';
 export class SimpleTokenService implements ITokenService {
   private readonly accessTokenSecret: string;
   private readonly refreshTokenSecret: string;
-  private readonly accessTokenExpiry = '12h'; // 12 horas para estabilidade
+  private readonly accessTokenExpiry = '2h'; // 2 horas para estabilidade
   private readonly refreshTokenExpiry = '30d'; // 30 dias para menos renovações
 
   constructor() {

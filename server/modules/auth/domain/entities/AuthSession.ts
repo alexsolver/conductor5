@@ -49,7 +49,7 @@ export interface UserSession {
 }
 
 export class AuthDomainService {
-  private readonly ACCESS_TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes
+  private readonly ACCESS_TOKEN_EXPIRY = 2 * 60 * 60 * 1000; // 2 hours
   private readonly REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
   private readonly REMEMBER_ME_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days
 
