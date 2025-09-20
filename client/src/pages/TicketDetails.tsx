@@ -122,7 +122,7 @@ const TicketDetails = React.memo(() => {
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
-
+  
   // Estados dos modais de comunicação
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
@@ -454,7 +454,7 @@ const TicketDetails = React.memo(() => {
       if (!ticket?.templateId && !ticket?.template_id) {
         return { success: true, data: [] };
       }
-
+      
       const templateId = ticket.templateId || ticket.template_id;
       const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
       const data = await response.json();
@@ -1970,7 +1970,7 @@ const TicketDetails = React.memo(() => {
                 const isWhatsApp = comm.channel === 'whatsapp';
                 const isTelegram = comm.channel === 'telegram'; 
                 const isSMS = comm.channel === 'sms';
-
+                
                 return (
                   <Card 
                     key={comm.id} 
@@ -2303,7 +2303,7 @@ const TicketDetails = React.memo(() => {
               </h3>
               {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ?
                 ticketRelationships.related_tickets.map((relTicket: any) => (
-                  <Card key={`linked-${relTicket.id}-${relTicket.relationshipType}-${relTicket.targetTicket?.id || Math.random()}`} className="border-l-4 border-l-gray-500 hover:shadow-md transition-shadow">
+                  <Card key={`linked-${relTicket.id}-${relTicket.relationshipType}-${relTicket.targetTicket?.id || Math.random()}`} className="border-l-4 border-l-gray-500 hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -2490,30 +2490,6 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
         );
-
-      case "external-actions":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">🚀 {t('tickets.fields.externalActions')}</h2>
-              <Badge variant="outline" className="text-xs">
-                0 ações
-              </Badge>
-            </div>
-            <div className="text-center py-12">
-              <ExternalLink className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                Nenhuma Ação Externa Registrada
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Ações externas, como integrações com outros sistemas, aparecerão aqui.
-              </p>
-            </div>
-          </div>
-        );
-
-      case "knowledge-base":
-        return <KnowledgeBaseTicketTab ticketId={id} />;
 
       case "links":
         return (
@@ -2875,6 +2851,9 @@ const TicketDetails = React.memo(() => {
 
       case "materials":
         return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
+
+      case "knowledge-base":
+        return <KnowledgeBaseTicketTab ticketId={id} />;
 
       case "custom-fields":
         return (
@@ -3632,7 +3611,7 @@ const TicketDetails = React.memo(() => {
           aria-label="Seções do ticket"
           aria-orientation="vertical"
         >
-          {/* 1. Detalhes */}
+          {/* Informações Tab */}
           <button
             onClick={() => setActiveTab("informacoes")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3648,29 +3627,7 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.details')}</span>
           </button>
 
-          {/* 2. Campos Customizados */}
-          <button
-            onClick={() => setActiveTab("custom-fields")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "custom-fields"
-                ? 'bg-green-100 text-green-900 border-2 border-green-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "custom-fields"}
-            aria-controls="tab-content"
-            aria-label={`Campos Customizados - ${templateCustomFieldsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <FormInput className="h-4 w-4" />
-              <span className="text-sm font-medium">Campos Customizados</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
-              {templateCustomFieldsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 3. Comunicação */}
+          {/* Campos Especiais - Nova ordem */}
           <button
             onClick={() => setActiveTab("communications")}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
@@ -3688,7 +3645,26 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 4. Notas */}
+          <button
+            onClick={() => setActiveTab("attachments")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "attachments"
+                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "attachments"}
+            aria-controls="tab-content"
+          >
+            <div className="flex items-center gap-3">
+              <Paperclip className="h-4 w-4" />
+              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
+            </Badge>
+          </button>
+
           <button
             onClick={() => setActiveTab("notes")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3710,28 +3686,6 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 5. Anexos */}
-          <button
-            onClick={() => setActiveTab("attachments")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "attachments"
-                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "attachments"}
-            aria-controls="tab-content"
-          >
-            <div className="flex items-center gap-3">
-              <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 6. Materiais e Serviços */}
           <button
             onClick={() => setActiveTab("materials")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3747,7 +3701,23 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
           </button>
 
-          {/* 7. Ações Internas */}
+          {/* Base de Conhecimento Tab */}
+          <button
+            onClick={() => setActiveTab("knowledge-base")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "knowledge-base"
+                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "knowledge-base"}
+            aria-controls="tab-content"
+            data-testid="tab-knowledge-base"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
+          </button>
+
           <button
             onClick={() => setActiveTab("internal-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3761,7 +3731,7 @@ const TicketDetails = React.memo(() => {
             aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
-              <Wrench className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
@@ -3769,7 +3739,6 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 8. Ações Externas */}
           <button
             onClick={() => setActiveTab("external-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3791,24 +3760,21 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 9. Base de Conhecimento */}
           <button
-            onClick={() => setActiveTab("knowledge-base")}
+            onClick={() => setActiveTab("history")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "knowledge-base"
-                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
+              activeTab === "history"
+                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
             role="tab"
-            aria-selected={activeTab === "knowledge-base"}
+            aria-selected={activeTab === "history"}
             aria-controls="tab-content"
-            data-testid="tab-knowledge-base"
           >
-            <BookOpen className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
+            <History className="h-4 w-4" />
+            <span className="text-sm font-medium">{t('tickets.history')}</span>
           </button>
 
-          {/* 10. Vínculos */}
           <button
             onClick={() => setActiveTab("links")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3830,7 +3796,27 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 11. Interações Recentes */}
+          <button
+            onClick={() => setActiveTab("custom-fields")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "custom-fields"
+                ? 'bg-green-100 text-green-900 border-2 border-green-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "custom-fields"}
+            aria-controls="tab-content"
+            aria-label={`Campos Customizados - ${templateCustomFieldsData?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <FormInput className="h-4 w-4" />
+              <span className="text-sm font-medium">Campos Customizados</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
+              {templateCustomFieldsData?.length || 0}
+            </Badge>
+          </button>
+
           <button
             onClick={() => setActiveTab("latest-interactions")}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
@@ -3839,24 +3825,8 @@ const TicketDetails = React.memo(() => {
                 : 'hover:bg-gray-50'
             }`}
           >
-            <Activity className="h-4 w-4" />
+            <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">{t('tickets.latestInteractions')}</span>
-          </button>
-
-          {/* 12. Histórico */}
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "history"
-                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "history"}
-            aria-controls="tab-content"
-          >
-            <History className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.history')}</span>
           </button>
         </div>
 
@@ -3941,7 +3911,8 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-1 text-xs">
                 {(() => {
                   const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId);
+                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) ||
+                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
 
                   const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
                              `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
@@ -4032,524 +4003,9 @@ const TicketDetails = React.memo(() => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">{t('tickets.fields.address')}</span>
                         <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && `, ${addressNumber}`}</span>
-                      </div>                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 order-1 lg:order-2 overflow-hidden">
-        <div className="p-4 lg:p-6 h-full">
-          {/* Header - Responsivo */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className="self-start">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t('tickets.actions.back')}
-              </Button>
-              <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {!isEditMode ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditMode(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('tickets.actions.edit')}</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('tickets.actions.delete')}</span>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(false)}>
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar
-                  </Button>
-
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => {
-                      const formData = form.getValues();
-                      form.trigger().then((isValid) => {
-                        if (isValid) {
-                          onSubmit(formData);
-                        } else {
-                          const errorMessages = Object.entries(form.formState.errors)
-                            .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
-                            .join('\n');
-
-                          toast({
-                            title: "Erro de Validação",
-                            description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages}` : "Dados do formulário são inválidos. Verifique todos os campos.",
-                            variant: "destructive",
-                          });
-                        }
-                      });
-                    }}
-                    disabled={updateTicketMutation.isPending || !isEditMode}
-                    className="relative"
-                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : "Salvar alterações do ticket"}
-                  >
-                    {updateTicketMutation.isPending && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                          aria-hidden="true"
-                          aria-label="Carregando"
-                        ></div>
-                      </div>
-                    )}
-                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2"}>
-                      <Save className="h-4 w-4" />
-                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : "Salvar"}</span>
-                    </div>
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="h-full bg-white rounded-lg border p-6" id="tab-content" aria-live="polite">
-            <Form {...form}>
-              <form onSubmit={(e) => e.preventDefault()} role="main" aria-label="Formulário de edição de ticket">
-                {renderTabContent()}
-              </form>
-            </Form>
-          </div>
-        </div>
-      </div>
-      {/* Right Sidebar - Navigation Tabs - Responsivo */}
-      <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-full overflow-y-auto order-3">
-        <div className="p-4 lg:p-6 border-b">
-          <h3 className="font-semibold text-lg">{t('tickets.explore')}</h3>
-        </div>
-        <div
-          className="p-2 lg:p-4 space-y-2"
-          role="tablist"
-          aria-label="Seções do ticket"
-          aria-orientation="vertical"
-        >
-          {/* 1. Detalhes */}
-          <button
-            onClick={() => setActiveTab("informacoes")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "informacoes"
-                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "informacoes"}
-            aria-controls="tab-content"
-          >
-            <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.details')}</span>
-          </button>
-
-          {/* 2. Campos Customizados */}
-          <button
-            onClick={() => setActiveTab("custom-fields")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "custom-fields"
-                ? 'bg-green-100 text-green-900 border-2 border-green-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "custom-fields"}
-            aria-controls="tab-content"
-            aria-label={`Campos Customizados - ${templateCustomFieldsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <FormInput className="h-4 w-4" />
-              <span className="text-sm font-medium">Campos Customizados</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
-              {templateCustomFieldsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 3. Comunicação */}
-          <button
-            onClick={() => setActiveTab("communications")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
-              activeTab === "communications"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.tabs.communication')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
-              {communicationsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 4. Notas */}
-          <button
-            onClick={() => setActiveTab("notes")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "notes"
-                ? 'bg-indigo-100 text-indigo-900 border-2 border-indigo-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "notes"}
-            aria-controls="tab-content"
-            aria-label={`Notas - ${notesData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.notes')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              {notesData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 5. Anexos */}
-          <button
-            onClick={() => setActiveTab("attachments")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "attachments"
-                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "attachments"}
-            aria-controls="tab-content"
-          >
-            <div className="flex items-center gap-3">
-              <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.tabs.attachments')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : attachmentsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 6. Materiais e Serviços */}
-          <button
-            onClick={() => setActiveTab("materials")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "materials"
-                ? 'bg-amber-100 text-amber-900 border-2 border-amber-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "materials"}
-            aria-controls="tab-content"
-          >
-            <Package className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
-          </button>
-
-          {/* 7. Ações Internas */}
-          <button
-            onClick={() => setActiveTab("internal-actions")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "internal-actions"
-                ? 'bg-violet-100 text-violet-900 border-2 border-violet-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "internal-actions"}
-            aria-controls="tab-content"
-            aria-label={`Ações Internas - ${internalActionsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <Wrench className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {internalActionsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 8. Ações Externas */}
-          <button
-            onClick={() => setActiveTab("external-actions")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "external-actions"
-                ? 'bg-teal-100 text-teal-900 border-2 border-teal-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "external-actions"}
-            aria-controls="tab-content"
-            aria-label={`Ações Externas - 0 itens`}
-          >
-            <div className="flex items-center gap-3">
-              <ExternalLink className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.externalActions')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-              0
-            </Badge>
-          </button>
-
-          {/* 9. Base de Conhecimento */}
-          <button
-            onClick={() => setActiveTab("knowledge-base")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "knowledge-base"
-                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "knowledge-base"}
-            aria-controls="tab-content"
-            data-testid="tab-knowledge-base"
-          >
-            <BookOpen className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
-          </button>
-
-          {/* 10. Vínculos */}
-          <button
-            onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "links"
-                ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "links"}
-            aria-controls="tab-content"
-            aria-label={`Vínculos - ${relatedTicketsData?.length || 0} itens`}
-          >
-            <div className="flex items-center gap-3">
-              <Link className="h-4 w-4" />
-              <span className="text-sm font-medium">{t('tickets.links')}</span>
-            </div>
-            <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-600 border-cyan-300">
-              {relatedTicketsData?.length || 0}
-            </Badge>
-          </button>
-
-          {/* 11. Interações Recentes */}
-          <button
-            onClick={() => setActiveTab("latest-interactions")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-              activeTab === "latest-interactions"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
-            }`}
-          >
-            <Activity className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.latestInteractions')}</span>
-          </button>
-
-          {/* 12. Histórico */}
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "history"
-                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "history"}
-            aria-controls="tab-content"
-          >
-            <History className="h-4 w-4" />
-            <span className="text-sm font-medium">{t('tickets.history')}</span>
-          </button>
-        </div>
-
-        {/* Quadro Informativo */}
-        <div className="border-t mt-4">
-          <div className="p-3 bg-gray-50 rounded-b-lg">
-            {/* Datas/Tempo - Destacado */}
-            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
-              <h4 className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {t('tickets.fields.datesTimeTitle')}
-              </h4>
-              <div className="grid grid-cols-1 gap-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.creation')}</span>
-                  <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.dueDate')}</span>
-                  <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.statusField')}</span>
-                  <Badge variant="outline" className="text-xs h-4">
-                    {ticket.status} - {ticket.daysInStatus || 0}d
-                  </Badge>
-                </div>
-                {/* SLA Information */}
-                <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
-                  <span className="text-blue-700">{t('tickets.fields.sla')}</span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
-                      title="SLA Warning: 85% decorrido"
-                      data-testid="sla-led-indicator"
-                    />
-                    <span className="text-blue-900 font-medium text-xs">{t('tickets.fields.slaElapsed')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Favorecido - Compacto */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-xs font-semibold text-gray-700">{t('tickets.fields.beneficiary')}</h4>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
-                      🔐 {t('tickets.fields.sensitiveData')}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>{t('tickets.fields.securityVerification')}</DialogTitle>
-                      <DialogDescription>
-                        {t('tickets.fields.enterPasswordAccess')}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Input
-                        id="agent-password"
-                        type="password"
-                        placeholder={t('tickets.fields.enterPasswordPlaceholder')}
-                        value={agentPassword}
-                        onChange={(e) => setAgentPassword(e.target.value)}
-                      />
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="space-y-1 text-xs">
-                {(() => {
-                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId);
-
-                  const name = beneficiary ? (beneficiary.fullName || beneficiary.name ||
-                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
-                  const email = beneficiary?.email || 'Não informado';
-                  const phone = beneficiary?.phone || beneficiary?.mobilePhone || 'Não informado';
-
-                  return (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.name')}</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.email')}</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.phone')}</span>
-                        <span className="text-gray-900 font-medium">{phone}</span>
                       </div>
                     </>
                   );
-                })()}
-              </div>
-            </div>
-
-            {/* Solicitante - Compacto */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-xs font-semibold text-gray-700">{t('tickets.fields.customerUpper')}</h4>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-5 text-xs text-red-600 hover:text-red-700">
-                      🔐 {t('tickets.fields.sensitiveData')}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>{t('tickets.fields.securityVerification')}</DialogTitle>
-                      <DialogDescription>
-                        {t('tickets.fields.accessSensitiveData')}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Input
-                        type="password"
-                        placeholder={t('tickets.fields.enterPasswordPlaceholder')}
-                        value={agentPassword}
-                        onChange={(e) => setAgentPassword(e.target.value)}
-                      />
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">RG:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '••••••••••'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">CPF/CNPJ:</span>
-                          <span className="font-medium">{agentPassword.length > 0 ? 'Dados protegidos' : '•••••••••••••••'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="space-y-1 text-xs">
-                {(() => {
-                  const callerId = ticket.caller_id || ticket.callerId;
-                  const customer = availableCustomers.find((c: any) => c.id === callerId);
-
-                  const name = customer ? (customer.fullName || customer.name ||
-                             `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
-                  const email = customer?.email || 'Não informado';
-                  const address = typeof customer?.address === 'string' ? customer.address :
-                                 customer?.address ?
-                                 `${customer.address.street || ''} ${customer.address.number || ''}`.trim() || 'Não informado' : 'Não informado';
-                  const addressNumber = customer?.addressNumber || '';
-
-                  return (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.name')}</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.email')}</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{email}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{t('tickets.fields.address')}</span>
-                        <span className="text-gray-900 font-medium truncate ml-2">{address}{addressNumber && `, ${addressNumber}`}</span>
-                      </div>                  );
                 })()}
               </div>
             </div>
