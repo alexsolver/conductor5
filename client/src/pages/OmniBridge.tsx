@@ -357,14 +357,24 @@ export default function OmniBridge() {
       try {
         console.log(`🔄 [OMNIBRIDGE-AUTO-REFRESH] Refreshing messages for tenant: ${user.tenantId}`);
 
-        const response = await apiRequest('/api/omnibridge/messages', {
-          method: 'GET'
-        });
-        console.log('🔍 [OmniBridge-AUTO-REFRESH] API Response for inbox:', response);
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        };
 
-        if (response.success) {
-          setMessages(response.messages || []);
-          console.log(`📥 [OMNIBRIDGE-AUTO-REFRESH] Updated messages count: ${response.messages?.length || 0}`);
+        const response = await fetch('/api/omnibridge/messages', {
+          headers,
+          credentials: 'include'
+        });
+        
+        const responseData = await response.json();
+        console.log('🔍 [OmniBridge-AUTO-REFRESH] API Response for inbox:', responseData);
+
+        if (responseData.success) {
+          setMessages(responseData.messages || []);
+          console.log(`📥 [OMNIBRIDGE-AUTO-REFRESH] Updated messages count: ${responseData.messages?.length || 0}`);
         }
       } catch (error) {
         console.error('[OmniBridge-AUTO-REFRESH] Error refreshing messages:', error);

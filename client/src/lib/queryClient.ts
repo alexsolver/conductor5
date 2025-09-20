@@ -39,11 +39,10 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export const apiRequest = async (
-  method: string,
   url: string,
-  data?: any,
   options: RequestInit = {}
 ): Promise<Response> => {
+  const method = options.method || 'GET';
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
 
   // 🔍 Debug tokens for POST requests
@@ -51,7 +50,7 @@ export const apiRequest = async (
     console.log('🔍 [API-REQUEST-DEBUG] POST request details:', {
       method,
       url,
-      hasData: !!data,
+      hasData: !!options.body,
       credentials: 'include',
       cookiesWillBeSent: true
     });
@@ -66,18 +65,13 @@ export const apiRequest = async (
     ...options,
   };
 
-  if (data && method !== 'GET') {
-    if (data instanceof FormData) {
-      // 🔧 Para FormData, não definir Content-Type (browser define automaticamente)
-      config.body = data;
-    } else {
-      // 🔧 Para dados JSON, definir Content-Type e stringify
-      config.headers = {
-        'Content-Type': 'application/json',
-        ...config.headers,
-      };
-      config.body = JSON.stringify(data);
-    }
+  // Handle body data if provided in options
+  if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData) && method !== 'GET') {
+    config.headers = {
+      'Content-Type': 'application/json',
+      ...config.headers,
+    };
+    config.body = JSON.stringify(config.body);
   }
 
   console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
