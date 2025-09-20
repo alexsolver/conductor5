@@ -118,6 +118,8 @@ const TicketDetails = React.memo(() => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
+  const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
+  const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
   
@@ -3155,7 +3157,8 @@ const TicketDetails = React.memo(() => {
             ) : (
               <Badge
                 variant="outline"
-                className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md w-full justify-start"
+                className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
+                onClick={() => setIsCompanyDetailsOpen(true)}
               >
                 <Building2 className="h-4 w-4 mr-2" />
                 {(() => {
@@ -3193,7 +3196,8 @@ const TicketDetails = React.memo(() => {
               ) : (
                 <Badge
                   variant="outline"
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md w-full justify-start"
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
+                  onClick={() => setIsClientDetailsOpen(true)}
                 >
                   <User className="h-4 w-4 mr-2" />
                   {(() => {
@@ -4078,7 +4082,299 @@ const TicketDetails = React.memo(() => {
         editAction={actionToEdit}
       />
 
+      {/* Company Details Modal */}
+      <Dialog open={isCompanyDetailsOpen} onOpenChange={setIsCompanyDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-blue-600" />
+              {t('tickets.fields.companyDetails')}
+            </DialogTitle>
+            <DialogDescription>
+              Informações completas e gestão da empresa vinculada ao ticket
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="space-y-6">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Informações Básicas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">{t('tickets.fields.companyName')}</Label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {ticket?.company?.name || ticket?.company || t('tickets.fields.companyNotSpecified')}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.cnpj || 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Setor</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.industry || 'Não especificado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Porte</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.size || 'Não especificado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contatos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Contatos Principais
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.email || 'contato@empresa.com'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Telefone</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.phone || '(11) 1234-5678'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">{t('tickets.fields.technicalResponsible')}</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.techContact || 'Não designado'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.accountManager || 'Não designado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Endereço */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Endereço
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.address || 'Endereço não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">CEP</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.zipCode || '00000-000'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Cidade</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.city || 'Não informado'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Estado</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.state || 'SP'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">País</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket?.company?.country || 'Brasil'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Estatísticas e Histórico */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Estatísticas de Suporte
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600">12</p>
+                    <p className="text-xs text-gray-600">Total de Tickets</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">9</p>
+                    <p className="text-xs text-gray-600">Resolvidos</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600">2h 15min</p>
+                    <p className="text-xs text-gray-600">Tempo Médio</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-purple-600">4.8/5</p>
+                    <p className="text-xs text-gray-600">Satisfação</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ações Rápidas */}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => navigate("/customers")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                {t('tickets.fields.manageCustomers')}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/contracts")}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Ver Contratos
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/tickets?company=" + (ticket?.company?.id || ''))}
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                Todos os Tickets
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.open(`mailto:${ticket?.company?.email}`, '_blank')}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Enviar Email
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsCompanyDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Client Details Modal */}
+      <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-purple-600" />
+              {t('tickets.fields.customerDetails')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {(() => {
+              const callerId = ticket.caller_id || ticket.callerId;
+              const customer = availableCustomers.find((c: any) => c.id === callerId);
+
+              if (!customer && (!callerId || callerId === 'unspecified')) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>{t('tickets.fields.noCustomerSpecified')}</p>
+                  </div>
+                );
+              }
+
+              if (!customer) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>{t('tickets.fields.customerNotFound')}</p>
+                  </div>
+                );
+              }
+
+              const customerName = customer.fullName || customer.name ||
+                                 `${customer.firstName || ''} ${customer.lastName || ''}`.trim() ||
+                                 customer.email || t('tickets.fields.customerNoName');
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center p-4 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg">
+                    <User className="h-6 w-6 mr-2" />
+                    <span className="font-semibold">{customerName}</span>
+                  </div>
+
+                  {customer.email && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-900">{customer.email}</span>
+                    </div>
+                  )}
+
+                  {customer.phone && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
+                      <span className="text-sm text-gray-900">{customer.phone}</span>
+                    </div>
+                  )}
+
+                  {customer.cpf && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">CPF:</span>
+                      <span className="text-sm text-gray-900">{customer.cpf}</span>
+                    </div>
+                  )}
+
+                  {customer.address && (
+                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
+                      <span className="text-sm text-gray-900">{customer.address}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsClientDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Beneficiary Details Modal */}
       <Dialog open={isBeneficiaryDetailsOpen} onOpenChange={setIsBeneficiaryDetailsOpen}>
