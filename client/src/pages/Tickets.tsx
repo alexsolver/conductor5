@@ -56,6 +56,7 @@ export default function Tickets() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -1053,14 +1054,28 @@ export default function Tickets() {
                       </Button>
                       <Button
                         type="button"
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6"
                         data-testid="button-submit-ticket"
                         onClick={() => {
-                          alert('BOTÃO FUNCIONOU! 🎉');
-                          console.log('🚨 TESTE BÁSICO: Botão funcionou!');
+                          console.log('✅ BOTÃO MANUAL: Clicado com sucesso!');
+                          
+                          // Criar ticket manual
+                          const ticketData = {
+                            subject: 'Teste Manual',
+                            description: 'Ticket criado manualmente para teste',
+                            priority: 'medium',
+                            status: 'new',
+                            category: 'support',
+                            customerId: form.getValues('customerId') || '35fb6ee7-6a33-4386-9ba9-ed5a862903a4'
+                          };
+                          
+                          console.log('✅ DADOS DO TICKET:', ticketData);
+                          
+                          // Chamar mutation diretamente
+                          createTicketMutation.mutate(ticketData);
                         }}
                       >
-                        TESTE BOTÃO
+                        CRIAR TICKET MANUAL
                       </Button>
                     </div>
                   </form>
