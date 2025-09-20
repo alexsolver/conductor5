@@ -548,29 +548,32 @@ export default function Tickets() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <button 
+          <div
             onClick={(e) => {
-              console.log('🎫 [BUTTON-CLICK] SIMPLE BUTTON CLICKED!!!', e);
+              console.log('🎫 [DIV-CLICK] DIV BUTTON CLICKED!!!', e);
               console.log('🎫 [MODAL-STATE] Setting dialog open to true');
               setIsCreateDialogOpen(true);
             }}
-            onMouseDown={() => console.log('🎫 [BUTTON-MOUSEDOWN] Mouse down detected')}
-            onMouseUp={() => console.log('🎫 [BUTTON-MOUSEUP] Mouse up detected')}
-            onPointerDown={() => console.log('🎫 [BUTTON-POINTERDOWN] Pointer down detected')}
+            onMouseEnter={() => console.log('🎫 [DIV-HOVER] Mouse entered div')}
+            onMouseMove={() => console.log('🎫 [DIV-MOVE] Mouse moving over div')}
             style={{
-              padding: '8px 16px',
-              backgroundColor: '#7c3aed',
+              padding: '10px 20px',
+              backgroundColor: '#ff0000',
               color: 'white',
-              border: 'none',
-              borderRadius: '6px',
+              border: '2px solid yellow',
+              borderRadius: '8px',
               cursor: 'pointer',
-              zIndex: 9999,
-              position: 'relative'
+              zIndex: 99999,
+              position: 'fixed',
+              top: '100px',
+              left: '100px',
+              fontSize: '18px',
+              fontWeight: 'bold'
             }}
             data-testid="button-create-ticket"
           >
-            + Novo Ticket
-          </button>
+            CLIQUE AQUI - NOVO TICKET
+          </div>
           
           <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
             console.log('🎫 [MODAL-STATE] Dialog open changed to:', open);
