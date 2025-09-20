@@ -567,7 +567,13 @@ export default function Tickets() {
               </DialogHeader>
               <div className="flex-1 overflow-y-auto pr-2 space-y-4 py-4">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <form onSubmit={(e) => {
+                    console.log('🎫 [FORM-SUBMIT] Form submit event triggered!!!', e);
+                    console.log('🎫 [FORM-SUBMIT] Form valid?', form.formState.isValid);
+                    console.log('🎫 [FORM-SUBMIT] Form errors:', form.formState.errors);
+                    console.log('🎫 [FORM-SUBMIT] Form values:', form.getValues());
+                    form.handleSubmit(onSubmit)(e);
+                  }} className="space-y-6">
                   {/* Template Selection (segundo campo) */}
                   <div className="space-y-4">
                     <div>
@@ -1046,19 +1052,21 @@ export default function Tickets() {
                         {t('common.cancel')}
                       </Button>
                       <Button
-                        type="submit"
+                        type="button"
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                         disabled={createTicketMutation.isPending}
                         data-testid="button-submit-ticket"
                         onClick={(e) => {
-                          console.log('🎫 [SUBMIT-BUTTON] Button clicked!!!', e);
-                          console.log('🎫 [SUBMIT-BUTTON] Form valid?', form.formState.isValid);
-                          console.log('🎫 [SUBMIT-BUTTON] Form errors:', form.formState.errors);
-                          console.log('🎫 [SUBMIT-BUTTON] Form values:', form.getValues());
-                          console.log('🎫 [SUBMIT-BUTTON] Mutation pending?', createTicketMutation.isPending);
+                          console.log('🎫 [BUTTON-CLICK] Button clicked SUCCESSFULLY!!!');
+                          console.log('🎫 [BUTTON-CLICK] Form valid?', form.formState.isValid);
+                          console.log('🎫 [BUTTON-CLICK] Form errors:', form.formState.errors);
+                          console.log('🎫 [BUTTON-CLICK] Form values:', form.getValues());
+                          
+                          // Forçar submit manual
+                          const formData = form.getValues();
+                          console.log('🎫 [MANUAL-SUBMIT] Calling onSubmit directly with:', formData);
+                          onSubmit(formData);
                         }}
-                        onMouseDown={() => console.log('🎫 [SUBMIT-BUTTON] Mouse down')}
-                        onMouseUp={() => console.log('🎫 [SUBMIT-BUTTON] Mouse up')}
                       >
                         {createTicketMutation.isPending ? t('tickets.actions.creating') : t('tickets.actions.create')}
                       </Button>
