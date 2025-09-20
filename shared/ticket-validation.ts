@@ -199,36 +199,36 @@ export const createTicketSchema = baseTicketSchema.extend({
   customerId: z.string().uuid("ID do cliente é obrigatório")
 });
 
-// Schema refatorado para o novo modal de criação de tickets
+// Schema refatorado para o novo modal de criação de tickets (simplificado)
 export const newTicketModalSchema = z.object({
-  // ✅ 1QA.MD: Template field for ticket-template integration  
+  // Template field for ticket-template integration  
   templateId: z.string().optional(),
-  // Empresa (obrigatório)
-  companyId: z.string().uuid("Empresa é obrigatória").min(1, "Empresa é obrigatória"),
-  // Cliente (obrigatório)
-  customerId: z.string().uuid("Cliente é obrigatório").min(1, "Cliente é obrigatória"),
+  // Empresa
+  companyId: z.string().optional(),
+  // Cliente
+  customerId: z.string().optional(),
   // Favorecido (opcional)
-  beneficiaryId: z.string().uuid("ID do favorecido deve ser um UUID válido").optional(),
+  beneficiaryId: z.string().optional(),
   // Título do Ticket (obrigatório)
   subject: z.string().min(3, "Título deve ter pelo menos 3 caracteres").max(255, "Título não pode exceder 255 caracteres"),
-  // Categoria (obrigatório)
-  category: z.string().min(1, "Categoria é obrigatória"),
-  // Sub Categoria (obrigatório)
-  subcategory: z.string().min(1, "Sub categoria é obrigatória"),
-  // Ação (obrigatório)
-  action: z.string().min(1, "Ação é obrigatória"),
-  // Prioridade (obrigatório) - usando enum para validação correta
-  priority: TicketPriorityEnum,
-  // Urgência (obrigatório) - usando enum para validação correta  
-  urgency: TicketUrgencyEnum,
-  // Descrição Detalhada (obrigatório)
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").optional(),
+  // Categoria
+  category: z.string().optional(),
+  // Sub Categoria
+  subcategory: z.string().optional(),
+  // Ação
+  action: z.string().optional(),
+  // Prioridade (com valor padrão)
+  priority: z.string().default("medium"),
+  // Urgência (com valor padrão)
+  urgency: z.string().default("medium"),
+  // Descrição Detalhada
+  description: z.string().optional(),
   // Sintomas (opcional)
-  symptoms: z.string().max(1000, "Sintomas não podem exceder 1000 caracteres").optional(),
+  symptoms: z.string().optional(),
   // Impacto no Negócio (opcional)
-  businessImpact: z.string().max(500, "Impacto no negócio não pode exceder 500 caracteres").optional(),
+  businessImpact: z.string().optional(),
   // Solução Temporária (opcional)
-  workaround: z.string().max(1000, "Solução temporária não pode exceder 1000 caracteres").optional(),
+  workaround: z.string().optional(),
   // Local (opcional)
   location: z.string().optional(),
   // Grupo de Atribuição (opcional)
