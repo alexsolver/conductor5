@@ -160,20 +160,22 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       let whereClause = '';
       const whereParams: any[] = [];
 
+      let paramIndex = 1;
+      
       if (filters.status && filters.status.length > 0) {
-        const statusPlaceholders = filters.status.map(() => '?').join(',');
+        const statusPlaceholders = filters.status.map(() => `$${paramIndex++}`).join(',');
         whereClause += ` AND status IN (${statusPlaceholders})`;
         whereParams.push(...filters.status);
       }
 
       if (filters.priority && filters.priority.length > 0) {
-        const priorityPlaceholders = filters.priority.map(() => '?').join(',');
+        const priorityPlaceholders = filters.priority.map(() => `$${paramIndex++}`).join(',');
         whereClause += ` AND priority IN (${priorityPlaceholders})`;
         whereParams.push(...filters.priority);
       }
 
       if (filters.search) {
-        whereClause += ` AND (subject ILIKE ? OR description ILIKE ?)`;
+        whereClause += ` AND (subject ILIKE $${paramIndex++} OR description ILIKE $${paramIndex++})`;
         whereParams.push(`%${filters.search}%`, `%${filters.search}%`);
       }
 
@@ -184,7 +186,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         WHERE is_active = true ${whereClause}
       `;
       
-      const countResult = await tenantDb.execute(sql.raw(countQuery, whereParams));
+      const countResult = await tenantDb.execute(sql.raw(countQuery), whereParams);
 
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
@@ -193,7 +195,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       let mainQuery = `
         SELECT 
           t.id,
-          t.ticket_number    AS "number",
+          t.number           AS "number",
           t.title            AS "subject",
           t.description,
           t.status,
@@ -237,7 +239,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         LIMIT ${pagination.limit} OFFSET ${offset}
       `;
       
-      const results = await tenantDb.execute(sql.raw(mainQuery, whereParams));
+      const results = await tenantDb.execute(sql.raw(mainQuery), whereParams);
 
 
 
