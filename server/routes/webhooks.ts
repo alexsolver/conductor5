@@ -36,11 +36,42 @@ router.post('/telegram/:tenantId', async (req, res) => {
       const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
 
       if (result.success) {
+        console.log(`✅ [TELEGRAM-WEBHOOK] Successfully processed ${result.processed} messages`);
+
+        // ✅ AUTOMATION: Process with automation engine
+        try {
+          const { GlobalAutomationManager } = await import('../modules/omnibridge/infrastructure/services/AutomationEngine');
+          const automationManager = GlobalAutomationManager.getInstance();
+          const automationEngine = automationManager.getEngine(tenantId);
+
+          const message = webhookData.message;
+          if (message) {
+            await automationEngine.processMessage({
+              content: message.text || message.caption || '[Mensagem não textual]',
+              sender: `telegram:${message.from.id}`,
+              channel: 'telegram',
+              timestamp: new Date(message.date * 1000).toISOString(),
+              metadata: {
+                chatId: message.chat.id,
+                messageId: message.message_id,
+                fromUser: message.from
+              }
+            });
+            console.log(`🤖 [TELEGRAM-WEBHOOK] Message processed through automation engine`);
+          }
+        } catch (automationError) {
+          console.warn(`⚠️ [TELEGRAM-WEBHOOK] Automation processing failed:`, automationError);
+        }
+
         return res.status(200).json({
           success: true,
-          message: 'Webhook processed successfully via MessageIngestionService',
-          processed: result.processed,
-          timestamp: new Date().toISOString()
+          processed: result.processed
+        });
+      } else {
+        console.log(`⚠️ [TELEGRAM-WEBHOOK] Processing failed`);
+        return res.status(200).json({
+          success: false,
+          processed: 0
         });
       }
     } catch (ingestionError) {
@@ -52,7 +83,7 @@ router.post('/telegram/:tenantId', async (req, res) => {
       console.log(`📨 [TELEGRAM-WEBHOOK] Processing through AutomationEngine`);
 
       const automationManager = GlobalAutomationManager.getInstance();
-      
+
       // Garantir que as regras estejam atualizadas
       try {
         await automationManager.reloadEngineRules(tenantId);
@@ -60,7 +91,7 @@ router.post('/telegram/:tenantId', async (req, res) => {
       } catch (reloadError) {
         console.warn(`⚠️ [TELEGRAM-WEBHOOK] Failed to reload rules:`, reloadError);
       }
-      
+
       const engine = automationManager.getEngine(tenantId);
 
       await engine.processMessage({

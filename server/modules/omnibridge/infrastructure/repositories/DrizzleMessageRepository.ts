@@ -187,6 +187,12 @@ export class DrizzleMessageRepository implements IMessageRepository {
   }
 
   async create(message: MessageEntity): Promise<MessageEntity> {
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Creating message for tenant: ${message.tenantId}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Message ID: ${message.id}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Channel: ${message.channelId} (${message.channelType})`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] From: ${message.from}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Content: ${message.body?.substring(0, 100)}...`);
+
     const tenantDb = await this.getTenantDb(message.tenantId);
     const result = await tenantDb.insert(schema.omnibridgeMessages).values({
       id: message.id,
@@ -206,6 +212,7 @@ export class DrizzleMessageRepository implements IMessageRepository {
       updatedAt: message.updatedAt
     }).returning();
 
+    console.log(`✅ [DRIZZLE-MESSAGE-REPO] Message created successfully in database`);
     return message;
   }
 

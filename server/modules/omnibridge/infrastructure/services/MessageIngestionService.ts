@@ -91,10 +91,14 @@ export class MessageIngestionService {
         tenantId
       };
 
-      await this.ingestMessage(incomingMessage);
+      const savedMessage = await this.ingestMessage(incomingMessage);
       processedCount++;
 
+      console.log(`✅ [TELEGRAM-INGESTION] Message saved with ID: ${savedMessage.id}`);
+      console.log(`✅ [TELEGRAM-INGESTION] Message content: ${incomingMessage.content}`);
+      console.log(`✅ [TELEGRAM-INGESTION] From: ${incomingMessage.from}`);
       console.log(`✅ [TELEGRAM-INGESTION] Webhook processed: ${processedCount} messages`);
+      
       return { success: true, processed: processedCount };
     } catch (error) {
       console.error(`❌ [TELEGRAM-INGESTION] Webhook processing error:`, error);

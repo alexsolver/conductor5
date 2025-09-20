@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import * as schema from '@shared/schema';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 import { AutomationRule } from '../../domain/entities/AutomationRule';
+import { eq } from 'drizzle-orm';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
   // ✅ 1QA.MD: Get tenant-specific database instance
@@ -44,12 +45,12 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
       if (result.rows && result.rows.length > 0) {
         const createdRule = this.mapRowToEntity(result.rows[0]);
-        
+
         // Registrar regra no engine de automação
         const { GlobalAutomationManager } = await import('../services/AutomationEngine');
         const automationManager = GlobalAutomationManager.getInstance();
         const engine = automationManager.getEngine(rule.tenantId);
-        
+
         // Criar AutomationRule para o engine
         const { AutomationRule } = await import('../../domain/entities/AutomationRule');
         const engineRule = new AutomationRule(
@@ -62,13 +63,13 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
           createdRule.isActive,
           createdRule.priority
         );
-        
+
         engine.addRule(engineRule);
         console.log(`✅ [DrizzleAutomationRuleRepository] Rule added to automation engine: ${createdRule.name}`);
-        
+
         return createdRule;
       }
-      
+
       return rule;
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error creating rule: ${(error as Error).message}`);
@@ -80,7 +81,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
-      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const tenantDb = await this.getTenantDb(tenantId); // Corrected from rule.tenantId to tenantId
       const result = await tenantDb.execute(sql`
         SELECT * FROM omnibridge_rules 
         WHERE id = ${id} AND tenant_id = ${tenantId}
@@ -98,21 +99,28 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async findByTenantId(tenantId: string, filters?: any): Promise<AutomationRule[]> {
-    console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
+  async findByTenantId(tenantId: string): Promise<any[]> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeAutomationRules)
+      .where(eq(schema.omnibridgeAutomationRules.tenantId, tenantId));
 
-    try {
-      const tenantDb = await this.getTenantDb(rule.tenantId);
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM omnibridge_rules WHERE tenant_id = ${tenantId} 
-        ORDER BY priority ASC, created_at DESC
-      `);
+    return results.map(rule => ({
+      ...rule,
+      triggers: rule.triggers ? (Array.isArray(rule.triggers) ? rule.triggers : JSON.parse(rule.triggers)) : [],
+      actions: rule.actions ? (Array.isArray(rule.actions) ? rule.actions : JSON.parse(rule.actions)) : []
+    }));
+  }
 
-      return result.rows.map(row => this.mapRowToEntity(row));
-    } catch (error) {
-      console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rules: ${(error as Error).message}`);
-      throw error;
-    }
+  async findByTenant(tenantId: string, filters?: any): Promise<{ rules: any[]; total: number; stats: any }> {
+    const rules = await this.findByTenantId(tenantId);
+    return {
+      rules,
+      total: rules.length,
+      stats: {
+        enabled: rules.filter(r => r.isEnabled).length,
+        disabled: rules.filter(r => !r.isEnabled).length
+      }
+    };
   }
 
   async getStats(tenantId: string): Promise<{
@@ -122,7 +130,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     totalExecutions: number;
   }> {
     try {
-      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const tenantDb = await this.getTenantDb(tenantId); // Corrected from rule.tenantId to tenantId
       const result = await tenantDb.execute(sql`
         SELECT 
           COUNT(*) as total_rules,
@@ -172,7 +180,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       if (result.rows && result.rows.length > 0) {
         return this.mapRowToEntity(result.rows[0]);
       }
-      
+
       return rule;
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error updating rule: ${(error as Error).message}`);
@@ -212,10 +220,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     return new AutomationRule(
       row.id,
+      row.tenant_id, // tenantId was mapped to row.tenant_id
       row.name,
       parseJsonField(row.trigger_conditions, []),
       parseJsonField(row.action_parameters, []),
-      row.tenant_id,
       row.description,
       row.is_enabled,
       row.priority,
