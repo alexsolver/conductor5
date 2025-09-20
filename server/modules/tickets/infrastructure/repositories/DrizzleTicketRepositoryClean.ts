@@ -178,17 +178,19 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       }
 
       // Count total records - ONLY ACTIVE tickets
-      const countResult = await tenantDb.execute(sql.raw(`
+      let countQuery = `
         SELECT COUNT(*) as total
         FROM ${schemaName}.tickets
         WHERE is_active = true ${whereClause}
-      `, whereParams));
+      `;
+      
+      const countResult = await tenantDb.execute(sql.raw(countQuery, whereParams));
 
       const total = Number(countResult.rows[0]?.total || 0);
       const totalPages = Math.ceil(total / pagination.limit);
 
       // Fetch paginated results with JOIN para incluir dados de clientes e empresas
-      const results = await tenantDb.execute(sql.raw(`
+      let mainQuery = `
         SELECT 
           t.id,
           t.ticket_number    AS "number",
@@ -233,7 +235,9 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           ${whereClause}
         ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
-      `, whereParams));
+      `;
+      
+      const results = await tenantDb.execute(sql.raw(mainQuery, whereParams));
 
 
 
