@@ -4366,7 +4366,12 @@ const TicketDetails = React.memo(() => {
                   {customer.address && (
                     <div className="gap-2 p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
-                      <span className="text-sm text-gray-900">{customer.address}</span>
+                      <span className="text-sm text-gray-900">
+                        {typeof customer.address === 'string' 
+                          ? customer.address 
+                          : `${customer.address.street || ''} ${customer.address.number || ''}, ${customer.address.neighborhood || ''}, ${customer.address.city || ''} - ${customer.address.state || ''}, ${customer.address.zipCode || ''}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '').trim() || 'Endereço não informado'
+                        }
+                      </span>
                     </div>
                   )}
                 </div>
