@@ -548,23 +548,23 @@ export default function Tickets() {
           </p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            onClick={() => {
+              console.log('🎫 [BUTTON-CLICK] Create ticket button clicked!!!');
+              console.log('🎫 [MODAL-STATE] Setting dialog open to true');
+              setIsCreateDialogOpen(true);
+            }}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" 
+            data-testid="button-create-ticket"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t('tickets.new_ticket')}
+          </Button>
+          
           <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
             console.log('🎫 [MODAL-STATE] Dialog open changed to:', open);
             setIsCreateDialogOpen(open);
           }}>
-            <DialogTrigger asChild>
-              <Button 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" 
-                data-testid="button-create-ticket"
-                onClick={() => {
-                  console.log('🎫 [BUTTON-CLICK] Create ticket button clicked');
-                  console.log('🎫 [MODAL-STATE] Current modal state:', isCreateDialogOpen);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {t('tickets.new_ticket')}
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
               <DialogHeader className="flex-shrink-0 pb-4 border-b">
                 <DialogTitle>{t('tickets.forms.create.title')}</DialogTitle>
