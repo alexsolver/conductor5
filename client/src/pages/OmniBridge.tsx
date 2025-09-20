@@ -202,7 +202,7 @@ export default function OmniBridge() {
   // AI Configuration with react-query
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Zod schemas for validation with numeric preprocessing
   const aiConfigSchema = z.object({
     model: z.string(),
@@ -224,19 +224,19 @@ export default function OmniBridge() {
       entityExtraction: z.string()
     })
   });
-  
+
   // Load AI Configuration
   const { data: aiConfigData, isLoading: aiConfigLoading } = useQuery({
     queryKey: ['/api/omnibridge/ai-config'],
     enabled: activeTab === 'ai-config'
   });
-  
+
   // Load AI Metrics
   const { data: aiMetricsData, isLoading: aiMetricsLoading } = useQuery({
     queryKey: ['/api/omnibridge/ai-metrics'],
     enabled: activeTab === 'ai-config'
   });
-  
+
   // Save AI Configuration mutation
   const saveAiConfigMutation = useMutation({
     mutationFn: (config: any) => apiRequest('/api/omnibridge/ai-config', {
@@ -251,7 +251,7 @@ export default function OmniBridge() {
       toast({ title: 'Erro', description: 'Falha ao salvar configurações de IA', variant: 'destructive' });
     }
   });
-  
+
   // Test AI Prompt mutation
   const testPromptMutation = useMutation({
     mutationFn: ({ prompt, testMessage, promptType }: any) => 
@@ -267,7 +267,7 @@ export default function OmniBridge() {
       });
     }
   });
-  
+
   // Form for AI Configuration
   const aiForm = useForm({
     resolver: zodResolver(aiConfigSchema),
@@ -292,14 +292,14 @@ export default function OmniBridge() {
       }
     }
   });
-  
+
   // Update form when data loads
   React.useEffect(() => {
     if (aiConfigData?.data) {
       aiForm.reset(aiConfigData.data);
     }
   }, [aiConfigData, aiForm]);
-  
+
   const handleSaveAiConfig = (data: any) => {
     saveAiConfigMutation.mutate(data);
   };
@@ -307,7 +307,7 @@ export default function OmniBridge() {
   const [selectedPromptType, setSelectedPromptType] = useState('intentionAnalysis');
   const [tempPromptContent, setTempPromptContent] = useState('');
   const [promptTestMessage, setPromptTestMessage] = useState('');
-  
+
   // Get current values from form or API data
   const currentAiConfig = aiForm.watch();
   const currentMetrics = aiMetricsData?.data || {
@@ -331,7 +331,7 @@ export default function OmniBridge() {
         };
 
         const response = await fetch('/api/omnibridge/automation-rules', { headers });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
@@ -344,10 +344,35 @@ export default function OmniBridge() {
       }
     };
 
-    if (activeTab === 'automation') {
+    if (user?.tenantId) {
       fetchAutomationRules();
     }
-  }, [activeTab, user?.tenantId]);
+  }, [user?.tenantId]);
+
+  // Add auto-refresh for messages every 5 seconds
+  useEffect(() => {
+    const refreshMessages = async () => {
+      if (!user?.tenantId) return;
+
+      try {
+        console.log(`🔄 [OMNIBRIDGE-AUTO-REFRESH] Refreshing messages for tenant: ${user.tenantId}`);
+
+        const response = await apiRequest('/api/omnibridge/messages');
+        console.log('🔍 [OmniBridge-AUTO-REFRESH] API Response for inbox:', response);
+
+        if (response.success) {
+          setMessages(response.messages || []);
+          console.log(`📥 [OMNIBRIDGE-AUTO-REFRESH] Updated messages count: ${response.messages?.length || 0}`);
+        }
+      } catch (error) {
+        console.error('[OmniBridge-AUTO-REFRESH] Error refreshing messages:', error);
+      }
+    };
+
+    const interval = setInterval(refreshMessages, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [user?.tenantId]);
 
   const handleToggleAutomationRule = async (ruleId: string, enabled: boolean) => {
     try {
@@ -1641,7 +1666,7 @@ export default function OmniBridge() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={aiForm.control}
                   name="temperature"
@@ -1862,7 +1887,7 @@ export default function OmniBridge() {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="cursor-pointer hover:bg-muted/50">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Resposta Inteligente</CardTitle>
@@ -2170,9 +2195,9 @@ export default function OmniBridge() {
                       <li>Use linguagem consistente</li>
                     </ul>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="text-sm">
                     <strong>Variáveis disponíveis:</strong>
                     <div className="mt-2 space-y-1 text-xs text-muted-foreground font-mono">

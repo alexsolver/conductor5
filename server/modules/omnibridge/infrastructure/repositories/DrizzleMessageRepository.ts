@@ -192,9 +192,7 @@ export class DrizzleMessageRepository implements IMessageRepository {
     console.log(`💾 [DRIZZLE-MESSAGE-REPO] Channel: ${message.channelId} (${message.channelType})`);
     console.log(`💾 [DRIZZLE-MESSAGE-REPO] From: ${message.from}`);
     console.log(`💾 [DRIZZLE-MESSAGE-REPO] Content: ${message.body?.substring(0, 100)}...`);
-
-    const tenantDb = await this.getTenantDb(message.tenantId);
-    const result = await tenantDb.insert(schema.omnibridgeMessages).values({
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Full message data:`, JSON.stringify({
       id: message.id,
       tenantId: message.tenantId,
       channelId: message.channelId,
@@ -203,17 +201,45 @@ export class DrizzleMessageRepository implements IMessageRepository {
       toAddress: message.to,
       subject: message.subject,
       content: message.body,
-      metadata: message.metadata,
       status: message.status,
-      priority: message.priority,
-      tags: message.tags,
-      timestamp: message.receivedAt,
-      createdAt: message.createdAt,
-      updatedAt: message.updatedAt
-    }).returning();
+      priority: message.priority
+    }, null, 2));
 
-    console.log(`✅ [DRIZZLE-MESSAGE-REPO] Message created successfully in database`);
-    return message;
+    try {
+      const tenantDb = await this.getTenantDb(message.tenantId);
+      const result = await tenantDb.insert(schema.omnibridgeMessages).values({
+        id: message.id,
+        tenantId: message.tenantId,
+        channelId: message.channelId,
+        channelType: message.channelType,
+        fromAddress: message.from,
+        toAddress: message.to,
+        subject: message.subject,
+        content: message.body,
+        metadata: message.metadata,
+        status: message.status,
+        priority: message.priority,
+        tags: message.tags,
+        timestamp: message.receivedAt,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt
+      }).returning();
+
+      console.log(`✅ [DRIZZLE-MESSAGE-REPO] Message created successfully in database`);
+      console.log(`✅ [DRIZZLE-MESSAGE-REPO] Database result:`, JSON.stringify(result, null, 2));
+      
+      // Verificar se a mensagem foi realmente criada
+      const verification = await tenantDb.select().from(schema.omnibridgeMessages)
+        .where(eq(schema.omnibridgeMessages.id, message.id))
+        .limit(1);
+      
+      console.log(`🔍 [DRIZZLE-MESSAGE-REPO] Verification query result:`, JSON.stringify(verification, null, 2));
+      
+      return message;
+    } catch (error) {
+      console.error(`❌ [DRIZZLE-MESSAGE-REPO] Error creating message:`, error);
+      throw error;
+    }
   }
 
   async update(message: MessageEntity): Promise<MessageEntity> {

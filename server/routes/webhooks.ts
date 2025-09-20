@@ -15,6 +15,7 @@ router.post('/telegram/:tenantId', async (req, res) => {
     const webhookData = req.body;
 
     console.log(`📨 [TELEGRAM-WEBHOOK] Received webhook for tenant: ${tenantId}`);
+    console.log(`📨 [TELEGRAM-WEBHOOK] Webhook data:`, JSON.stringify(webhookData, null, 2));
 
     // ✅ VALIDATION: Check if it's a valid Telegram webhook
     if (!webhookData.update_id) {
@@ -22,6 +23,15 @@ router.post('/telegram/:tenantId', async (req, res) => {
       return res.status(200).json({
         success: false,
         message: 'Invalid Telegram webhook data'
+      });
+    }
+
+    // ✅ CHECK MESSAGE: Verify if message exists
+    if (!webhookData.message) {
+      console.log(`❌ [TELEGRAM-WEBHOOK] No message in webhook data`);
+      return res.status(200).json({
+        success: false,
+        message: 'No message found in webhook'
       });
     }
 
@@ -132,3 +142,37 @@ router.post('/telegram/:tenantId', async (req, res) => {
 });
 
 export default router;
+
+
+/**
+ * Debug endpoint to check messages in database
+ * GET /api/webhooks/debug/messages/:tenantId
+ */
+router.get('/debug/messages/:tenantId', async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    
+    console.log(`🔍 [DEBUG-MESSAGES] Checking messages for tenant: ${tenantId}`);
+    
+    const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+    const messageRepository = new DrizzleMessageRepository();
+    
+    const messages = await messageRepository.findByTenant(tenantId, 10, 0);
+    
+    console.log(`🔍 [DEBUG-MESSAGES] Found ${messages.length} messages`);
+    console.log(`🔍 [DEBUG-MESSAGES] Messages:`, JSON.stringify(messages, null, 2));
+    
+    res.json({
+      success: true,
+      count: messages.length,
+      messages: messages
+    });
+    
+  } catch (error) {
+    console.error(`❌ [DEBUG-MESSAGES] Error:`, error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});

@@ -68,9 +68,15 @@ export class MessageIngestionService {
 
     try {
       console.log(`📨 [TELEGRAM-INGESTION] Processing webhook for tenant: ${tenantId}`);
+      console.log(`📨 [TELEGRAM-INGESTION] Webhook data:`, JSON.stringify(webhookData, null, 2));
 
       const message = webhookData.message;
-      if (!message) return { success: false, processed: 0 };
+      if (!message) {
+        console.log(`❌ [TELEGRAM-INGESTION] No message found in webhook data`);
+        return { success: false, processed: 0 };
+      }
+
+      console.log(`📨 [TELEGRAM-INGESTION] Message found:`, JSON.stringify(message, null, 2));
 
       // Extrair dados da mensagem do Telegram
       const incomingMessage: IncomingMessage = {
