@@ -357,7 +357,9 @@ export default function OmniBridge() {
       try {
         console.log(`🔄 [OMNIBRIDGE-AUTO-REFRESH] Refreshing messages for tenant: ${user.tenantId}`);
 
-        const response = await apiRequest('/api/omnibridge/messages');
+        const response = await apiRequest('/api/omnibridge/messages', {
+          method: 'GET'
+        });
         console.log('🔍 [OmniBridge-AUTO-REFRESH] API Response for inbox:', response);
 
         if (response.success) {
