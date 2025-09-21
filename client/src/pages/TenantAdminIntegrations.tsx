@@ -1957,7 +1957,7 @@ export default function TenantAdminIntegrations() {
                                 type="button"
                                 variant="default"
                                 size="sm"
-                                onClick={configureWebhook}
+                                onClick={handleSetWebhook}
                                 disabled={isTestingIntegration || !field.value}
                                 className="px-3 whitespace-nowrap bg-green-600 hover:bg-green-700"
                                 data-testid="button-register-webhook"
