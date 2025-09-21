@@ -1042,7 +1042,7 @@ router.post('/telegram/set-webhook', jwtAuth, async (req: AuthenticatedRequest, 
     const config = configResult.config;
 
     // ✅ SET WEBHOOK: Call Telegram API to set webhook
-    const telegramWebhookUrl = `${webhookUrl}/api/tenant-admin/integrations/telegram/webhook/${tenantId}`;
+    const telegramWebhookUrl = `${webhookUrl}/api/webhooks/telegram/${tenantId}`;
 
     console.log(`📤 [TELEGRAM-WEBHOOK-SETUP] Setting webhook URL: ${telegramWebhookUrl}`);
 
