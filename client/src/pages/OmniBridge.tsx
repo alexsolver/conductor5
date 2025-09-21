@@ -1762,7 +1762,12 @@ export default function OmniBridge() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Templates de Resposta</span>
-                <Button size="sm">
+                <Button 
+                  size="sm"
+                  onClick={() => {
+                    alert('Criando novo template... (Funcionalidade em desenvolvimento)');
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Template
                 </Button>
@@ -1776,7 +1781,13 @@ export default function OmniBridge() {
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum template configurado</p>
                 <p className="text-sm">Crie templates para agilizar suas respostas</p>
-                <Button className="mt-4" variant="outline">
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={() => {
+                    alert('Criando primeiro template... (Funcionalidade em desenvolvimento)');
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Primeiro Template
                 </Button>
@@ -1937,7 +1948,13 @@ export default function OmniBridge() {
                   <Bot className="h-5 w-5 text-green-600" />
                   Seus Assistentes Virtuais (0)
                 </div>
-                <Button variant="outline" data-testid="button-import-bot">
+                <Button 
+                  variant="outline" 
+                  data-testid="button-import-bot"
+                  onClick={() => {
+                    alert('Importando Assistente... (Funcionalidade em desenvolvimento)');
+                  }}
+                >
                   <Upload className="h-4 w-4 mr-2" />
                   Importar Assistente
                 </Button>
@@ -1957,11 +1974,22 @@ export default function OmniBridge() {
                   e começar a atender seus clientes automaticamente.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button data-testid="button-get-started">
+                  <Button 
+                    data-testid="button-get-started"
+                    onClick={() => {
+                      alert('Iniciando criação de assistente... (Funcionalidade em desenvolvimento)');
+                    }}
+                  >
                     <Bot className="h-4 w-4 mr-2" />
                     Começar Agora
                   </Button>
-                  <Button variant="outline" data-testid="button-watch-demo">
+                  <Button 
+                    variant="outline" 
+                    data-testid="button-watch-demo"
+                    onClick={() => {
+                      window.open('https://docs.conductor.app/chatbot-demo', '_blank');
+                    }}
+                  >
                     <Play className="h-4 w-4 mr-2" />
                     Ver Como Funciona
                   </Button>
