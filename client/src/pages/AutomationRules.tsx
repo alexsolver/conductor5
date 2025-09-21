@@ -118,7 +118,7 @@ export default function AutomationRules() {
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
     staleTime: 5000, // ✅ Reduzido para debug
-    cacheTime: 300000,
+    gcTime: 300000,
     refetchOnWindowFocus: false,
     onError: (error: any) => {
       console.error('❌ [AutomationRules] Final error after retries:', error);
@@ -129,6 +129,17 @@ export default function AutomationRules() {
       setLoadingError(null);
     }
   });
+
+  // Fallback de dados para desenvolvimento se API falhar
+  const mockRules: any[] = [];
+  const mockMetrics = {
+    rulesCount: 0,
+    enabledRulesCount: 0,
+    rulesExecuted: 0,
+    actionsTriggered: 0,
+    successRate: 100,
+    avgExecutionTime: 0
+  };
 
   // Métricas (usando dados mock enquanto endpoint não existe)
   const metricsData = mockMetrics;
@@ -223,16 +234,6 @@ export default function AutomationRules() {
     ]);
   };
 
-  // Fallback de dados para desenvolvimento se API falhar
-  const mockRules = [];
-  const mockMetrics = {
-    rulesCount: 0,
-    enabledRulesCount: 0,
-    rulesExecuted: 0,
-    actionsTriggered: 0,
-    successRate: 100,
-    avgExecutionTime: 0
-  };
 
   // Verificações robustas de segurança para evitar undefined errors
   const rules = useMemo(() => {
@@ -243,10 +244,10 @@ export default function AutomationRules() {
       if (Array.isArray(rulesData)) {
         return rulesData.filter(rule => rule && typeof rule === 'object');
       }
-      return mockRules;
+      return [];
     } catch (error) {
       console.error('🚨 [AutomationRules] Error processing rules data:', error);
-      return mockRules;
+      return [];
     }
   }, [rulesData]);
 
@@ -254,14 +255,14 @@ export default function AutomationRules() {
     try {
       if (metricsData?.metrics && typeof metricsData.metrics === 'object') {
         return {
-          ...mockMetrics,
+          rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0,
           ...metricsData.metrics
         };
       }
-      return mockMetrics;
+      return { rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0 };
     } catch (error) {
       console.error('🚨 [AutomationRules] Error processing metrics data:', error);
-      return mockMetrics;
+      return { rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0 };
     }
   }, [metricsData]);
 
