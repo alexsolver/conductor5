@@ -24,7 +24,7 @@ export class GetAutomationRulesUseCase {
   }> {
     console.log(`🔍 [GetAutomationRulesUseCase] Getting automation rules for tenant: ${tenantId}`);
 
-    const rules = await this.automationRuleRepository.findByTenant(tenantId, filters);
+    const rules = await this.automationRuleRepository.findByTenantId(tenantId);
     const stats = await this.automationRuleRepository.getStats(tenantId);
 
     console.log(`✅ [GetAutomationRulesUseCase] Retrieved ${rules.length} automation rules`);
