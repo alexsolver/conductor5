@@ -1416,139 +1416,206 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
 
-        {/* Automation Tab */}
-        <TabsContent value="automation" className="space-y-4">
+        {/* Automation Tab - Simplified for lay users */}
+        <TabsContent value="automation" className="space-y-6">
+          {/* Header with simple explanation */}
+          <div className="text-center py-4">
+            <h2 className="text-2xl font-bold mb-2">🤖 Automatize seu Atendimento</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Crie regras simples para que o sistema responda automaticamente, 
+              organize mensagens e facilite seu trabalho do dia a dia.
+            </p>
+          </div>
+
+          {/* Quick Templates Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-yellow-500" />
+                Templates Prontos
+              </CardTitle>
+              <CardDescription>
+                Escolha um template e configure em segundos. Perfeito para começar rapidamente!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Template 1: Auto-reply for common questions */}
+                <Card className="cursor-pointer hover:shadow-md transition-shadow border-blue-200 bg-blue-50/30" data-testid="card-template-auto-reply">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-full bg-blue-100">
+                        <Reply className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Resposta Automática</h3>
+                        <p className="text-sm text-muted-foreground">Para dúvidas comuns</p>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-3">
+                      Quando alguém enviar "horário de funcionamento", responder automaticamente com os horários.
+                    </p>
+                    <Button size="sm" className="w-full" data-testid="button-create-auto-reply">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Agora
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Template 2: Create ticket for urgent messages */}
+                <Card className="cursor-pointer hover:shadow-md transition-shadow border-red-200 bg-red-50/30" data-testid="card-template-urgent-ticket">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-full bg-red-100">
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Ticket para Urgências</h3>
+                        <p className="text-sm text-muted-foreground">Para problemas graves</p>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-3">
+                      Quando chegarem palavras como "urgente" ou "parou de funcionar", criar um ticket automaticamente.
+                    </p>
+                    <Button size="sm" className="w-full" data-testid="button-create-urgent-ticket">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Agora
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Template 3: Notify team for VIP customers */}
+                <Card className="cursor-pointer hover:shadow-md transition-shadow border-purple-200 bg-purple-50/30" data-testid="card-template-vip-notification">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-full bg-purple-100">
+                        <Star className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Alerta para VIPs</h3>
+                        <p className="text-sm text-muted-foreground">Para clientes especiais</p>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-3">
+                      Quando clientes VIP enviarem mensagens, notificar a equipe imediatamente.
+                    </p>
+                    <Button size="sm" className="w-full" data-testid="button-create-vip-notification">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Agora
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Current Rules Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Regras de Automação</span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Templates
-                  </Button>
-                  <Button size="sm" onClick={() => setShowCreateRuleModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Regra
-                  </Button>
+                  <Workflow className="h-5 w-5 text-green-600" />
+                  Suas Automatizações ({automationRules.length})
                 </div>
+                <Button onClick={() => setShowCreateRuleModal(true)} data-testid="button-create-custom-rule">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Automatização
+                </Button>
               </CardTitle>
               <CardDescription>
-                Configure regras automáticas para processar mensagens, criar tickets, enviar notificações e mais.
+                Gerencie suas regras ativas. Você pode ativar/desativar ou editar a qualquer momento.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {automationRules.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhuma regra de automação configurada</p>
-                  <p className="text-sm">Crie sua primeira regra para automatizar o atendimento</p>
-                  <div className="mt-4 space-y-2">
-                    <Button onClick={() => setShowCreateRuleModal(true)} variant="outline">
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                    <Bot className="h-10 w-10 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Ainda sem automatizações</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Use os templates acima para criar sua primeira automatização ou 
+                    crie uma personalizada do zero.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button onClick={() => setShowCreateRuleModal(true)} data-testid="button-create-first-rule">
                       <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeira Regra
+                      Criar Primeira Automatização
                     </Button>
-                    <div className="text-xs text-muted-foreground">
-                      Use templates prontos para começar rapidamente
-                    </div>
+                    <Button variant="outline" data-testid="button-learn-more">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ver Exemplos
+                    </Button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Rules List */}
-                  <div className="grid grid-cols-1 gap-4">
-                    {automationRules.map((rule) => (
-                      <Card key={rule.id} className="relative">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${(rule.enabled || rule.isEnabled) ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                <Workflow className={`h-5 w-5 ${(rule.enabled || rule.isEnabled) ? 'text-green-600' : 'text-gray-500'}`} />
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{rule.name}</h3>
-                                <p className="text-sm text-muted-foreground">{rule.description}</p>
+                  {automationRules.map((rule) => (
+                    <Card key={rule.id} className="relative group hover:shadow-sm transition-shadow" data-testid={`card-rule-${rule.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className={`p-3 rounded-full ${(rule.enabled || rule.isEnabled) ? 'bg-green-100' : 'bg-gray-100'}`}>
+                              <Zap className={`h-5 w-5 ${(rule.enabled || rule.isEnabled) ? 'text-green-600' : 'text-gray-500'}`} />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-lg">{rule.name}</h3>
+                              <p className="text-muted-foreground">{rule.description}</p>
+                              <div className="flex items-center gap-4 mt-2 text-sm">
+                                <div className="flex items-center gap-1">
+                                  <Activity className="h-4 w-4 text-blue-500" />
+                                  <span>{rule.executionStats?.totalExecutions || 0} execuções</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                  <span>{rule.executionStats?.successRate || 100}% sucesso</span>
+                                </div>
                               </div>
                             </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {(rule.enabled || rule.isEnabled) ? 'Ativa' : 'Inativa'}
+                              </span>
                               <Switch
                                 checked={rule.enabled || rule.isEnabled || false}
                                 onCheckedChange={(enabled) => handleToggleAutomationRule(rule.id, enabled)}
+                                data-testid={`switch-rule-${rule.id}`}
                               />
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
                             </div>
+                            <Button variant="outline" size="sm" data-testid={`button-edit-${rule.id}`}>
+                              <Settings className="h-4 w-4 mr-2" />
+                              Editar
+                            </Button>
                           </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="space-y-3">
-                            {/* Triggers */}
-                            <div>
-                              <Label className="text-xs font-medium text-muted-foreground">GATILHOS</Label>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {(rule.triggers || (rule.trigger ? [rule.trigger] : [])).map((trigger: any, index: number) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {trigger.type === 'keyword' && 'Palavras-chave'}
-                                    {trigger.type === 'new_message' && 'Nova mensagem'}
-                                    {trigger.type === 'channel_specific' && 'Canal específico'}
-                                    {trigger.type === 'priority_based' && 'Prioridade'}
-                                    {trigger.type === 'time_based' && 'Horário'}
-                                    {trigger.type === 'sender_pattern' && 'Padrão do remetente'}
-                                    {trigger.type === 'content_pattern' && 'Padrão de conteúdo'}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div>
-                              <Label className="text-xs font-medium text-muted-foreground">AÇÕES</Label>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {rule.actions && rule.actions.map((action, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs">
-                                    {action.type === 'auto_reply' && 'Resposta automática'}
-                                    {action.type === 'forward_message' && 'Encaminhar'}
-                                    {action.type === 'create_ticket' && 'Criar ticket'}
-                                    {action.type === 'send_notification' && 'Notificação'}
-                                    {action.type === 'add_tags' && 'Adicionar tags'}
-                                    {action.type === 'assign_agent' && 'Atribuir agente'}
-                                    {action.type === 'mark_priority' && 'Marcar prioridade'}
-                                    {action.type === 'archive' && 'Arquivar'}
-                                    {action.type === 'webhook_call' && 'Webhook'}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Stats */}
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-4">
-                                <span className="text-muted-foreground">
-                                  Prioridade: <span className="font-medium">{rule.priority}</span>
-                                </span>
-                                <span className="text-muted-foreground">
-                                  Execuções: <span className="font-medium">{rule.executionStats?.totalExecutions || 0}</span>
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">
-                                  <Settings className="h-4 w-4 mr-2" />
-                                  Editar
-                                </Button>
-                                <Button variant="outline" size="sm">
-                                  <Activity className="h-4 w-4 mr-2" />
-                                  Logs
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Help Section */}
+          <Card className="border-amber-200 bg-amber-50/30">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-full bg-amber-100">
+                  <Lightbulb className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1">💡 Dicas para Automatizações</h3>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Comece com regras simples e vá evoluindo aos poucos</li>
+                    <li>• Use palavras-chave que seus clientes realmente usam</li>
+                    <li>• Teste sempre antes de ativar uma nova regra</li>
+                    <li>• Monitore o desempenho e ajuste quando necessário</li>
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
