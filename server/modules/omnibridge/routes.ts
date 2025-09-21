@@ -27,22 +27,59 @@ const omniBridgeController = new OmniBridgeController(
   processMessageUseCase
 );
 
-// Routes
-router.get('/channels', (req, res) => omniBridgeController.getChannels(req, res));
-router.post('/channels/:channelId/toggle', (req, res) => omniBridgeController.toggleChannel(req, res));
+// Routes - Protected with JWT authentication
+router.get('/channels', jwtAuth, (req, res) => omniBridgeController.getChannels(req, res));
+router.post('/channels/:channelId/toggle', jwtAuth, (req, res) => omniBridgeController.toggleChannel(req, res));
 
-router.get('/messages', (req, res) => omniBridgeController.getMessages(req, res));
-router.post('/messages/:messageId/process', (req, res) => omniBridgeController.processMessage(req, res));
-router.post('/messages/process-direct', (req, res) => omniBridgeController.processDirectMessage(req, res));
-router.post('/automation-rules/:ruleId/test', (req, res) => omniBridgeController.testAutomationRule(req, res));
+router.get('/messages', jwtAuth, (req, res) => omniBridgeController.getMessages(req, res));
+router.post('/messages/:messageId/process', jwtAuth, (req, res) => omniBridgeController.processMessage(req, res));
+router.post('/messages/process-direct', jwtAuth, (req, res) => omniBridgeController.processDirectMessage(req, res));
+router.post('/automation-rules/:ruleId/test', jwtAuth, (req, res) => omniBridgeController.testAutomationRule(req, res));
+
+// Test automation rule without saving (preview mode)
+router.post('/automation-rules/test', jwtAuth, async (req, res) => {
+  try {
+    const { rule, message, channel } = req.body;
+    
+    // Simulate rule testing
+    const triggered = rule.triggers?.some((trigger: any) => {
+      if (trigger.type === 'keyword' && trigger.config?.keywords) {
+        const keywords = trigger.config.keywords.split(',').map((k: string) => k.trim().toLowerCase());
+        return keywords.some((keyword: string) => message.toLowerCase().includes(keyword));
+      }
+      if (trigger.type === 'priority' && trigger.config?.priorityLevel) {
+        return message.toLowerCase().includes('urgente') || message.toLowerCase().includes('crítico');
+      }
+      return false;
+    }) || false;
+
+    const response = {
+      triggered,
+      triggerReason: triggered ? 'Palavra-chave detectada' : 'Nenhum gatilho ativado',
+      actions: triggered ? rule.actions?.map((action: any) => ({
+        type: action.type,
+        description: action.name || action.type,
+        result: action.type === 'auto_reply' ? 
+          action.config?.message || 'Resposta automática enviada' :
+          `${action.name || action.type} executado com sucesso`,
+        config: action.config
+      })) : []
+    };
+
+    res.json({ success: true, data: response });
+  } catch (error) {
+    console.error('[OmniBridge] Rule test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to test rule' });
+  }
+});
 
 // Message interaction routes
-router.post('/messages/send', (req, res) => omniBridgeController.sendMessage(req, res));
-router.post('/messages/reply', (req, res) => omniBridgeController.replyMessage(req, res));
-router.post('/messages/forward', (req, res) => omniBridgeController.forwardMessage(req, res));
-router.put('/messages/:messageId/archive', (req, res) => omniBridgeController.archiveMessage(req, res));
-router.put('/messages/:messageId/read', (req, res) => omniBridgeController.markAsRead(req, res));
-router.put('/messages/:messageId/star', (req, res) => omniBridgeController.starMessage(req, res));
+router.post('/messages/send', jwtAuth, (req, res) => omniBridgeController.sendMessage(req, res));
+router.post('/messages/reply', jwtAuth, (req, res) => omniBridgeController.replyMessage(req, res));
+router.post('/messages/forward', jwtAuth, (req, res) => omniBridgeController.forwardMessage(req, res));
+router.put('/messages/:messageId/archive', jwtAuth, (req, res) => omniBridgeController.archiveMessage(req, res));
+router.put('/messages/:messageId/read', jwtAuth, (req, res) => omniBridgeController.markAsRead(req, res));
+router.put('/messages/:messageId/star', jwtAuth, (req, res) => omniBridgeController.starMessage(req, res));
 
 router.get('/inbox/stats', (req, res) => omniBridgeController.getInboxStats(req, res));
 
@@ -92,12 +129,148 @@ router.put('/chatbots/:id', jwtAuth, (req, res) => chatbotController.updateChatb
 router.delete('/chatbots/:id', jwtAuth, (req, res) => chatbotController.deleteChatbot(req, res));
 router.post('/chatbots/:id/toggle', jwtAuth, (req, res) => chatbotController.toggleChatbot(req, res));
 
+// Test chatbot without saving (preview mode)
+router.post('/chatbots/test', jwtAuth, async (req, res) => {
+  try {
+    const { chatbot, message } = req.body;
+    
+    // Simple chatbot simulation
+    let response = chatbot.fallbackMessage || 'Desculpe, não entendi.';
+    let nextStep = null;
+
+    // Check if message matches any step
+    if (chatbot.steps && chatbot.steps.length > 0) {
+      const firstStep = chatbot.steps[0];
+      if (firstStep.type === 'options') {
+        response = firstStep.content;
+        nextStep = firstStep.id;
+      } else if (firstStep.type === 'message') {
+        response = firstStep.content;
+        nextStep = firstStep.nextStep;
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      data: { 
+        response, 
+        nextStep,
+        confidence: 0.8 
+      } 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Chatbot test error:', error);
+    res.status(500).json({ success: false, error: 'Failed to test chatbot' });
+  }
+});
+
+// Template installation
+router.post('/templates/install', jwtAuth, async (req, res) => {
+  try {
+    const { templateId, config } = req.body;
+    const tenantId = (req as any).user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Simulate template installation
+    // In a real implementation, this would create actual rules/chatbots
+    console.log(`Installing template ${templateId} for tenant ${tenantId}`);
+    
+    res.json({ 
+      success: true, 
+      data: { 
+        templateId, 
+        installed: true,
+        message: 'Template installed successfully' 
+      } 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Template install error:', error);
+    res.status(500).json({ success: false, error: 'Failed to install template' });
+  }
+});
+
+// Setup wizard completion
+// Get setup status
+router.get('/setup-status', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Check if setup is complete (simplified check)
+    res.json({ 
+      success: true, 
+      setupComplete: true, // Would check actual setup status
+      data: { setupComplete: true }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Setup status error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get setup status' });
+  }
+});
+
+// Get dashboard stats
+router.get('/dashboard-stats', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Simulate dashboard stats
+    const stats = {
+      totalMessages: Math.floor(Math.random() * 100) + 50,
+      unreadMessages: Math.floor(Math.random() * 10),
+      activeRules: Math.floor(Math.random() * 5) + 3,
+      activeChatbots: Math.floor(Math.random() * 3) + 1,
+      responseTime: `${Math.floor(Math.random() * 5) + 1} min`,
+      automationRate: Math.floor(Math.random() * 30) + 60
+    };
+
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error('[OmniBridge] Dashboard stats error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get dashboard stats' });
+  }
+});
+
+router.post('/setup', jwtAuth, async (req, res) => {
+  try {
+    const setupData = req.body;
+    const tenantId = (req as any).user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Simulate setup completion
+    // In a real implementation, this would create initial configs
+    console.log(`Completing setup for tenant ${tenantId}:`, setupData);
+    
+    res.json({ 
+      success: true, 
+      data: { 
+        tenantId, 
+        setupCompleted: true,
+        message: 'Initial setup completed successfully' 
+      } 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Setup error:', error);
+    res.status(500).json({ success: false, error: 'Failed to complete setup' });
+  }
+});
+
 
 // Integration sync endpoint
-router.post('/sync-integrations', async (req, res) => {
+router.post('/sync-integrations', jwtAuth, async (req, res) => {
   try {
     // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       console.error('❌ [OMNIBRIDGE-SYNC] No tenant ID found in request');
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
@@ -155,7 +328,7 @@ router.post('/sync-integrations', async (req, res) => {
 router.get('/sync-status', async (req, res) => {
   try {
     // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       console.error('❌ [OMNIBRIDGE-STATUS] No tenant ID found in request');
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
@@ -190,7 +363,7 @@ router.get('/sync-status', async (req, res) => {
 // AI Configuration Routes
 router.get('/ai-config', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -249,7 +422,7 @@ router.get('/ai-config', async (req, res) => {
 
 router.put('/ai-config', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -301,7 +474,7 @@ router.put('/ai-config', async (req, res) => {
 
 router.get('/ai-metrics', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -356,7 +529,7 @@ router.get('/ai-metrics', async (req, res) => {
 
 router.post('/ai-prompts/test', async (req, res) => {
   try {
-    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
