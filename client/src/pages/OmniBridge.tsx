@@ -322,14 +322,12 @@ export default function OmniBridge() {
   useEffect(() => {
     const fetchAutomationRules = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        };
-
-        const response = await fetch('/api/omnibridge/automation-rules', { headers });
+        const response = await fetch('/api/omnibridge/automation-rules', { 
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
         if (response.ok) {
           const result = await response.json();
@@ -337,6 +335,8 @@ export default function OmniBridge() {
             setAutomationRules(result.data);
             console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
           }
+        } else {
+          console.error('❌ [OmniBridge] Failed to fetch automation rules:', response.status);
         }
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching automation rules:', error);
@@ -376,13 +376,11 @@ export default function OmniBridge() {
 
   const handleToggleAutomationRule = async (ruleId: string, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(`/api/omnibridge/automation-rules/${ruleId}/toggle`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ isEnabled: enabled })
       });
@@ -392,6 +390,21 @@ export default function OmniBridge() {
           rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
         ));
         console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
+        
+        // Refresh the automation rules list after toggle
+        const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (refreshResponse.ok) {
+          const result = await refreshResponse.json();
+          if (result.success) {
+            setAutomationRules(result.data);
+          }
+        }
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Error toggling automation rule:', error);
@@ -400,13 +413,11 @@ export default function OmniBridge() {
 
   const handleCreateAutomationRule = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/omnibridge/automation-rules', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           name: newRuleData.name || 'Nova Regra',
@@ -431,6 +442,21 @@ export default function OmniBridge() {
             priority: 0
           });
           console.log('✅ [OmniBridge] Automation rule created successfully');
+          
+          // Refresh the automation rules list after creation
+          const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshResult = await refreshResponse.json();
+            if (refreshResult.success) {
+              setAutomationRules(refreshResult.data);
+            }
+          }
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
