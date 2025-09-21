@@ -455,6 +455,59 @@ export default function TenantAdminIntegrations() {
     }
   };
 
+  // ✅ NEW: Function to auto-fill webhook URL
+  const handleAutoFillWebhookUrl = async () => {
+    if (!selectedIntegration) return;
+
+    try {
+      // Get current tenant ID from auth token or API
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const userInfo = await response.json();
+        const tenantId = userInfo.user?.tenantId;
+        
+        if (tenantId) {
+          // Generate the webhook URL using current domain and tenant ID
+          const webhookUrl = `${window.location.origin}/api/webhooks/telegram/${tenantId}`;
+          
+          // Set the webhook URL in the form
+          configForm.setValue('telegramWebhookUrl', webhookUrl);
+          
+          toast({
+            title: "URL preenchida automaticamente",
+            description: `URL do webhook configurada: ${webhookUrl}`,
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível obter o ID do tenant.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao obter informações do usuário.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ [AUTO-FILL-WEBHOOK] Erro:', error);
+      toast({
+        title: "Erro",
+        description: `Erro ao gerar URL do webhook: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  };
+
 
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
@@ -1864,14 +1917,27 @@ export default function TenantAdminIntegrations() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>URL do Webhook (Para receber mensagens)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="https://seu-dominio.com (opcional - use o botão 'Webhook Padrão' para configurar automaticamente)" 
-                                {...field} 
-                              />
-                            </FormControl>
+                            <div className="flex gap-2">
+                              <FormControl>
+                                <Input 
+                                  placeholder="https://seu-dominio.com/api/webhooks/telegram/[tenant-id]" 
+                                  {...field} 
+                                  className="flex-1"
+                                />
+                              </FormControl>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAutoFillWebhookUrl}
+                                className="px-3 whitespace-nowrap"
+                                data-testid="button-autofill-webhook"
+                              >
+                                🔗 Preencher
+                              </Button>
+                            </div>
                             <FormDescription>
-                              Configure para receber mensagens do Telegram no sistema. Use o botão "Webhook Padrão" para configurar automaticamente com a URL atual.
+                              Configure para receber mensagens do Telegram no sistema. Use o botão "🔗 Preencher" para configurar automaticamente com a URL correta.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
