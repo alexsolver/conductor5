@@ -1,0 +1,25 @@
+✅ [DB-OPERATION] Schema tenant_3f99462f_3621_4b1b_bea8_782acc50d62e: GET /current-status
+10:53:33 PM [express] GET /api/timecard/current-status 200 in 332ms :: {"status":"not_started","today…
+Error checking object access: Error: no allowed resources
+    at Gaxios._request (/home/runner/workspace/node_modules/gaxios/src/gaxios.ts:146:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async StsCredentials.exchangeToken (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/stscredentials.js:91:30)
+    at async IdentityPoolClient._BaseExternalAccountClient_internalRefreshAccessTokenAsync (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:435:25)
+    at async IdentityPoolClient.refreshAccessTokenAsync (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:316:20)
+    at async IdentityPoolClient.getAccessToken (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:190:13)
+    at async IdentityPoolClient.getRequestHeaders (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/baseexternalclient.js:207:37)
+    at async GoogleAuth.authorizeRequest (/home/runner/workspace/node_modules/@google-cloud/storage/node_modules/google-auth-library/build/src/auth/googleauth.js:742:25)
+    at async Promise.all (index 1)
+    at async prepareRequest (file:///home/runner/workspace/node_modules/@google-cloud/storage/build/esm/src/nodejs-common/util.js:463:61) {
+  config: {
+    retry: true,
+    retryConfig: {
+      httpMethodsToRetry: [Array],
+      currentRetryAttempt: 0,
+      retry: 3,
+      noResponseRetries: 2,
+      retryDelayMultiplier: 2,
+      timeOfFirstRequest: 1758495217738,
+      totalTimeout: 9007199254740991,
+      maxRetryDelay: 9007199254740991,
+      statusCodesToRetry: [Array]
