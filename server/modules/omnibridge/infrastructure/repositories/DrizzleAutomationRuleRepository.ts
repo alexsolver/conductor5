@@ -86,16 +86,16 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async findByTenantId(tenantId: string): Promise<any[]> {
+  async findByTenantId(tenantId: string): Promise<AutomationRule[]> {
+    console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
+    
     const tenantDb = await this.getTenantDb(tenantId);
     const results = await tenantDb.select().from(schema.omnibridgeAutomationRules)
       .where(eq(schema.omnibridgeAutomationRules.tenantId, tenantId));
 
-    return results.map(rule => ({
-      ...rule,
-      trigger: rule.trigger || {},
-      actions: rule.actions || []
-    }));
+    console.log(`📋 [DrizzleAutomationRuleRepository] Found ${results.length} rules in database`);
+
+    return results.map(rule => this.mapRowToEntity(rule));
   }
 
   async findByTenant(tenantId: string, filters?: any): Promise<{ rules: any[]; total: number; stats: any }> {
