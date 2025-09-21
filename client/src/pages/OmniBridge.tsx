@@ -962,9 +962,12 @@ export default function OmniBridge() {
   };
 
   const filteredMessages = messages.filter(message => {
-    const matchesSearch = message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase()));
+    const content = message.content || '';
+    const from = message.from || '';
+    const subject = message.subject || '';
+    const matchesSearch = content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         from.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         subject.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = filterStatus === 'all' || message.status === filterStatus;
     const matchesChannel = filterChannel === 'all' || message.channelType === filterChannel;
