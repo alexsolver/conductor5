@@ -66,9 +66,24 @@ export default function AutomationRules() {
 
   // Debug log para verificar se o componente está montando
   useEffect(() => {
-    console.log('🤖 [AutomationRules] Component mounted');
+    console.log('🤖 [AutomationRules] Component mounted, user:', !!user);
+    console.log('🤖 [AutomationRules] User details:', { 
+      hasUser: !!user, 
+      hasEmail: !!user?.email, 
+      tenantId: user?.tenantId 
+    });
     return () => console.log('🤖 [AutomationRules] Component unmounted');
   }, []);
+
+  // Debug quando user muda
+  useEffect(() => {
+    console.log('🔍 [AutomationRules] User state changed:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      tenantId: user?.tenantId,
+      queryEnabled: !!user
+    });
+  }, [user]);
 
   const form = useForm<AutomationRuleForm>({
     resolver: zodResolver(automationRuleSchema),
