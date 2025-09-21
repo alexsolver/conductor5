@@ -319,10 +319,7 @@ export default function OmniBridge() {
 
   // Add automation state with detailed logging
   useEffect(() => {
-    console.log('🔍 [OmniBridge-DEBUG] Page loaded, useEffect triggered');
-    console.log('🔍 [OmniBridge-DEBUG] user object:', user);
-    console.log('🔍 [OmniBridge-DEBUG] user?.tenantId:', user?.tenantId);
-    console.log('🔍 [OmniBridge-DEBUG] activeTab:', activeTab);
+    console.log('🔍 [OmniBridge-DEBUG] Component mounted, fetching automation rules...');
     
     const fetchAutomationRules = async () => {
       try {
@@ -343,7 +340,7 @@ export default function OmniBridge() {
           
           if (result.success) {
             setAutomationRules(result.data);
-            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
+            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length, 'rules');
           } else {
             console.error('❌ [OmniBridge-DEBUG] Response not successful:', result);
           }
@@ -355,13 +352,9 @@ export default function OmniBridge() {
       }
     };
 
-    if (user?.tenantId) {
-      console.log('✅ [OmniBridge-DEBUG] User has tenantId, calling fetchAutomationRules');
-      fetchAutomationRules();
-    } else {
-      console.log('❌ [OmniBridge-DEBUG] No tenantId found, skipping fetch');
-    }
-  }, [user?.tenantId]);
+    // Fetch immediately on component mount
+    fetchAutomationRules();
+  }, []); // Empty dependency array means it runs once on mount
 
   // Add auto-refresh for messages every 5 seconds
   useEffect(() => {
