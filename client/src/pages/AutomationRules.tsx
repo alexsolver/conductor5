@@ -88,7 +88,7 @@ export default function AutomationRules() {
     queryFn: async () => {
       console.log('🔄 [AutomationRules] Attempting to fetch rules...');
       try {
-        const result = await apiRequest('/api/automation-rules');
+        const result = await apiRequest('/api/omnibridge/automation-rules');
         console.log('✅ [AutomationRules] Rules fetched successfully:', result);
         
         // Garantir estrutura consistente
@@ -127,7 +127,7 @@ export default function AutomationRules() {
   // Buscar métricas
   const { data: metricsData, error: metricsError } = useQuery({
     queryKey: ['automation-metrics'],
-    queryFn: () => apiRequest('/api/automation-rules/metrics/overview'),
+    queryFn: () => apiRequest('/api/omnibridge/automation-rules/metrics/overview'),
     retry: 1,
     retryDelay: 1000,
     onError: (error: any) => {
@@ -141,7 +141,7 @@ export default function AutomationRules() {
   // Mutation para criar regra
   const createRuleMutation = useMutation({
     mutationFn: (data: AutomationRuleForm) =>
-      apiRequest('/api/automation-rules', {
+      apiRequest('/api/omnibridge/automation-rules', {
         method: 'POST',
         body: JSON.stringify(data)
       }),
@@ -167,7 +167,7 @@ export default function AutomationRules() {
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: (ruleId: string) =>
-      apiRequest(`/api/automation-rules/${ruleId}`, { method: 'DELETE' }),
+      apiRequest(`/api/omnibridge/automation-rules/${ruleId}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -181,7 +181,7 @@ export default function AutomationRules() {
   // Mutation para testar regra
   const testRuleMutation = useMutation({
     mutationFn: ({ ruleId, testData }: { ruleId: string; testData: any }) =>
-      apiRequest(`/api/automation-rules/${ruleId}/test`, {
+      apiRequest(`/api/omnibridge/automation-rules/${ruleId}/test`, {
         method: 'POST',
         body: JSON.stringify({ testData })
       }),
