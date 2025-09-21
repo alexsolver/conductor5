@@ -1824,7 +1824,14 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Responde automaticamente as perguntas mais comuns dos seus clientes como horários, preços e localização.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-faq-bot">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-faq-bot"
+                      onClick={() => {
+                        alert('Criando Assistente de Dúvidas... (Funcionalidade em desenvolvimento)');
+                      }}
+                    >
                       <Bot className="h-4 w-4 mr-2" />
                       Criar Assistente de Dúvidas
                     </Button>
@@ -1846,7 +1853,14 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Coleta nome, email e telefone dos visitantes interessados nos seus produtos ou serviços.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-lead-bot">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-lead-bot"
+                      onClick={() => {
+                        alert('Criando Coletor de Contatos... (Funcionalidade em desenvolvimento)');
+                      }}
+                    >
                       <Bot className="h-4 w-4 mr-2" />
                       Criar Coletor de Contatos
                     </Button>
@@ -1868,7 +1882,14 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Ajuda os clientes com problemas técnicos e direciona para o atendimento humano quando necessário.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-support-bot">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-support-bot"
+                      onClick={() => {
+                        alert('Criando Assistente de Suporte... (Funcionalidade em desenvolvimento)');
+                      }}
+                    >
                       <Bot className="h-4 w-4 mr-2" />
                       Criar Assistente de Suporte
                     </Button>
@@ -1890,7 +1911,15 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Crie um assistente único para as necessidades específicas do seu negócio.
                     </p>
-                    <Button size="sm" className="w-full" variant="outline" data-testid="button-create-custom-bot">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      variant="outline" 
+                      data-testid="button-create-custom-bot"
+                      onClick={() => {
+                        alert('Criando Assistente Personalizado... (Funcionalidade em desenvolvimento)');
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Criar do Zero
                     </Button>
