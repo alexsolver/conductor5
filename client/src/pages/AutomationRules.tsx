@@ -103,7 +103,8 @@ export default function AutomationRules() {
     enabled: !!user, // ✅ Aguarda autenticação estar pronta
     queryFn: async () => {
       console.log('🔄 [AutomationRules] Attempting to fetch rules...');
-      const result = await apiRequest('GET', '/api/omnibridge/automation-rules');
+      const response = await apiRequest('GET', '/api/omnibridge/automation-rules');
+      const result = await response.json();
       console.log('✅ [AutomationRules] Rules fetched successfully:', result);
       
       // ✅ Mapeamento correto da resposta do backend
@@ -129,24 +130,16 @@ export default function AutomationRules() {
     }
   });
 
-  // Buscar métricas
-  const { data: metricsData, error: metricsError } = useQuery({
-    queryKey: ['automation-metrics'],
-    queryFn: () => apiRequest('GET', '/api/omnibridge/automation-rules/metrics/overview'),
-    retry: 1,
-    retryDelay: 1000,
-    onError: (error: any) => {
-      console.error('❌ [AutomationRules] Error loading metrics:', error);
-    },
-    onSuccess: (data) => {
-      console.log('✅ [AutomationRules] Metrics loaded successfully:', data);
-    }
-  });
+  // Métricas (usando dados mock enquanto endpoint não existe)
+  const metricsData = mockMetrics;
+  const metricsError = null;
 
   // Mutation para criar regra
   const createRuleMutation = useMutation({
-    mutationFn: (data: AutomationRuleForm) =>
-      apiRequest('POST', '/api/omnibridge/automation-rules', data),
+    mutationFn: async (data: AutomationRuleForm) => {
+      const response = await apiRequest('POST', '/api/omnibridge/automation-rules', data);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -168,8 +161,10 @@ export default function AutomationRules() {
 
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
-    mutationFn: (ruleId: string) =>
-      apiRequest('DELETE', `/api/omnibridge/automation-rules/${ruleId}`),
+    mutationFn: async (ruleId: string) => {
+      const response = await apiRequest('DELETE', `/api/omnibridge/automation-rules/${ruleId}`);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -182,11 +177,10 @@ export default function AutomationRules() {
 
   // Mutation para testar regra
   const testRuleMutation = useMutation({
-    mutationFn: ({ ruleId, testData }: { ruleId: string; testData: any }) =>
-      apiRequest(`/api/omnibridge/automation-rules/${ruleId}/test`, {
-        method: 'POST',
-        body: JSON.stringify({ testData })
-      }),
+    mutationFn: async ({ ruleId, testData }: { ruleId: string; testData: any }) => {
+      const response = await apiRequest('POST', `/api/omnibridge/automation-rules/${ruleId}/test`, { testData });
+      return await response.json();
+    },
     onSuccess: (data) => {
       toast({
         title: data.test.matches ? '✅ Regra Compatível' : '❌ Regra Não Compatível',

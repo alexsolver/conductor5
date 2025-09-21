@@ -119,9 +119,9 @@ const chatbotController = new ChatbotController();
 // Automation rules routes
 router.get('/automation-rules', jwtAuth, (req, res) => automationController.getRules(req, res));
 router.post('/automation-rules', jwtAuth, (req, res) => automationController.createRule(req, res));
-router.put('/automation-rules/:id', jwtAuth, (req, res) => automationController.updateRule(req, res));
-router.delete('/automation-rules/:id', jwtAuth, (req, res) => automationController.deleteRule(req, res));
-router.post('/automation-rules/:id/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
+router.put('/automation-rules/:ruleId', jwtAuth, (req, res) => automationController.updateRule(req, res));
+router.delete('/automation-rules/:ruleId', jwtAuth, (req, res) => automationController.deleteRule(req, res));
+router.post('/automation-rules/:ruleId/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
 
 // Chatbot routes
 router.get('/chatbots', jwtAuth, (req, res) => chatbotController.getChatbots(req, res));
