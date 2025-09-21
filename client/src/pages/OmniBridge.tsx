@@ -322,6 +322,8 @@ export default function OmniBridge() {
   useEffect(() => {
     const fetchAutomationRules = async () => {
       try {
+        console.log('🔍 [OmniBridge] Attempting to fetch automation rules...', { userTenantId: user?.tenantId });
+        
         const response = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
@@ -329,22 +331,33 @@ export default function OmniBridge() {
           }
         });
 
+        console.log('🔍 [OmniBridge] Response received:', { status: response.status, ok: response.ok });
+
         if (response.ok) {
           const result = await response.json();
+          console.log('🔍 [OmniBridge] Response data:', result);
+          
           if (result.success) {
             setAutomationRules(result.data);
-            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
+            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length, result.data);
+          } else {
+            console.error('❌ [OmniBridge] Response not successful:', result);
           }
         } else {
-          console.error('❌ [OmniBridge] Failed to fetch automation rules:', response.status);
+          console.error('❌ [OmniBridge] Failed to fetch automation rules:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching automation rules:', error);
       }
     };
 
+    console.log('🔍 [OmniBridge] useEffect triggered, user:', user, 'tenantId:', user?.tenantId);
+    
     if (user?.tenantId) {
+      console.log('✅ [OmniBridge] User has tenantId, fetching rules');
       fetchAutomationRules();
+    } else {
+      console.log('❌ [OmniBridge] No tenantId, skipping fetch');
     }
   }, [user?.tenantId]);
 
