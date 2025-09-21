@@ -52,7 +52,12 @@ import {
   User,
   Tag,
   Hash,
-  Activity
+  Activity,
+  Sparkles,
+  Lightbulb,
+  HelpCircle,
+  Upload,
+  Play
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -238,10 +243,7 @@ export default function OmniBridge() {
 
   // Save AI Configuration mutation
   const saveAiConfigMutation = useMutation({
-    mutationFn: (config: any) => apiRequest('/api/omnibridge/ai-config', {
-      method: 'PUT',
-      body: JSON.stringify(config)
-    }),
+    mutationFn: (config: any) => apiRequest('PUT', '/api/omnibridge/ai-config', config),
     onSuccess: () => {
       toast({ title: 'Configuração salva', description: 'Configurações de IA atualizadas com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-config'] });
@@ -254,14 +256,11 @@ export default function OmniBridge() {
   // Test AI Prompt mutation
   const testPromptMutation = useMutation({
     mutationFn: ({ prompt, testMessage, promptType }: any) => 
-      apiRequest('/api/omnibridge/ai-prompts/test', {
-        method: 'POST',
-        body: JSON.stringify({ prompt, testMessage, promptType })
-      }),
+      apiRequest('POST', '/api/omnibridge/ai-prompts/test', { prompt, testMessage, promptType }),
     onSuccess: (data) => {
       toast({ 
         title: 'Teste concluído', 
-        description: `Resultado: ${data.data.result}`,
+        description: `Resultado: ${data.result}`,
         duration: 5000
       });
     }
@@ -294,8 +293,8 @@ export default function OmniBridge() {
 
   // Update form when data loads
   React.useEffect(() => {
-    if (aiConfigData?.data) {
-      aiForm.reset(aiConfigData.data);
+    if (aiConfigData) {
+      aiForm.reset(aiConfigData);
     }
   }, [aiConfigData, aiForm]);
 
@@ -309,7 +308,7 @@ export default function OmniBridge() {
 
   // Get current values from form or API data
   const currentAiConfig = aiForm.watch();
-  const currentMetrics = aiMetricsData?.data || {
+  const currentMetrics = aiMetricsData || {
     totalAnalyses: 0,
     accuracyRate: 0,
     responseTime: 0,
@@ -322,8 +321,6 @@ export default function OmniBridge() {
   useEffect(() => {
     const fetchAutomationRules = async () => {
       try {
-        console.log('🔍 [OmniBridge] Attempting to fetch automation rules...', { userTenantId: user?.tenantId });
-        
         const response = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
@@ -331,33 +328,20 @@ export default function OmniBridge() {
           }
         });
 
-        console.log('🔍 [OmniBridge] Response received:', { status: response.status, ok: response.ok });
-
         if (response.ok) {
           const result = await response.json();
-          console.log('🔍 [OmniBridge] Response data:', result);
-          
           if (result.success) {
             setAutomationRules(result.data);
-            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length, result.data);
-          } else {
-            console.error('❌ [OmniBridge] Response not successful:', result);
+            console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
           }
-        } else {
-          console.error('❌ [OmniBridge] Failed to fetch automation rules:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('❌ [OmniBridge] Error fetching automation rules:', error);
       }
     };
 
-    console.log('🔍 [OmniBridge] useEffect triggered, user:', user, 'tenantId:', user?.tenantId);
-    
     if (user?.tenantId) {
-      console.log('✅ [OmniBridge] User has tenantId, fetching rules');
       fetchAutomationRules();
-    } else {
-      console.log('❌ [OmniBridge] No tenantId, skipping fetch');
     }
   }, [user?.tenantId]);
 
