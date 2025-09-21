@@ -240,7 +240,6 @@ function AppRouter() {
         <Route path="/agenda-manager" component={AgendaManager} />
         {/* OmniBridge Route - Simplified Interface */}
         <Route path="/omnibridge" component={SimplifiedOmniBridge} />
-        <Route path="/automation-rules" component={AutomationRules} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
