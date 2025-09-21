@@ -22,7 +22,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
 import {
   MessageSquare,
   Mail,
@@ -1881,7 +1880,7 @@ export default function OmniBridge() {
           </div>
         </TabsContent>
 
-        {/* AI Configuration Tab */}
+        {/* AI Assistant Tab */}
         <TabsContent value="ai-config" className="space-y-4">
           <Form {...aiForm}>
           {/* AI Dashboard */}
@@ -2374,7 +2373,7 @@ export default function OmniBridge() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="trigger-type">Gatilho</Label>
+                <Label htmlFor="trigger-type">Quando acontecer</Label>
                 <Select 
                   value={newRuleData.triggerType} 
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
