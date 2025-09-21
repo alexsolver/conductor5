@@ -484,6 +484,10 @@ export default function TemplateGallery({ isOpen, onClose, onTemplateSelect }: T
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl h-[90vh] p-0" data-testid="template-gallery">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Galeria de Templates</DialogTitle>
+          <DialogDescription>Escolha templates prontos para acelerar sua configuração</DialogDescription>
+        </DialogHeader>
         <div className="flex h-full">
           {/* Sidebar - Filters */}
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-6">
