@@ -57,11 +57,37 @@ export const apiRequest = async (
     });
   }
 
+  // 🔧 Get tenant ID from queryClient cache or local storage
+  let tenantId = '';
+  try {
+    // Try to get tenant ID from cached user data
+    const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
+    if (cachedUser?.tenantId) {
+      tenantId = cachedUser.tenantId;
+    } else {
+      // Fallback to localStorage (for backward compatibility)
+      tenantId = localStorage.getItem('tenantId') || '';
+    }
+  } catch (e) {
+    // Fallback to localStorage if queryClient is not available
+    tenantId = localStorage.getItem('tenantId') || '';
+  }
+
+  const headers: Record<string, string> = {
+    ...options.headers as Record<string, string>,
+  };
+
+  // 🔧 Include tenant ID header if available
+  if (tenantId) {
+    headers['x-tenant-id'] = tenantId;
+    console.log(`🔧 [API-REQUEST] Including tenant ID header: ${tenantId}`);
+  } else {
+    console.warn('⚠️ [API-REQUEST] No tenant ID available for header');
+  }
+
   const config: RequestInit = {
     method,
-    headers: {
-      ...options.headers,
-    },
+    headers,
     credentials: 'include', // ✅ 1QA.MD: Ensure cookies are included for authentication
     ...options,
   };
