@@ -101,8 +101,8 @@ import DashboardView from "./pages/DashboardView";
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
 
-// OmniBridge Module - Simplified Interface
-import SimplifiedOmniBridge from "./pages/SimplifiedOmniBridge";
+// OmniBridge Module - Full Interface
+import OmniBridge from "./pages/OmniBridge";
 
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -238,8 +238,8 @@ function AppRouter() {
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/agenda-manager" component={AgendaManager} />
-        {/* OmniBridge Route - Simplified Interface */}
-        <Route path="/omnibridge" component={SimplifiedOmniBridge} />
+        {/* OmniBridge Route - Full Interface */}
+        <Route path="/omnibridge" component={OmniBridge} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
