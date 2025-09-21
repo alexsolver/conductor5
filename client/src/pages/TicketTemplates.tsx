@@ -365,10 +365,8 @@ export default function TicketTemplates() {
           : [];
 
       // Se você edita no CustomFieldsEditor, priorize o estado dele; senão use os selecionados
-      const customFieldsPayload =
-        Array.isArray(templateCustomFields) && templateCustomFields.length > 0
-          ? templateCustomFields
-          : mapSelectedCustomFields();
+      const customFieldsPayload = mapSelectedCustomFields(); // 👈 força pegar showOnOpen
+
 
       const payload = {
         name: data.name,
@@ -448,7 +446,6 @@ export default function TicketTemplates() {
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
 
-    // Se vier snake_case do backend, ajuste conforme seu form:
     form.reset({
       name: template.name,
       description: template.description || '',
@@ -467,8 +464,14 @@ export default function TicketTemplates() {
 
     const cf = ((template as any).custom_fields || template.customFields || []);
     setTemplateCustomFields(cf);
-    form.setValue('customFields', cf, { shouldDirty: false });
     setSelectedCustomFieldIds(cf.map((c: any) => c.id).filter(Boolean));
+
+    // 👇 hidrata showOnOpen no form para cada campo
+    cf.forEach((c: any) => {
+      const flag = Boolean(c.showOnOpen ?? c.show_on_open);
+      form.setValue(`customFieldsConfig.${c.id}.showOnOpen`, flag, { shouldDirty: false });
+    });
+
     setIsEditOpen(true);
   };
 
@@ -487,7 +490,7 @@ export default function TicketTemplates() {
       requiredFields: data.templateType === 'creation' 
         ? (data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields())
         : [],
-      customFields: templateCustomFields, // Usa os campos customizados do estado para atualização
+      customFields: mapSelectedCustomFields(), // Usa os campos customizados do estado para atualização
     };
 
     console.log('🔄 [UPDATE-TEMPLATE] Including custom fields:', {
@@ -532,17 +535,21 @@ export default function TicketTemplates() {
   const mapSelectedCustomFields = React.useCallback(() => {
     return availableCustomFields
       .filter((f: any) => selectedCustomFieldIds.includes(f.id))
-      .map((f: any) => ({
-        id: f.id,
-        name: f.fieldName,
-        label: f.fieldLabel,
-        type: f.fieldType,
-        required: !!f.isRequired,
-        order: typeof f.displayOrder === 'number' ? f.displayOrder : 0,
-        placeholder: f.placeholder || undefined,
-        helpText: f.helpText || undefined,
-      }));
-  }, [availableCustomFields, selectedCustomFieldIds]);
+      .map((f: any) => {
+        const config = form.getValues(`customFieldsConfig.${f.id}`) || {};
+        return {
+          id: f.id,
+          name: f.fieldName,
+          label: f.fieldLabel,
+          type: f.fieldType,
+          required: !!f.isRequired,
+          order: typeof f.displayOrder === 'number' ? f.displayOrder : 0,
+          placeholder: f.placeholder || undefined,
+          helpText: f.helpText || undefined,
+          showOnOpen: !!config.showOnOpen, // 👈 aqui entra a flag
+        };
+      });
+  }, [availableCustomFields, selectedCustomFieldIds, form]);
 
 
   // Garante boolean (shadcn Checkbox pode mandar true/false)
@@ -664,7 +671,7 @@ export default function TicketTemplates() {
             </Select>
 
             {/* Template Type Filter */}
-            <Select value={selectedTemplateType} onValueChange={setSelectedTemplateType}>
+            {/* <Select value={selectedTemplateType} onValueChange={setSelectedTemplateType}>
               <SelectTrigger data-testid="select-template-type">
                 <SelectValue placeholder="Tipo de template" />
               </SelectTrigger>
@@ -674,7 +681,7 @@ export default function TicketTemplates() {
                 <SelectItem value="edit">Templates de Edição</SelectItem>
               </SelectContent>
             </Select>
-
+ */}
             {/* Results Count */}
             <div className="flex items-center text-sm text-gray-600">
               <FileText className="w-4 h-4 mr-2" />
@@ -906,7 +913,6 @@ export default function TicketTemplates() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateTemplate)} className="space-y-6">
               {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -925,32 +931,7 @@ export default function TicketTemplates() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="templateType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Template *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-template-type-form">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="creation">
-                            Template de Criação
-                          </SelectItem>
-                          <SelectItem value="edit">
-                            Template de Edição
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+             
 
               <FormField
                 control={form.control}
@@ -1173,30 +1154,57 @@ export default function TicketTemplates() {
                               <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
                                 {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
                                   <div className="space-y-2">
-                                    {availableCustomFieldsResponse.data.map((field: any) => (
-                                      <div key={field.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`custom-field-${field.id}`}
-                                          checked={selectedCustomFieldIds.includes(field.id)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setSelectedCustomFieldIds(prev => [...prev, field.id]);
-                                            } else {
-                                              setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                            }
-                                          }}
-                                        />
-                                        <Label 
-                                          htmlFor={`custom-field-${field.id}`}
-                                          className="text-sm font-medium cursor-pointer"
-                                        >
-                                          {field.fieldLabel}
-                                        </Label>
-                                        <Badge variant="outline" className="text-xs">
-                                          {field.fieldType}
-                                        </Badge>
-                                      </div>
-                                    ))}
+                                    {availableCustomFieldsResponse.data.map((field: any) => {
+                                      const isSelected = selectedCustomFieldIds.includes(field.id);
+                                      const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
+
+                                      return (
+                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
+                                          <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`custom-field-${field.id}`}
+                                              checked={isSelected}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                                } else {
+                                                  setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                                  // se desmarcar, reseta config
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
+                                                }
+                                              }}
+                                            />
+                                            <Label
+                                              htmlFor={`custom-field-${field.id}`}
+                                              className="text-sm font-medium cursor-pointer"
+                                            >
+                                              {field.fieldLabel}
+                                            </Label>
+                                            <Badge variant="outline" className="text-xs">
+                                              {field.fieldType}
+                                            </Badge>
+                                          </div>
+
+                                          {isSelected && (
+                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
+                                              <Checkbox
+                                                id={`custom-field-showonopen-${field.id}`}
+                                                checked={showOnOpen}
+                                                onCheckedChange={(checked) =>
+                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
+                                                }
+                                              />
+                                              <Label
+                                                htmlFor={`custom-field-showonopen-${field.id}`}
+                                                className="cursor-pointer"
+                                              >
+                                                Mostrar ao abrir a OS
+                                              </Label>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
@@ -1524,24 +1532,57 @@ export default function TicketTemplates() {
                               <div className="max-h-40 overflow-y-auto border rounded-md p-3 bg-gray-50">
                                 {availableCustomFieldsResponse?.success && availableCustomFieldsResponse?.data?.length > 0 ? (
                                   <div className="space-y-2">
-                                    {availableCustomFieldsResponse.data.map((field: any) => (
-                                      <div key={field.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`custom-field-${field.id}`}
-                                          checked={selectedCustomFieldIds.includes(field.id)}
-                                          onCheckedChange={(checked) => handleToggleCustomField(field, checked)}
-                                        />
-                                        <Label 
-                                          htmlFor={`custom-field-${field.id}`}
-                                          className="text-sm font-medium cursor-pointer"
-                                        >
-                                          {field.fieldLabel}
-                                        </Label>
-                                        <Badge variant="outline" className="text-xs">
-                                          {field.fieldType}
-                                        </Badge>
-                                      </div>
-                                    ))}
+                                    {availableCustomFieldsResponse.data.map((field: any) => {
+                                      const isSelected = selectedCustomFieldIds.includes(field.id);
+                                      const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
+
+                                      return (
+                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
+                                          <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`custom-field-${field.id}`}
+                                              checked={isSelected}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setSelectedCustomFieldIds(prev => [...prev, field.id]);
+                                                } else {
+                                                  setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
+                                                  // se desmarcar, reseta config
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
+                                                }
+                                              }}
+                                            />
+                                            <Label
+                                              htmlFor={`custom-field-${field.id}`}
+                                              className="text-sm font-medium cursor-pointer"
+                                            >
+                                              {field.fieldLabel}
+                                            </Label>
+                                            <Badge variant="outline" className="text-xs">
+                                              {field.fieldType}
+                                            </Badge>
+                                          </div>
+
+                                          {isSelected && (
+                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
+                                              <Checkbox
+                                                id={`custom-field-showonopen-${field.id}`}
+                                                checked={showOnOpen}
+                                                onCheckedChange={(checked) =>
+                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
+                                                }
+                                              />
+                                              <Label
+                                                htmlFor={`custom-field-showonopen-${field.id}`}
+                                                className="cursor-pointer"
+                                              >
+                                                Mostrar ao abrir a OS
+                                              </Label>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">
