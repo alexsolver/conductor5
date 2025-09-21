@@ -425,9 +425,9 @@ export default function TemplateGallery({ isOpen, onClose, onTemplateSelect }: T
   // Install template mutation
   const installTemplateMutation = useMutation({
     mutationFn: (template: Template) =>
-      apiRequest('/api/omnibridge/templates/install', {
-        method: 'POST',
-        body: JSON.stringify({ templateId: template.id, config: template.config })
+      apiRequest('POST', '/api/omnibridge/templates/install', { 
+        templateId: template.id, 
+        config: template.config 
       }),
     onSuccess: (_, template) => {
       toast({ 
