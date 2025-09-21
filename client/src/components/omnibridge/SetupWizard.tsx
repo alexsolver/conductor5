@@ -136,10 +136,7 @@ export default function SetupWizard({ isOpen, onComplete, onSkip }: SetupWizardP
   // Save setup configuration
   const saveSetupMutation = useMutation({
     mutationFn: (data: SetupData) =>
-      apiRequest('/api/omnibridge/setup', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('POST', '/api/omnibridge/setup', data),
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Configuração inicial concluída com sucesso!' });
       onComplete();

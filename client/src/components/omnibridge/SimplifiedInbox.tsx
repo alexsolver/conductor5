@@ -152,10 +152,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   // Reply mutation
   const replyMutation = useMutation({
     mutationFn: (data: { messageId: string; content: string }) =>
-      apiRequest('/api/omnibridge/messages/reply', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('POST', '/api/omnibridge/messages/reply', data),
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Resposta enviada com sucesso!' });
       setShowReplyModal(false);
@@ -170,9 +167,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   // Archive mutation
   const archiveMutation = useMutation({
     mutationFn: (messageId: string) =>
-      apiRequest(`/api/omnibridge/messages/${messageId}/archive`, {
-        method: 'PUT'
-      }),
+      apiRequest('PUT', `/api/omnibridge/messages/${messageId}/archive`),
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Mensagem arquivada!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/messages'] });
@@ -182,9 +177,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   // Mark as read mutation
   const markReadMutation = useMutation({
     mutationFn: (messageId: string) =>
-      apiRequest(`/api/omnibridge/messages/${messageId}/read`, {
-        method: 'PUT'
-      }),
+      apiRequest('PUT', `/api/omnibridge/messages/${messageId}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/messages'] });
     }

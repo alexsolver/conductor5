@@ -32,11 +32,11 @@ export class ChatbotController {
         data: chatbot,
         message: 'Chatbot created successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [ChatbotController] Error creating chatbot:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error?.message || 'Failed to create chatbot'
       });
     }
   }
@@ -61,11 +61,11 @@ export class ChatbotController {
         data: chatbots,
         message: 'Chatbots retrieved successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [ChatbotController] Error getting chatbots:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error?.message || 'Failed to get chatbots'
       });
     }
   }
@@ -103,11 +103,11 @@ export class ChatbotController {
         data: chatbot,
         message: 'Chatbot updated successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [ChatbotController] Error updating chatbot:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error?.message || 'Failed to update chatbot'
       });
     }
   }
@@ -140,11 +140,11 @@ export class ChatbotController {
         success: true,
         message: 'Chatbot deleted successfully'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [ChatbotController] Error deleting chatbot:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error?.message || 'Failed to delete chatbot'
       });
     }
   }
@@ -183,11 +183,11 @@ export class ChatbotController {
         data: chatbot,
         message: `Chatbot ${isActive ? 'activated' : 'deactivated'} successfully`
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [ChatbotController] Error toggling chatbot:', error);
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error?.message || 'Failed to toggle chatbot'
       });
     }
   }

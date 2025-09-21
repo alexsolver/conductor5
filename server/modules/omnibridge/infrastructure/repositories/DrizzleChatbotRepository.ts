@@ -88,6 +88,71 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
     }
   }
 
+  async findActiveByTenant(tenantId: string): Promise<Chatbot[]> {
+    try {
+      console.log('🔍 [DrizzleChatbotRepository] Finding active chatbots for tenant:', tenantId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
+        .select()
+        .from(omnibridgeChatbots)
+        .where(and(eq(omnibridgeChatbots.tenantId, tenantId), eq(omnibridgeChatbots.isEnabled, true)));
+
+      console.log(`✅ [DrizzleChatbotRepository] Found ${result.length} active chatbots`);
+      return result.map(row => this.mapToEntity(row));
+    } catch (error) {
+      console.error('❌ [DrizzleChatbotRepository] Error finding active chatbots:', error);
+      throw error;
+    }
+  }
+
+  async findByChannel(channelId: string, tenantId: string): Promise<Chatbot[]> {
+    try {
+      console.log('🔍 [DrizzleChatbotRepository] Finding chatbots for channel:', channelId);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
+        .select()
+        .from(omnibridgeChatbots)
+        .where(eq(omnibridgeChatbots.tenantId, tenantId));
+
+      // Filter by channel in configuration
+      const filtered = result.filter(row => {
+        const config = row.configuration || {};
+        const channels = config.channels || [];
+        return channels.includes(channelId);
+      });
+
+      console.log(`✅ [DrizzleChatbotRepository] Found ${filtered.length} chatbots for channel`);
+      return filtered.map(row => this.mapToEntity(row));
+    } catch (error) {
+      console.error('❌ [DrizzleChatbotRepository] Error finding chatbots by channel:', error);
+      throw error;
+    }
+  }
+
+  async toggleStatus(id: string, tenantId: string, isActive: boolean): Promise<boolean> {
+    try {
+      console.log('🔧 [DrizzleChatbotRepository] Toggling chatbot status:', id, isActive);
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb
+        .update(omnibridgeChatbots)
+        .set({ 
+          isEnabled: isActive,
+          updatedAt: new Date()
+        })
+        .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
+        .returning();
+
+      console.log('✅ [DrizzleChatbotRepository] Chatbot status toggled successfully');
+      return result.length > 0;
+    } catch (error) {
+      console.error('❌ [DrizzleChatbotRepository] Error toggling chatbot status:', error);
+      throw error;
+    }
+  }
+
   async update(id: string, tenantId: string, updates: Partial<Chatbot>): Promise<Chatbot | null> {
     try {
       console.log('🔧 [DrizzleChatbotRepository] Updating chatbot:', id);

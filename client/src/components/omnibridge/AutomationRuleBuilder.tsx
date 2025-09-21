@@ -229,10 +229,7 @@ export default function AutomationRuleBuilder({
   // Save rule mutation
   const saveRuleMutation = useMutation({
     mutationFn: (ruleData: AutomationRule) =>
-      apiRequest('/api/omnibridge/automation-rules', {
-        method: 'POST',
-        body: JSON.stringify(ruleData)
-      }),
+      apiRequest('POST', '/api/omnibridge/automation-rules', ruleData),
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Regra de automação criada com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/automation-rules'] });

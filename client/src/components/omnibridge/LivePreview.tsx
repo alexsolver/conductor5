@@ -101,10 +101,7 @@ export default function LivePreview({ automationRule, chatbotConfig, onClose }: 
   // Test automation rule
   const testRuleMutation = useMutation({
     mutationFn: (data: { rule: any; message: string; channel: string }) =>
-      apiRequest('/api/omnibridge/automation-rules/test', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('POST', '/api/omnibridge/automation-rules/test', data),
     onSuccess: (response) => {
       simulateRuleExecution(response.data);
     },
@@ -116,10 +113,7 @@ export default function LivePreview({ automationRule, chatbotConfig, onClose }: 
   // Test chatbot
   const testChatbotMutation = useMutation({
     mutationFn: (data: { chatbot: any; message: string }) =>
-      apiRequest('/api/omnibridge/chatbots/test', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('POST', '/api/omnibridge/chatbots/test', data),
     onSuccess: (response) => {
       simulateChatbotResponse(response.data);
     },
