@@ -43,6 +43,7 @@ import {
   Sparkles,
   MousePointer2,
   Cog,
+  RefreshCw,
   Target,
   CheckCircle,
   AlertCircle,
@@ -249,10 +250,11 @@ export default function SimplifiedChatbotBuilder({
   // Save chatbot mutation
   const saveChatbotMutation = useMutation({
     mutationFn: (chatbotData: SimpleChatbot) =>
-      apiRequest(chatbotId ? `/api/omnibridge/chatbots/${chatbotId}` : '/api/omnibridge/chatbots', {
-        method: chatbotId ? 'PUT' : 'POST',
-        body: JSON.stringify(chatbotData)
-      }),
+      apiRequest(
+        chatbotId ? 'PUT' : 'POST',
+        chatbotId ? `/api/omnibridge/chatbots/${chatbotId}` : '/api/omnibridge/chatbots',
+        chatbotData
+      ),
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Chatbot salvo com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots'] });
@@ -266,22 +268,19 @@ export default function SimplifiedChatbotBuilder({
   // Test chatbot mutation
   const testChatbotMutation = useMutation({
     mutationFn: (message: string) =>
-      apiRequest('/api/omnibridge/chatbots/test', {
-        method: 'POST',
-        body: JSON.stringify({ chatbot, message })
-      }),
+      apiRequest('POST', '/api/omnibridge/chatbots/test', { chatbot, message }),
     onSuccess: (response) => {
       toast({ 
         title: 'Teste realizado', 
-        description: `Resposta: ${response.data.response}`,
+        description: 'Chatbot testado com sucesso!',
         duration: 5000
       });
     }
   });
 
   useEffect(() => {
-    if (existingChatbot?.data) {
-      setChatbot(existingChatbot.data);
+    if (existingChatbot && typeof existingChatbot === 'object') {
+      setChatbot(existingChatbot as SimpleChatbot);
     }
   }, [existingChatbot]);
 
