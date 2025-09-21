@@ -193,6 +193,7 @@ export default function OmniBridge() {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showCreateRuleModal, setShowCreateRuleModal] = useState(false);
+  const [editingRuleId, setEditingRuleId] = useState(null);
   const [newRuleData, setNewRuleData] = useState({
     name: '',
     description: '',
@@ -1287,7 +1288,7 @@ export default function OmniBridge() {
                             // Pre-fill automation rule with context from selected message
                             setNewRuleData({
                               name: `Regra para ${selectedMessage.from}`,
-                              description: `Automatização baseada na mensagem: "${selectedMessage.content.substring(0, 50)}..."`,
+                              description: `Automatização baseada na mensagem: "${(selectedMessage.content || '').substring(0, 50)}..."`,
                               triggerType: 'keyword',
                               actionType: 'auto_reply',
                               priority: selectedMessage.priority === 'urgent' ? 5 : 3
@@ -1522,7 +1523,22 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Quando alguém enviar "horário de funcionamento", responder automaticamente com os horários.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-auto-reply">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-auto-reply"
+                      onClick={() => {
+                        setNewRuleData({
+                          name: 'Resposta Automática - Horário',
+                          description: 'Resposta automática para horário de funcionamento',
+                          triggerType: 'keyword',
+                          actionType: 'auto_reply',
+                          keywords: 'horário, funcionamento, horários, aberto, fechado',
+                          priority: 3
+                        });
+                        setShowCreateRuleModal(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Agora
                     </Button>
@@ -1544,7 +1560,22 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Quando chegarem palavras como "urgente" ou "parou de funcionar", criar um ticket automaticamente.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-urgent-ticket">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-urgent-ticket"
+                      onClick={() => {
+                        setNewRuleData({
+                          name: 'Criar Ticket - Urgências',
+                          description: 'Cria ticket automaticamente para problemas urgentes',
+                          triggerType: 'keyword',
+                          actionType: 'create_ticket',
+                          keywords: 'urgente, parou, quebrou, problema sério, emergência',
+                          priority: 5
+                        });
+                        setShowCreateRuleModal(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Agora
                     </Button>
@@ -1566,7 +1597,22 @@ export default function OmniBridge() {
                     <p className="text-sm mb-3">
                       Quando clientes VIP enviarem mensagens, notificar a equipe imediatamente.
                     </p>
-                    <Button size="sm" className="w-full" data-testid="button-create-vip-notification">
+                    <Button 
+                      size="sm" 
+                      className="w-full" 
+                      data-testid="button-create-vip-notification"
+                      onClick={() => {
+                        setNewRuleData({
+                          name: 'Alerta VIP - Notificação',
+                          description: 'Notifica equipe quando cliente VIP envia mensagem',
+                          triggerType: 'sender_type',
+                          actionType: 'notify_team',
+                          keywords: 'VIP, Premium, Especial',
+                          priority: 4
+                        });
+                        setShowCreateRuleModal(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Agora
                     </Button>
@@ -1609,7 +1655,13 @@ export default function OmniBridge() {
                       <Plus className="h-4 w-4 mr-2" />
                       Criar Primeira Automatização
                     </Button>
-                    <Button variant="outline" data-testid="button-learn-more">
+                    <Button 
+                      variant="outline" 
+                      data-testid="button-learn-more"
+                      onClick={() => {
+                        window.open('https://docs.conductor.app/automation-examples', '_blank');
+                      }}
+                    >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Ver Exemplos
                     </Button>
@@ -1652,7 +1704,24 @@ export default function OmniBridge() {
                                 data-testid={`switch-rule-${rule.id}`}
                               />
                             </div>
-                            <Button variant="outline" size="sm" data-testid={`button-edit-${rule.id}`}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              data-testid={`button-edit-${rule.id}`}
+                              onClick={() => {
+                                // Pre-fill form with rule data
+                                setNewRuleData({
+                                  name: rule.name,
+                                  description: rule.description,
+                                  triggerType: rule.trigger?.type || 'keyword',
+                                  actionType: rule.actions?.[0]?.type || 'auto_reply',
+                                  keywords: rule.trigger?.conditions?.[0]?.value || '',
+                                  priority: rule.priority || 3
+                                });
+                                setEditingRuleId(rule.id);
+                                setShowCreateRuleModal(true);
+                              }}
+                            >
                               <Settings className="h-4 w-4 mr-2" />
                               Editar
                             </Button>
