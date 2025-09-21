@@ -906,10 +906,68 @@ function TriggerConfigForm({
             </div>
           </div>
         );
+      case 'ai_analysis':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="aiModel">Modelo de IA</Label>
+              <select
+                id="aiModel"
+                value={config.aiModel || 'gpt-4'}
+                onChange={(e) => setConfig({ ...config, aiModel: e.target.value })}
+                className="w-full p-2 border rounded-md"
+                data-testid="ai-model-select"
+              >
+                <option value="gpt-4">GPT-4 (Análise avançada)</option>
+                <option value="gpt-3.5">GPT-3.5 (Análise rápida)</option>
+                <option value="claude">Claude (Análise detalhada)</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="analysisType">Tipo de análise</Label>
+              <select
+                id="analysisType"
+                value={config.analysisType || 'sentiment'}
+                onChange={(e) => setConfig({ ...config, analysisType: e.target.value })}
+                className="w-full p-2 border rounded-md"
+                data-testid="analysis-type-select"
+              >
+                <option value="sentiment">Análise de sentimento</option>
+                <option value="intent">Detecção de intenção</option>
+                <option value="urgency">Nível de urgência</option>
+                <option value="category">Categorização automática</option>
+                <option value="language">Detecção de idioma</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="confidence">Confiança mínima (%)</Label>
+              <Input
+                id="confidence"
+                type="number"
+                min="50"
+                max="100"
+                value={config.confidence || '80'}
+                onChange={(e) => setConfig({ ...config, confidence: e.target.value })}
+                data-testid="confidence-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="customPrompt">Prompt personalizado (opcional)</Label>
+              <Textarea
+                id="customPrompt"
+                placeholder="Analise esta mensagem e identifique..."
+                value={config.customPrompt || ''}
+                onChange={(e) => setConfig({ ...config, customPrompt: e.target.value })}
+                rows={3}
+                data-testid="custom-prompt-input"
+              />
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="text-center py-4">
-            <p className="text-gray-500">Configuração específica será implementada</p>
+            <p className="text-gray-500">Tipo de gatilho não reconhecido</p>
           </div>
         );
     }
@@ -1033,10 +1091,142 @@ function ActionConfigForm({
             </div>
           </div>
         );
+      case 'forward_message':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="targetAgent">Agente de destino</Label>
+              <Input
+                id="targetAgent"
+                placeholder="ex: suporte@empresa.com"
+                value={config.targetAgent || ''}
+                onChange={(e) => setConfig({ ...config, targetAgent: e.target.value })}
+                data-testid="target-agent-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="forwardNote">Nota para encaminhamento (opcional)</Label>
+              <Textarea
+                id="forwardNote"
+                placeholder="Mensagem encaminhada automaticamente devido a..."
+                value={config.forwardNote || ''}
+                onChange={(e) => setConfig({ ...config, forwardNote: e.target.value })}
+                rows={2}
+                data-testid="forward-note-input"
+              />
+            </div>
+          </div>
+        );
+      case 'assign_agent':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="agentEmail">Email do agente</Label>
+              <Input
+                id="agentEmail"
+                placeholder="ex: joao.silva@empresa.com"
+                value={config.agentEmail || ''}
+                onChange={(e) => setConfig({ ...config, agentEmail: e.target.value })}
+                data-testid="agent-email-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="assignmentReason">Motivo da atribuição</Label>
+              <select
+                id="assignmentReason"
+                value={config.assignmentReason || 'expertise'}
+                onChange={(e) => setConfig({ ...config, assignmentReason: e.target.value })}
+                className="w-full p-2 border rounded-md"
+                data-testid="assignment-reason-select"
+              >
+                <option value="expertise">Especialidade técnica</option>
+                <option value="availability">Disponibilidade</option>
+                <option value="workload">Balanceamento de carga</option>
+                <option value="language">Idioma</option>
+                <option value="client">Relacionamento com cliente</option>
+              </select>
+            </div>
+          </div>
+        );
+      case 'mark_priority':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="priorityLevel">Nível de prioridade</Label>
+              <select
+                id="priorityLevel"
+                value={config.priorityLevel || 'high'}
+                onChange={(e) => setConfig({ ...config, priorityLevel: e.target.value })}
+                className="w-full p-2 border rounded-md"
+                data-testid="priority-level-select"
+              >
+                <option value="low">Baixa</option>
+                <option value="normal">Normal</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+                <option value="critical">Crítica</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="priorityReason">Motivo da prioridade</Label>
+              <Input
+                id="priorityReason"
+                placeholder="ex: Cliente VIP, problema crítico, SLA..."
+                value={config.priorityReason || ''}
+                onChange={(e) => setConfig({ ...config, priorityReason: e.target.value })}
+                data-testid="priority-reason-input"
+              />
+            </div>
+          </div>
+        );
+      case 'archive':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="archiveFolder">Pasta de arquivo</Label>
+              <select
+                id="archiveFolder"
+                value={config.archiveFolder || 'general'}
+                onChange={(e) => setConfig({ ...config, archiveFolder: e.target.value })}
+                className="w-full p-2 border rounded-md"
+                data-testid="archive-folder-select"
+              >
+                <option value="general">Arquivo geral</option>
+                <option value="resolved">Resolvidos</option>
+                <option value="spam">Spam</option>
+                <option value="auto-reply">Respostas automáticas</option>
+                <option value="low-priority">Baixa prioridade</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="archiveDelay">Arquivar após (dias)</Label>
+              <Input
+                id="archiveDelay"
+                type="number"
+                min="0"
+                max="365"
+                value={config.archiveDelay || '7'}
+                onChange={(e) => setConfig({ ...config, archiveDelay: e.target.value })}
+                data-testid="archive-delay-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="archiveNote">Nota de arquivamento (opcional)</Label>
+              <Textarea
+                id="archiveNote"
+                placeholder="Arquivado automaticamente por..."
+                value={config.archiveNote || ''}
+                onChange={(e) => setConfig({ ...config, archiveNote: e.target.value })}
+                rows={2}
+                data-testid="archive-note-input"
+              />
+            </div>
+          </div>
+        );
       default:
         return (
           <div className="text-center py-4">
-            <p className="text-gray-500">Configuração específica será implementada</p>
+            <p className="text-gray-500">Tipo de ação não reconhecido</p>
           </div>
         );
     }
