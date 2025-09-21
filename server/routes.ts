@@ -461,6 +461,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ CRITICAL ORDER - Apply JSON middleware BEFORE routes per 1qa.md
   app.use(ensureJSONResponse);
 
+  // ✅ CRITICAL: Apply webhook routes BEFORE auth middleware (webhooks must be unauthenticated)
+  const webhooksRoutes = await import("./routes/webhooks");
+  app.use("/api/webhooks", webhooksRoutes.default);
+  console.log('🔧 [ROUTES] Webhook routes registered BEFORE authentication middleware');
+
   // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
   app.use("/api", (req, res, next) => {
     // Skip ALL authentication and validation for auth routes
@@ -2064,10 +2069,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/templates", templateRoutes.default);
 
   // ✅ REMOVED: Duplicate SaaS Admin registration - moved to Clean Architecture section above per 1qa.md
-
-  // Apply webhook routes BEFORE auth middleware
-  const webhooksRoutes = await import("./routes/webhooks");
-  app.use("/api/webhooks", webhooksRoutes.default);
 
   // Mount tenant integrations routes
   const tenantIntegrationsRoutes = await import("./routes/tenantIntegrations");
