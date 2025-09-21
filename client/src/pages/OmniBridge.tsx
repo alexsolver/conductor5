@@ -1234,6 +1234,36 @@ export default function OmniBridge() {
 
                       <Separator />
 
+                      {/* Quick automation creation */}
+                      <div className="p-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap className="h-4 w-4 text-purple-600" />
+                          <span className="text-sm font-medium text-purple-800">💡 Automatização Inteligente</span>
+                        </div>
+                        <p className="text-xs text-purple-700 mb-3">
+                          Crie uma regra para mensagens similares a esta automaticamente
+                        </p>
+                        <Button 
+                          size="sm" 
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                          onClick={() => {
+                            // Pre-fill automation rule with context from selected message
+                            setNewRuleData({
+                              name: `Regra para ${selectedMessage.from}`,
+                              description: `Automatização baseada na mensagem: "${selectedMessage.content.substring(0, 50)}..."`,
+                              triggerType: 'keyword',
+                              actionType: 'auto_reply',
+                              priority: selectedMessage.priority === 'urgent' ? 5 : 3
+                            });
+                            setShowCreateRuleModal(true);
+                          }}
+                          data-testid="button-create-automation-from-message"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Criar Automação Baseada Nesta Mensagem
+                        </Button>
+                      </div>
+
                       <div className="space-y-2">
                         <Button 
                           className="w-full" 
