@@ -317,10 +317,17 @@ export default function OmniBridge() {
     dailyAnalyses: (aiMetricsData as any)?.dailyAnalyses || []
   };
 
-  // Add automation state
+  // Add automation state with detailed logging
   useEffect(() => {
+    console.log('🔍 [OmniBridge-DEBUG] Page loaded, useEffect triggered');
+    console.log('🔍 [OmniBridge-DEBUG] user object:', user);
+    console.log('🔍 [OmniBridge-DEBUG] user?.tenantId:', user?.tenantId);
+    console.log('🔍 [OmniBridge-DEBUG] activeTab:', activeTab);
+    
     const fetchAutomationRules = async () => {
       try {
+        console.log('🚀 [OmniBridge-DEBUG] Starting fetch automation rules...');
+        
         const response = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
@@ -328,20 +335,31 @@ export default function OmniBridge() {
           }
         });
 
+        console.log('📨 [OmniBridge-DEBUG] Response received:', response.status, response.ok);
+
         if (response.ok) {
           const result = await response.json();
+          console.log('📋 [OmniBridge-DEBUG] Response data:', result);
+          
           if (result.success) {
             setAutomationRules(result.data);
             console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length);
+          } else {
+            console.error('❌ [OmniBridge-DEBUG] Response not successful:', result);
           }
+        } else {
+          console.error('❌ [OmniBridge-DEBUG] Response failed:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('❌ [OmniBridge] Error fetching automation rules:', error);
+        console.error('❌ [OmniBridge-DEBUG] Error fetching automation rules:', error);
       }
     };
 
     if (user?.tenantId) {
+      console.log('✅ [OmniBridge-DEBUG] User has tenantId, calling fetchAutomationRules');
       fetchAutomationRules();
+    } else {
+      console.log('❌ [OmniBridge-DEBUG] No tenantId found, skipping fetch');
     }
   }, [user?.tenantId]);
 
