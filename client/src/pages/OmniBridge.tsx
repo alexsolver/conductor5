@@ -176,6 +176,7 @@ function getChannelIcon(integrationId: string) {
 }
 
 export default function OmniBridge() {
+  console.log('🚀 [OmniBridge-DEBUG] Component function executed - starting render');
   const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('inbox');
