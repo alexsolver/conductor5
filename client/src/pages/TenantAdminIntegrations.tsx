@@ -1953,9 +1953,20 @@ export default function TenantAdminIntegrations() {
                               >
                                 🔗 Preencher
                               </Button>
+                              <Button
+                                type="button"
+                                variant="default"
+                                size="sm"
+                                onClick={configureWebhook}
+                                disabled={isTestingIntegration || !field.value}
+                                className="px-3 whitespace-nowrap bg-green-600 hover:bg-green-700"
+                                data-testid="button-register-webhook"
+                              >
+                                📡 Registrar
+                              </Button>
                             </div>
                             <FormDescription>
-                              Configure para receber mensagens do Telegram no sistema. Use o botão "🔗 Preencher" para configurar automaticamente com a URL correta.
+                              Configure para receber mensagens do Telegram no sistema. Use "🔗 Preencher" para configurar a URL e depois "📡 Registrar" para ativar o webhook no Telegram.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
