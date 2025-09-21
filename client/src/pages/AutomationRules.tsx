@@ -85,33 +85,23 @@ export default function AutomationRules() {
   // Buscar regras de automação
   const { data: rulesData, isLoading, error: rulesError } = useQuery({
     queryKey: ['automation-rules'],
+    enabled: !!user, // ✅ Aguarda autenticação estar pronta
     queryFn: async () => {
       console.log('🔄 [AutomationRules] Attempting to fetch rules...');
-      try {
-        const result = await apiRequest('/api/omnibridge/automation-rules');
-        console.log('✅ [AutomationRules] Rules fetched successfully:', result);
-        
-        // Garantir estrutura consistente
-        if (!result || typeof result !== 'object') {
-          console.warn('🚨 [AutomationRules] Invalid API response format');
-          return { success: false, rules: [], total: 0 };
-        }
-        
-        return {
-          success: result.success || false,
-          rules: Array.isArray(result.rules) ? result.rules : [],
-          total: result.total || 0,
-          metadata: result.metadata || {}
-        };
-      } catch (error) {
-        console.error('❌ [AutomationRules] API Request failed:', error);
-        // Retornar estrutura segura mesmo com erro
-        return { success: false, rules: [], total: 0, error: error.message };
-      }
+      const result = await apiRequest('/api/omnibridge/automation-rules');
+      console.log('✅ [AutomationRules] Rules fetched successfully:', result);
+      
+      // ✅ Mapeamento correto da resposta do backend
+      return {
+        success: result.success || false,
+        rules: Array.isArray(result.data) ? result.data : [], // ✅ backend retorna result.data
+        total: result.total || 0,
+        metadata: result.stats || {}
+      };
     },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
-    staleTime: 30000,
+    staleTime: 5000, // ✅ Reduzido para debug
     cacheTime: 300000,
     refetchOnWindowFocus: false,
     onError: (error: any) => {
