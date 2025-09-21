@@ -308,6 +308,24 @@ export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
   updatedBy: varchar('updated_by', { length: 36 })
 });
 
+export const omnibridgeAutomationRules = pgTable('omnibridge_automation_rules', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  trigger: jsonb('trigger').notNull(),
+  actions: jsonb('actions').notNull().default([]),
+  enabled: boolean('enabled').default(true),
+  priority: integer('priority').default(1),
+  aiEnabled: boolean('ai_enabled').default(false),
+  aiPromptId: varchar('ai_prompt_id', { length: 36 }),
+  executionCount: integer('execution_count').default(0),
+  successCount: integer('success_count').default(0),
+  lastExecuted: timestamp('last_executed'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 // ✅ 1QA.MD: Custom Fields imported from schema-master.ts to avoid duplicates
 
 // ✅ 1QA.MD: Note - Ticket template functionality is handled through templateName/templateAlternative fields in tickets table

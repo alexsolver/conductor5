@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 import * as schema from '@shared/schema';
 import { IAutomationRuleRepository } from '../../domain/repositories/IAutomationRuleRepository';
 import { AutomationRule } from '../../domain/entities/AutomationRule';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export class DrizzleAutomationRuleRepository implements IAutomationRuleRepository {
   // ✅ 1QA.MD: Get tenant-specific database instance
@@ -28,43 +28,33 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
 
       const tenantDb = await this.getTenantDb(rule.tenantId);
-      const result = await tenantDb.execute(sql`
-        INSERT INTO omnibridge_rules (
-          id, tenant_id, name, description, is_enabled, trigger_type, action_type,
-          trigger_conditions, action_parameters, triggers, actions, priority,
-          execution_stats, metadata, created_at, updated_at, created_by
-        ) VALUES (
-          ${rule.id}, ${rule.tenantId}, ${rule.name}, ${rule.description || ''}, 
-          ${rule.isActive}, 'message_received', 'create_ticket',
-          ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)},
-          ${JSON.stringify(rule.conditions)}, ${JSON.stringify(rule.actions)}, 
-          ${rule.priority}, '{"totalExecutions": 0, "successfulExecutions": 0, "failedExecutions": 0}',
-          '{"version": 1}', NOW(), NOW(), 'system'
-        ) RETURNING *
-      `);
+      const result = await tenantDb.insert(schema.omnibridgeAutomationRules).values({
+        id: rule.id,
+        tenantId: rule.tenantId,
+        name: rule.name,
+        description: rule.description || '',
+        trigger: rule.trigger,
+        actions: rule.actions,
+        enabled: rule.enabled,
+        priority: rule.priority,
+        aiEnabled: rule.aiEnabled || false,
+        aiPromptId: rule.aiPromptId,
+        executionCount: rule.executionCount || 0,
+        successCount: rule.successCount || 0,
+        lastExecuted: rule.lastExecuted,
+        createdAt: rule.createdAt,
+        updatedAt: rule.updatedAt
+      }).returning();
 
-      if (result.rows && result.rows.length > 0) {
-        const createdRule = this.mapRowToEntity(result.rows[0]);
+      if (result && result.length > 0) {
+        const createdRule = this.mapRowToEntity(result[0]);
 
         // Registrar regra no engine de automação
         const { GlobalAutomationManager } = await import('../services/AutomationEngine');
         const automationManager = GlobalAutomationManager.getInstance();
         const engine = automationManager.getEngine(rule.tenantId);
 
-        // Criar AutomationRule para o engine
-        const { AutomationRule } = await import('../../domain/entities/AutomationRule');
-        const engineRule = new AutomationRule(
-          createdRule.id,
-          createdRule.tenantId,
-          createdRule.name,
-          createdRule.description || '',
-          createdRule.conditions,
-          createdRule.actions,
-          createdRule.isActive,
-          createdRule.priority
-        );
-
-        engine.addRule(engineRule);
+        engine.addRule(rule);
         console.log(`✅ [DrizzleAutomationRuleRepository] Rule added to automation engine: ${createdRule.name}`);
 
         return createdRule;
@@ -81,18 +71,15 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rule: ${id} for tenant: ${tenantId}`);
 
     try {
-      const tenantDb = await this.getTenantDb(tenantId); // Corrected from rule.tenantId to tenantId
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM omnibridge_rules 
-        WHERE id = ${id} AND tenant_id = ${tenantId}
-      `);
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb.select().from(schema.omnibridgeAutomationRules)
+        .where(and(eq(schema.omnibridgeAutomationRules.id, id), eq(schema.omnibridgeAutomationRules.tenantId, tenantId)));
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
 
-      const row = result.rows[0];
-      return this.mapRowToEntity(row);
+      return this.mapRowToEntity(result[0]);
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error finding rule: ${(error as Error).message}`);
       throw error;
@@ -106,8 +93,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     return results.map(rule => ({
       ...rule,
-      triggers: rule.triggers ? (Array.isArray(rule.triggers) ? rule.triggers : JSON.parse(rule.triggers)) : [],
-      actions: rule.actions ? (Array.isArray(rule.actions) ? rule.actions : JSON.parse(rule.actions)) : []
+      trigger: rule.trigger || {},
+      actions: rule.actions || []
     }));
   }
 
@@ -117,8 +104,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       rules,
       total: rules.length,
       stats: {
-        enabled: rules.filter(r => r.isEnabled).length,
-        disabled: rules.filter(r => !r.isEnabled).length
+        enabled: rules.filter(r => r.enabled).length,
+        disabled: rules.filter(r => !r.enabled).length
       }
     };
   }
@@ -134,19 +121,19 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       const result = await tenantDb.execute(sql`
         SELECT 
           COUNT(*) as total_rules,
-          COUNT(CASE WHEN is_enabled = true THEN 1 END) as enabled_rules,
-          COUNT(CASE WHEN is_enabled = false THEN 1 END) as disabled_rules,
-          COALESCE(SUM((execution_stats->>'totalExecutions')::int), 0) as total_executions
-        FROM omnibridge_rules 
+          COUNT(CASE WHEN enabled = true THEN 1 END) as enabled_rules,
+          COUNT(CASE WHEN enabled = false THEN 1 END) as disabled_rules,
+          COALESCE(SUM(execution_count), 0) as total_executions
+        FROM omnibridge_automation_rules 
         WHERE tenant_id = ${tenantId}
       `);
 
       const row = result.rows[0];
       return {
-        totalRules: parseInt(row.total_rules || '0'),
-        enabledRules: parseInt(row.enabled_rules || '0'),
-        disabledRules: parseInt(row.disabled_rules || '0'),
-        totalExecutions: parseInt(row.total_executions || '0')
+        totalRules: parseInt(String(row.total_rules || '0')),
+        enabledRules: parseInt(String(row.enabled_rules || '0')),
+        disabledRules: parseInt(String(row.disabled_rules || '0')),
+        totalExecutions: parseInt(String(row.total_executions || '0'))
       };
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error getting stats: ${(error as Error).message}`);
@@ -193,9 +180,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       console.log(`🗑️ [DrizzleAutomationRuleRepository] Deleting rule: ${id}`);
 
       const tenantDb = await this.getTenantDb(tenantId);
-      await tenantDb.execute(sql`
-        DELETE FROM omnibridge_rules WHERE id = ${id} AND tenant_id = ${tenantId}
-      `);
+      await tenantDb.delete(schema.omnibridgeAutomationRules)
+        .where(and(eq(schema.omnibridgeAutomationRules.id, id), eq(schema.omnibridgeAutomationRules.tenantId, tenantId)));
 
       return true;
     } catch (error) {
@@ -204,9 +190,52 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
+  async findActiveByTenant(tenantId: string): Promise<AutomationRule[]> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select().from(schema.omnibridgeAutomationRules)
+      .where(and(eq(schema.omnibridgeAutomationRules.tenantId, tenantId), eq(schema.omnibridgeAutomationRules.enabled, true)));
+
+    return results.map(rule => this.mapRowToEntity(rule));
+  }
+
+  async toggleStatus(id: string, tenantId: string, enabled: boolean): Promise<AutomationRule | null> {
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+      const result = await tenantDb.update(schema.omnibridgeAutomationRules)
+        .set({ enabled, updatedAt: new Date() })
+        .where(and(eq(schema.omnibridgeAutomationRules.id, id), eq(schema.omnibridgeAutomationRules.tenantId, tenantId)))
+        .returning();
+
+      if (result.length > 0) {
+        return this.mapRowToEntity(result[0]);
+      }
+      return null;
+    } catch (error) {
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error toggling rule status: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  async updateExecutionStats(id: string, tenantId: string, stats: { executionCount: number; successCount: number; lastExecuted: Date }): Promise<void> {
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+      await tenantDb.update(schema.omnibridgeAutomationRules)
+        .set({
+          executionCount: stats.executionCount,
+          successCount: stats.successCount,
+          lastExecuted: stats.lastExecuted,
+          updatedAt: new Date()
+        })
+        .where(and(eq(schema.omnibridgeAutomationRules.id, id), eq(schema.omnibridgeAutomationRules.tenantId, tenantId)));
+    } catch (error) {
+      console.error(`❌ [DrizzleAutomationRuleRepository] Error updating execution stats: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
   private mapRowToEntity(row: any): AutomationRule {
     // Parse JSON fields safely
-    const parseJsonField = (field: any, defaultValue: any = []) => {
+    const parseJsonField = (field: any, defaultValue: any = {}) => {
       if (typeof field === 'string') {
         try {
           return JSON.parse(field);
@@ -220,18 +249,20 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     return new AutomationRule(
       row.id,
-      row.tenant_id, // tenantId was mapped to row.tenant_id
+      row.tenant_id || row.tenantId,
       row.name,
-      parseJsonField(row.trigger_conditions, []),
-      parseJsonField(row.action_parameters, []),
-      row.description,
-      row.is_enabled,
-      row.priority,
-      0, // executionCount - não armazenado na tabela atual
-      0, // successCount - não armazenado na tabela atual
-      row.last_executed,
-      row.created_at,
-      row.updated_at
+      row.description || '',
+      parseJsonField(row.trigger, {}),
+      parseJsonField(row.actions, []),
+      row.enabled,
+      row.priority || 1,
+      row.ai_enabled || row.aiEnabled || false,
+      row.ai_prompt_id || row.aiPromptId,
+      row.execution_count || row.executionCount || 0,
+      row.success_count || row.successCount || 0,
+      row.last_executed || row.lastExecuted,
+      row.created_at || row.createdAt,
+      row.updated_at || row.updatedAt
     );
   }
 }
