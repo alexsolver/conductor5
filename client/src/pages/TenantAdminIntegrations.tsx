@@ -1147,11 +1147,14 @@ export default function TenantAdminIntegrations() {
       }
 
       // ✅ PREPARATION: Preparar dados baseado no tipo de integração
+      // Remove tenantId from data to avoid cross-tenant access validation issues
+      const { tenantId, ...dataWithoutTenantId } = data;
+      
       let configData: any = {
         enabled: data.enabled === true,
         lastUpdated: new Date().toISOString(),
         integrationVersion: '1.0',
-        ...data
+        ...dataWithoutTenantId
       };
 
       // ✅ SPECIALIZED PROCESSING: Processamento específico por integração
