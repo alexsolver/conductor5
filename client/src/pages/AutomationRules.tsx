@@ -103,7 +103,7 @@ export default function AutomationRules() {
     enabled: !!user, // ✅ Aguarda autenticação estar pronta
     queryFn: async () => {
       console.log('🔄 [AutomationRules] Attempting to fetch rules...');
-      const result = await apiRequest('/api/omnibridge/automation-rules');
+      const result = await apiRequest('GET', '/api/omnibridge/automation-rules');
       console.log('✅ [AutomationRules] Rules fetched successfully:', result);
       
       // ✅ Mapeamento correto da resposta do backend
@@ -132,7 +132,7 @@ export default function AutomationRules() {
   // Buscar métricas
   const { data: metricsData, error: metricsError } = useQuery({
     queryKey: ['automation-metrics'],
-    queryFn: () => apiRequest('/api/omnibridge/automation-rules/metrics/overview'),
+    queryFn: () => apiRequest('GET', '/api/omnibridge/automation-rules/metrics/overview'),
     retry: 1,
     retryDelay: 1000,
     onError: (error: any) => {
@@ -146,10 +146,7 @@ export default function AutomationRules() {
   // Mutation para criar regra
   const createRuleMutation = useMutation({
     mutationFn: (data: AutomationRuleForm) =>
-      apiRequest('/api/omnibridge/automation-rules', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+      apiRequest('POST', '/api/omnibridge/automation-rules', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
@@ -172,7 +169,7 @@ export default function AutomationRules() {
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: (ruleId: string) =>
-      apiRequest(`/api/omnibridge/automation-rules/${ruleId}`, { method: 'DELETE' }),
+      apiRequest('DELETE', `/api/omnibridge/automation-rules/${ruleId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
       queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
