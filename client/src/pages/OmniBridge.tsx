@@ -257,10 +257,10 @@ export default function OmniBridge() {
   const testPromptMutation = useMutation({
     mutationFn: ({ prompt, testMessage, promptType }: any) => 
       apiRequest('POST', '/api/omnibridge/ai-prompts/test', { prompt, testMessage, promptType }),
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       toast({ 
         title: 'Teste concluído', 
-        description: `Resultado: ${data.result}`,
+        description: `Resultado: ${JSON.stringify(response)}`,
         duration: 5000
       });
     }
@@ -308,13 +308,13 @@ export default function OmniBridge() {
 
   // Get current values from form or API data
   const currentAiConfig = aiForm.watch();
-  const currentMetrics = aiMetricsData || {
-    totalAnalyses: 0,
-    accuracyRate: 0,
-    responseTime: 0,
-    autoResponseRate: 0,
-    escalationRate: 0,
-    dailyAnalyses: []
+  const currentMetrics = {
+    totalAnalyses: (aiMetricsData as any)?.totalAnalyses || 0,
+    accuracyRate: (aiMetricsData as any)?.accuracyRate || 0,
+    responseTime: (aiMetricsData as any)?.responseTime || 0,
+    autoResponseRate: (aiMetricsData as any)?.autoResponseRate || 0,
+    escalationRate: (aiMetricsData as any)?.escalationRate || 0,
+    dailyAnalyses: (aiMetricsData as any)?.dailyAnalyses || []
   };
 
   // Add automation state
