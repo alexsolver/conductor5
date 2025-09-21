@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { jwtAuth } from '../../middleware/jwtAuth';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { GetChannelsUseCase } from './application/use-cases/GetChannelsUseCase';
 import { ToggleChannelUseCase } from './application/use-cases/ToggleChannelUseCase';
@@ -92,7 +93,7 @@ import { DeleteAutomationRuleUseCase } from './application/use-cases/DeleteAutom
 import { ExecuteAutomationRuleUseCase } from './application/use-cases/ExecuteAutomationRuleUseCase';
 import { AutomationController } from './application/controllers/AutomationController';
 import { ChatbotController } from './application/controllers/ChatbotController';
-import { jwtAuth } from '../../middleware/jwtAuth';
+
 
 // Initialize Automation repositories and use cases
 const automationRuleRepository = new DrizzleAutomationRuleRepository();
