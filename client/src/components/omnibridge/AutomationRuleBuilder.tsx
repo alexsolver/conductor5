@@ -327,6 +327,10 @@ export default function AutomationRuleBuilder({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] p-0" data-testid="automation-rule-builder">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Criador de Regras de Automação</DialogTitle>
+          <DialogDescription>Interface para criar e configurar regras de automação de mensagens</DialogDescription>
+        </DialogHeader>
         <div className="flex h-full">
           {/* Left Sidebar - Templates */}
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
