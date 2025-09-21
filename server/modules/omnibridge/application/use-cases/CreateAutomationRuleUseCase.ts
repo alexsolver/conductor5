@@ -21,7 +21,7 @@ export interface CreateAutomationRuleDTO {
 export class CreateAutomationRuleUseCase {
   constructor(private automationRuleRepository: IAutomationRuleRepository) {}
 
-  async execute(data: any): Promise<AutomationRuleEntity> {
+  async execute(data: any): Promise<AutomationRule> {
     console.log(`🔧 [CreateAutomationRuleUseCase] Creating automation rule for tenant: ${data.tenantId}`);
 
     // Validate rule data
@@ -30,30 +30,38 @@ export class CreateAutomationRuleUseCase {
     const ruleId = uuidv4();
     const now = new Date();
 
-    // Map triggers and actions to the format expected by AutomationRuleEntity
-    const conditions = data.triggers.map(trigger => ({
-      type: trigger.type,
-      operator: 'equals',
-      value: JSON.stringify(trigger.conditions)
-    }));
+    // Map triggers and actions to the format expected by AutomationRule
+    const trigger = {
+      type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
+      conditions: data.triggers[0]?.config ? [{
+        id: uuidv4(),
+        type: 'keyword',
+        operator: 'contains',
+        value: data.triggers[0].config.keywords?.join(' ') || ''
+      }] : []
+    };
 
     const actions = data.actions.map(action => ({
-      type: action.type,
-      config: action.parameters
+      id: uuidv4(),
+      type: action.type === 'auto_reply' ? 'send_auto_reply' : action.type,
+      params: action.config || {},
+      priority: 1
     }));
 
-    const automationRule = new AutomationRuleEntity(
+    const automationRule = new AutomationRule(
       ruleId,
-      data.name,
-      conditions,
-      actions,
       data.tenantId,
-      data.description,
-      true, // isActive
-      data.priority,
+      data.name,
+      data.description || '',
+      trigger,
+      actions,
+      data.enabled !== undefined ? data.enabled : true,
+      data.priority || 1,
+      false, // aiEnabled
+      undefined, // aiPromptId
       0, // executionCount
       0, // successCount
-      null, // lastExecuted
+      undefined, // lastExecuted
       now, // createdAt
       now  // updatedAt
     );
