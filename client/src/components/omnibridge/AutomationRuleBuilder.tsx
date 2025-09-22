@@ -389,46 +389,51 @@ export default function AutomationRuleBuilder({
         }));
       }
       
-      // CRITICAL FIX: Handle the actual backend format from the API response
-      // The API returns: {"trigger": {"type": "keyword_match", "conditions": [...]}}
+      // CRITICAL FIX: Handle multiple backend data formats for triggers
       if (triggers.length === 0 && existingRule.trigger) {
+        console.log('🔧 [AutomationRuleBuilder] Processing trigger from backend:', existingRule.trigger);
+        
         const triggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
         
-        // Create trigger based on conditions if they exist
-        if (existingRule.trigger.conditions && existingRule.trigger.conditions.length > 0) {
-          triggers = existingRule.trigger.conditions.map((condition: any) => ({
-            id: condition.id || `trigger_${Date.now()}`,
+        // Handle conditions array format
+        if (existingRule.trigger.conditions && Array.isArray(existingRule.trigger.conditions)) {
+          triggers = existingRule.trigger.conditions.map((condition: any, index: number) => ({
+            id: condition.id || `trigger_${Date.now()}_${index}`,
             type: condition.type || triggerType,
             name: getDisplayNameForTriggerType(condition.type || triggerType),
             description: getDescriptionForTriggerType(condition.type || triggerType),
             icon: getIconForTriggerType(condition.type || triggerType),
             color: getColorForTriggerType(condition.type || triggerType),
             config: {
-              keywords: condition.value || '',
+              keywords: condition.value || condition.keywords || '',
               value: condition.value || '',
               operator: condition.operator || 'contains',
               field: condition.field || 'content',
               caseSensitive: condition.caseSensitive || false
             }
           }));
-        } else {
-          // Fallback: create at least one trigger from the main trigger object
+        } 
+        // Handle direct trigger data without conditions array
+        else {
+          const triggerData = existingRule.trigger;
           triggers = [{
-            id: `trigger_${Date.now()}`,
+            id: triggerData.id || `trigger_${Date.now()}`,
             type: triggerType,
             name: getDisplayNameForTriggerType(triggerType),
             description: getDescriptionForTriggerType(triggerType),
             icon: getIconForTriggerType(triggerType),
             color: getColorForTriggerType(triggerType),
             config: {
-              keywords: '',
-              value: '',
-              operator: 'contains',
-              field: 'content',
-              caseSensitive: false
+              keywords: triggerData.keywords || triggerData.value || '',
+              value: triggerData.value || '',
+              operator: triggerData.operator || 'contains',
+              field: triggerData.field || 'content',
+              caseSensitive: triggerData.caseSensitive || false
             }
           }];
         }
+        
+        console.log('🔧 [AutomationRuleBuilder] Created triggers from backend data:', triggers);
       }
 
       // Parse actions from backend format

@@ -151,21 +151,24 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
 
       const tenantDb = await this.getTenantDb(rule.tenantId);
-      const result = await tenantDb.execute(sql`
-        UPDATE omnibridge_rules SET
-          name = ${rule.name}, description = ${rule.description || ''}, 
-          is_enabled = ${rule.isActive}, priority = ${rule.priority},
-          trigger_conditions = ${JSON.stringify(rule.conditions)}, 
-          action_parameters = ${JSON.stringify(rule.actions)}, 
-          triggers = ${JSON.stringify(rule.conditions)},
-          actions = ${JSON.stringify(rule.actions)},
-          updated_at = NOW(), updated_by = 'system'
-        WHERE id = ${rule.id} AND tenant_id = ${rule.tenantId}
-        RETURNING *
-      `);
+      const result = await tenantDb.update(schema.omnibridgeAutomationRules)
+        .set({
+          name: rule.name,
+          description: rule.description || '',
+          enabled: rule.enabled,
+          priority: rule.priority,
+          trigger: rule.trigger,
+          actions: rule.actions,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(schema.omnibridgeAutomationRules.id, rule.id),
+          eq(schema.omnibridgeAutomationRules.tenantId, rule.tenantId)
+        ))
+        .returning();
 
-      if (result.rows && result.rows.length > 0) {
-        return this.mapRowToEntity(result.rows[0]);
+      if (result.length > 0) {
+        return this.mapRowToEntity(result[0]);
       }
 
       return rule;
