@@ -389,40 +389,44 @@ export default function AutomationRuleBuilder({
         }));
       }
       
-      // CRITICAL FIX: Handle multiple backend data formats for triggers
+      // CRITICAL FIX: Enhanced trigger parsing for all backend data formats
       if (triggers.length === 0 && existingRule.trigger) {
         console.log('🔧 [AutomationRuleBuilder] Processing trigger from backend:', existingRule.trigger);
         
-        const triggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
+        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : 
+                               existingRule.trigger.type || 'keyword';
         
-        // Handle conditions array format
-        if (existingRule.trigger.conditions && Array.isArray(existingRule.trigger.conditions)) {
-          triggers = existingRule.trigger.conditions.map((condition: any, index: number) => ({
-            id: condition.id || `trigger_${Date.now()}_${index}`,
-            type: condition.type || triggerType,
-            name: getDisplayNameForTriggerType(condition.type || triggerType),
-            description: getDescriptionForTriggerType(condition.type || triggerType),
-            icon: getIconForTriggerType(condition.type || triggerType),
-            color: getColorForTriggerType(condition.type || triggerType),
-            config: {
-              keywords: condition.value || condition.keywords || '',
-              value: condition.value || '',
-              operator: condition.operator || 'contains',
-              field: condition.field || 'content',
-              caseSensitive: condition.caseSensitive || false
-            }
-          }));
+        // Handle conditions array format (primary format)
+        if (existingRule.trigger.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
+          triggers = existingRule.trigger.conditions.map((condition: any, index: number) => {
+            const conditionType = condition.type || baseTriggerType;
+            return {
+              id: condition.id || `trigger_${Date.now()}_${index}`,
+              type: conditionType,
+              name: getDisplayNameForTriggerType(conditionType),
+              description: getDescriptionForTriggerType(conditionType),
+              icon: getIconForTriggerType(conditionType),
+              color: getColorForTriggerType(conditionType),
+              config: {
+                keywords: condition.value || condition.keywords || '',
+                value: condition.value || '',
+                operator: condition.operator || 'contains',
+                field: condition.field || 'content',
+                caseSensitive: condition.caseSensitive || false
+              }
+            };
+          });
         } 
-        // Handle direct trigger data without conditions array
-        else {
+        // Handle direct trigger data format (fallback)
+        else if (existingRule.trigger.type) {
           const triggerData = existingRule.trigger;
           triggers = [{
             id: triggerData.id || `trigger_${Date.now()}`,
-            type: triggerType,
-            name: getDisplayNameForTriggerType(triggerType),
-            description: getDescriptionForTriggerType(triggerType),
-            icon: getIconForTriggerType(triggerType),
-            color: getColorForTriggerType(triggerType),
+            type: baseTriggerType,
+            name: getDisplayNameForTriggerType(baseTriggerType),
+            description: getDescriptionForTriggerType(baseTriggerType),
+            icon: getIconForTriggerType(baseTriggerType),
+            color: getColorForTriggerType(baseTriggerType),
             config: {
               keywords: triggerData.keywords || triggerData.value || '',
               value: triggerData.value || '',
@@ -432,8 +436,46 @@ export default function AutomationRuleBuilder({
             }
           }];
         }
+        // Create default trigger if none found but trigger object exists
+        else {
+          triggers = [{
+            id: `trigger_${Date.now()}`,
+            type: 'keyword',
+            name: getDisplayNameForTriggerType('keyword'),
+            description: getDescriptionForTriggerType('keyword'),
+            icon: getIconForTriggerType('keyword'),
+            color: getColorForTriggerType('keyword'),
+            config: {
+              keywords: '',
+              value: '',
+              operator: 'contains',
+              field: 'content',
+              caseSensitive: false
+            }
+          }];
+        }
         
-        console.log('🔧 [AutomationRuleBuilder] Created triggers from backend data:', triggers);
+        console.log('🔧 [AutomationRuleBuilder] Enhanced trigger parsing - created triggers:', triggers);
+      }
+      
+      // Ensure we always have at least one trigger for editing mode
+      if (triggers.length === 0 && existingRule) {
+        console.log('🔧 [AutomationRuleBuilder] No triggers found, creating default trigger for editing');
+        triggers = [{
+          id: `trigger_${Date.now()}`,
+          type: 'keyword',
+          name: getDisplayNameForTriggerType('keyword'),
+          description: getDescriptionForTriggerType('keyword'),
+          icon: getIconForTriggerType('keyword'),
+          color: getColorForTriggerType('keyword'),
+          config: {
+            keywords: '',
+            value: '',
+            operator: 'contains',
+            field: 'content',
+            caseSensitive: false
+          }
+        }];
       }
 
       // Parse actions from backend format
@@ -465,8 +507,13 @@ export default function AutomationRuleBuilder({
         }];
       }
 
-      console.log('🔧 [AutomationRuleBuilder] Parsed triggers:', triggers);
-      console.log('🔧 [AutomationRuleBuilder] Parsed actions:', actions);
+      console.log('🔧 [AutomationRuleBuilder] Final parsed triggers:', triggers.length, triggers);
+      console.log('🔧 [AutomationRuleBuilder] Final parsed actions:', actions.length, actions);
+      
+      // Validation check
+      if (existingRule && triggers.length === 0) {
+        console.error('🚨 [AutomationRuleBuilder] CRITICAL: No triggers parsed for existing rule:', existingRule.id);
+      }
 
       setRule({
         id: existingRule.id,
