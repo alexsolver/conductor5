@@ -993,8 +993,26 @@ router.post('/telegram/set-webhook', jwtAuth, async (req: AuthenticatedRequest, 
 
     const config = configResult.config;
 
-    // ✅ SET WEBHOOK: Call Telegram API to set webhook
-    const telegramWebhookUrl = `${webhookUrl}/api/webhooks/telegram/${tenantId}`;
+    // ✅ SET WEBHOOK: Smart URL construction to avoid duplication
+    let telegramWebhookUrl;
+    const expectedPath = `/api/webhooks/telegram/${tenantId}`;
+    
+    // Check if the webhook URL already contains the webhook path
+    if (webhookUrl.includes('/api/webhooks/telegram/')) {
+      // URL already has the full path - use as-is after validation
+      telegramWebhookUrl = webhookUrl;
+      
+      // Security: Validate that the tenantId in the URL matches current tenant
+      if (!webhookUrl.endsWith(expectedPath)) {
+        return res.status(400).json({
+          success: false,
+          message: 'URL do webhook contém tenant ID incorreto'
+        });
+      }
+    } else {
+      // URL is just the origin/domain - append the webhook path
+      telegramWebhookUrl = `${webhookUrl}${expectedPath}`;
+    }
 
     console.log(`📤 [TELEGRAM-WEBHOOK-SETUP] Setting webhook URL: ${telegramWebhookUrl}`);
 
