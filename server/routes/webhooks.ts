@@ -35,43 +35,22 @@ router.post('/telegram/:tenantId', async (req, res) => {
       });
     }
 
-    // ✅ PROCESSING: First try MessageIngestionService
+    // 🤖 CRITICAL FIX: Instanciar MessageIngestionService com ProcessMessageUseCase para executar automação
     try {
       const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
       const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+      const { ProcessMessageUseCase } = await import('../modules/omnibridge/application/use-cases/ProcessMessageUseCase');
 
       const messageRepository = new DrizzleMessageRepository();
-      const ingestionService = new MessageIngestionService(messageRepository);
+      const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
+      const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
 
+      console.log(`🤖 [TELEGRAM-WEBHOOK] Processing webhook with automation support enabled`);
       const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
 
       if (result.success) {
-        console.log(`✅ [TELEGRAM-WEBHOOK] Successfully processed ${result.processed} messages`);
-
-        // ✅ AUTOMATION: Process with automation engine
-        try {
-          const { GlobalAutomationManager } = await import('../modules/omnibridge/infrastructure/services/AutomationEngine');
-          const automationManager = GlobalAutomationManager.getInstance();
-          const automationEngine = automationManager.getEngine(tenantId);
-
-          const message = webhookData.message;
-          if (message) {
-            await automationEngine.processMessage({
-              content: message.text || message.caption || '[Mensagem não textual]',
-              sender: `telegram:${message.from.id}`,
-              channel: 'telegram',
-              timestamp: new Date(message.date * 1000).toISOString(),
-              metadata: {
-                chatId: message.chat.id,
-                messageId: message.message_id,
-                fromUser: message.from
-              }
-            });
-            console.log(`🤖 [TELEGRAM-WEBHOOK] Message processed through automation engine`);
-          }
-        } catch (automationError) {
-          console.warn(`⚠️ [TELEGRAM-WEBHOOK] Automation processing failed:`, automationError);
-        }
+        console.log(`✅ [TELEGRAM-WEBHOOK] Successfully processed ${result.processed} messages with automation rules`);
+      }
 
         return res.status(200).json({
           success: true,

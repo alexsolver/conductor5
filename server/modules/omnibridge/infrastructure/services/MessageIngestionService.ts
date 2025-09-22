@@ -1,5 +1,6 @@
 import { MessageEntity } from '../../domain/entities/Message';
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
+import { ProcessMessageUseCase } from '../../application/use-cases/ProcessMessageUseCase';
 import crypto from 'crypto';
 
 export interface IncomingMessage {
@@ -19,7 +20,10 @@ export interface IncomingMessage {
  * Seguindo Clean Architecture - Infrastructure Layer
  */
 export class MessageIngestionService {
-  constructor(private messageRepository: IMessageRepository) {}
+  constructor(
+    private messageRepository: IMessageRepository,
+    private processMessageUseCase?: ProcessMessageUseCase
+  ) {}
 
   /**
    * Processa mensagem recebida de qualquer canal e salva no inbox
@@ -103,6 +107,32 @@ export class MessageIngestionService {
       console.log(`✅ [TELEGRAM-INGESTION] Message saved with ID: ${savedMessage.id}`);
       console.log(`✅ [TELEGRAM-INGESTION] Message content: ${incomingMessage.content}`);
       console.log(`✅ [TELEGRAM-INGESTION] From: ${incomingMessage.from}`);
+
+      // 🤖 CRITICAL FIX: Processar regras de automação após salvar mensagem
+      if (this.processMessageUseCase) {
+        console.log(`🤖 [TELEGRAM-INGESTION] Triggering automation rules for message ${savedMessage.id}`);
+        try {
+          const automationResult = await this.processMessageUseCase.processDirectMessage(
+            {
+              id: savedMessage.id,
+              content: incomingMessage.content,
+              sender: incomingMessage.from,
+              subject: incomingMessage.subject,
+              channel: incomingMessage.channelType,
+              timestamp: new Date().toISOString(),
+              metadata: incomingMessage.metadata
+            }, 
+            tenantId
+          );
+          console.log(`✅ [TELEGRAM-INGESTION] Automation result:`, automationResult);
+        } catch (automationError) {
+          console.error(`❌ [TELEGRAM-INGESTION] Automation processing failed:`, automationError);
+          // Não falhar o webhook por causa de erro na automação
+        }
+      } else {
+        console.log(`⚠️ [TELEGRAM-INGESTION] ProcessMessageUseCase not available - skipping automation`);
+      }
+
       console.log(`✅ [TELEGRAM-INGESTION] Webhook processed: ${processedCount} messages`);
       
       return { success: true, processed: processedCount };
