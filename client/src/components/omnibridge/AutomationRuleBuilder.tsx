@@ -354,7 +354,7 @@ export default function AutomationRuleBuilder({
   useEffect(() => {
     if (existingRule) {
       console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
-      
+
       // Parse triggers from backend format
       let triggers = [];
       if (existingRule.trigger && existingRule.trigger.conditions) {
@@ -375,7 +375,11 @@ export default function AutomationRuleBuilder({
         }));
         triggers = triggerConditions;
       } else if (Array.isArray(existingRule.triggers)) {
-        triggers = existingRule.triggers;
+        triggers = existingRule.triggers.map((trigger: any) => ({
+          ...trigger,
+          icon: getIconForTriggerType(trigger.type),
+          color: getColorForTriggerType(trigger.type)
+        }));
       }
 
       // Parse actions from backend format
