@@ -202,6 +202,115 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
   }
 ];
 
+// Helper functions for mapping backend data to UI format
+const getDisplayNameForTriggerType = (type: string) => {
+  const mapping = {
+    'keyword': 'Palavra-chave',
+    'channel': 'Canal específico',
+    'priority': 'Prioridade alta',
+    'sender': 'Remetente específico',
+    'time': 'Horário específico',
+    'ai_analysis': 'Análise de IA'
+  };
+  return mapping[type as keyof typeof mapping] || 'Gatilho personalizado';
+};
+
+const getDescriptionForTriggerType = (type: string) => {
+  const mapping = {
+    'keyword': 'Ativa quando detecta palavras específicas',
+    'channel': 'Ativa para mensagens de um canal',
+    'priority': 'Ativa para mensagens urgentes',
+    'sender': 'Ativa para um remetente específico',
+    'time': 'Ativa em horários determinados',
+    'ai_analysis': 'Ativa baseado em análise inteligente'
+  };
+  return mapping[type as keyof typeof mapping] || 'Gatilho personalizado';
+};
+
+const getIconForTriggerType = (type: string) => {
+  const mapping = {
+    'keyword': Hash,
+    'channel': MessageSquare,
+    'priority': AlertCircle,
+    'sender': Users,
+    'time': Clock,
+    'ai_analysis': Brain
+  };
+  return mapping[type as keyof typeof mapping] || Target;
+};
+
+const getColorForTriggerType = (type: string) => {
+  const mapping = {
+    'keyword': 'bg-blue-500',
+    'channel': 'bg-green-500',
+    'priority': 'bg-red-500',
+    'sender': 'bg-purple-500',
+    'time': 'bg-orange-500',
+    'ai_analysis': 'bg-pink-500'
+  };
+  return mapping[type as keyof typeof mapping] || 'bg-gray-500';
+};
+
+const getDisplayNameForActionType = (type: string) => {
+  const mapping = {
+    'auto_reply': 'Resposta automática',
+    'send_auto_reply': 'Resposta automática',
+    'create_ticket': 'Criar ticket',
+    'send_notification': 'Enviar notificação',
+    'forward_message': 'Encaminhar mensagem',
+    'add_tags': 'Adicionar tags',
+    'assign_agent': 'Atribuir agente',
+    'mark_priority': 'Marcar prioridade',
+    'archive': 'Arquivar'
+  };
+  return mapping[type as keyof typeof mapping] || 'Ação personalizada';
+};
+
+const getDescriptionForActionType = (type: string) => {
+  const mapping = {
+    'auto_reply': 'Envia resposta pré-definida',
+    'send_auto_reply': 'Envia resposta pré-definida',
+    'create_ticket': 'Cria ticket automaticamente',
+    'send_notification': 'Notifica equipe responsável',
+    'forward_message': 'Encaminha para outro agente',
+    'add_tags': 'Categoriza com tags',
+    'assign_agent': 'Designa agente específico',
+    'mark_priority': 'Define nível de prioridade',
+    'archive': 'Move para arquivo'
+  };
+  return mapping[type as keyof typeof mapping] || 'Ação personalizada';
+};
+
+const getIconForActionType = (type: string) => {
+  const mapping = {
+    'auto_reply': Reply,
+    'send_auto_reply': Reply,
+    'create_ticket': FileText,
+    'send_notification': Bell,
+    'forward_message': Forward,
+    'add_tags': Tag,
+    'assign_agent': Users,
+    'mark_priority': Star,
+    'archive': Archive
+  };
+  return mapping[type as keyof typeof mapping] || Settings;
+};
+
+const getColorForActionType = (type: string) => {
+  const mapping = {
+    'auto_reply': 'bg-blue-500',
+    'send_auto_reply': 'bg-blue-500',
+    'create_ticket': 'bg-green-500',
+    'send_notification': 'bg-yellow-500',
+    'forward_message': 'bg-purple-500',
+    'add_tags': 'bg-indigo-500',
+    'assign_agent': 'bg-teal-500',
+    'mark_priority': 'bg-red-500',
+    'archive': 'bg-gray-500'
+  };
+  return mapping[type as keyof typeof mapping] || 'bg-gray-500';
+};
+
 export default function AutomationRuleBuilder({ 
   isOpen, 
   onClose, 
@@ -245,13 +354,54 @@ export default function AutomationRuleBuilder({
   useEffect(() => {
     if (existingRule) {
       console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
+      
+      // Parse triggers from backend format
+      let triggers = [];
+      if (existingRule.trigger && existingRule.trigger.conditions) {
+        // Convert single trigger object to triggers array format expected by UI
+        const triggerConditions = existingRule.trigger.conditions.map((condition: any) => ({
+          id: condition.id || `condition_${Date.now()}`,
+          type: condition.type || 'keyword',
+          name: getDisplayNameForTriggerType(condition.type),
+          description: getDescriptionForTriggerType(condition.type),
+          icon: getIconForTriggerType(condition.type),
+          color: getColorForTriggerType(condition.type),
+          config: {
+            value: condition.value || '',
+            operator: condition.operator || 'contains',
+            field: condition.field,
+            caseSensitive: condition.caseSensitive || false
+          }
+        }));
+        triggers = triggerConditions;
+      } else if (Array.isArray(existingRule.triggers)) {
+        triggers = existingRule.triggers;
+      }
+
+      // Parse actions from backend format
+      let actions = [];
+      if (Array.isArray(existingRule.actions)) {
+        actions = existingRule.actions.map((action: any) => ({
+          id: action.id || `action_${Date.now()}`,
+          type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
+          name: getDisplayNameForActionType(action.type),
+          description: getDescriptionForActionType(action.type),
+          icon: getIconForActionType(action.type),
+          color: getColorForActionType(action.type),
+          config: action.params || action.config || {}
+        }));
+      }
+
+      console.log('🔧 [AutomationRuleBuilder] Parsed triggers:', triggers);
+      console.log('🔧 [AutomationRuleBuilder] Parsed actions:', actions);
+
       setRule({
         id: existingRule.id,
         name: existingRule.name || '',
         description: existingRule.description || '',
         enabled: existingRule.enabled ?? true,
-        triggers: Array.isArray(existingRule.triggers) ? existingRule.triggers : [],
-        actions: Array.isArray(existingRule.actions) ? existingRule.actions : [],
+        triggers: triggers,
+        actions: actions,
         priority: existingRule.priority || 1
       });
     }
