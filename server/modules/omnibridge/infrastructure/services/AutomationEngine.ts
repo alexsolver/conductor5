@@ -212,42 +212,70 @@ export class AutomationEngine {
       
       // Converter regras do banco para entidades e adicionar ao engine
       for (const savedRule of savedRules) {
-        const trigger: AutomationTrigger = {
-          type: savedRule.triggers?.[0]?.type || 'message_received',
-          conditions: (savedRule.triggers || []).map((t: any) => ({
-            id: t.id || `condition-${Date.now()}`,
-            type: t.type || 'content',
-            operator: t.operator || 'contains',
-            value: t.value || '',
-            field: t.field,
-            caseSensitive: t.caseSensitive || false,
-            aiAnalysisRequired: t.aiAnalysisRequired || false
-          }))
-        };
+        try {
+          // CRITICAL FIX: Parse trigger from database format correctly
+          let trigger: AutomationTrigger;
+          
+          if (savedRule.trigger && typeof savedRule.trigger === 'object') {
+            // Handle new format where trigger is an object
+            const triggerData = savedRule.trigger as any;
+            trigger = {
+              type: triggerData.type || 'message_received',
+              conditions: Array.isArray(triggerData.conditions) ? triggerData.conditions.map((condition: any) => ({
+                id: condition.id || `condition-${Date.now()}`,
+                type: condition.type || 'keyword',
+                operator: condition.operator || 'contains',
+                value: condition.value || '',
+                field: condition.field || 'content',
+                caseSensitive: condition.caseSensitive || false,
+                aiAnalysisRequired: condition.aiAnalysisRequired || false
+              })) : []
+            };
+          } else if (Array.isArray(savedRule.triggers)) {
+            // Handle legacy format where triggers is an array
+            trigger = {
+              type: savedRule.triggers[0]?.type || 'message_received',
+              conditions: savedRule.triggers.map((t: any) => ({
+                id: t.id || `condition-${Date.now()}`,
+                type: t.type || 'keyword',
+                operator: t.operator || 'contains',
+                value: t.value || '',
+                field: t.field || 'content',
+                caseSensitive: t.caseSensitive || false,
+                aiAnalysisRequired: t.aiAnalysisRequired || false
+              }))
+            };
+          } else {
+            // Default trigger
+            trigger = {
+              type: 'message_received',
+              conditions: []
+            };
+          }
 
-        const actions: AutomationAction[] = (savedRule.actions || []).map((action: any, index: number) => ({
-          id: action.id || `action-${index}`,
-          type: action.type || 'create_ticket',
-          target: action.target,
-          params: action.params || {},
-          priority: action.priority || 0,
-          aiEnabled: action.aiEnabled || false,
-          templateId: action.templateId
-        }));
-        
-        // Criar regra em memória
-        const rule = new AutomationRule(
-          savedRule.id,
-          savedRule.tenantId,
-          savedRule.name,
-          savedRule.description || '',
-          trigger,
-          actions,
-          savedRule.isEnabled,
-          savedRule.priority || 1,
-          savedRule.aiEnabled || false,
-          savedRule.aiPromptId,
-          savedRule.executionCount || 0,
+          const actions: AutomationAction[] = Array.isArray(savedRule.actions) ? savedRule.actions.map((action: any, index: number) => ({
+            id: action.id || `action-${index}`,
+            type: action.type || 'create_ticket',
+            target: action.target,
+            params: action.config || action.params || {},
+            priority: action.priority || 0,
+            aiEnabled: action.aiEnabled || false,
+            templateId: action.templateId
+          })) : [];
+          
+          // Criar regra em memória
+          const rule = new AutomationRule(
+            savedRule.id,
+            savedRule.tenantId,
+            savedRule.name,
+            savedRule.description || '',
+            trigger,
+            actions,
+            savedRule.enabled !== false, // Default to enabled
+            savedRule.priority || 1,
+            savedRule.aiEnabled || false,
+            savedRule.aiPromptId,
+            savedRule.executionCount || 0,
           savedRule.successCount || 0,
           savedRule.lastExecuted,
           savedRule.createdAt,

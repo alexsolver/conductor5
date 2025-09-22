@@ -95,30 +95,58 @@ export class AutomationRule {
   private async evaluateTrigger(messageData: any, aiAnalysis?: MessageAnalysis): Promise<boolean> {
     const { type } = this.trigger;
 
+    console.log(`🔍 [AutomationRule] Evaluating trigger type: ${type} for rule "${this.name}"`);
+
     switch (type) {
       case 'message_received':
-        return Boolean(messageData.content || messageData.body);
+        const hasContent = Boolean(messageData.content || messageData.body);
+        console.log(`📨 [AutomationRule] Message received trigger: ${hasContent}`);
+        return hasContent;
 
       case 'email_received':
-        return messageData.channelType === 'email' || messageData.channel === 'email' || Boolean(messageData.subject);
+        const isEmail = messageData.channelType === 'email' || messageData.channel === 'email' || Boolean(messageData.subject);
+        console.log(`📧 [AutomationRule] Email received trigger: ${isEmail}`);
+        return isEmail;
 
       case 'keyword_match':
         const content = (messageData.content || messageData.body || '').toLowerCase();
-        return this.trigger.conditions.some(condition => 
-          condition.type === 'keyword' && content.includes(condition.value.toString().toLowerCase())
-        );
+        console.log(`🔤 [AutomationRule] Checking keyword_match in content: "${content}"`);
+        
+        if (!this.trigger.conditions || this.trigger.conditions.length === 0) {
+          console.log(`⚠️ [AutomationRule] No keyword conditions found for keyword_match trigger`);
+          return false;
+        }
+        
+        const keywordMatch = this.trigger.conditions.some(condition => {
+          if (condition.type === 'keyword' && condition.value) {
+            const keyword = condition.value.toString().toLowerCase();
+            const matches = content.includes(keyword);
+            console.log(`🔍 [AutomationRule] Keyword "${keyword}" in "${content}": ${matches}`);
+            return matches;
+          }
+          return false;
+        });
+        
+        console.log(`🎯 [AutomationRule] Keyword match result: ${keywordMatch}`);
+        return keywordMatch;
 
       case 'ai_analysis':
-        return Boolean(aiAnalysis);
+        const hasAI = Boolean(aiAnalysis);
+        console.log(`🤖 [AutomationRule] AI analysis trigger: ${hasAI}`);
+        return hasAI;
 
       case 'channel_specific':
-        return this.trigger.conditions.some(condition =>
+        const channelMatch = this.trigger.conditions.some(condition =>
           condition.type === 'channel' && 
           (messageData.channel === condition.value || messageData.channelType === condition.value)
         );
+        console.log(`📺 [AutomationRule] Channel specific trigger: ${channelMatch}`);
+        return channelMatch;
 
       case 'time_based':
-        return this.evaluateTimeConditions();
+        const timeMatch = this.evaluateTimeConditions();
+        console.log(`⏰ [AutomationRule] Time based trigger: ${timeMatch}`);
+        return timeMatch;
 
       default:
         console.warn(`⚠️ [AutomationRule] Unknown trigger type: ${type}`);
@@ -129,20 +157,26 @@ export class AutomationRule {
   private async evaluateConditions(messageData: any, aiAnalysis?: MessageAnalysis): Promise<boolean> {
     const conditions = this.trigger.conditions;
     
-    if (conditions.length === 0) {
+    if (!conditions || conditions.length === 0) {
+      console.log(`✅ [AutomationRule] No conditions to evaluate, rule "${this.name}" applies by default`);
       return true; // Se não há condições, a regra sempre se aplica
     }
+
+    console.log(`🔍 [AutomationRule] Evaluating ${conditions.length} conditions for rule "${this.name}"`);
 
     // Todas as condições devem ser verdadeiras (AND logic)
     for (const condition of conditions) {
       const result = await this.evaluateCondition(condition, messageData, aiAnalysis);
       
+      console.log(`🔍 [AutomationRule] Condition ${condition.type}:${condition.operator}:"${condition.value}" = ${result}`);
+      
       if (!result) {
-        console.log(`❌ [AutomationRule] Condition failed: ${condition.type} ${condition.operator} ${condition.value}`);
+        console.log(`❌ [AutomationRule] Rule "${this.name}" failed condition: ${condition.type} ${condition.operator} "${condition.value}"`);
         return false;
       }
     }
 
+    console.log(`✅ [AutomationRule] All conditions passed for rule "${this.name}"`);
     return true;
   }
 
@@ -183,10 +217,20 @@ export class AutomationRule {
         actualValue = (messageData.content || messageData.body || '').toLowerCase();
         break;
       default:
-        actualValue = '';
+        console.log(`🔍 [AutomationRule] Using field "${condition.field}" for condition type "${condition.type}"`);
+        if (condition.field === 'content') {
+          actualValue = (messageData.content || messageData.body || '').toLowerCase();
+        } else {
+          actualValue = messageData[condition.field] || '';
+        }
     }
 
-    return this.compareValues(actualValue, condition.value, condition.operator, condition.caseSensitive);
+    console.log(`🔍 [AutomationRule] Comparing "${actualValue}" ${condition.operator} "${condition.value}"`);
+    
+    const result = this.compareValues(actualValue, condition.value, condition.operator, condition.caseSensitive);
+    console.log(`🎯 [AutomationRule] Condition result: ${result}`);
+    
+    return result;
   }
 
   private compareValues(

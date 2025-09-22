@@ -1,6 +1,8 @@
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
 import { MessageEntity } from '../../domain/entities/Message';
 import { GlobalAutomationManager } from '../../infrastructure/services/AutomationEngine';
+import { AutomationEngine } from '../../infrastructure/services/AutomationEngine'; // Import AutomationEngine
+import { MessageAnalysis } from '../../domain/entities/MessageAnalysis'; // Assuming MessageAnalysis is defined elsewhere
 
 export interface ProcessMessageRequest {
   messageId: string;
@@ -120,7 +122,7 @@ export class ProcessMessageUseCase {
 
     } catch (error) {
       console.error(`❌ [ProcessMessageUseCase] Error in automation processing:`, error);
-      
+
       // Mesmo em caso de erro, marcar como processada para evitar loops
       try {
         await this.messageRepository.markAsProcessed(message.id, tenantId);
@@ -138,68 +140,56 @@ export class ProcessMessageUseCase {
   // Método para processamento manual/direto de mensagens (sem buscar no repository)
   async processDirectMessage(messageData: any, tenantId: string): Promise<{
     success: boolean;
-    aiAnalysis?: any;
+    message: string;
+    aiAnalysis?: MessageAnalysis;
     automationResults?: any;
-    message?: string;
   }> {
     try {
       console.log(`🎯 [ProcessMessageUseCase] Processing direct message for tenant ${tenantId}`);
-
-      // Validar dados mínimos necessários
-      if (!messageData.content && !messageData.body) {
-        throw new Error('Message content is required');
-      }
-
-      // Normalizar dados da mensagem
-      const normalizedData = {
-        id: messageData.id || `temp-${Date.now()}`,
+      console.log(`📨 [ProcessMessageUseCase] Message data:`, {
         content: messageData.content || messageData.body,
-        body: messageData.content || messageData.body,
-        sender: messageData.sender || messageData.from || 'unknown',
-        from: messageData.sender || messageData.from || 'unknown',
-        recipient: messageData.recipient || messageData.to,
-        to: messageData.recipient || messageData.to,
-        subject: messageData.subject,
-        channel: messageData.channel || messageData.channelType || 'unknown',
-        channelType: messageData.channel || messageData.channelType || 'unknown',
-        timestamp: messageData.timestamp || new Date().toISOString(),
-        status: messageData.status || 'unread',
-        priority: messageData.priority || 'medium',
-        tags: messageData.tags || [],
-        attachments: messageData.attachments || 0,
-        metadata: messageData.metadata || {}
-      };
+        sender: messageData.sender || messageData.from,
+        channel: messageData.channel || messageData.channelType
+      });
 
-      // Executar processamento através do AutomationEngine
-      const automationManager = GlobalAutomationManager.getInstance();
-      const automationEngine = automationManager.getEngine(tenantId);
+      // Initialize automation engine for tenant
+      const automationEngine = new AutomationEngine(tenantId);
+
+      // Wait for rules to be loaded from database
+      await automationEngine.loadRulesFromDatabase();
 
       console.log(`⚙️ [ProcessMessageUseCase] Processing direct message through AutomationEngine`);
 
-      await automationEngine.processMessage(normalizedData);
+      // Ensure message data has the correct format expected by automation engine
+      const normalizedMessageData = {
+        id: messageData.id || `msg_${Date.now()}`,
+        content: messageData.content || messageData.body || '',
+        sender: messageData.sender || messageData.from || 'unknown',
+        channel: messageData.channel || messageData.channelType || 'direct',
+        channelType: messageData.channelType || messageData.channel || 'direct',
+        timestamp: messageData.timestamp || new Date().toISOString(),
+        tenantId: tenantId
+      };
 
-      // Obter métricas da execução
+      console.log(`📋 [ProcessMessageUseCase] Normalized message data:`, normalizedMessageData);
+
+      // Process through automation engine
+      await automationEngine.processMessage(normalizedMessageData);
+
       const metrics = automationEngine.getMetrics();
 
-      console.log(`✅ [ProcessMessageUseCase] Direct message processed successfully`);
+      console.log(`📊 [ProcessMessageUseCase] Automation metrics:`, metrics);
 
       return {
         success: true,
-        automationResults: {
-          rulesExecuted: metrics.rulesExecuted,
-          actionsTriggered: metrics.actionsTriggered,
-          avgExecutionTime: metrics.avgExecutionTime,
-          lastExecution: metrics.lastExecution
-        },
-        message: `Direct message processed successfully. ${metrics.rulesExecuted} automation rules evaluated, ${metrics.actionsTriggered} actions triggered.`
+        message: `Direct message processed successfully. ${metrics.rulesExecuted} automation rules evaluated, ${metrics.actionsTriggered} actions triggered.`,
+        automationResults: metrics
       };
-
     } catch (error) {
       console.error(`❌ [ProcessMessageUseCase] Error processing direct message:`, error);
-      
       return {
         success: false,
-        message: `Error processing direct message: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Failed to process direct message: ${error.message}`
       };
     }
   }
@@ -226,7 +216,7 @@ export class ProcessMessageUseCase {
 
     } catch (error) {
       console.error(`❌ [ProcessMessageUseCase] Error testing automation rule:`, error);
-      
+
       return {
         success: false,
         message: `Error testing rule: ${error instanceof Error ? error.message : 'Unknown error'}`
