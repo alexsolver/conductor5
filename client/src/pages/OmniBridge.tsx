@@ -57,7 +57,8 @@ import {
   Lightbulb,
   HelpCircle,
   Upload,
-  Play
+  Play,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -418,6 +419,97 @@ export default function OmniBridge() {
       }
     } catch (error) {
       console.error('❌ [OmniBridge] Error toggling automation rule:', error);
+    }
+  };
+
+  const handleDeleteAutomationRule = async (ruleId: string, ruleName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir a regra "${ruleName}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/omnibridge/automation-rules/${ruleId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        setAutomationRules(prev => prev.filter(rule => rule.id !== ruleId));
+        console.log(`✅ [OmniBridge] Automation rule deleted: ${ruleId}`);
+        
+        toast({
+          title: "Regra excluída",
+          description: `A regra "${ruleName}" foi excluída com sucesso.`
+        });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erro ao excluir regra",
+          description: error.message || "Ocorreu um erro ao excluir a regra",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ [OmniBridge] Error deleting automation rule:', error);
+      toast({
+        title: "Erro ao excluir regra",
+        description: "Ocorreu um erro ao excluir a regra",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCreateChatbot = async (type: 'support' | 'faq' | 'custom', name?: string) => {
+    try {
+      const chatbotData = {
+        name: name || (type === 'support' ? 'Assistente de Suporte' : 
+                      type === 'faq' ? 'Assistente de Dúvidas' : 
+                      'Assistente Personalizado'),
+        description: type === 'support' ? 'Assistente para atendimento técnico' :
+                    type === 'faq' ? 'Assistente para perguntas frequentes' :
+                    'Assistente criado do zero para suas necessidades específicas',
+        type,
+        isActive: true,
+        settings: {
+          language: 'pt-BR',
+          tone: type === 'support' ? 'professional' : 'friendly',
+          maxResponseTime: 30
+        }
+      };
+
+      const response = await fetch('/api/omnibridge/chatbots', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(chatbotData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setChatbots(prev => [result.data, ...prev]);
+          console.log(`✅ [OmniBridge] Chatbot ${type} created successfully`);
+          
+          toast({
+            title: "Assistente Virtual Criado!",
+            description: `O ${chatbotData.name} foi criado com sucesso e já está ativo.`
+          });
+        }
+      } else {
+        throw new Error('Falha ao criar assistente');
+      }
+    } catch (error) {
+      console.error('❌ [OmniBridge] Error creating chatbot:', error);
+      toast({
+        title: "Erro ao criar assistente",
+        description: "Ocorreu um erro ao criar o assistente virtual",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1725,6 +1817,16 @@ export default function OmniBridge() {
                               <Settings className="h-4 w-4 mr-2" />
                               Editar
                             </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-${rule.id}`}
+                              onClick={() => handleDeleteAutomationRule(rule.id, rule.name)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -1839,9 +1941,7 @@ export default function OmniBridge() {
                       size="sm" 
                       className="w-full" 
                       data-testid="button-create-faq-bot"
-                      onClick={() => {
-                        alert('Criando Assistente de Dúvidas... (Funcionalidade em desenvolvimento)');
-                      }}
+                      onClick={() => handleCreateChatbot('faq')}
                     >
                       <Bot className="h-4 w-4 mr-2" />
                       Criar Assistente de Dúvidas
@@ -1897,9 +1997,7 @@ export default function OmniBridge() {
                       size="sm" 
                       className="w-full" 
                       data-testid="button-create-support-bot"
-                      onClick={() => {
-                        alert('Criando Assistente de Suporte... (Funcionalidade em desenvolvimento)');
-                      }}
+                      onClick={() => handleCreateChatbot('support')}
                     >
                       <Bot className="h-4 w-4 mr-2" />
                       Criar Assistente de Suporte
@@ -1927,9 +2025,7 @@ export default function OmniBridge() {
                       className="w-full" 
                       variant="outline" 
                       data-testid="button-create-custom-bot"
-                      onClick={() => {
-                        alert('Criando Assistente Personalizado... (Funcionalidade em desenvolvimento)');
-                      }}
+                      onClick={() => handleCreateChatbot('custom')}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Criar do Zero
@@ -1952,7 +2048,10 @@ export default function OmniBridge() {
                   variant="outline" 
                   data-testid="button-import-bot"
                   onClick={() => {
-                    alert('Importando Assistente... (Funcionalidade em desenvolvimento)');
+                    toast({
+                      title: "Funcionalidade em breve",
+                      description: "A importação de assistentes estará disponível em breve!",
+                    });
                   }}
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -1976,9 +2075,7 @@ export default function OmniBridge() {
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button 
                     data-testid="button-get-started"
-                    onClick={() => {
-                      alert('Iniciando criação de assistente... (Funcionalidade em desenvolvimento)');
-                    }}
+                    onClick={() => handleCreateChatbot('faq')}
                   >
                     <Bot className="h-4 w-4 mr-2" />
                     Começar Agora
