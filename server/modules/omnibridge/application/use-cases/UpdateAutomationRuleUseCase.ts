@@ -32,6 +32,8 @@ export class UpdateAutomationRuleUseCase {
     if (data.priority !== undefined) updateData.priority = data.priority;
     
     // Handle triggers and actions conversion
+    console.log(`🔍 [UpdateAutomationRuleUseCase] Received data.triggers:`, JSON.stringify(data.triggers, null, 2));
+    
     if (data.triggers !== undefined) {
       updateData.trigger = {
         type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
@@ -45,6 +47,7 @@ export class UpdateAutomationRuleUseCase {
           channelType: trigger.config?.channelType || ''
         }))
       };
+      console.log(`🔧 [UpdateAutomationRuleUseCase] Created updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
     }
     
     if (data.actions !== undefined) {
