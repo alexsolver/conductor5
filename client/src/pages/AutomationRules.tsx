@@ -5,17 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { 
   Bot, 
   Settings, 
@@ -35,33 +24,13 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import AutomationRuleBuilder from '@/components/omnibridge/AutomationRuleBuilder';
 
-const automationRuleSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  description: z.string(),
-  enabled: z.boolean().default(true),
-  priority: z.number().min(1).max(10).default(1),
-  conditions: z.array(z.object({
-    field: z.string(),
-    operator: z.string(),
-    value: z.string(),
-    logicalOperator: z.string().optional()
-  })).min(1, 'Pelo menos uma condição é necessária'),
-  actions: z.array(z.object({
-    type: z.string(),
-    target: z.string(),
-    params: z.record(z.any())
-  })).min(1, 'Pelo menos uma ação é necessária')
-});
-
-type AutomationRuleForm = z.infer<typeof automationRuleSchema>;
 
 export default function AutomationRules() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedRule, setSelectedRule] = useState<any>(null);
-  const [testData, setTestData] = useState('{}');
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // Debug log para verificar se o componente está montando
@@ -85,17 +54,6 @@ export default function AutomationRules() {
     });
   }, [user]);
 
-  const form = useForm<AutomationRuleForm>({
-    resolver: zodResolver(automationRuleSchema),
-    defaultValues: {
-      name: '',
-      description: '',
-      enabled: true,
-      priority: 1,
-      conditions: [{ field: 'message', operator: 'contains', value: '', logicalOperator: 'AND' }],
-      actions: [{ type: 'send_message', target: 'telegram', params: {} }]
-    }
-  });
 
   // Buscar regras de automação
   const { data: rulesData, isLoading, error: rulesError } = useQuery({
@@ -120,13 +78,15 @@ export default function AutomationRules() {
     staleTime: 5000, // ✅ Reduzido para debug
     gcTime: 300000,
     refetchOnWindowFocus: false,
-    onError: (error: any) => {
-      console.error('❌ [AutomationRules] Final error after retries:', error);
-      setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Serviço temporariamente indisponível'}`);
-    },
-    onSuccess: (data) => {
-      console.log('✅ [AutomationRules] Rules query successful:', data);
-      setLoadingError(null);
+    meta: {
+      onError: (error: any) => {
+        console.error('❌ [AutomationRules] Final error after retries:', error);
+        setLoadingError(`Erro ao carregar regras de automação: ${error?.message || 'Serviço temporariamente indisponível'}`);
+      },
+      onSuccess: (data: any) => {
+        console.log('✅ [AutomationRules] Rules query successful:', data);
+        setLoadingError(null);
+      }
     }
   });
 
@@ -145,31 +105,6 @@ export default function AutomationRules() {
   const metricsData = mockMetrics;
   const metricsError = null;
 
-  // Mutation para criar regra
-  const createRuleMutation = useMutation({
-    mutationFn: async (data: AutomationRuleForm) => {
-      const response = await apiRequest('POST', '/api/omnibridge/automation-rules', data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-      queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
-      setIsCreateDialogOpen(false);
-      form.reset();
-      toast({
-        title: '✅ Regra criada',
-        description: 'Regra de automação criada com sucesso!'
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: '❌ Erro',
-        description: error.message || 'Erro ao criar regra de automação',
-        variant: 'destructive'
-      });
-    }
-  });
-
   // Mutation para deletar regra
   const deleteRuleMutation = useMutation({
     mutationFn: async (ruleId: string) => {
@@ -185,54 +120,6 @@ export default function AutomationRules() {
       });
     }
   });
-
-  // Mutation para testar regra
-  const testRuleMutation = useMutation({
-    mutationFn: async ({ ruleId, testData }: { ruleId: string; testData: any }) => {
-      const response = await apiRequest('POST', `/api/omnibridge/automation-rules/${ruleId}/test`, { testData });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: data.test.matches ? '✅ Regra Compatível' : '❌ Regra Não Compatível',
-        description: `Teste da regra "${data.test.ruleName}": ${data.test.matches ? 'MATCH' : 'NO MATCH'}`,
-        variant: data.test.matches ? 'default' : 'destructive'
-      });
-    }
-  });
-
-  const handleSubmit = (data: AutomationRuleForm) => {
-    createRuleMutation.mutate(data);
-  };
-
-  const handleTestRule = (ruleId: string) => {
-    try {
-      const parsedTestData = JSON.parse(testData);
-      testRuleMutation.mutate({ ruleId, testData: parsedTestData });
-    } catch (error) {
-      toast({
-        title: '❌ Erro',
-        description: 'Dados de teste inválidos (JSON malformado)',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const addCondition = () => {
-    const currentConditions = form.getValues('conditions');
-    form.setValue('conditions', [
-      ...currentConditions,
-      { field: 'message', operator: 'contains', value: '', logicalOperator: 'AND' }
-    ]);
-  };
-
-  const addAction = () => {
-    const currentActions = form.getValues('actions');
-    form.setValue('actions', [
-      ...currentActions,
-      { type: 'send_message', target: 'telegram', params: {} }
-    ]);
-  };
 
 
   // Verificações robustas de segurança para evitar undefined errors
@@ -253,13 +140,14 @@ export default function AutomationRules() {
 
   const metrics = useMemo(() => {
     try {
-      if (metricsData?.metrics && typeof metricsData.metrics === 'object') {
+      const defaultMetrics = { rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0 };
+      if (metricsData && typeof metricsData === 'object') {
         return {
-          rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0,
-          ...metricsData.metrics
+          ...defaultMetrics,
+          ...metricsData
         };
       }
-      return { rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0 };
+      return defaultMetrics;
     } catch (error) {
       console.error('🚨 [AutomationRules] Error processing metrics data:', error);
       return { rulesCount: 0, enabledRulesCount: 0, rulesExecuted: 0, actionsTriggered: 0, successRate: 100, avgExecutionTime: 0 };
@@ -368,249 +256,26 @@ export default function AutomationRules() {
           </p>
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Regra
-            </Button>
-          </DialogTrigger>
+        <div>
+          <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-nova-regra">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Regra
+          </Button>
           
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>🤖 Criar Regra de Automação</DialogTitle>
-            </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome da Regra</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Auto-resposta suporte" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="priority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prioridade (1-10)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            max="10" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>Maior número = maior prioridade</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Descreva o que esta regra faz..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Regra Ativa</FormLabel>
-                        <FormDescription>
-                          A regra será executada automaticamente quando ativa
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {/* Condições */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">🎯 Condições (IF)</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addCondition}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Adicionar Condição
-                    </Button>
-                  </div>
-
-                  {(form.watch('conditions') || []).map((_, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 p-4 border rounded-lg bg-blue-50">
-                      <div className="col-span-3">
-                        <Label className="text-xs">Campo</Label>
-                        <Select
-                          value={form.watch(`conditions.${index}.field`)}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.field`, value)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="message">Mensagem</SelectItem>
-                            <SelectItem value="sender">Remetente</SelectItem>
-                            <SelectItem value="priority">Prioridade</SelectItem>
-                            <SelectItem value="status">Status</SelectItem>
-                            <SelectItem value="hour">Hora</SelectItem>
-                            <SelectItem value="platform">Plataforma</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="col-span-3">
-                        <Label className="text-xs">Operador</Label>
-                        <Select
-                          value={form.watch(`conditions.${index}.operator`)}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.operator`, value)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="equals">Igual a</SelectItem>
-                            <SelectItem value="contains">Contém</SelectItem>
-                            <SelectItem value="startsWith">Começa com</SelectItem>
-                            <SelectItem value="endsWith">Termina com</SelectItem>
-                            <SelectItem value="greaterThan">Maior que</SelectItem>
-                            <SelectItem value="lessThan">Menor que</SelectItem>
-                            <SelectItem value="regex">Regex</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="col-span-4">
-                        <Label className="text-xs">Valor</Label>
-                        <Input
-                          className="h-8"
-                          placeholder="Valor para comparação"
-                          value={form.watch(`conditions.${index}.value`)}
-                          onChange={(e) => form.setValue(`conditions.${index}.value`, e.target.value)}
-                        />
-                      </div>
-
-                      <div className="col-span-2">
-                        <Label className="text-xs">Lógica</Label>
-                        <Select
-                          value={form.watch(`conditions.${index}.logicalOperator`) || 'AND'}
-                          onValueChange={(value) => form.setValue(`conditions.${index}.logicalOperator`, value)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AND">E</SelectItem>
-                            <SelectItem value="OR">OU</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Ações */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">⚡ Ações (THEN)</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Adicionar Ação
-                    </Button>
-                  </div>
-
-                  {(form.watch('actions') || []).map((_, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 p-4 border rounded-lg bg-green-50">
-                      <div className="col-span-4">
-                        <Label className="text-xs">Tipo de Ação</Label>
-                        <Select
-                          value={form.watch(`actions.${index}.type`)}
-                          onValueChange={(value) => form.setValue(`actions.${index}.type`, value)}
-                        >
-                          <SelectTrigger className="h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="send_message">Enviar Mensagem</SelectItem>
-                            <SelectItem value="assign_user">Atribuir Usuário</SelectItem>
-                            <SelectItem value="add_tag">Adicionar Tag</SelectItem>
-                            <SelectItem value="change_status">Mudar Status</SelectItem>
-                            <SelectItem value="escalate">Escalar</SelectItem>
-                            <SelectItem value="create_ticket">Criar Ticket</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="col-span-4">
-                        <Label className="text-xs">Destino</Label>
-                        <Input
-                          className="h-8"
-                          placeholder="Ex: telegram, manager, high_priority"
-                          value={form.watch(`actions.${index}.target`)}
-                          onChange={(e) => form.setValue(`actions.${index}.target`, e.target.value)}
-                        />
-                      </div>
-
-                      <div className="col-span-4">
-                        <Label className="text-xs">Parâmetros (JSON)</Label>
-                        <Input
-                          className="h-8"
-                          placeholder='{"message": "Auto-resposta"}'
-                          value={JSON.stringify(form.watch(`actions.${index}.params`))}
-                          onChange={(e) => {
-                            try {
-                              const params = JSON.parse(e.target.value);
-                              form.setValue(`actions.${index}.params`, params);
-                            } catch {
-                              // Ignore invalid JSON while typing
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={createRuleMutation.isPending}>
-                    {createRuleMutation.isPending ? '🔄 Criando...' : '✅ Criar Regra'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+          <AutomationRuleBuilder
+            isOpen={isCreateDialogOpen}
+            onClose={() => setIsCreateDialogOpen(false)}
+            onSave={(rule) => {
+              // Invalidar cache e fechar modal
+              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+              setIsCreateDialogOpen(false);
+              toast({
+                title: '✅ Regra criada',
+                description: 'Regra de automação criada com sucesso!'
+              });
+            }}
+          />
+        </div>
       </div>
 
       {/* Métricas */}
@@ -753,17 +418,6 @@ export default function AutomationRules() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedRule(displayRule);
-                            setTestData('{"message": "teste suporte", "sender": "João", "hour": 14}');
-                          }}
-                        >
-                          <TestTube className="h-4 w-4" />
-                          Testar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
                           onClick={() => deleteRuleMutation.mutate(displayRule.id)}
                           disabled={deleteRuleMutation.isPending}
                         >
@@ -783,43 +437,6 @@ export default function AutomationRules() {
         </CardContent>
       </Card>
 
-      {/* Dialog de Teste */}
-      {selectedRule && (
-        <Dialog open={!!selectedRule} onOpenChange={() => setSelectedRule(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>🧪 Testar Regra: {selectedRule.name || 'Regra'}</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <Label>Dados de Teste (JSON)</Label>
-                <Textarea
-                  value={testData}
-                  onChange={(e) => setTestData(e.target.value)}
-                  placeholder='{"message": "suporte", "sender": "João", "hour": 14}'
-                  className="h-32 font-mono text-sm"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Configure os dados que serão usados para testar a regra
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleTestRule(selectedRule.id)}
-                  disabled={testRuleMutation.isPending}
-                >
-                  {testRuleMutation.isPending ? '🔄 Testando...' : '🧪 Executar Teste'}
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedRule(null)}>
-                  Fechar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
