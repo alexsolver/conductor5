@@ -26,11 +26,6 @@ export class UpdateAutomationRuleUseCase {
     const updatedRule: AutomationRule = {
       ...existingRule,
       ...data,
-      metadata: {
-        ...existingRule.metadata,
-        lastModifiedBy: userId,
-        version: existingRule.metadata.version + 1
-      },
       updatedAt: new Date()
     };
 

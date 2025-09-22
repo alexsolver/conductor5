@@ -357,29 +357,53 @@ export default function AutomationRuleBuilder({
 
       // Parse triggers from backend format
       let triggers = [];
+      
+      // Handle both single trigger object and triggers array
       if (existingRule.trigger && existingRule.trigger.conditions) {
         // Convert single trigger object to triggers array format expected by UI
         const triggerConditions = existingRule.trigger.conditions.map((condition: any) => ({
           id: condition.id || `condition_${Date.now()}`,
           type: condition.type || 'keyword',
-          name: getDisplayNameForTriggerType(condition.type),
-          description: getDescriptionForTriggerType(condition.type),
-          icon: getIconForTriggerType(condition.type),
-          color: getColorForTriggerType(condition.type),
+          name: getDisplayNameForTriggerType(condition.type || 'keyword'),
+          description: getDescriptionForTriggerType(condition.type || 'keyword'),
+          icon: getIconForTriggerType(condition.type || 'keyword'),
+          color: getColorForTriggerType(condition.type || 'keyword'),
           config: {
             value: condition.value || '',
             operator: condition.operator || 'contains',
             field: condition.field,
-            caseSensitive: condition.caseSensitive || false
+            caseSensitive: condition.caseSensitive || false,
+            keywords: condition.value ? condition.value.toString() : ''
           }
         }));
         triggers = triggerConditions;
       } else if (Array.isArray(existingRule.triggers)) {
         triggers = existingRule.triggers.map((trigger: any) => ({
-          ...trigger,
-          icon: getIconForTriggerType(trigger.type),
-          color: getColorForTriggerType(trigger.type)
+          id: trigger.id || `trigger_${Date.now()}`,
+          type: trigger.type || 'keyword',
+          name: trigger.name || getDisplayNameForTriggerType(trigger.type || 'keyword'),
+          description: trigger.description || getDescriptionForTriggerType(trigger.type || 'keyword'),
+          icon: getIconForTriggerType(trigger.type || 'keyword'),
+          color: getColorForTriggerType(trigger.type || 'keyword'),
+          config: trigger.config || {}
         }));
+      }
+      
+      // If no triggers found, create a default one based on the trigger object
+      if (triggers.length === 0 && existingRule.trigger) {
+        triggers = [{
+          id: `trigger_${Date.now()}`,
+          type: existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword',
+          name: getDisplayNameForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
+          description: getDescriptionForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
+          icon: getIconForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
+          color: getColorForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
+          config: {
+            keywords: '',
+            value: '',
+            operator: 'contains'
+          }
+        }];
       }
 
       // Parse actions from backend format
@@ -388,12 +412,27 @@ export default function AutomationRuleBuilder({
         actions = existingRule.actions.map((action: any) => ({
           id: action.id || `action_${Date.now()}`,
           type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
-          name: getDisplayNameForActionType(action.type),
-          description: getDescriptionForActionType(action.type),
-          icon: getIconForActionType(action.type),
-          color: getColorForActionType(action.type),
+          name: action.name || getDisplayNameForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
+          description: action.description || getDescriptionForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
+          icon: getIconForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
+          color: getColorForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
           config: action.params || action.config || {}
         }));
+      }
+      
+      // If no actions found, create a default one
+      if (actions.length === 0) {
+        actions = [{
+          id: `action_${Date.now()}`,
+          type: 'auto_reply',
+          name: getDisplayNameForActionType('auto_reply'),
+          description: getDescriptionForActionType('auto_reply'),
+          icon: getIconForActionType('auto_reply'),
+          color: getColorForActionType('auto_reply'),
+          config: {
+            message: 'Resposta automática'
+          }
+        }];
       }
 
       console.log('🔧 [AutomationRuleBuilder] Parsed triggers:', triggers);
