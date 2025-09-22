@@ -1063,7 +1063,7 @@ router.post('/telegram/set-webhook', jwtAuth, async (req: AuthenticatedRequest, 
       // ✅ SAVE: Update configuration with webhook URL
       const updatedConfig = {
         ...config,
-        telegramWebhookUrl: webhookUrl,
+        telegramWebhookUrl: telegramWebhookUrl,
         webhookConfigured: true,
         lastWebhookUpdate: new Date().toISOString()
       };
