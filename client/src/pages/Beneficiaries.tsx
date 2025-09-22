@@ -207,10 +207,10 @@ export default function Beneficiaries() {
   // Functions for managing many-to-many relationships
   const handleAddCustomer = async (customerId: string) => {
     if (!editingBeneficiary?.id) return;
-    
+
     try {
       const response = await apiRequest("POST", `/api/beneficiaries/${editingBeneficiary.id}/customers`, { customerId });
-      
+
       if (response.ok) {
         // Update local state
         const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId) || 
@@ -218,7 +218,7 @@ export default function Beneficiaries() {
         if (customer) {
           setBeneficiaryCustomers(prev => [...prev, customer]);
         }
-        
+
         setShowCustomerSelector(false);
         toast({
           title: "Sucesso",
@@ -239,14 +239,14 @@ export default function Beneficiaries() {
 
   const handleRemoveCustomer = async (customerId: string) => {
     if (!editingBeneficiary?.id) return;
-    
+
     try {
       const response = await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
-      
+
       if (response.ok) {
         // Update local state
         setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
-        
+
         toast({
           title: "Sucesso",
           description: "Cliente desassociado com sucesso",
@@ -314,7 +314,7 @@ export default function Beneficiaries() {
   // Derived values - handle both nested and direct data structures
   let beneficiaries = [];
   let pagination = { total: 0, totalPages: 0 };
-  
+
   if (beneficiariesData) {
     // Try nested structure first (data.beneficiaries)
     if (beneficiariesData.data?.beneficiaries && Array.isArray(beneficiariesData.data.beneficiaries)) {
@@ -331,7 +331,7 @@ export default function Beneficiaries() {
       beneficiaries = beneficiariesData;
     }
   }
-  
+
   console.log('[BENEFICIARIES] Data structure:', { 
     hasData: !!beneficiariesData, 
     beneficiariesCount: beneficiaries.length,
@@ -364,7 +364,7 @@ export default function Beneficiaries() {
       ...data,
       customerId: data.customerId === "none" ? "" : data.customerId
     };
-    
+
     if (editingBeneficiary) {
       updateBeneficiaryMutation.mutate({ id: editingBeneficiary.id, data: processedData });
     } else {
@@ -376,7 +376,7 @@ export default function Beneficiaries() {
   const handleEdit = (beneficiary: Beneficiary) => {
     console.log('Editing beneficiary:', beneficiary);
     setEditingBeneficiary(beneficiary);
-    
+
     // Map database fields to form fields
     const formData = {
       firstName: beneficiary.first_name || beneficiary.firstName || "",
@@ -393,7 +393,7 @@ export default function Beneficiaries() {
       contactPerson: beneficiary.contact_person || beneficiary.contactPerson || "",
       contactPhone: beneficiary.contact_phone || beneficiary.contactPhone || "",
     };
-    
+
     console.log('Form data for editing:', formData);
     form.reset(formData);
     setIsCreateDialogOpen(true);
@@ -485,58 +485,105 @@ export default function Beneficiaries() {
                     Adicionar Cliente
                   </Button>
                 </div>
-                
+
                 {/* Lista de clientes associados */}
                 <div className="space-y-2">
                   {beneficiaryCustomers.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Nenhum cliente associado</p>
                   ) : (
-                    beneficiaryCustomers.map((customer: any) => (
-                      <div key={customer.id} className="flex items-center justify-between p-2 border rounded-md">
-                        <span className="text-sm">
-                          {customer.first_name} {customer.last_name} - {customer.email}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveCustomer(customer.id)}
-                        >
-                          ✕
-                        </Button>
-                      </div>
-                    ))
+                    beneficiaryCustomers.map((customer) => {
+                      const customerName = customer.fullName || 
+                                         `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() ||
+                                         customer.name || 
+                                         customer.email || 
+                                         'Cliente sem nome';
+
+                      return (
+                        <div key={customer.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div>
+                            <span className="font-medium">{customerName}</span>
+                            <span className="text-sm text-gray-500 ml-2">{customer.email}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveCustomer(customer.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
 
                 {/* Seletor de cliente modal */}
                 {showCustomerSelector && (
-                  <div className="border rounded-md p-3 bg-muted/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm">Selecionar Cliente:</Label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowCustomerSelector(false)}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                    <Select onValueChange={handleAddCustomer}>
+                  <div className="mt-4 p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Selecionar Cliente</h4>
+                    <Select onValueChange={(value) => handleAddCustomer(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Escolha um cliente" />
+                        <SelectValue placeholder="Selecione um cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        {((customersData as any)?.customers || []).filter((customer: any) => 
-                          !beneficiaryCustomers.some((fc: any) => fc.id === customer.id)
-                        ).map((customer: any) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}
+                        {isLoadingCustomers ? (
+                          <SelectItem value="loading" disabled>
+                            Carregando clientes...
                           </SelectItem>
-                        ))}
+                        ) : (
+                          (() => {
+                            // Get customers from different possible data structures
+                            let customers = [];
+                            if (customersData?.success && customersData?.customers) {
+                              customers = customersData.customers;
+                            } else if (customersData?.customers) {
+                              customers = customersData.customers;
+                            } else if (Array.isArray(customersData)) {
+                              customers = customersData;
+                            }
+
+                            // Filter out already associated customers
+                            const availableCustomers = customers.filter((c: any) => 
+                              !beneficiaryCustomers.some(bc => bc.id === c.id)
+                            );
+
+                            if (availableCustomers.length === 0) {
+                              return (
+                                <SelectItem value="no-customers" disabled>
+                                  Nenhum cliente disponível
+                                </SelectItem>
+                              );
+                            }
+
+                            return availableCustomers.map((customer: any) => {
+                              const customerName = customer.fullName || 
+                                                 `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() ||
+                                                 customer.name || 
+                                                 customer.email || 
+                                                 'Cliente sem nome';
+
+                              return (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  <div className="flex flex-col">
+                                    <span>{customerName}</span>
+                                    <span className="text-sm text-gray-500">
+                                      {customer.email} {customer.cpf && `• CPF: ${customer.cpf}`}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              );
+                            });
+                          })()
+                        )}
                       </SelectContent>
                     </Select>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCustomerSelector(false)}
+                      className="mt-2"
+                    >
+                      Cancelar
+                    </Button>
                   </div>
                 )}
               </div>
