@@ -517,7 +517,7 @@ export default function AutomationRuleBuilder({
       const url = ruleData.id 
         ? `/api/omnibridge/automation-rules/${ruleData.id}` 
         : '/api/omnibridge/automation-rules';
-      const method = ruleData.id ? 'PATCH' : 'POST'; // Use PATCH for updates
+      const method = ruleData.id ? 'PUT' : 'POST'; // Use PUT for updates
 
       // Remove id from the payload for updates
       const { id, ...payload } = ruleData;
