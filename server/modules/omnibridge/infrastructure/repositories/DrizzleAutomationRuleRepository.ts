@@ -289,24 +289,71 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       return field || defaultValue;
     };
 
-    // Convert single trigger object back to triggers array for frontend compatibility
+    // Convert backend data to frontend format
     const triggerFromDb = parseJsonField(row.trigger, {});
-    const triggersForFrontend = triggerFromDb && Object.keys(triggerFromDb).length > 0 
-      ? [triggerFromDb] 
-      : [];
+    const actionsFromDb = parseJsonField(row.actions, []);
+    
+    // Convert trigger object to triggers array with proper format for frontend
+    let triggersForFrontend = [];
+    if (triggerFromDb && triggerFromDb.conditions && Array.isArray(triggerFromDb.conditions)) {
+      // Legacy format: trigger.conditions array -> convert to triggers array
+      triggersForFrontend = triggerFromDb.conditions.map((condition: any, index: number) => ({
+        id: condition.id || `trigger_${Date.now()}_${index}`,
+        type: condition.type || 'keyword',
+        name: this.getDisplayNameForTriggerType(condition.type || 'keyword'),
+        description: this.getDescriptionForTriggerType(condition.type || 'keyword'),
+        config: {
+          keywords: condition.value || condition.keywords || '',
+          value: condition.value || condition.keywords || '',
+          operator: condition.operator || 'contains',
+          field: condition.field || 'content',
+          caseSensitive: condition.caseSensitive || false
+        }
+      }));
+    } else if (triggerFromDb && Object.keys(triggerFromDb).length > 0) {
+      // Single trigger object -> convert to triggers array
+      triggersForFrontend = [{
+        id: triggerFromDb.id || `trigger_${Date.now()}`,
+        type: triggerFromDb.type === 'keyword_match' ? 'keyword' : (triggerFromDb.type || 'keyword'),
+        name: this.getDisplayNameForTriggerType(triggerFromDb.type || 'keyword'),
+        description: this.getDescriptionForTriggerType(triggerFromDb.type || 'keyword'),
+        config: {
+          keywords: triggerFromDb.keywords || triggerFromDb.value || '',
+          value: triggerFromDb.value || triggerFromDb.keywords || '',
+          operator: triggerFromDb.operator || 'contains',
+          field: triggerFromDb.field || 'content',
+          caseSensitive: triggerFromDb.caseSensitive || false
+        }
+      }];
+    }
+
+    // Convert actions to proper frontend format
+    const actionsForFrontend = actionsFromDb.map((action: any, index: number) => ({
+      id: action.id || `action_${Date.now()}_${index}`,
+      type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
+      name: this.getDisplayNameForActionType(action.type),
+      description: this.getDescriptionForActionType(action.type),
+      config: {
+        message: action.params?.message || '',
+        template: action.params?.template || '',
+        recipient: action.params?.recipient || '',
+        priority: action.params?.priority || 'medium',
+        ...action.params
+      }
+    }));
 
     console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`);
     console.log(`   - Trigger from DB:`, triggerFromDb);
     console.log(`   - Triggers for frontend:`, triggersForFrontend);
-    console.log(`   - Actions from DB:`, parseJsonField(row.actions, []));
+    console.log(`   - Actions for frontend:`, actionsForFrontend);
 
     return new AutomationRule(
       row.id,
       row.tenant_id || row.tenantId,
       row.name,
       row.description || '',
-      triggersForFrontend, // Convert back to array for frontend
-      parseJsonField(row.actions, []),
+      triggersForFrontend, // Convert to proper frontend format
+      actionsForFrontend, // Convert to proper frontend format
       row.enabled,
       row.priority || 1,
       row.ai_enabled || row.aiEnabled || false,
@@ -317,5 +364,57 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       row.created_at || row.createdAt,
       row.updated_at || row.updatedAt
     );
+  }
+
+  private getDisplayNameForTriggerType(type: string): string {
+    const mapping: Record<string, string> = {
+      'keyword': 'Palavra-chave',
+      'keyword_match': 'Palavra-chave',
+      'time_based': 'Baseado em tempo',
+      'sender_based': 'Baseado no remetente',
+      'content_analysis': 'Análise de conteúdo'
+    };
+    return mapping[type] || 'Gatilho personalizado';
+  }
+
+  private getDescriptionForTriggerType(type: string): string {
+    const mapping: Record<string, string> = {
+      'keyword': 'Ativa quando detecta palavras específicas',
+      'keyword_match': 'Ativa quando detecta palavras específicas',
+      'time_based': 'Ativa em horários específicos',
+      'sender_based': 'Ativa baseado no remetente',
+      'content_analysis': 'Ativa baseado na análise do conteúdo'
+    };
+    return mapping[type] || 'Gatilho personalizado';
+  }
+
+  private getDisplayNameForActionType(type: string): string {
+    const mapping: Record<string, string> = {
+      'auto_reply': 'Resposta automática',
+      'send_auto_reply': 'Resposta automática',
+      'create_ticket': 'Criar ticket',
+      'send_notification': 'Enviar notificação',
+      'forward_message': 'Encaminhar mensagem',
+      'add_tags': 'Adicionar tags',
+      'assign_agent': 'Designar agente',
+      'mark_priority': 'Marcar prioridade',
+      'archive': 'Arquivar'
+    };
+    return mapping[type] || 'Ação personalizada';
+  }
+
+  private getDescriptionForActionType(type: string): string {
+    const mapping: Record<string, string> = {
+      'auto_reply': 'Envia resposta pré-definida',
+      'send_auto_reply': 'Envia resposta pré-definida',
+      'create_ticket': 'Cria um novo ticket',
+      'send_notification': 'Envia notificação',
+      'forward_message': 'Encaminha para outro agente',
+      'add_tags': 'Categoriza com tags',
+      'assign_agent': 'Designa agente específico',
+      'mark_priority': 'Define nível de prioridade',
+      'archive': 'Move para arquivo'
+    };
+    return mapping[type] || 'Ação personalizada';
   }
 }
