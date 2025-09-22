@@ -1193,6 +1193,36 @@ function TriggerConfigForm({
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="channelKeywords">Palavras-chave para monitorar</Label>
+              <Input
+                id="channelKeywords"
+                placeholder="ex: ajuda, suporte, problema"
+                value={config.keywords || config.value || ''}
+                onChange={(e) => setConfig({ 
+                  ...config, 
+                  keywords: e.target.value,
+                  value: e.target.value 
+                })}
+                data-testid="channel-keywords-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="channelMatchType">Tipo de correspondência</Label>
+              <Select 
+                value={config.operator || 'contains'} 
+                onValueChange={(value) => setConfig({ ...config, operator: value })}
+              >
+                <SelectTrigger data-testid="channel-match-type-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="contains">Contém a palavra</SelectItem>
+                  <SelectItem value="exact">Palavra exata</SelectItem>
+                  <SelectItem value="starts">Inicia com</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         );
       case 'priority':
