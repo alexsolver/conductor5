@@ -355,114 +355,86 @@ export default function AutomationRuleBuilder({
     if (existingRule) {
       console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
 
-      // Parse triggers from backend format
+      // DEFINITIVE FIX: Complete parsing of all triggers and actions
       let triggers = [];
-      
-      // Handle both single trigger object and triggers array
-      if (existingRule.trigger && existingRule.trigger.conditions) {
-        // Convert single trigger object to triggers array format expected by UI
-        const triggerConditions = existingRule.trigger.conditions.map((condition: any) => ({
-          id: condition.id || `condition_${Date.now()}`,
-          type: condition.type || 'keyword',
-          name: getDisplayNameForTriggerType(condition.type || 'keyword'),
-          description: getDescriptionForTriggerType(condition.type || 'keyword'),
-          icon: getIconForTriggerType(condition.type || 'keyword'),
-          color: getColorForTriggerType(condition.type || 'keyword'),
-          config: {
-            value: condition.value || '',
-            operator: condition.operator || 'contains',
-            field: condition.field,
-            caseSensitive: condition.caseSensitive || false,
-            keywords: condition.value ? condition.value.toString() : ''
-          }
-        }));
-        triggers = triggerConditions;
-      } else if (Array.isArray(existingRule.triggers)) {
-        triggers = existingRule.triggers.map((trigger: any) => ({
-          id: trigger.id || `trigger_${Date.now()}`,
+      let actions = [];
+
+      // STEP 1: Parse triggers with comprehensive fallback logic
+      console.log('🔧 [AutomationRuleBuilder] Step 1: Processing triggers...');
+
+      // Priority 1: Check for triggers array (modern format)
+      if (Array.isArray(existingRule.triggers) && existingRule.triggers.length > 0) {
+        console.log('🔧 [AutomationRuleBuilder] Found triggers array with', existingRule.triggers.length, 'items');
+        triggers = existingRule.triggers.map((trigger: any, index: number) => ({
+          id: trigger.id || `trigger_array_${Date.now()}_${index}`,
           type: trigger.type || 'keyword',
           name: trigger.name || getDisplayNameForTriggerType(trigger.type || 'keyword'),
           description: trigger.description || getDescriptionForTriggerType(trigger.type || 'keyword'),
           icon: getIconForTriggerType(trigger.type || 'keyword'),
           color: getColorForTriggerType(trigger.type || 'keyword'),
-          config: trigger.config || {}
+          config: {
+            keywords: trigger.config?.keywords || trigger.config?.value || '',
+            value: trigger.config?.value || trigger.config?.keywords || '',
+            operator: trigger.config?.operator || 'contains',
+            field: trigger.config?.field || 'content',
+            caseSensitive: trigger.config?.caseSensitive || false,
+            ...trigger.config
+          }
         }));
       }
-      
-      // CRITICAL FIX: Enhanced trigger parsing for all backend data formats
-      if (triggers.length === 0 && existingRule.trigger) {
-        console.log('🔧 [AutomationRuleBuilder] Processing trigger from backend:', existingRule.trigger);
-        
-        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : 
-                               existingRule.trigger.type || 'keyword';
-        
-        // Handle conditions array format (primary format)
-        if (existingRule.trigger.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
-          triggers = existingRule.trigger.conditions.map((condition: any, index: number) => {
-            const conditionType = condition.type || baseTriggerType;
-            return {
-              id: condition.id || `trigger_${Date.now()}_${index}`,
-              type: conditionType,
-              name: getDisplayNameForTriggerType(conditionType),
-              description: getDescriptionForTriggerType(conditionType),
-              icon: getIconForTriggerType(conditionType),
-              color: getColorForTriggerType(conditionType),
-              config: {
-                keywords: condition.value || condition.keywords || '',
-                value: condition.value || '',
-                operator: condition.operator || 'contains',
-                field: condition.field || 'content',
-                caseSensitive: condition.caseSensitive || false
-              }
-            };
-          });
-        } 
-        // Handle direct trigger data format (fallback)
-        else if (existingRule.trigger.type) {
-          const triggerData = existingRule.trigger;
-          triggers = [{
-            id: triggerData.id || `trigger_${Date.now()}`,
-            type: baseTriggerType,
-            name: getDisplayNameForTriggerType(baseTriggerType),
-            description: getDescriptionForTriggerType(baseTriggerType),
-            icon: getIconForTriggerType(baseTriggerType),
-            color: getColorForTriggerType(baseTriggerType),
+
+      // Priority 2: Check for trigger.conditions (legacy format)
+      else if (existingRule.trigger?.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
+        console.log('🔧 [AutomationRuleBuilder] Found trigger conditions array with', existingRule.trigger.conditions.length, 'items');
+        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
+
+        triggers = existingRule.trigger.conditions.map((condition: any, index: number) => {
+          const conditionType = condition.type || baseTriggerType;
+          return {
+            id: condition.id || `condition_${Date.now()}_${index}`,
+            type: conditionType,
+            name: getDisplayNameForTriggerType(conditionType),
+            description: getDescriptionForTriggerType(conditionType),
+            icon: getIconForTriggerType(conditionType),
+            color: getColorForTriggerType(conditionType),
             config: {
-              keywords: triggerData.keywords || triggerData.value || '',
-              value: triggerData.value || '',
-              operator: triggerData.operator || 'contains',
-              field: triggerData.field || 'content',
-              caseSensitive: triggerData.caseSensitive || false
+              keywords: condition.value || condition.keywords || '',
+              value: condition.value || condition.keywords || '',
+              operator: condition.operator || 'contains',
+              field: condition.field || 'content',
+              caseSensitive: condition.caseSensitive || false
             }
-          }];
-        }
-        // Create default trigger if none found but trigger object exists
-        else {
-          triggers = [{
-            id: `trigger_${Date.now()}`,
-            type: 'keyword',
-            name: getDisplayNameForTriggerType('keyword'),
-            description: getDescriptionForTriggerType('keyword'),
-            icon: getIconForTriggerType('keyword'),
-            color: getColorForTriggerType('keyword'),
-            config: {
-              keywords: '',
-              value: '',
-              operator: 'contains',
-              field: 'content',
-              caseSensitive: false
-            }
-          }];
-        }
-        
-        console.log('🔧 [AutomationRuleBuilder] Enhanced trigger parsing - created triggers:', triggers);
+          };
+        });
       }
-      
-      // Ensure we always have at least one trigger for editing mode
-      if (triggers.length === 0 && existingRule) {
-        console.log('🔧 [AutomationRuleBuilder] No triggers found, creating default trigger for editing');
+
+      // Priority 3: Single trigger object (minimal format)
+      else if (existingRule.trigger && existingRule.trigger.type) {
+        console.log('🔧 [AutomationRuleBuilder] Found single trigger object');
+        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type;
+
         triggers = [{
-          id: `trigger_${Date.now()}`,
+          id: existingRule.trigger.id || `single_trigger_${Date.now()}`,
+          type: baseTriggerType,
+          name: getDisplayNameForTriggerType(baseTriggerType),
+          description: getDescriptionForTriggerType(baseTriggerType),
+          icon: getIconForTriggerType(baseTriggerType),
+          color: getColorForTriggerType(baseTriggerType),
+          config: {
+            keywords: existingRule.trigger.keywords || existingRule.trigger.value || '',
+            value: existingRule.trigger.value || existingRule.trigger.keywords || '',
+            operator: existingRule.trigger.operator || 'contains',
+            field: existingRule.trigger.field || 'content',
+            caseSensitive: existingRule.trigger.caseSensitive || false
+          }
+        }];
+      }
+
+      // Fallback: Create default trigger if nothing found
+      if (triggers.length === 0) {
+        console.log('🔧 [AutomationRuleBuilder] No triggers found, creating default trigger');
+        triggers = [{
+          id: `default_trigger_${Date.now()}`,
           type: 'keyword',
           name: getDisplayNameForTriggerType('keyword'),
           description: getDescriptionForTriggerType('keyword'),
@@ -478,43 +450,55 @@ export default function AutomationRuleBuilder({
         }];
       }
 
-      // Parse actions from backend format
-      let actions = [];
-      if (Array.isArray(existingRule.actions)) {
-        actions = existingRule.actions.map((action: any) => ({
-          id: action.id || `action_${Date.now()}`,
-          type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
-          name: action.name || getDisplayNameForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
-          description: action.description || getDescriptionForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
-          icon: getIconForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
-          color: getColorForActionType(action.type === 'send_auto_reply' ? 'auto_reply' : action.type),
-          config: action.params || action.config || {}
-        }));
-      }
-      
-      // If no actions found, create a default one
-      if (actions.length === 0) {
+      // STEP 2: Parse actions with comprehensive support
+      console.log('🔧 [AutomationRuleBuilder] Step 2: Processing actions...');
+
+      if (Array.isArray(existingRule.actions) && existingRule.actions.length > 0) {
+        console.log('🔧 [AutomationRuleBuilder] Found actions array with', existingRule.actions.length, 'items');
+        actions = existingRule.actions.map((action: any, index: number) => {
+          // Normalize action type
+          const normalizedType = action.type === 'send_auto_reply' ? 'auto_reply' : action.type;
+
+          return {
+            id: action.id || `action_${Date.now()}_${index}`,
+            type: normalizedType,
+            name: action.name || getDisplayNameForActionType(normalizedType),
+            description: action.description || getDescriptionForActionType(normalizedType),
+            icon: getIconForActionType(normalizedType),
+            color: getColorForActionType(normalizedType),
+            config: {
+              ...action.params,
+              ...action.config,
+              // Ensure common properties are available
+              message: action.params?.message || action.config?.message || action.params?.replyTemplate || '',
+              template: action.params?.template || action.config?.template || '',
+              recipient: action.params?.recipient || action.config?.recipient || '',
+              priority: action.params?.priority || action.config?.priority || 'medium'
+            }
+          };
+        });
+      } else {
+        console.log('🔧 [AutomationRuleBuilder] No actions found, creating default action');
         actions = [{
-          id: `action_${Date.now()}`,
+          id: `default_action_${Date.now()}`,
           type: 'auto_reply',
           name: getDisplayNameForActionType('auto_reply'),
           description: getDescriptionForActionType('auto_reply'),
           icon: getIconForActionType('auto_reply'),
           color: getColorForActionType('auto_reply'),
           config: {
-            message: 'Resposta automática'
+            message: '',
+            template: '',
+            recipient: '',
+            priority: 'medium'
           }
         }];
       }
 
-      console.log('🔧 [AutomationRuleBuilder] Final parsed triggers:', triggers.length, triggers);
-      console.log('🔧 [AutomationRuleBuilder] Final parsed actions:', actions.length, actions);
-      
-      // Validation check
-      if (existingRule && triggers.length === 0) {
-        console.error('🚨 [AutomationRuleBuilder] CRITICAL: No triggers parsed for existing rule:', existingRule.id);
-      }
+      console.log('🔧 [AutomationRuleBuilder] FINAL RESULT - Parsed triggers:', triggers.length, triggers);
+      console.log('🔧 [AutomationRuleBuilder] FINAL RESULT - Parsed actions:', actions.length, actions);
 
+      // Set the rule with complete data
       setRule({
         id: existingRule.id,
         name: existingRule.name || '',
@@ -1321,8 +1305,8 @@ function ActionConfigForm({
               <Textarea
                 id="replyMessage"
                 placeholder="Digite a mensagem automática..."
-                value={config.replyMessage || ''}
-                onChange={(e) => setConfig({ ...config, replyMessage: e.target.value })}
+                value={config.message || ''}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={4}
                 data-testid="reply-message-input"
               />
@@ -1345,8 +1329,8 @@ function ActionConfigForm({
             <div>
               <Label htmlFor="ticketPriority">Prioridade do ticket</Label>
               <Select 
-                value={config.ticketPriority || 'medium'} 
-                onValueChange={(value) => setConfig({ ...config, ticketPriority: value })}
+                value={config.priority || 'medium'} 
+                onValueChange={(value) => setConfig({ ...config, priority: value })}
               >
                 <SelectTrigger data-testid="ticket-priority-select">
                   <SelectValue />
@@ -1369,8 +1353,8 @@ function ActionConfigForm({
               <Input
                 id="notificationRecipients"
                 placeholder="ex: admin@empresa.com, suporte@empresa.com"
-                value={config.notificationRecipients || ''}
-                onChange={(e) => setConfig({ ...config, notificationRecipients: e.target.value })}
+                value={config.recipient || ''}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="notification-recipients-input"
               />
             </div>
@@ -1379,8 +1363,8 @@ function ActionConfigForm({
               <Textarea
                 id="notificationMessage"
                 placeholder="Nova mensagem recebida que requer atenção..."
-                value={config.notificationMessage || ''}
-                onChange={(e) => setConfig({ ...config, notificationMessage: e.target.value })}
+                value={config.message || ''}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={3}
                 data-testid="notification-message-input"
               />
@@ -1410,8 +1394,8 @@ function ActionConfigForm({
               <Input
                 id="targetAgent"
                 placeholder="ex: suporte@empresa.com"
-                value={config.targetAgent || ''}
-                onChange={(e) => setConfig({ ...config, targetAgent: e.target.value })}
+                value={config.recipient || ''}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="target-agent-input"
               />
             </div>
@@ -1420,8 +1404,8 @@ function ActionConfigForm({
               <Textarea
                 id="forwardNote"
                 placeholder="Mensagem encaminhada automaticamente devido a..."
-                value={config.forwardNote || ''}
-                onChange={(e) => setConfig({ ...config, forwardNote: e.target.value })}
+                value={config.message || ''}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={2}
                 data-testid="forward-note-input"
               />
@@ -1436,8 +1420,8 @@ function ActionConfigForm({
               <Input
                 id="agentEmail"
                 placeholder="ex: joao.silva@empresa.com"
-                value={config.agentEmail || ''}
-                onChange={(e) => setConfig({ ...config, agentEmail: e.target.value })}
+                value={config.recipient || ''}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="agent-email-input"
               />
             </div>
@@ -1466,8 +1450,8 @@ function ActionConfigForm({
               <Label htmlFor="priorityLevel">Nível de prioridade</Label>
               <select
                 id="priorityLevel"
-                value={config.priorityLevel || 'high'}
-                onChange={(e) => setConfig({ ...config, priorityLevel: e.target.value })}
+                value={config.priority || 'high'}
+                onChange={(e) => setConfig({ ...config, priority: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="priority-level-select"
               >
@@ -1483,8 +1467,8 @@ function ActionConfigForm({
               <Input
                 id="priorityReason"
                 placeholder="ex: Cliente VIP, problema crítico, SLA..."
-                value={config.priorityReason || ''}
-                onChange={(e) => setConfig({ ...config, priorityReason: e.target.value })}
+                value={config.message || ''}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 data-testid="priority-reason-input"
               />
             </div>
@@ -1526,8 +1510,8 @@ function ActionConfigForm({
               <Textarea
                 id="archiveNote"
                 placeholder="Arquivado automaticamente por..."
-                value={config.archiveNote || ''}
-                onChange={(e) => setConfig({ ...config, archiveNote: e.target.value })}
+                value={config.message || ''}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={2}
                 data-testid="archive-note-input"
               />
