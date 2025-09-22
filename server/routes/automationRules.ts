@@ -280,7 +280,7 @@ router.patch('/:ruleId', async (req: any, res) => {
     const automationManager = GlobalAutomationManager.getInstance();
     const repository = new DrizzleAutomationRuleRepository();
 
-    const updatedRule = await repository.update(ruleId, updateData);
+    const updatedRule = await repository.update(ruleId, tenantId, updateData);
 
     console.log(`✅ [AUTOMATION-RULES] Rule updated successfully: ${updatedRule.name} (${updatedRule.id})`);
 

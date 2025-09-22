@@ -512,26 +512,37 @@ export default function AutomationRuleBuilder({
   }, [existingRule]);
 
   // Save rule mutation
-  const saveRuleMutation = useMutation({
-    mutationFn: (ruleData: AutomationRule) => {
-      if (existingRule) {
-        // Editing existing rule - use PUT
-        return apiRequest('PUT', `/api/omnibridge/automation-rules/${existingRule.id}`, ruleData);
-      } else {
-        // Creating new rule - use POST
-        return apiRequest('POST', '/api/omnibridge/automation-rules', ruleData);
-      }
+  const saveMutation = useMutation({
+    mutationFn: async (ruleData: any) => {
+      const url = ruleData.id 
+        ? `/api/omnibridge/automation-rules/${ruleData.id}` 
+        : '/api/omnibridge/automation-rules';
+      const method = ruleData.id ? 'PATCH' : 'POST'; // Use PATCH for updates
+
+      // Remove id from the payload for updates
+      const { id, ...payload } = ruleData;
+
+      console.log(`🔄 [AutomationRuleBuilder] Sending ${method} request to ${url} with payload:`, payload);
+
+      const response = await apiRequest(method, url, payload);
+      return await response.json();
     },
-    onSuccess: () => {
-      const action = existingRule ? 'atualizada' : 'criada';
-      toast({ title: 'Sucesso', description: `Regra de automação ${action} com sucesso!` });
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/automation-rules'] });
-      onSave?.(rule);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+      toast({
+        title: '✅ Sucesso',
+        description: `Regra ${existingRule ? 'atualizada' : 'criada'} com sucesso!`
+      });
+      onSave?.(data);
       onClose();
     },
-    onError: () => {
-      const action = existingRule ? 'atualizar' : 'criar';
-      toast({ title: 'Erro', description: `Falha ao ${action} regra de automação`, variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('❌ [AutomationRuleBuilder] Save error:', error);
+      toast({
+        title: '❌ Erro',
+        description: error.message || 'Falha ao salvar regra de automação',
+        variant: 'destructive'
+      });
     }
   });
 
@@ -591,21 +602,63 @@ export default function AutomationRuleBuilder({
     }));
   };
 
-  const handleSave = () => {
+  // Save handler
+  const handleSave = async () => {
     if (!rule.name.trim()) {
-      toast({ title: 'Erro', description: 'Nome da regra é obrigatório', variant: 'destructive' });
-      return;
-    }
-    if (rule.triggers.length === 0) {
-      toast({ title: 'Erro', description: 'Adicione pelo menos um gatilho', variant: 'destructive' });
-      return;
-    }
-    if (rule.actions.length === 0) {
-      toast({ title: 'Erro', description: 'Adicione pelo menos uma ação', variant: 'destructive' });
+      toast({
+        title: '❌ Erro de validação',
+        description: 'O nome da regra é obrigatório',
+        variant: 'destructive'
+      });
       return;
     }
 
-    saveRuleMutation.mutate(rule);
+    if (rule.triggers.length === 0) {
+      toast({
+        title: '❌ Erro de validação', 
+        description: 'Pelo menos um gatilho é obrigatório',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (rule.actions.length === 0) {
+      toast({
+        title: '❌ Erro de validação',
+        description: 'Pelo menos uma ação é obrigatória',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const ruleData = {
+        name: rule.name,
+        description: rule.description,
+        isEnabled: rule.enabled, // Use isEnabled instead of enabled for DTO
+        priority: rule.priority,
+        triggers: rule.triggers,
+        actions: rule.actions
+      };
+
+      console.log('🔧 [AutomationRuleBuilder] Saving rule data:', ruleData);
+
+      if (existingRule?.id) {
+        await saveMutation.mutateAsync({ 
+          ...ruleData, 
+          id: existingRule.id 
+        });
+      } else {
+        await saveMutation.mutateAsync(ruleData);
+      }
+    } catch (error) {
+      console.error('❌ [AutomationRuleBuilder] Error saving rule:', error);
+      toast({
+        title: '❌ Erro ao salvar',
+        description: 'Não foi possível salvar a regra de automação',
+        variant: 'destructive'
+      });
+    }
   };
 
   const openTriggerConfig = (trigger: Trigger) => {
@@ -747,11 +800,11 @@ export default function AutomationRuleBuilder({
                   </Button>
                   <Button
                     onClick={handleSave}
-                    disabled={saveRuleMutation.isPending}
+                    disabled={saveMutation.isPending}
                     data-testid="save-rule"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar'}
+                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
                   </Button>
                 </div>
               </div>

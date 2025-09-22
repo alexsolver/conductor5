@@ -146,32 +146,52 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
-  async update(rule: AutomationRule): Promise<AutomationRule> {
+  async update(id: string, tenantId: string, updateData: Partial<AutomationRule>): Promise<AutomationRule> {
     try {
-      console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${rule.id}`);
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${id}`);
 
-      const tenantDb = await this.getTenantDb(rule.tenantId);
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      // Build update object dynamically based on provided data
+      const updateObject: any = {
+        updatedAt: new Date()
+      };
+      
+      if (updateData.name !== undefined) updateObject.name = updateData.name;
+      if (updateData.description !== undefined) updateObject.description = updateData.description || '';
+      if (updateData.enabled !== undefined) updateObject.enabled = updateData.enabled;
+      if (updateData.priority !== undefined) updateObject.priority = updateData.priority;
+      if (updateData.trigger !== undefined) updateObject.trigger = updateData.trigger;
+      if (updateData.actions !== undefined) updateObject.actions = updateData.actions;
+      if (updateData.aiEnabled !== undefined) updateObject.aiEnabled = updateData.aiEnabled;
+      if (updateData.aiPromptId !== undefined) updateObject.aiPromptId = updateData.aiPromptId;
+      
       const result = await tenantDb.update(schema.omnibridgeAutomationRules)
-        .set({
-          name: rule.name,
-          description: rule.description || '',
-          enabled: rule.enabled,
-          priority: rule.priority,
-          trigger: rule.trigger,
-          actions: rule.actions,
-          updatedAt: new Date()
-        })
+        .set(updateObject)
         .where(and(
-          eq(schema.omnibridgeAutomationRules.id, rule.id),
-          eq(schema.omnibridgeAutomationRules.tenantId, rule.tenantId)
+          eq(schema.omnibridgeAutomationRules.id, id),
+          eq(schema.omnibridgeAutomationRules.tenantId, tenantId)
         ))
         .returning();
 
       if (result.length > 0) {
-        return this.mapRowToEntity(result[0]);
+        const updatedRule = this.mapRowToEntity(result[0]);
+        
+        // Sync with automation engine
+        try {
+          const { GlobalAutomationManager } = await import('../services/AutomationEngine');
+          const automationManager = GlobalAutomationManager.getInstance();
+          const engine = automationManager.getEngine(tenantId);
+          engine.updateRule(updatedRule);
+          console.log(`✅ [DrizzleAutomationRuleRepository] Rule synced to engine: ${updatedRule.name}`);
+        } catch (syncError) {
+          console.error(`⚠️ [DrizzleAutomationRuleRepository] Failed to sync rule to engine:`, syncError);
+        }
+        
+        return updatedRule;
       }
 
-      return rule;
+      throw new Error('Rule not found or update failed');
     } catch (error) {
       console.error(`❌ [DrizzleAutomationRuleRepository] Error updating rule: ${(error as Error).message}`);
       throw error;
