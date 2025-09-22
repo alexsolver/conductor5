@@ -12,6 +12,7 @@ import {
   Play, 
   Pause, 
   Trash2, 
+  Edit,
   TestTube,
   BarChart3,
   Zap,
@@ -31,6 +32,8 @@ export default function AutomationRules() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // Debug log para verificar se o componente está montando
@@ -275,6 +278,25 @@ export default function AutomationRules() {
               });
             }}
           />
+          
+          <AutomationRuleBuilder
+            isOpen={isEditDialogOpen}
+            onClose={() => {
+              setIsEditDialogOpen(false);
+              setEditingRule(null);
+            }}
+            existingRule={editingRule}
+            onSave={(rule) => {
+              // Invalidar cache e fechar modal
+              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+              setIsEditDialogOpen(false);
+              setEditingRule(null);
+              toast({
+                title: '✅ Regra atualizada',
+                description: 'Regra de automação atualizada com sucesso!'
+              });
+            }}
+          />
         </div>
       </div>
 
@@ -415,6 +437,16 @@ export default function AutomationRules() {
                       </div>
 
                       <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingRule(rule);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"

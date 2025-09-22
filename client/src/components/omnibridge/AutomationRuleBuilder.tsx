@@ -92,6 +92,7 @@ interface AutomationRuleBuilderProps {
   isOpen: boolean;
   onClose: () => void;
   initialMessage?: any;
+  existingRule?: any;
   onSave?: (rule: AutomationRule) => void;
 }
 
@@ -205,6 +206,7 @@ export default function AutomationRuleBuilder({
   isOpen, 
   onClose, 
   initialMessage, 
+  existingRule,
   onSave 
 }: AutomationRuleBuilderProps) {
   const { toast } = useToast();
@@ -212,12 +214,12 @@ export default function AutomationRuleBuilder({
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const [rule, setRule] = useState<AutomationRule>({
-    name: '',
-    description: '',
-    enabled: true,
-    triggers: [],
-    actions: [],
-    priority: 1
+    name: existingRule?.name || '',
+    description: existingRule?.description || '',
+    enabled: existingRule?.enabled ?? true,
+    triggers: existingRule?.triggers || [],
+    actions: existingRule?.actions || [],
+    priority: existingRule?.priority || 1
   });
 
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -228,16 +230,25 @@ export default function AutomationRuleBuilder({
 
   // Save rule mutation
   const saveRuleMutation = useMutation({
-    mutationFn: (ruleData: AutomationRule) =>
-      apiRequest('POST', '/api/omnibridge/automation-rules', ruleData),
+    mutationFn: (ruleData: AutomationRule) => {
+      if (existingRule) {
+        // Editing existing rule - use PUT
+        return apiRequest('PUT', `/api/omnibridge/automation-rules/${existingRule.id}`, ruleData);
+      } else {
+        // Creating new rule - use POST
+        return apiRequest('POST', '/api/omnibridge/automation-rules', ruleData);
+      }
+    },
     onSuccess: () => {
-      toast({ title: 'Sucesso', description: 'Regra de automação criada com sucesso!' });
+      const action = existingRule ? 'atualizada' : 'criada';
+      toast({ title: 'Sucesso', description: `Regra de automação ${action} com sucesso!` });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/automation-rules'] });
       onSave?.(rule);
       onClose();
     },
     onError: () => {
-      toast({ title: 'Erro', description: 'Falha ao criar regra de automação', variant: 'destructive' });
+      const action = existingRule ? 'atualizar' : 'criar';
+      toast({ title: 'Erro', description: `Falha ao ${action} regra de automação`, variant: 'destructive' });
     }
   });
 
