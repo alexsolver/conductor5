@@ -210,32 +210,37 @@ router.post('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) =>
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
-      return res.status(401).json({ message: 'Tenant ID required' });
+      return sendError(res as any, "Tenant ID required", "Authentication required", 401);
     }
 
     const { id } = req.params;
     const { customerId } = req.body;
 
     if (!customerId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Customer ID is required'
-      });
+      return sendError(res as any, "Customer ID is required", "Validation failed", 400);
+    }
+
+    console.log(`[BENEFICIARIES] Adding customer ${customerId} to beneficiary ${id}`);
+
+    // Verify beneficiary exists
+    const beneficiary = await storage.getBeneficiary(id, tenantId);
+    if (!beneficiary) {
+      return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
+    }
+
+    // Verify customer exists
+    const customers = await storage.getCustomers(tenantId);
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) {
+      return sendError(res as any, "Customer not found", "Customer not found", 404);
     }
 
     const relationship = await storage.addBeneficiaryCustomer(tenantId, id, customerId);
 
-    res.json({
-      success: true,
-      data: relationship,
-      message: 'Customer added to beneficiary successfully'
-    });
+    return sendSuccess(res as any, { relationship }, "Customer added to beneficiary successfully");
   } catch (error) {
-    console.error('Error adding customer to beneficiary:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to add customer to beneficiary'
-    });
+    console.error('[BENEFICIARIES] Error adding customer to beneficiary:', error);
+    return sendError(res as any, error as any, "Failed to add customer to beneficiary", 500);
   }
 });
 
@@ -244,29 +249,23 @@ router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRe
   try {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
-      return res.status(401).json({ message: 'Tenant ID required' });
+      return sendError(res as any, "Tenant ID required", "Authentication required", 401);
     }
 
     const { id, customerId } = req.params;
+    
+    console.log(`[BENEFICIARIES] Removing customer ${customerId} from beneficiary ${id}`);
+
     const success = await storage.removeBeneficiaryCustomer(tenantId, id, customerId);
 
     if (success) {
-      res.json({
-        success: true,
-        message: 'Customer removed from beneficiary successfully'
-      });
+      return sendSuccess(res as any, null, "Customer removed from beneficiary successfully");
     } else {
-      res.status(404).json({
-        success: false,
-        error: 'Relationship not found'
-      });
+      return sendError(res as any, "Relationship not found", "Relationship not found", 404);
     }
   } catch (error) {
-    console.error('Error removing customer from beneficiary:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to remove customer from beneficiary'
-    });
+    console.error('[BENEFICIARIES] Error removing customer from beneficiary:', error);
+    return sendError(res as any, error as any, "Failed to remove customer from beneficiary", 500);
   }
 });
 

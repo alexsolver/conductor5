@@ -2215,7 +2215,7 @@ export class DatabaseStorage implements IStorage {
           fcr.created_at as relationship_created_at
         FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships fcr
         JOIN ${sql.identifier(schemaName)}.customers c ON c.id = fcr.customer_id
-        WHERE fcr.beneficiary_id = ${beneficiaryId}
+        WHERE fcr.beneficiary_id = ${beneficiaryId} AND fcr.tenant_id = ${validatedTenantId}
         ORDER BY fcr.created_at DESC
       `);
 
@@ -2241,8 +2241,8 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiary_customer_relationships (
-          beneficiary_id, customer_id, created_at, updated_at
-        ) VALUES (${beneficiaryId}, ${customerId}, NOW(), NOW())
+          beneficiary_id, customer_id, tenant_id, created_at, updated_at
+        ) VALUES (${beneficiaryId}, ${customerId}, ${validatedTenantId}, NOW(), NOW())
         ON CONFLICT (beneficiary_id, customer_id) DO NOTHING
         RETURNING *
       `);
@@ -2272,6 +2272,7 @@ export class DatabaseStorage implements IStorage {
         DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
         WHERE beneficiary_id = ${beneficiaryId} 
           AND customer_id = ${customerId}
+          AND tenant_id = ${validatedTenantId}
       `);
 
       return (result.rowCount || 0) > 0;

@@ -209,20 +209,26 @@ export default function Beneficiaries() {
     if (!editingBeneficiary?.id) return;
     
     try {
-      await apiRequest("POST", `/api/beneficiaries/${editingBeneficiary.id}/customers`, { customerId });
+      const response = await apiRequest("POST", `/api/beneficiaries/${editingBeneficiary.id}/customers`, { customerId });
       
-      // Update local state
-      const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId);
-      if (customer) {
-        setBeneficiaryCustomers(prev => [...prev, customer]);
+      if (response.ok) {
+        // Update local state
+        const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId) || 
+                        (customersData as any)?.find((c: any) => c.id === customerId);
+        if (customer) {
+          setBeneficiaryCustomers(prev => [...prev, customer]);
+        }
+        
+        setShowCustomerSelector(false);
+        toast({
+          title: "Sucesso",
+          description: "Cliente associado com sucesso",
+        });
+      } else {
+        throw new Error('Failed to add customer');
       }
-      
-      setShowCustomerSelector(false);
-      toast({
-        title: "Sucesso",
-        description: "Cliente associado com sucesso",
-      });
     } catch (error) {
+      console.error('[BENEFICIARIES] Error adding customer:', error);
       toast({
         title: "Erro",
         description: "Falha ao associar cliente",
@@ -235,16 +241,21 @@ export default function Beneficiaries() {
     if (!editingBeneficiary?.id) return;
     
     try {
-      await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
+      const response = await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
       
-      // Update local state
-      setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
-      
-      toast({
-        title: "Sucesso",
-        description: "Cliente desassociado com sucesso",
-      });
+      if (response.ok) {
+        // Update local state
+        setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
+        
+        toast({
+          title: "Sucesso",
+          description: "Cliente desassociado com sucesso",
+        });
+      } else {
+        throw new Error('Failed to remove customer');
+      }
     } catch (error) {
+      console.error('[BENEFICIARIES] Error removing customer:', error);
       toast({
         title: "Erro",
         description: "Falha ao desassociar cliente",
