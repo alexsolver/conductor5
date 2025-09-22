@@ -513,54 +513,19 @@ export default function AutomationRuleBuilder({
 
   // Save rule mutation
   const saveMutation = useMutation({
-    mutationFn: async (ruleData: AutomationRule) => {
-      console.log('🔧 [AutomationRuleBuilder] Saving rule data:', ruleData);
+    mutationFn: async (ruleData: any) => {
+      const url = ruleData.id 
+        ? `/api/omnibridge/automation-rules/${ruleData.id}` 
+        : '/api/omnibridge/automation-rules';
+      const method = ruleData.id ? 'PATCH' : 'POST'; // Use PATCH for updates
 
-      const payload = {
-        name: ruleData.name,
-        description: ruleData.description,
-        isEnabled: ruleData.enabled,
-        priority: ruleData.priority,
-        triggers: ruleData.triggers,
-        actions: ruleData.actions
-      };
+      // Remove id from the payload for updates
+      const { id, ...payload } = ruleData;
 
-      let url = '/api/automation-rules';
-      let method = 'POST';
+      console.log(`🔄 [AutomationRuleBuilder] Sending ${method} request to ${url} with payload:`, payload);
 
-      if (existingRule?.id) {
-        url = `/api/automation-rules/${existingRule.id}`;
-        method = 'PATCH';
-        console.log(`🔄 [AutomationRuleBuilder] Sending ${method} request to ${url} with payload:`, payload);
-      }
-
-      const response = await apiRequest(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ [AutomationRuleBuilder] ${method} request failed:`, {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
-        throw new Error(`Failed to save automation rule: ${response.status} ${response.statusText}`);
-      }
-
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('❌ [AutomationRuleBuilder] Server returned non-JSON response:', textResponse);
-        throw new Error('Server returned invalid response format');
-      }
-
-      return response.json();
+      const response = await apiRequest(method, url, payload);
+      return await response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
