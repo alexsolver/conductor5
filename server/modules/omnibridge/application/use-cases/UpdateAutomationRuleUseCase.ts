@@ -41,7 +41,8 @@ export class UpdateAutomationRuleUseCase {
           operator: trigger.config?.operator || 'contains',
           value: trigger.config?.value || trigger.config?.keywords || '',
           field: trigger.config?.field || 'content',
-          caseSensitive: trigger.config?.caseSensitive || false
+          caseSensitive: trigger.config?.caseSensitive || false,
+          channelType: trigger.config?.channelType || ''
         }))
       };
     }

@@ -172,6 +172,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       if (updateData.enabled !== undefined) updateObject.enabled = updateData.enabled;
       if (updateData.priority !== undefined) updateObject.priority = updateData.priority;
       if (updateData.trigger !== undefined) {
+        console.log(`🔧 [DrizzleAutomationRuleRepository] RAW updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
+        console.log(`🔧 [DrizzleAutomationRuleRepository] Is array?`, Array.isArray(updateData.trigger));
+        console.log(`🔧 [DrizzleAutomationRuleRepository] Length:`, updateData.trigger?.length);
+        
         // Convert triggers array to single trigger object for storage
         updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0 
           ? this.convertFrontendTriggerToStorage(updateData.trigger[0])
