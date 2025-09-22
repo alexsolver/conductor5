@@ -26,14 +26,24 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   async create(rule: AutomationRule): Promise<AutomationRule> {
     try {
       console.log(`🔍 [DrizzleAutomationRuleRepository] Creating rule: ${rule.name}`);
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Rule data:`, JSON.stringify(rule, null, 2));
 
       const tenantDb = await this.getTenantDb(rule.tenantId);
+      
+      // Convert triggers array to single trigger object for storage
+      const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0 
+        ? rule.trigger[0] 
+        : rule.trigger || {};
+        
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Converting trigger for storage:`, triggerForStorage);
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Actions for storage:`, rule.actions);
+
       const result = await tenantDb.insert(schema.omnibridgeAutomationRules).values({
         id: rule.id,
         tenantId: rule.tenantId,
         name: rule.name,
         description: rule.description || '',
-        trigger: rule.trigger,
+        trigger: triggerForStorage,
         actions: rule.actions,
         enabled: rule.enabled,
         priority: rule.priority,
@@ -161,8 +171,17 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       if (updateData.description !== undefined) updateObject.description = updateData.description || '';
       if (updateData.enabled !== undefined) updateObject.enabled = updateData.enabled;
       if (updateData.priority !== undefined) updateObject.priority = updateData.priority;
-      if (updateData.trigger !== undefined) updateObject.trigger = updateData.trigger;
-      if (updateData.actions !== undefined) updateObject.actions = updateData.actions;
+      if (updateData.trigger !== undefined) {
+        // Convert triggers array to single trigger object for storage
+        updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0 
+          ? updateData.trigger[0] 
+          : updateData.trigger || {};
+        console.log(`🔧 [DrizzleAutomationRuleRepository] Converting update trigger for storage:`, updateObject.trigger);
+      }
+      if (updateData.actions !== undefined) {
+        updateObject.actions = updateData.actions;
+        console.log(`🔧 [DrizzleAutomationRuleRepository] Update actions for storage:`, updateData.actions);
+      }
       if (updateData.aiEnabled !== undefined) updateObject.aiEnabled = updateData.aiEnabled;
       if (updateData.aiPromptId !== undefined) updateObject.aiPromptId = updateData.aiPromptId;
       
@@ -270,12 +289,23 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       return field || defaultValue;
     };
 
+    // Convert single trigger object back to triggers array for frontend compatibility
+    const triggerFromDb = parseJsonField(row.trigger, {});
+    const triggersForFrontend = triggerFromDb && Object.keys(triggerFromDb).length > 0 
+      ? [triggerFromDb] 
+      : [];
+
+    console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`);
+    console.log(`   - Trigger from DB:`, triggerFromDb);
+    console.log(`   - Triggers for frontend:`, triggersForFrontend);
+    console.log(`   - Actions from DB:`, parseJsonField(row.actions, []));
+
     return new AutomationRule(
       row.id,
       row.tenant_id || row.tenantId,
       row.name,
       row.description || '',
-      parseJsonField(row.trigger, {}),
+      triggersForFrontend, // Convert back to array for frontend
       parseJsonField(row.actions, []),
       row.enabled,
       row.priority || 1,

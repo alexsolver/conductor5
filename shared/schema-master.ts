@@ -50,6 +50,28 @@ export * from "./schema-expense-approval";
 // - All expense approval schemas and types
 
 // ========================================
+// OMNIBRIDGE AUTOMATION RULES TABLE
+// ========================================
+// OmniBridge automation rules for message processing
+export const omnibridgeAutomationRules = pgTable('omnibridge_automation_rules', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description').default(''),
+  trigger: jsonb('trigger').default({}),
+  actions: jsonb('actions').default([]),
+  enabled: boolean('enabled').default(true),
+  priority: integer('priority').default(1),
+  aiEnabled: boolean('ai_enabled').default(false),
+  aiPromptId: varchar('ai_prompt_id', { length: 36 }),
+  executionCount: integer('execution_count').default(0),
+  successCount: integer('success_count').default(0),
+  lastExecuted: timestamp('last_executed'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// ========================================
 // LEGACY COMPATIBILITY NOTE
 // ========================================
 // All table definitions have been moved to dedicated schema files:
