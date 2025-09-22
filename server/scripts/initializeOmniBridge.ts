@@ -25,6 +25,24 @@ export async function initializeOmniBridgeTables() {
         created_at TIMESTAMP DEFAULT NOW() NOT NULL,
         updated_at TIMESTAMP DEFAULT NOW() NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS omnibridge_messages (
+        id VARCHAR(36) PRIMARY KEY,
+        tenant_id VARCHAR(36) NOT NULL,
+        channel_id VARCHAR(100) NOT NULL,
+        channel_type VARCHAR(50) NOT NULL,
+        from_address TEXT,
+        to_address TEXT,
+        subject TEXT,
+        content TEXT,
+        metadata JSONB DEFAULT '{}',
+        status VARCHAR(20) DEFAULT 'unread',
+        priority VARCHAR(20) DEFAULT 'medium',
+        tags JSONB DEFAULT '[]',
+        timestamp TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
     `);
 
     await db.execute(`

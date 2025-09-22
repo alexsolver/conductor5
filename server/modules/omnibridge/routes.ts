@@ -85,6 +85,41 @@ router.put('/messages/:messageId/star', jwtAuth, (req, res) => omniBridgeControl
 
 router.get('/inbox/stats', jwtAuth, (req, res) => omniBridgeController.getInboxStats(req, res));
 
+// Debug route for Gmail email fetching
+router.post('/debug/gmail/fetch', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Manual Gmail fetch triggered for tenant: ${tenantId}`);
+
+    const { GmailService } = await import('../../services/integrations/gmail/GmailService');
+    const gmailService = GmailService.getInstance();
+
+    // Start monitoring if not already started
+    const result = await gmailService.startEmailMonitoring(tenantId, 'imap-email');
+    if (!result.success) {
+      return res.status(500).json({ error: result.message });
+    }
+
+    // Fetch recent emails
+    await gmailService.fetchRecentEmails(tenantId, 'imap-email');
+
+    res.json({
+      success: true,
+      message: 'Gmail fetch completed successfully'
+    });
+  } catch (error) {
+    console.error('❌ [OMNIBRIDGE-DEBUG] Gmail fetch error:', error);
+    res.status(500).json({
+      error: 'Failed to fetch Gmail emails',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Automation Rules - Full Implementation
 import { DrizzleAutomationRuleRepository } from './infrastructure/repositories/DrizzleAutomationRuleRepository';
 import { GetAutomationRulesUseCase } from './application/use-cases/GetAutomationRulesUseCase';

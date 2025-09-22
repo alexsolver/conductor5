@@ -32,15 +32,15 @@ export class OmniBridgeAutoStart {
   async detectAndStartCommunicationChannels(tenantId: string): Promise<void> {
     try {
       console.log(`🔍 OmniBridge: Detecting communication channels for tenant: ${tenantId}`);
-      
+
       // Get storage instance
       const { storage } = await import('../storage-simple');
-      
+
       // Get all integrations for tenant
       const integrations = await storage.getTenantIntegrations(tenantId);
-      
+
       // Filter only communication category integrations
-      const communicationIntegrations = integrations.filter((integration: Integration) => 
+      const communicationIntegrations = integrations.filter((integration: Integration) =>
         integration.category === 'Comunicação'
       );
 
@@ -98,7 +98,7 @@ export class OmniBridgeAutoStart {
   private async startImapMonitoring(tenantId: string, integration: Integration): Promise<void> {
     try {
       const monitoringKey = `${tenantId}-${integration.id}`;
-      
+
       // Check if already monitoring
       if (this.activeMonitoring.get(monitoringKey)) {
         console.log(`🔄 IMAP monitoring already active for ${integration.name}`);
@@ -106,7 +106,7 @@ export class OmniBridgeAutoStart {
       }
 
       console.log(`📧 Starting IMAP monitoring for ${integration.name}`);
-      
+
       // Validate IMAP config
       const config = integration.config;
       if (!config.emailAddress || !config.password || !config.imapServer) {
@@ -116,10 +116,10 @@ export class OmniBridgeAutoStart {
 
       // Start Gmail service monitoring
       const result = await this.gmailService.startEmailMonitoring(tenantId, integration.id);
-      
+
       if (result.success) {
         this.activeMonitoring.set(monitoringKey, true);
-        
+
         // Update integration status in database to persist state
         try {
           const { storage } = await import('../storage-simple');
@@ -127,10 +127,10 @@ export class OmniBridgeAutoStart {
         } catch (error) {
           console.error('❌ Error updating integration status:', error);
         }
-        
+
         console.log(`✅ IMAP monitoring started successfully for ${integration.name}`);
         console.log(`📥 Inbox will be populated with emails from ${config.emailAddress}`);
-        
+
         // Start periodic sync every 2 minutes for real-time updates
         await this.gmailService.startPeriodicSync(tenantId, integration.id, 2);
         console.log(`🔄 Periodic sync started: every 2 minutes`);
@@ -145,11 +145,11 @@ export class OmniBridgeAutoStart {
   async stopAllMonitoring(tenantId: string): Promise<void> {
     try {
       console.log(`🛑 Stopping all OmniBridge monitoring for tenant: ${tenantId}`);
-      
+
       // Stop Gmail service monitoring
       await this.gmailService.stopEmailMonitoring(tenantId);
       await this.gmailService.stopPeriodicSync(tenantId);
-      
+
       // Update integration status in database to persist state
       try {
         const { storage } = await import('../storage-simple');
@@ -160,13 +160,13 @@ export class OmniBridgeAutoStart {
       } catch (error) {
         console.error('❌ Error updating integration status:', error);
       }
-      
+
       // Clear active monitoring map
-      const keysToRemove = Array.from(this.activeMonitoring.keys()).filter(key => 
+      const keysToRemove = Array.from(this.activeMonitoring.keys()).filter(key =>
         key.startsWith(tenantId)
       );
       keysToRemove.forEach(key => this.activeMonitoring.delete(key));
-      
+
       console.log(`✅ All OmniBridge monitoring stopped for tenant: ${tenantId}`);
     } catch (error) {
       console.error('❌ Error stopping OmniBridge monitoring:', error);

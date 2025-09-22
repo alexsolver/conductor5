@@ -30,10 +30,10 @@ export class GmailService {
 
   async testConnection(config: GmailConfig): Promise<{ success: boolean; error?: string; latency?: number }> {
     const startTime = Date.now();
-    
+
     try {
       console.log(`🔍 Testing Gmail IMAP connection to ${config.host}:${config.port}`);
-      
+
       const imap = new Imap({
         user: config.user,
         password: config.password,
@@ -57,10 +57,10 @@ export class GmailService {
             resolved = true;
             const latency = Date.now() - startTime;
             console.log(`✅ Gmail IMAP test successful in ${latency}ms`);
-            
+
             // Close the connection immediately after test
             imap.end();
-            
+
             resolve({
               success: true,
               latency
@@ -178,9 +178,9 @@ export class GmailService {
   async startEmailMonitoring(tenantId: string, channelId: string): Promise<{ success: boolean; message?: string }> {
     try {
       console.log(`📧 Starting Gmail monitoring for tenant: ${tenantId}, channel: ${channelId}`);
-      
+
       const gmailConfig = await this.getGmailConfig(tenantId);
-      
+
       console.log(`📧 Gmail Connection Config:`, {
         user: gmailConfig.user,
         host: gmailConfig.host,
@@ -188,7 +188,7 @@ export class GmailService {
         tls: gmailConfig.tls,
         hasPassword: !!gmailConfig.password
       });
-      
+
       const connected = await this.connectToGmail(tenantId, gmailConfig);
 
       if (!connected) {
@@ -217,7 +217,7 @@ export class GmailService {
   async stopEmailMonitoring(tenantId: string): Promise<void> {
     try {
       console.log(`📪 Stopping Gmail monitoring for tenant: ${tenantId}`);
-      
+
       const connection = this.imapConnections.get(tenantId);
       if (connection) {
         connection.end();
@@ -277,13 +277,13 @@ export class GmailService {
 
           f.on('message', (msg: any, seqno: number) => {
             const email: any = { seqno };
-            
+
             msg.on('body', (stream: any, info: any) => {
               let buffer = Buffer.alloc(0);
               stream.on('data', (chunk: Buffer) => {
                 buffer = Buffer.concat([buffer, chunk]);
               });
-              
+
               stream.once('end', () => {
                 const headers = Imap.parseHeader(buffer.toString());
                 email.headers = headers;
@@ -317,14 +317,12 @@ export class GmailService {
   private async processEmails(tenantId: string, channelId: string, emails: any[]): Promise<void> {
     try {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      
+      let processedCount = 0;
+
       for (const email of emails) {
         try {
           const headers = email.headers || {};
           const messageId = headers['message-id'] ? headers['message-id'][0] : `gmail-${Date.now()}-${Math.random()}`;
-          
-          // Check for duplicates using inbox table instead (emails table doesn't exist)
-          // For now, we'll just log and continue processing each email
 
           const from = headers.from ? headers.from[0] : 'unknown@gmail.com';
           const to = headers.to ? headers.to[0] : 'alexsolver@gmail.com';
@@ -336,7 +334,7 @@ export class GmailService {
             console.log(`⏭️ Skipping very old email from ${date.getFullYear()}: ${subject}`);
             continue;
           }
-          
+
           // Show which year we're processing
           console.log(`📅 Processing email from ${date.getFullYear()}: ${subject}`);
 
@@ -354,57 +352,72 @@ export class GmailService {
             priority = 'low';
           }
 
-          const emailData = {
-            id: `email-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            tenantId,
-            messageId,
-            fromEmail,
-            fromName: fromName || null,
-            toEmail: to,
-            subject,
-            bodyText: `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message captured from Gmail.`,
-            bodyHtml: null,
-            priority,
-            isRead: false,
-            isProcessed: false,
-            emailDate: date,
-            receivedAt: new Date(),
-            hasAttachments: false,
-            attachmentCount: 0,
-            emailHeaders: JSON.stringify(headers),
-            attachmentDetails: '[]',
-            ccEmails: '[]',
-            bccEmails: '[]'
-          };
+          const emailBody = `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message captured from Gmail.`;
 
-          // Save to emails table using storage API
-          const { storage } = await import('../../../storage-simple');
-          
+
+          // ✅ CRITICAL FIX: Use MessageIngestionService para garantir que chegue no OmniBridge inbox
           try {
-            // Insert email into database using direct SQL (emails table exists)
-            const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+            const { MessageIngestionService } = await import('../../../modules/omnibridge/infrastructure/services/MessageIngestionService');
+            const { DrizzleMessageRepository } = await import('../../../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+            const { ProcessMessageUseCase } = await import('../../../modules/omnibridge/application/use-cases/ProcessMessageUseCase');
 
+            const messageRepository = new DrizzleMessageRepository();
+            const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
+            const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
+
+            // Preparar dados para ingestão no OmniBridge
+            const incomingMessage = {
+              channelId: 'imap-email',
+              channelType: 'email' as const,
+              from: fromEmail,
+              to: to,
+              subject: subject,
+              content: emailBody,
+              metadata: {
+                messageId,
+                fromName,
+                date: date.toISOString(),
+                headers: headers,
+                hasAttachments: Boolean(email.attachments?.length),
+                gmailProcessed: true
+              },
+              priority: priority as any,
+              tenantId
+            };
+
+            console.log(`🎯 [GMAIL-SERVICE] Ingesting email into OmniBridge inbox: ${subject}`);
+            const savedMessage = await ingestionService.ingestMessage(incomingMessage);
+
+            console.log(`✅ [GMAIL-SERVICE] Email successfully saved to OmniBridge inbox: ${savedMessage.id}`);
+            processedCount++;
+
+          } catch (ingestionError) {
+            console.error(`❌ [GMAIL-SERVICE] Failed to ingest email via OmniBridge service:`, ingestionError);
+
+            // Fallback: Insert directly into inbox table
             await tenantDb.execute(sql`
-              INSERT INTO ${sql.identifier(schemaName)}.emails (
-                tenant_id, message_id, from_email, from_name, to_email, cc_emails, bcc_emails,
-                subject, body_text, body_html, has_attachments, attachment_count,
-                attachment_details, email_headers, priority, is_read, is_processed,
-                email_date, received_at, processed_at
+              INSERT INTO inbox (
+                id, subject, sender, recipient, body, 
+                status, priority, channel, received_at, 
+                metadata, attachments, tenant_id, created_at, updated_at
               ) VALUES (
-                ${tenantId}, ${messageId}, ${fromEmail}, ${fromName}, ${to}, 
-                ${emailData.ccEmails}, ${emailData.bccEmails}, ${subject}, 
-                ${emailData.bodyText}, ${emailData.bodyHtml}, ${emailData.hasAttachments}, 
-                ${emailData.attachmentCount}, ${emailData.attachmentDetails}, 
-                ${emailData.emailHeaders}, ${priority}, false, false, 
-                ${date}, ${new Date()}, null
-              ) ON CONFLICT (message_id) DO NOTHING
+                ${messageId}, ${subject}, ${fromEmail}, ${to}, ${emailBody},
+                'unread', ${priority}, 'imap-email', ${date},
+                ${JSON.stringify({
+                  messageId,
+                  fromName,
+                  date: date.toISOString(),
+                  headers: headers,
+                  hasAttachments: Boolean(email.attachments?.length),
+                  fallbackInsert: true
+                })},
+                ${email.attachments?.length || 0},
+                ${tenantId}, NOW(), NOW()
+              ) ON CONFLICT (id) DO NOTHING
             `);
-            
-            console.log(`✅ Email saved to database: ${subject} (Priority: ${priority}, From: ${fromEmail})`);
-          } catch (saveError) {
-            console.error('Error saving email to database:', saveError);
-            console.log(`📧 Processed (not saved): ${subject} (Priority: ${priority}, From: ${fromEmail})`);
+
+            console.log(`✅ [GMAIL-SERVICE] Email saved via fallback method: ${subject}`);
+            processedCount++;
           }
         } catch (error) {
           console.error('Error processing individual email:', error);
@@ -415,38 +428,42 @@ export class GmailService {
     }
   }
 
-  async getGmailConfig(tenantId: string): Promise<GmailConfig> {
+  private async getGmailConfig(tenantId: string): Promise<GmailConfig> {
     try {
-      const { storage } = await import('../../../storage-simple');
-      
-      // Get IMAP Email integration credentials from database
-      const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
-      
-      if (!imapIntegration || !imapIntegration.config) {
-        throw new Error('IMAP Email integration not found or not configured');
+      const { storage } = await import('../../storage-simple');
+      const integration = await storage.getIntegrationByType(tenantId, 'imap');
+
+      if (!integration || !integration.config) {
+        console.error(`❌ [GMAIL-CONFIG] No IMAP integration found for tenant: ${tenantId}`);
+        throw new Error('Gmail integration not configured');
       }
 
-      const config = typeof imapIntegration.config === 'string' 
-        ? JSON.parse(imapIntegration.config) 
-        : imapIntegration.config;
+      // Validate required fields
+      if (!integration.config.user || !integration.config.password) {
+        console.error(`❌ [GMAIL-CONFIG] Missing credentials for tenant: ${tenantId}`);
+        throw new Error('Gmail credentials not configured');
+      }
 
-      return {
-        user: config.emailAddress,
-        password: config.password,
-        host: config.imapServer || 'imap.gmail.com',
-        port: parseInt(config.imapPort) || 993,
-        tls: config.imapSecurity === 'SSL/TLS'
+      const config = {
+        user: integration.config.user,
+        password: integration.config.password,
+        host: integration.config.host || 'imap.gmail.com',
+        port: integration.config.port || 993,
+        tls: integration.config.tls !== false
       };
+
+      console.log(`📧 [GMAIL-CONFIG] Configuration loaded for tenant ${tenantId}:`, {
+        user: config.user,
+        host: config.host,
+        port: config.port,
+        tls: config.tls,
+        hasPassword: !!config.password
+      });
+
+      return config;
     } catch (error) {
-      console.error('Error getting Gmail config:', error);
-      // Fallback to env config
-      return {
-        user: 'alexsolver@gmail.com',
-        password: process.env.GMAIL_APP_PASSWORD || 'cyyj vare pmjh scur',
-        host: 'imap.gmail.com',
-        port: 993,
-        tls: true
-      };
+      console.error(`❌ [GMAIL-CONFIG] Error getting Gmail config for tenant ${tenantId}:`, error);
+      throw error;
     }
   }
 
@@ -458,10 +475,10 @@ export class GmailService {
 
   async startPeriodicSync(tenantId: string, channelId: string, intervalMinutes: number = 5): Promise<void> {
     console.log(`🔄 Starting periodic Gmail sync every ${intervalMinutes} minutes for tenant: ${tenantId}`);
-    
+
     // Initial sync
     await this.startEmailMonitoring(tenantId, channelId);
-    
+
     // Set up periodic sync
     const intervalId = setInterval(async () => {
       try {
