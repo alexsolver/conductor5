@@ -213,13 +213,26 @@ export default function AutomationRuleBuilder({
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const [rule, setRule] = useState<AutomationRule>({
-    name: existingRule?.name || '',
-    description: existingRule?.description || '',
-    enabled: existingRule?.enabled ?? true,
-    triggers: existingRule?.triggers || [],
-    actions: existingRule?.actions || [],
-    priority: existingRule?.priority || 1
+  const [rule, setRule] = useState<AutomationRule>(() => {
+    if (existingRule) {
+      return {
+        id: existingRule.id,
+        name: existingRule.name || '',
+        description: existingRule.description || '',
+        enabled: existingRule.enabled ?? true,
+        triggers: Array.isArray(existingRule.triggers) ? existingRule.triggers : [],
+        actions: Array.isArray(existingRule.actions) ? existingRule.actions : [],
+        priority: existingRule.priority || 1
+      };
+    }
+    return {
+      name: '',
+      description: '',
+      enabled: true,
+      triggers: [],
+      actions: [],
+      priority: 1
+    };
   });
 
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -227,6 +240,22 @@ export default function AutomationRuleBuilder({
   const [showTriggerConfig, setShowTriggerConfig] = useState(false);
   const [showActionConfig, setShowActionConfig] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
+
+  // Update rule state when existingRule prop changes
+  useEffect(() => {
+    if (existingRule) {
+      console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
+      setRule({
+        id: existingRule.id,
+        name: existingRule.name || '',
+        description: existingRule.description || '',
+        enabled: existingRule.enabled ?? true,
+        triggers: Array.isArray(existingRule.triggers) ? existingRule.triggers : [],
+        actions: Array.isArray(existingRule.actions) ? existingRule.actions : [],
+        priority: existingRule.priority || 1
+      });
+    }
+  }, [existingRule]);
 
   // Save rule mutation
   const saveRuleMutation = useMutation({
@@ -433,14 +462,14 @@ export default function AutomationRuleBuilder({
                 <div className="flex-1 max-w-md space-y-2">
                   <Input
                     placeholder="Nome da regra..."
-                    value={rule.name}
+                    value={rule.name || ''}
                     onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
                     className="font-medium"
                     data-testid="rule-name"
                   />
                   <Input
                     placeholder="Descrição (opcional)..."
-                    value={rule.description}
+                    value={rule.description || ''}
                     onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
                     className="text-sm"
                     data-testid="rule-description"
