@@ -402,7 +402,7 @@ export class DatabaseStorage implements IStorage {
       // OPTIMIZED: Single query with proper parameterization
       let baseQuery = sql`
         SELECT 
-          id, first_name, last_name, email, phone, company,
+          id, first_name, last_name, email, phone,
           created_at, updated_at
         FROM ${sql.identifier(schemaName)}.customers
         WHERE 1=1
@@ -466,13 +466,12 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.customers 
-        (first_name, last_name, email, phone, company, tenant_id, created_at, updated_at)
+        (first_name, last_name, email, phone, tenant_id, created_at, updated_at)
         VALUES (
           ${customerData.firstName || null},
           ${customerData.lastName || null}, 
           ${customerData.email},
           ${customerData.phone || null},
-          ${customerData.company || null},
           ${validatedTenantId},
           NOW(),
           NOW()
@@ -512,7 +511,6 @@ export class DatabaseStorage implements IStorage {
           last_name = ${customerData.lastName || null},
           email = ${customerData.email},
           phone = ${customerData.phone || null},
-          company = ${customerData.company || null},
           updated_at = NOW()
         WHERE id = ${customerId} AND tenant_id = ${validatedTenantId}
         RETURNING *
