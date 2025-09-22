@@ -201,33 +201,57 @@ router.get('/:ruleId', async (req: any, res) => {
 router.post('/', async (req: any, res) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { name, description, conditions, actions, enabled = true, priority = 1 } = req.body;
+    const { name, description, triggers, actions, isEnabled = true, priority = 1 } = req.body;
+
+    console.log(`🔧 [AUTOMATION-RULES] Creating rule for tenant ${tenantId}`);
 
     if (!tenantId) {
       return res.status(400).json({
         success: false,
+        error: 'Tenant ID not found',
         message: 'Tenant ID not found'
       });
     }
 
     // Validações básicas
-    if (!name || !conditions || !actions || conditions.length === 0 || actions.length === 0) {
+    if (!name || !triggers || !actions || triggers.length === 0 || actions.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Name, conditions, and actions are required'
+        error: 'Missing required fields',
+        message: 'Name, triggers, and actions are required'
       });
     }
 
     const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Convert frontend format to backend format
+    const trigger = {
+      type: triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
+      conditions: triggers.map((t: any) => ({
+        id: t.id || `condition-${Date.now()}`,
+        type: t.type || 'keyword',
+        operator: t.config?.operator || 'contains',
+        value: t.config?.value || t.config?.keywords || '',
+        field: t.config?.field || 'content',
+        caseSensitive: t.config?.caseSensitive || false
+      }))
+    };
+
+    const automationActions = actions.map((action: any) => ({
+      id: action.id || `action-${Date.now()}`,
+      type: action.type === 'auto_reply' ? 'send_auto_reply' : action.type,
+      params: action.config || {},
+      priority: 1
+    }));
 
     const automationRuleEntity = new AutomationRule(
       ruleId,
       tenantId,
       name,
       description || '',
-      conditions,
-      actions,
-      enabled,
+      trigger,
+      automationActions,
+      isEnabled,
       priority
     );
 
@@ -247,15 +271,21 @@ router.post('/', async (req: any, res) => {
       console.error(`⚠️ [AUTOMATION-RULES] Failed to sync rule to engine:`, syncError);
     }
 
+    // Ensure we return proper JSON
+    res.setHeader('Content-Type', 'application/json');
     res.status(201).json({
       success: true,
       data: savedRule,
       message: 'Automation rule created successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [AUTOMATION-RULES] Error creating rule:', error);
+    
+    // Ensure we return proper JSON even on error
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
+      error: error.message || 'Internal server error',
       message: 'Failed to create automation rule'
     });
   }
@@ -270,10 +300,21 @@ router.patch('/:ruleId', async (req: any, res) => {
     const { ruleId } = req.params;
     const updateData = req.body;
 
+    console.log(`🔧 [AUTOMATION-RULES] Updating rule ${ruleId} for tenant ${tenantId}`);
+
     if (!tenantId) {
       return res.status(400).json({
         success: false,
+        error: 'Tenant ID not found',
         message: 'Tenant ID not found'
+      });
+    }
+
+    if (!ruleId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rule ID not found',
+        message: 'Rule ID not found'
       });
     }
 
@@ -292,15 +333,21 @@ router.patch('/:ruleId', async (req: any, res) => {
       console.error(`⚠️ [AUTOMATION-RULES] Failed to sync updated rule to engine:`, syncError);
     }
 
-    res.json({
+    // Ensure we return proper JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
       success: true,
       data: updatedRule,
       message: 'Automation rule updated successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [AUTOMATION-RULES] Error updating rule:', error);
+    
+    // Ensure we return proper JSON even on error
+    res.setHeader('Content-Type', 'application/json');
     res.status(500).json({
       success: false,
+      error: error.message || 'Internal server error',
       message: 'Failed to update automation rule'
     });
   }
