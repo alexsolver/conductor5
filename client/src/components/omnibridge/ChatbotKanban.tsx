@@ -707,7 +707,7 @@ export default function ChatbotVisualEditor() {
 
     const newNode: FlowNode = {
       id: `node_${Date.now()}`,
-      type: nodeType.type,
+      type: nodeType.type as FlowNode['type'],
       title: nodeType.name,
       description: nodeType.description,
       position: { x, y },
