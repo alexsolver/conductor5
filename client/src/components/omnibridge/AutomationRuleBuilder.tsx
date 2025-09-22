@@ -389,21 +389,46 @@ export default function AutomationRuleBuilder({
         }));
       }
       
-      // If no triggers found, create a default one based on the trigger object
+      // CRITICAL FIX: Handle the actual backend format from the API response
+      // The API returns: {"trigger": {"type": "keyword_match", "conditions": [...]}}
       if (triggers.length === 0 && existingRule.trigger) {
-        triggers = [{
-          id: `trigger_${Date.now()}`,
-          type: existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword',
-          name: getDisplayNameForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
-          description: getDescriptionForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
-          icon: getIconForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
-          color: getColorForTriggerType(existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword'),
-          config: {
-            keywords: '',
-            value: '',
-            operator: 'contains'
-          }
-        }];
+        const triggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
+        
+        // Create trigger based on conditions if they exist
+        if (existingRule.trigger.conditions && existingRule.trigger.conditions.length > 0) {
+          triggers = existingRule.trigger.conditions.map((condition: any) => ({
+            id: condition.id || `trigger_${Date.now()}`,
+            type: condition.type || triggerType,
+            name: getDisplayNameForTriggerType(condition.type || triggerType),
+            description: getDescriptionForTriggerType(condition.type || triggerType),
+            icon: getIconForTriggerType(condition.type || triggerType),
+            color: getColorForTriggerType(condition.type || triggerType),
+            config: {
+              keywords: condition.value || '',
+              value: condition.value || '',
+              operator: condition.operator || 'contains',
+              field: condition.field || 'content',
+              caseSensitive: condition.caseSensitive || false
+            }
+          }));
+        } else {
+          // Fallback: create at least one trigger from the main trigger object
+          triggers = [{
+            id: `trigger_${Date.now()}`,
+            type: triggerType,
+            name: getDisplayNameForTriggerType(triggerType),
+            description: getDescriptionForTriggerType(triggerType),
+            icon: getIconForTriggerType(triggerType),
+            color: getColorForTriggerType(triggerType),
+            config: {
+              keywords: '',
+              value: '',
+              operator: 'contains',
+              field: 'content',
+              caseSensitive: false
+            }
+          }];
+        }
       }
 
       // Parse actions from backend format
