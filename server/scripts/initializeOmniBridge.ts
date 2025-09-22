@@ -1,6 +1,6 @@
 
-import { db } from '../db';
-import { omnibridgeChannels, omnibridgeMessages } from '../../shared/schema';
+const { db } = require('../db');
+const { omnibridgeChannels, omnibridgeMessages } = require('../../shared/schema');
 
 export async function initializeOmniBridgeTables() {
   try {
@@ -75,7 +75,7 @@ export async function initializeOmniBridgeTables() {
 }
 
 // Execute if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   initializeOmniBridgeTables()
     .then(success => {
       console.log(success ? '✅ Initialization completed' : '❌ Initialization failed');
