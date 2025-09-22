@@ -354,6 +354,7 @@ export default function AutomationRuleBuilder({
   useEffect(() => {
     if (existingRule) {
       console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
+      console.log('🔍 [AutomationRuleBuilder] COMPLETE existingRule object:', JSON.stringify(existingRule, null, 2));
 
       // DEFINITIVE FIX: Complete parsing of all triggers and actions
       let triggers = [];
@@ -361,6 +362,11 @@ export default function AutomationRuleBuilder({
 
       // STEP 1: Parse triggers with comprehensive fallback logic
       console.log('🔧 [AutomationRuleBuilder] Step 1: Processing triggers...');
+
+      // Debug: Show what we're checking
+      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.triggers:', existingRule.triggers);
+      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.trigger:', existingRule.trigger);
+      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.actions:', existingRule.actions);
 
       // Priority 1: Check for triggers array (modern format)
       if (Array.isArray(existingRule.triggers) && existingRule.triggers.length > 0) {
