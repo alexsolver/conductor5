@@ -111,3 +111,19 @@ export const omnibridgeAiMetrics = pgTable('omnibridge_ai_metrics', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+export const omnibridgeTemplates = pgTable('omnibridge_templates', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  subject: varchar('subject', { length: 500 }),
+  content: text('content').notNull(),
+  variables: jsonb('variables').default([]),
+  category: varchar('category', { length: 100 }).notNull(),
+  isActive: boolean('is_active').default(true),
+  usageCount: integer('usage_count').default(0),
+  createdBy: varchar('created_by', { length: 36 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});

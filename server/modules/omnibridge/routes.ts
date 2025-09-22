@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { OmniBridgeController } from './application/controllers/OmniBridgeController';
 import { GetChannelsUseCase } from './application/use-cases/GetChannelsUseCase';
@@ -82,7 +83,7 @@ router.put('/messages/:messageId/archive', jwtAuth, (req, res) => omniBridgeCont
 router.put('/messages/:messageId/read', jwtAuth, (req, res) => omniBridgeController.markAsRead(req, res));
 router.put('/messages/:messageId/star', jwtAuth, (req, res) => omniBridgeController.starMessage(req, res));
 
-router.get('/inbox/stats', (req, res) => omniBridgeController.getInboxStats(req, res));
+router.get('/inbox/stats', jwtAuth, (req, res) => omniBridgeController.getInboxStats(req, res));
 
 // Automation Rules - Full Implementation
 import { DrizzleAutomationRuleRepository } from './infrastructure/repositories/DrizzleAutomationRuleRepository';
@@ -165,6 +166,190 @@ router.post('/chatbots/test', jwtAuth, async (req, res) => {
   }
 });
 
+// Template CRUD operations
+import { DrizzleTemplateRepository } from './infrastructure/repositories/DrizzleTemplateRepository';
+import { TemplateEntity } from './domain/entities/Template';
+
+const templateRepository = new DrizzleTemplateRepository();
+
+// Get all templates
+router.get('/templates', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { category, active } = req.query;
+    let templates;
+
+    if (category) {
+      templates = await templateRepository.findByCategory(category as string, tenantId);
+    } else if (active === 'true') {
+      templates = await templateRepository.findActiveByTenant(tenantId);
+    } else {
+      templates = await templateRepository.findByTenant(tenantId);
+    }
+
+    res.json({ success: true, data: templates });
+  } catch (error) {
+    console.error('[OmniBridge] Templates get error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get templates' });
+  }
+});
+
+// Create template
+router.post('/templates', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const userId = (req as any).user?.id;
+    
+    if (!tenantId || !userId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID and User ID required' });
+    }
+
+    const { name, description, subject, content, variables, category } = req.body;
+    
+    if (!name || !content || !category) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Name, content, and category are required' 
+      });
+    }
+
+    const templateId = randomUUID();
+    const template = new TemplateEntity(
+      templateId,
+      name,
+      content,
+      category,
+      tenantId,
+      userId,
+      description,
+      subject,
+      variables || [],
+      true,
+      0,
+      new Date(),
+      new Date()
+    );
+
+    const createdTemplate = await templateRepository.create(template);
+    res.json({ 
+      success: true, 
+      data: createdTemplate,
+      message: 'Template created successfully' 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Template create error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create template' });
+  }
+});
+
+// Update template
+router.put('/templates/:id', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const templateId = req.params.id;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const existingTemplate = await templateRepository.findById(templateId, tenantId);
+    if (!existingTemplate) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+
+    const { name, description, subject, content, variables, category, isActive } = req.body;
+    
+    // Update template properties
+    if (name !== undefined) existingTemplate.name = name;
+    if (description !== undefined) existingTemplate.description = description;
+    if (subject !== undefined) existingTemplate.subject = subject;
+    if (content !== undefined) existingTemplate.content = content;
+    if (variables !== undefined) existingTemplate.variables = variables;
+    if (category !== undefined) existingTemplate.category = category;
+    if (isActive !== undefined) {
+      if (isActive) {
+        existingTemplate.activate();
+      } else {
+        existingTemplate.deactivate();
+      }
+    }
+
+    const updatedTemplate = await templateRepository.update(existingTemplate);
+    res.json({ 
+      success: true, 
+      data: updatedTemplate,
+      message: 'Template updated successfully' 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Template update error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update template' });
+  }
+});
+
+// Delete template
+router.delete('/templates/:id', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const templateId = req.params.id;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const success = await templateRepository.delete(templateId, tenantId);
+    
+    if (!success) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Template deleted successfully' 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Template delete error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete template' });
+  }
+});
+
+// Toggle template active status
+router.post('/templates/:id/toggle', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const templateId = req.params.id;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const template = await templateRepository.findById(templateId, tenantId);
+    if (!template) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+
+    // Toggle active status
+    if (template.isActive) {
+      template.deactivate();
+    } else {
+      template.activate();
+    }
+
+    const updatedTemplate = await templateRepository.update(template);
+    res.json({ 
+      success: true, 
+      data: updatedTemplate,
+      message: `Template ${template.isActive ? 'activated' : 'deactivated'} successfully` 
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Template toggle error:', error);
+    res.status(500).json({ success: false, error: 'Failed to toggle template' });
+  }
+});
+
 // Template installation
 router.post('/templates/install', jwtAuth, async (req, res) => {
   try {
@@ -175,14 +360,21 @@ router.post('/templates/install', jwtAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
-    // Simulate template installation
-    // In a real implementation, this would create actual rules/chatbots
+    // Get the template and increment usage
+    const template = await templateRepository.findById(templateId, tenantId);
+    if (!template) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+
+    await templateRepository.incrementUsage(templateId, tenantId);
+    
     console.log(`Installing template ${templateId} for tenant ${tenantId}`);
     
     res.json({ 
       success: true, 
       data: { 
         templateId, 
+        template,
         installed: true,
         message: 'Template installed successfully' 
       } 
@@ -326,7 +518,7 @@ router.post('/sync-integrations', jwtAuth, async (req, res) => {
 });
 
 // Get integration sync status
-router.get('/sync-status', async (req, res) => {
+router.get('/sync-status', jwtAuth, async (req, res) => {
   try {
     // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
     const tenantId = (req as any).user?.tenantId;
@@ -362,7 +554,7 @@ router.get('/sync-status', async (req, res) => {
 });
 
 // AI Configuration Routes
-router.get('/ai-config', async (req, res) => {
+router.get('/ai-config', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
@@ -421,7 +613,7 @@ router.get('/ai-config', async (req, res) => {
   }
 });
 
-router.put('/ai-config', async (req, res) => {
+router.put('/ai-config', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
@@ -455,7 +647,7 @@ router.put('/ai-config', async (req, res) => {
     if (existing.length === 0) {
       // Create new
       await db.insert(omnibridgeAiConfig).values({
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         ...configData
       });
     } else {
@@ -473,7 +665,7 @@ router.put('/ai-config', async (req, res) => {
   }
 });
 
-router.get('/ai-metrics', async (req, res) => {
+router.get('/ai-metrics', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
@@ -528,7 +720,7 @@ router.get('/ai-metrics', async (req, res) => {
   }
 });
 
-router.post('/ai-prompts/test', async (req, res) => {
+router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     if (!tenantId) {
