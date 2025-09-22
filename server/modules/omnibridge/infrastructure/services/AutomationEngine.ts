@@ -28,11 +28,11 @@ export class AutomationEngine {
 
   constructor(private tenantId: string, aiService?: IAIAnalysisPort, actionExecutor?: IActionExecutorPort) {
     console.log(`🤖 [AUTOMATION-ENGINE] Initialized for tenant: ${tenantId}`);
-    
+
     // Usar dependências injetadas ou criar padrão
     this.aiService = aiService || new AIAnalysisService();
     this.actionExecutor = actionExecutor || new ActionExecutor(this.aiService);
-    
+
     this.loadRulesFromDatabase();
   }
 
@@ -73,7 +73,7 @@ export class AutomationEngine {
 
       if (aiEnabledRules.length > 0) {
         console.log(`🤖 [AUTOMATION-ENGINE] ${aiEnabledRules.length} rules require AI analysis`);
-        
+
         aiAnalysis = await this.aiService.analyzeMessage({
           content: messageData.content || messageData.body,
           sender: messageData.sender || messageData.from,
@@ -94,15 +94,15 @@ export class AutomationEngine {
       for (const rule of sortedRules) {
         try {
           const matches = await rule.evaluate(messageData, aiAnalysis, this.aiService);
-          
+
           if (matches) {
             console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
-            
+
             await rule.execute(messageData, aiAnalysis, this.actionExecutor);
-            
+
             executedRules++;
             triggeredActions += rule.actions.length;
-            
+
             console.log(`🎯 [AUTOMATION-ENGINE] Rule "${rule.name}" executed successfully`);
 
             // Se a regra tem prioridade alta, pode interromper outras regras
@@ -170,12 +170,12 @@ export class AutomationEngine {
   private updateMetrics(rulesExecuted: number, actionsTriggered: number, executionTime: number, success: boolean): void {
     this.metrics.rulesExecuted += rulesExecuted;
     this.metrics.actionsTriggered += actionsTriggered;
-    
+
     // Calcular taxa de sucesso média
     const totalExecCount = this.metrics.rulesExecuted || 1;
     const successCount = success ? 1 : 0;
     this.metrics.successRate = ((this.metrics.successRate * (totalExecCount - 1)) + (successCount * 100)) / totalExecCount;
-    
+
     // Calcular tempo médio de execução
     this.metrics.avgExecutionTime = ((this.metrics.avgExecutionTime + executionTime) / 2);
     this.metrics.lastExecution = new Date();
@@ -203,19 +203,19 @@ export class AutomationEngine {
   public async loadRulesFromDatabase(): Promise<void> {
     try {
       console.log(`📋 [AUTOMATION-ENGINE] Loading rules from database for tenant: ${this.tenantId}`);
-      
+
       const { DrizzleAutomationRuleRepository } = await import('../repositories/DrizzleAutomationRuleRepository');
       const repository = new DrizzleAutomationRuleRepository();
-      
+
       const savedRules = await repository.findByTenantId(this.tenantId);
       console.log(`📋 [AUTOMATION-ENGINE] Found ${savedRules.length} saved rules in database`);
-      
+
       // Converter regras do banco para entidades e adicionar ao engine
       for (const savedRule of savedRules) {
         try {
           // CRITICAL FIX: Parse trigger from database format correctly
           let trigger: AutomationTrigger;
-          
+
           if (savedRule.trigger && typeof savedRule.trigger === 'object') {
             // Handle new format where trigger is an object
             const triggerData = savedRule.trigger as any;
@@ -262,7 +262,7 @@ export class AutomationEngine {
             aiEnabled: action.aiEnabled || false,
             templateId: action.templateId
           })) : [];
-          
+
           // Criar regra em memória
           const rule = new AutomationRule(
             savedRule.id,
@@ -281,11 +281,14 @@ export class AutomationEngine {
           savedRule.createdAt,
           savedRule.updatedAt
         );
-        
+
         this.rules.set(rule.id, rule);
         console.log(`✅ [AUTOMATION-ENGINE] Loaded rule from DB: ${rule.name} (${rule.id})`);
+        } catch (error) {
+          console.error(`❌ [AUTOMATION-ENGINE] Error loading individual rule:`, error);
+        }
       }
-      
+
       console.log(`✅ [AUTOMATION-ENGINE] Successfully loaded ${savedRules.length} rules from database`);
     } catch (error) {
       console.error(`❌ [AUTOMATION-ENGINE] Error loading rules from database:`, error);
@@ -297,16 +300,16 @@ export class AutomationEngine {
   public async syncRuleFromDatabase(ruleId: string): Promise<void> {
     try {
       console.log(`🔄 [AUTOMATION-ENGINE] Syncing rule ${ruleId} from database`);
-      
+
       const { DrizzleAutomationRuleRepository } = await import('../repositories/DrizzleAutomationRuleRepository');
       const repository = new DrizzleAutomationRuleRepository();
-      
+
       const savedRule = await repository.findById(ruleId);
       if (!savedRule || savedRule.tenantId !== this.tenantId) {
         console.log(`⚠️ [AUTOMATION-ENGINE] Rule ${ruleId} not found or not from this tenant`);
         return;
       }
-      
+
       const trigger: AutomationTrigger = {
         type: savedRule.triggers?.[0]?.type || 'message_received',
         conditions: (savedRule.triggers || []).map((t: any) => ({
@@ -329,7 +332,7 @@ export class AutomationEngine {
         aiEnabled: action.aiEnabled || false,
         templateId: action.templateId
       }));
-      
+
       // Criar/atualizar regra em memória
       const rule = new AutomationRule(
         savedRule.id,
@@ -348,7 +351,7 @@ export class AutomationEngine {
         savedRule.createdAt,
         savedRule.updatedAt
       );
-      
+
       this.rules.set(rule.id, rule);
       console.log(`✅ [AUTOMATION-ENGINE] Synced rule from DB: ${rule.name} (${rule.id})`);
     } catch (error) {
@@ -546,7 +549,7 @@ export class AutomationEngine {
     error?: string;
   }> {
     const startTime = Date.now();
-    
+
     try {
       const rule = this.rules.get(ruleId);
       if (!rule) {
@@ -558,7 +561,7 @@ export class AutomationEngine {
       }
 
       let aiAnalysis: MessageAnalysis | undefined;
-      
+
       if (rule.aiEnabled) {
         aiAnalysis = await this.aiService.analyzeMessage(testMessage);
       }
