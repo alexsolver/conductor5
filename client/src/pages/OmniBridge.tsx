@@ -325,11 +325,11 @@ export default function OmniBridge() {
   // Add automation state with detailed logging
   useEffect(() => {
     console.log('🔍 [OmniBridge-DEBUG] Component mounted, fetching automation rules...');
-    
+
     const fetchAutomationRules = async () => {
       try {
         console.log('🚀 [OmniBridge-DEBUG] Starting fetch automation rules...');
-        
+
         const response = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
@@ -342,7 +342,7 @@ export default function OmniBridge() {
         if (response.ok) {
           const result = await response.json();
           console.log('📋 [OmniBridge-DEBUG] Response data:', result);
-          
+
           if (result.success) {
             setAutomationRules(result.data);
             console.log('✅ [OmniBridge] Automation rules loaded:', result.data.length, 'rules');
@@ -403,7 +403,7 @@ export default function OmniBridge() {
           rule.id === ruleId ? { ...rule, isEnabled: enabled } : rule
         ));
         console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
-        
+
         // Refresh the automation rules list after toggle
         const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
@@ -411,7 +411,7 @@ export default function OmniBridge() {
             'Content-Type': 'application/json'
           }
         });
-        
+
         if (refreshResponse.ok) {
           const result = await refreshResponse.json();
           if (result.success) {
@@ -437,11 +437,11 @@ export default function OmniBridge() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         setAutomationRules(prev => prev.filter(rule => rule.id !== ruleId));
         console.log(`✅ [OmniBridge] Automation rule deleted: ${ruleId}`);
-        
+
         toast({
           title: "Regra excluída",
           description: `A regra "${ruleName}" foi excluída com sucesso.`
@@ -496,7 +496,7 @@ export default function OmniBridge() {
         if (result.success) {
           setChatbots(prev => [result.data, ...prev]);
           console.log(`✅ [OmniBridge] Chatbot ${type} created successfully`);
-          
+
           toast({
             title: "Assistente Virtual Criado!",
             description: `O ${chatbotData.name} foi criado com sucesso e já está ativo.`
@@ -546,7 +546,7 @@ export default function OmniBridge() {
             priority: 0
           });
           console.log('✅ [OmniBridge] Automation rule created successfully');
-          
+
           // Refresh the automation rules list after creation
           const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
             credentials: 'include',
@@ -554,7 +554,7 @@ export default function OmniBridge() {
               'Content-Type': 'application/json'
             }
           });
-          
+
           if (refreshResponse.ok) {
             const refreshResult = await refreshResponse.json();
             if (refreshResult.success) {
