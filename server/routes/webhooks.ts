@@ -50,8 +50,6 @@ router.post('/telegram/:tenantId', async (req, res) => {
 
       if (result.success) {
         console.log(`✅ [TELEGRAM-WEBHOOK] Successfully processed ${result.processed} messages with automation rules`);
-      }
-
         return res.status(200).json({
           success: true,
           processed: result.processed
