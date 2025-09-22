@@ -32,7 +32,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       
       // Convert triggers array to single trigger object for storage
       const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0 
-        ? rule.trigger[0] 
+        ? this.convertFrontendTriggerToStorage(rule.trigger[0])
         : rule.trigger || {};
         
       console.log(`🔧 [DrizzleAutomationRuleRepository] Converting trigger for storage:`, triggerForStorage);
@@ -174,7 +174,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       if (updateData.trigger !== undefined) {
         // Convert triggers array to single trigger object for storage
         updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0 
-          ? updateData.trigger[0] 
+          ? this.convertFrontendTriggerToStorage(updateData.trigger[0])
           : updateData.trigger || {};
         console.log(`🔧 [DrizzleAutomationRuleRepository] Converting update trigger for storage:`, updateObject.trigger);
       }
@@ -307,7 +307,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
           value: condition.value || condition.keywords || '',
           operator: condition.operator || 'contains',
           field: condition.field || 'content',
-          caseSensitive: condition.caseSensitive || false
+          caseSensitive: condition.caseSensitive || false,
+          channelType: condition.channelType || ''
         }
       }));
     } else if (triggerFromDb && Object.keys(triggerFromDb).length > 0) {
@@ -322,7 +323,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
           value: triggerFromDb.value || triggerFromDb.keywords || '',
           operator: triggerFromDb.operator || 'contains',
           field: triggerFromDb.field || 'content',
-          caseSensitive: triggerFromDb.caseSensitive || false
+          caseSensitive: triggerFromDb.caseSensitive || false,
+          channelType: triggerFromDb.channelType || ''
         }
       }];
     }
@@ -364,6 +366,34 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       row.created_at || row.createdAt,
       row.updated_at || row.updatedAt
     );
+  }
+
+  // Convert frontend trigger format to database storage format
+  private convertFrontendTriggerToStorage(frontendTrigger: any): any {
+    if (!frontendTrigger || !frontendTrigger.config) {
+      return frontendTrigger;
+    }
+
+    const config = frontendTrigger.config;
+    
+    // Convert frontend trigger config to database format
+    const convertedTrigger = {
+      ...frontendTrigger,
+      // Extract fields from config to root level for database storage
+      keywords: config.keywords || config.value || '',
+      value: config.value || config.keywords || '',
+      operator: config.operator || 'contains',
+      field: config.field || 'content',
+      caseSensitive: config.caseSensitive || false,
+      channelType: config.channelType || '', // ← PRESERVE channelType!
+      // Keep the original config as well for backwards compatibility
+      config: config
+    };
+
+    console.log(`🔧 [convertFrontendTriggerToStorage] Frontend trigger:`, frontendTrigger);
+    console.log(`🔧 [convertFrontendTriggerToStorage] Converted trigger:`, convertedTrigger);
+    
+    return convertedTrigger;
   }
 
   private getDisplayNameForTriggerType(type: string): string {
