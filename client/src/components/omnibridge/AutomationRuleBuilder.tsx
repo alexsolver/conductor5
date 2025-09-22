@@ -383,6 +383,27 @@ export default function AutomationRuleBuilder({
         }));
       }
 
+      // CRITICAL FIX: Check for trigger array (backend format)
+      else if (Array.isArray(existingRule.trigger) && existingRule.trigger.length > 0) {
+        console.log('🔧 [AutomationRuleBuilder] Found trigger array (backend format) with', existingRule.trigger.length, 'items');
+        triggers = existingRule.trigger.map((trigger: any, index: number) => ({
+          id: trigger.id || `trigger_backend_${Date.now()}_${index}`,
+          type: trigger.type || 'keyword',
+          name: trigger.name || getDisplayNameForTriggerType(trigger.type || 'keyword'),
+          description: trigger.description || getDescriptionForTriggerType(trigger.type || 'keyword'),
+          icon: getIconForTriggerType(trigger.type || 'keyword'),
+          color: getColorForTriggerType(trigger.type || 'keyword'),
+          config: {
+            keywords: trigger.config?.keywords || trigger.config?.value || '',
+            value: trigger.config?.value || trigger.config?.keywords || '',
+            operator: trigger.config?.operator || 'contains',
+            field: trigger.config?.field || 'content',
+            caseSensitive: trigger.config?.caseSensitive || false,
+            ...trigger.config
+          }
+        }));
+      }
+
       // Priority 2: Check for trigger.conditions (legacy format)
       else if (existingRule.trigger?.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
         console.log('🔧 [AutomationRuleBuilder] Found trigger conditions array with', existingRule.trigger.conditions.length, 'items');
