@@ -53,9 +53,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
 
   const resendInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      return apiRequest(`/api/user-management/invitations/${invitationId}/resend`, {
-        method: "POST"
-      });
+      return apiRequest("POST", `/api/user-management/invitations/${invitationId}/resend`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/invitations"] });

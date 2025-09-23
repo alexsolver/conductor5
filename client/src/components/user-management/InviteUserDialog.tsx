@@ -61,10 +61,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
 
   const inviteUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest("/api/user-management/invitations", {
-        method: "POST",
-        body: data
-      });
+      return apiRequest("POST", "/api/user-management/invitations", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/invitations"] });
