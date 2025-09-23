@@ -536,6 +536,10 @@ export default function ChatbotVisualEditor() {
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
   const [configErrors, setConfigErrors] = useState<Record<string, string>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savedConfigurations, setSavedConfigurations] = useState<Record<string, any>>({});
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [configurationName, setConfigurationName] = useState('');
 
   // Validation functions
   const validateNodeConfig = useCallback((nodeType: string, config: Record<string, any>) => {
@@ -635,6 +639,132 @@ export default function ChatbotVisualEditor() {
   useEffect(() => {
     setHasUnsavedChanges(Object.keys(nodeConfig).length > 0);
   }, [nodeConfig]);
+
+  // Load saved configurations from localStorage on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem('chatbot-configurations');
+    if (saved) {
+      try {
+        setSavedConfigurations(JSON.parse(saved));
+      } catch (error) {
+        console.error('Error loading saved configurations:', error);
+      }
+    }
+  }, []);
+
+  // Save/Load configuration functions
+  const saveConfiguration = useCallback((name: string, chatbot: Chatbot) => {
+    const configToSave = {
+      name,
+      chatbot,
+      savedAt: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const updatedConfigurations = {
+      ...savedConfigurations,
+      [name]: configToSave
+    };
+    
+    setSavedConfigurations(updatedConfigurations);
+    localStorage.setItem('chatbot-configurations', JSON.stringify(updatedConfigurations));
+    
+    console.log('✅ [ChatbotKanban] Configuration saved:', name);
+  }, [savedConfigurations]);
+
+  const loadConfiguration = useCallback((name: string) => {
+    const config = savedConfigurations[name];
+    if (config && config.chatbot) {
+      setSelectedChatbot(config.chatbot);
+      setChatbots(prev => {
+        const existingIndex = prev.findIndex(bot => bot.id === config.chatbot.id);
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = config.chatbot;
+          return updated;
+        } else {
+          return [...prev, config.chatbot];
+        }
+      });
+      console.log('✅ [ChatbotKanban] Configuration loaded:', name);
+    }
+  }, [savedConfigurations]);
+
+  const exportConfiguration = useCallback((chatbot: Chatbot) => {
+    const configToExport = {
+      name: chatbot.name,
+      description: chatbot.description,
+      flow: chatbot.flow,
+      exportedAt: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(configToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `chatbot-${chatbot.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    console.log('✅ [ChatbotKanban] Configuration exported:', chatbot.name);
+  }, []);
+
+  const importConfiguration = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target?.result as string);
+        
+        if (imported.flow && imported.name) {
+          const newChatbot: Chatbot = {
+            id: Date.now().toString(),
+            tenantId: user?.tenantId || '',
+            name: `${imported.name} (Importado)`,
+            description: imported.description || 'Configuração importada',
+            flow: imported.flow,
+            isEnabled: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metrics: {
+              totalConversations: 0,
+              successRate: 0,
+              avgResponseTime: 0,
+              userSatisfaction: 0
+            }
+          };
+          
+          setChatbots(prev => [...prev, newChatbot]);
+          setSelectedChatbot(newChatbot);
+          console.log('✅ [ChatbotKanban] Configuration imported:', newChatbot.name);
+        } else {
+          console.error('❌ [ChatbotKanban] Invalid configuration file format');
+        }
+      } catch (error) {
+        console.error('❌ [ChatbotKanban] Error importing configuration:', error);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+  }, [user?.tenantId]);
+
+  const handleSaveCurrentConfiguration = () => {
+    if (!selectedChatbot || !configurationName.trim()) return;
+    
+    saveConfiguration(configurationName, selectedChatbot);
+    setShowSaveDialog(false);
+    setConfigurationName('');
+    setHasUnsavedChanges(false);
+  };
 
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
@@ -1023,14 +1153,44 @@ export default function ChatbotVisualEditor() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Importar
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
+          {selectedChatbot && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setShowSaveDialog(true)}>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Config
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowLoadDialog(true)}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Carregar Config
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+            </>
+          )}
+          <label htmlFor="import-config" className="cursor-pointer">
+            <Button variant="outline" size="sm" asChild>
+              <span>
+                <Upload className="h-4 w-4 mr-2" />
+                Importar
+              </span>
+            </Button>
+          </label>
+          <input
+            id="import-config"
+            type="file"
+            accept=".json"
+            onChange={importConfiguration}
+            className="hidden"
+          />
+          {selectedChatbot && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => exportConfiguration(selectedChatbot)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          )}
           <Button onClick={() => setShowCreateModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Chatbot
@@ -2203,6 +2363,119 @@ export default function ChatbotVisualEditor() {
             <Button onClick={handleSaveNodeConfig} data-testid="save-node-config">
               <Save className="h-4 w-4 mr-2" />
               Salvar Configurações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Configuration Modal */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Salvar Configuração</DialogTitle>
+            <DialogDescription>
+              Salve a configuração atual do chatbot para uso posterior
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="config-name">Nome da Configuração</Label>
+              <Input
+                id="config-name"
+                placeholder="Ex: Atendimento Principal v1.0"
+                value={configurationName}
+                onChange={(e) => setConfigurationName(e.target.value)}
+                data-testid="configuration-name"
+              />
+            </div>
+            {selectedChatbot && (
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="text-sm font-medium">Chatbot: {selectedChatbot.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedChatbot.flow.nodes.length} nós, {selectedChatbot.flow.connections.length} conexões
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveCurrentConfiguration}
+              disabled={!configurationName.trim() || !selectedChatbot}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Salvar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Configuration Modal */}
+      <Dialog open={showLoadDialog} onOpenChange={setShowLoadDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Carregar Configuração</DialogTitle>
+            <DialogDescription>
+              Selecione uma configuração salva para carregar
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {Object.keys(savedConfigurations).length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Nenhuma configuração salva encontrada</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Salve uma configuração primeiro para poder carregá-la aqui
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {Object.entries(savedConfigurations).map(([key, config]) => (
+                  <div 
+                    key={key}
+                    className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      loadConfiguration(key);
+                      setShowLoadDialog(false);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{config.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Salvo em: {new Date(config.savedAt).toLocaleDateString('pt-BR')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {config.chatbot?.flow?.nodes?.length || 0} nós, {config.chatbot?.flow?.connections?.length || 0} conexões
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = { ...savedConfigurations };
+                          delete updated[key];
+                          setSavedConfigurations(updated);
+                          localStorage.setItem('chatbot-configurations', JSON.stringify(updated));
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowLoadDialog(false)}>
+              Cancelar
             </Button>
           </div>
         </DialogContent>
