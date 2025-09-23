@@ -139,9 +139,13 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const [replyContent, setReplyContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Fetch messages
+  // Fetch messages with proper headers
   const { data: messagesData, isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/omnibridge/messages'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/omnibridge/messages');
+      return response.json();
+    },
     refetchInterval: 5000 // Auto-refresh every 5 seconds
   });
 
