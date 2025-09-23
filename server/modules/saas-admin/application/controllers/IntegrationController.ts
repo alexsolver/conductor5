@@ -70,7 +70,7 @@ export class IntegrationController {
   async getIntegrationsByStatus(req: Request, res: Response) {
     try {
       const { status } = req.params;
-      
+
       // Validate status parameter
       if (!['connected', 'error', 'disconnected'].includes(status)) {
         return res.status(400).json({
@@ -114,14 +114,14 @@ export class IntegrationController {
 
       // Use Case execution only (1qa.md line 68)
       const result = await this.updateOpenWeatherApiKeyUseCase.execute(request);
-      
+
       // Log successful operation for audit
       this.logger.info('[INTEGRATION-CONTROLLER] OpenWeather API key updated successfully');
-      
+
       res.json(result);
     } catch (error) {
       this.logger.error('[INTEGRATION-CONTROLLER] Error updating OpenWeather API key:', error);
-      
+
       // Handle validation errors vs system errors
       if (error instanceof Error && error.message.includes('required') || error instanceof Error && error.message.includes('characters')) {
         return res.status(400).json({
@@ -129,7 +129,7 @@ export class IntegrationController {
           message: error.message
         });
       }
-      
+
       res.status(500).json({ 
         success: false,
         message: 'Internal error',
@@ -159,14 +159,14 @@ export class IntegrationController {
 
       // Use Case execution only (1qa.md line 68)
       const result = await this.updateSendGridApiKeyUseCase.execute(request);
-      
+
       // Log successful operation for audit
       this.logger.info('[INTEGRATION-CONTROLLER] SendGrid API key updated successfully');
-      
+
       res.json(result);
     } catch (error) {
       this.logger.error('[INTEGRATION-CONTROLLER] Error updating SendGrid API key:', error);
-      
+
       // Handle validation errors vs system errors
       if (error instanceof Error && (error.message.includes('required') || error.message.includes('characters') || error.message.includes('format'))) {
         return res.status(400).json({
@@ -174,7 +174,7 @@ export class IntegrationController {
           message: error.message
         });
       }
-      
+
       res.status(500).json({ 
         success: false,
         message: 'Internal error',
@@ -197,7 +197,7 @@ export class IntegrationController {
 
       // For now, we'll use the repository directly since there's no specific use case
       // This could be moved to a dedicated use case if needed
-      
+
       res.json({
         success: true,
         message: 'Test connection endpoint - implementation pending',
@@ -217,10 +217,10 @@ export class IntegrationController {
   async testOpenWeatherConnection(req: Request, res: Response) {
     try {
       this.logger.info('[INTEGRATION-CONTROLLER] Testing OpenWeather connection');
-      
+
       // Get the OpenWeather configuration
       const openWeatherConfig = await this.getIntegrationsUseCase.executeGetOpenWeather();
-      
+
       if (!openWeatherConfig.data?.config?.apiKey) {
         return res.status(400).json({
           success: false,
@@ -230,7 +230,7 @@ export class IntegrationController {
 
       // Test the API with a simple request
       const testUrl = `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${openWeatherConfig.data.config.apiKey}`;
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -278,10 +278,10 @@ export class IntegrationController {
   async testSendGridConnection(req: Request, res: Response) {
     try {
       this.logger.info('[INTEGRATION-CONTROLLER] Testing SendGrid connection');
-      
+
       // Get the SendGrid configuration
       const sendGridConfig = await this.getIntegrationsUseCase.executeGetSendGrid();
-      
+
       if (!sendGridConfig.data?.config?.apiKey) {
         return res.status(400).json({
           success: false,
@@ -291,7 +291,7 @@ export class IntegrationController {
 
       // Test the API with a simple request to validate API key
       const testUrl = 'https://api.sendgrid.com/v3/user/account';
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -351,10 +351,10 @@ export class IntegrationController {
   async testOpenAIConnection(req: Request, res: Response) {
     try {
       this.logger.info('[INTEGRATION-CONTROLLER] Testing OpenAI connection');
-      
+
       // Get the OpenAI configuration
       const openAIConfig = await this.getIntegrationsUseCase.executeGetOpenAI();
-      
+
       if (!openAIConfig.data?.config?.apiKey) {
         return res.status(400).json({
           success: false,
@@ -364,7 +364,7 @@ export class IntegrationController {
 
       // Test the API with a simple request
       const testUrl = 'https://api.openai.com/v1/models';
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -403,7 +403,7 @@ export class IntegrationController {
         }
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
-        res.json({
+        return res.json({
           success: false,
           message: 'Failed to connect to OpenAI API',
           error: fetchError.message
@@ -412,7 +412,7 @@ export class IntegrationController {
 
     } catch (error) {
       this.logger.error('[INTEGRATION-CONTROLLER] Error testing OpenAI connection:', error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         success: false,
         message: 'Internal error',
         error: error instanceof Error ? error.message : 'Unknown error'

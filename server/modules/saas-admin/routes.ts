@@ -494,21 +494,25 @@ router.post('/integrations/openweather/test', async (req: AuthorizedRequest, res
 
 /**
  * POST /api/saas-admin/integrations/sendgrid/test
- * Testar conexão SendGrid
+ * Testar conectividade do SendGrid
  */
 router.post('/integrations/sendgrid/test', async (req: AuthorizedRequest, res) => {
   try {
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
     const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
     const { UpdateSendGridApiKeyUseCase } = await import('./application/use-cases/UpdateSendGridApiKeyUseCase');
-    const { IntegrationController } = await import('./application/controllers/IntegrationController');
 
     const integrationRepository = new DrizzleIntegrationRepository();
     const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
     const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
     const updateSendGridApiKeyUseCase = new UpdateSendGridApiKeyUseCase(integrationRepository);
-    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase, updateSendGridApiKeyUseCase);
+    const controller = new IntegrationController(
+      getIntegrationsUseCase,
+      updateOpenWeatherApiKeyUseCase,
+      updateSendGridApiKeyUseCase
+    );
 
     await controller.testSendGridConnection(req, res);
   } catch (error) {
@@ -1009,6 +1013,35 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
       message: 'Erro interno ao testar integração OpenAI',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+/**
+ * POST /api/saas-admin/integrations/:integrationId/test
+ * Testar qualquer integração por ID
+ */
+router.post('/integrations/:integrationId/test', async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+    const { UpdateSendGridApiKeyUseCase } = await import('./application/use-cases/UpdateSendGridApiKeyUseCase');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const updateSendGridApiKeyUseCase = new UpdateSendGridApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(
+      getIntegrationsUseCase,
+      updateOpenWeatherApiKeyUseCase,
+      updateSendGridApiKeyUseCase
+    );
+
+    await controller.testIntegrationConnection(req, res);
+  } catch (error) {
+    console.error('Error testing integration:', error);
+    res.status(500).json({ success: false, message: 'Failed to test integration' });
   }
 });
 
