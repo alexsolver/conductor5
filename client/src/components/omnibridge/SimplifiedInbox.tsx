@@ -184,13 +184,28 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
     }
   });
 
-  const messages: Message[] = messagesData?.messages || [];
+  // Map API response to Message interface
+  const messages: Message[] = (messagesData?.messages || []).map((msg: any) => ({
+    id: msg.id,
+    channelId: msg.channelId,
+    channelType: msg.channelType,
+    from: msg.from,
+    to: msg.to,
+    subject: msg.subject,
+    content: msg.body || msg.content, // Map body to content
+    timestamp: msg.timestamp || msg.receivedAt,
+    status: msg.status,
+    priority: msg.priority,
+    tags: msg.tags,
+    attachments: msg.attachments,
+    metadata: msg.metadata
+  }));
   const rules: AutomationRule[] = rulesData?.data || [];
 
   // Filter messages
   const filteredMessages = messages.filter(message => {
     const matchesSearch = searchTerm === '' || 
-      message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (message.content && message.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
       message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase()));
 
