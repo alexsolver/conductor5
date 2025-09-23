@@ -573,26 +573,16 @@ export default function AutomationRuleBuilder({
     }
   });
 
-  const handleAddTrigger = (triggerTemplate: Omit<Trigger, 'id' | 'config'>) => {
+  const addTrigger = (template: Omit<Trigger, 'id' | 'config'>) => {
     const newTrigger: Trigger = {
+      ...template,
       id: `trigger_${Date.now()}`,
-      ...triggerTemplate,
-      config: {
-        keywords: '',
-        value: '',
-        operator: 'contains',
-        field: 'content',
-        caseSensitive: false,
-        // Ensure channelType is set for channel triggers
-        ...(triggerTemplate.type === 'channel' && { channelType: '' })
-      }
+      config: {}
     };
     setRule(prev => ({
       ...prev,
       triggers: [...prev.triggers, newTrigger]
     }));
-    setSelectedTrigger(newTrigger);
-    setShowTriggerConfig(true);
   };
 
   const addAction = (template: Omit<Action, 'id' | 'config'>) => {
@@ -643,107 +633,57 @@ export default function AutomationRuleBuilder({
   const handleSave = async () => {
     if (!rule.name.trim()) {
       toast({
-        title: "Erro",
-        description: "Nome da regra é obrigatório",
-        variant: "destructive"
+        title: '❌ Erro de validação',
+        description: 'O nome da regra é obrigatório',
+        variant: 'destructive'
       });
       return;
     }
 
     if (rule.triggers.length === 0) {
       toast({
-        title: "Erro", 
-        description: "Pelo menos um gatilho é obrigatório",
-        variant: "destructive"
+        title: '❌ Erro de validação', 
+        description: 'Pelo menos um gatilho é obrigatório',
+        variant: 'destructive'
       });
       return;
     }
 
     if (rule.actions.length === 0) {
       toast({
-        title: "Erro",
-        description: "Pelo menos uma ação é obrigatória", 
-        variant: "destructive"
+        title: '❌ Erro de validação',
+        description: 'Pelo menos uma ação é obrigatória',
+        variant: 'destructive'
       });
       return;
     }
 
-    // Validate triggers have proper configuration
-    for (const trigger of rule.triggers) {
-      if (trigger.type === 'keyword' && (!trigger.config.keywords && !trigger.config.value)) {
-        toast({
-          title: "Erro",
-          description: "Palavras-chave são obrigatórias para gatilhos de palavra-chave",
-          variant: "destructive"
-        });
-        return;
-      }
-      if (trigger.type === 'channel' && (!trigger.config.channelType && !trigger.config.value)) {
-        toast({
-          title: "Erro",
-          description: "Tipo de canal é obrigatório para gatilhos de canal",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    // Validate actions have proper configuration
-    for (const action of rule.actions) {
-      if (action.type === 'auto_reply' && !action.config.message) {
-        toast({
-          title: "Erro",
-          description: "Mensagem é obrigatória para ações de resposta automática",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
     try {
-      // Enhanced preprocessing of triggers to ensure keywords are properly handled
-      const processedTriggers = rule.triggers.map(trigger => {
-        const processedTrigger = { ...trigger };
-
-        // CRITICAL FIX: Ensure keywords are properly preserved for keyword triggers
-        if (trigger.type === 'keyword' && trigger.config) {
-          processedTrigger.config = {
-            ...trigger.config,
-            keywords: trigger.config.keywords || trigger.config.value || '',
-            value: trigger.config.keywords || trigger.config.value || '',
-            operator: trigger.config.operator || 'contains',
-            field: trigger.config.field || 'content',
-            caseSensitive: trigger.config.caseSensitive || false
-          };
-
-          console.log('🔧 [AutomationRuleBuilder] Processed keyword trigger:', processedTrigger);
-        }
-
-        return processedTrigger;
-      });
-
       const ruleData = {
         name: rule.name,
         description: rule.description,
-        enabled: rule.enabled,
-        triggers: processedTriggers,
-        actions: rule.actions,
-        priority: rule.priority
+        isEnabled: rule.enabled, // Use isEnabled instead of enabled for DTO
+        priority: rule.priority,
+        triggers: rule.triggers,
+        actions: rule.actions
       };
-      
-      await saveMutation.mutateAsync(ruleData);
-      toast({
-        title: "Sucesso",
-        description: rule.id ? "Regra atualizada com sucesso!" : "Regra criada com sucesso!",
-      });
-      onSave?.(rule);
-      onClose();
+
+      console.log('🔧 [AutomationRuleBuilder] Saving rule data:', ruleData);
+
+      if (existingRule?.id) {
+        await saveMutation.mutateAsync({ 
+          ...ruleData, 
+          id: existingRule.id 
+        });
+      } else {
+        await saveMutation.mutateAsync(ruleData);
+      }
     } catch (error) {
       console.error('❌ [AutomationRuleBuilder] Error saving rule:', error);
       toast({
-        title: "Erro",
-        description: "Erro ao salvar regra",
-        variant: "destructive"
+        title: '❌ Erro ao salvar',
+        description: 'Não foi possível salvar a regra de automação',
+        variant: 'destructive'
       });
     }
   };
@@ -790,7 +730,7 @@ export default function AutomationRuleBuilder({
                       <Card
                         key={index}
                         className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
-                        onClick={() => handleAddTrigger(template)}
+                        onClick={() => addTrigger(template)}
                         data-testid={`trigger-template-${template.type}`}
                       >
                         <CardContent className="p-3">
@@ -1153,16 +1093,7 @@ export default function AutomationRuleBuilder({
               <TriggerConfigForm
                 trigger={selectedTrigger}
                 onSave={(config) => {
-                  // Update the selectedTrigger state directly before calling handleSaveTriggerConfig
-                  setSelectedTrigger(prev => prev ? { ...prev, config } : null);
-                  // The actual update to the rule's triggers array happens in handleSaveTriggerConfig
-                  // Since we removed that function, we need to update the rule here.
-                  setRule(prev => ({
-                    ...prev,
-                    triggers: prev.triggers.map(trigger => 
-                      trigger.id === selectedTrigger.id ? { ...trigger, config } : trigger
-                    )
-                  }));
+                  updateTriggerConfig(selectedTrigger.id, config);
                   setShowTriggerConfig(false);
                 }}
                 onCancel={() => setShowTriggerConfig(false)}
@@ -1209,41 +1140,26 @@ function TriggerConfigForm({
 }) {
   const [config, setConfig] = useState(trigger.config);
 
-  const updateConfig = (newConfig: Record<string, any>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
-  };
-
   const renderConfigFields = () => {
     switch (trigger.type) {
       case 'keyword':
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="keywords">Palavras-chave para monitorar</Label>
+              <Label htmlFor="keywords">Palavras-chave (separadas por vírgula)</Label>
               <Input
                 id="keywords"
-                placeholder="Digite as palavras-chave (separadas por vírgula)"
-                value={config.keywords || config.value || ''}
-                onChange={(e) => {
-                  const keywordValue = e.target.value;
-                  console.log('🔧 [TriggerConfigPanel] Keywords input changed:', keywordValue);
-                  updateConfig({ 
-                    keywords: keywordValue,
-                    value: keywordValue,
-                    field: 'content',
-                    operator: 'contains'
-                  });
-                }}
+                placeholder="ex: urgente, problema, ajuda"
+                value={config.keywords || ''}
+                onChange={(e) => setConfig({ ...config, keywords: e.target.value })}
+                data-testid="keywords-input"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Separe múltiplas palavras-chave com vírgulas
-              </p>
             </div>
             <div>
               <Label htmlFor="matchType">Tipo de correspondência</Label>
               <Select 
-                value={config.operator || 'contains'} 
-                onValueChange={(value) => updateConfig({ operator: value })}
+                value={config.matchType || 'contains'} 
+                onValueChange={(value) => setConfig({ ...config, matchType: value })}
               >
                 <SelectTrigger data-testid="match-type-select">
                   <SelectValue />
@@ -1255,30 +1171,6 @@ function TriggerConfigForm({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="field">Campo a verificar</Label>
-              <Select 
-                value={config.field || 'content'} 
-                onValueChange={(value) => updateConfig({ field: value })}
-              >
-                <SelectTrigger data-testid="field-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="content">Conteúdo da mensagem</SelectItem>
-                  <SelectItem value="sender_name">Nome do remetente</SelectItem>
-                  <SelectItem value="subject">Assunto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="case-sensitive" 
-                checked={config.caseSensitive || false}
-                onCheckedChange={(checked) => updateConfig({ caseSensitive: checked })}
-              />
-              <Label htmlFor="case-sensitive">Diferenciar maiúsculas/minúsculas</Label>
-            </div>
           </div>
         );
       case 'channel':
@@ -1287,11 +1179,8 @@ function TriggerConfigForm({
             <div>
               <Label htmlFor="channelType">Tipo de canal</Label>
               <Select 
-                value={config.channelType || config.value || ''} 
-                onValueChange={(value) => updateConfig({ 
-                  channelType: value,
-                  value: value // Sync both fields for compatibility
-                })}
+                value={config.channelType || ''} 
+                onValueChange={(value) => setConfig({ ...config, channelType: value })}
               >
                 <SelectTrigger data-testid="channel-type-select">
                   <SelectValue placeholder="Selecione o canal" />
@@ -1310,7 +1199,8 @@ function TriggerConfigForm({
                 id="channelKeywords"
                 placeholder="ex: ajuda, suporte, problema"
                 value={config.keywords || config.value || ''}
-                onChange={(e) => updateConfig({ 
+                onChange={(e) => setConfig({ 
+                  ...config, 
                   keywords: e.target.value,
                   value: e.target.value 
                 })}
@@ -1321,7 +1211,7 @@ function TriggerConfigForm({
               <Label htmlFor="channelMatchType">Tipo de correspondência</Label>
               <Select 
                 value={config.operator || 'contains'} 
-                onValueChange={(value) => updateConfig({ operator: value })}
+                onValueChange={(value) => setConfig({ ...config, operator: value })}
               >
                 <SelectTrigger data-testid="channel-match-type-select">
                   <SelectValue />
@@ -1342,7 +1232,7 @@ function TriggerConfigForm({
               <Label htmlFor="priorityLevel">Nível de prioridade</Label>
               <Select 
                 value={config.priorityLevel || 'high'} 
-                onValueChange={(value) => updateConfig({ priorityLevel: value })}
+                onValueChange={(value) => setConfig({ ...config, priorityLevel: value })}
               >
                 <SelectTrigger data-testid="priority-level-select">
                   <SelectValue />
@@ -1366,7 +1256,7 @@ function TriggerConfigForm({
                 id="senderPattern"
                 placeholder="ex: cliente@empresa.com, *@empresa.com"
                 value={config.senderPattern || ''}
-                onChange={(e) => updateConfig({ senderPattern: e.target.value })}
+                onChange={(e) => setConfig({ ...config, senderPattern: e.target.value })}
                 data-testid="sender-pattern-input"
               />
             </div>
@@ -1382,7 +1272,7 @@ function TriggerConfigForm({
                   id="startTime"
                   type="time"
                   value={config.startTime || '09:00'}
-                  onChange={(e) => updateConfig({ startTime: e.target.value })}
+                  onChange={(e) => setConfig({ ...config, startTime: e.target.value })}
                   data-testid="start-time-input"
                 />
               </div>
@@ -1392,7 +1282,7 @@ function TriggerConfigForm({
                   id="endTime"
                   type="time"
                   value={config.endTime || '18:00'}
-                  onChange={(e) => updateConfig({ endTime: e.target.value })}
+                  onChange={(e) => setConfig({ ...config, endTime: e.target.value })}
                   data-testid="end-time-input"
                 />
               </div>
@@ -1410,7 +1300,7 @@ function TriggerConfigForm({
                       const newWeekdays = weekdays.includes(index)
                         ? weekdays.filter((d: number) => d !== index)
                         : [...weekdays, index];
-                      updateConfig({ weekdays: newWeekdays });
+                      setConfig({ ...config, weekdays: newWeekdays });
                     }}
                     data-testid={`weekday-${index}`}
                   >
@@ -1429,7 +1319,7 @@ function TriggerConfigForm({
               <select
                 id="aiModel"
                 value={config.aiModel || 'gpt-4'}
-                onChange={(e) => updateConfig({ aiModel: e.target.value })}
+                onChange={(e) => setConfig({ ...config, aiModel: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="ai-model-select"
               >
@@ -1443,7 +1333,7 @@ function TriggerConfigForm({
               <select
                 id="analysisType"
                 value={config.analysisType || 'sentiment'}
-                onChange={(e) => updateConfig({ analysisType: e.target.value })}
+                onChange={(e) => setConfig({ ...config, analysisType: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="analysis-type-select"
               >
@@ -1462,7 +1352,7 @@ function TriggerConfigForm({
                 min="50"
                 max="100"
                 value={config.confidence || '80'}
-                onChange={(e) => updateConfig({ confidence: e.target.value })}
+                onChange={(e) => setConfig({ ...config, confidence: e.target.value })}
                 data-testid="confidence-input"
               />
             </div>
@@ -1472,7 +1362,7 @@ function TriggerConfigForm({
                 id="customPrompt"
                 placeholder="Analise esta mensagem e identifique..."
                 value={config.customPrompt || ''}
-                onChange={(e) => updateConfig({ customPrompt: e.target.value })}
+                onChange={(e) => setConfig({ ...config, customPrompt: e.target.value })}
                 rows={3}
                 data-testid="custom-prompt-input"
               />
@@ -1515,10 +1405,6 @@ function ActionConfigForm({
 }) {
   const [config, setConfig] = useState(action.config);
 
-  const updateConfig = (newConfig: Record<string, any>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
-  };
-
   const renderConfigFields = () => {
     switch (action.type) {
       case 'auto_reply':
@@ -1530,7 +1416,7 @@ function ActionConfigForm({
                 id="replyMessage"
                 placeholder="Digite a mensagem automática..."
                 value={config.message || ''}
-                onChange={(e) => updateConfig({ message: e.target.value })}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={4}
                 data-testid="reply-message-input"
               />
@@ -1546,7 +1432,7 @@ function ActionConfigForm({
                 id="ticketTitle"
                 placeholder="ex: Ticket criado automaticamente"
                 value={config.ticketTitle || ''}
-                onChange={(e) => updateConfig({ ticketTitle: e.target.value })}
+                onChange={(e) => setConfig({ ...config, ticketTitle: e.target.value })}
                 data-testid="ticket-title-input"
               />
             </div>
@@ -1554,7 +1440,7 @@ function ActionConfigForm({
               <Label htmlFor="ticketPriority">Prioridade do ticket</Label>
               <Select 
                 value={config.priority || 'medium'} 
-                onValueChange={(value) => updateConfig({ priority: value })}
+                onValueChange={(value) => setConfig({ ...config, priority: value })}
               >
                 <SelectTrigger data-testid="ticket-priority-select">
                   <SelectValue />
@@ -1578,7 +1464,7 @@ function ActionConfigForm({
                 id="notificationRecipients"
                 placeholder="ex: admin@empresa.com, suporte@empresa.com"
                 value={config.recipient || ''}
-                onChange={(e) => updateConfig({ recipient: e.target.value })}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="notification-recipients-input"
               />
             </div>
@@ -1588,7 +1474,7 @@ function ActionConfigForm({
                 id="notificationMessage"
                 placeholder="Nova mensagem recebida que requer atenção..."
                 value={config.message || ''}
-                onChange={(e) => updateConfig({ message: e.target.value })}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={3}
                 data-testid="notification-message-input"
               />
@@ -1604,7 +1490,7 @@ function ActionConfigForm({
                 id="tags"
                 placeholder="ex: urgente, suporte, cliente-vip"
                 value={config.tags || ''}
-                onChange={(e) => updateConfig({ tags: e.target.value })}
+                onChange={(e) => setConfig({ ...config, tags: e.target.value })}
                 data-testid="tags-input"
               />
             </div>
@@ -1619,7 +1505,7 @@ function ActionConfigForm({
                 id="targetAgent"
                 placeholder="ex: suporte@empresa.com"
                 value={config.recipient || ''}
-                onChange={(e) => updateConfig({ recipient: e.target.value })}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="target-agent-input"
               />
             </div>
@@ -1629,7 +1515,7 @@ function ActionConfigForm({
                 id="forwardNote"
                 placeholder="Mensagem encaminhada automaticamente devido a..."
                 value={config.message || ''}
-                onChange={(e) => updateConfig({ message: e.target.value })}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={2}
                 data-testid="forward-note-input"
               />
@@ -1645,7 +1531,7 @@ function ActionConfigForm({
                 id="agentEmail"
                 placeholder="ex: joao.silva@empresa.com"
                 value={config.recipient || ''}
-                onChange={(e) => updateConfig({ recipient: e.target.value })}
+                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
                 data-testid="agent-email-input"
               />
             </div>
@@ -1654,7 +1540,7 @@ function ActionConfigForm({
               <select
                 id="assignmentReason"
                 value={config.assignmentReason || 'expertise'}
-                onChange={(e) => updateConfig({ assignmentReason: e.target.value })}
+                onChange={(e) => setConfig({ ...config, assignmentReason: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="assignment-reason-select"
               >
@@ -1675,7 +1561,7 @@ function ActionConfigForm({
               <select
                 id="priorityLevel"
                 value={config.priority || 'high'}
-                onChange={(e) => updateConfig({ priority: e.target.value })}
+                onChange={(e) => setConfig({ ...config, priority: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="priority-level-select"
               >
@@ -1692,7 +1578,7 @@ function ActionConfigForm({
                 id="priorityReason"
                 placeholder="ex: Cliente VIP, problema crítico, SLA..."
                 value={config.message || ''}
-                onChange={(e) => updateConfig({ message: e.target.value })}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 data-testid="priority-reason-input"
               />
             </div>
@@ -1706,7 +1592,7 @@ function ActionConfigForm({
               <select
                 id="archiveFolder"
                 value={config.archiveFolder || 'general'}
-                onChange={(e) => updateConfig({ archiveFolder: e.target.value })}
+                onChange={(e) => setConfig({ ...config, archiveFolder: e.target.value })}
                 className="w-full p-2 border rounded-md"
                 data-testid="archive-folder-select"
               >
@@ -1725,7 +1611,7 @@ function ActionConfigForm({
                 min="0"
                 max="365"
                 value={config.archiveDelay || '7'}
-                onChange={(e) => updateConfig({ archiveDelay: e.target.value })}
+                onChange={(e) => setConfig({ ...config, archiveDelay: e.target.value })}
                 data-testid="archive-delay-input"
               />
             </div>
@@ -1735,7 +1621,7 @@ function ActionConfigForm({
                 id="archiveNote"
                 placeholder="Arquivado automaticamente por..."
                 value={config.message || ''}
-                onChange={(e) => updateConfig({ message: e.target.value })}
+                onChange={(e) => setConfig({ ...config, message: e.target.value })}
                 rows={2}
                 data-testid="archive-note-input"
               />

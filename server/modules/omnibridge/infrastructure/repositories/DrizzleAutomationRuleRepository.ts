@@ -29,12 +29,12 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       console.log(`🔧 [DrizzleAutomationRuleRepository] Rule data:`, JSON.stringify(rule, null, 2));
 
       const tenantDb = await this.getTenantDb(rule.tenantId);
-
+      
       // Convert triggers array to single trigger object for storage
-      const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0
+      const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0 
         ? this.convertFrontendTriggerToStorage(rule.trigger[0])
         : rule.trigger || {};
-
+        
       console.log(`🔧 [DrizzleAutomationRuleRepository] Converting trigger for storage:`, triggerForStorage);
       console.log(`🔧 [DrizzleAutomationRuleRepository] Actions for storage:`, rule.actions);
 
@@ -98,7 +98,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
   async findByTenantId(tenantId: string): Promise<AutomationRule[]> {
     console.log(`🔍 [DrizzleAutomationRuleRepository] Finding rules for tenant: ${tenantId}`);
-
+    
     const tenantDb = await this.getTenantDb(tenantId);
     const results = await tenantDb.select().from(schema.omnibridgeAutomationRules)
       .where(eq(schema.omnibridgeAutomationRules.tenantId, tenantId));
@@ -161,12 +161,12 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${id}`);
 
       const tenantDb = await this.getTenantDb(tenantId);
-
+      
       // Build update object dynamically based on provided data
       const updateObject: any = {
         updatedAt: new Date()
       };
-
+      
       if (updateData.name !== undefined) updateObject.name = updateData.name;
       if (updateData.description !== undefined) updateObject.description = updateData.description || '';
       if (updateData.enabled !== undefined) updateObject.enabled = updateData.enabled;
@@ -175,9 +175,9 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         console.log(`🔧 [DrizzleAutomationRuleRepository] RAW updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
         console.log(`🔧 [DrizzleAutomationRuleRepository] Is array?`, Array.isArray(updateData.trigger));
         console.log(`🔧 [DrizzleAutomationRuleRepository] Length:`, updateData.trigger?.length);
-
+        
         // Convert triggers array to single trigger object for storage
-        updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0
+        updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0 
           ? this.convertFrontendTriggerToStorage(updateData.trigger[0])
           : updateData.trigger || {};
         console.log(`🔧 [DrizzleAutomationRuleRepository] Converting update trigger for storage:`, updateObject.trigger);
@@ -188,7 +188,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       }
       if (updateData.aiEnabled !== undefined) updateObject.aiEnabled = updateData.aiEnabled;
       if (updateData.aiPromptId !== undefined) updateObject.aiPromptId = updateData.aiPromptId;
-
+      
       const result = await tenantDb.update(schema.omnibridgeAutomationRules)
         .set(updateObject)
         .where(and(
@@ -199,7 +199,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
       if (result.length > 0) {
         const updatedRule = this.mapRowToEntity(result[0]);
-
+        
         // Sync with automation engine
         try {
           const { GlobalAutomationManager } = await import('../services/AutomationEngine');
@@ -210,7 +210,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         } catch (syncError) {
           console.error(`⚠️ [DrizzleAutomationRuleRepository] Failed to sync rule to engine:`, syncError);
         }
-
+        
         return updatedRule;
       }
 
@@ -296,53 +296,25 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     // Convert backend data to frontend format
     const triggerFromDb = parseJsonField(row.trigger, {});
     const actionsFromDb = parseJsonField(row.actions, []);
-
+    
     // Convert trigger object to triggers array with proper format for frontend
     let triggersForFrontend = [];
-    if (triggerFromDb.type && triggerFromDb.conditions) {
-      // Modern format: trigger object with conditions array
-      triggersForFrontend = triggerFromDb.conditions.map((condition: any) => {
-        let frontendType = triggerFromDb.type;
-
-        // Map backend types to frontend types
-        if (triggerFromDb.type === 'keyword_match') {
-          frontendType = 'keyword';
-        } else if (triggerFromDb.type === 'channel_specific') {
-          frontendType = 'channel';
-        } else if (triggerFromDb.type === 'message_received') {
-          frontendType = 'keyword'; // Default fallback
-        }
-
-        // Override with condition type if more specific
-        if (condition.type === 'channel') {
-          frontendType = 'channel';
-        } else if (condition.type === 'keyword') {
-          frontendType = 'keyword';
-        }
-
-        const config: any = {
-          value: condition.value || '',
-          keywords: condition.value || '',
+    if (triggerFromDb && triggerFromDb.conditions && Array.isArray(triggerFromDb.conditions)) {
+      // Legacy format: trigger.conditions array -> convert to triggers array
+      triggersForFrontend = triggerFromDb.conditions.map((condition: any, index: number) => ({
+        id: condition.id || `trigger_${Date.now()}_${index}`,
+        type: condition.type || 'keyword',
+        name: this.getDisplayNameForTriggerType(condition.type || 'keyword'),
+        description: this.getDescriptionForTriggerType(condition.type || 'keyword'),
+        config: {
+          keywords: condition.value || condition.keywords || '',
+          value: condition.value || condition.keywords || '',
           operator: condition.operator || 'contains',
           field: condition.field || 'content',
-          caseSensitive: condition.caseSensitive || false
-        };
-
-        // Ensure channelType is properly set for channel triggers
-        if (frontendType === 'channel') {
-          config.channelType = condition.channelType || condition.value || '';
+          caseSensitive: condition.caseSensitive || false,
+          channelType: condition.channelType || ''
         }
-
-        return {
-          id: condition.id || `trigger-${Date.now()}`,
-          type: frontendType,
-          name: this.getDisplayNameForTriggerType(frontendType),
-          description: this.getDescriptionForTriggerType(frontendType),
-          icon: this.getIconForTriggerType(frontendType),
-          color: this.getColorForTriggerType(frontendType),
-          config: config
-        };
-      });
+      }));
     } else if (triggerFromDb && Object.keys(triggerFromDb).length > 0) {
       // Single trigger object -> convert to triggers array
       triggersForFrontend = [{
@@ -402,46 +374,30 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
   // Convert frontend trigger format to database storage format
   private convertFrontendTriggerToStorage(frontendTrigger: any): any {
-    console.log(`🔧 [DrizzleAutomationRuleRepository] Converting frontend trigger:`, frontendTrigger);
-
-    // Map frontend trigger type to backend type
-    let backendType = 'message_received';
-    if (frontendTrigger.type === 'keyword') {
-      backendType = 'keyword_match';
-    } else if (frontendTrigger.type === 'channel') {
-      backendType = 'channel_specific';
-    } else if (frontendTrigger.type) {
-      backendType = frontendTrigger.type;
+    if (!frontendTrigger || !frontendTrigger.config) {
+      return frontendTrigger;
     }
 
-    const condition: any = {
-      id: frontendTrigger.id || `condition-${Date.now()}`,
-      type: frontendTrigger.type || 'keyword',
-      operator: frontendTrigger.config?.operator || 'contains',
-      field: frontendTrigger.config?.field || 'content',
-      caseSensitive: frontendTrigger.config?.caseSensitive || false
+    const config = frontendTrigger.config;
+    
+    // Convert frontend trigger config to database format
+    const convertedTrigger = {
+      ...frontendTrigger,
+      // Extract fields from config to root level for database storage
+      keywords: config.keywords || config.value || '',
+      value: config.value || config.keywords || '',
+      operator: config.operator || 'contains',
+      field: config.field || 'content',
+      caseSensitive: config.caseSensitive || false,
+      channelType: config.channelType || '', // ← PRESERVE channelType!
+      // Keep the original config as well for backwards compatibility
+      config: config
     };
 
-    // Enhanced value handling based on trigger type
-    if (frontendTrigger.type === 'channel') {
-      const channelValue = frontendTrigger.config?.channelType || frontendTrigger.config?.value || '';
-      condition.value = channelValue;
-      condition.channelType = channelValue;
-    } else if (frontendTrigger.type === 'keyword') {
-      const keywordValue = frontendTrigger.config?.keywords || frontendTrigger.config?.value || '';
-      condition.value = keywordValue;
-      condition.keywords = keywordValue;
-    } else {
-      condition.value = frontendTrigger.config?.value || frontendTrigger.config?.keywords || '';
-    }
-
-    const storageFormat = {
-      type: backendType,
-      conditions: [condition]
-    };
-
-    console.log(`🔧 [DrizzleAutomationRuleRepository] Converted to storage format:`, storageFormat);
-    return storageFormat;
+    console.log(`🔧 [convertFrontendTriggerToStorage] Frontend trigger:`, frontendTrigger);
+    console.log(`🔧 [convertFrontendTriggerToStorage] Converted trigger:`, convertedTrigger);
+    
+    return convertedTrigger;
   }
 
   private getDisplayNameForTriggerType(type: string): string {
@@ -450,8 +406,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       'keyword_match': 'Palavra-chave',
       'time_based': 'Baseado em tempo',
       'sender_based': 'Baseado no remetente',
-      'content_analysis': 'Análise de conteúdo',
-      'channel': 'Canal'
+      'content_analysis': 'Análise de conteúdo'
     };
     return mapping[type] || 'Gatilho personalizado';
   }
@@ -462,32 +417,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       'keyword_match': 'Ativa quando detecta palavras específicas',
       'time_based': 'Ativa em horários específicos',
       'sender_based': 'Ativa baseado no remetente',
-      'content_analysis': 'Ativa baseado na análise do conteúdo',
-      'channel': 'Ativa baseado no canal específico'
+      'content_analysis': 'Ativa baseado na análise do conteúdo'
     };
     return mapping[type] || 'Gatilho personalizado';
   }
-
-  // Placeholder for getIconForTriggerType if it exists in the original code or is intended
-  private getIconForTriggerType(type: string): string {
-    const mapping: Record<string, string> = {
-      'keyword': 'keywords', // Example icon name
-      'channel': 'channel', // Example icon name
-      // Add other types as needed
-    };
-    return mapping[type] || 'default_icon'; // Default icon
-  }
-
-  // Placeholder for getColorForTriggerType if it exists in the original code or is intended
-  private getColorForTriggerType(type: string): string {
-    const mapping: Record<string, string> = {
-      'keyword': '#FFC107', // Example color
-      'channel': '#2196F3', // Example color
-      // Add other types as needed
-    };
-    return mapping[type] || '#9E9E9E'; // Default color
-  }
-
 
   private getDisplayNameForActionType(type: string): string {
     const mapping: Record<string, string> = {

@@ -35,57 +35,17 @@ export class UpdateAutomationRuleUseCase {
     console.log(`🔍 [UpdateAutomationRuleUseCase] Received data.triggers:`, JSON.stringify(data.triggers, null, 2));
     
     if (data.triggers !== undefined) {
-      const firstTrigger = data.triggers[0];
-      let triggerType = 'message_received';
-      
-      if (firstTrigger?.type === 'keyword') {
-        triggerType = 'keyword_match';
-      } else if (firstTrigger?.type === 'channel') {
-        triggerType = 'channel_specific';
-      } else if (firstTrigger?.type) {
-        triggerType = firstTrigger.type;
-      }
-      
       updateData.trigger = {
-        type: triggerType,
-        conditions: data.triggers.map(trigger => {
-          const condition: any = {
-            id: trigger.id || `condition-${Date.now()}`,
-            type: trigger.type || 'keyword',
-            operator: trigger.config?.operator || 'contains',
-            field: trigger.config?.field || 'content',
-            caseSensitive: trigger.config?.caseSensitive || false
-          };
-          
-          // Enhanced value handling based on trigger type
-          if (trigger.type === 'channel') {
-            // For channel triggers, prioritize channelType over value
-            const channelValue = trigger.config?.channelType || trigger.config?.value || '';
-            condition.value = channelValue;
-            condition.channelType = channelValue;
-            condition.type = 'channel';
-          } else if (trigger.type === 'keyword') {
-            // For keyword triggers, prioritize keywords over value and ensure both are set
-            const keywordValue = trigger.config?.keywords || trigger.config?.value || '';
-            condition.value = keywordValue;
-            condition.keywords = keywordValue; // Preserve keywords field
-            // Ensure field is set to content for keyword matching
-            condition.field = 'content';
-          } else {
-            // Fallback for other trigger types
-            condition.value = trigger.config?.value || trigger.config?.keywords || '';
-          }
-          
-          // Preserve additional config fields
-          if (trigger.config?.channelType) {
-            condition.channelType = trigger.config.channelType;
-          }
-          if (trigger.config?.keywords) {
-            condition.keywords = trigger.config.keywords;
-          }
-          
-          return condition;
-        })
+        type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
+        conditions: data.triggers.map(trigger => ({
+          id: trigger.id || `condition-${Date.now()}`,
+          type: trigger.type || 'keyword',
+          operator: trigger.config?.operator || 'contains',
+          value: trigger.config?.value || trigger.config?.keywords || '',
+          field: trigger.config?.field || 'content',
+          caseSensitive: trigger.config?.caseSensitive || false,
+          channelType: trigger.config?.channelType || ''
+        }))
       };
       console.log(`🔧 [UpdateAutomationRuleUseCase] Created updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
     }

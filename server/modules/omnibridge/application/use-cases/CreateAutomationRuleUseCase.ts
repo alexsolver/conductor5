@@ -31,57 +31,14 @@ export class CreateAutomationRuleUseCase {
     const now = new Date();
 
     // Map triggers and actions to the format expected by AutomationRule
-    let triggerType = 'message_received';
-    let conditions: any[] = [];
-
-    if (data.triggers && data.triggers.length > 0) {
-      const firstTrigger = data.triggers[0];
-      
-      if (firstTrigger.type === 'keyword') {
-        triggerType = 'keyword_match';
-      } else if (firstTrigger.type === 'channel') {
-        triggerType = 'channel_specific';
-      } else if (firstTrigger.type) {
-        triggerType = firstTrigger.type;
-      }
-
-      conditions = data.triggers.map(trigger => {
-        const condition: any = {
-          id: uuidv4(),
-          type: trigger.type || 'keyword',
-          operator: trigger.config?.operator || 'contains',
-          field: trigger.config?.field || 'content',
-          caseSensitive: trigger.config?.caseSensitive || false
-        };
-
-        // Enhanced keyword processing - handle both string and array
-        if (trigger.type === 'keyword' && trigger.config) {
-          let keywordValue = '';
-          
-          if (trigger.config.keywords) {
-            // Handle both string and array formats
-            if (Array.isArray(trigger.config.keywords)) {
-              keywordValue = trigger.config.keywords.join(' ');
-            } else {
-              keywordValue = String(trigger.config.keywords);
-            }
-          } else if (trigger.config.value) {
-            keywordValue = String(trigger.config.value);
-          }
-          
-          condition.value = keywordValue;
-          condition.keywords = keywordValue; // Preserve for backend compatibility
-        } else {
-          condition.value = trigger.config?.value || '';
-        }
-
-        return condition;
-      });
-    }
-
     const trigger = {
-      type: triggerType,
-      conditions
+      type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
+      conditions: data.triggers[0]?.config ? [{
+        id: uuidv4(),
+        type: 'keyword',
+        operator: 'contains',
+        value: data.triggers[0].config.keywords?.join(' ') || ''
+      }] : []
     };
 
     const actions = data.actions.map(action => ({
