@@ -63,7 +63,7 @@ router.get(
         FROM ${sql.raw(`"${schemaName}".user_group_memberships`)} ugm
         INNER JOIN ${sql.raw(`"${schemaName}".user_groups`)} ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id::uuid = ${tenantId}::uuid
+        WHERE ugm.tenant_id = ${tenantId}::uuid
           AND ug.is_active = true
       `;
 
@@ -256,6 +256,122 @@ router.post(
 
     } catch (error) {
       console.error('❌ [TEAM-INVITATION] Error creating team invitation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create team member invitation',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
+
+// ✅ 1QA.MD: Team member invitation endpoint with proper SendGrid integration
+router.post(
+  '/invite',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
+  async (req, res: Response) => {
+    const authorizedReq = req as AuthorizedRequest;
+
+    try {
+      const tenantId = authorizedReq.user!.tenantId;
+      const { email, role, notes, sendEmail } = req.body;
+
+      console.log('🔍 [TEAM-MEMBERS-INVITATION] Received invitation request:', {
+        email,
+        role,
+        tenantId,
+        sendEmail
+      });
+
+      // Validação básica
+      if (!email) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email is required' 
+        });
+      }
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Tenant ID is required' 
+        });
+      }
+
+      // Verificar se usuário já existe
+      const existingUser = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email.toLowerCase()))
+        .limit(1);
+
+      if (existingUser.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Gerar token de convite
+      const invitationToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+
+      console.log('🔍 [TEAM-MEMBERS-INVITATION] Generated invitation token:', invitationToken);
+
+      // Enviar email se solicitado
+      if (sendEmail !== false) { // Default é true
+        try {
+          console.log('🔍 [TEAM-MEMBERS-INVITATION] Starting email sending process...');
+          
+          const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+          console.log('🔍 [TEAM-MEMBERS-INVITATION] Invitation URL generated:', invitationUrl);
+
+          const inviterName = authorizedReq.user!.firstName && authorizedReq.user!.lastName 
+            ? `${authorizedReq.user!.firstName} ${authorizedReq.user!.lastName}` 
+            : authorizedReq.user!.email;
+
+          console.log('🔍 [TEAM-MEMBERS-INVITATION] Email parameters prepared, calling sendInvitationEmail...');
+
+          const emailResult = await sendInvitationEmail({
+            to: email,
+            invitationUrl: invitationUrl,
+            inviterName: inviterName,
+            role: role || 'agent',
+            notes: notes,
+            expiresAt: expiresAt,
+          });
+
+          console.log('🔍 [TEAM-MEMBERS-INVITATION] SendGrid response:', emailResult);
+
+          if (emailResult) {
+            console.log('✅ [TEAM-MEMBERS-INVITATION] Email sent successfully to:', email);
+          } else {
+            console.log('⚠️ [TEAM-MEMBERS-INVITATION] Email sending failed - check SendGrid configuration');
+          }
+        } catch (emailError) {
+          console.error('❌ [TEAM-MEMBERS-INVITATION] Error sending email:', emailError);
+          // Não falhar a criação do convite se o email falhar
+        }
+      } else {
+        console.log('🔍 [TEAM-MEMBERS-INVITATION] Email sending disabled by request');
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Team member invitation created successfully',
+        invitation: {
+          email: email,
+          role: role || 'agent',
+          status: 'pending',
+          expiresAt: expiresAt,
+          token: invitationToken,
+        },
+      });
+
+    } catch (error) {
+      console.error('❌ [TEAM-MEMBERS-INVITATION] Error creating team invitation:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create team member invitation',
