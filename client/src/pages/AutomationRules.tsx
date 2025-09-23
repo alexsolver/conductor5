@@ -272,9 +272,13 @@ export default function AutomationRules() {
           <AutomationRuleBuilder
             isOpen={isCreateDialogOpen}
             onClose={() => setIsCreateDialogOpen(false)}
-            onSave={(rule) => {
-              // Invalidar cache e fechar modal
-              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+            onSave={async (rule) => {
+              console.log('🔄 [AutomationRules] Rule saved, invalidating cache and refetching...');
+              
+              // Force immediate cache invalidation and refetch
+              await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+              await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
+              
               setIsCreateDialogOpen(false);
               toast({
                 title: '✅ Regra criada',
@@ -290,9 +294,13 @@ export default function AutomationRules() {
               setEditingRule(null);
             }}
             existingRule={editingRule}
-            onSave={(rule) => {
-              // Invalidar cache e fechar modal
-              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+            onSave={async (rule) => {
+              console.log('🔄 [AutomationRules] Rule updated, invalidating cache and refetching...');
+              
+              // Force immediate cache invalidation and refetch
+              await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+              await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
+              
               setIsEditDialogOpen(false);
               setEditingRule(null);
               toast({
