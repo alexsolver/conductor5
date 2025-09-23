@@ -3,17 +3,10 @@ import { AutomationAction } from '../../domain/entities/AutomationRule';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
 import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
-import { TelegramService } from './TelegramService';
-import { SendGridService } from './SendGridService';
 
 export class ActionExecutor implements IActionExecutorPort {
-  private telegramService: TelegramService;
-  private sendGridService: SendGridService;
-
   constructor(private aiService?: IAIAnalysisPort, private createTicketUseCase?: CreateTicketUseCase) {
     console.log('✅ [ActionExecutor] Initialized with AI service and ticket use case');
-    this.telegramService = new TelegramService();
-    this.sendGridService = new SendGridService();
   }
 
   async executeActions(actions: AutomationAction[], context: ActionExecutionContext): Promise<ActionExecutionResult[]> {

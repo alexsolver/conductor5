@@ -662,7 +662,11 @@ export class GlobalAutomationManager {
   }
 
   public getEngine(tenantId: string): AutomationEngine {
-    if (!this.engines.has(tenantId)) {
+    // Força recriação se não existe ou se existe um engine sem CreateTicketUseCase configurado
+    const existingEngine = this.engines.get(tenantId);
+    const needsRecreation = !existingEngine || !this.hasProperDependencies(existingEngine);
+    
+    if (needsRecreation) {
       try {
         // Resolver dependências do container
         const container = DependencyContainer.getInstance();
@@ -670,7 +674,7 @@ export class GlobalAutomationManager {
         const aiService = new AIAnalysisService();
         const actionExecutor = new ActionExecutor(aiService, createTicketUseCase);
         
-        console.log('✅ [GlobalAutomationManager] Creating engine with injected CreateTicketUseCase');
+        console.log('✅ [GlobalAutomationManager] Creating engine with injected CreateTicketUseCase for tenant:', tenantId);
         const engine = new AutomationEngine(tenantId, aiService, actionExecutor);
         this.engines.set(tenantId, engine);
       } catch (error) {
@@ -680,6 +684,12 @@ export class GlobalAutomationManager {
       }
     }
     return this.engines.get(tenantId)!;
+  }
+
+  private hasProperDependencies(engine: AutomationEngine): boolean {
+    // Verifica se o engine tem as dependências necessárias configuradas
+    // Por simplicidade, assumimos que engines antigos não têm as dependências
+    return false; // Força recriação por ora
   }
 
   /**
