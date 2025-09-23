@@ -128,7 +128,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -192,10 +192,10 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
       message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
       message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesStatus = filterStatus === 'all' || message.status === filterStatus;
     const matchesChannel = filterChannel === 'all' || message.channelType === filterChannel;
-    
+
     return matchesSearch && matchesStatus && matchesChannel;
   });
 
@@ -257,7 +257,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
               {filteredMessages.filter(m => m.status === 'unread').length} não lidas
             </Badge>
           </div>
-          
+
           {/* Search Bar */}
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -318,7 +318,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
               filteredMessages.map((message) => {
                 const ChannelIcon = getChannelIcon(message.channelType);
                 const isSelected = selectedMessage?.id === message.id;
-                
+
                 return (
                   <Card 
                     key={message.id}
@@ -346,49 +346,88 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${getChannelColor(message.channelType)}`}
-                          >
-                            {message.channelType.toUpperCase()}
-                          </Badge>
-                          {message.priority !== 'medium' && (
+                        <div className="flex flex-col items-end gap-1 min-w-0">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                            {new Date(message.timestamp).toLocaleString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                          <div className="flex gap-1 flex-wrap">
                             <Badge 
                               variant="outline" 
-                              className={`text-xs ${getPriorityColor(message.priority)}`}
+                              className={getPriorityColor(message.priority)}
                             >
                               {message.priority === 'urgent' ? 'URGENTE' : 
                                message.priority === 'high' ? 'ALTA' : 
                                message.priority === 'low' ? 'BAIXA' : 'MÉDIA'}
                             </Badge>
+                            {message.status === 'unread' && (
+                              <Badge variant="default" className="bg-blue-500 text-white">
+                                Não lida
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Message metadata */}
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span>Para: {message.to || 'Sistema'}</span>
+                          {message.tags && message.tags.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Tag className="h-3 w-3" />
+                              <span>{message.tags.join(', ')}</span>
+                            </div>
                           )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          {message.attachments && message.attachments > 0 && (
+                            <span className="flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              {message.attachments}
+                            </span>
+                          )}
+                          {message.starred && (
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          )}
+                          <span className="text-xs">ID: {message.id.substring(0, 8)}...</span>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-3 pt-0">
-                      {message.subject && (
-                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 truncate">
-                          {message.subject}
-                        </p>
-                      )}
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 truncate">
+                        {message.subject}
+                      </p>
                       <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {message.content}
                       </p>
-                      {message.tags && message.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          {message.tags.slice(0, 2).map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-1 flex-wrap">
+                          {getQuickActions(message).map((action, index) => (
+                            <Button
+                              key={index}
+                              size="sm"
+                              variant="outline"
+                              className={`h-7 px-2 text-xs ${action.color} text-white border-none hover:opacity-80`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                action.action();
+                              }}
+                              data-testid={`quick-action-${action.label.toLowerCase()}`}
+                            >
+                              <action.icon className="h-3 w-3 mr-1" />
+                              {action.label}
+                            </Button>
                           ))}
-                          {message.tags.length > 2 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{message.tags.length - 2}
-                            </Badge>
-                          )}
                         </div>
-                      )}
+                        <div className="text-xs text-gray-400">
+                          Canal: {message.channelId}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -448,7 +487,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                       {selectedMessage.content}
                     </p>
                   </div>
-                  
+
                   {selectedMessage.attachments && selectedMessage.attachments > 0 && (
                     <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <div className="flex items-center gap-2">
@@ -479,7 +518,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                     </Button>
                   ))}
                 </div>
-                
+
                 {/* Smart Suggestions */}
                 <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
                   <div className="flex items-start gap-3">
@@ -530,7 +569,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Clique em uma mensagem à esquerda para visualizar seu conteúdo e criar automações.
               </p>
-              
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mt-6">
                 <Card className="p-4">
