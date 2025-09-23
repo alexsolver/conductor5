@@ -40,15 +40,24 @@ interface UserGroup {
   description?: string;
 }
 
+interface InviteUserData {
+  email: string;
+  role: string;
+  groupIds: string[];
+  expiresInDays: number;
+  notes: string;
+  sendEmail: boolean;
+}
+
 export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: InviteUserDialogProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<InviteUserData>({
     email: "",
     role: "agent",
-    groupIds: [] as string[],
+    groupIds: [],
     expiresInDays: 7,
     notes: "",
     sendEmail: true,
@@ -60,8 +69,13 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
   });
 
   const inviteUserMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      return apiRequest("POST", "/api/user-management/invitations", data);
+    mutationFn: async (data: InviteUserData) => {
+      const response = await apiRequest("POST", "/api/user-management/invitations", data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro ao enviar convite");
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/invitations"] });
@@ -92,7 +106,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email.trim()) return;
-    
+
     inviteUserMutation.mutate(formData);
   };
 
@@ -201,7 +215,7 @@ export function InviteUserDialog({ open, onOpenChange, tenantAdmin = false }: In
                     ))}
                   </div>
                 </ScrollArea>
-                
+
                 {formData.groupIds.length > 0 && (
                   <div className="mt-2">
                     <p className="text-sm text-muted-foreground mb-1">Grupos selecionados:</p>

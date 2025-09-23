@@ -137,6 +137,7 @@ router.post(
         role: invitationData.role,
         tenantId,
         sendEmail: invitationData.sendEmail,
+        shouldSendEmail: invitationData.sendEmail !== false,
       });
 
       // Validação básica
@@ -188,34 +189,51 @@ router.post(
         expiresAt: invitationRecord.expiresAt,
       });
 
-      // Enviar email se solicitado
-      if (invitationData.sendEmail) {
+      // Enviar email se solicitado (padrão true)
+      if (invitationData.sendEmail !== false) {
         try {
+          console.log("📧 [USER-INVITATION] Starting email sending process...");
+          console.log("📧 [USER-INVITATION] Environment check - SENDGRID_API_KEY exists:", !!process.env.SENDGRID_API_KEY);
+          console.log("📧 [USER-INVITATION] Environment check - SENDGRID_FROM_EMAIL:", process.env.SENDGRID_FROM_EMAIL);
+          
           // Import sendgrid service
           const { sendInvitationEmail } = await import("../services/sendgridService");
 
           const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+          console.log("📧 [USER-INVITATION] Invitation URL generated:", invitationUrl);
 
+          const inviterName = req.user!.firstName && req.user!.lastName 
+            ? `${req.user!.firstName} ${req.user!.lastName}` 
+            : req.user!.email;
+          console.log("📧 [USER-INVITATION] Inviter name:", inviterName);
+          
+          console.log("📧 [USER-INVITATION] Email parameters prepared, calling sendInvitationEmail...");
+          
           const emailResult = await sendInvitationEmail({
             to: invitationData.email,
             invitationUrl: invitationUrl,
-            inviterName: req.user!.firstName && req.user!.lastName 
-              ? `${req.user!.firstName} ${req.user!.lastName}` 
-              : req.user!.email,
-            role: invitationData.role,
+            inviterName: inviterName,
+            role: invitationData.role || 'agent',
             notes: invitationData.notes,
             expiresAt: expiresAt,
           });
 
+          console.log("📧 [USER-INVITATION] SendGrid response:", emailResult);
+
           if (emailResult) {
             console.log("✅ [USER-INVITATION] Email sent successfully to:", invitationData.email);
           } else {
-            console.log("⚠️ [USER-INVITATION] Email sending failed but continuing with invitation creation");
+            console.log("⚠️ [USER-INVITATION] Email sending failed - check SendGrid configuration");
+            console.log("⚠️ [USER-INVITATION] Continuing with invitation creation...");
           }
         } catch (emailError) {
           console.error("❌ [USER-INVITATION] Error sending email:", emailError);
+          console.error("❌ [USER-INVITATION] Error details:", emailError.message);
+          console.error("❌ [USER-INVITATION] Error stack:", emailError.stack);
           // Não falhar a criação do convite se o email falhar
         }
+      } else {
+        console.log("🔍 [USER-INVITATION] Email sending disabled by request");
       }
 
       res.status(201).json({
