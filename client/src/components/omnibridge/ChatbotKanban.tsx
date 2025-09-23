@@ -79,7 +79,8 @@ import {
   Repeat,
   Shuffle,
   SkipForward,
-  FastForward
+  FastForward,
+  Plug
 } from 'lucide-react';
 
 interface FlowNode {
@@ -321,103 +322,23 @@ const nodeTypes = [
     color: 'bg-purple-500'
   },
 
-  // Integrations
+  // Integration (Consolidated)
   { 
-    id: 'integration-whatsapp', 
+    id: 'integration-generic', 
     type: 'integration', 
-    name: 'WhatsApp', 
-    icon: MessageCircle, 
-    description: 'Integração WhatsApp',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-telegram', 
-    type: 'integration', 
-    name: 'Telegram', 
-    icon: MessageCircle, 
-    description: 'Integração Telegram',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-email', 
-    type: 'integration', 
-    name: 'Email', 
-    icon: Mail, 
-    description: 'Envio de emails',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-sms', 
-    type: 'integration', 
-    name: 'SMS', 
-    icon: Phone, 
-    description: 'Envio de SMS',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-calendar', 
-    type: 'integration', 
-    name: 'Calendário', 
-    icon: Calendar, 
-    description: 'Agendamento de eventos',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-payment', 
-    type: 'integration', 
-    name: 'Pagamento', 
-    icon: CreditCard, 
-    description: 'Processamento de pagamentos',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-location', 
-    type: 'integration', 
-    name: 'Localização', 
-    icon: Map, 
-    description: 'Serviços de localização',
-    color: 'bg-indigo-500'
-  },
-  { 
-    id: 'integration-crm', 
-    type: 'integration', 
-    name: 'CRM', 
-    icon: Users, 
-    description: 'Integração com CRM',
+    name: 'Integração', 
+    icon: Plug, 
+    description: 'Integração externa configurável',
     color: 'bg-indigo-500'
   },
 
-  // AI & Advanced
+  // AI Processing (Consolidated)
   { 
-    id: 'ai-nlp', 
+    id: 'ai-processing', 
     type: 'ai', 
     name: 'Processamento IA', 
     icon: Brain, 
-    description: 'Análise de linguagem natural',
-    color: 'bg-pink-500'
-  },
-  { 
-    id: 'ai-sentiment', 
-    type: 'ai', 
-    name: 'Análise Sentimento', 
-    icon: Brain, 
-    description: 'Detecta emoções do usuário',
-    color: 'bg-pink-500'
-  },
-  { 
-    id: 'ai-translation', 
-    type: 'ai', 
-    name: 'Tradução', 
-    icon: Globe, 
-    description: 'Tradução automática',
-    color: 'bg-pink-500'
-  },
-  { 
-    id: 'ai-recommendation', 
-    type: 'ai', 
-    name: 'Recomendação IA', 
-    icon: Target, 
-    description: 'Sistema de recomendações',
+    description: 'IA configurável: NLP, Sentiment, Tradução, Recomendações',
     color: 'bg-pink-500'
   },
 
@@ -447,30 +368,6 @@ const nodeTypes = [
     color: 'bg-gray-500'
   },
   { 
-    id: 'flow-merge', 
-    type: 'branch', 
-    name: 'Fusão', 
-    icon: GitBranch, 
-    description: 'União de fluxos',
-    color: 'bg-gray-500'
-  },
-  { 
-    id: 'flow-jump', 
-    type: 'branch', 
-    name: 'Pular Para', 
-    icon: SkipForward, 
-    description: 'Salta para outro nó',
-    color: 'bg-gray-500'
-  },
-  { 
-    id: 'flow-end', 
-    type: 'branch', 
-    name: 'Finalizar', 
-    icon: Flag, 
-    description: 'Termina a conversa',
-    color: 'bg-red-500'
-  },
-  { 
     id: 'flow-transfer-human', 
     type: 'transfer', 
     name: 'Transferir Humano', 
@@ -479,37 +376,13 @@ const nodeTypes = [
     color: 'bg-orange-500'
   },
 
-  // Validation
+  // Validation (Consolidated)
   { 
-    id: 'validation-email', 
+    id: 'validation-generic', 
     type: 'validation', 
-    name: 'Validar Email', 
-    icon: Mail, 
-    description: 'Valida formato de email',
-    color: 'bg-cyan-500'
-  },
-  { 
-    id: 'validation-phone', 
-    type: 'validation', 
-    name: 'Validar Telefone', 
-    icon: Phone, 
-    description: 'Valida número de telefone',
-    color: 'bg-cyan-500'
-  },
-  { 
-    id: 'validation-cpf', 
-    type: 'validation', 
-    name: 'Validar CPF', 
-    icon: FileText, 
-    description: 'Valida CPF brasileiro',
-    color: 'bg-cyan-500'
-  },
-  { 
-    id: 'validation-number', 
-    type: 'validation', 
-    name: 'Validar Número', 
-    icon: Hash, 
-    description: 'Valida entrada numérica',
+    name: 'Validação', 
+    icon: CheckCircle, 
+    description: 'Validação configurável: Email, Telefone, CPF, Número, etc.',
     color: 'bg-cyan-500'
   }
 ];
@@ -1044,7 +917,8 @@ export default function ChatbotVisualEditor() {
     } catch (error) {
       console.error('❌ [ChatbotKanban] Error creating chatbot:', error);
       // You might want to show a toast notification here
-      alert(`Erro ao criar chatbot: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      alert(`Erro ao criar chatbot: ${errorMessage}`);
     }
   };
 
@@ -1117,20 +991,33 @@ export default function ChatbotVisualEditor() {
         case 'integration':
           return {
             ...baseTriggerConfig,
-            triggerMessages: 'integração\napi\nwebhook\nconectar',
+            triggerMessages: 'integração\napi\nwebhook\nconectar\nenviar dados\nconsultar sistema',
+            integrationType: 'api',
             apiUrl: 'https://api.exemplo.com/webhook',
             method: 'POST',
-            headers: {},
-            body: '{}'
+            headers: '{"Content-Type": "application/json"}',
+            body: '{"message": "{{user_message}}", "user_id": "{{user_id}}"}',
+            timeout: 30
           };
         case 'ai':
           return {
             ...baseTriggerConfig,
-            triggerMessages: 'pergunta\ndúvida\nconsulta\nperguntar',
+            triggerMessages: 'pergunta\ndúvida\nconsulta\nperguntar\nanalisar\nprocessar',
+            aiType: 'nlp',
             aiPrompt: 'Analise a mensagem do usuário e forneça uma resposta apropriada.',
             model: 'gpt-4',
             temperature: 0.7,
-            maxTokens: 150
+            maxTokens: 150,
+            language: 'pt-BR'
+          };
+        case 'validation':
+          return {
+            ...baseTriggerConfig,
+            triggerMessages: 'validar\nverificar\nchecar\nconferir\nvalidação',
+            validationType: 'email',
+            errorMessage: 'Formato inválido. Tente novamente.',
+            successMessage: 'Validação realizada com sucesso!',
+            required: true
           };
         default:
           return {
