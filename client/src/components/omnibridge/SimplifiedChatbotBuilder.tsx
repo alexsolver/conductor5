@@ -249,19 +249,43 @@ export default function SimplifiedChatbotBuilder({
 
   // Save chatbot mutation
   const saveChatbotMutation = useMutation({
-    mutationFn: (chatbotData: SimpleChatbot) =>
-      apiRequest(
+    mutationFn: async (chatbotData: SimpleChatbot) => {
+      console.log('🔧 [SimplifiedChatbotBuilder] Saving chatbot:', chatbotData);
+      
+      const payload = {
+        name: chatbotData.name,
+        description: chatbotData.description,
+        channels: chatbotData.channels,
+        workflow: chatbotData.steps, // Send steps as workflow
+        enabled: chatbotData.enabled,
+        greeting: chatbotData.greeting,
+        fallbackMessage: chatbotData.fallbackMessage,
+        transferToHuman: chatbotData.transferToHuman
+      };
+
+      console.log('🔧 [SimplifiedChatbotBuilder] Payload:', payload);
+
+      const response = await apiRequest(
         chatbotId ? 'PUT' : 'POST',
         chatbotId ? `/api/omnibridge/chatbots/${chatbotId}` : '/api/omnibridge/chatbots',
-        chatbotData
-      ),
-    onSuccess: () => {
+        payload
+      );
+
+      return response;
+    },
+    onSuccess: (data) => {
+      console.log('✅ [SimplifiedChatbotBuilder] Chatbot saved successfully:', data);
       toast({ title: 'Sucesso', description: 'Chatbot salvo com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots'] });
       onClose();
     },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Falha ao salvar chatbot', variant: 'destructive' });
+    onError: (error: any) => {
+      console.error('❌ [SimplifiedChatbotBuilder] Error saving chatbot:', error);
+      toast({ 
+        title: 'Erro', 
+        description: error?.message || 'Falha ao salvar chatbot', 
+        variant: 'destructive' 
+      });
     }
   });
 
@@ -434,7 +458,7 @@ export default function SimplifiedChatbotBuilder({
                   variant="outline"
                   className="w-full justify-start"
                   onClick={handleSave}
-                  disabled={saveChatbotMutation.isPending}
+                  disabled={saveChatbotMutation.isPending || !chatbot.name.trim()}
                   data-testid="save-chatbot"
                 >
                   <Save className="h-3 w-3 mr-2" />

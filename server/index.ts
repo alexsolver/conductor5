@@ -50,7 +50,7 @@ async function ensurePostgreSQLRunning() {
     console.log("🔄 [POSTGRESQL-1QA] Starting PostgreSQL...");
 
     // Start PostgreSQL with proper configuration
-    const postgresPath = '/nix/store/yz718sizpgsnq2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres';
+    const postgresPath = '/nix/store/yz718sizpg2y8gfv8bba8l8r4494l-postgresql-16.3/bin/postgres';
     const dataDir = process.env.HOME + '/postgres_data';
 
     const postgresProcess = spawn(postgresPath, ['-D', dataDir], {
@@ -81,7 +81,7 @@ async function validateDatabaseConnection() {
 
   // SECURITY: Secure SSL configuration with environment variable controls
   let sslConfig = {};
-  
+
   // Check for explicit SSL configuration override
   const sslOverride = process.env.DATABASE_SSL;
   const allowUnsafeSSL = process.env.ALLOW_UNSAFE_DATABASE_SSL === 'true';
@@ -141,11 +141,11 @@ async function validateDatabaseConnection() {
     console.error("❌ [DATABASE] Database connection failed:", error);
 
     // SECURITY: Only allow SSL fallback in development or when explicitly allowed
-    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' && 
+    if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' &&
         (isDevelopment || allowUnsafeSSL)) {
-      
+
       console.warn("⚠️ [DATABASE] SSL certificate validation failed. Attempting connection with relaxed SSL settings...");
-      
+
       try {
         const fallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
@@ -160,11 +160,11 @@ async function validateDatabaseConnection() {
         await fallbackPool.query('SELECT 1');
         await fallbackPool.end();
         console.log("✅ [DATABASE] Connected with relaxed SSL certificate validation.");
-        
+
         if (isProduction) {
           console.warn("🚨 [SECURITY] WARNING: Using relaxed SSL in production. This reduces security!");
         }
-        
+
         return true;
       } catch (fallbackError) {
         console.error("❌ [DATABASE] Fallback connection also failed:", fallbackError);
@@ -173,7 +173,7 @@ async function validateDatabaseConnection() {
 
     // Provide helpful error messages
     let errorMessage = "Database connection failed.";
-    
+
     if (isProduction) {
       errorMessage += " In production, ensure your DATABASE_URL includes proper SSL configuration and certificates are valid.";
       if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
@@ -535,6 +535,7 @@ app.use((req, res, next) => {
 
   // Add a catch-all route for development that serves the index.html
   if (app.get("env") === "development") {
+    const path = require('path'); // Import path module here
     app.get('*', (req, res, next) => {
       // Skip if it's an API route
       if (req.path.startsWith('/api/')) {
@@ -658,11 +659,11 @@ app.use((req, res, next) => {
       setImmediate(async () => {
         try {
           console.log('🚀 [BACKGROUND-INIT] Starting background initialization...');
-          
+
           // Initialize production systems in background
           const tenantValidationMode = process.env.TENANT_VALIDATION_MODE || 'fast';
           console.log(`🔍 [BACKGROUND-INIT] Using validation mode: ${tenantValidationMode}`);
-          
+
           if (tenantValidationMode !== 'off') {
             await productionInitializer.initialize();
             console.log('✅ [BACKGROUND-INIT] Production initializer completed');
