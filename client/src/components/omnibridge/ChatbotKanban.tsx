@@ -100,6 +100,7 @@ interface FlowConnection {
   to: string;
   label?: string;
   condition?: string;
+  type?: 'conditional' | 'success' | 'default';
 }
 
 interface ChatbotFlow {
@@ -2614,7 +2615,7 @@ export default function ChatbotVisualEditor() {
                             </div>
                             <div className="space-y-2">
                               {nodeConfig.triggerMessages ? (
-                                nodeConfig.triggerMessages.split('\n').filter(msg => msg.trim()).slice(0, 3).map((message, index) => (
+                                nodeConfig.triggerMessages.split('\n').filter((msg: string) => msg.trim()).slice(0, 3).map((message: string, index: number) => (
                                   <div key={index} className="bg-white rounded border p-2 text-sm">
                                     <span className="text-muted-foreground">Exemplo:</span> "{message.trim()}"
                                   </div>
@@ -2652,11 +2653,11 @@ export default function ChatbotVisualEditor() {
                                   <div className="bg-slate-50 rounded p-2 text-sm border-l-4 border-green-500">
                                     {nodeConfig.responseMessage}
                                   </div>
-                                  {nodeConfig.quickReplies && nodeConfig.quickReplies.split('\n').filter(r => r.trim()).length > 0 && (
+                                  {nodeConfig.quickReplies && nodeConfig.quickReplies.split('\n').filter((r: string) => r.trim()).length > 0 && (
                                     <div className="mt-2">
                                       <div className="text-xs text-muted-foreground mb-1">Respostas Rápidas:</div>
                                       <div className="flex flex-wrap gap-1">
-                                        {nodeConfig.quickReplies.split('\n').filter(r => r.trim()).map((reply, index) => (
+                                        {nodeConfig.quickReplies.split('\n').filter((r: string) => r.trim()).map((reply: string, index: number) => (
                                           <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded border">
                                             {reply.trim()}
                                           </span>
