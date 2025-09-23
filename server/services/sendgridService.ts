@@ -133,14 +133,20 @@ export const sendInvitationEmail = async ({
     </div>
   `;
 
-  return await sendEmail({
+  return await SendGridService.sendEmail({
     to: to,
+    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com',
     subject: `Convite para Conductor - ${roleDisplay}`,
     html: emailContent,
   });
 };
 
-export const sendEmail = SendGridService.sendEmail;
+export const sendEmail = (params: Omit<EmailParams, 'from'> & { from?: string }) => {
+  return SendGridService.sendEmail({
+    ...params,
+    from: params.from || process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com'
+  });
+};
 
 export const sendgridService = {
   sendEmail: SendGridService.sendEmail,
