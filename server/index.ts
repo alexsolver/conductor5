@@ -81,7 +81,7 @@ async function validateDatabaseConnection() {
 
   // SECURITY: Secure SSL configuration with environment variable controls
   let sslConfig = {};
-
+  
   // Check for explicit SSL configuration override
   const sslOverride = process.env.DATABASE_SSL;
   const allowUnsafeSSL = process.env.ALLOW_UNSAFE_DATABASE_SSL === 'true';
@@ -143,9 +143,9 @@ async function validateDatabaseConnection() {
     // SECURITY: Only allow SSL fallback in development or when explicitly allowed
     if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' && 
         (isDevelopment || allowUnsafeSSL)) {
-
+      
       console.warn("⚠️ [DATABASE] SSL certificate validation failed. Attempting connection with relaxed SSL settings...");
-
+      
       try {
         const fallbackPool = new Pool({
           connectionString: process.env.DATABASE_URL,
@@ -160,11 +160,11 @@ async function validateDatabaseConnection() {
         await fallbackPool.query('SELECT 1');
         await fallbackPool.end();
         console.log("✅ [DATABASE] Connected with relaxed SSL certificate validation.");
-
+        
         if (isProduction) {
           console.warn("🚨 [SECURITY] WARNING: Using relaxed SSL in production. This reduces security!");
         }
-
+        
         return true;
       } catch (fallbackError) {
         console.error("❌ [DATABASE] Fallback connection also failed:", fallbackError);
@@ -173,7 +173,7 @@ async function validateDatabaseConnection() {
 
     // Provide helpful error messages
     let errorMessage = "Database connection failed.";
-
+    
     if (isProduction) {
       errorMessage += " In production, ensure your DATABASE_URL includes proper SSL configuration and certificates are valid.";
       if (error.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
@@ -644,24 +644,6 @@ app.use((req, res, next) => {
   }, async () => {
     log(`serving on port ${port}`);
 
-    // ✅ 1QA.MD: Setup GLOBAL automation initialization
-    setupGlobalAutomation();
-
-    // ✅ 1QA.MD: Initialize message monitoring for automatic rule application
-    async function initializeMessageMonitoring() {
-      try {
-        const { GlobalMessageMonitorManager } = await import('./modules/omnibridge/infrastructure/services/MessageMonitor');
-        const monitorManager = GlobalMessageMonitorManager.getInstance();
-
-        // Start monitoring will be handled by individual AutomationEngine instances
-        console.log(`📨 [SERVER] Message monitoring system initialized`);
-      } catch (error) {
-        console.error(`❌ [SERVER] Failed to initialize message monitoring:`, error);
-      }
-    }
-
-    initializeMessageMonitoring();
-
     // 🔴 INICIALIZA SERVIÇOS CLT OBRIGATÓRIOS
     console.log('[CLT-COMPLIANCE] Inicializando serviços de compliance...');
     try {
@@ -676,11 +658,11 @@ app.use((req, res, next) => {
       setImmediate(async () => {
         try {
           console.log('🚀 [BACKGROUND-INIT] Starting background initialization...');
-
+          
           // Initialize production systems in background
           const tenantValidationMode = process.env.TENANT_VALIDATION_MODE || 'fast';
           console.log(`🔍 [BACKGROUND-INIT] Using validation mode: ${tenantValidationMode}`);
-
+          
           if (tenantValidationMode !== 'off') {
             await productionInitializer.initialize();
             console.log('✅ [BACKGROUND-INIT] Production initializer completed');

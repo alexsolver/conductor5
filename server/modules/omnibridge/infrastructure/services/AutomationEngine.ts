@@ -34,23 +34,6 @@ export class AutomationEngine {
     this.actionExecutor = actionExecutor || new ActionExecutor(this.aiService);
 
     this.loadRulesFromDatabase();
-
-    // Initialize message monitoring for automatic rule application
-    this.initializeMessageMonitoring();
-  }
-
-  private async initializeMessageMonitoring(): Promise<void> {
-    try {
-      // Dynamic import to avoid circular dependencies
-      const { GlobalMessageMonitorManager } = await import('./MessageMonitor');
-      const monitorManager = GlobalMessageMonitorManager.getInstance();
-      
-      // Start monitoring for this tenant
-      monitorManager.startMonitoring(this.tenantId);
-      console.log(`📨 [AUTOMATION-ENGINE] Message monitoring started for tenant: ${this.tenantId}`);
-    } catch (error) {
-      console.error(`❌ [AUTOMATION-ENGINE] Failed to initialize message monitoring for tenant ${this.tenantId}:`, error);
-    }
   }
 
   public addRule(rule: AutomationRule): void {

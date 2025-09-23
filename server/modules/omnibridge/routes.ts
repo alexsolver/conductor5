@@ -33,86 +33,7 @@ const omniBridgeController = new OmniBridgeController(
 router.get('/channels', jwtAuth, (req, res) => omniBridgeController.getChannels(req, res));
 router.post('/channels/:channelId/toggle', jwtAuth, (req, res) => omniBridgeController.toggleChannel(req, res));
 
-// Get all messages
-router.get('/messages', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ success: false, error: 'Tenant ID required' });
-    }
-
-    // Mock messages data for now
-    const messages = Array.from({ length: 50 }, (_, i) => ({
-      id: `msg-${i + 1}`,
-      content: `This is message ${i + 1} content`,
-      sender: `user${(i % 10) + 1}@example.com`,
-      channel: ['telegram', 'whatsapp', 'email'][i % 3],
-      timestamp: new Date(Date.now() - i * 1000 * 60 * 30).toISOString(),
-      status: ['unread', 'read', 'replied'][i % 3],
-      priority: ['low', 'medium', 'high'][i % 3]
-    }));
-
-    res.json({ success: true, messages });
-  } catch (error) {
-    console.error('[OmniBridge] Error fetching messages:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch messages' });
-  }
-});
-
-// Get unprocessed messages for automation
-router.get('/messages/unprocessed', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ success: false, error: 'Tenant ID required' });
-    }
-
-    // Get messages from the last 5 minutes that need automation processing
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-    // Mock unprocessed messages - in production, this would query the database
-    const unprocessedMessages = Array.from({ length: Math.floor(Math.random() * 3) }, (_, i) => ({
-      id: `unprocessed-${Date.now()}-${i}`,
-      content: `New unprocessed message ${i + 1}`,
-      sender: `user${i + 1}@example.com`,
-      channel: 'telegram',
-      channelType: 'telegram',
-      timestamp: new Date().toISOString(),
-      tenantId: tenantId,
-      processed: false
-    }));
-
-    console.log(`📨 [OmniBridge] Found ${unprocessedMessages.length} unprocessed messages for tenant: ${tenantId}`);
-
-    res.json({ success: true, messages: unprocessedMessages });
-  } catch (error) {
-    console.error('[OmniBridge] Error fetching unprocessed messages:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch unprocessed messages' });
-  }
-});
-
-// Mark message as processed
-router.post('/messages/:messageId/mark-processed', jwtAuth, async (req, res) => {
-  try {
-    const { messageId } = req.params;
-    const tenantId = req.user?.tenantId;
-
-    if (!tenantId) {
-      return res.status(400).json({ success: false, error: 'Tenant ID required' });
-    }
-
-    console.log(`✅ [OmniBridge] Marking message ${messageId} as processed for tenant: ${tenantId}`);
-
-    // In production, this would update the database to mark the message as processed
-    // For now, just log the action
-
-    res.json({ success: true, message: 'Message marked as processed' });
-  } catch (error) {
-    console.error('[OmniBridge] Error marking message as processed:', error);
-    res.status(500).json({ success: false, error: 'Failed to mark message as processed' });
-  }
-});
-
+router.get('/messages', jwtAuth, (req, res) => omniBridgeController.getMessages(req, res));
 router.post('/messages/:messageId/process', jwtAuth, (req, res) => omniBridgeController.processMessage(req, res));
 router.post('/messages/process-direct', jwtAuth, (req, res) => omniBridgeController.processDirectMessage(req, res));
 router.post('/automation-rules/:ruleId/test', jwtAuth, (req, res) => omniBridgeController.testAutomationRule(req, res));
@@ -121,7 +42,7 @@ router.post('/automation-rules/:ruleId/test', jwtAuth, (req, res) => omniBridgeC
 router.post('/automation-rules/test', jwtAuth, async (req, res) => {
   try {
     const { rule, message, channel } = req.body;
-
+    
     // Simulate rule testing
     const triggered = rule.triggers?.some((trigger: any) => {
       if (trigger.type === 'keyword' && trigger.config?.keywords) {
@@ -249,7 +170,7 @@ router.post('/chatbots/:id/toggle', jwtAuth, (req, res) => chatbotController.tog
 router.post('/chatbots/test', jwtAuth, async (req, res) => {
   try {
     const { chatbot, message } = req.body;
-
+    
     // Simple chatbot simulation
     let response = chatbot.fallbackMessage || 'Desculpe, não entendi.';
     let nextStep = null;
@@ -317,13 +238,13 @@ router.post('/templates', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const userId = (req as any).user?.id;
-
+    
     if (!tenantId || !userId) {
       return res.status(400).json({ success: false, error: 'Tenant ID and User ID required' });
     }
 
     const { name, description, subject, content, variables, category } = req.body;
-
+    
     if (!name || !content || !category) {
       return res.status(400).json({ 
         success: false, 
@@ -365,7 +286,7 @@ router.put('/templates/:id', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-
+    
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -376,7 +297,7 @@ router.put('/templates/:id', jwtAuth, async (req, res) => {
     }
 
     const { name, description, subject, content, variables, category, isActive } = req.body;
-
+    
     // Update template properties
     if (name !== undefined) existingTemplate.name = name;
     if (description !== undefined) existingTemplate.description = description;
@@ -409,13 +330,13 @@ router.delete('/templates/:id', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-
+    
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
     const success = await templateRepository.delete(templateId, tenantId);
-
+    
     if (!success) {
       return res.status(404).json({ success: false, error: 'Template not found' });
     }
@@ -435,7 +356,7 @@ router.post('/templates/:id/toggle', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-
+    
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -469,7 +390,7 @@ router.post('/templates/install', jwtAuth, async (req, res) => {
   try {
     const { templateId, config } = req.body;
     const tenantId = (req as any).user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -481,9 +402,9 @@ router.post('/templates/install', jwtAuth, async (req, res) => {
     }
 
     await templateRepository.incrementUsage(templateId, tenantId);
-
+    
     console.log(`Installing template ${templateId} for tenant ${tenantId}`);
-
+    
     res.json({ 
       success: true, 
       data: { 
@@ -549,7 +470,7 @@ router.post('/setup', jwtAuth, async (req, res) => {
   try {
     const setupData = req.body;
     const tenantId = (req as any).user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -557,7 +478,7 @@ router.post('/setup', jwtAuth, async (req, res) => {
     // Simulate setup completion
     // In a real implementation, this would create initial configs
     console.log(`Completing setup for tenant ${tenantId}:`, setupData);
-
+    
     res.json({ 
       success: true, 
       data: { 
@@ -678,7 +599,7 @@ router.get('/ai-config', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
-
+    
     const config = await db
       .select()
       .from(omnibridgeAiConfig)
@@ -739,7 +660,7 @@ router.put('/ai-config', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
-
+    
     const configData = {
       tenantId,
       model,
@@ -789,11 +710,11 @@ router.get('/ai-metrics', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiMetrics } = await import('./infrastructure/database/schema');
-
+    
     // Get today's metrics
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    
     const metrics = await db
       .select()
       .from(omnibridgeAiMetrics)
@@ -842,7 +763,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
     }
 
     const { prompt, testMessage, promptType } = req.body;
-
+    
     // Simulate AI analysis response
     const simulatedResponses = {
       intentionAnalysis: ['reclamacao', 'duvida', 'solicitacao', 'elogio'][Math.floor(Math.random() * 4)],
@@ -853,7 +774,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
     };
 
     const response = simulatedResponses[promptType as keyof typeof simulatedResponses] || 'Análise concluída com sucesso';
-
+    
     res.json({ 
       success: true, 
       data: {
