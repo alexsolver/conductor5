@@ -19,7 +19,16 @@ export class ChatbotController {
         });
       }
 
+      // Validate required fields
+      if (!req.body.name || !req.body.name.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Chatbot name is required'
+        });
+      }
+
       console.log('🔧 [ChatbotController] Creating chatbot for tenant:', tenantId);
+      console.log('🔧 [ChatbotController] Request body:', JSON.stringify(req.body, null, 2));
 
       const createUseCase = new CreateChatbotUseCase(this.chatbotRepository);
       const chatbot = await createUseCase.execute({
@@ -34,6 +43,7 @@ export class ChatbotController {
       });
     } catch (error: any) {
       console.error('❌ [ChatbotController] Error creating chatbot:', error);
+      console.error('❌ [ChatbotController] Stack trace:', error.stack);
       res.status(500).json({
         success: false,
         error: error?.message || 'Failed to create chatbot'
@@ -82,7 +92,15 @@ export class ChatbotController {
         });
       }
 
+      if (!chatbotId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Chatbot ID required'
+        });
+      }
+
       console.log('🔧 [ChatbotController] Updating chatbot:', chatbotId);
+      console.log('🔧 [ChatbotController] Update data:', JSON.stringify(req.body, null, 2));
 
       const updateUseCase = new UpdateChatbotUseCase(this.chatbotRepository);
       const chatbot = await updateUseCase.execute({
@@ -105,6 +123,7 @@ export class ChatbotController {
       });
     } catch (error: any) {
       console.error('❌ [ChatbotController] Error updating chatbot:', error);
+      console.error('❌ [ChatbotController] Stack trace:', error.stack);
       res.status(500).json({
         success: false,
         error: error?.message || 'Failed to update chatbot'

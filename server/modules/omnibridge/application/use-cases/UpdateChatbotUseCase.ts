@@ -9,7 +9,12 @@ export interface UpdateChatbotRequest {
   description?: string;
   channels?: string[];
   workflow?: any[];
+  steps?: any[];
   isActive?: boolean;
+  enabled?: boolean;
+  greeting?: string;
+  fallbackMessage?: string;
+  transferToHuman?: boolean;
   aiConfig?: {
     model: string;
     instructions: string;
@@ -25,6 +30,27 @@ export class UpdateChatbotUseCase {
   async execute(request: UpdateChatbotRequest): Promise<Chatbot | null> {
     console.log('🔧 [UpdateChatbotUseCase] Updating chatbot:', request.id);
 
+    // Handle both workflow and steps format
+    let normalizedWorkflow = request.workflow;
+    if (request.steps && !request.workflow) {
+      normalizedWorkflow = request.steps.map((step: any) => {
+        if (step.type && step.content) {
+          return {
+            id: step.id || step.id || `step_${Date.now()}`,
+            type: step.type === 'question' ? 'condition' : step.type === 'options' ? 'condition' : 'message',
+            config: {
+              message: step.content,
+              title: step.title,
+              options: step.options,
+              actions: step.actions,
+              nextStep: step.nextStep
+            }
+          };
+        }
+        return step;
+      });
+    }
+
     const updatedChatbot = await this.chatbotRepository.update(
       request.id,
       request.tenantId,
@@ -32,10 +58,10 @@ export class UpdateChatbotUseCase {
         name: request.name,
         description: request.description,
         channels: request.channels,
-        workflow: request.workflow,
-        isActive: request.isActive,
+        workflow: normalizedWorkflow,
+        isActive: request.isActive !== undefined ? request.isActive : request.enabled,
         aiConfig: request.aiConfig,
-        fallbackToHuman: request.fallbackToHuman
+        fallbackToHuman: request.fallbackToHuman !== undefined ? request.fallbackToHuman : request.transferToHuman
       }
     );
 

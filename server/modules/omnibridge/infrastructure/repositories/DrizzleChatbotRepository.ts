@@ -215,17 +215,17 @@ export class DrizzleChatbotRepository implements IChatbotRepository {
     return new ChatbotEntity(
       row.id,
       row.name,
-      config.channels || [],
-      config.workflow || [],
+      config.channels || ['whatsapp'], // Default channel if none specified
+      config.workflow || config.steps || [], // Support both workflow and steps
       row.tenantId,
       row.description,
-      row.isEnabled || false,
+      row.isEnabled !== false, // Default to true if not explicitly false
       config.aiConfig,
       config.fallbackToHuman !== false,
       0, // conversationCount - will be calculated separately
       0, // successRate - will be calculated separately
-      new Date(row.createdAt),
-      new Date(row.updatedAt)
+      new Date(row.createdAt || new Date()),
+      new Date(row.updatedAt || new Date())
     );
   }
 }
