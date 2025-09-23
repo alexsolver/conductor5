@@ -140,7 +140,9 @@ export const sendInvitationEmail = async ({
   });
 };
 
+export const sendEmail = SendGridService.sendEmail;
+
 export const sendgridService = {
-  sendEmail,
+  sendEmail: SendGridService.sendEmail,
   sendInvitationEmail
 };
