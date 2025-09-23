@@ -65,10 +65,12 @@ export class UpdateAutomationRuleUseCase {
             condition.channelType = channelValue;
             condition.type = 'channel';
           } else if (trigger.type === 'keyword') {
-            // For keyword triggers, prioritize keywords over value
+            // For keyword triggers, prioritize keywords over value and ensure both are set
             const keywordValue = trigger.config?.keywords || trigger.config?.value || '';
             condition.value = keywordValue;
             condition.keywords = keywordValue; // Preserve keywords field
+            // Ensure field is set to content for keyword matching
+            condition.field = 'content';
           } else {
             // Fallback for other trigger types
             condition.value = trigger.config?.value || trigger.config?.keywords || '';

@@ -639,32 +639,31 @@ export default function AutomationRuleBuilder({
     }));
   };
 
-  const handleTriggerConfigSave = () => {
+  const handleSaveTriggerConfig = () => {
     if (!selectedTrigger) return;
 
-    // Ensure proper validation and value assignment
-    const updatedTrigger = {
-      ...selectedTrigger,
-      config: {
-        ...selectedTrigger.config,
-        // For keyword triggers, ensure both keywords and value are set
-        ...(selectedTrigger.type === 'keyword' && {
-          keywords: selectedTrigger.config.keywords || selectedTrigger.config.value || '',
-          value: selectedTrigger.config.value || selectedTrigger.config.keywords || ''
-        }),
-        // For channel triggers, ensure channelType is properly set
-        ...(selectedTrigger.type === 'channel' && {
-          channelType: selectedTrigger.config.channelType || selectedTrigger.config.value || '',
-          value: selectedTrigger.config.channelType || selectedTrigger.config.value || ''
-        })
-      }
-    };
+    console.log('🔧 [AutomationRuleBuilder] Saving trigger config:', selectedTrigger);
 
-    console.log('🔧 [AutomationRuleBuilder] Saving trigger config:', updatedTrigger);
+    // Ensure keyword value is properly saved for keyword triggers
+    const updatedTrigger = { ...selectedTrigger };
+    if (selectedTrigger.type === 'keyword') {
+      // Make sure both keywords and value fields are synchronized
+      if (selectedTrigger.config?.keywords && !selectedTrigger.config?.value) {
+        updatedTrigger.config = {
+          ...selectedTrigger.config,
+          value: selectedTrigger.config.keywords
+        };
+      } else if (selectedTrigger.config?.value && !selectedTrigger.config?.keywords) {
+        updatedTrigger.config = {
+          ...selectedTrigger.config,
+          keywords: selectedTrigger.config.value
+        };
+      }
+    }
 
     setRule(prev => ({
       ...prev,
-      triggers: prev.triggers.map(trigger =>
+      triggers: prev.triggers.map(trigger => 
         trigger.id === selectedTrigger.id ? updatedTrigger : trigger
       )
     }));
@@ -1158,9 +1157,9 @@ export default function AutomationRuleBuilder({
               <TriggerConfigForm
                 trigger={selectedTrigger}
                 onSave={(config) => {
-                  // Update the selectedTrigger state directly before calling handleTriggerConfigSave
+                  // Update the selectedTrigger state directly before calling handleSaveTriggerConfig
                   setSelectedTrigger(prev => prev ? { ...prev, config } : null);
-                  handleTriggerConfigSave();
+                  handleSaveTriggerConfig();
                 }}
                 onCancel={() => setShowTriggerConfig(false)}
               />
@@ -1213,7 +1212,7 @@ function TriggerConfigForm({
           <div className="space-y-4">
             <div>
               <Label htmlFor="keywords">Palavras-chave (separadas por vírgula)</Label>
-              <Input
+              <Textarea
                 id="keywords"
                 placeholder="ex: urgente, problema, ajuda"
                 value={config.keywords || config.value || ''}
