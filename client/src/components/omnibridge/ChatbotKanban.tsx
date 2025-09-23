@@ -959,9 +959,8 @@ export default function ChatbotVisualEditor() {
 
   const handleCreateChatbot = async () => {
     try {
-      const newChatbot: Chatbot = {
-        id: Date.now().toString(),
-        tenantId: user?.tenantId || '',
+      // First, create the chatbot data structure
+      const chatbotData = {
         name: newChatbotData.name,
         description: newChatbotData.description,
         flow: {
@@ -974,7 +973,11 @@ export default function ChatbotVisualEditor() {
               type: 'trigger',
               title: 'Início',
               position: { x: 200, y: 150 },
-              config: { trigger: 'any_message' },
+              config: { 
+                triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda',
+                caseSensitive: false,
+                exactMatch: false
+              },
               connections: [],
               isStartNode: true
             }
@@ -988,19 +991,42 @@ export default function ChatbotVisualEditor() {
             language: newChatbotData.language
           }
         },
-        isEnabled: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        metrics: {
-          totalConversations: 0,
-          successRate: 0,
-          avgResponseTime: 0,
-          userSatisfaction: 0
-        }
+        isEnabled: false
       };
 
-      setChatbots(prev => [newChatbot, ...prev]);
-      setSelectedChatbot(newChatbot);
+      console.log('📤 [ChatbotKanban] Creating chatbot:', chatbotData);
+
+      // Make API call to save the chatbot to the database
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/chatbots', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        body: JSON.stringify(chatbotData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to create chatbot: ${errorData.message || response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ [ChatbotKanban] Chatbot created successfully:', result);
+
+      if (result.success && result.data) {
+        // Update local state with the chatbot returned from the server
+        const savedChatbot = result.data;
+        setChatbots(prev => [savedChatbot, ...prev]);
+        setSelectedChatbot(savedChatbot);
+        
+        console.log('✅ [ChatbotKanban] Chatbot added to local state:', savedChatbot);
+      }
+
+      // Reset form and close modal
       setShowCreateModal(false);
       setNewChatbotData({
         name: '',
@@ -1010,8 +1036,11 @@ export default function ChatbotVisualEditor() {
         fallbackToHuman: true,
         aiEnabled: false
       });
+
     } catch (error) {
-      console.error('❌ [ChatbotEditor] Error creating chatbot:', error);
+      console.error('❌ [ChatbotKanban] Error creating chatbot:', error);
+      // You might want to show a toast notification here
+      alert(`Erro ao criar chatbot: ${error.message}`);
     }
   };
 
