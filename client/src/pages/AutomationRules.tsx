@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,7 +66,7 @@ export default function AutomationRules() {
       const response = await apiRequest('GET', '/api/omnibridge/automation-rules');
       const result = await response.json();
       console.log('✅ [AutomationRules] Rules fetched successfully:', result);
-      
+
       // ✅ Mapeamento correto da resposta do backend
       return {
         success: result.success || false,
@@ -160,17 +159,17 @@ export default function AutomationRules() {
   // Validação robusta para evitar erros de includes e undefined
   const safeRules = useMemo(() => {
     console.log('🔍 [AutomationRules] Processing rules data:', { rules, type: typeof rules, isArray: Array.isArray(rules) });
-    
+
     if (!rules) {
       console.warn('🚨 [AutomationRules] Rules is null/undefined');
       return [];
     }
-    
+
     if (!Array.isArray(rules)) {
       console.warn('🚨 [AutomationRules] Rules is not an array:', rules);
       return [];
     }
-    
+
     const processedRules = rules
       .filter(rule => {
         const isValid = rule && typeof rule === 'object' && rule.id;
@@ -195,11 +194,11 @@ export default function AutomationRules() {
           createdAt: rule.createdAt || new Date().toISOString(),
           updatedAt: rule.updatedAt || new Date().toISOString()
         };
-        
+
         console.log('🔄 [AutomationRules] Processed rule:', safeRule.id, safeRule.name);
         return safeRule;
       });
-    
+
     console.log('✅ [AutomationRules] Total processed rules:', processedRules.length);
     return processedRules;
   }, [rules]);
@@ -262,19 +261,36 @@ export default function AutomationRules() {
             Configure regras inteligentes para automatizar o roteamento e resposta de mensagens
           </p>
         </div>
-        
+
         <div>
           <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-nova-regra">
             <Plus className="mr-2 h-4 w-4" />
             Nova Regra
           </Button>
-          
+
           <AutomationRuleBuilder
             isOpen={isCreateDialogOpen}
             onClose={() => setIsCreateDialogOpen(false)}
-            onSave={(rule) => {
-              // Invalidar cache e fechar modal
-              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+            onSave={async (rule) => {
+              console.log('🔄 [AutomationRules] Rule saved, invalidating cache and refetching...');
+
+              try {
+                // Force immediate cache invalidation and refetch with no cache
+                await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+                await queryClient.refetchQueries({ 
+                  queryKey: ['automation-rules'],
+                  type: 'active'
+                });
+
+                // Force a hard refresh of the data
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
+
+                console.log('✅ [AutomationRules] Cache invalidated and refetched successfully');
+              } catch (error) {
+                console.error('❌ [AutomationRules] Error refreshing data:', error);
+              }
+
               setIsCreateDialogOpen(false);
               toast({
                 title: '✅ Regra criada',
@@ -282,7 +298,7 @@ export default function AutomationRules() {
               });
             }}
           />
-          
+
           <AutomationRuleBuilder
             isOpen={isEditDialogOpen}
             onClose={() => {
@@ -290,9 +306,26 @@ export default function AutomationRules() {
               setEditingRule(null);
             }}
             existingRule={editingRule}
-            onSave={(rule) => {
-              // Invalidar cache e fechar modal
-              queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+            onSave={async (rule) => {
+              console.log('🔄 [AutomationRules] Rule updated, invalidating cache and refetching...');
+
+              try {
+                // Force immediate cache invalidation and refetch with no cache
+                await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+                await queryClient.refetchQueries({ 
+                  queryKey: ['automation-rules'],
+                  type: 'active'
+                });
+
+                // Force a hard refresh of the data
+                await new Promise(resolve => setTimeout(resolve, 100));
+                await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
+
+                console.log('✅ [AutomationRules] Cache invalidated and refetched successfully');
+              } catch (error) {
+                console.error('❌ [AutomationRules] Error refreshing data:', error);
+              }
+
               setIsEditDialogOpen(false);
               setEditingRule(null);
               toast({
@@ -409,7 +442,7 @@ export default function AutomationRules() {
                     conditionsCount: Number(rule.conditionsCount) || 0,
                     actionsCount: Number(rule.actionsCount) || 0
                   };
-                  
+
                   return (
                     <div key={displayRule.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
