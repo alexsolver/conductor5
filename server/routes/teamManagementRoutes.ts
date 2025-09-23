@@ -1,15 +1,15 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
-import { requirePermission } from '../middleware/rbacMiddleware';
+import { requirePermission, AuthorizedRequest } from '../middleware/rbacMiddleware';
 import { db } from '../db';
 import { 
-  users, 
+  users as usersTable, 
   departments, 
   approvalRequests, 
   performanceEvaluations,
   userActivityLogs,
   userSessions 
-} from '@shared/schema';
+} from '@shared/schema-public';
 import { eq, and, count, sql, desc, gte, avg, isNull, or, not } from 'drizzle-orm';
 import { sendInvitationEmail } from '../services/sendgridService';
 import crypto from 'crypto';
@@ -659,11 +659,11 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
     if (updateData.pis) updateFields.pis = updateData.pis;
     if (updateData.admissionDate) updateFields.admissionDate = new Date(updateData.admissionDate);
 
-    const updatedMember = await db.update(users)
+    const updatedMember = await db.update(usersTable)
       .set(updateFields)
       .where(and(
-        eq(users.id, id),
-        eq(users.tenantId, user.tenantId)
+        eq(usersTable.id, id),
+        eq(usersTable.tenantId, user.tenantId)
       ))
       .returning();
 
@@ -720,11 +720,11 @@ router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
     }
 
     // Update user activity timestamps
-    await db.update(users)
+    await db.update(usersTable)
       .set({ lastActiveAt: new Date() })
       .where(and(
-        eq(users.tenantId, user.tenantId),
-        eq(users.isActive, true)
+        eq(usersTable.tenantId, user.tenantId),
+        eq(usersTable.isActive, true)
       ));
 
     // Get sync statistics
@@ -733,10 +733,10 @@ router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
       activeUsers: sql<number>`SUM(CASE WHEN last_active_at > NOW() - INTERVAL '24 hours' THEN 1 ELSE 0 END)`,
       userGroups: sql<number>`COUNT(DISTINCT department_id)`
     })
-    .from(users)
+    .from(usersTable)
     .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
+      eq(usersTable.tenantId, user.tenantId),
+      eq(usersTable.isActive, true)
     ));
 
     res.json({ 
@@ -755,12 +755,13 @@ router.post(
   '/invite-member',
   jwtAuth,
   requirePermission('tenant', 'manage_users'),
-  async (req: AuthenticatedRequest, res) => {
+  async (req: AuthenticatedRequest, res: Response) => {
+    const authorizedReq = req as AuthorizedRequest;
     try {
-      const tenantId = req.user!.tenantId;
-      const { email, role, notes, sendEmail = true } = req.body;
+      const tenantId = authorizedReq.user!.tenantId;
+      const { email, role, notes, sendEmail } = req.body;
 
-      console.log('🔍 [TEAM-MANAGEMENT-INVITATION] Processing invitation:', {
+      console.log('🔍 [TEAM-MANAGEMENT-INVITATION] Received invitation request:', {
         email,
         role,
         tenantId,
@@ -779,6 +780,23 @@ router.post(
         return res.status(400).json({ 
           success: false,
           message: 'Tenant ID is required' 
+        });
+      }
+
+      // Verificar configurações SendGrid
+      if (!process.env.SENDGRID_API_KEY) {
+        console.error('❌ [TEAM-MANAGEMENT-INVITATION] SENDGRID_API_KEY not configured');
+        return res.status(500).json({
+          success: false,
+          message: 'Email service not configured'
+        });
+      }
+
+      if (!process.env.SENDGRID_FROM_EMAIL) {
+        console.error('❌ [TEAM-MANAGEMENT-INVITATION] SENDGRID_FROM_EMAIL not configured');
+        return res.status(500).json({
+          success: false,
+          message: 'Email service not configured'
         });
       }
 
@@ -806,41 +824,48 @@ router.post(
         expiresAt: expiresAt
       });
 
-      // Enviar email de convite
-      if (sendEmail) {
+      // Enviar email de convite (default é true)
+      if (sendEmail !== false) {
         try {
-          const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Starting email sending process...');
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Environment check - SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Environment check - SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL);
 
-          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Sending email with URL:', invitationUrl);
+          const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Invitation URL generated:', invitationUrl);
+
+          const inviterName = authorizedReq.user!.firstName && authorizedReq.user!.lastName 
+            ? `${authorizedReq.user!.firstName} ${authorizedReq.user!.lastName}` 
+            : authorizedReq.user!.email;
+
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Inviter name:', inviterName);
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Email parameters prepared, calling sendInvitationEmail...');
 
           const emailResult = await sendInvitationEmail({
             to: email.toLowerCase(),
             invitationUrl: invitationUrl,
-            inviterName: req.user!.firstName && req.user!.lastName 
-              ? `${req.user!.firstName} ${req.user!.lastName}` 
-              : req.user!.email,
+            inviterName: inviterName,
             role: role || 'agent',
             notes: notes || '',
             expiresAt: expiresAt,
           });
 
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] SendGrid response:', emailResult);
+
           if (emailResult) {
             console.log('✅ [TEAM-MANAGEMENT-INVITATION] Email sent successfully to:', email);
           } else {
-            console.log('⚠️ [TEAM-MANAGEMENT-INVITATION] Email sending failed');
-            return res.status(500).json({
-              success: false,
-              message: 'Failed to send invitation email'
-            });
+            console.log('⚠️ [TEAM-MANAGEMENT-INVITATION] Email sending failed - check SendGrid configuration');
+            console.log('⚠️ [TEAM-MANAGEMENT-INVITATION] Continuing with invitation creation...');
           }
         } catch (emailError) {
           console.error('❌ [TEAM-MANAGEMENT-INVITATION] Error sending email:', emailError);
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to send invitation email',
-            error: emailError instanceof Error ? emailError.message : String(emailError)
-          });
+          console.error('❌ [TEAM-MANAGEMENT-INVITATION] Error details:', emailError.message);
+          console.error('❌ [TEAM-MANAGEMENT-INVITATION] Error stack:', emailError.stack);
+          // Não falhar a criação do convite se o email falhar
         }
+      } else {
+        console.log('🔍 [TEAM-MANAGEMENT-INVITATION] Email sending disabled by request');
       }
 
       // Criar registro de convite (simulado para não afetar o banco)
@@ -854,7 +879,7 @@ router.post(
         invitedAt: new Date(),
         status: 'pending',
         notes: notes || '',
-        invitedByUserId: req.user!.userId,
+        invitedByUserId: authorizedReq.user!.userId,
       };
 
       res.status(201).json({
