@@ -102,6 +102,7 @@ export const sendInvitationEmail = async ({
     // ✅ 1QA.MD: Configure default FROM email if not set
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com';
     console.log("📧 [SENDGRID-INVITATION] Using FROM email:", fromEmail);
+    console.log("📧 [SENDGRID-INVITATION] SENDGRID_API_KEY configured:", !!process.env.SENDGRID_API_KEY);
 
     const roleDisplayNames: Record<string, string> = {
       'saas_admin': 'Administrador SaaS',
@@ -158,8 +159,11 @@ export const sendInvitationEmail = async ({
 
     if (result) {
       console.log("✅ [SENDGRID-INVITATION] Email sent successfully to:", to);
+      console.log("✅ [SENDGRID-INVITATION] Email details - From:", fromEmail, "Subject:", `Convite para Conductor - ${roleDisplay}`);
     } else {
       console.log("❌ [SENDGRID-INVITATION] Failed to send email - check SendGrid Sender Identity configuration");
+      console.log("❌ [SENDGRID-INVITATION] Email details - From:", fromEmail, "To:", to);
+      console.log("❌ [SENDGRID-INVITATION] Possible causes: 1) FROM email not verified in SendGrid, 2) API key invalid, 3) Network issues");
     }
 
     return result;
