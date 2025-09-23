@@ -153,16 +153,22 @@ router.post(
           
           const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
           
-          await sendInvitationEmail({
+          const emailResult = await sendInvitationEmail({
             to: invitationData.email,
             invitationUrl: invitationUrl,
-            inviterName: req.user!.email,
+            inviterName: req.user!.firstName && req.user!.lastName 
+              ? `${req.user!.firstName} ${req.user!.lastName}` 
+              : req.user!.email,
             role: invitationData.role,
             notes: invitationData.notes,
             expiresAt: expiresAt,
           });
 
-          console.log("✅ [USER-INVITATION] Email sent successfully to:", invitationData.email);
+          if (emailResult) {
+            console.log("✅ [USER-INVITATION] Email sent successfully to:", invitationData.email);
+          } else {
+            console.log("⚠️ [USER-INVITATION] Email sending failed but continuing with invitation creation");
+          }
         } catch (emailError) {
           console.error("❌ [USER-INVITATION] Error sending email:", emailError);
           // Não falhar a criação do convite se o email falhar

@@ -90,55 +90,68 @@ export const sendInvitationEmail = async ({
   notes?: string;
   expiresAt: Date;
 }) => {
-  const roleDisplayNames: Record<string, string> = {
-    'saas_admin': 'Administrador SaaS',
-    'tenant_admin': 'Administrador do Workspace',
-    'agent': 'Agente',
-    'customer': 'Cliente'
-  };
+  try {
+    console.log("📧 [SENDGRID-INVITATION] Preparing to send invitation email to:", to);
+    
+    const roleDisplayNames: Record<string, string> = {
+      'saas_admin': 'Administrador SaaS',
+      'tenant_admin': 'Administrador do Workspace',
+      'agent': 'Agente',
+      'customer': 'Cliente'
+    };
 
-  const roleDisplay = roleDisplayNames[role] || role;
+    const roleDisplay = roleDisplayNames[role] || role;
 
-  const emailContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333;">Convite para Conductor</h2>
+    const emailContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Convite para Conductor</h2>
 
-      <p>Olá!</p>
+        <p>Olá!</p>
 
-      <p>Você foi convidado por <strong>${inviterName}</strong> para se juntar ao sistema Conductor como <strong>${roleDisplay}</strong>.</p>
+        <p>Você foi convidado por <strong>${inviterName}</strong> para se juntar ao sistema Conductor como <strong>${roleDisplay}</strong>.</p>
 
-      ${notes ? `<p><strong>Mensagem do convite:</strong><br>${notes}</p>` : ''}
+        ${notes ? `<p><strong>Mensagem do convite:</strong><br>${notes}</p>` : ''}
 
-      <div style="margin: 30px 0;">
-        <a href="${invitationUrl}" 
-           style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-          Aceitar Convite
-        </a>
+        <div style="margin: 30px 0;">
+          <a href="${invitationUrl}" 
+             style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Aceitar Convite
+          </a>
+        </div>
+
+        <p style="color: #666; font-size: 14px;">
+          Este convite expira em: <strong>${expiresAt.toLocaleDateString('pt-BR')} às ${expiresAt.toLocaleTimeString('pt-BR')}</strong>
+        </p>
+
+        <p style="color: #666; font-size: 14px;">
+          Se você não conseguir clicar no botão, copie e cole o seguinte link no seu navegador:<br>
+          <a href="${invitationUrl}">${invitationUrl}</a>
+        </p>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+        <p style="color: #999; font-size: 12px;">
+          Este email foi enviado automaticamente pelo sistema Conductor. Se você não esperava este convite, pode ignorar este email.
+        </p>
       </div>
+    `;
 
-      <p style="color: #666; font-size: 14px;">
-        Este convite expira em: <strong>${expiresAt.toLocaleDateString('pt-BR')} às ${expiresAt.toLocaleTimeString('pt-BR')}</strong>
-      </p>
+    console.log("📧 [SENDGRID-INVITATION] Email content prepared, sending via SendGrid...");
 
-      <p style="color: #666; font-size: 14px;">
-        Se você não conseguir clicar no botão, copie e cole o seguinte link no seu navegador:<br>
-        <a href="${invitationUrl}">${invitationUrl}</a>
-      </p>
+    const result = await SendGridService.sendEmail({
+      to: to,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com',
+      subject: `Convite para Conductor - ${roleDisplay}`,
+      html: emailContent,
+    });
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-
-      <p style="color: #999; font-size: 12px;">
-        Este email foi enviado automaticamente pelo sistema Conductor. Se você não esperava este convite, pode ignorar este email.
-      </p>
-    </div>
-  `;
-
-  return await SendGridService.sendEmail({
-    to: to,
-    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com',
-    subject: `Convite para Conductor - ${roleDisplay}`,
-    html: emailContent,
-  });
+    console.log("📧 [SENDGRID-INVITATION] SendGrid result:", result);
+    return result;
+    
+  } catch (error) {
+    console.error("❌ [SENDGRID-INVITATION] Error in sendInvitationEmail:", error);
+    return false;
+  }
 };
 
 export const sendEmail = (params: Omit<EmailParams, 'from'> & { from?: string }) => {
