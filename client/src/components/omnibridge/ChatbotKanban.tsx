@@ -1954,6 +1954,59 @@ export default function ChatbotVisualEditor() {
               <TabsContent value="config" className="space-y-4">
                 {selectedNode && (
                   <div className="space-y-4">
+                    {/* Common Trigger Configurations for ALL nodes */}
+                    <div className="space-y-4 border border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm text-blue-800">Configurações de Gatilho (Habilitadas para todos os nós)</h4>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="trigger-enabled"
+                            checked={nodeConfig.triggerEnabled !== false}
+                            onCheckedChange={(checked) => setNodeConfig({...nodeConfig, triggerEnabled: checked})}
+                            data-testid="trigger-enabled"
+                          />
+                          <Label htmlFor="trigger-enabled" className="text-sm text-blue-800">Ativar gatilhos</Label>
+                        </div>
+                      </div>
+                      
+                      {nodeConfig.triggerEnabled !== false && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-blue-800">Mensagens de Ativação</Label>
+                            <Textarea 
+                              placeholder="olá&#10;oi&#10;bom dia&#10;boa tarde&#10;preciso de ajuda"
+                              rows={3}
+                              value={nodeConfig.triggerMessages || ''}
+                              onChange={(e) => setNodeConfig({...nodeConfig, triggerMessages: e.target.value})}
+                              data-testid="common-trigger-messages"
+                              className="bg-white"
+                            />
+                            <p className="text-xs text-blue-600 mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="common-case-sensitive"
+                                checked={nodeConfig.caseSensitive || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, caseSensitive: checked})}
+                                data-testid="common-case-sensitive"
+                              />
+                              <Label htmlFor="common-case-sensitive" className="text-sm text-blue-800">Sensível a maiúsculas</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="common-exact-match"
+                                checked={nodeConfig.exactMatch || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, exactMatch: checked})}
+                                data-testid="common-exact-match"
+                              />
+                              <Label htmlFor="common-exact-match" className="text-sm text-blue-800">Correspondência exata</Label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Trigger Node Configurations */}
                     {selectedNode.type === 'trigger' && (
                       <div className="space-y-4">
