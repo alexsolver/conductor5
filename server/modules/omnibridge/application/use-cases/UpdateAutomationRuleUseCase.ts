@@ -35,17 +35,48 @@ export class UpdateAutomationRuleUseCase {
     console.log(`🔍 [UpdateAutomationRuleUseCase] Received data.triggers:`, JSON.stringify(data.triggers, null, 2));
     
     if (data.triggers !== undefined) {
+      const firstTrigger = data.triggers[0];
+      let triggerType = 'message_received';
+      
+      if (firstTrigger?.type === 'keyword') {
+        triggerType = 'keyword_match';
+      } else if (firstTrigger?.type === 'channel') {
+        triggerType = 'channel_specific';
+      } else if (firstTrigger?.type) {
+        triggerType = firstTrigger.type;
+      }
+      
       updateData.trigger = {
-        type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
-        conditions: data.triggers.map(trigger => ({
-          id: trigger.id || `condition-${Date.now()}`,
-          type: trigger.type || 'keyword',
-          operator: trigger.config?.operator || 'contains',
-          value: trigger.config?.value || trigger.config?.keywords || '',
-          field: trigger.config?.field || 'content',
-          caseSensitive: trigger.config?.caseSensitive || false,
-          channelType: trigger.config?.channelType || ''
-        }))
+        type: triggerType,
+        conditions: data.triggers.map(trigger => {
+          const condition: any = {
+            id: trigger.id || `condition-${Date.now()}`,
+            type: trigger.type || 'keyword',
+            operator: trigger.config?.operator || 'contains',
+            field: trigger.config?.field || 'content',
+            caseSensitive: trigger.config?.caseSensitive || false
+          };
+          
+          // Handle different value types based on trigger type
+          if (trigger.type === 'channel' && trigger.config?.channelType) {
+            condition.value = trigger.config.channelType;
+            condition.channelType = trigger.config.channelType;
+            condition.type = 'channel';
+          } else if (trigger.config?.value) {
+            condition.value = trigger.config.value;
+          } else if (trigger.config?.keywords) {
+            condition.value = trigger.config.keywords;
+          } else {
+            condition.value = '';
+          }
+          
+          // Ensure channelType is preserved for channel triggers
+          if (trigger.config?.channelType) {
+            condition.channelType = trigger.config.channelType;
+          }
+          
+          return condition;
+        })
       };
       console.log(`🔧 [UpdateAutomationRuleUseCase] Created updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
     }
