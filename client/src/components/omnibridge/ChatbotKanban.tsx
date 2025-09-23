@@ -533,6 +533,7 @@ export default function ChatbotVisualEditor() {
   const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isNodeDragging, setIsNodeDragging] = useState(false);
+  const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
 
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
@@ -620,6 +621,40 @@ export default function ChatbotVisualEditor() {
     } catch (error) {
       console.error('❌ [ChatbotEditor] Error fetching chatbots:', error);
       setChatbots([]);
+    }
+  };
+
+  const handleSaveNodeConfig = async () => {
+    if (!selectedNode || !selectedChatbot) return;
+
+    try {
+      const updatedNode = {
+        ...selectedNode,
+        config: nodeConfig
+      };
+
+      const updatedChatbot = {
+        ...selectedChatbot,
+        flow: {
+          ...selectedChatbot.flow,
+          nodes: selectedChatbot.flow.nodes.map(n =>
+            n.id === selectedNode.id ? updatedNode : n
+          )
+        }
+      };
+
+      setSelectedChatbot(updatedChatbot);
+      setChatbots(prev => prev.map(bot => 
+        bot.id === selectedChatbot.id ? updatedChatbot : bot
+      ));
+
+      setShowNodeConfig(false);
+      setSelectedNode(null);
+      setNodeConfig({});
+      
+      console.log('✅ [ChatbotKanban] Node configuration saved successfully:', updatedNode);
+    } catch (error) {
+      console.error('❌ [ChatbotKanban] Error saving node config:', error);
     }
   };
 
@@ -767,6 +802,7 @@ export default function ChatbotVisualEditor() {
       setConnectionStart(node.id);
     } else {
       setSelectedNode(node);
+      setNodeConfig(node.config || {});
       setShowNodeConfig(true);
     }
   };
@@ -1276,11 +1312,20 @@ export default function ChatbotVisualEditor() {
               <TabsContent value="basic" className="space-y-4">
                 <div>
                   <Label>Título do Nó</Label>
-                  <Input value={selectedNode.title} onChange={() => {}} />
+                  <Input 
+                    value={selectedNode.title} 
+                    onChange={(e) => setSelectedNode({...selectedNode, title: e.target.value})}
+                    data-testid="node-title"
+                  />
                 </div>
                 <div>
                   <Label>Descrição</Label>
-                  <Textarea value={selectedNode.description || ''} onChange={() => {}} rows={3} />
+                  <Textarea 
+                    value={selectedNode.description || ''} 
+                    onChange={(e) => setSelectedNode({...selectedNode, description: e.target.value})}
+                    rows={3}
+                    data-testid="node-description"
+                  />
                 </div>
               </TabsContent>
 
@@ -1299,16 +1344,29 @@ export default function ChatbotVisualEditor() {
                               <Textarea 
                                 placeholder="olá&#10;oi&#10;bom dia&#10;boa tarde&#10;preciso de ajuda"
                                 rows={4}
+                                value={nodeConfig.triggerMessages || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, triggerMessages: e.target.value})}
+                                data-testid="trigger-messages"
                               />
                               <p className="text-xs text-muted-foreground mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="flex items-center space-x-2">
-                                <Switch id="case-sensitive" />
+                                <Switch 
+                                  id="case-sensitive"
+                                  checked={nodeConfig.caseSensitive || false}
+                                  onCheckedChange={(checked) => setNodeConfig({...nodeConfig, caseSensitive: checked})}
+                                  data-testid="case-sensitive"
+                                />
                                 <Label htmlFor="case-sensitive" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <Switch id="exact-match" />
+                                <Switch 
+                                  id="exact-match"
+                                  checked={nodeConfig.exactMatch || false}
+                                  onCheckedChange={(checked) => setNodeConfig({...nodeConfig, exactMatch: checked})}
+                                  data-testid="exact-match"
+                                />
                                 <Label htmlFor="exact-match" className="text-sm">Correspondência exata</Label>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -1938,10 +1996,10 @@ export default function ChatbotVisualEditor() {
           )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
+            <Button variant="outline" onClick={() => setShowNodeConfig(false)} data-testid="cancel-node-config">
               Cancelar
             </Button>
-            <Button>
+            <Button onClick={handleSaveNodeConfig} data-testid="save-node-config">
               <Save className="h-4 w-4 mr-2" />
               Salvar Configurações
             </Button>
