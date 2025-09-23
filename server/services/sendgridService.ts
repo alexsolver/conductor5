@@ -99,10 +99,9 @@ export const sendInvitationEmail = async ({
       return false;
     }
 
-    if (!process.env.SENDGRID_FROM_EMAIL) {
-      console.error("❌ [SENDGRID-INVITATION] SENDGRID_FROM_EMAIL not configured");
-      return false;
-    }
+    // ✅ 1QA.MD: Configure default FROM email if not set
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com';
+    console.log("📧 [SENDGRID-INVITATION] Using FROM email:", fromEmail);
 
     const roleDisplayNames: Record<string, string> = {
       'saas_admin': 'Administrador SaaS',
@@ -152,7 +151,7 @@ export const sendInvitationEmail = async ({
 
     const result = await SendGridService.sendEmail({
       to: to,
-      from: process.env.SENDGRID_FROM_EMAIL,
+      from: fromEmail,
       subject: `Convite para Conductor - ${roleDisplay}`,
       html: emailContent,
     });
@@ -172,9 +171,10 @@ export const sendInvitationEmail = async ({
 };
 
 export const sendEmail = (params: Omit<EmailParams, 'from'> & { from?: string }) => {
+  const fromEmail = params.from || process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com';
   return SendGridService.sendEmail({
     ...params,
-    from: params.from || process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com'
+    from: fromEmail
   });
 };
 
