@@ -1073,22 +1073,31 @@ export default function ChatbotVisualEditor() {
     if (!nodeType) return;
 
     // Create default config based on node type
+    // All nodes now have trigger configurations enabled
     const getDefaultConfig = (type: string, nodeTypeName: string) => {
+      // Base trigger configuration for all nodes
+      const baseTriggerConfig = {
+        triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda',
+        caseSensitive: false,
+        exactMatch: false,
+        triggerEnabled: true
+      };
+
       switch (type) {
         case 'trigger':
           return {
-            triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda',
-            caseSensitive: false,
-            exactMatch: false
+            ...baseTriggerConfig
           };
         case 'response':
           return {
+            ...baseTriggerConfig,
             responseMessage: 'Olá! Como posso ajudar você hoje?',
             quickReplies: 'Sim\nNão\nMais informações',
             delay: 1000
           };
         case 'condition':
           return {
+            ...baseTriggerConfig,
             conditionField: 'user_input',
             conditionOperator: 'contains',
             conditionValue: 'ajuda',
@@ -1097,12 +1106,14 @@ export default function ChatbotVisualEditor() {
           };
         case 'action':
           return {
+            ...baseTriggerConfig,
             actionType: 'send_message',
             messageText: 'Ação executada com sucesso!',
             variables: {}
           };
         case 'integration':
           return {
+            ...baseTriggerConfig,
             apiUrl: 'https://api.exemplo.com/webhook',
             method: 'POST',
             headers: {},
@@ -1110,13 +1121,16 @@ export default function ChatbotVisualEditor() {
           };
         case 'ai':
           return {
+            ...baseTriggerConfig,
             aiPrompt: 'Analise a mensagem do usuário e forneça uma resposta apropriada.',
             model: 'gpt-4',
             temperature: 0.7,
             maxTokens: 150
           };
         default:
-          return {};
+          return {
+            ...baseTriggerConfig
+          };
       }
     };
 
