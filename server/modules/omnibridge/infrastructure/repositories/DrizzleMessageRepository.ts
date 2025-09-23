@@ -59,7 +59,7 @@ export class DrizzleMessageRepository implements IMessageRepository {
     );
   }
 
-  async findByTenant(tenantId: string, limit: number = 50, offset: number = 0): Promise<MessageEntity[]> {
+  async findByTenant(tenantId: string, limit: number = 200, offset: number = 0): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
     const tenantDb = await this.getTenantDb(tenantId);
