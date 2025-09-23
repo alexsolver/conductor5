@@ -63,6 +63,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
+import FlowEditor from '@/components/omnibridge/FlowEditor';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 
 
@@ -1338,9 +1339,9 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
 
-        {/* Chatbots Tab - Visual Builder */}
+        {/* Chatbots Tab - Advanced Flow Editor */}
         <TabsContent value="chatbots" className="h-full">
-          <ChatbotKanban />
+          <FlowEditor />
         </TabsContent>
 
         {/* AI Assistant Tab */}
