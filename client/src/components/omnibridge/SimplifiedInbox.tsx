@@ -748,8 +748,9 @@ export default function SimplifiedInbox({
                 </Card>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
       </div>
 
       {/* Reply Modal */}
