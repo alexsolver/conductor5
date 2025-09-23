@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { backupService } from "./services/BackupService";
 import { setupVite, serveStatic, log } from "./vite";
@@ -535,7 +536,7 @@ app.use((req, res, next) => {
 
   // Add a catch-all route for development that serves the index.html
   if (app.get("env") === "development") {
-    const path = require('path'); // Import path module here
+    
     app.get('*', (req, res, next) => {
       // Skip if it's an API route
       if (req.path.startsWith('/api/')) {
