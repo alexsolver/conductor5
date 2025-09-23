@@ -42,7 +42,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
          WHERE u.department_id = d.id 
          AND u.is_active = true) as member_count
       FROM ${sql.identifier(tenantSchema)}.departments d
-      WHERE d.tenant_id = ${user.tenantId}::uuid 
+      WHERE d.tenant_id::text = ${user.tenantId}
       AND d.is_active = true
     `);
 
@@ -70,7 +70,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
         al.created_at
       FROM ${sql.identifier(tenantSchema)}.user_activity_logs al
       LEFT JOIN ${sql.identifier(tenantSchema)}.users u ON al.user_id = u.id
-      WHERE al.tenant_id = ${user.tenantId}::uuid
+      WHERE al.tenant_id::text = ${user.tenantId}
       ORDER BY al.created_at DESC
       LIMIT 10
     `);
@@ -235,7 +235,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const totalMembersResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       AND is_active = true
     `);
 
@@ -245,7 +245,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const activeTodayResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       AND is_active = true
       AND last_login_at >= ${today}
     `);
@@ -254,7 +254,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const pendingApprovalsResult = await db.execute(sql`
       SELECT COUNT(*) as count
       FROM ${sql.identifier(tenantSchema)}.approval_requests
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       AND status = 'pending'
     `);
 
@@ -262,7 +262,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
     const avgPerformanceResult = await db.execute(sql`
       SELECT ROUND(AVG(performance), 1) as average
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       AND is_active = true
       AND performance IS NOT NULL
     `);
@@ -304,7 +304,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         COALESCE(d.name, 'Sem departamento') as department
       FROM ${sql.identifier(tenantSchema)}.users u
       LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
-      WHERE u.tenant_id = ${user.tenantId}::uuid
+      WHERE u.tenant_id::text = ${user.tenantId}
       AND u.is_active = true
     `);
 
@@ -321,7 +321,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         period_start,
         period_end
       FROM ${sql.identifier(tenantSchema)}.performance_evaluations
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       ORDER BY period_start DESC
     `);
 
@@ -345,7 +345,7 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
         SUM(completed_goals) as total_completed_goals,
         ROUND(AVG(CASE WHEN goals > 0 THEN (completed_goals::float / goals) * 100 ELSE 0 END), 2) as average_completion
       FROM ${sql.identifier(tenantSchema)}.users
-      WHERE tenant_id = ${user.tenantId}::uuid
+      WHERE tenant_id::text = ${user.tenantId}
       AND is_active = true
       AND goals IS NOT NULL
     `);
@@ -415,7 +415,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
         u.performance
       FROM ${sql.identifier(tenantSchema)}.users u
       LEFT JOIN ${sql.identifier(tenantSchema)}.departments d ON u.department_id = d.id
-      WHERE u.tenant_id = ${user.tenantId}::uuid
+      WHERE u.tenant_id::text = ${user.tenantId}
       AND u.is_active = true
       AND u.position IS NOT NULL
     `);

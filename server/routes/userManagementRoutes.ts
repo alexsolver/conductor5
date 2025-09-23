@@ -150,9 +150,9 @@ router.post(
         try {
           // Import sendgrid service
           const { sendInvitationEmail } = await import("../services/sendgridService");
-          
+
           const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
-          
+
           const emailResult = await sendInvitationEmail({
             to: invitationData.email,
             invitationUrl: invitationUrl,
@@ -234,10 +234,10 @@ router.post(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { invitationId } = req.params;
-      
+
       // Em produção, isso buscaria o convite na tabela específica
       // Por ora, retornamos sucesso para não quebrar o frontend
-      
+
       res.json({
         success: true,
         message: "Invitation resent successfully",
@@ -260,10 +260,10 @@ router.post(
   async (req: AuthenticatedRequest, res) => {
     try {
       const { invitationId } = req.params;
-      
+
       // Em produção, isso atualizaria o status do convite na tabela específica
       // Por ora, retornamos sucesso para não quebrar o frontend
-      
+
       res.json({
         success: true,
         message: "Invitation revoked successfully",
@@ -1318,6 +1318,7 @@ router.delete(
     try {
       const { groupId, userId } = req.params;
       const tenantId = req.user!.tenantId;
+      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
       // Check if group exists and belongs to tenant
       const groupQuery = `
@@ -1739,7 +1740,6 @@ router.post(
 
       const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
       const tableIdent = sql.raw(`"${schemaName}".roles`);
-
       const descOrNull = description ? description : null;
       const permsExpr = sql`${sql.raw("ARRAY[" + permissions.map((p) => `'${p}'`).join(",") + "][]")}`;
 
