@@ -534,6 +534,107 @@ export default function ChatbotVisualEditor() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isNodeDragging, setIsNodeDragging] = useState(false);
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
+  const [configErrors, setConfigErrors] = useState<Record<string, string>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Validation functions
+  const validateNodeConfig = useCallback((nodeType: string, config: Record<string, any>) => {
+    const errors: Record<string, string> = {};
+    
+    switch (nodeType) {
+      case 'trigger':
+        if (selectedNode?.title === 'Detecção de Mensagem') {
+          if (!config.keywords?.trim()) {
+            errors.keywords = 'Palavras-chave são obrigatórias';
+          }
+          if (config.keywords && config.keywords.length > 200) {
+            errors.keywords = 'Máximo de 200 caracteres';
+          }
+        }
+        if (selectedNode?.title === 'Análise de IA') {
+          if (!config.aiPrompt?.trim()) {
+            errors.aiPrompt = 'Prompt de IA é obrigatório';
+          }
+          if (config.confidence && (config.confidence < 0 || config.confidence > 1)) {
+            errors.confidence = 'Confiança deve estar entre 0 e 1';
+          }
+        }
+        break;
+        
+      case 'action':
+        if (selectedNode?.title === 'Enviar Mensagem') {
+          if (!config.messageText?.trim()) {
+            errors.messageText = 'Texto da mensagem é obrigatório';
+          }
+          if (config.messageText && config.messageText.length > 4000) {
+            errors.messageText = 'Máximo de 4000 caracteres';
+          }
+        }
+        if (selectedNode?.title === 'Definir Variável') {
+          if (!config.variableName?.trim()) {
+            errors.variableName = 'Nome da variável é obrigatório';
+          }
+          if (config.variableName && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(config.variableName)) {
+            errors.variableName = 'Nome deve conter apenas letras, números e underscore';
+          }
+        }
+        break;
+        
+      case 'response':
+        if (selectedNode?.title === 'Formulário') {
+          if (!config.formTitle?.trim()) {
+            errors.formTitle = 'Título do formulário é obrigatório';
+          }
+          if (config.formFields) {
+            try {
+              const fields = JSON.parse(config.formFields);
+              if (!Array.isArray(fields) || fields.length === 0) {
+                errors.formFields = 'Deve conter pelo menos um campo';
+              }
+            } catch (e) {
+              errors.formFields = 'JSON inválido nos campos do formulário';
+            }
+          } else {
+            errors.formFields = 'Campos do formulário são obrigatórios';
+          }
+        }
+        if (selectedNode?.title === 'Resposta Rápida') {
+          if (!config.quickReplyText?.trim()) {
+            errors.quickReplyText = 'Texto da resposta rápida é obrigatório';
+          }
+          if (!config.quickReplyButtons?.trim()) {
+            errors.quickReplyButtons = 'Pelo menos um botão é obrigatório';
+          }
+        }
+        break;
+        
+      case 'condition':
+        if (selectedNode?.title === 'Condição Variável') {
+          if (!config.variableName?.trim()) {
+            errors.variableName = 'Nome da variável é obrigatório';
+          }
+          if (!config.comparisonValue?.trim()) {
+            errors.comparisonValue = 'Valor de comparação é obrigatório';
+          }
+        }
+        break;
+    }
+    
+    return errors;
+  }, [selectedNode]);
+
+  // Update validation when config changes
+  useEffect(() => {
+    if (selectedNode) {
+      const errors = validateNodeConfig(selectedNode.type, nodeConfig);
+      setConfigErrors(errors);
+    }
+  }, [nodeConfig, selectedNode, validateNodeConfig]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    setHasUnsavedChanges(Object.keys(nodeConfig).length > 0);
+  }, [nodeConfig]);
 
   const [newChatbotData, setNewChatbotData] = useState({
     name: '',
@@ -624,8 +725,30 @@ export default function ChatbotVisualEditor() {
     }
   };
 
+  // Error display component
+  const ErrorMessage = ({ fieldName }: { fieldName: string }) => {
+    const error = configErrors[fieldName];
+    if (!error) return null;
+    
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <AlertCircle className="h-3 w-3 text-red-500" />
+        <span className="text-xs text-red-500">{error}</span>
+      </div>
+    );
+  };
+
   const handleSaveNodeConfig = async () => {
     if (!selectedNode || !selectedChatbot) return;
+
+    // Validate configuration before saving
+    const errors = validateNodeConfig(selectedNode.type, nodeConfig);
+    setConfigErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
+      console.log('❌ [ChatbotKanban] Validation errors:', errors);
+      return;
+    }
 
     try {
       const updatedNode = {
@@ -651,6 +774,8 @@ export default function ChatbotVisualEditor() {
       setShowNodeConfig(false);
       setSelectedNode(null);
       setNodeConfig({});
+      setConfigErrors({});
+      setHasUnsavedChanges(false);
       
       console.log('✅ [ChatbotKanban] Node configuration saved successfully:', updatedNode);
     } catch (error) {
@@ -1486,7 +1611,9 @@ export default function ChatbotVisualEditor() {
                                 value={nodeConfig.messageText || ''}
                                 onChange={(e) => setNodeConfig({...nodeConfig, messageText: e.target.value})}
                                 data-testid="message-text"
+                                className={configErrors.messageText ? 'border-red-500 focus:border-red-500' : ''}
                               />
+                              <ErrorMessage fieldName="messageText" />
                               <p className="text-xs text-muted-foreground mt-1">Use {'{{'} variável {'}}'}  para incluir variáveis dinâmicas</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -1584,7 +1711,9 @@ export default function ChatbotVisualEditor() {
                                 value={nodeConfig.variableName || ''}
                                 onChange={(e) => setNodeConfig({...nodeConfig, variableName: e.target.value})}
                                 data-testid="variable-name"
+                                className={configErrors.variableName ? 'border-red-500 focus:border-red-500' : ''}
                               />
+                              <ErrorMessage fieldName="variableName" />
                             </div>
                             <div>
                               <Label>Valor da Variável</Label>
