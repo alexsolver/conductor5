@@ -1465,36 +1465,6 @@ export default function ChatbotVisualEditor() {
                                 <Switch id="synonyms" />
                                 <Label htmlFor="synonyms" className="text-sm">Incluir sinônimos automáticos</Label>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Switch id="fuzzy-match" />
-                                <Label htmlFor="fuzzy-match" className="text-sm">Correspondência aproximada</Label>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {nodeTypes.find(nt => nt.id.includes('trigger-intent'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
-                            <div>
-                              <Label>Modelo de IA</Label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o modelo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
-                                  <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                  <SelectItem value="claude">Claude</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label>Confiança Mínima (%)</Label>
-                              <Input type="number" min="0" max="100" defaultValue="70" />
-                            </div>
-                            <div>
-                              <Label>Prompt de Intenção</Label>
-                              <Textarea placeholder="Descreva a intenção que deve ser detectada..." rows={3} />
                             </div>
                           </div>
                         )}
@@ -1506,81 +1476,432 @@ export default function ChatbotVisualEditor() {
                       <div className="space-y-4">
                         <h4 className="font-medium text-sm">Configurações de Ação</h4>
                         
-                        {nodeTypes.find(nt => nt.id.includes('action-send-message'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
+                        {selectedNode.title === 'Enviar Mensagem' && (
+                          <div className="space-y-4">
                             <div>
-                              <Label>Conteúdo da Mensagem</Label>
-                              <Textarea placeholder="Digite a mensagem a ser enviada..." rows={4} />
+                              <Label>Texto da Mensagem</Label>
+                              <Textarea 
+                                placeholder="Digite a mensagem que será enviada..."
+                                rows={4}
+                                value={nodeConfig.messageText || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, messageText: e.target.value})}
+                                data-testid="message-text"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Use {'{{'} variável {'}}'}  para incluir variáveis dinâmicas</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Delay de Envio (segundos)</Label>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  value={nodeConfig.sendDelay || 0}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, sendDelay: parseInt(e.target.value) || 0})}
+                                  data-testid="send-delay"
+                                />
+                              </div>
+                              <div>
+                                <Label>Tipo de Formatação</Label>
+                                <Select 
+                                  value={nodeConfig.formatting || 'plain'}
+                                  onValueChange={(value) => setNodeConfig({...nodeConfig, formatting: value})}
+                                >
+                                  <SelectTrigger data-testid="formatting-select">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="plain">Texto Simples</SelectItem>
+                                    <SelectItem value="markdown">Markdown</SelectItem>
+                                    <SelectItem value="html">HTML</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Switch id="use-variables" />
-                              <Label htmlFor="use-variables" className="text-sm">Usar variáveis dinâmicas</Label>
-                            </div>
-                            <div>
-                              <Label>Delay (segundos)</Label>
-                              <Input type="number" min="0" defaultValue="0" />
-                            </div>
-                          </div>
-                        )}
-
-                        {nodeTypes.find(nt => nt.id.includes('action-api-call'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
-                            <div>
-                              <Label>URL da API</Label>
-                              <Input placeholder="https://api.exemplo.com/endpoint" />
-                            </div>
-                            <div>
-                              <Label>Método HTTP</Label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o método" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="GET">GET</SelectItem>
-                                  <SelectItem value="POST">POST</SelectItem>
-                                  <SelectItem value="PUT">PUT</SelectItem>
-                                  <SelectItem value="DELETE">DELETE</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label>Headers</Label>
-                              <Textarea placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' rows={3} />
-                            </div>
-                            <div>
-                              <Label>Body da Requisição</Label>
-                              <Textarea placeholder="JSON payload..." rows={3} />
-                            </div>
-                            <div>
-                              <Label>Timeout (segundos)</Label>
-                              <Input type="number" min="1" defaultValue="30" />
+                              <Switch 
+                                id="enable-preview"
+                                checked={nodeConfig.enablePreview || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, enablePreview: checked})}
+                                data-testid="enable-preview"
+                              />
+                              <Label htmlFor="enable-preview" className="text-sm">Mostrar prévia antes de enviar</Label>
                             </div>
                           </div>
                         )}
 
-                        {nodeTypes.find(nt => nt.id.includes('action-set-variable'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
+                        {selectedNode.title === 'Enviar Imagem' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>URL da Imagem</Label>
+                              <Input 
+                                placeholder="https://exemplo.com/imagem.jpg"
+                                value={nodeConfig.imageUrl || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, imageUrl: e.target.value})}
+                                data-testid="image-url"
+                              />
+                            </div>
+                            <div>
+                              <Label>Legenda (Opcional)</Label>
+                              <Textarea 
+                                placeholder="Descrição da imagem..."
+                                rows={2}
+                                value={nodeConfig.caption || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, caption: e.target.value})}
+                                data-testid="image-caption"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Largura Máxima (px)</Label>
+                                <Input 
+                                  type="number" 
+                                  value={nodeConfig.maxWidth || 800}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, maxWidth: parseInt(e.target.value) || 800})}
+                                  data-testid="max-width"
+                                />
+                              </div>
+                              <div>
+                                <Label>Qualidade (%)</Label>
+                                <Input 
+                                  type="number" 
+                                  min="1" 
+                                  max="100" 
+                                  value={nodeConfig.quality || 80}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, quality: parseInt(e.target.value) || 80})}
+                                  data-testid="image-quality"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Definir Variável' && (
+                          <div className="space-y-4">
                             <div>
                               <Label>Nome da Variável</Label>
-                              <Input placeholder="nome_usuario" />
+                              <Input 
+                                placeholder="Ex: nome_usuario, pedido_id, etc."
+                                value={nodeConfig.variableName || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, variableName: e.target.value})}
+                                data-testid="variable-name"
+                              />
                             </div>
                             <div>
-                              <Label>Valor</Label>
-                              <Input placeholder="Valor ou expressão" />
+                              <Label>Valor da Variável</Label>
+                              <Input 
+                                placeholder="Ex: {{user.name}}, Novo Pedido, 12345"
+                                value={nodeConfig.variableValue || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, variableValue: e.target.value})}
+                                data-testid="variable-value"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Use {'{{'} outra_variavel {'}}'}  para referenciar outras variáveis</p>
                             </div>
                             <div>
-                              <Label>Tipo de Valor</Label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o tipo" />
+                              <Label>Tipo de Variável</Label>
+                              <Select 
+                                value={nodeConfig.variableType || 'string'}
+                                onValueChange={(value) => setNodeConfig({...nodeConfig, variableType: value})}
+                              >
+                                <SelectTrigger data-testid="variable-type">
+                                  <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="string">Texto</SelectItem>
                                   <SelectItem value="number">Número</SelectItem>
                                   <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
-                                  <SelectItem value="expression">Expressão</SelectItem>
+                                  <SelectItem value="array">Lista</SelectItem>
+                                  <SelectItem value="object">Objeto</SelectItem>
                                 </SelectContent>
                               </Select>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="persist-variable"
+                                checked={nodeConfig.persistVariable || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, persistVariable: checked})}
+                                data-testid="persist-variable"
+                              />
+                              <Label htmlFor="persist-variable" className="text-sm">Manter variável entre conversas</Label>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Chamada API' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>URL da API</Label>
+                              <Input 
+                                placeholder="https://api.exemplo.com/endpoint"
+                                value={nodeConfig.apiUrl || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, apiUrl: e.target.value})}
+                                data-testid="api-url"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Método HTTP</Label>
+                                <Select 
+                                  value={nodeConfig.httpMethod || 'GET'}
+                                  onValueChange={(value) => setNodeConfig({...nodeConfig, httpMethod: value})}
+                                >
+                                  <SelectTrigger data-testid="http-method">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="GET">GET</SelectItem>
+                                    <SelectItem value="POST">POST</SelectItem>
+                                    <SelectItem value="PUT">PUT</SelectItem>
+                                    <SelectItem value="DELETE">DELETE</SelectItem>
+                                    <SelectItem value="PATCH">PATCH</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Timeout (segundos)</Label>
+                                <Input 
+                                  type="number" 
+                                  min="1" 
+                                  value={nodeConfig.timeout || 30}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, timeout: parseInt(e.target.value) || 30})}
+                                  data-testid="api-timeout"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Cabeçalhos HTTP (JSON)</Label>
+                              <Textarea 
+                                placeholder='{"Authorization": "Bearer {{token}}", "Content-Type": "application/json"}'
+                                rows={3}
+                                value={nodeConfig.headers || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, headers: e.target.value})}
+                                data-testid="api-headers"
+                              />
+                            </div>
+                            <div>
+                              <Label>Corpo da Requisição (JSON)</Label>
+                              <Textarea 
+                                placeholder='{"nome": "{{user.name}}", "email": "{{user.email}}"}'
+                                rows={4}
+                                value={nodeConfig.requestBody || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, requestBody: e.target.value})}
+                                data-testid="request-body"
+                              />
+                            </div>
+                            <div>
+                              <Label>Variável para Resposta</Label>
+                              <Input 
+                                placeholder="Ex: api_response, user_data"
+                                value={nodeConfig.responseVariable || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, responseVariable: e.target.value})}
+                                data-testid="response-variable"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Marcar Usuário' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Tags (separadas por vírgula)</Label>
+                              <Input 
+                                placeholder="vip, interessado, suporte, cliente"
+                                value={nodeConfig.tags || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, tags: e.target.value})}
+                                data-testid="user-tags"
+                              />
+                            </div>
+                            <div>
+                              <Label>Ação das Tags</Label>
+                              <Select 
+                                value={nodeConfig.tagAction || 'add'}
+                                onValueChange={(value) => setNodeConfig({...nodeConfig, tagAction: value})}
+                              >
+                                <SelectTrigger data-testid="tag-action">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="add">Adicionar Tags</SelectItem>
+                                  <SelectItem value="remove">Remover Tags</SelectItem>
+                                  <SelectItem value="replace">Substituir Todas as Tags</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Observações sobre o Usuário</Label>
+                              <Textarea 
+                                placeholder="Adicionar observações sobre o usuário..."
+                                rows={3}
+                                value={nodeConfig.notes || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, notes: e.target.value})}
+                                data-testid="user-notes"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="notify-team"
+                                checked={nodeConfig.notifyTeam || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, notifyTeam: checked})}
+                                data-testid="notify-team"
+                              />
+                              <Label htmlFor="notify-team" className="text-sm">Notificar equipe sobre a marcação</Label>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Response Node Configurations */}
+                    {selectedNode.type === 'response' && (
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-sm">Configurações de Resposta</h4>
+                        
+                        {selectedNode.title === 'Resposta Texto' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Texto da Resposta</Label>
+                              <Textarea 
+                                placeholder="Digite a resposta que será enviada..."
+                                rows={4}
+                                value={nodeConfig.responseText || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, responseText: e.target.value})}
+                                data-testid="response-text"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Use {'{{'} variavel {'}}'}  para incluir variáveis dinâmicas</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Delay de Resposta (segundos)</Label>
+                                <Input 
+                                  type="number" 
+                                  min="0" 
+                                  value={nodeConfig.responseDelay || 0}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, responseDelay: parseInt(e.target.value) || 0})}
+                                  data-testid="response-delay"
+                                />
+                              </div>
+                              <div>
+                                <Label>Prioridade</Label>
+                                <Select 
+                                  value={nodeConfig.priority || 'normal'}
+                                  onValueChange={(value) => setNodeConfig({...nodeConfig, priority: value})}
+                                >
+                                  <SelectTrigger data-testid="response-priority">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="high">Alta</SelectItem>
+                                    <SelectItem value="normal">Normal</SelectItem>
+                                    <SelectItem value="low">Baixa</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Resposta Rápida' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Texto Principal</Label>
+                              <Textarea 
+                                placeholder="Texto que aparecerá acima dos botões..."
+                                rows={3}
+                                value={nodeConfig.quickReplyText || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, quickReplyText: e.target.value})}
+                                data-testid="quick-reply-text"
+                              />
+                            </div>
+                            <div>
+                              <Label>Botões de Resposta Rápida (um por linha)</Label>
+                              <Textarea 
+                                placeholder="Sim&#10;Não&#10;Talvez&#10;Mais informações"
+                                rows={4}
+                                value={nodeConfig.quickReplyButtons || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, quickReplyButtons: e.target.value})}
+                                data-testid="quick-reply-buttons"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Digite um botão por linha</p>
+                            </div>
+                            <div>
+                              <Label>Máximo de Botões</Label>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                max="10" 
+                                value={nodeConfig.maxButtons || 3}
+                                onChange={(e) => setNodeConfig({...nodeConfig, maxButtons: parseInt(e.target.value) || 3})}
+                                data-testid="max-buttons"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Menu Interativo' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Título do Menu</Label>
+                              <Input 
+                                placeholder="Ex: Escolha uma opção"
+                                value={nodeConfig.menuTitle || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, menuTitle: e.target.value})}
+                                data-testid="menu-title"
+                              />
+                            </div>
+                            <div>
+                              <Label>Descrição do Menu</Label>
+                              <Textarea 
+                                placeholder="Descrição que aparecerá no menu..."
+                                rows={2}
+                                value={nodeConfig.menuDescription || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, menuDescription: e.target.value})}
+                                data-testid="menu-description"
+                              />
+                            </div>
+                            <div>
+                              <Label>Opções do Menu (formato: Título|Descrição|Valor)</Label>
+                              <Textarea 
+                                placeholder="Suporte|Preciso de ajuda|support&#10;Vendas|Quero comprar|sales&#10;Informações|Mais detalhes|info"
+                                rows={4}
+                                value={nodeConfig.menuOptions || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, menuOptions: e.target.value})}
+                                data-testid="menu-options"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Use | para separar título, descrição e valor</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedNode.title === 'Formulário' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Título do Formulário</Label>
+                              <Input 
+                                placeholder="Ex: Dados para Contato"
+                                value={nodeConfig.formTitle || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, formTitle: e.target.value})}
+                                data-testid="form-title"
+                              />
+                            </div>
+                            <div>
+                              <Label>Campos do Formulário (JSON)</Label>
+                              <Textarea 
+                                placeholder='[{"name": "nome", "type": "text", "required": true, "label": "Nome completo"}, {"name": "email", "type": "email", "required": true, "label": "E-mail"}]'
+                                rows={6}
+                                value={nodeConfig.formFields || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, formFields: e.target.value})}
+                                data-testid="form-fields"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">Defina os campos em formato JSON</p>
+                            </div>
+                            <div>
+                              <Label>Mensagem de Confirmação</Label>
+                              <Textarea 
+                                placeholder="Obrigado! Seus dados foram registrados com sucesso."
+                                rows={2}
+                                value={nodeConfig.confirmationMessage || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, confirmationMessage: e.target.value})}
+                                data-testid="confirmation-message"
+                              />
                             </div>
                           </div>
                         )}
@@ -1592,262 +1913,91 @@ export default function ChatbotVisualEditor() {
                       <div className="space-y-4">
                         <h4 className="font-medium text-sm">Configurações de Condição</h4>
                         
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Tipo de Condição</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="equals">Igual a</SelectItem>
-                                <SelectItem value="not_equals">Diferente de</SelectItem>
-                                <SelectItem value="contains">Contém</SelectItem>
-                                <SelectItem value="starts_with">Começa com</SelectItem>
-                                <SelectItem value="ends_with">Termina com</SelectItem>
-                                <SelectItem value="greater_than">Maior que</SelectItem>
-                                <SelectItem value="less_than">Menor que</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Valor a Comparar</Label>
-                            <Input placeholder="Valor de comparação" />
-                          </div>
-                          <div>
-                            <Label>Variável ou Campo</Label>
-                            <Input placeholder="{{usuario.nome}} ou campo específico" />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch id="case-insensitive" />
-                            <Label htmlFor="case-insensitive" className="text-sm">Ignorar maiúsculas/minúsculas</Label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Response Node Configurations */}
-                    {selectedNode.type === 'response' && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de Resposta</h4>
-                        
-                        {nodeTypes.find(nt => nt.id.includes('response-quick-reply'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
+                        {selectedNode.title === 'Condição Texto' && (
+                          <div className="space-y-4">
                             <div>
-                              <Label>Texto da Pergunta</Label>
-                              <Textarea placeholder="Como posso ajudar você hoje?" rows={2} />
+                              <Label>Texto para Comparação</Label>
+                              <Input 
+                                placeholder="Digite o texto a ser verificado"
+                                value={nodeConfig.comparisonText || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, comparisonText: e.target.value})}
+                                data-testid="comparison-text"
+                              />
                             </div>
                             <div>
-                              <Label>Opções de Resposta Rápida</Label>
-                              <div className="space-y-2">
-                                <Input placeholder="Opção 1" />
-                                <Input placeholder="Opção 2" />
-                                <Input placeholder="Opção 3" />
-                                <Button variant="outline" size="sm">
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Adicionar Opção
-                                </Button>
-                              </div>
+                              <Label>Operador de Comparação</Label>
+                              <Select 
+                                value={nodeConfig.operator || 'equals'}
+                                onValueChange={(value) => setNodeConfig({...nodeConfig, operator: value})}
+                              >
+                                <SelectTrigger data-testid="comparison-operator">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="equals">Igual a</SelectItem>
+                                  <SelectItem value="contains">Contém</SelectItem>
+                                  <SelectItem value="starts_with">Inicia com</SelectItem>
+                                  <SelectItem value="ends_with">Termina com</SelectItem>
+                                  <SelectItem value="not_equals">Diferente de</SelectItem>
+                                  <SelectItem value="regex">Expressão Regular</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                            <div>
-                              <Label>Tempo Limite (segundos)</Label>
-                              <Input type="number" min="10" defaultValue="60" />
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="case-sensitive-condition"
+                                checked={nodeConfig.caseSensitiveCondition || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, caseSensitiveCondition: checked})}
+                                data-testid="case-sensitive-condition"
+                              />
+                              <Label htmlFor="case-sensitive-condition" className="text-sm">Sensível a maiúsculas/minúsculas</Label>
                             </div>
                           </div>
                         )}
 
-                        {nodeTypes.find(nt => nt.id.includes('response-menu'))?.id === selectedNode.id && (
-                          <div className="space-y-3">
+                        {selectedNode.title === 'Condição Variável' && (
+                          <div className="space-y-4">
                             <div>
-                              <Label>Título do Menu</Label>
-                              <Input placeholder="Selecione uma opção" />
+                              <Label>Nome da Variável</Label>
+                              <Input 
+                                placeholder="Ex: user_age, status, score"
+                                value={nodeConfig.variableName || ''}
+                                onChange={(e) => setNodeConfig({...nodeConfig, variableName: e.target.value})}
+                                data-testid="variable-name-condition"
+                              />
                             </div>
-                            <div>
-                              <Label>Descrição</Label>
-                              <Textarea placeholder="Escolha uma das opções abaixo..." rows={2} />
-                            </div>
-                            <div>
-                              <Label>Itens do Menu</Label>
-                              <div className="space-y-2">
-                                <div className="flex gap-2">
-                                  <Input placeholder="Título do item" />
-                                  <Input placeholder="Descrição" />
-                                </div>
-                                <Button variant="outline" size="sm">
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Adicionar Item
-                                </Button>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Operador</Label>
+                                <Select 
+                                  value={nodeConfig.variableOperator || 'equals'}
+                                  onValueChange={(value) => setNodeConfig({...nodeConfig, variableOperator: value})}
+                                >
+                                  <SelectTrigger data-testid="variable-operator">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="equals">Igual (==)</SelectItem>
+                                    <SelectItem value="not_equals">Diferente (!=)</SelectItem>
+                                    <SelectItem value="greater">Maior ({'>'}) </SelectItem>
+                                    <SelectItem value="less">Menor ({'<'})</SelectItem>
+                                    <SelectItem value="greater_equals">Maior ou igual ({'>'}=)</SelectItem>
+                                    <SelectItem value="less_equals">Menor ou igual ({'<'}=)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Valor de Comparação</Label>
+                                <Input 
+                                  placeholder="Valor para comparar"
+                                  value={nodeConfig.comparisonValue || ''}
+                                  onChange={(e) => setNodeConfig({...nodeConfig, comparisonValue: e.target.value})}
+                                  data-testid="comparison-value"
+                                />
                               </div>
                             </div>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* AI Node Configurations */}
-                    {selectedNode.type === 'ai' && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de IA</h4>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Modelo de IA</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o modelo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="gpt-3.5">GPT-3.5 Turbo</SelectItem>
-                                <SelectItem value="gpt-4">GPT-4</SelectItem>
-                                <SelectItem value="claude">Claude</SelectItem>
-                                <SelectItem value="gemini">Gemini</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Prompt do Sistema</Label>
-                            <Textarea placeholder="Você é um assistente útil e prestativo..." rows={4} />
-                          </div>
-                          <div>
-                            <Label>Temperatura</Label>
-                            <Input type="number" min="0" max="1" step="0.1" defaultValue="0.7" />
-                            <p className="text-xs text-muted-foreground mt-1">0 = Mais preciso, 1 = Mais criativo</p>
-                          </div>
-                          <div>
-                            <Label>Máximo de Tokens</Label>
-                            <Input type="number" min="1" max="4000" defaultValue="150" />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch id="context-memory" />
-                            <Label htmlFor="context-memory" className="text-sm">Manter contexto da conversa</Label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Integration Node Configurations */}
-                    {selectedNode.type === 'integration' && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de Integração</h4>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Tipo de Integração</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a integração" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="whatsapp">WhatsApp Business</SelectItem>
-                                <SelectItem value="telegram">Telegram</SelectItem>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="sms">SMS</SelectItem>
-                                <SelectItem value="webhook">Webhook</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Configurações da API</Label>
-                            <Textarea placeholder="Chaves de API, tokens, etc..." rows={3} />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch id="retry-enabled" />
-                            <Label htmlFor="retry-enabled" className="text-sm">Retentar em caso de falha</Label>
-                          </div>
-                          <div>
-                            <Label>Tentativas Máximas</Label>
-                            <Input type="number" min="1" max="5" defaultValue="3" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Delay Node Configurations */}
-                    {selectedNode.type === 'delay' && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de Delay</h4>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Tipo de Delay</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="fixed">Tempo Fixo</SelectItem>
-                                <SelectItem value="random">Tempo Aleatório</SelectItem>
-                                <SelectItem value="user_input">Aguardar Resposta do Usuário</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Duração (segundos)</Label>
-                            <Input type="number" min="1" defaultValue="5" />
-                          </div>
-                          <div>
-                            <Label>Mensagem de Aguardo</Label>
-                            <Input placeholder="Aguarde um momento..." />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch id="show-typing" />
-                            <Label htmlFor="show-typing" className="text-sm">Mostrar indicador de digitação</Label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Validation Node Configurations */}
-                    {selectedNode.type === 'validation' && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de Validação</h4>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Tipo de Validação</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="phone">Telefone</SelectItem>
-                                <SelectItem value="cpf">CPF</SelectItem>
-                                <SelectItem value="number">Número</SelectItem>
-                                <SelectItem value="regex">Expressão Regular</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Padrão de Validação</Label>
-                            <Input placeholder="Regex ou padrão específico" />
-                          </div>
-                          <div>
-                            <Label>Mensagem de Erro</Label>
-                            <Input placeholder="Formato inválido, tente novamente" />
-                          </div>
-                          <div>
-                            <Label>Tentativas Máximas</Label>
-                            <Input type="number" min="1" max="5" defaultValue="3" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Default Configuration for unhandled types */}
-                    {!['trigger', 'action', 'condition', 'response', 'ai', 'integration', 'delay', 'validation'].includes(selectedNode.type) && (
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações Gerais</h4>
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Configuração Personalizada</Label>
-                            <Textarea placeholder="Configurações específicas para este tipo de nó..." rows={4} />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch id="enabled" />
-                            <Label htmlFor="enabled" className="text-sm">Nó ativo</Label>
-                          </div>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -1856,97 +2006,19 @@ export default function ChatbotVisualEditor() {
 
               <TabsContent value="connections" className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Conexões de Saída</Label>
-                  <div className="space-y-3">
-                    {selectedNode.connections.map((connId, index) => {
-                      const targetNode = selectedChatbot?.flow.nodes.find(n => n.id === connId);
-                      const connection = selectedChatbot?.flow.connections.find(c => c.from === selectedNode.id && c.to === connId);
-                      return (
-                        <Card key={index} className="p-3">
-                          <div className="flex items-center gap-3">
-                            <div className="flex-shrink-0">
-                              <ArrowRight className="h-4 w-4 text-blue-500" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">{targetNode?.title || connId}</div>
-                              <div className="text-xs text-muted-foreground">{targetNode?.type || 'Nó desconhecido'}</div>
-                              {connection?.label && (
-                                <div className="text-xs text-blue-600 mt-1">"{connection.label}"</div>
-                              )}
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                    {selectedNode.connections.length === 0 && (
-                      <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
-                        <Link className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Nenhuma conexão de saída</p>
-                        <p className="text-xs text-muted-foreground">Use o modo de conexão para criar links</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Conexões de Entrada</Label>
-                  <div className="space-y-3">
-                    {selectedChatbot?.flow.connections
-                      .filter(conn => conn.to === selectedNode.id)
-                      .map((connection, index) => {
-                        const sourceNode = selectedChatbot.flow.nodes.find(n => n.id === connection.from);
-                        return (
-                          <Card key={index} className="p-3 bg-gray-50">
-                            <div className="flex items-center gap-3">
-                              <div className="flex-shrink-0">
-                                <ArrowRight className="h-4 w-4 text-green-500 rotate-180" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm">{sourceNode?.title || connection.from}</div>
-                                <div className="text-xs text-muted-foreground">{sourceNode?.type || 'Nó desconhecido'}</div>
-                                {connection.label && (
-                                  <div className="text-xs text-green-600 mt-1">"{connection.label}"</div>
-                                )}
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      })}
-                    {selectedChatbot?.flow.connections.filter(conn => conn.to === selectedNode.id).length === 0 && (
-                      <div className="text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
-                        <p className="text-sm text-muted-foreground">Nenhuma conexão de entrada</p>
-                        <p className="text-xs text-muted-foreground">Este nó não recebe dados de outros nós</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
                   <Label className="text-sm font-medium mb-3 block">Configurações de Conexão</Label>
                   <div className="space-y-3">
                     <div>
-                      <Label>Comportamento de Falha</Label>
+                      <Label>Tipo de Conexão</Label>
                       <Select>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o comportamento" />
+                          <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="stop">Parar fluxo</SelectItem>
-                          <SelectItem value="fallback">Usar nó de fallback</SelectItem>
-                          <SelectItem value="retry">Tentar novamente</SelectItem>
-                          <SelectItem value="continue">Continuar para próximo</SelectItem>
+                          <SelectItem value="sequential">Sequencial</SelectItem>
+                          <SelectItem value="conditional">Condicional</SelectItem>
+                          <SelectItem value="parallel">Paralelo</SelectItem>
+                          <SelectItem value="random">Aleatório</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1986,7 +2058,7 @@ export default function ChatbotVisualEditor() {
                     </div>
                     <div>
                       <Label>Expressão Condicional (Opcional)</Label>
-                      <Input placeholder="Ex: {{user.age}} > 18" />
+                      <Input placeholder="Ex: user_age > 18" />
                       <p className="text-xs text-muted-foreground mt-1">Use variáveis entre chaves duplas</p>
                     </div>
                   </div>
