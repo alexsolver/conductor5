@@ -95,6 +95,7 @@ interface SimplifiedChatbotBuilderProps {
   isOpen: boolean;
   onClose: () => void;
   chatbotId?: string;
+  onSave?: () => void;
 }
 
 // Predefined templates for quick start
@@ -218,7 +219,8 @@ const chatbotTemplates = [
 export default function SimplifiedChatbotBuilder({ 
   isOpen, 
   onClose, 
-  chatbotId 
+  chatbotId,
+  onSave 
 }: SimplifiedChatbotBuilderProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -277,6 +279,7 @@ export default function SimplifiedChatbotBuilder({
       console.log('✅ [SimplifiedChatbotBuilder] Chatbot saved successfully:', data);
       toast({ title: 'Sucesso', description: 'Chatbot salvo com sucesso!' });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots'] });
+      onSave?.();
       onClose();
     },
     onError: (error: any) => {

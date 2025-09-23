@@ -58,14 +58,15 @@ import {
   HelpCircle,
   Upload,
   Play,
-  Trash2
+  Trash2,
+  Pause
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
 import FlowEditor from '@/components/omnibridge/FlowEditor';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
-
+import SimplifiedChatbotBuilder from '@/components/omnibridge/SimplifiedChatbotBuilder';
 
 
 interface Channel {
@@ -147,6 +148,11 @@ interface Chatbot {
   }[];
   ai_enabled: boolean;
   fallback_to_human: boolean;
+  metrics?: {
+    totalConversations: number;
+    successRate: number;
+  };
+  isEnabled?: boolean; // Corresponds to 'enabled' in API response mapping
 }
 
 // Helper functions for channel mapping
@@ -193,6 +199,7 @@ export default function OmniBridge() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [chatbots, setChatbots] = useState<Chatbot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatbotsLoading, setChatbotsLoading] = useState(false); // Add loading state for chatbots
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -211,6 +218,14 @@ export default function OmniBridge() {
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [configurationName, setConfigurationName] = useState('');
+
+  // Chatbot management states
+  const [showChatbotBuilder, setShowChatbotBuilder] = useState(false);
+  const [editingChatbotId, setEditingChatbotId] = useState<string | null>(null);
+  const [showFlowEditor, setShowFlowEditor] = useState(false);
+  const [selectedChatbotForFlow, setSelectedChatbotForFlow] = useState<string | null>(null);
 
   // AI Configuration with react-query
   const { toast } = useToast();
@@ -249,6 +264,32 @@ export default function OmniBridge() {
     queryKey: ['/api/omnibridge/ai-metrics'],
     enabled: activeTab === 'ai-config'
   });
+
+  // Fetch Chatbots
+  useEffect(() => {
+    const fetchChatbots = async () => {
+      setChatbotsLoading(true);
+      try {
+        const response = await apiRequest('GET', '/api/omnibridge/chatbots');
+        const data = await response.json();
+        if (data.success) {
+          setChatbots(data.chatbots || []);
+        } else {
+          console.error("Failed to fetch chatbots:", data.error);
+          toast({ title: "Erro", description: data.error || "Falha ao carregar chatbots.", variant: "destructive" });
+        }
+      } catch (error) {
+        console.error("Error fetching chatbots:", error);
+        toast({ title: "Erro", description: "Erro ao conectar com o servidor.", variant: "destructive" });
+      } finally {
+        setChatbotsLoading(false);
+      }
+    };
+    if (activeTab === 'chatbots') {
+      fetchChatbots();
+    }
+  }, [activeTab, toast]);
+
 
   // Save AI Configuration mutation
   const saveAiConfigMutation = useMutation({
@@ -468,56 +509,92 @@ export default function OmniBridge() {
     }
   };
 
-  const handleCreateChatbot = async (type: 'support' | 'faq' | 'custom', name?: string) => {
-    try {
-      const chatbotData = {
-        name: name || (type === 'support' ? 'Assistente de Suporte' : 
-                      type === 'faq' ? 'Assistente de Dúvidas' : 
-                      'Assistente Personalizado'),
-        description: type === 'support' ? 'Assistente para atendimento técnico' :
-                    type === 'faq' ? 'Assistente para perguntas frequentes' :
-                    'Assistente criado do zero para suas necessidades específicas',
-        type,
-        isActive: true,
-        settings: {
-          language: 'pt-BR',
-          tone: type === 'support' ? 'professional' : 'friendly',
-          maxResponseTime: 30
-        }
-      };
+  // Chatbot Handlers
+  const handleCreateChatbot = () => {
+    setEditingChatbotId(null);
+    setShowChatbotBuilder(true);
+  };
 
-      const response = await fetch('/api/omnibridge/chatbots', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(chatbotData)
+  const handleEditChatbot = (chatbotId: string) => {
+    setEditingChatbotId(chatbotId);
+    setShowChatbotBuilder(true);
+  };
+
+  const handleCloseChatbotBuilder = () => {
+    setShowChatbotBuilder(false);
+    setEditingChatbotId(null);
+    // Re-fetch chatbots after closing the builder
+    // to reflect any changes made
+    // fetchChatbots(); // This is handled by the useEffect dependency
+  };
+
+  const handleOpenFlowEditor = (chatbotId: string) => {
+    setSelectedChatbotForFlow(chatbotId);
+    setShowFlowEditor(true);
+  };
+
+  const handleCloseFlowEditor = () => {
+    setShowFlowEditor(false);
+    setSelectedChatbotForFlow(null);
+  };
+
+  const handleToggleChatbot = async (chatbotId: string) => {
+    try {
+      const chatbot = chatbots.find(cb => cb.id === chatbotId);
+      if (!chatbot) return;
+
+      const updatedStatus = !chatbot.isEnabled; // Toggle the status
+
+      const response = await apiRequest('PATCH', `/api/omnibridge/chatbots/${chatbotId}`, {
+        isEnabled: updatedStatus
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setChatbots(prev => [result.data, ...prev]);
-          console.log(`✅ [OmniBridge] Chatbot ${type} created successfully`);
+      const data = await response.json();
 
-          toast({
-            title: "Assistente Virtual Criado!",
-            description: `O ${chatbotData.name} foi criado com sucesso e já está ativo.`
-          });
-        }
+      if (data.success) {
+        setChatbots(prev => prev.map(cb =>
+          cb.id === chatbotId ? { ...cb, isEnabled: updatedStatus } : cb
+        ));
+        toast({
+          title: `Chatbot ${updatedStatus ? 'Ativado' : 'Pausado'}`,
+          description: `O chatbot "${chatbot.name}" foi ${updatedStatus ? 'ativado' : 'pausado'} com sucesso.`
+        });
       } else {
-        throw new Error('Falha ao criar assistente');
+        console.error("Failed to toggle chatbot status:", data.error);
+        toast({ title: "Erro", description: data.error || "Falha ao alterar status do chatbot.", variant: "destructive" });
       }
     } catch (error) {
-      console.error('❌ [OmniBridge] Error creating chatbot:', error);
-      toast({
-        title: "Erro ao criar assistente",
-        description: "Ocorreu um erro ao criar o assistente virtual",
-        variant: "destructive"
-      });
+      console.error("Error toggling chatbot status:", error);
+      toast({ title: "Erro", description: "Erro ao conectar com o servidor.", variant: "destructive" });
     }
   };
+
+  const handleDeleteChatbot = async (chatbotId: string) => {
+    const chatbot = chatbots.find(cb => cb.id === chatbotId);
+    if (!chatbot || !confirm(`Tem certeza que deseja excluir o chatbot "${chatbot.name}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const response = await apiRequest('DELETE', `/api/omnibridge/chatbots/${chatbotId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setChatbots(prev => prev.filter(cb => cb.id !== chatbotId));
+        toast({
+          title: "Chatbot Excluído",
+          description: `O chatbot "${chatbot.name}" foi excluído com sucesso.`
+        });
+      } else {
+        console.error("Failed to delete chatbot:", data.error);
+        toast({ title: "Erro", description: data.error || "Falha ao excluir o chatbot.", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error deleting chatbot:", error);
+      toast({ title: "Erro", description: "Erro ao conectar com o servidor.", variant: "destructive" });
+    }
+  };
+
 
   const handleCreateAutomationRule = async () => {
     try {
@@ -1157,7 +1234,7 @@ export default function OmniBridge() {
             Templates
           </TabsTrigger>
           <TabsTrigger value="ai-config" className="flex items-center gap-2">
-            <Bot className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" />
             Configuração IA
           </TabsTrigger>
         </TabsList>
@@ -1339,12 +1416,152 @@ export default function OmniBridge() {
           </Card>
         </TabsContent>
 
-        {/* Chatbots Tab - Advanced Flow Editor */}
-        <TabsContent value="chatbots" className="h-full">
-          <FlowEditor />
+        {/* CHATBOTS TAB */}
+        <TabsContent value="chatbots" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium">Gerenciamento de Chatbots</h3>
+              <p className="text-sm text-muted-foreground">
+                Crie e configure chatbots inteligentes para automatizar atendimentos
+              </p>
+            </div>
+            <Button onClick={handleCreateChatbot} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Chatbot
+            </Button>
+          </div>
+
+          {chatbotsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {chatbots.map((chatbot: any) => (
+                <Card key={chatbot.id} className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Bot className="h-4 w-4" />
+                        {chatbot.name}
+                      </CardTitle>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={chatbot.isEnabled ? "default" : "secondary"}>
+                          {chatbot.isEnabled ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardDescription className="text-xs">
+                      {chatbot.description || "Sem descrição"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {/* Estatísticas */}
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="text-center p-2 bg-muted rounded">
+                          <div className="font-medium text-primary">
+                            {chatbot.metrics?.totalConversations || 0}
+                          </div>
+                          <div className="text-muted-foreground">Conversas</div>
+                        </div>
+                        <div className="text-center p-2 bg-muted rounded">
+                          <div className="font-medium text-green-600">
+                            {Math.round((chatbot.metrics?.successRate || 0) * 100)}%
+                          </div>
+                          <div className="text-muted-foreground">Sucesso</div>
+                        </div>
+                      </div>
+
+                      {/* Canais */}
+                      <div>
+                        <div className="text-xs font-medium mb-1">Canais:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {chatbot.channels?.map((channel: string) => (
+                            <Badge key={channel} variant="outline" className="text-xs px-1 py-0">
+                              {channel}
+                            </Badge>
+                          )) || <span className="text-xs text-muted-foreground">Nenhum canal</span>}
+                        </div>
+                      </div>
+
+                      {/* Ações */}
+                      <div className="flex flex-col gap-1 pt-2 border-t">
+                        <div className="grid grid-cols-2 gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditChatbot(chatbot.id)}
+                            className="text-xs h-7"
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOpenFlowEditor(chatbot.id)}
+                            className="text-xs h-7"
+                          >
+                            <Workflow className="h-3 w-3 mr-1" />
+                            Fluxo
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          <Button
+                            size="sm"
+                            variant={chatbot.isEnabled ? "secondary" : "default"}
+                            onClick={() => handleToggleChatbot(chatbot.id)}
+                            className="text-xs h-7"
+                          >
+                            {chatbot.isEnabled ? (
+                              <>
+                                <Pause className="h-3 w-3 mr-1" />
+                                Pausar
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-3 w-3 mr-1" />
+                                Ativar
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteChatbot(chatbot.id)}
+                            className="text-xs h-7"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Deletar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {chatbots.length === 0 && (
+                <div className="col-span-full">
+                  <Card className="p-8 text-center">
+                    <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Nenhum chatbot encontrado</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Crie seu primeiro chatbot para automatizar atendimentos
+                    </p>
+                    <Button onClick={handleCreateChatbot}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeiro Chatbot
+                    </Button>
+                  </Card>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
-        {/* AI Assistant Tab */}
+        {/* AI Configuration Tab */}
         <TabsContent value="ai-config" className="space-y-4">
           <Form {...aiForm}>
           {/* AI Dashboard */}
@@ -2037,6 +2254,31 @@ export default function OmniBridge() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* MODALS for Chatbots */}
+      {showChatbotBuilder && (
+        <SimplifiedChatbotBuilder
+          isOpen={showChatbotBuilder}
+          onClose={handleCloseChatbotBuilder}
+          chatbotId={editingChatbotId}
+        />
+      )}
+
+      {showFlowEditor && selectedChatbotForFlow && (
+        <Dialog open={showFlowEditor} onOpenChange={handleCloseFlowEditor}>
+          <DialogContent className="max-w-7xl h-[90vh] p-0">
+            <DialogHeader className="p-4 border-b">
+              <DialogTitle>Editor de Fluxo</DialogTitle>
+              <DialogDescription>
+                Configure o fluxo de conversação do chatbot
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              <FlowEditor chatbotId={selectedChatbotForFlow} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

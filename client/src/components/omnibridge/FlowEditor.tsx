@@ -251,11 +251,11 @@ interface ChatbotBot {
 }
 
 interface FlowEditorProps {
-  botId?: string;
-  onClose?: () => void;
+  chatbotId?: string;
+  onSave?: (flow: ChatbotFlow) => void;
 }
 
-export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
+export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -280,14 +280,14 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // Load bot data
   const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
-    queryKey: ['/api/omnibridge/chatbots', botId],
-    enabled: !!botId
+    queryKey: ['/api/omnibridge/chatbots', chatbotId],
+    enabled: !!chatbotId
   });
 
   // Load flows for bot
   const { data: flows, isLoading: loadingFlows } = useQuery<{data: ChatbotFlow[]}>({
-    queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
-    enabled: !!botId
+    queryKey: ['/api/omnibridge/chatbots', chatbotId, 'flows'],
+    enabled: !!chatbotId
   });
 
   // Save flow mutation
@@ -299,14 +299,18 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(flowData)
       });
-      return response.json();
+      const result = await response.json();
+      if (onSave) {
+        onSave(result.data);
+      }
+      return result;
     },
     onSuccess: () => {
       toast({
         title: 'Flow Saved',
         description: 'Flow has been saved successfully'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', chatbotId, 'flows'] });
     }
   });
 
@@ -315,6 +319,25 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     if (bot?.data && flows?.data?.length && flows.data.length > 0) {
       setSelectedBot(bot.data);
       setSelectedFlow(flows.data[0]);
+      setNodes(flows.data[0].nodes || []);
+      setEdges(flows.data[0].edges || []);
+    } else if (bot?.data && !flows?.data) {
+      // If no flows exist, create a default one
+      setSelectedBot(bot.data);
+      const defaultFlow: ChatbotFlow = {
+        id: `flow_${Date.now()}`,
+        botId: bot.data.id,
+        name: 'Main Flow',
+        isActive: true,
+        isMain: true,
+        version: 1,
+        metadata: {},
+        nodes: [],
+        edges: []
+      };
+      setSelectedFlow(defaultFlow);
+      setNodes([]);
+      setEdges([]);
     }
   }, [bot, flows]);
 
@@ -386,17 +409,19 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const handleSaveFlow = () => {
     if (!selectedFlow) return;
 
-    const flowData = {
+    const flowDataToSave: ChatbotFlow = {
       ...selectedFlow,
+      nodes: nodes,
+      edges: edges,
       metadata: {
         ...selectedFlow.metadata,
-        nodes: nodes.length,
-        edges: edges.length,
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
         lastModified: new Date().toISOString()
       }
     };
 
-    saveFlowMutation.mutate(flowData);
+    saveFlowMutation.mutate(flowDataToSave);
   };
 
   if (loadingBot || loadingFlows) {
@@ -470,7 +495,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             <div className="p-4 space-y-6">
               {Object.entries(NODE_CATEGORIES).map(([categoryKey, category]) => {
                 if (selectedCategory !== 'all' && selectedCategory !== categoryKey) return null;
-                
+
                 const filteredNodes = getFilteredNodes(categoryKey as keyof typeof NODE_CATEGORIES);
                 if (filteredNodes.length === 0) return null;
 
@@ -481,7 +506,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                       <h3 className="font-medium text-gray-900">{category.name}</h3>
                       <Badge variant="secondary">{filteredNodes.length}</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 gap-2">
                       {filteredNodes.map(node => (
                         <Card 
@@ -604,7 +629,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
               Configure the properties and behavior for this {selectedNode?.category} node.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="node-name">Node Name</Label>
@@ -675,7 +700,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             )}
 
             {/* Add more node type configurations as needed */}
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
                 Cancel
