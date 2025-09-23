@@ -162,7 +162,7 @@ export class ProcessMessageUseCase {
       const automationEngine = automationManager.getEngine(tenantId);
 
       // Wait for rules to be loaded from database
-      await automationEngine.syncRulesWithDatabase();
+      await automationEngine.loadRulesFromDatabase();
 
       console.log(`⚙️ [ProcessMessageUseCase] Processing direct message through AutomationEngine`);
 
