@@ -1039,13 +1039,61 @@ export default function ChatbotVisualEditor() {
     const nodeType = nodeTypes.find(nt => nt.id === draggedNodeType);
     if (!nodeType) return;
 
+    // Create default config based on node type
+    const getDefaultConfig = (type: string, nodeTypeName: string) => {
+      switch (type) {
+        case 'trigger':
+          return {
+            triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda',
+            caseSensitive: false,
+            exactMatch: false
+          };
+        case 'response':
+          return {
+            responseMessage: 'Olá! Como posso ajudar você hoje?',
+            quickReplies: 'Sim\nNão\nMais informações',
+            delay: 1000
+          };
+        case 'condition':
+          return {
+            conditionField: 'user_input',
+            conditionOperator: 'contains',
+            conditionValue: 'ajuda',
+            truePath: '',
+            falsePath: ''
+          };
+        case 'action':
+          return {
+            actionType: 'send_message',
+            messageText: 'Ação executada com sucesso!',
+            variables: {}
+          };
+        case 'integration':
+          return {
+            apiUrl: 'https://api.exemplo.com/webhook',
+            method: 'POST',
+            headers: {},
+            body: '{}'
+          };
+        case 'ai':
+          return {
+            aiPrompt: 'Analise a mensagem do usuário e forneça uma resposta apropriada.',
+            model: 'gpt-4',
+            temperature: 0.7,
+            maxTokens: 150
+          };
+        default:
+          return {};
+      }
+    };
+
     const newNode: FlowNode = {
       id: `node_${Date.now()}`,
       type: nodeType.type as FlowNode['type'],
       title: nodeType.name,
       description: nodeType.description,
       position: { x, y },
-      config: {},
+      config: getDefaultConfig(nodeType.type, nodeType.name),
       connections: []
     };
 
