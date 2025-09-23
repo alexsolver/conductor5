@@ -573,16 +573,26 @@ export default function AutomationRuleBuilder({
     }
   });
 
-  const addTrigger = (template: Omit<Trigger, 'id' | 'config'>) => {
+  const handleAddTrigger = (triggerTemplate: Omit<Trigger, 'id' | 'config'>) => {
     const newTrigger: Trigger = {
-      ...template,
       id: `trigger_${Date.now()}`,
-      config: {}
+      ...triggerTemplate,
+      config: {
+        keywords: '',
+        value: '',
+        operator: 'contains',
+        field: 'content',
+        caseSensitive: false,
+        // Ensure channelType is set for channel triggers
+        ...(triggerTemplate.type === 'channel' && { channelType: '' })
+      }
     };
     setRule(prev => ({
       ...prev,
       triggers: [...prev.triggers, newTrigger]
     }));
+    setSelectedTrigger(newTrigger);
+    setShowTriggerConfig(true);
   };
 
   const addAction = (template: Omit<Action, 'id' | 'config'>) => {
@@ -629,61 +639,116 @@ export default function AutomationRuleBuilder({
     }));
   };
 
+  const handleTriggerConfigSave = () => {
+    if (!selectedTrigger) return;
+
+    // Ensure proper validation and value assignment
+    const updatedTrigger = {
+      ...selectedTrigger,
+      config: {
+        ...selectedTrigger.config,
+        // For keyword triggers, ensure both keywords and value are set
+        ...(selectedTrigger.type === 'keyword' && {
+          keywords: selectedTrigger.config.keywords || selectedTrigger.config.value || '',
+          value: selectedTrigger.config.value || selectedTrigger.config.keywords || ''
+        }),
+        // For channel triggers, ensure channelType is properly set
+        ...(selectedTrigger.type === 'channel' && {
+          channelType: selectedTrigger.config.channelType || selectedTrigger.config.value || '',
+          value: selectedTrigger.config.channelType || selectedTrigger.config.value || ''
+        })
+      }
+    };
+
+    console.log('🔧 [AutomationRuleBuilder] Saving trigger config:', updatedTrigger);
+
+    setRule(prev => ({
+      ...prev,
+      triggers: prev.triggers.map(trigger =>
+        trigger.id === selectedTrigger.id ? updatedTrigger : trigger
+      )
+    }));
+
+    setShowTriggerConfig(false);
+    setSelectedTrigger(null);
+  };
+
   // Save handler
   const handleSave = async () => {
     if (!rule.name.trim()) {
       toast({
-        title: '❌ Erro de validação',
-        description: 'O nome da regra é obrigatório',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Nome da regra é obrigatório",
+        variant: "destructive"
       });
       return;
     }
 
     if (rule.triggers.length === 0) {
       toast({
-        title: '❌ Erro de validação', 
-        description: 'Pelo menos um gatilho é obrigatório',
-        variant: 'destructive'
+        title: "Erro", 
+        description: "Pelo menos um gatilho é obrigatório",
+        variant: "destructive"
       });
       return;
     }
 
     if (rule.actions.length === 0) {
       toast({
-        title: '❌ Erro de validação',
-        description: 'Pelo menos uma ação é obrigatória',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Pelo menos uma ação é obrigatória", 
+        variant: "destructive"
       });
       return;
     }
 
-    try {
-      const ruleData = {
-        name: rule.name,
-        description: rule.description,
-        isEnabled: rule.enabled, // Use isEnabled instead of enabled for DTO
-        priority: rule.priority,
-        triggers: rule.triggers,
-        actions: rule.actions
-      };
-
-      console.log('🔧 [AutomationRuleBuilder] Saving rule data:', ruleData);
-
-      if (existingRule?.id) {
-        await saveMutation.mutateAsync({ 
-          ...ruleData, 
-          id: existingRule.id 
+    // Validate triggers have proper configuration
+    for (const trigger of rule.triggers) {
+      if (trigger.type === 'keyword' && (!trigger.config.keywords && !trigger.config.value)) {
+        toast({
+          title: "Erro",
+          description: "Palavras-chave são obrigatórias para gatilhos de palavra-chave",
+          variant: "destructive"
         });
-      } else {
-        await saveMutation.mutateAsync(ruleData);
+        return;
       }
+      if (trigger.type === 'channel' && (!trigger.config.channelType && !trigger.config.value)) {
+        toast({
+          title: "Erro",
+          description: "Tipo de canal é obrigatório para gatilhos de canal",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate actions have proper configuration
+    for (const action of rule.actions) {
+      if (action.type === 'auto_reply' && !action.config.message) {
+        toast({
+          title: "Erro",
+          description: "Mensagem é obrigatória para ações de resposta automática",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    try {
+      console.log('🔧 [AutomationRuleBuilder] Saving rule:', JSON.stringify(rule, null, 2));
+      await saveMutation.mutateAsync(rule);
+      toast({
+        title: "Sucesso",
+        description: rule.id ? "Regra atualizada com sucesso!" : "Regra criada com sucesso!",
+      });
+      onSave?.(rule);
+      onClose();
     } catch (error) {
       console.error('❌ [AutomationRuleBuilder] Error saving rule:', error);
       toast({
-        title: '❌ Erro ao salvar',
-        description: 'Não foi possível salvar a regra de automação',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Erro ao salvar regra",
+        variant: "destructive"
       });
     }
   };
@@ -730,7 +795,7 @@ export default function AutomationRuleBuilder({
                       <Card
                         key={index}
                         className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
-                        onClick={() => addTrigger(template)}
+                        onClick={() => handleAddTrigger(template)}
                         data-testid={`trigger-template-${template.type}`}
                       >
                         <CardContent className="p-3">
@@ -1093,8 +1158,9 @@ export default function AutomationRuleBuilder({
               <TriggerConfigForm
                 trigger={selectedTrigger}
                 onSave={(config) => {
-                  updateTriggerConfig(selectedTrigger.id, config);
-                  setShowTriggerConfig(false);
+                  // Update the selectedTrigger state directly before calling handleTriggerConfigSave
+                  setSelectedTrigger(prev => prev ? { ...prev, config } : null);
+                  handleTriggerConfigSave();
                 }}
                 onCancel={() => setShowTriggerConfig(false)}
               />
@@ -1150,16 +1216,20 @@ function TriggerConfigForm({
               <Input
                 id="keywords"
                 placeholder="ex: urgente, problema, ajuda"
-                value={config.keywords || ''}
-                onChange={(e) => setConfig({ ...config, keywords: e.target.value })}
+                value={config.keywords || config.value || ''}
+                onChange={(e) => setConfig({ 
+                  ...config, 
+                  keywords: e.target.value,
+                  value: e.target.value // Sync both fields for compatibility
+                })}
                 data-testid="keywords-input"
               />
             </div>
             <div>
               <Label htmlFor="matchType">Tipo de correspondência</Label>
               <Select 
-                value={config.matchType || 'contains'} 
-                onValueChange={(value) => setConfig({ ...config, matchType: value })}
+                value={config.operator || 'contains'} 
+                onValueChange={(value) => setConfig({ ...config, operator: value })}
               >
                 <SelectTrigger data-testid="match-type-select">
                   <SelectValue />
@@ -1179,8 +1249,12 @@ function TriggerConfigForm({
             <div>
               <Label htmlFor="channelType">Tipo de canal</Label>
               <Select 
-                value={config.channelType || ''} 
-                onValueChange={(value) => setConfig({ ...config, channelType: value })}
+                value={config.channelType || config.value || ''} 
+                onValueChange={(value) => setConfig({ 
+                  ...config, 
+                  channelType: value,
+                  value: value // Sync both fields for compatibility
+                })}
               >
                 <SelectTrigger data-testid="channel-type-select">
                   <SelectValue placeholder="Selecione o canal" />

@@ -57,22 +57,29 @@ export class UpdateAutomationRuleUseCase {
             caseSensitive: trigger.config?.caseSensitive || false
           };
           
-          // Handle different value types based on trigger type
-          if (trigger.type === 'channel' && trigger.config?.channelType) {
-            condition.value = trigger.config.channelType;
-            condition.channelType = trigger.config.channelType;
+          // Enhanced value handling based on trigger type
+          if (trigger.type === 'channel') {
+            // For channel triggers, prioritize channelType over value
+            const channelValue = trigger.config?.channelType || trigger.config?.value || '';
+            condition.value = channelValue;
+            condition.channelType = channelValue;
             condition.type = 'channel';
-          } else if (trigger.config?.value) {
-            condition.value = trigger.config.value;
-          } else if (trigger.config?.keywords) {
-            condition.value = trigger.config.keywords;
+          } else if (trigger.type === 'keyword') {
+            // For keyword triggers, prioritize keywords over value
+            const keywordValue = trigger.config?.keywords || trigger.config?.value || '';
+            condition.value = keywordValue;
+            condition.keywords = keywordValue; // Preserve keywords field
           } else {
-            condition.value = '';
+            // Fallback for other trigger types
+            condition.value = trigger.config?.value || trigger.config?.keywords || '';
           }
           
-          // Ensure channelType is preserved for channel triggers
+          // Preserve additional config fields
           if (trigger.config?.channelType) {
             condition.channelType = trigger.config.channelType;
+          }
+          if (trigger.config?.keywords) {
+            condition.keywords = trigger.config.keywords;
           }
           
           return condition;

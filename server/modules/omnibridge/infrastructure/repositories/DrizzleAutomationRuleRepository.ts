@@ -401,52 +401,47 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   }
 
   // Convert frontend trigger format to database storage format
-  private convertFrontendTriggerToStorage(trigger: any): any {
-    console.log(`🔧 [DrizzleAutomationRuleRepository] Converting frontend trigger:`, JSON.stringify(trigger, null, 2));
+  private convertFrontendTriggerToStorage(frontendTrigger: any): any {
+    console.log(`🔧 [DrizzleAutomationRuleRepository] Converting frontend trigger:`, frontendTrigger);
 
-    if (!trigger) {
-      return { type: 'message_received', conditions: [] };
+    // Map frontend trigger type to backend type
+    let backendType = 'message_received';
+    if (frontendTrigger.type === 'keyword') {
+      backendType = 'keyword_match';
+    } else if (frontendTrigger.type === 'channel') {
+      backendType = 'channel_specific';
+    } else if (frontendTrigger.type) {
+      backendType = frontendTrigger.type;
     }
 
-    // Handle different trigger types properly
-    let triggerType = trigger.type || 'message_received';
-    if (trigger.type === 'keyword') {
-      triggerType = 'keyword_match';
-    } else if (trigger.type === 'channel') {
-      triggerType = 'channel_specific';
-    }
-
-    const conditions = [];
-
-    if (trigger.config) {
-      const condition: any = {
-        id: trigger.id || `condition-${Date.now()}`,
-        type: trigger.type || 'keyword',
-        operator: trigger.config.operator || 'contains',
-        field: trigger.config.field || 'content',
-        caseSensitive: trigger.config.caseSensitive || false
-      };
-
-      // Handle different config value types
-      if (trigger.type === 'channel' && trigger.config.channelType) {
-        condition.value = trigger.config.channelType;
-        condition.channelType = trigger.config.channelType;
-        condition.type = 'channel';
-      } else if (trigger.config.value) {
-        condition.value = trigger.config.value;
-      } else if (trigger.config.keywords) {
-        condition.value = trigger.config.keywords;
-      } else {
-        condition.value = '';
-      }
-
-      conditions.push(condition);
-    }
-
-    return {
-      type: triggerType,
-      conditions: conditions
+    const condition: any = {
+      id: frontendTrigger.id || `condition-${Date.now()}`,
+      type: frontendTrigger.type || 'keyword',
+      operator: frontendTrigger.config?.operator || 'contains',
+      field: frontendTrigger.config?.field || 'content',
+      caseSensitive: frontendTrigger.config?.caseSensitive || false
     };
+
+    // Enhanced value handling based on trigger type
+    if (frontendTrigger.type === 'channel') {
+      const channelValue = frontendTrigger.config?.channelType || frontendTrigger.config?.value || '';
+      condition.value = channelValue;
+      condition.channelType = channelValue;
+    } else if (frontendTrigger.type === 'keyword') {
+      const keywordValue = frontendTrigger.config?.keywords || frontendTrigger.config?.value || '';
+      condition.value = keywordValue;
+      condition.keywords = keywordValue;
+    } else {
+      condition.value = frontendTrigger.config?.value || frontendTrigger.config?.keywords || '';
+    }
+
+    const storageFormat = {
+      type: backendType,
+      conditions: [condition]
+    };
+
+    console.log(`🔧 [DrizzleAutomationRuleRepository] Converted to storage format:`, storageFormat);
+    return storageFormat;
   }
 
   private getDisplayNameForTriggerType(type: string): string {
