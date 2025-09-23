@@ -100,7 +100,7 @@ export class ProcessMessageUseCase {
       console.log(`⚙️ [ProcessMessageUseCase] Delegating to AutomationEngine for tenant ${tenantId}`);
 
       // Ensure rules are loaded and synced
-      await automationEngine.syncRulesWithDatabase();
+      await automationEngine.loadRulesFromDatabase();
 
       // Processar mensagem através do engine de automação
       await automationEngine.processMessage(messageData);
