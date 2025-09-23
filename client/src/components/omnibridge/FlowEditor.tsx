@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequestModern } from '@/lib/queryClient';
 import { useTranslation } from 'react-i18next';
 import {
   Bot, MessageSquare, Plus, Save, Play, Trash2, Settings, Eye, Copy, Download, Upload,
@@ -301,9 +301,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Create bot mutation
   const createBotMutation = useMutation({
     mutationFn: async (botData: { name: string; description: string; isActive?: boolean }) => {
-      const response = await fetch('/api/omnibridge/chatbots', {
+      return apiRequestModern('/api/omnibridge/chatbots', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...botData,
           isActive: botData.isActive ?? true,
@@ -311,8 +310,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           metadata: {}
         })
       });
-      if (!response.ok) throw new Error('Failed to create chatbot');
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -338,12 +335,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const saveFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
       if (!selectedFlow?.id) throw new Error('No flow selected');
-      const response = await fetch(`/api/omnibridge/flows/${selectedFlow.id}`, {
+      return apiRequestModern(`/api/omnibridge/flows/${selectedFlow.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(flowData)
       });
-      return response.json();
     },
     onSuccess: () => {
       toast({
