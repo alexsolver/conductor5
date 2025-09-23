@@ -751,7 +751,6 @@ export default function SimplifiedInbox({
           </div>
         )}
       </div>
-      </div>
 
       {/* Reply Modal */}
       <Dialog open={showReplyModal} onOpenChange={setShowReplyModal}>
