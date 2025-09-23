@@ -1,9 +1,20 @@
 import { IActionExecutorPort, ActionExecutionContext, ActionExecutionResult } from '../../domain/ports/IActionExecutorPort';
 import { AutomationAction } from '../../domain/entities/AutomationRule';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
+import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
+import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
+import { TelegramService } from './TelegramService';
+import { SendGridService } from './SendGridService';
 
 export class ActionExecutor implements IActionExecutorPort {
-  constructor(private aiService?: IAIAnalysisPort) {}
+  private telegramService: TelegramService;
+  private sendGridService: SendGridService;
+
+  constructor(private aiService?: IAIAnalysisPort, private createTicketUseCase?: CreateTicketUseCase) {
+    console.log('✅ [ActionExecutor] Initialized with AI service and ticket use case');
+    this.telegramService = new TelegramService();
+    this.sendGridService = new SendGridService();
+  }
 
   async executeActions(actions: AutomationAction[], context: ActionExecutionContext): Promise<ActionExecutionResult[]> {
     const results: ActionExecutionResult[] = [];
@@ -125,32 +136,53 @@ export class ActionExecutor implements IActionExecutorPort {
         }
       };
 
-      // Fazer requisição para criar o ticket
-      const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId
-        },
-        body: JSON.stringify(ticketData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const ticketId = result.data?.number || result.data?.id || 'Unknown';
-        return {
-          success: true,
-          message: `Ticket created successfully: ${ticketId}`,
-          data: { ticketId, ticketData }
-        };
-      } else {
-        const errorText = await response.text();
+      if (!this.createTicketUseCase) {
+        console.error('❌ [ActionExecutor] CreateTicketUseCase not injected');
         return {
           success: false,
-          message: 'Failed to create ticket',
-          error: errorText
+          message: 'Ticket creation service not available',
+          error: 'CreateTicketUseCase not configured'
         };
       }
+
+      // Preparar DTO para criação do ticket
+      const createTicketDTO: CreateTicketDTO = {
+        subject,
+        description,
+        status: action.config?.status || 'new',
+        priority: priority as 'low' | 'medium' | 'high' | 'critical',
+        urgency: aiAnalysis?.urgency as 'low' | 'medium' | 'high' | 'critical' || 'medium',
+        impact: 'medium',
+        category: aiAnalysis?.category || action.config?.category || 'Atendimento ao Cliente',
+        subcategory: action.config?.subcategory || 'Automação',
+        assignedToId: action.config?.assignedToId || null,
+        customFields: {
+          automationRule: {
+            ruleId: context.ruleId,
+            ruleName: context.ruleName,
+            executedAt: new Date().toISOString(),
+            aiAnalysis: aiAnalysis
+          },
+          originalMessage: {
+            content: messageData.content,
+            sender: messageData.sender,
+            channel: messageData.channel,
+            timestamp: messageData.timestamp
+          }
+        },
+        createdById: '550e8400-e29b-41d4-a716-446655440001' // Sistema de automação
+      };
+
+      // Criar ticket usando o use case
+      const createdTicket = await this.createTicketUseCase.execute(createTicketDTO, tenantId);
+      
+      console.log(`✅ [ActionExecutor] Ticket created successfully: ${createdTicket.number}`);
+      
+      return {
+        success: true,
+        message: `Ticket criado com sucesso: ${createdTicket.number}`,
+        data: { ticketId: createdTicket.number, ticket: createdTicket }
+      };
     } catch (error) {
       return {
         success: false,

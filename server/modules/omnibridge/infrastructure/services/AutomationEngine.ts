@@ -3,6 +3,8 @@ import { IAIAnalysisPort, MessageAnalysis } from '../../domain/ports/IAIAnalysis
 import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
 import { AIAnalysisService } from './AIAnalysisService';
 import { ActionExecutor } from './ActionExecutor';
+import { DependencyContainer, TOKENS } from '../../../shared/infrastructure/DependencyContainer';
+import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 
 export interface AutomationMetrics {
   rulesExecuted: number;
@@ -661,8 +663,21 @@ export class GlobalAutomationManager {
 
   public getEngine(tenantId: string): AutomationEngine {
     if (!this.engines.has(tenantId)) {
-      const engine = new AutomationEngine(tenantId);
-      this.engines.set(tenantId, engine);
+      try {
+        // Resolver dependências do container
+        const container = DependencyContainer.getInstance();
+        const createTicketUseCase = container.resolve<CreateTicketUseCase>(TOKENS.CREATE_TICKET_USE_CASE);
+        const aiService = new AIAnalysisService();
+        const actionExecutor = new ActionExecutor(aiService, createTicketUseCase);
+        
+        console.log('✅ [GlobalAutomationManager] Creating engine with injected CreateTicketUseCase');
+        const engine = new AutomationEngine(tenantId, aiService, actionExecutor);
+        this.engines.set(tenantId, engine);
+      } catch (error) {
+        console.error('❌ [GlobalAutomationManager] Failed to resolve dependencies, creating default engine:', error);
+        const engine = new AutomationEngine(tenantId);
+        this.engines.set(tenantId, engine);
+      }
     }
     return this.engines.get(tenantId)!;
   }
