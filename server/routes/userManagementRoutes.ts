@@ -44,9 +44,51 @@ router.get(
         .where(eq(usersTable.tenantId, tenantId))
         .orderBy(usersTable.firstName, usersTable.lastName);
 
-      console.log(
-        `✅ [USER-LIST] Found ${users.length} users in public schema for tenant ${tenantId}`,
-      );
+      console.log(`✅ [USER-LIST] Found ${users.length} users in public schema for tenant ${tenantId}`);
+
+      // ✅ 1QA.MD: Get user groups for each user using tenant schema
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log(`🔍 [USER-GROUPS] Using schema: ${tenantSchema}`);
+
+      // Get user groups for all users
+      let userGroupsMap: Record<string, any[]> = {};
+      try {
+        const userGroupsQuery = sql`
+          SELECT 
+            ugm.user_id,
+            ug.id AS group_id,
+            ug.name AS group_name,
+            ug.description AS group_description,
+            ugm.role,
+            ugm.is_active,
+            ugm.created_at
+          FROM ${sql.raw(`"${tenantSchema}".user_group_memberships`)} ugm
+          INNER JOIN ${sql.raw(`"${tenantSchema}".user_groups`)} ug
+            ON ug.id = ugm.group_id
+          WHERE ugm.tenant_id = ${tenantId}::uuid
+            AND ug.is_active = true
+        `;
+
+        const userGroupsResult = await db.execute(userGroupsQuery);
+
+        // Organizar grupos por usuário
+        userGroupsResult.rows.forEach((row: any) => {
+          if (!userGroupsMap[row.user_id]) userGroupsMap[row.user_id] = [];
+          userGroupsMap[row.user_id].push({
+            id: row.group_id,
+            name: row.group_name,
+            description: row.group_description,
+            role: row.role,
+            isActive: row.is_active,
+            createdAt: row.created_at,
+          });
+        });
+
+        console.log(`✅ [USER-GROUPS] Found groups for ${Object.keys(userGroupsMap).length} users`);
+      } catch (groupError) {
+        console.error('⚠️ [USER-GROUPS] Error fetching user groups (continuing without groups):', groupError);
+        userGroupsMap = {};
+      }
 
       // Formatar dados para o frontend
       const formattedUsers = users.map((user) => ({
@@ -64,6 +106,7 @@ router.get(
         profileImageUrl: user.profileImageUrl,
         department: user.cargo || "",
         position: user.cargo || "",
+        groups: userGroupsMap[user.id] || [],
       }));
 
       res.json({ users: formattedUsers });
@@ -596,63 +639,68 @@ router.get("/groups", jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const schemaName = `tenant_${currentUserTenantId!.replace(/-/g, "_")}`;
+    const tenantSchema = `tenant_${currentUserTenantId!.replace(/-/g, '_')}`;
 
-    // 🔎 Verificar se o schema existe
-    const schemaExistsQuery = `
-        SELECT schema_name 
-        FROM information_schema.schemata 
-        WHERE schema_name = '${schemaName}'
-      `;
-    const schemaResult = await db.execute(schemaExistsQuery);
+    // ✅ 1QA.MD: Fetch groups using proper tenant schema with SQL
+    const groupsQuery = sql`
+      SELECT 
+        id,
+        name,
+        description,
+        is_active,
+        created_at,
+        updated_at
+      FROM ${sql.raw(`"${tenantSchema}".user_groups`)}
+      WHERE tenant_id = ${currentUserTenantId}::uuid
+      AND is_active = true
+      ORDER BY name
+    `;
 
-    if (schemaResult.rows.length === 0) {
-      console.log(`⚠️ [USER-GROUPS] Schema ${schemaName} doesn't exist`);
-      return res.status(404).json({
-        success: false,
-        error: "Tenant schema not found",
-      });
-    }
+    const result = await db.execute(groupsQuery);
+    const groups = result.rows || [];
 
-    // 🔎 Query única que traz grupos + membros
-    const groupsQuery = `
-        SELECT 
-          ug.id,
-          ug.name,
-          ug.description,
-          ug.is_active,
-          ug.created_at,
-          COALESCE(COUNT(ugm.id), 0) AS member_count,
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'membershipId', ugm.id,
-                'userId', ugm.user_id,
-                'role', ugm.role,
-                'addedAt', ugm.created_at
-              )
-            ) FILTER (WHERE ugm.id IS NOT NULL),
-            '[]'
-          ) AS memberships
-        FROM "${schemaName}".user_groups ug
-        LEFT JOIN "${schemaName}".user_group_memberships ugm 
-          ON ug.id = ugm.group_id AND ugm.is_active = true
-        WHERE ug.is_active = true AND ug.tenant_id = '${currentUserTenantId}'::uuid
-        GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
-        ORDER BY ug.name;
-      `;
+    // Adicionar contagem de membros e os próprios membros (se necessário)
+    const groupsWithMemberships = await Promise.all(groups.map(async (group) => {
+      try {
+        const membershipsQuery = sql`
+          SELECT 
+            ugm.id AS membership_id,
+            ugm.user_id,
+            ugm.role,
+            ugm.created_at AS added_at,
+            u.first_name,
+            u.last_name,
+            u.email,
+            u.cargo AS position
+          FROM ${sql.raw(`"${tenantSchema}".user_group_memberships`)} ugm
+          JOIN public.users u ON ugm.user_id = u.id
+          WHERE ugm.group_id = ${group.id}::uuid
+            AND ugm.is_active = true
+            AND u.is_active = true
+          ORDER BY ugm.created_at
+        `;
+        const membershipsResult = await db.execute(membershipsQuery);
+        const memberships = membershipsResult.rows || [];
 
-    const groupsResult = await db.execute(groupsQuery);
+        const formattedMemberships = memberships.map((member: any) => ({
+          membershipId: member.membership_id,
+          userId: member.user_id,
+          role: member.role || "member",
+          name: `${member.first_name || ""} ${member.last_name || ""}`.trim() || member.email,
+          email: member.email,
+          position: member.position || "",
+          addedAt: member.added_at,
+        }));
 
-    const groupsWithMemberships = groupsResult.rows.map((group: any) => ({
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      isActive: group.is_active,
-      createdAt: group.created_at,
-      memberCount: Number(group.member_count),
-      memberships: group.memberships,
-      tenantId: currentUserTenantId,
+        return {
+          ...group,
+          memberCount: formattedMemberships.length,
+          memberships: formattedMemberships,
+        };
+      } catch (membershipError) {
+        console.error(`⚠️ [USER-GROUPS] Error fetching memberships for group ${group.id}:`, membershipError);
+        return { ...group, memberCount: 0, memberships: [] };
+      }
     }));
 
     console.log(
@@ -821,7 +869,7 @@ router.put(
         `✏️ [USER-GROUPS] Updating group ${groupId} in schema: ${schemaName}`,
       );
 
-      // 🔎 Check if group exists - removendo tenant_id pois não existe na tabela
+      // 🔎 Check if group exists - removendo tenant_id pois usa schema per-tenant
       const groupQuery = sql`
         SELECT id
         FROM ${groupsTable}
@@ -837,7 +885,7 @@ router.put(
         });
       }
 
-      // 🔎 Check for name conflict - removendo tenant_id pois não existe na tabela
+      // 🔎 Check for name conflict - removendo tenant_id pois usa schema per-tenant
       const conflictQuery = sql`
         SELECT id
         FROM ${groupsTable}
@@ -1009,7 +1057,7 @@ router.get(
         `Fetching members for group ${groupId} in tenant ${tenantId}`,
       );
 
-      // Verificar se o grupo existe - removendo tenantId
+      // Verificar se o grupo existe - removendo tenantId pois usa schema per-tenant
       const groupExists = await db
         .select({ id: userGroups.id })
         .from(userGroups)

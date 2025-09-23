@@ -63,7 +63,7 @@ router.get(
         FROM ${sql.raw(`"${schemaName}".user_group_memberships`)} ugm
         INNER JOIN ${sql.raw(`"${schemaName}".user_groups`)} ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id::text = ${tenantId}
+        WHERE ugm.tenant_id = ${tenantId}::uuid
           AND ug.is_active = true
       `;
 
@@ -199,28 +199,45 @@ router.post(
       // Enviar email se solicitado
       if (sendEmail !== false) { // Default é true
         try {
+          console.log('🔍 [TEAM-INVITATION] Starting email sending process...');
+          console.log('🔍 [TEAM-INVITATION] Environment check - SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+          console.log('🔍 [TEAM-INVITATION] Environment check - SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL);
+          
           const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+          console.log('🔍 [TEAM-INVITATION] Invitation URL generated:', invitationUrl);
+          
+          const inviterName = authorizedReq.user!.firstName && authorizedReq.user!.lastName 
+            ? `${authorizedReq.user!.firstName} ${authorizedReq.user!.lastName}` 
+            : authorizedReq.user!.email;
+          
+          console.log('🔍 [TEAM-INVITATION] Inviter name:', inviterName);
+          console.log('🔍 [TEAM-INVITATION] Email parameters prepared, calling sendInvitationEmail...');
           
           const emailResult = await sendInvitationEmail({
             to: email,
             invitationUrl: invitationUrl,
-            inviterName: authorizedReq.user!.firstName && authorizedReq.user!.lastName 
-              ? `${authorizedReq.user!.firstName} ${authorizedReq.user!.lastName}` 
-              : authorizedReq.user!.email,
+            inviterName: inviterName,
             role: role || 'agent',
             notes: notes,
             expiresAt: expiresAt,
           });
 
+          console.log('🔍 [TEAM-INVITATION] SendGrid response:', emailResult);
+
           if (emailResult) {
             console.log('✅ [TEAM-INVITATION] Email sent successfully to:', email);
           } else {
-            console.log('⚠️ [TEAM-INVITATION] Email sending failed but continuing with invitation creation');
+            console.log('⚠️ [TEAM-INVITATION] Email sending failed - check SendGrid configuration');
+            console.log('⚠️ [TEAM-INVITATION] Continuing with invitation creation...');
           }
         } catch (emailError) {
           console.error('❌ [TEAM-INVITATION] Error sending email:', emailError);
+          console.error('❌ [TEAM-INVITATION] Error details:', emailError.message);
+          console.error('❌ [TEAM-INVITATION] Error stack:', emailError.stack);
           // Não falhar a criação do convite se o email falhar
         }
+      } else {
+        console.log('🔍 [TEAM-INVITATION] Email sending disabled by request');
       }
 
       res.status(201).json({
