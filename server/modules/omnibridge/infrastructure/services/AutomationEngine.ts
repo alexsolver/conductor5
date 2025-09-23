@@ -100,10 +100,10 @@ export class AutomationEngine {
 
             // Execute with detailed monitoring
             const executionStartTime = Date.now();
-            
+
             try {
               await rule.execute(messageData, aiAnalysis, this.actionExecutor);
-              
+
               const executionTime = Date.now() - executionStartTime;
               executedRules++;
               triggeredActions += rule.actions.length;
@@ -122,10 +122,10 @@ export class AutomationEngine {
             } catch (executionError) {
               const executionTime = Date.now() - executionStartTime;
               console.error(`❌ [AUTOMATION-ENGINE] Rule "${rule.name}" execution failed after ${executionTime}ms:`, executionError);
-              
+
               // Update rule execution stats with failure
               await this.updateRuleExecutionStats(rule.id, false, executionTime);
-              
+
               // Continue with other rules instead of stopping
               continue;
             }
@@ -291,33 +291,41 @@ export class AutomationEngine {
               type: savedRule.triggers[0]?.type || 'message_received',
               conditions: savedRule.triggers.map((t: any) => ({
                 id: t.id || `condition-${Date.now()}`,
-                type: t.type || 'keyword',
+                type: t.type || 'content',
                 operator: t.operator || 'contains',
-                value: t.value || '',
+                value: t.value || t.config?.keywords || t.config?.value || '',
                 field: t.field || 'content',
                 caseSensitive: t.caseSensitive || false,
                 aiAnalysisRequired: t.aiAnalysisRequired || false
               }))
             };
           } else {
-            // Default trigger
+            // Default fallback
             trigger = {
               type: 'message_received',
               conditions: []
             };
           }
 
-          const actions: AutomationAction[] = Array.isArray(savedRule.actions) ? savedRule.actions.map((action: any, index: number) => ({
-            id: action.id || `action-${index}`,
-            type: action.type || 'create_ticket',
-            target: action.target,
-            params: action.config || action.params || {},
-            priority: action.priority || 0,
-            aiEnabled: action.aiEnabled || false,
-            templateId: action.templateId
-          })) : [];
+          console.log(`🔧 [AUTOMATION-ENGINE] Converted trigger:`, JSON.stringify(trigger, null, 2));
 
-          // Criar regra em memória
+          // Convert actions
+          let actions: AutomationAction[] = [];
+          if (Array.isArray(savedRule.actions)) {
+            actions = savedRule.actions.map((action: any) => ({
+              id: action.id || `action-${Date.now()}`,
+              type: action.type || 'auto_reply',
+              target: action.target,
+              params: action.params || action.config || {},
+              aiEnabled: action.aiEnabled || false,
+              templateId: action.templateId,
+              priority: action.priority || 1
+            }));
+          }
+
+          console.log(`🔧 [AUTOMATION-ENGINE] Converted actions:`, JSON.stringify(actions, null, 2));
+
+          // Create AutomationRule entity
           const rule = new AutomationRule(
             savedRule.id,
             savedRule.tenantId,
@@ -325,25 +333,25 @@ export class AutomationEngine {
             savedRule.description || '',
             trigger,
             actions,
-            savedRule.enabled !== false, // Default to enabled
+            savedRule.enabled,
             savedRule.priority || 1,
             savedRule.aiEnabled || false,
             savedRule.aiPromptId,
             savedRule.executionCount || 0,
-          savedRule.successCount || 0,
-          savedRule.lastExecuted,
-          savedRule.createdAt,
-          savedRule.updatedAt
-        );
+            savedRule.successCount || 0,
+            savedRule.lastExecuted,
+            savedRule.createdAt,
+            savedRule.updatedAt
+          );
 
-        this.rules.set(rule.id, rule);
-        console.log(`✅ [AUTOMATION-ENGINE] Loaded rule from DB: ${rule.name} (${rule.id})`);
+          this.rules.set(rule.id, rule);
+          console.log(`✅ [AUTOMATION-ENGINE] Added rule to engine: ${rule.name} (${rule.id})`);
         } catch (error) {
-          console.error(`❌ [AUTOMATION-ENGINE] Error loading individual rule:`, error);
+          console.error(`❌ [AUTOMATION-ENGINE] Error loading rule ${savedRule.id}:`, error);
         }
       }
 
-      console.log(`✅ [AUTOMATION-ENGINE] Successfully loaded ${savedRules.length} rules from database`);
+      console.log(`📊 [AUTOMATION-ENGINE] Successfully loaded ${this.rules.size} rules into engine`);
     } catch (error) {
       console.error(`❌ [AUTOMATION-ENGINE] Error loading rules from database:`, error);
       // Criar regras padrão se não conseguir carregar do banco

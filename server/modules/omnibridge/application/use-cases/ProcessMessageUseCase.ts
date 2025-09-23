@@ -93,10 +93,14 @@ export class ProcessMessageUseCase {
       };
 
       // Executar processamento através do AutomationEngine
+      const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');
       const automationManager = GlobalAutomationManager.getInstance();
       const automationEngine = automationManager.getEngine(tenantId);
 
       console.log(`⚙️ [ProcessMessageUseCase] Delegating to AutomationEngine for tenant ${tenantId}`);
+
+      // Ensure rules are loaded and synced
+      await automationEngine.syncRulesWithDatabase();
 
       // Processar mensagem através do engine de automação
       await automationEngine.processMessage(messageData);
@@ -152,11 +156,13 @@ export class ProcessMessageUseCase {
         channel: messageData.channel || messageData.channelType
       });
 
-      // Initialize automation engine for tenant
-      const automationEngine = new AutomationEngine(tenantId);
+      // Initialize automation engine for tenant using GlobalAutomationManager
+      const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');
+      const automationManager = GlobalAutomationManager.getInstance();
+      const automationEngine = automationManager.getEngine(tenantId);
 
       // Wait for rules to be loaded from database
-      await automationEngine.loadRulesFromDatabase();
+      await automationEngine.syncRulesWithDatabase();
 
       console.log(`⚙️ [ProcessMessageUseCase] Processing direct message through AutomationEngine`);
 
