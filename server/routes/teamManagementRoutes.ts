@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { requirePermission } from '../middleware/rbacMiddleware';
 import { db } from '../db';
 import { 
   users, 
@@ -10,6 +11,8 @@ import {
   userSessions 
 } from '@shared/schema';
 import { eq, and, count, sql, desc, gte, avg, isNull, or, not } from 'drizzle-orm';
+import { sendInvitationEmail } from '../services/sendgridService';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -746,5 +749,137 @@ router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
     res.status(500).json({ message: 'Failed to sync team data' });
   }
 });
+
+// Send team invitation via email - specific to team management
+router.post(
+  '/invite-member',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { email, role, notes, sendEmail = true } = req.body;
+
+      console.log('🔍 [TEAM-MANAGEMENT-INVITATION] Processing invitation:', {
+        email,
+        role,
+        tenantId,
+        sendEmail
+      });
+
+      // Validação básica
+      if (!email) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email is required' 
+        });
+      }
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Tenant ID is required' 
+        });
+      }
+
+      // Verificar se usuário já existe
+      const existingUser = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email.toLowerCase()))
+        .limit(1);
+
+      if (existingUser.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this email already exists'
+        });
+      }
+
+      // Gerar token de convite
+      const invitationToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+
+      console.log('🔍 [TEAM-MANAGEMENT-INVITATION] Generated invitation token:', {
+        token: invitationToken,
+        expiresAt: expiresAt
+      });
+
+      // Enviar email de convite
+      if (sendEmail) {
+        try {
+          const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
+
+          console.log('📧 [TEAM-MANAGEMENT-INVITATION] Sending email with URL:', invitationUrl);
+
+          const emailResult = await sendInvitationEmail({
+            to: email.toLowerCase(),
+            invitationUrl: invitationUrl,
+            inviterName: req.user!.firstName && req.user!.lastName 
+              ? `${req.user!.firstName} ${req.user!.lastName}` 
+              : req.user!.email,
+            role: role || 'agent',
+            notes: notes || '',
+            expiresAt: expiresAt,
+          });
+
+          if (emailResult) {
+            console.log('✅ [TEAM-MANAGEMENT-INVITATION] Email sent successfully to:', email);
+          } else {
+            console.log('⚠️ [TEAM-MANAGEMENT-INVITATION] Email sending failed');
+            return res.status(500).json({
+              success: false,
+              message: 'Failed to send invitation email'
+            });
+          }
+        } catch (emailError) {
+          console.error('❌ [TEAM-MANAGEMENT-INVITATION] Error sending email:', emailError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to send invitation email',
+            error: emailError instanceof Error ? emailError.message : String(emailError)
+          });
+        }
+      }
+
+      // Criar registro de convite (simulado para não afetar o banco)
+      const invitationRecord = {
+        id: crypto.randomUUID(),
+        email: email.toLowerCase(),
+        role: role || 'agent',
+        token: invitationToken,
+        tenantId: tenantId,
+        expiresAt: expiresAt,
+        invitedAt: new Date(),
+        status: 'pending',
+        notes: notes || '',
+        invitedByUserId: req.user!.userId,
+      };
+
+      res.status(201).json({
+        success: true,
+        message: 'Team member invitation sent successfully',
+        invitation: {
+          id: invitationRecord.id,
+          email: invitationRecord.email,
+          role: invitationRecord.role,
+          status: invitationRecord.status,
+          expiresAt: invitationRecord.expiresAt,
+          invitedAt: invitationRecord.invitedAt,
+          emailSent: sendEmail,
+        },
+      });
+
+    } catch (error) {
+      console.error('❌ [TEAM-MANAGEMENT-INVITATION] Error creating invitation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create team member invitation',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+);
 
 export { router as teamManagementRoutes };

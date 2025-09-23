@@ -4660,6 +4660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Tenant required" });
         }
 
+        const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
 
@@ -4726,8 +4727,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tenantId = req.user?.tenantId;
 
         if (!tenantId) {
-          return res.status(401).json({ message: "Tenant required" });
+          returnres.status(401).json({ message: "Tenant required" });
         }
+
         const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
@@ -4934,6 +4936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Tenant required" });
         }
 
+        const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
 
@@ -5291,7 +5294,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           th.ip_address,
           th.user_agent,
           th.session_id,
-          th.description,
           th.metadata,
           th.created_at
         FROM "${schemaName}".ticket_history th
