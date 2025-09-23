@@ -1074,21 +1074,32 @@ export default function ChatbotVisualEditor() {
 
     // Create default config based on node type
     const getDefaultConfig = (type: string, nodeTypeName: string) => {
+      // Base trigger configuration that all nodes can have
+      const baseTriggerConfig = {
+        triggerEnabled: true,
+        triggerMessages: '',
+        caseSensitive: false,
+        exactMatch: false
+      };
+
       switch (type) {
         case 'trigger':
           return {
-            triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda',
-            caseSensitive: false,
-            exactMatch: false
+            ...baseTriggerConfig,
+            triggerMessages: 'olá\noi\nbom dia\nboa tarde\npreciso de ajuda'
           };
         case 'response':
           return {
+            ...baseTriggerConfig,
+            triggerMessages: 'informações\najuda\nsuporte\nfalar com atendente',
             responseMessage: 'Olá! Como posso ajudar você hoje?',
             quickReplies: 'Sim\nNão\nMais informações',
             delay: 1000
           };
         case 'condition':
           return {
+            ...baseTriggerConfig,
+            triggerMessages: 'verificar\nvalidar\nchecar\nconferir',
             conditionField: 'user_input',
             conditionOperator: 'contains',
             conditionValue: 'ajuda',
@@ -1097,12 +1108,16 @@ export default function ChatbotVisualEditor() {
           };
         case 'action':
           return {
+            ...baseTriggerConfig,
+            triggerMessages: 'executar\nprocessar\nrealizar\nfazer',
             actionType: 'send_message',
             messageText: 'Ação executada com sucesso!',
             variables: {}
           };
         case 'integration':
           return {
+            ...baseTriggerConfig,
+            triggerMessages: 'integração\napi\nwebhook\nconectar',
             apiUrl: 'https://api.exemplo.com/webhook',
             method: 'POST',
             headers: {},
@@ -1110,13 +1125,17 @@ export default function ChatbotVisualEditor() {
           };
         case 'ai':
           return {
+            ...baseTriggerConfig,
+            triggerMessages: 'pergunta\ndúvida\nconsulta\nperguntar',
             aiPrompt: 'Analise a mensagem do usuário e forneça uma resposta apropriada.',
             model: 'gpt-4',
             temperature: 0.7,
             maxTokens: 150
           };
         default:
-          return {};
+          return {
+            ...baseTriggerConfig
+          };
       }
     };
 
@@ -1940,10 +1959,69 @@ export default function ChatbotVisualEditor() {
               <TabsContent value="config" className="space-y-4">
                 {selectedNode && (
                   <div className="space-y-4">
-                    {/* Trigger Node Configurations */}
+                    {/* Common Trigger Configurations for ALL nodes */}
+                    <div className="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm text-gray-800">Configurações de Gatilho</h4>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="trigger-enabled"
+                            checked={nodeConfig.triggerEnabled !== false}
+                            onCheckedChange={(checked) => setNodeConfig({...nodeConfig, triggerEnabled: checked})}
+                            data-testid="trigger-enabled"
+                          />
+                          <Label htmlFor="trigger-enabled" className="text-sm text-gray-800">Ativar gatilhos</Label>
+                        </div>
+                      </div>
+                      
+                      {nodeConfig.triggerEnabled !== false && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-gray-800">Mensagens de Ativação</Label>
+                            <Textarea 
+                              placeholder={selectedNode.type === 'trigger' ? "olá\noi\nbom dia\nboa tarde\npreciso de ajuda" : 
+                                         selectedNode.type === 'response' ? "informações\najuda\nsuporte\nfalar com atendente" :
+                                         selectedNode.type === 'condition' ? "verificar\nvalidar\nchecar\nconferir" :
+                                         selectedNode.type === 'action' ? "executar\nprocessar\nrealizar\nfazer" :
+                                         selectedNode.type === 'integration' ? "integração\napi\nwebhook\nconectar" :
+                                         selectedNode.type === 'ai' ? "pergunta\ndúvida\nconsulta\nperguntar" :
+                                         "palavras que ativam este nó"}
+                              rows={3}
+                              value={nodeConfig.triggerMessages || ''}
+                              onChange={(e) => setNodeConfig({...nodeConfig, triggerMessages: e.target.value})}
+                              data-testid="common-trigger-messages"
+                              className="bg-white"
+                            />
+                            <p className="text-xs text-gray-600 mt-1">Uma mensagem por linha. Use quebras de linha para separar</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="common-case-sensitive"
+                                checked={nodeConfig.caseSensitive || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, caseSensitive: checked})}
+                                data-testid="common-case-sensitive"
+                              />
+                              <Label htmlFor="common-case-sensitive" className="text-sm text-gray-800">Sensível a maiúsculas</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch 
+                                id="common-exact-match"
+                                checked={nodeConfig.exactMatch || false}
+                                onCheckedChange={(checked) => setNodeConfig({...nodeConfig, exactMatch: checked})}
+                                data-testid="common-exact-match"
+                              />
+                              <Label htmlFor="common-exact-match" className="text-sm text-gray-800">Correspondência exata</Label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Trigger Node Specific Configurations */}
                     {selectedNode.type === 'trigger' && (
                       <div className="space-y-4">
-                        <h4 className="font-medium text-sm">Configurações de Gatilho</h4>
+                        <h4 className="font-medium text-sm">Configurações Específicas de Gatilho</h4>
                         
                         {nodeTypes.find(nt => nt.id.includes('trigger-message'))?.id === selectedNode.id && (
                           <div className="space-y-4">
