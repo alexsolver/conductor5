@@ -98,17 +98,36 @@ export class AutomationEngine {
           if (matches) {
             console.log(`✅ [AUTOMATION-ENGINE] Rule "${rule.name}" matched, executing actions...`);
 
-            await rule.execute(messageData, aiAnalysis, this.actionExecutor);
+            // Execute with detailed monitoring
+            const executionStartTime = Date.now();
+            
+            try {
+              await rule.execute(messageData, aiAnalysis, this.actionExecutor);
+              
+              const executionTime = Date.now() - executionStartTime;
+              executedRules++;
+              triggeredActions += rule.actions.length;
 
-            executedRules++;
-            triggeredActions += rule.actions.length;
+              // Update rule execution stats in database
+              await this.updateRuleExecutionStats(rule.id, true, executionTime);
 
-            console.log(`🎯 [AUTOMATION-ENGINE] Rule "${rule.name}" executed successfully`);
+              console.log(`🎯 [AUTOMATION-ENGINE] Rule "${rule.name}" executed successfully in ${executionTime}ms`);
+              console.log(`📊 [AUTOMATION-ENGINE] Actions executed: ${rule.actions.map(a => a.type).join(', ')}`);
 
-            // Se a regra tem prioridade alta, pode interromper outras regras
-            if (rule.priority >= 8) {
-              console.log(`🔝 [AUTOMATION-ENGINE] High priority rule executed, skipping remaining rules`);
-              break;
+              // Se a regra tem prioridade alta, pode interromper outras regras
+              if (rule.priority >= 8) {
+                console.log(`🔝 [AUTOMATION-ENGINE] High priority rule executed, skipping remaining rules`);
+                break;
+              }
+            } catch (executionError) {
+              const executionTime = Date.now() - executionStartTime;
+              console.error(`❌ [AUTOMATION-ENGINE] Rule "${rule.name}" execution failed after ${executionTime}ms:`, executionError);
+              
+              // Update rule execution stats with failure
+              await this.updateRuleExecutionStats(rule.id, false, executionTime);
+              
+              // Continue with other rules instead of stopping
+              continue;
             }
           } else {
             console.log(`⏭️ [AUTOMATION-ENGINE] Rule "${rule.name}" did not match`);
@@ -198,6 +217,38 @@ export class AutomationEngine {
 
   public getRule(ruleId: string): AutomationRule | undefined {
     return this.rules.get(ruleId);
+  }
+
+  /**
+   * Update rule execution statistics in database
+   */
+  private async updateRuleExecutionStats(ruleId: string, success: boolean, executionTime: number): Promise<void> {
+    try {
+      const { DrizzleAutomationRuleRepository } = await import('../repositories/DrizzleAutomationRuleRepository');
+      const repository = new DrizzleAutomationRuleRepository();
+
+      // Get current stats
+      const rule = await repository.findById(ruleId, this.tenantId);
+      if (!rule) {
+        console.warn(`⚠️ [AUTOMATION-ENGINE] Rule ${ruleId} not found for stats update`);
+        return;
+      }
+
+      const newExecutionCount = (rule.executionCount || 0) + 1;
+      const newSuccessCount = (rule.successCount || 0) + (success ? 1 : 0);
+
+      // Update statistics
+      await repository.updateExecutionStats(ruleId, this.tenantId, {
+        executionCount: newExecutionCount,
+        successCount: newSuccessCount,
+        lastExecuted: new Date()
+      });
+
+      console.log(`📊 [AUTOMATION-ENGINE] Updated stats for rule ${ruleId}: ${newSuccessCount}/${newExecutionCount} success rate`);
+    } catch (error) {
+      console.error(`❌ [AUTOMATION-ENGINE] Error updating rule stats:`, error);
+      // Don't throw - stats update failure shouldn't stop automation
+    }
   }
 
   public async loadRulesFromDatabase(): Promise<void> {

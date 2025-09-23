@@ -23,32 +23,32 @@ export class ActionExecutor implements IActionExecutorPort {
       switch (action.type) {
         case 'create_ticket':
           return await this.createTicketAction(action, context);
-        
+
         case 'send_auto_reply':
         case 'auto_reply':
           return await this.sendAutoReplyAction(action, context);
-          
+
         case 'ai_response':
           return await this.sendAIResponseAction(action, context);
-          
+
         case 'forward_message':
           return await this.forwardMessageAction(action, context);
-          
+
         case 'assign_user':
           return await this.assignUserAction(action, context);
-          
+
         case 'add_tag':
           return await this.addTagAction(action, context);
-          
+
         case 'escalate':
           return await this.escalateAction(action, context);
-          
+
         case 'webhook':
           return await this.webhookAction(action, context);
 
         case 'notify_team':
           return await this.notifyTeamAction(action, context);
-          
+
         default:
           return {
             success: false,
@@ -77,23 +77,23 @@ export class ActionExecutor implements IActionExecutorPort {
   private async createTicketAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
       console.log(`🎫 [ActionExecutor] Creating ticket from automation rule: ${context.ruleName}`);
-      
+
       const { messageData, aiAnalysis, tenantId } = context;
-      
+
       // Usar análise de IA se disponível para melhorar os dados do ticket
-      const subject = action.params?.subject || 
-                     aiAnalysis?.summary || 
-                     messageData.subject || 
+      const subject = action.params?.subject ||
+                     aiAnalysis?.summary ||
+                     messageData.subject ||
                      `Ticket automático - ${messageData.channel || 'Sistema'}`;
 
-      const description = action.params?.description || 
+      const description = action.params?.description ||
                          `${aiAnalysis?.summary || messageData.content || 'Conteúdo não disponível'}\n\n` +
                          `Categoria sugerida: ${aiAnalysis?.category || 'Geral'}\n` +
                          `Urgência detectada: ${aiAnalysis?.urgency || 'medium'}\n` +
                          `Sentimento: ${aiAnalysis?.sentiment || 'neutral'}\n` +
                          `Palavras-chave: ${aiAnalysis?.keywords?.join(', ') || 'Nenhuma'}`;
 
-      const priority = aiAnalysis?.urgency === 'critical' ? 'urgent' : 
+      const priority = aiAnalysis?.urgency === 'critical' ? 'urgent' :
                       aiAnalysis?.urgency === 'high' ? 'high' :
                       aiAnalysis?.urgency === 'low' ? 'low' : 'medium';
 
@@ -177,12 +177,23 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // TODO: Implementar integração real com canais de comunicação
       // Por enquanto, apenas simular o envio
+      const success = true; // Simula o sucesso do envio
 
-      return {
-        success: true,
-        message: 'Auto-reply sent successfully',
-        data: { responseText, recipient: context.messageData.sender }
-      };
+      if (success) {
+        return {
+          success: true,
+          message: 'Auto-reply sent successfully',
+          data: { responseText, recipient: context.messageData.sender }
+        };
+      } else {
+        await this.storeFailedMessage(responseText, context);
+        return {
+          success: false,
+          message: 'Failed to send auto-reply',
+          error: 'Simulated send failure',
+          data: { responseText, recipient: context.messageData.sender }
+        };
+      }
     } catch (error) {
       return {
         success: false,
@@ -207,10 +218,10 @@ export class ActionExecutor implements IActionExecutorPort {
       const responseText = await this.aiService.generateResponse(
         context.aiAnalysis,
         context.messageData.content || context.messageData.body,
-        { 
-          channel: context.messageData.channel, 
+        {
+          channel: context.messageData.channel,
           sender: context.messageData.sender,
-          responseType: action.params?.responseType 
+          responseType: action.params?.responseType
         }
       );
 
@@ -235,7 +246,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async forwardMessageAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`⏩ [ActionExecutor] Forwarding message to ${action.target}`);
-    
+
     // TODO: Implementar lógica de encaminhamento real
     return {
       success: true,
@@ -246,7 +257,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async assignUserAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`👤 [ActionExecutor] Assigning to user ${action.target}`);
-    
+
     // TODO: Implementar lógica de atribuição real
     return {
       success: true,
@@ -257,7 +268,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async addTagAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🏷️ [ActionExecutor] Adding tag ${action.params?.tag}`);
-    
+
     // TODO: Implementar lógica de adição de tag real
     return {
       success: true,
@@ -268,7 +279,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async escalateAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`⬆️ [ActionExecutor] Escalating message based on ${context.aiAnalysis ? 'AI analysis' : 'rule conditions'}`);
-    
+
     // TODO: Implementar lógica de escalação real
     return {
       success: true,
@@ -300,7 +311,7 @@ export class ActionExecutor implements IActionExecutorPort {
       };
 
       console.log(`🔗 [ActionExecutor] Sending webhook to ${webhookUrl}`);
-      
+
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -333,40 +344,76 @@ export class ActionExecutor implements IActionExecutorPort {
   }
 
   private async notifyTeamAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
-    console.log(`🔔 [ActionExecutor] Notifying team about ${context.aiAnalysis?.intent || 'message'} with urgency: ${context.aiAnalysis?.urgency || 'medium'}`);
-    
-    // TODO: Implementar notificação real da equipe (email, Slack, SMS)
+    console.log(`📢 [ActionExecutor] Notifying team about ${context.aiAnalysis ? 'AI-detected' : 'rule-based'} event`);
+
+    // TODO: Implementar lógica de notificação real
     return {
       success: true,
-      message: 'Team notification sent successfully',
-      data: { 
-        urgency: context.aiAnalysis?.urgency || 'medium',
-        channels: action.params?.channels || ['email']
-      }
+      message: 'Team notified successfully',
+      data: { notificationType: 'automation_trigger' }
     };
   }
 
+  /**
+   * Process template variables in message content
+   */
   private processTemplate(template: string, context: ActionExecutionContext): string {
-    let processedMessage = template;
+    try {
+      let processed = template;
 
-    // Substituir variáveis do contexto
-    const variables = {
-      sender: context.messageData.sender || 'Cliente',
-      subject: context.messageData.subject || 'Sua mensagem',
-      channel: context.messageData.channel || 'nosso sistema',
-      category: context.aiAnalysis?.category || 'suporte',
-      urgency: context.aiAnalysis?.urgency || 'normal',
-      date: new Date().toLocaleDateString('pt-BR'),
-      time: new Date().toLocaleTimeString('pt-BR'),
-      timestamp: new Date().toISOString()
-    };
+      // Replace common template variables
+      const variables = {
+        '{{sender}}': context.messageData.sender || 'Usuário',
+        '{{channel}}': context.messageData.channel || context.messageData.channelType || 'Sistema',
+        '{{content}}': context.messageData.content || context.messageData.body || '',
+        '{{rule_name}}': context.ruleName || 'Regra de Automação',
+        '{{timestamp}}': new Date().toLocaleString('pt-BR'),
+        '{{tenant_id}}': context.tenantId
+      };
 
-    // Substituir todas as variáveis
-    Object.entries(variables).forEach(([key, value]) => {
-      const placeholder = new RegExp(`\\{${key}\\}`, 'g');
-      processedMessage = processedMessage.replace(placeholder, String(value));
-    });
+      // AI analysis variables if available
+      if (context.aiAnalysis) {
+        variables['{{ai_intent}}'] = context.aiAnalysis.intent || '';
+        variables['{{ai_sentiment}}'] = context.aiAnalysis.sentiment || '';
+        variables['{{ai_urgency}}'] = context.aiAnalysis.urgency || '';
+        variables['{{ai_summary}}'] = context.aiAnalysis.summary || '';
+      }
 
-    return processedMessage;
+      // Replace all variables
+      Object.entries(variables).forEach(([key, value]) => {
+        processed = processed.replace(new RegExp(key.replace(/[{}]/g, '\\$&'), 'g'), String(value));
+      });
+
+      return processed;
+    } catch (error) {
+      console.error(`❌ [ActionExecutor] Template processing error:`, error);
+      return template; // Return original template if processing fails
+    }
+  }
+
+  /**
+   * Store failed message for manual retry
+   */
+  private async storeFailedMessage(content: string, context: ActionExecutionContext): Promise<void> {
+    try {
+      console.log(`💾 [ActionExecutor] Storing failed auto-reply for manual retry`);
+
+      // TODO: Implement database storage for failed messages
+      // For now, just log the information
+      const failedMessage = {
+        content,
+        recipient: context.messageData.sender,
+        channel: context.messageData.channel || context.messageData.channelType,
+        tenantId: context.tenantId,
+        ruleId: context.ruleId,
+        ruleName: context.ruleName,
+        failedAt: new Date().toISOString(),
+        retryCount: 0
+      };
+
+      console.log(`📝 [ActionExecutor] Failed message stored:`, failedMessage);
+    } catch (error) {
+      console.error(`❌ [ActionExecutor] Error storing failed message:`, error);
+    }
   }
 }
