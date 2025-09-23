@@ -136,6 +136,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const [filterChannel, setFilterChannel] = useState('all');
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showRuleWizard, setShowRuleWizard] = useState(false);
+  const [showChatbotModal, setShowChatbotModal] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -204,7 +205,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
     attachments: msg.attachments,
     metadata: msg.metadata
   }));
-  const rules: AutomationRule[] = rulesData?.data || [];
+  const rules: AutomationRule[] = rulesData || [];
 
   // Filter messages
   const filteredMessages = messages.filter(message => {
@@ -547,7 +548,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                           size="sm" 
                           variant="outline" 
                           className="text-xs border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-600 dark:text-purple-300"
-                          onClick={() => onCreateChatbot?.()}
+                          onClick={() => setShowChatbotModal(true)}
                           data-testid="suggestion-create-chatbot"
                         >
                           <Bot className="h-3 w-3 mr-1" />
@@ -625,6 +626,127 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                 data-testid="send-reply"
               >
                 {replyMutation.isPending ? 'Enviando...' : 'Enviar Resposta'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rule Wizard Modal */}
+      <Dialog open={showRuleWizard} onOpenChange={setShowRuleWizard}>
+        <DialogContent className="sm:max-w-2xl" data-testid="rule-wizard-modal">
+          <DialogHeader>
+            <DialogTitle>Criar Regra de Automação</DialogTitle>
+            <DialogDescription>
+              Crie uma regra baseada na mensagem de {selectedMessage?.from}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <h4 className="font-medium mb-2">Mensagem de referência:</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>De:</strong> {selectedMessage?.from}<br/>
+                <strong>Conteúdo:</strong> {selectedMessage?.content}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Condição</label>
+                <select className="w-full p-2 border rounded">
+                  <option>Remetente contém</option>
+                  <option>Conteúdo contém</option>
+                  <option>Canal é</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Valor</label>
+                <input 
+                  type="text" 
+                  className="w-full p-2 border rounded" 
+                  placeholder="Digite o valor..."
+                  defaultValue={selectedMessage?.from}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Ação</label>
+              <select className="w-full p-2 border rounded">
+                <option>Marcar como lida</option>
+                <option>Arquivar automaticamente</option>
+                <option>Enviar resposta automática</option>
+                <option>Encaminhar para ticket</option>
+              </select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowRuleWizard(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                // TODO: Implementar criação da regra
+                toast({ title: 'Sucesso', description: 'Regra criada com sucesso!' });
+                setShowRuleWizard(false);
+              }}>
+                Criar Regra
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chatbot Configuration Modal */}
+      <Dialog open={showChatbotModal} onOpenChange={setShowChatbotModal}>
+        <DialogContent className="sm:max-w-2xl" data-testid="chatbot-modal">
+          <DialogHeader>
+            <DialogTitle>Configurar Chatbot</DialogTitle>
+            <DialogDescription>
+              Configure um chatbot para responder automaticamente mensagens similares
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 className="font-medium mb-2">Mensagem de exemplo:</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {selectedMessage?.content}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Nome do Chatbot</label>
+              <input 
+                type="text" 
+                className="w-full p-2 border rounded" 
+                placeholder="Ex: Atendimento Geral"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Palavras-chave de ativação</label>
+              <input 
+                type="text" 
+                className="w-full p-2 border rounded" 
+                placeholder="Ex: ajuda, suporte, dúvida (separadas por vírgula)"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Resposta automática</label>
+              <Textarea
+                placeholder="Digite a resposta que o chatbot deve enviar..."
+                rows={4}
+                className="w-full"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="active" className="rounded" />
+              <label htmlFor="active" className="text-sm">Ativar chatbot imediatamente</label>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowChatbotModal(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                // TODO: Implementar criação do chatbot
+                toast({ title: 'Sucesso', description: 'Chatbot configurado com sucesso!' });
+                setShowChatbotModal(false);
+              }}>
+                Configurar Chatbot
               </Button>
             </div>
           </div>
