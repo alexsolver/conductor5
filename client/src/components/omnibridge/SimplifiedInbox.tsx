@@ -208,7 +208,7 @@ export default function SimplifiedInbox({
   });
 
   // Map API response to Message interface
-  const messages: Message[] = (messagesData?.messages || []).map((msg: any) => ({
+  const messageList: Message[] = (messagesData?.messages || []).map((msg: any) => ({
     id: msg.id,
     channelId: msg.channelId,
     channelType: msg.channelType,
@@ -226,7 +226,7 @@ export default function SimplifiedInbox({
   const rules: AutomationRule[] = rulesData || [];
 
   // Filter messages
-  const filteredMessages = messages.filter(message => {
+  const filteredMessages = messageList.filter(message => {
     const matchesSearch = searchTerm === '' || 
       (message.content && message.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
       message.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -721,7 +721,7 @@ export default function SimplifiedInbox({
                     Salvar
                   </Button>
                   <div className="text-sm text-gray-600">
-                    {messages.length} mensagens
+                    {messageList.length} mensagens
                   </div>
                 </div>
               </div>
@@ -732,7 +732,7 @@ export default function SimplifiedInbox({
                   <div className="text-center">
                     <MessageCircle className="h-8 w-8 mx-auto mb-2 text-blue-500" />
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {messages.length}
+                      {messageList.length}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Total de mensagens</p>
                   </div>
