@@ -639,39 +639,6 @@ export default function AutomationRuleBuilder({
     }));
   };
 
-  const handleSaveTriggerConfig = () => {
-    if (!selectedTrigger) return;
-
-    console.log('🔧 [AutomationRuleBuilder] Saving trigger config:', selectedTrigger);
-
-    // Ensure keyword value is properly saved for keyword triggers
-    const updatedTrigger = { ...selectedTrigger };
-    if (selectedTrigger.type === 'keyword') {
-      // Make sure both keywords and value fields are synchronized
-      if (selectedTrigger.config?.keywords && !selectedTrigger.config?.value) {
-        updatedTrigger.config = {
-          ...selectedTrigger.config,
-          value: selectedTrigger.config.keywords
-        };
-      } else if (selectedTrigger.config?.value && !selectedTrigger.config?.keywords) {
-        updatedTrigger.config = {
-          ...selectedTrigger.config,
-          keywords: selectedTrigger.config.value
-        };
-      }
-    }
-
-    setRule(prev => ({
-      ...prev,
-      triggers: prev.triggers.map(trigger => 
-        trigger.id === selectedTrigger.id ? updatedTrigger : trigger
-      )
-    }));
-
-    setShowTriggerConfig(false);
-    setSelectedTrigger(null);
-  };
-
   // Save handler
   const handleSave = async () => {
     if (!rule.name.trim()) {
@@ -1159,7 +1126,15 @@ export default function AutomationRuleBuilder({
                 onSave={(config) => {
                   // Update the selectedTrigger state directly before calling handleSaveTriggerConfig
                   setSelectedTrigger(prev => prev ? { ...prev, config } : null);
-                  handleSaveTriggerConfig();
+                  // The actual update to the rule's triggers array happens in handleSaveTriggerConfig
+                  // Since we removed that function, we need to update the rule here.
+                  setRule(prev => ({
+                    ...prev,
+                    triggers: prev.triggers.map(trigger => 
+                      trigger.id === selectedTrigger.id ? { ...trigger, config } : trigger
+                    )
+                  }));
+                  setShowTriggerConfig(false);
                 }}
                 onCancel={() => setShowTriggerConfig(false)}
               />
