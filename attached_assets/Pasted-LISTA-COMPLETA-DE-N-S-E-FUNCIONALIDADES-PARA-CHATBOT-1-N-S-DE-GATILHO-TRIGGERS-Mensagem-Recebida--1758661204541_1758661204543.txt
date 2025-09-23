@@ -1,0 +1,102 @@
+LISTA COMPLETA DE NÓS E FUNCIONALIDADES PARA CHATBOT
+1. NÓS DE GATILHO (TRIGGERS)
+Mensagem Recebida - Detecta quando uma nova mensagem chega
+Palavra-chave - Ativado por palavras ou frases específicas
+Intenção IA - Usa IA para detectar intenção do usuário
+Webhook - Ativado por eventos externos via webhook
+Agendamento - Ativado por data/horário específico
+Canal Específico - Ativado apenas em determinados canais
+Evento de Sistema - Ativado por eventos internos do sistema
+Padrão de Remetente - Baseado em características do usuário
+Prioridade - Baseado na prioridade da mensagem
+Localização - Baseado na localização geográfica
+2. NÓS DE CONDIÇÃO (CONDITIONS)
+Condição de Texto - Verifica conteúdo da mensagem
+Condição de Variável - Compara valores de variáveis
+Condição de Usuário - Verifica dados/perfil do usuário
+Condição de Horário - Verifica horário comercial/data
+Condição de Canal - Verifica canal de origem
+Condição de Contexto - Verifica histórico da conversa
+Condição de Sentimento - Analisa tom/humor da mensagem
+Condição de Idioma - Detecta idioma da mensagem
+Condição de Anexo - Verifica presença de anexos
+Condição de Geolocalização - Baseada em localização
+3. NÓS DE AÇÃO (ACTIONS)
+Enviar Mensagem - Envia resposta em texto
+Enviar Imagem/GIF - Envia conteúdo visual
+Enviar Áudio - Envia mensagem de voz
+Enviar Vídeo - Envia arquivo de vídeo
+Enviar Documento - Envia arquivos/documentos
+Definir Variável - Armazena informações da conversa
+Chamada API - Integra com sistemas externos
+Marcar Usuário - Adiciona tags/categorias ao usuário
+Criar Ticket - Abre chamado no sistema
+Notificar Equipe - Alerta equipe de atendimento
+Agendar Ação - Programa ação futura
+Atualizar Banco - Modifica dados no sistema
+4. NÓS DE RESPOSTA INTERATIVA (RESPONSE TYPES)
+Resposta Simples - Texto básico
+Respostas Rápidas - Botões de opção
+Menu Interativo - Lista de opções selecionáveis
+Carrossel - Cards deslizáveis com informações
+Formulário - Coleta dados estruturados
+Lista Dinâmica - Lista baseada em dados do sistema
+Enquete - Coleta feedback/opinião
+Pergunta Aberta - Captura texto livre
+Seletor de Data - Interface de calendário
+Upload de Arquivo - Permite anexar documentos
+5. NÓS DE INTEGRAÇÃO (INTEGRATIONS)
+CRM - Integração com sistema de clientes
+ERP - Conexão com sistema empresarial
+Base de Conhecimento - Busca em artigos/FAQs
+Calendário - Agendamento de compromissos
+Pagamento - Processamento de transações
+Email Marketing - Envio de campanhas
+Analytics - Coleta de métricas
+Banco de Dados - Consulta/atualização de dados
+API Terceiros - Conexão com serviços externos
+Webhook Saída - Notifica sistemas externos
+6. NÓS DE INTELIGÊNCIA ARTIFICIAL (AI PROCESSING)
+Análise de Sentimento - Detecta humor/emoção
+Processamento de Linguagem - Entende intenções
+Tradução - Converte entre idiomas
+Recomendações - Sugere produtos/serviços
+Classificação - Categoriza automaticamente
+Extração de Entidades - Identifica dados específicos
+Geração de Texto - Cria respostas personalizadas
+Análise Preditiva - Prevê comportamentos
+OCR - Extrai texto de imagens
+Reconhecimento de Voz - Processa áudio
+7. NÓS DE CONTROLE DE FLUXO (FLOW CONTROL)
+Aguardar - Pausa no fluxo por tempo determinado
+Loop - Repetição de ações
+Ramificação - Divisão de fluxo condicional
+Transferir para Humano - Escalação para atendente
+Fim da Conversa - Encerra o fluxo
+Voltar ao Menu - Retorna ao início
+Salvar Estado - Armazena progresso da conversa
+Carregar Contexto - Recupera histórico
+Switch/Case - Múltiplas condições
+Contador - Controla tentativas/iterações
+8. NÓS DE VALIDAÇÃO (VALIDATION)
+Validação de Email - Verifica formato de email
+Validação de Telefone - Verifica número telefônico
+Validação de CPF/CNPJ - Valida documentos brasileiros
+Validação de Data - Verifica formato de data
+Validação Numérica - Confirma números
+Validação de CEP - Verifica código postal
+Validação Personalizada - Regras específicas
+Verificação de Duplicatas - Evita registros repetidos
+Validação de Formato - Verifica padrões específicos
+Sanitização de Dados - Limpa/formata entradas
+9. FUNCIONALIDADES AVANÇADAS
+9.1 Gestão de Contexto
+Memória de conversa persistente
+Variáveis de sessão e globais
+Histórico de interações
+Perfil dinâmico do usuário
+9.2 Multicanal
+WhatsApp, Telegram, Email, SMS
+Chat web incorporado
+Integração com redes sociais
+Unificação de conversas

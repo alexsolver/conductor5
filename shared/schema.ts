@@ -63,6 +63,9 @@ export {
 // Interactive Map Module Schema - Clean Architecture
 export * from "./schema-interactive-map";
 
+// Chatbot Engine Module Schema - Complete chatbot system
+export * from "./schema-chatbot";
+
 // SaaS Admin Module Schema - Clean Architecture
 export * from "./schema-saas-admin";
 
