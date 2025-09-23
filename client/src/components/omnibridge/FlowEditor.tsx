@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequestModern } from '@/lib/queryClient';
 import { useTranslation } from 'react-i18next';
 import {
   Bot, MessageSquare, Plus, Save, Play, Trash2, Settings, Eye, Copy, Download, Upload,
@@ -251,11 +251,11 @@ interface ChatbotBot {
 }
 
 interface FlowEditorProps {
-  chatbotId?: string;
-  onSave?: (flow: ChatbotFlow) => void;
+  botId?: string;
+  onClose?: () => void;
 }
 
-export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) {
+export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -277,40 +277,75 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
   const [connecting, setConnecting] = useState(false);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
+  const [showCreateBot, setShowCreateBot] = useState(false);
+  const [botName, setBotName] = useState('');
+  const [botDescription, setBotDescription] = useState('');
 
-  // Load bot data
+  // Load bot data or bot list
   const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
-    queryKey: ['/api/omnibridge/chatbots', chatbotId],
-    enabled: !!chatbotId
+    queryKey: ['/api/omnibridge/chatbots', botId],
+    enabled: !!botId
+  });
+
+  const { data: botList, isLoading: loadingBotList } = useQuery<{data: ChatbotBot[]}>({
+    queryKey: ['/api/omnibridge/chatbots'],
+    enabled: !botId
   });
 
   // Load flows for bot
   const { data: flows, isLoading: loadingFlows } = useQuery<{data: ChatbotFlow[]}>({
-    queryKey: ['/api/omnibridge/chatbots', chatbotId, 'flows'],
-    enabled: !!chatbotId
+    queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
+    enabled: !!botId
+  });
+
+  // Create bot mutation
+  const createBotMutation = useMutation({
+    mutationFn: async (botData: { name: string; description: string; isActive?: boolean }) => {
+      return apiRequestModern('/api/omnibridge/chatbots', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...botData,
+          isActive: botData.isActive ?? true,
+          configuration: {},
+          metadata: {}
+        })
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Chatbot Created',
+        description: `Chatbot "${data.data.name}" has been created successfully`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots'] });
+      setSelectedBot(data.data);
+      setShowCreateBot(false);
+      setBotName('');
+      setBotDescription('');
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create chatbot. Please try again.',
+        variant: 'destructive'
+      });
+    }
   });
 
   // Save flow mutation
   const saveFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
       if (!selectedFlow?.id) throw new Error('No flow selected');
-      const response = await fetch(`/api/omnibridge/flows/${selectedFlow.id}`, {
+      return apiRequestModern(`/api/omnibridge/flows/${selectedFlow.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(flowData)
       });
-      const result = await response.json();
-      if (onSave) {
-        onSave(result.data);
-      }
-      return result;
     },
     onSuccess: () => {
       toast({
         title: 'Flow Saved',
         description: 'Flow has been saved successfully'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', chatbotId, 'flows'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
     }
   });
 
@@ -319,25 +354,6 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
     if (bot?.data && flows?.data?.length && flows.data.length > 0) {
       setSelectedBot(bot.data);
       setSelectedFlow(flows.data[0]);
-      setNodes(flows.data[0].nodes || []);
-      setEdges(flows.data[0].edges || []);
-    } else if (bot?.data && !flows?.data) {
-      // If no flows exist, create a default one
-      setSelectedBot(bot.data);
-      const defaultFlow: ChatbotFlow = {
-        id: `flow_${Date.now()}`,
-        botId: bot.data.id,
-        name: 'Main Flow',
-        isActive: true,
-        isMain: true,
-        version: 1,
-        metadata: {},
-        nodes: [],
-        edges: []
-      };
-      setSelectedFlow(defaultFlow);
-      setNodes([]);
-      setEdges([]);
     }
   }, [bot, flows]);
 
@@ -406,28 +422,107 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
     setShowNodeConfig(false);
   };
 
+  const handleCreateBot = () => {
+    if (!botName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Bot name is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    createBotMutation.mutate({
+      name: botName.trim(),
+      description: botDescription.trim() || 'Created via Flow Editor',
+      isActive: true
+    });
+  };
+
   const handleSaveFlow = () => {
     if (!selectedFlow) return;
 
-    const flowDataToSave: ChatbotFlow = {
+    const flowData = {
       ...selectedFlow,
-      nodes: nodes,
-      edges: edges,
       metadata: {
         ...selectedFlow.metadata,
-        nodeCount: nodes.length,
-        edgeCount: edges.length,
+        nodes: nodes.length,
+        edges: edges.length,
         lastModified: new Date().toISOString()
       }
     };
 
-    saveFlowMutation.mutate(flowDataToSave);
+    saveFlowMutation.mutate(flowData);
   };
 
-  if (loadingBot || loadingFlows) {
+  if (loadingBot || loadingFlows || loadingBotList) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show bot selection if no botId provided
+  if (!botId && !selectedBot) {
+    return (
+      <div className="h-screen flex flex-col bg-gray-50">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Bot className="h-6 w-6 text-blue-600" />
+            <h1 className="text-xl font-semibold text-gray-900">Chatbot Flow Editor</h1>
+          </div>
+          <Button onClick={() => setShowCreateBot(true)} data-testid="button-new-chatbot">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Chatbot
+          </Button>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Selecionar Chatbot</CardTitle>
+              <CardDescription>
+                Escolha um chatbot existente ou crie um novo para começar a editar os flows
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {botList?.data?.length && botList.data.length > 0 ? (
+                <div className="space-y-2">
+                  {botList.data.map((bot) => (
+                    <Card 
+                      key={bot.id} 
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => setSelectedBot(bot)}
+                      data-testid={`bot-card-${bot.id}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{bot.name}</h4>
+                            <p className="text-sm text-gray-500">{bot.description}</p>
+                          </div>
+                          <Badge variant={bot.isActive ? 'default' : 'secondary'}>
+                            {bot.isActive ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-500 mb-4">Nenhum chatbot encontrado</p>
+                  <Button onClick={() => setShowCreateBot(true)} data-testid="button-create-first-bot">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeiro Chatbot
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -448,6 +543,16 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
           </div>
         </div>
         <div className="flex items-center space-x-3">
+          {!botId && (
+            <Button 
+              variant="outline"
+              onClick={() => setShowCreateBot(true)}
+              data-testid="button-new-chatbot"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Chatbot
+            </Button>
+          )}
           <Button 
             onClick={handleSaveFlow}
             disabled={!selectedFlow || saveFlowMutation.isPending}
@@ -495,7 +600,7 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
             <div className="p-4 space-y-6">
               {Object.entries(NODE_CATEGORIES).map(([categoryKey, category]) => {
                 if (selectedCategory !== 'all' && selectedCategory !== categoryKey) return null;
-
+                
                 const filteredNodes = getFilteredNodes(categoryKey as keyof typeof NODE_CATEGORIES);
                 if (filteredNodes.length === 0) return null;
 
@@ -506,7 +611,7 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
                       <h3 className="font-medium text-gray-900">{category.name}</h3>
                       <Badge variant="secondary">{filteredNodes.length}</Badge>
                     </div>
-
+                    
                     <div className="grid grid-cols-1 gap-2">
                       {filteredNodes.map(node => (
                         <Card 
@@ -629,7 +734,7 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
               Configure the properties and behavior for this {selectedNode?.category} node.
             </DialogDescription>
           </DialogHeader>
-
+          
           <div className="space-y-4">
             <div>
               <Label htmlFor="node-name">Node Name</Label>
@@ -700,13 +805,63 @@ export default function FlowEditor({ chatbotId, onSave }: FlowEditorProps = {}) 
             )}
 
             {/* Add more node type configurations as needed */}
-
+            
             <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
                 Cancel
               </Button>
               <Button onClick={saveNodeConfig} data-testid="button-save-config">
                 Save Configuration
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Chatbot Modal */}
+      <Dialog open={showCreateBot} onOpenChange={setShowCreateBot}>
+        <DialogContent className="max-w-md" data-testid="create-bot-modal">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Chatbot</DialogTitle>
+            <DialogDescription>
+              Configure as informações básicas do seu novo chatbot
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bot-name">Nome do Chatbot *</Label>
+              <Input
+                id="bot-name"
+                placeholder="Ex: Atendimento Comercial"
+                value={botName}
+                onChange={(e) => setBotName(e.target.value)}
+                data-testid="input-bot-name"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="bot-description">Descrição</Label>
+              <Textarea
+                id="bot-description"
+                placeholder="Descreva o propósito e funcionalidades do chatbot..."
+                value={botDescription}
+                onChange={(e) => setBotDescription(e.target.value)}
+                rows={3}
+                data-testid="textarea-bot-description"
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setShowCreateBot(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleCreateBot}
+                disabled={!botName.trim() || createBotMutation.isPending}
+                data-testid="button-create-chatbot"
+              >
+                {createBotMutation.isPending ? 'Criando...' : 'Criar Chatbot'}
               </Button>
             </div>
           </div>

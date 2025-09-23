@@ -38,6 +38,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Legacy function for backward compatibility
 export const apiRequest = async (
   method: string,
   url: string,
@@ -109,6 +110,60 @@ export const apiRequest = async (
   console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
 
   return fetch(url, config);
+};
+
+// Modern API request function that matches TanStack mutation usage patterns
+export const apiRequestModern = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<any> => {
+  console.log(`🌐 [API-REQUEST] ${options.method || 'GET'} ${url}`);
+
+  // 🔧 Get tenant ID from queryClient cache or local storage
+  let tenantId = '';
+  try {
+    // Try to get tenant ID from cached user data
+    const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
+    if (cachedUser?.tenantId) {
+      tenantId = cachedUser.tenantId;
+    } else {
+      // Fallback to localStorage (for backward compatibility)
+      tenantId = localStorage.getItem('tenantId') || '';
+    }
+  } catch (e) {
+    // Fallback to localStorage if queryClient is not available
+    tenantId = localStorage.getItem('tenantId') || '';
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers as Record<string, string>,
+  };
+
+  // 🔧 Include tenant ID header if available
+  if (tenantId) {
+    headers['x-tenant-id'] = tenantId;
+    console.log(`🔧 [API-REQUEST] Including tenant ID header: ${tenantId}`);
+  } else {
+    console.warn('⚠️ [API-REQUEST] No tenant ID available for header');
+  }
+
+  const config: RequestInit = {
+    headers,
+    credentials: 'include', // ✅ Ensure cookies are included for authentication
+    ...options,
+  };
+
+  console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
+
+  const response = await fetch(url, config);
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`HTTP ${response.status}: ${error}`);
+  }
+  
+  return response.json();
 };
 
 type UnauthorizedBehavior = "returnNull" | "throwError";
