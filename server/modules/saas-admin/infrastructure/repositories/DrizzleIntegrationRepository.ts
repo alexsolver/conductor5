@@ -421,24 +421,96 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
     return this.create(integration);
   }
 
-  async getOpenWeatherConfig(): Promise<Integration | null> {
-    return this.findById('openweather');
+  async getOpenWeatherConfig(): Promise<IntegrationConfig | null> {
+    try {
+      console.log('[INTEGRATION-REPO] Getting OpenWeather configuration');
+      const pool = await this.getPool();
+      const result = await pool.query(`
+        SELECT config FROM "public"."system_integrations" 
+        WHERE integration_id = 'openweather'
+      `);
+
+      if (result.rows[0]?.config) {
+        console.log('[INTEGRATION-REPO] OpenWeather config found');
+        return result.rows[0].config;
+      }
+
+      console.log('[INTEGRATION-REPO] No OpenWeather config found');
+      return null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error getting OpenWeather config:', error);
+      throw new Error('Failed to get OpenWeather configuration');
+    }
+  }
+
+  async getSendGridConfig(): Promise<IntegrationConfig | null> {
+    try {
+      console.log('[INTEGRATION-REPO] Getting SendGrid configuration');
+      const pool = await this.getPool();
+      const result = await pool.query(`
+        SELECT config FROM "public"."system_integrations" 
+        WHERE integration_id = 'sendgrid'
+      `);
+
+      if (result.rows[0]?.config) {
+        console.log('[INTEGRATION-REPO] SendGrid config found');
+        return result.rows[0].config;
+      }
+
+      console.log('[INTEGRATION-REPO] No SendGrid config found');
+      return null;
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error getting SendGrid config:', error);
+      throw new Error('Failed to get SendGrid configuration');
+    }
   }
 
   async updateOpenWeatherApiKey(apiKey: string): Promise<Integration> {
     try {
+      console.log('[INTEGRATION-REPO] Updating OpenWeather API key');
+
       const pool = await this.getPool();
+
+      // Create table if not exists
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "public"."system_integrations" (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          integration_id VARCHAR(255) NOT NULL UNIQUE,
+          name VARCHAR(255) NOT NULL,
+          provider VARCHAR(255) NOT NULL,
+          config JSONB,
+          status VARCHAR(50) DEFAULT 'disconnected',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      const config = {
+        apiKey,
+        baseUrl: 'https://api.openweathermap.org/data/2.5',
+        enabled: true,
+        maxRequests: 1000,
+        rateLimit: 60,
+        timeout: 5000,
+        retryAttempts: 3,
+        lastTested: new Date()
+      };
+
+      const status = apiKey && apiKey.length >= 30 ? 'connected' : 'disconnected';
+
       const result = await pool.query(`
         INSERT INTO "public"."system_integrations" 
         (integration_id, name, provider, config, status, updated_at)
-        VALUES ('openweather', 'OpenWeather', 'OpenWeather', $1, 'connected', NOW())
+        VALUES ('openweather', 'OpenWeather API', 'OpenWeather', $1, $2, NOW())
         ON CONFLICT (integration_id) 
         DO UPDATE SET 
           config = $1,
-          status = 'connected',
+          status = $2,
           updated_at = NOW()
         RETURNING *
-      `, [JSON.stringify({ apiKey })]);
+      `, [JSON.stringify(config), status]);
+
+      console.log('[INTEGRATION-REPO] OpenWeather API key updated successfully');
 
       return {
         id: result.rows[0].integration_id,
@@ -446,13 +518,77 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         provider: result.rows[0].provider,
         description: 'Weather data integration',
         status: result.rows[0].status,
-        config: result.rows[0].config || {},
+        config: result.rows[0].config,
         createdAt: new Date(result.rows[0].created_at),
         updatedAt: new Date(result.rows[0].updated_at)
       };
     } catch (error) {
       console.error('[INTEGRATION-REPO] Error updating OpenWeather API key:', error);
       throw new Error('Failed to update OpenWeather API key');
+    }
+  }
+
+  async updateSendGridApiKey(apiKey: string, fromEmail?: string): Promise<Integration> {
+    try {
+      console.log('[INTEGRATION-REPO] Updating SendGrid API key');
+
+      const pool = await this.getPool();
+
+      // Create table if not exists
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "public"."system_integrations" (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          integration_id VARCHAR(255) NOT NULL UNIQUE,
+          name VARCHAR(255) NOT NULL,
+          provider VARCHAR(255) NOT NULL,
+          config JSONB,
+          status VARCHAR(50) DEFAULT 'disconnected',
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      const config = {
+        apiKey,
+        fromEmail: fromEmail || 'noreply@conductor.lansolver.com',
+        baseUrl: 'https://api.sendgrid.com/v3',
+        enabled: true,
+        maxRequests: 100,
+        rateLimit: 100,
+        timeout: 10000,
+        retryAttempts: 3,
+        lastTested: new Date()
+      };
+
+      const status = apiKey && apiKey.startsWith('SG.') && apiKey.length >= 60 ? 'connected' : 'disconnected';
+
+      const result = await pool.query(`
+        INSERT INTO "public"."system_integrations" 
+        (integration_id, name, provider, config, status, updated_at)
+        VALUES ('sendgrid', 'SendGrid Email API', 'SendGrid', $1, $2, NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET 
+          config = $1,
+          status = $2,
+          updated_at = NOW()
+        RETURNING *
+      `, [JSON.stringify(config), status]);
+
+      console.log('[INTEGRATION-REPO] SendGrid API key updated successfully');
+
+      return {
+        id: result.rows[0].integration_id,
+        name: result.rows[0].name,
+        provider: result.rows[0].provider,
+        description: 'Email delivery service integration',
+        status: result.rows[0].status,
+        config: result.rows[0].config,
+        createdAt: new Date(result.rows[0].created_at),
+        updatedAt: new Date(result.rows[0].updated_at)
+      };
+    } catch (error) {
+      console.error('[INTEGRATION-REPO] Error updating SendGrid API key:', error);
+      throw new Error('Failed to update SendGrid API key');
     }
   }
 

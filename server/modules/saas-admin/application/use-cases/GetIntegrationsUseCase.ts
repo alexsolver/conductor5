@@ -120,4 +120,34 @@ export class GetIntegrationsUseCase {
       throw new Error('Failed to get OpenWeather integration');
     }
   }
+
+  async executeGetSendGrid(): Promise<{ success: boolean; data?: any; message: string }> {
+    try {
+      console.log('[GET-INTEGRATIONS-USE-CASE] Getting SendGrid integration');
+
+      const integrations = await this.integrationRepository.findAll();
+      const sendGridIntegration = integrations.find(integration => integration.id === 'sendgrid');
+
+      if (!sendGridIntegration) {
+        return {
+          success: false,
+          message: 'SendGrid integration not found'
+        };
+      }
+
+      console.log('[GET-INTEGRATIONS-USE-CASE] SendGrid integration found');
+
+      return {
+        success: true,
+        message: 'SendGrid integration retrieved successfully',
+        data: sendGridIntegration
+      };
+    } catch (error) {
+      console.error('[GET-INTEGRATIONS-USE-CASE] Error getting SendGrid integration:', error);
+      return {
+        success: false,
+        message: 'Failed to get SendGrid integration'
+      };
+    }
+  }
 }

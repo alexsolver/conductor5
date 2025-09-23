@@ -418,29 +418,54 @@ router.get('/integrations/openweather', async (req: AuthorizedRequest, res) => {
 });
 
 /**
- * PUT /api/saas-admin/integrations/openweather/api-key
- * Atualizar chave da API OpenWeather
+ * PUT /api/saas-admin/integrations/sendgrid/api-key
+ * Configurar API key do SendGrid
  */
-router.put('/integrations/openweather/api-key', 
-  async (req: AuthorizedRequest, res) => {
-    try {
-      const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
-      const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
-      const { IntegrationController } = await import('./application/controllers/IntegrationController');
-      const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+router.put('/integrations/sendgrid/api-key', async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { UpdateSendGridApiKeyUseCase } = await import('./application/use-cases/UpdateSendGridApiKeyUseCase');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
 
-      const integrationRepository = new DrizzleIntegrationRepository();
-      const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
-      const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
-      const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const updateSendGridApiKeyUseCase = new UpdateSendGridApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase, updateSendGridApiKeyUseCase);
 
-      await controller.updateOpenWeatherApiKey(req, res);
-    } catch (error) {
-      console.error('Error updating OpenWeather API key:', error);
-      res.status(500).json({ success: false, message: 'Failed to update OpenWeather API key' });
-    }
+    await controller.updateSendGridApiKey(req, res);
+  } catch (error) {
+    console.error('Error updating SendGrid API key:', error);
+    res.status(500).json({ success: false, message: 'Failed to update SendGrid API key' });
   }
-);
+});
+
+/**
+ * PUT /api/saas-admin/integrations/openweather/api-key
+ * Configurar API key do OpenWeather
+ */
+router.put('/integrations/openweather/api-key', async (req: AuthorizedRequest, res) => {
+  try {
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
+    const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
+    const { UpdateSendGridApiKeyUseCase } = await import('./application/use-cases/UpdateSendGridApiKeyUseCase');
+    const { IntegrationController } = await import('./application/controllers/IntegrationController');
+
+    const integrationRepository = new DrizzleIntegrationRepository();
+    const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
+    const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
+    const updateSendGridApiKeyUseCase = new UpdateSendGridApiKeyUseCase(integrationRepository);
+    const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase, updateSendGridApiKeyUseCase);
+
+    await controller.updateOpenWeatherApiKey(req, res);
+  } catch (error) {
+    console.error('Error updating OpenWeather API key:', error);
+    res.status(500).json({ success: false, message: 'Failed to update OpenWeather API key' });
+  }
+});
 
   // POST /api/saas-admin/integrations/openweather/test
   router.post('/integrations/openweather/test', 
@@ -450,12 +475,12 @@ router.put('/integrations/openweather/api-key',
         const { GetIntegrationsUseCase } = await import('./application/use-cases/GetIntegrationsUseCase');
         const { IntegrationController } = await import('./application/controllers/IntegrationController');
         const { UpdateOpenWeatherApiKeyUseCase } = await import('./application/use-cases/UpdateOpenWeatherApiKeyUseCase');
-  
+
         const integrationRepository = new DrizzleIntegrationRepository();
         const getIntegrationsUseCase = new GetIntegrationsUseCase(integrationRepository);
         const updateOpenWeatherApiKeyUseCase = new UpdateOpenWeatherApiKeyUseCase(integrationRepository);
         const controller = new IntegrationController(getIntegrationsUseCase, updateOpenWeatherApiKeyUseCase);
-  
+
         await controller.testOpenWeatherConnection(req, res);
       } catch (error) {
         console.error('Error testing OpenWeather connection:', error);

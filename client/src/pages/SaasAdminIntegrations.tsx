@@ -100,6 +100,12 @@ export default function SaasAdminIntegrations() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Query específica para SendGrid
+  const { data: sendGridData, isLoading: isSendGridLoading, refetch: refetchSendGrid } = useQuery({
+    queryKey: ['/api/saas-admin/integrations/sendgrid'],
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Form para configurar integração
   const configForm = useForm({
     resolver: zodResolver(integrationConfigSchema),
@@ -147,6 +153,15 @@ export default function SaasAdminIntegrations() {
         });
       }
 
+      // Rota específica para SendGrid API key
+      if (integrationId === 'sendgrid') {
+        const url = `/api/saas-admin/integrations/sendgrid/api-key`;
+        return apiRequest('PUT', url, {
+          apiKey: sanitizedConfig.apiKey,
+          enabled: sanitizedConfig.enabled,
+        });
+      }
+
       const url = `/api/saas-admin/integrations/${integrationId}/config`;
       return apiRequest('PUT', url, sanitizedConfig);
     },
@@ -156,11 +171,13 @@ export default function SaasAdminIntegrations() {
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/sendgrid'] });
       // Aguardar um tempo para que as queries sejam recarregadas
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations'] });
         queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
         queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
+        queryClient.refetchQueries({ queryKey: ['/api/saas-admin/integrations/sendgrid'] });
       }, 500);
       setIsConfigDialogOpen(false);
       configForm.reset();
@@ -221,6 +238,7 @@ export default function SaasAdminIntegrations() {
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openweather'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/openai'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/sendgrid'] });
 
       // Check both data.success and success fields
       const isSuccess = data?.success === true || data?.success === 'true';
@@ -357,22 +375,165 @@ export default function SaasAdminIntegrations() {
     }
   });
 
+  // Mutation específica para testar SendGrid
+  const testSendGridMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🧪 [SAAS-ADMIN-TEST-SG] Testando integração SendGrid');
+      const url = `/api/saas-admin/integrations/sendgrid/test`;
+      const response = await apiRequest('POST', url, {});
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('🧪 [SAAS-ADMIN-TEST-SG] Parsed response data:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('✅ [SAAS-ADMIN-TEST-SG] Teste SendGrid concluído:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saas-admin/integrations/sendgrid'] });
+
+      if (data?.success) {
+        toast({
+          title: "Teste SendGrid bem-sucedido",
+          description: data.message || `Integração SendGrid funcionando corretamente.`,
+        });
+      } else {
+        console.error('❌ [SAAS-ADMIN-TEST-SG] Test failed with data:', data);
+        toast({
+          title: "Teste SendGrid falhou", 
+          description: data.error || data.message || "Erro na integração SendGrid",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('❌ [SAAS-ADMIN-TEST-SG] Erro no teste SendGrid:', error);
+      let errorMessage = "Erro ao testar integração SendGrid";
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: "Erro no teste SendGrid",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Use data from API when available, adding icons to each integration
   const apiIntegrations = integrationsData?.integrations || integrationsData?.data?.integrations || [];
 
   let integrations: Integration[];
 
-  // Se há dados da API, use-os com ícones
-  if (apiIntegrations.length > 0) {
-    const baseIntegrations: Integration[] = apiIntegrations.map((integration: any) => ({
-      ...integration,
-      icon: integration.id === 'openai' ? Brain : 
-            integration.id === 'deepseek' ? Bot : 
-            integration.id === 'google-ai' ? Zap : 
-            integration.id === 'openweather' ? CloudRain : Brain
-    }));
+  // If there are saved configs, use them to populate integrations
+  const savedConfigs = integrationsData?.savedConfigs;
 
-    // Always include OpenWeather card even if not in API response
+  // If there are API data and saved configs, use them
+  if (apiIntegrations.length > 0 && savedConfigs) {
+    const baseIntegrations: Integration[] = apiIntegrations.map(baseIntegration => {
+      const savedConfig = savedConfigs.rows.find(row => row.integration_id === baseIntegration.id);
+
+      console.log(`[INTEGRATION-REPO] Processing ${baseIntegration.id}:`, {
+        hasSavedConfig: !!savedConfig,
+        savedConfigData: savedConfig?.config,
+        hasApiKey: savedConfig?.config?.apiKey && savedConfig.config.apiKey.length > 0
+      });
+
+      if (savedConfig) {
+        let hasApiKey = false;
+
+        // Different validation for different providers
+        if (baseIntegration.id === 'openweather') {
+          hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length >= 30;
+        } else if (baseIntegration.id === 'sendgrid') {
+          hasApiKey = savedConfig.config?.apiKey && 
+                    savedConfig.config.apiKey.startsWith('SG.') && 
+                    savedConfig.config.apiKey.length >= 60;
+        } else {
+          hasApiKey = savedConfig.config?.apiKey && savedConfig.config.apiKey.length > 0;
+        }
+
+        const integration = {
+          ...baseIntegration,
+          status: hasApiKey ? 'connected' : 'disconnected',
+          config: savedConfig.config || {},
+          updatedAt: new Date(savedConfig.updated_at),
+          // ✅ Adicionar propriedades que o frontend espera
+          apiKeyConfigured: hasApiKey,
+          hasApiKey: () => hasApiKey,
+          isActive: () => hasApiKey,
+          isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
+          isSendGridIntegration: () => baseIntegration.id === 'sendgrid',
+          canMakeRequest: () => hasApiKey,
+          getLastTestedAt: () => savedConfig.config?.lastTested ? new Date(savedConfig.config.lastTested) : null,
+          getApiKeyMasked: () => savedConfig.config?.apiKey ? `${savedConfig.config.apiKey.substring(0, 8)}...` : null
+        };
+
+        // Override status and apiKeyConfigured for OpenAI based on its specific query
+        if (baseIntegration.id === 'openai') {
+          const openAIStatus = openAIData?.status || 'disconnected';
+          const openAIConfigured = !!openAIData?.apiKeyConfigured;
+          integration.status = openAIStatus;
+          integration.apiKeyConfigured = openAIConfigured;
+        }
+        // Override status and apiKeyConfigured for OpenWeather based on its specific query
+        else if (baseIntegration.id === 'openweather') {
+          const openWeatherStatus = openWeatherData?.status || openWeatherData?.data?.status || 'disconnected';
+          const openWeatherConfigured = !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey);
+          integration.status = openWeatherStatus;
+          integration.apiKeyConfigured = openWeatherConfigured;
+          integration.config = openWeatherData?.config || openWeatherData?.data?.config || {};
+        }
+        // Override status and apiKeyConfigured for SendGrid based on its specific query
+        else if (baseIntegration.id === 'sendgrid') {
+          const sendGridStatus = sendGridData?.status || 'disconnected';
+          const sendGridConfigured = !!sendGridData?.apiKeyConfigured;
+          integration.status = sendGridStatus;
+          integration.apiKeyConfigured = sendGridConfigured;
+          integration.config = sendGridData?.config || {};
+        }
+        
+        return integration;
+      } else {
+        // If no saved config, create a default integration object
+        const integration = {
+          ...baseIntegration,
+          // ✅ Propriedades padrão para integrações não configuradas
+          apiKeyConfigured: false,
+          hasApiKey: () => false,
+          isActive: () => false,
+          isOpenWeatherIntegration: () => baseIntegration.id === 'openweather',
+          isSendGridIntegration: () => baseIntegration.id === 'sendgrid',
+          canMakeRequest: () => false,
+          getLastTestedAt: () => null,
+          getApiKeyMasked: () => null
+        };
+
+        // Set default status and config for specific integrations if not found in savedConfigs
+        if (baseIntegration.id === 'openai') {
+          integration.status = openAIData?.status || 'disconnected';
+          integration.apiKeyConfigured = !!openAIData?.apiKeyConfigured;
+          integration.config = openAIData?.config || {};
+        } else if (baseIntegration.id === 'openweather') {
+          integration.status = openWeatherData?.status || openWeatherData?.data?.status || 'disconnected';
+          integration.apiKeyConfigured = !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey);
+          integration.config = openWeatherData?.config || openWeatherData?.data?.config || {};
+        } else if (baseIntegration.id === 'sendgrid') {
+          integration.status = sendGridData?.status || 'disconnected';
+          integration.apiKeyConfigured = !!sendGridData?.apiKeyConfigured;
+          integration.config = sendGridData?.config || {};
+        }
+
+        return integration;
+      }
+    });
+
+    // Always include OpenWeather card if not in API response
     const openWeatherExists = baseIntegrations.some(i => i.id === 'openweather');
     if (!openWeatherExists) {
       baseIntegrations.push({
@@ -385,7 +546,14 @@ export default function SaasAdminIntegrations() {
         apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
         config: openWeatherData?.config || openWeatherData?.data?.config || {},
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        hasApiKey: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+        isActive: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+        isOpenWeatherIntegration: () => true,
+        isSendGridIntegration: () => false,
+        canMakeRequest: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+        getLastTestedAt: () => null,
+        getApiKeyMasked: () => null
       });
     }
 
@@ -402,13 +570,44 @@ export default function SaasAdminIntegrations() {
         apiKeyConfigured: !!openAIData?.apiKeyConfigured,
         config: openAIData?.config,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        hasApiKey: () => !!openAIData?.apiKeyConfigured,
+        isActive: () => !!openAIData?.apiKeyConfigured,
+        isOpenWeatherIntegration: () => false,
+        isSendGridIntegration: () => false,
+        canMakeRequest: () => !!openAIData?.apiKeyConfigured,
+        getLastTestedAt: () => null,
+        getApiKeyMasked: () => null
+      });
+    }
+
+    // Include SendGrid card if not already present
+    const sendGridExists = baseIntegrations.some(i => i.id === 'sendgrid');
+    if (!sendGridExists) {
+      baseIntegrations.push({
+        id: 'sendgrid',
+        name: 'SendGrid',
+        provider: 'SendGrid',
+        description: 'Serviço de envio de e-mails transacionais e de marketing',
+        icon: Plug, // Placeholder icon, consider a specific SendGrid icon if available
+        status: sendGridData?.status || 'disconnected',
+        apiKeyConfigured: !!sendGridData?.apiKeyConfigured,
+        config: sendGridData?.config || {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        hasApiKey: () => !!sendGridData?.apiKeyConfigured,
+        isActive: () => !!sendGridData?.apiKeyConfigured,
+        isOpenWeatherIntegration: () => false,
+        isSendGridIntegration: () => true,
+        canMakeRequest: () => !!sendGridData?.apiKeyConfigured,
+        getLastTestedAt: () => null,
+        getApiKeyMasked: () => null
       });
     }
 
     integrations = baseIntegrations;
   } else {
-    // Fallback integrations if no API data
+    // Fallback integrations if no API data or saved configs
     integrations = [
     {
       id: 'openai',
@@ -420,7 +619,14 @@ export default function SaasAdminIntegrations() {
       apiKeyConfigured: !!openAIData?.apiKeyConfigured,
       config: openAIData?.config,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      hasApiKey: () => !!openAIData?.apiKeyConfigured,
+      isActive: () => !!openAIData?.apiKeyConfigured,
+      isOpenWeatherIntegration: () => false,
+      isSendGridIntegration: () => false,
+      canMakeRequest: () => !!openAIData?.apiKeyConfigured,
+      getLastTestedAt: () => null,
+      getApiKeyMasked: () => null
     },
     {
       id: 'deepseek',
@@ -432,7 +638,14 @@ export default function SaasAdminIntegrations() {
       apiKeyConfigured: false,
       config: {},
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      hasApiKey: () => false,
+      isActive: () => false,
+      isOpenWeatherIntegration: () => false,
+      isSendGridIntegration: () => false,
+      canMakeRequest: () => false,
+      getLastTestedAt: () => null,
+      getApiKeyMasked: () => null
     },
     {
       id: 'google-ai',
@@ -444,7 +657,14 @@ export default function SaasAdminIntegrations() {
       apiKeyConfigured: false,
       config: {},
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      hasApiKey: () => false,
+      isActive: () => false,
+      isOpenWeatherIntegration: () => false,
+      isSendGridIntegration: () => false,
+      canMakeRequest: () => false,
+      getLastTestedAt: () => null,
+      getApiKeyMasked: () => null
     },
     {
       id: 'openweather',
@@ -456,7 +676,33 @@ export default function SaasAdminIntegrations() {
       apiKeyConfigured: !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
       config: openWeatherData?.config || openWeatherData?.data?.config || {},
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      hasApiKey: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+      isActive: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+      isOpenWeatherIntegration: () => true,
+      isSendGridIntegration: () => false,
+      canMakeRequest: () => !!(openWeatherData?.config?.apiKey || openWeatherData?.data?.config?.apiKey),
+      getLastTestedAt: () => null,
+      getApiKeyMasked: () => null
+    },
+    {
+      id: 'sendgrid',
+      name: 'SendGrid',
+      provider: 'SendGrid',
+      description: 'Serviço de envio de e-mails transacionais e de marketing',
+      icon: Plug, // Placeholder icon
+      status: sendGridData?.status || 'disconnected',
+      apiKeyConfigured: !!sendGridData?.apiKeyConfigured,
+      config: sendGridData?.config || {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      hasApiKey: () => !!sendGridData?.apiKeyConfigured,
+      isActive: () => !!sendGridData?.apiKeyConfigured,
+      isOpenWeatherIntegration: () => false,
+      isSendGridIntegration: () => true,
+      canMakeRequest: () => !!sendGridData?.apiKeyConfigured,
+      getLastTestedAt: () => null,
+      getApiKeyMasked: () => null
     }
     ];
   }
@@ -561,6 +807,44 @@ export default function SaasAdminIntegrations() {
           enabled: true
         });
       }
+    } else if (integration.id === 'sendgrid') {
+      try {
+        console.log('🔧 [CONFIGURE-SG] Fetching latest SendGrid config...');
+        await refetchSendGrid();
+
+        const latestConfig = sendGridData?.data?.config || sendGridData?.config;
+        console.log('🔧 [CONFIGURE-SG] Latest config:', latestConfig);
+
+        if (latestConfig && latestConfig.apiKey) {
+          console.log('📋 [CONFIGURE-SG] Loading saved SendGrid configuration');
+          configForm.reset({
+            apiKey: latestConfig.apiKey || "",
+            enabled: latestConfig.enabled !== false,
+            // SendGrid doesn't use baseUrl, maxTokens, or temperature in the same way
+            baseUrl: "", 
+            maxTokens: 4000,
+            temperature: 0.7,
+          });
+        } else {
+          console.log('📋 [CONFIGURE-SG] No saved config, using defaults');
+          configForm.reset({
+            apiKey: "",
+            enabled: true,
+            baseUrl: "",
+            maxTokens: 4000,
+            temperature: 0.7,
+          });
+        }
+      } catch (error) {
+        console.error('❌ [CONFIGURE-SG] Error fetching config:', error);
+        configForm.reset({
+          apiKey: "",
+          enabled: true,
+          baseUrl: "",
+          maxTokens: 4000,
+          temperature: 0.7,
+        });
+      }
     } else {
       // For other integrations, use the config from the integration object
       if (integration.config && Object.keys(integration.config).length > 0) {
@@ -623,6 +907,8 @@ export default function SaasAdminIntegrations() {
               testOpenWeatherMutation.mutate();
             } else if (integration.id === 'openai') {
               testOpenAIMutation.mutate();
+            } else if (integration.id === 'sendgrid') {
+              testSendGridMutation.mutate();
             } else {
               testIntegrationMutation.mutate(integration.id);
             }
@@ -631,18 +917,22 @@ export default function SaasAdminIntegrations() {
             !integration.apiKeyConfigured || 
             (integration.id === 'openweather' && testOpenWeatherMutation.isPending) ||
             (integration.id === 'openai' && testOpenAIMutation.isPending) ||
-            (integration.id !== 'openweather' && integration.id !== 'openai' && testIntegrationMutation.isPending)
+            (integration.id === 'sendgrid' && testSendGridMutation.isPending) ||
+            (integration.id !== 'openweather' && integration.id !== 'openai' && integration.id !== 'sendgrid' && testIntegrationMutation.isPending)
           }
         >
           {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
           ) : integration.id === 'openai' && testOpenAIMutation.isPending ? (
             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : integration.id === 'sendgrid' && testSendGridMutation.isPending ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
           ) : (
             <ExternalLink className="h-4 w-4 mr-1" />
           )}
           {integration.id === 'openweather' && testOpenWeatherMutation.isPending ? 'Testando...' : 
-           integration.id === 'openai' && testOpenAIMutation.isPending ? 'Testando...' : 'Testar'}
+           integration.id === 'openai' && testOpenAIMutation.isPending ? 'Testando...' :
+           integration.id === 'sendgrid' && testSendGridMutation.isPending ? 'Testando...' : 'Testar'}
         </Button>
       </div>
     );
@@ -790,7 +1080,7 @@ export default function SaasAdminIntegrations() {
                 )}
               />
 
-              {selectedIntegration?.id !== 'openai' && ( // BaseUrl é opcional para OpenAI
+              {selectedIntegration?.id !== 'openai' && selectedIntegration?.id !== 'sendgrid' && ( // BaseUrl is optional for OpenAI and SendGrid
                 <FormField
                   control={configForm.control}
                   name="baseUrl"

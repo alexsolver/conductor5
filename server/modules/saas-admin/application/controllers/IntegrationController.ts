@@ -7,12 +7,14 @@
 import { Request, Response } from 'express';
 import { GetIntegrationsUseCase } from '../use-cases/GetIntegrationsUseCase';
 import { UpdateOpenWeatherApiKeyUseCase, UpdateOpenWeatherApiKeyRequest } from '../use-cases/UpdateOpenWeatherApiKeyUseCase';
+import { UpdateSendGridApiKeyUseCase, UpdateSendGridApiKeyRequest } from '../use-cases/UpdateSendGridApiKeyUseCase';
 
 // ✅ SEMPRE seguir este padrão (1qa.md line 60)
 export class IntegrationController {
   constructor(
     private getIntegrationsUseCase: GetIntegrationsUseCase,
     private updateOpenWeatherApiKeyUseCase: UpdateOpenWeatherApiKeyUseCase,
+    private updateSendGridApiKeyUseCase: UpdateSendGridApiKeyUseCase,
     private logger: any = console // Logger injection for compliance
   ) {}
 
@@ -40,6 +42,22 @@ export class IntegrationController {
       res.json(result);
     } catch (error) {
       this.logger.error('[INTEGRATION-CONTROLLER] Error getting OpenWeather integration:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // GET /api/saas-admin/integrations/sendgrid
+  async getSendGridIntegration(req: Request, res: Response) {
+    try {
+      // Use Case execution only (1qa.md line 68)
+      const result = await this.getIntegrationsUseCase.executeGetSendGrid();
+      res.json(result);
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error getting SendGrid integration:', error);
       res.status(500).json({ 
         success: false,
         message: 'Internal error',
@@ -106,6 +124,51 @@ export class IntegrationController {
       
       // Handle validation errors vs system errors
       if (error instanceof Error && error.message.includes('required') || error instanceof Error && error.message.includes('characters')) {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // PUT /api/saas-admin/integrations/sendgrid/api-key
+  async updateSendGridApiKey(req: Request, res: Response) {
+    try {
+      const { apiKey, fromEmail, testConnection = false } = req.body;
+
+      // Basic validation
+      if (!apiKey || typeof apiKey !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'API key is required and must be a string'
+        });
+      }
+
+      const request: UpdateSendGridApiKeyRequest = {
+        apiKey: apiKey.trim(),
+        fromEmail: fromEmail?.trim(),
+        testConnection: Boolean(testConnection)
+      };
+
+      // Use Case execution only (1qa.md line 68)
+      const result = await this.updateSendGridApiKeyUseCase.execute(request);
+      
+      // Log successful operation for audit
+      this.logger.info('[INTEGRATION-CONTROLLER] SendGrid API key updated successfully');
+      
+      res.json(result);
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error updating SendGrid API key:', error);
+      
+      // Handle validation errors vs system errors
+      if (error instanceof Error && (error.message.includes('required') || error.message.includes('characters') || error.message.includes('format'))) {
         return res.status(400).json({
           success: false,
           message: error.message
