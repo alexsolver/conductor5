@@ -73,6 +73,7 @@ interface Message {
   tags?: string[];
   attachments?: number;
   starred?: boolean;
+  body?: string; // Added body field as per potential fix
 }
 
 interface AutomationRule {
