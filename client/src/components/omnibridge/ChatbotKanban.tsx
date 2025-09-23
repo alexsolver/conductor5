@@ -541,6 +541,49 @@ export default function ChatbotVisualEditor() {
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [configurationName, setConfigurationName] = useState('');
 
+  // Function to check if a node has validation errors
+  const hasValidationError = (node: any): boolean => {
+    if (!node) return false;
+    
+    // Check based on node type
+    switch (node.type) {
+      case 'trigger':
+        // Trigger nodes need messages or conditions
+        const triggerMessages = nodeConfig.triggerMessages || node.config?.triggerMessages || '';
+        return triggerMessages.trim().length === 0;
+        
+      case 'response':
+        // Response nodes need a message
+        const responseMessage = nodeConfig.responseMessage || node.config?.responseMessage || '';
+        return responseMessage.trim().length === 0;
+        
+      case 'condition':
+        // Condition nodes need field, operator, and value
+        const field = nodeConfig.conditionField || node.config?.conditionField || '';
+        const operator = nodeConfig.conditionOperator || node.config?.conditionOperator || '';
+        const value = nodeConfig.conditionValue || node.config?.conditionValue || '';
+        return !field || !operator || !value;
+        
+      case 'integration':
+        // Integration nodes need an API URL
+        const apiUrl = nodeConfig.apiUrl || node.config?.apiUrl || '';
+        return apiUrl.trim().length === 0;
+        
+      case 'ai':
+        // AI nodes need a prompt
+        const aiPrompt = nodeConfig.aiPrompt || node.config?.aiPrompt || '';
+        return aiPrompt.trim().length === 0;
+        
+      case 'action':
+        // Action nodes need an action type
+        const actionType = nodeConfig.actionType || node.config?.actionType || '';
+        return !actionType;
+        
+      default:
+        return false;
+    }
+  };
+
   // Validation functions
   const validateNodeConfig = useCallback((nodeType: string, config: Record<string, any>) => {
     const errors: Record<string, string> = {};
@@ -1368,35 +1411,172 @@ export default function ChatbotVisualEditor() {
                     const x2 = toNode.position.x + 100;
                     const y2 = toNode.position.y + 25;
 
+                    // Determine connection type and styling
+                    const getConnectionStyle = () => {
+                      const fromNodeHasErrors = hasValidationError(fromNode);
+                      const toNodeHasErrors = hasValidationError(toNode);
+                      
+                      if (fromNodeHasErrors || toNodeHasErrors) {
+                        return {
+                          stroke: '#ef4444', // red-500
+                          strokeWidth: '2',
+                          strokeDasharray: '4,4',
+                          markerEnd: 'url(#arrowhead-error)',
+                          glow: false
+                        };
+                      }
+                      
+                      if (connection.type === 'conditional') {
+                        return {
+                          stroke: '#8b5cf6', // violet-500  
+                          strokeWidth: '2.5',
+                          strokeDasharray: '8,4',
+                          markerEnd: 'url(#arrowhead-conditional)',
+                          glow: true
+                        };
+                      }
+                      
+                      if (fromNode.type === 'trigger') {
+                        return {
+                          stroke: '#10b981', // emerald-500
+                          strokeWidth: '3',
+                          strokeDasharray: 'none',
+                          markerEnd: 'url(#arrowhead-success)',
+                          glow: true
+                        };
+                      }
+                      
+                      if (fromNode.type === 'ai') {
+                        return {
+                          stroke: '#6366f1', // indigo-500
+                          strokeWidth: '2.5',
+                          strokeDasharray: 'none',
+                          markerEnd: 'url(#arrowhead-ai)',
+                          glow: true
+                        };
+                      }
+                      
+                      return {
+                        stroke: '#6b7280', // gray-500
+                        strokeWidth: '2',
+                        strokeDasharray: 'none',
+                        markerEnd: 'url(#arrowhead-default)',
+                        glow: false
+                      };
+                    };
+
+                    const style = getConnectionStyle();
+                    const connectionId = `connection-${connection.id}`;
+
                     return (
-                      <g key={connection.id}>
+                      <g key={connection.id} className="group">
+                        {/* Glow effect background line for special connections */}
+                        {style.glow && (
+                          <line
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke={style.stroke}
+                            strokeWidth="6"
+                            strokeDasharray={style.strokeDasharray}
+                            opacity="0.3"
+                            filter="url(#glow)"
+                          />
+                        )}
+                        
+                        {/* Main connection line */}
                         <line
                           x1={x1}
                           y1={y1}
                           x2={x2}
                           y2={y2}
-                          stroke="#6b7280"
+                          stroke={style.stroke}
+                          strokeWidth={style.strokeWidth}
+                          strokeDasharray={style.strokeDasharray}
+                          markerEnd={style.markerEnd}
+                          className="transition-all duration-200 group-hover:opacity-80"
+                        >
+                          {/* Animated flow for active connections */}
+                          {!style.strokeDasharray.includes('4,4') && (
+                            <animate
+                              attributeName="stroke-dasharray"
+                              values="0,20;20,0;0,20"
+                              dur="3s"
+                              repeatCount="indefinite"
+                              className="opacity-50"
+                            />
+                          )}
+                        </line>
+
+                        {/* Connection status indicator */}
+                        <circle
+                          cx={(x1 + x2) / 2}
+                          cy={(y1 + y2) / 2}
+                          r="4"
+                          fill={style.stroke}
+                          stroke="white"
                           strokeWidth="2"
-                          markerEnd="url(#arrowhead)"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                         />
+
+                        {/* Enhanced connection label */}
                         {connection.label && (
+                          <g>
+                            {/* Label background */}
+                            <rect
+                              x={(x1 + x2) / 2 - (connection.label.length * 3.5)}
+                              y={(y1 + y2) / 2 - 15}
+                              width={connection.label.length * 7}
+                              height="16"
+                              rx="8"
+                              fill="white"
+                              stroke={style.stroke}
+                              strokeWidth="1"
+                              className="opacity-0 group-hover:opacity-90 transition-opacity duration-200"
+                            />
+                            {/* Label text */}
+                            <text
+                              x={(x1 + x2) / 2}
+                              y={(y1 + y2) / 2 - 5}
+                              textAnchor="middle"
+                              className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              fill={style.stroke}
+                            >
+                              {connection.label}
+                            </text>
+                          </g>
+                        )}
+
+                        {/* Connection type indicator */}
+                        {connection.type && (
                           <text
-                            x={(x1 + x2) / 2}
-                            y={(y1 + y2) / 2 - 5}
-                            textAnchor="middle"
-                            className="text-xs fill-gray-600"
+                            x={x1 + 10}
+                            y={y1 - 10}
+                            className="text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            fill={style.stroke}
                           >
-                            {connection.label}
+                            {connection.type === 'conditional' ? '⚡' : connection.type === 'success' ? '✅' : '➡️'}
                           </text>
                         )}
                       </g>
                     );
                   })}
                   
-                  {/* Arrow marker definition */}
+                  {/* Enhanced marker definitions */}
                   <defs>
+                    {/* Glow filter */}
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <feMerge> 
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+
+                    {/* Default arrow */}
                     <marker
-                      id="arrowhead"
+                      id="arrowhead-default"
                       markerWidth="10"
                       markerHeight="7"
                       refX="9"
@@ -1406,6 +1586,66 @@ export default function ChatbotVisualEditor() {
                       <polygon
                         points="0 0, 10 3.5, 0 7"
                         fill="#6b7280"
+                      />
+                    </marker>
+
+                    {/* Success/trigger arrow (green) */}
+                    <marker
+                      id="arrowhead-success"
+                      markerWidth="12"
+                      markerHeight="8"
+                      refX="11"
+                      refY="4"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 12 4, 0 8"
+                        fill="#10b981"
+                      />
+                    </marker>
+
+                    {/* Conditional arrow (purple) */}
+                    <marker
+                      id="arrowhead-conditional"
+                      markerWidth="12"
+                      markerHeight="8"
+                      refX="11"
+                      refY="4"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 12 4, 0 8"
+                        fill="#8b5cf6"
+                      />
+                    </marker>
+
+                    {/* AI arrow (indigo) */}
+                    <marker
+                      id="arrowhead-ai"
+                      markerWidth="12"
+                      markerHeight="8"
+                      refX="11"
+                      refY="4"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 12 4, 0 8"
+                        fill="#6366f1"
+                      />
+                    </marker>
+
+                    {/* Error arrow (red) */}
+                    <marker
+                      id="arrowhead-error"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon
+                        points="0 0, 10 3.5, 0 7"
+                        fill="#ef4444"
                       />
                     </marker>
                   </defs>
