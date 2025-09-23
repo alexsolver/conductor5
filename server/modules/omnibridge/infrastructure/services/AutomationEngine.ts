@@ -210,6 +210,9 @@ export class AutomationEngine {
       const savedRules = await repository.findByTenantId(this.tenantId);
       console.log(`📋 [AUTOMATION-ENGINE] Found ${savedRules.length} saved rules in database`);
 
+      // Clear existing rules to avoid duplicates
+      this.rules.clear();
+
       // Converter regras do banco para entidades e adicionar ao engine
       for (const savedRule of savedRules) {
         try {

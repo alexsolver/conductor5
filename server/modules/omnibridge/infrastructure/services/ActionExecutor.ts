@@ -25,6 +25,7 @@ export class ActionExecutor implements IActionExecutorPort {
           return await this.createTicketAction(action, context);
         
         case 'send_auto_reply':
+        case 'auto_reply':
           return await this.sendAutoReplyAction(action, context);
           
         case 'ai_response':
@@ -67,7 +68,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   canExecute(actionType: string): boolean {
     const supportedActions = [
-      'create_ticket', 'send_auto_reply', 'ai_response', 'forward_message',
+      'create_ticket', 'send_auto_reply', 'auto_reply', 'ai_response', 'forward_message',
       'assign_user', 'add_tag', 'escalate', 'webhook', 'notify_team'
     ];
     return supportedActions.includes(actionType);

@@ -31,20 +31,70 @@ export class CreateAutomationRuleUseCase {
     const now = new Date();
 
     // Map triggers and actions to the format expected by AutomationRule
+    let triggerType = 'message_received';
+    let conditions: any[] = [];
+
+    if (data.triggers && data.triggers.length > 0) {
+      const firstTrigger = data.triggers[0];
+
+      // Map frontend trigger types to backend types
+      const triggerTypeMapping: Record<string, string> = {
+        'keyword': 'keyword_match',
+        'channel': 'channel_specific',
+        'time': 'time_based',
+        'priority': 'priority_based',
+        'sender': 'sender_pattern',
+        'content': 'content_pattern'
+      };
+
+      triggerType = triggerTypeMapping[firstTrigger.type] || firstTrigger.type || 'message_received';
+
+      conditions = data.triggers.map(trigger => {
+        const condition: any = {
+          id: uuidv4(),
+          type: trigger.type || 'keyword',
+          operator: trigger.config?.operator || 'contains',
+          field: trigger.config?.field || 'content',
+          caseSensitive: trigger.config?.caseSensitive || false
+        };
+
+        // Enhanced keyword processing - handle multiple input formats
+        if (trigger.type === 'keyword' && trigger.config) {
+          let keywordValue = '';
+
+          if (trigger.config.keywords) {
+            // Handle both string and array formats
+            if (Array.isArray(trigger.config.keywords)) {
+              keywordValue = trigger.config.keywords.join(' ');
+            } else {
+              keywordValue = String(trigger.config.keywords);
+            }
+          } else if (trigger.config.value) {
+            keywordValue = String(trigger.config.value);
+          }
+
+          condition.value = keywordValue;
+          condition.keywords = keywordValue; // Preserve for backend compatibility
+
+          console.log(`🔍 [CreateAutomationRuleUseCase] Processed keywords: "${keywordValue}"`);
+        } else {
+          condition.value = trigger.config?.value || '';
+        }
+
+        return condition;
+      });
+    }
+
     const trigger = {
-      type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
-      conditions: data.triggers[0]?.config ? [{
-        id: uuidv4(),
-        type: 'keyword',
-        operator: 'contains',
-        value: data.triggers[0].config.keywords?.join(' ') || ''
-      }] : []
+      type: triggerType,
+      conditions
     };
 
+    // Map action types for compatibility
     const actions = data.actions.map(action => ({
       id: uuidv4(),
       type: action.type === 'auto_reply' ? 'send_auto_reply' : action.type,
-      params: action.config || {},
+      params: action.parameters || {}, // Use parameters from DTO
       priority: 1
     }));
 
