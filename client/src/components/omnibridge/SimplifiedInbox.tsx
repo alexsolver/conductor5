@@ -425,25 +425,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                       <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {message.content}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-1 flex-wrap">
-                          {getQuickActions(message).map((action, index) => (
-                            <Button
-                              key={index}
-                              size="sm"
-                              variant="outline"
-                              className={`h-7 px-2 text-xs ${action.color} text-white border-none hover:opacity-80`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                action.action();
-                              }}
-                              data-testid={`quick-action-${action.label.toLowerCase()}`}
-                            >
-                              <action.icon className="h-3 w-3 mr-1" />
-                              {action.label}
-                            </Button>
-                          ))}
-                        </div>
+                      <div className="flex items-center justify-end mt-2">
                         <div className="text-xs text-gray-400">
                           Canal: {message.channelId}
                         </div>
