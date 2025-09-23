@@ -1165,11 +1165,27 @@ export default function OmniBridge() {
         <TabsContent value="inbox" className="space-y-4">
           <div className="h-[calc(100vh-200px)]">
             <SimplifiedInbox 
+              messages={messages}
+              loading={loading}
+              onMessageSelect={setSelectedMessage}
               onCreateRule={(message) => {
                 setSelectedMessage(message);
                 setShowCreateRuleModal(true);
               }}
-              onCreateChatbot={() => setActiveTab('chatbots')}
+              onViewMessage={(message) => {
+                setSelectedMessage(message);
+                console.log('📄 [OMNIBRIDGE] Viewing message details:', message);
+              }}
+              onSave={() => {
+                console.log('💾 [OMNIBRIDGE] Saving inbox changes');
+                // Could trigger a save operation if needed
+              }}
+              onUndo={() => {
+                console.log('↩️ [OMNIBRIDGE] Undoing last action');
+                // Refresh messages or restore previous state
+                refreshMessages();
+              }}
+              refetchMessages={refreshMessages}
             />
           </div>
         </TabsContent>

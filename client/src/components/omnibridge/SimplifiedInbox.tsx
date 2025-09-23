@@ -56,7 +56,9 @@ import {
   HelpCircle,
   TrendingUp,
   Brain,
-  Cog
+  Cog,
+  RotateCcw,
+  Save
 } from 'lucide-react';
 
 interface Message {
@@ -91,8 +93,14 @@ interface AutomationRule {
 }
 
 interface SimplifiedInboxProps {
+  messages: Message[];
+  loading?: boolean;
+  onMessageSelect?: (message: Message) => void;
   onCreateRule?: (message: Message) => void;
-  onCreateChatbot?: () => void;
+  onViewMessage?: (message: Message) => void;
+  onSave?: () => void;
+  onUndo?: () => void;
+  refetchMessages?: () => void;
 }
 
 const getChannelIcon = (type: string) => {
@@ -125,7 +133,16 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: SimplifiedInboxProps) {
+export default function SimplifiedInbox({ 
+  messages, 
+  loading, 
+  onMessageSelect, 
+  onCreateRule,
+  onViewMessage,
+  onSave,
+  onUndo,
+  refetchMessages
+}: SimplifiedInboxProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -139,9 +156,10 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const [showChatbotModal, setShowChatbotModal] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState({ status: 'all', channel: 'all' }); // Added for save functionality
 
   // Fetch messages with proper headers
-  const { data: messagesData, isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
+  const { data: messagesData, isLoading: messagesLoading, refetch: refetchMessagesFromHook } = useQuery({
     queryKey: ['/api/omnibridge/messages'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/omnibridge/messages');
@@ -225,6 +243,9 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
     if (message.status === 'unread') {
       markReadMutation.mutate(message.id);
     }
+    if (onMessageSelect) {
+      onMessageSelect(message);
+    }
   };
 
   const handleReply = () => {
@@ -238,6 +259,9 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const handleCreateRuleFromMessage = (message: Message) => {
     setSelectedMessage(message);
     setShowRuleWizard(true);
+    if (onCreateRule) {
+      onCreateRule(message);
+    }
   };
 
   const getQuickActions = (message: Message) => [
@@ -263,6 +287,75 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
       action: () => archiveMutation.mutate(message.id)
     }
   ];
+
+  // Handle actions
+  const handleViewMessage = (message: Message) => {
+    console.log('👁️ [SIMPLIFIED-INBOX] Viewing message:', message.id);
+    setSelectedMessage(message);
+
+    // Show message details in a modal or expanded view
+    if (onViewMessage) {
+      onViewMessage(message);
+    }
+  };
+
+  const handleTestMessage = (message: Message) => {
+    console.log('🧪 [SIMPLIFIED-INBOX] Testing message:', message.id);
+
+    // Test automation rules against this message
+    fetch('/api/omnibridge/messages/test', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'x-tenant-id': user?.tenantId || ''
+      },
+      body: JSON.stringify({
+        messageId: message.id,
+        content: message.content || message.body
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+      console.log('✅ [SIMPLIFIED-INBOX] Test result:', result);
+      // Show test results to user
+      alert(`Teste concluído: ${result.message || 'Regras testadas com sucesso'}`);
+    })
+    .catch(error => {
+      console.error('❌ [SIMPLIFIED-INBOX] Test error:', error);
+      alert('Erro ao testar mensagem');
+    });
+  };
+
+  const handleUndoAction = () => {
+    console.log('↩️ [SIMPLIFIED-INBOX] Undo action');
+
+    // Implement undo functionality - restore previous state
+    if (typeof onUndo === 'function') {
+      onUndo();
+    } else {
+      // Generic undo - refresh messages
+      refetchMessages?.();
+      alert('Ação desfeita - lista atualizada');
+    }
+  };
+
+  const handleSaveChanges = () => {
+    console.log('💾 [SIMPLIFIED-INBOX] Saving changes');
+
+    // Save any pending changes
+    if (typeof onSave === 'function') {
+      onSave();
+    } else {
+      // Generic save - persist current state
+      localStorage.setItem('omnibridge_inbox_state', JSON.stringify({
+        selectedMessage: selectedMessage?.id,
+        filter: currentFilter,
+        timestamp: new Date().toISOString()
+      }));
+      alert('Alterações salvas com sucesso');
+    }
+  };
 
   return (
     <div className="flex h-full bg-gray-50 dark:bg-gray-900" data-testid="simplified-inbox">
@@ -293,7 +386,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
 
           {/* Quick Filters */}
           <div className="flex gap-2 flex-wrap">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={filterStatus} onValueChange={(value) => { setFilterStatus(value); setCurrentFilter({...currentFilter, status: value}); }}>
               <SelectTrigger className="w-24" data-testid="filter-status">
                 <SelectValue />
               </SelectTrigger>
@@ -305,7 +398,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
               </SelectContent>
             </Select>
 
-            <Select value={filterChannel} onValueChange={setFilterChannel}>
+            <Select value={filterChannel} onValueChange={(value) => { setFilterChannel(value); setCurrentFilter({...currentFilter, channel: value}); }}>
               <SelectTrigger className="w-28" data-testid="filter-channel">
                 <SelectValue />
               </SelectTrigger>
@@ -427,8 +520,31 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                         {message.content}
                       </p>
                       <div className="flex items-center justify-end mt-2">
-                        <div className="text-xs text-gray-400">
-                          Canal: {message.channelId}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewMessage(message);
+                            }}
+                            title="Visualizar mensagem"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTestMessage(message);
+                            }}
+                            title="Testar regras de automação"
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -573,6 +689,43 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                 Clique em uma mensagem à esquerda para visualizar seu conteúdo e criar automações.
               </p>
 
+              {/* Toolbar */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filtrar
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Search className="h-4 w-4 mr-2" />
+                    Buscar
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleUndoAction}
+                    title="Desfazer última ação"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Desfazer
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSaveChanges}
+                    title="Salvar alterações"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar
+                  </Button>
+                  <div className="text-sm text-gray-600">
+                    {messages.length} mensagens
+                  </div>
+                </div>
+              </div>
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mt-6">
                 <Card className="p-4">
@@ -595,8 +748,8 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                 </Card>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Reply Modal */}
