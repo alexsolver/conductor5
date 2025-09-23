@@ -1019,7 +1019,11 @@ export default function ChatbotVisualEditor() {
 
       if (result.success && result.data) {
         // Update local state with the chatbot returned from the server
-        const savedChatbot = result.data;
+        // But preserve the flow structure that the frontend expects
+        const savedChatbot = {
+          ...result.data,
+          flow: chatbotData.flow // Keep the original flow structure
+        };
         setChatbots(prev => [savedChatbot, ...prev]);
         setSelectedChatbot(savedChatbot);
         
@@ -1157,7 +1161,7 @@ export default function ChatbotVisualEditor() {
           ...selectedChatbot,
           flow: {
             ...selectedChatbot.flow,
-            connections: [...selectedChatbot.flow.connections, newConnection],
+            connections: [...(selectedChatbot.flow?.connections || []), newConnection],
             nodes: selectedChatbot.flow.nodes.map(n =>
               n.id === connectionStart 
                 ? { ...n, connections: [...n.connections, node.id] }
@@ -1478,7 +1482,7 @@ export default function ChatbotVisualEditor() {
 
                 {/* Connection Lines */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {selectedChatbot.flow.connections.map(connection => {
+                  {selectedChatbot.flow?.connections?.map(connection => {
                     const fromNode = selectedChatbot.flow.nodes.find(n => n.id === connection.from);
                     const toNode = selectedChatbot.flow.nodes.find(n => n.id === connection.to);
                     
@@ -2961,7 +2965,7 @@ export default function ChatbotVisualEditor() {
               <div className="bg-muted p-3 rounded-lg">
                 <p className="text-sm font-medium">Chatbot: {selectedChatbot.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {selectedChatbot.flow.nodes.length} nós, {selectedChatbot.flow.connections.length} conexões
+                  {selectedChatbot.flow?.nodes?.length || 0} nós, {selectedChatbot.flow?.connections?.length || 0} conexões
                 </p>
               </div>
             )}
