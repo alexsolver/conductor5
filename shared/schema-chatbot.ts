@@ -29,7 +29,7 @@ export const chatbotNodeCategoryEnum = pgEnum('chatbot_node_category', [
   'response',
   'integration',
   'ai',
-  'flow',
+  'flow_control',
   'validation',
   'advanced'
 ]);
