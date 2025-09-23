@@ -1588,10 +1588,11 @@ export default function ChatbotVisualEditor() {
           
           {selectedNode && (
             <Tabs defaultValue="basic" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="basic">Básico</TabsTrigger>
                 <TabsTrigger value="config">Configuração</TabsTrigger>
                 <TabsTrigger value="connections">Conexões</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
@@ -2352,6 +2353,255 @@ export default function ChatbotVisualEditor() {
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="preview" className="space-y-4">
+                {selectedNode && (
+                  <div className="space-y-6">
+                    <div className="bg-muted/30 rounded-lg p-4 border">
+                      <h4 className="font-semibold text-sm mb-3 flex items-center">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview em Tempo Real
+                      </h4>
+                      
+                      {/* Trigger Node Preview */}
+                      {selectedNode.type === 'trigger' && (
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center text-blue-700 mb-2">
+                              <Play className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Gatilho de Ativação</span>
+                            </div>
+                            <div className="space-y-2">
+                              {nodeConfig.triggerMessages ? (
+                                nodeConfig.triggerMessages.split('\n').filter(msg => msg.trim()).slice(0, 3).map((message, index) => (
+                                  <div key={index} className="bg-white rounded border p-2 text-sm">
+                                    <span className="text-muted-foreground">Exemplo:</span> "{message.trim()}"
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure mensagens de ativação para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {nodeConfig.caseSensitive !== undefined && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                              <div className="text-amber-700 text-sm">
+                                <strong>Sensibilidade:</strong> {nodeConfig.caseSensitive ? 'Sensível a maiúsculas/minúsculas' : 'Não sensível a maiúsculas/minúsculas'}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Response Node Preview */}
+                      {selectedNode.type === 'response' && (
+                        <div className="space-y-4">
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center text-green-700 mb-2">
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Resposta do Bot</span>
+                            </div>
+                            <div className="bg-white rounded border p-3">
+                              {nodeConfig.responseMessage ? (
+                                <div className="space-y-2">
+                                  <div className="text-sm font-medium">Mensagem:</div>
+                                  <div className="bg-slate-50 rounded p-2 text-sm border-l-4 border-green-500">
+                                    {nodeConfig.responseMessage}
+                                  </div>
+                                  {nodeConfig.quickReplies && nodeConfig.quickReplies.split('\n').filter(r => r.trim()).length > 0 && (
+                                    <div className="mt-2">
+                                      <div className="text-xs text-muted-foreground mb-1">Respostas Rápidas:</div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {nodeConfig.quickReplies.split('\n').filter(r => r.trim()).map((reply, index) => (
+                                          <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded border">
+                                            {reply.trim()}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure uma mensagem de resposta para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Condition Node Preview */}
+                      {selectedNode.type === 'condition' && (
+                        <div className="space-y-4">
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center text-purple-700 mb-2">
+                              <GitBranch className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Lógica Condicional</span>
+                            </div>
+                            <div className="space-y-2">
+                              {nodeConfig.conditionField && nodeConfig.conditionOperator && nodeConfig.conditionValue ? (
+                                <div className="bg-white rounded border p-3">
+                                  <div className="text-sm font-mono bg-slate-50 p-2 rounded border">
+                                    SE <span className="text-blue-600">{nodeConfig.conditionField}</span> {' '}
+                                    <span className="text-purple-600">{nodeConfig.conditionOperator}</span> {' '}
+                                    <span className="text-green-600">"{nodeConfig.conditionValue}"</span>
+                                  </div>
+                                  <div className="mt-2 text-xs text-muted-foreground">
+                                    Exemplo: usuário envia "idade: 25" → {nodeConfig.conditionField === 'idade' && nodeConfig.conditionOperator === 'maior_que' && nodeConfig.conditionValue === '18' ? 'VERDADEIRO' : 'avaliado'}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure campo, operador e valor para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Integration Node Preview */}
+                      {selectedNode.type === 'integration' && (
+                        <div className="space-y-4">
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                            <div className="flex items-center text-orange-700 mb-2">
+                              <Link className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Integração Externa</span>
+                            </div>
+                            <div className="space-y-2">
+                              {nodeConfig.apiUrl ? (
+                                <div className="bg-white rounded border p-3 space-y-2">
+                                  <div className="text-sm">
+                                    <span className="font-medium">Endpoint:</span> 
+                                    <span className="font-mono text-blue-600 ml-2">{nodeConfig.apiMethod || 'GET'} {nodeConfig.apiUrl}</span>
+                                  </div>
+                                  {nodeConfig.apiHeaders && (
+                                    <div className="text-sm">
+                                      <span className="font-medium">Headers:</span>
+                                      <pre className="bg-slate-50 p-2 rounded text-xs mt-1 overflow-x-auto">
+                                        {nodeConfig.apiHeaders}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {nodeConfig.apiBody && (
+                                    <div className="text-sm">
+                                      <span className="font-medium">Body:</span>
+                                      <pre className="bg-slate-50 p-2 rounded text-xs mt-1 overflow-x-auto">
+                                        {nodeConfig.apiBody}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  <div className="bg-green-50 border border-green-200 rounded p-2 text-xs">
+                                    <strong>Status esperado:</strong> 200 OK
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure a URL da API para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Node Preview */}
+                      {selectedNode.type === 'ai' && (
+                        <div className="space-y-4">
+                          <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+                            <div className="flex items-center text-violet-700 mb-2">
+                              <Brain className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Inteligência Artificial</span>
+                            </div>
+                            <div className="space-y-2">
+                              {nodeConfig.aiPrompt ? (
+                                <div className="bg-white rounded border p-3 space-y-2">
+                                  <div className="text-sm">
+                                    <span className="font-medium">Prompt:</span>
+                                    <div className="bg-slate-50 p-2 rounded mt-1 text-sm border-l-4 border-violet-500">
+                                      {nodeConfig.aiPrompt}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Modelo:</span> {nodeConfig.aiModel || 'GPT-3.5-turbo'} | 
+                                    <span className="font-medium ml-2">Temperatura:</span> {nodeConfig.aiTemperature || '0.7'}
+                                  </div>
+                                  <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs">
+                                    <strong>Exemplo de resposta:</strong> 
+                                    <div className="italic mt-1">
+                                      "Olá! Sou seu assistente virtual. Como posso ajudá-lo hoje?"
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure o prompt da IA para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Node Preview */}
+                      {selectedNode.type === 'action' && (
+                        <div className="space-y-4">
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="flex items-center text-red-700 mb-2">
+                              <Settings className="h-4 w-4 mr-2" />
+                              <span className="font-medium">Ação do Sistema</span>
+                            </div>
+                            <div className="space-y-2">
+                              {nodeConfig.actionType ? (
+                                <div className="bg-white rounded border p-3">
+                                  <div className="text-sm font-medium mb-2">Tipo de Ação: {nodeConfig.actionType}</div>
+                                  {nodeConfig.actionType === 'create_ticket' && (
+                                    <div className="bg-blue-50 p-2 rounded text-sm">
+                                      <strong>Criar Ticket:</strong> {nodeConfig.ticketTitle || 'Título não definido'}
+                                    </div>
+                                  )}
+                                  {nodeConfig.actionType === 'send_email' && (
+                                    <div className="bg-green-50 p-2 rounded text-sm">
+                                      <strong>Enviar Email:</strong> {nodeConfig.emailSubject || 'Assunto não definido'}
+                                    </div>
+                                  )}
+                                  {nodeConfig.actionType === 'webhook' && (
+                                    <div className="bg-purple-50 p-2 rounded text-sm">
+                                      <strong>Webhook:</strong> {nodeConfig.webhookUrl || 'URL não definida'}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm italic">
+                                  Configure o tipo de ação para ver o preview
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Flow Information */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        <div className="flex items-center text-slate-700 mb-2">
+                          <Info className="h-4 w-4 mr-2" />
+                          <span className="font-medium">Informações do Fluxo</span>
+                        </div>
+                        <div className="text-sm text-slate-600 space-y-1">
+                          <div><strong>Tipo:</strong> {selectedNode.type || 'Não definido'}</div>
+                          <div><strong>ID:</strong> {selectedNode.id}</div>
+                          <div><strong>Posição:</strong> x: {selectedNode.position?.x || 0}, y: {selectedNode.position?.y || 0}</div>
+                          <div><strong>Status:</strong> {hasValidationError(selectedNode) ? '❌ Configuração incompleta' : '✅ Configurado'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           )}
