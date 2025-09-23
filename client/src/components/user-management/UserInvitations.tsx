@@ -73,9 +73,7 @@ export function UserInvitations({ tenantAdmin = false }: UserInvitationsProps) {
 
   const revokeInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      return apiRequest(`/api/user-management/invitations/${invitationId}/revoke`, {
-        method: "POST"
-      });
+      return apiRequest("POST", `/api/user-management/invitations/${invitationId}/revoke`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/invitations"] });

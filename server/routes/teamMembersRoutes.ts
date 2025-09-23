@@ -1,4 +1,3 @@
-
 import { Router, Response } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { requirePermission, AuthorizedRequest } from '../middleware/rbacMiddleware';

@@ -11,6 +11,7 @@ import {
   userGroups,
   userGroupMemberships,
 } from "@shared/schema";
+import { format } from 'date-fns';
 
 // Add missing validation schema
 const updateUserGroupSchema = z.object({
@@ -230,9 +231,9 @@ router.get(
       const user = await userManagementService.getUserById(userId, tenantId);
 
       if (!user) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "User not found" 
+          message: "User not found"
         });
       }
 
@@ -263,16 +264,16 @@ router.put(
 
       // Validate tenant access
       if (!tenantId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: "Tenant ID is required" 
+          message: "Tenant ID is required"
         });
       }
 
       // Validate request body using Zod schema
       const { updateUserSchema } = await import("@shared/schema");
       const validationResult = updateUserSchema.safeParse(req.body);
-      
+
       if (!validationResult.success) {
         console.log("❌ [USER-UPDATE] Validation failed:", validationResult.error.errors);
         return res.status(400).json({
@@ -286,8 +287,8 @@ router.put(
 
       // Use userManagementService following Clean Architecture
       const updatedUser = await userManagementService.updateUser(
-        userId, 
-        tenantId, 
+        userId,
+        tenantId,
         validatedData
       );
 
@@ -341,7 +342,7 @@ router.put(
       });
     } catch (error: any) {
       console.error("❌ [USER-UPDATE] Error updating user:", error);
-      
+
       // Handle specific error types
       if (error.message?.includes("not found")) {
         return res.status(404).json({
@@ -1783,5 +1784,143 @@ router.get(
     }
   },
 );
+
+// Create invitation
+router.post('/invitations', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+    }
+
+    const { email, role, groupIds = [], expiresInDays = 7, notes = '', sendEmail = true } = req.body;
+
+    if (!email || !role) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email and role are required" 
+      });
+    }
+
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Check if user already exists
+    const existingUser = await pool.query(`
+      SELECT id FROM ${schemaName}.users WHERE email = $1 AND deleted_at IS NULL
+    `, [email.toLowerCase()]);
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists"
+      });
+    }
+
+    // Check if there's already a pending invitation
+    const existingInvitation = await pool.query(`
+      SELECT id FROM ${schemaName}.user_invitations 
+      WHERE email = $1 AND status = 'pending' AND expires_at > NOW()
+    `, [email.toLowerCase()]);
+
+    if (existingInvitation.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "There's already a pending invitation for this email"
+      });
+    }
+
+    // Generate invitation token
+    const crypto = require('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+
+    // Create invitation
+    const invitationResult = await pool.query(`
+      INSERT INTO ${schemaName}.user_invitations 
+      (email, role, token, expires_at, invited_by_user_id, notes, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING id, token
+    `, [email.toLowerCase(), role, token, expiresAt, req.user.userId, notes]);
+
+    const invitationId = invitationResult.rows[0].id;
+
+    // Associate with groups if provided
+    if (groupIds && groupIds.length > 0) {
+      for (const groupId of groupIds) {
+        await pool.query(`
+          INSERT INTO ${schemaName}.user_invitation_groups 
+          (invitation_id, group_id, created_at)
+          VALUES ($1, $2, NOW())
+        `, [invitationId, groupId]);
+      }
+    }
+
+    // Send email if requested
+    if (sendEmail) {
+      try {
+        // Import email service
+        const sgMail = require('@sendgrid/mail');
+
+        // Set SendGrid API key if available
+        if (process.env.SENDGRID_API_KEY) {
+          sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+          const invitationUrl = `${process.env.CLIENT_URL || 'https://localhost:5000'}/accept-invitation?token=${token}`;
+
+          const msg = {
+            to: email,
+            from: process.env.FROM_EMAIL || 'noreply@conductor.com',
+            subject: 'Convite para ingressar na equipe',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Você foi convidado para ingressar na equipe!</h2>
+                <p>Olá,</p>
+                <p>Você foi convidado para ingressar na nossa plataforma com o papel de <strong>${role}</strong>.</p>
+                ${notes ? `<p><strong>Nota do convite:</strong> ${notes}</p>` : ''}
+                <p>Para aceitar o convite e criar sua conta, clique no link abaixo:</p>
+                <p><a href="${invitationUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Aceitar Convite</a></p>
+                <p>Este convite expira em ${format(expiresAt, 'dd/MM/yyyy HH:mm')}.</p>
+                <p>Se você não conseguir clicar no botão, copie e cole este link no seu navegador:</p>
+                <p style="word-break: break-all;">${invitationUrl}</p>
+                <hr style="margin: 20px 0;">
+                <p style="font-size: 12px; color: #666;">Este é um email automático, por favor não responda.</p>
+              </div>
+            `
+          };
+
+          await sgMail.send(msg);
+          console.log(`📧 Invitation email sent successfully to ${email}`);
+        } else {
+          console.log(`📧 Email service not configured - invitation created but email not sent to ${email}`);
+          console.log(`📧 Invitation URL would be: ${process.env.CLIENT_URL || 'https://localhost:5000'}/accept-invitation?token=${token}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send invitation email:', emailError);
+        // Don't fail the invitation creation if email fails
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: invitationId,
+        email,
+        role,
+        token,
+        expiresAt,
+        groupIds
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating invitation:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to create invitation' 
+    });
+  }
+});
 
 export default router;
