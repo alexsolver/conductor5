@@ -14,7 +14,7 @@ export class IntegrationController {
   constructor(
     private getIntegrationsUseCase: GetIntegrationsUseCase,
     private updateOpenWeatherApiKeyUseCase: UpdateOpenWeatherApiKeyUseCase,
-    private updateSendGridApiKeyUseCase: UpdateSendGridApiKeyUseCase,
+    private updateSendGridApiKeyUseCase?: UpdateSendGridApiKeyUseCase,
     private logger: any = console // Logger injection for compliance
   ) {}
 
@@ -266,6 +266,152 @@ export class IntegrationController {
 
     } catch (error) {
       this.logger.error('[INTEGRATION-CONTROLLER] Error testing OpenWeather connection:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // POST /api/saas-admin/integrations/sendgrid/test
+  async testSendGridConnection(req: Request, res: Response) {
+    try {
+      this.logger.info('[INTEGRATION-CONTROLLER] Testing SendGrid connection');
+      
+      // Get the SendGrid configuration
+      const sendGridConfig = await this.getIntegrationsUseCase.executeGetSendGrid();
+      
+      if (!sendGridConfig.data?.config?.apiKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'SendGrid API key not configured'
+        });
+      }
+
+      // Test the API with a simple request to validate API key
+      const testUrl = 'https://api.sendgrid.com/v3/user/account';
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const startTime = Date.now();
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${sendGridConfig.data.config.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const responseTime = Date.now() - startTime;
+
+        if (response.ok) {
+          const data = await response.json();
+          res.json({
+            success: true,
+            message: 'SendGrid API connection successful',
+            responseTime: responseTime,
+            result: {
+              status: 'connected',
+              account: data.type || 'verified'
+            }
+          });
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          res.json({
+            success: false,
+            message: `SendGrid API returned status ${response.status}`,
+            error: errorData.message || response.statusText
+          });
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        res.json({
+          success: false,
+          message: 'Failed to connect to SendGrid API',
+          error: fetchError.message
+        });
+      }
+
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error testing SendGrid connection:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Internal error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // POST /api/saas-admin/integrations/openai/test
+  async testOpenAIConnection(req: Request, res: Response) {
+    try {
+      this.logger.info('[INTEGRATION-CONTROLLER] Testing OpenAI connection');
+      
+      // Get the OpenAI configuration
+      const openAIConfig = await this.getIntegrationsUseCase.executeGetOpenAI();
+      
+      if (!openAIConfig.data?.config?.apiKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'OpenAI API key not configured'
+        });
+      }
+
+      // Test the API with a simple request
+      const testUrl = 'https://api.openai.com/v1/models';
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const startTime = Date.now();
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${openAIConfig.data.config.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const responseTime = Date.now() - startTime;
+
+        if (response.ok) {
+          const data = await response.json();
+          res.json({
+            success: true,
+            message: 'OpenAI API connection successful',
+            responseTime: responseTime,
+            result: {
+              status: 'connected',
+              modelsCount: data.data?.length || 0
+            }
+          });
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          res.json({
+            success: false,
+            message: `OpenAI API returned status ${response.status}`,
+            error: errorData.error?.message || response.statusText
+          });
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        res.json({
+          success: false,
+          message: 'Failed to connect to OpenAI API',
+          error: fetchError.message
+        });
+      }
+
+    } catch (error) {
+      this.logger.error('[INTEGRATION-CONTROLLER] Error testing OpenAI connection:', error);
       res.status(500).json({ 
         success: false,
         message: 'Internal error',

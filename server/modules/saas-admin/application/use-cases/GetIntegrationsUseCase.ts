@@ -125,28 +125,122 @@ export class GetIntegrationsUseCase {
     try {
       console.log('[GET-INTEGRATIONS-USE-CASE] Getting SendGrid integration');
 
-      const integrations = await this.integrationRepository.findAll();
-      const sendGridIntegration = integrations.find(integration => integration.id === 'sendgrid');
+      const integration = await this.integrationRepository.findById('sendgrid');
 
-      if (!sendGridIntegration) {
+      if (!integration) {
+        console.log('[GET-INTEGRATIONS-USE-CASE] SendGrid integration not found, creating default');
+
+        // Return default SendGrid integration structure
         return {
-          success: false,
-          message: 'SendGrid integration not found'
+          success: true,
+          data: {
+            id: 'sendgrid',
+            name: 'SendGrid',
+            provider: 'SendGrid',
+            description: 'Email delivery service integration',
+            status: 'disconnected',
+            apiKeyConfigured: false,
+            config: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
         };
       }
 
-      console.log('[GET-INTEGRATIONS-USE-CASE] SendGrid integration found');
+      console.log('[GET-INTEGRATIONS-USE-CASE] SendGrid integration found:', {
+        id: integration.id,
+        status: integration.status,
+        hasConfig: !!integration.config,
+        configKeys: integration.config ? Object.keys(integration.config) : []
+      });
 
-      return {
+      // Check if API key is configured
+      const hasApiKey = integration.config?.apiKey && integration.config.apiKey.length >= 60;
+
+      const result = {
         success: true,
         message: 'SendGrid integration retrieved successfully',
-        data: sendGridIntegration
+        data: {
+          id: integration.id,
+          name: integration.name,
+          provider: integration.provider,
+          description: integration.description || 'Email delivery service integration',
+          status: hasApiKey ? 'connected' : 'disconnected',
+          apiKeyConfigured: hasApiKey,
+          config: integration.config || {},
+          createdAt: integration.createdAt,
+          updatedAt: integration.updatedAt
+        }
       };
+
+      return result;
     } catch (error) {
       console.error('[GET-INTEGRATIONS-USE-CASE] Error getting SendGrid integration:', error);
       return {
         success: false,
         message: 'Failed to get SendGrid integration'
+      };
+    }
+  }
+
+  async executeGetOpenAI(): Promise<{ success: boolean; data?: any; message: string }> {
+    try {
+      console.log('[GET-INTEGRATIONS-USE-CASE] Getting OpenAI integration');
+
+      const integration = await this.integrationRepository.findById('openai');
+
+      if (!integration) {
+        console.log('[GET-INTEGRATIONS-USE-CASE] OpenAI integration not found, creating default');
+
+        // Return default OpenAI integration structure
+        return {
+          success: true,
+          data: {
+            id: 'openai',
+            name: 'OpenAI',
+            provider: 'OpenAI',
+            description: 'AI language model integration',
+            status: 'disconnected',
+            apiKeyConfigured: false,
+            config: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        };
+      }
+
+      console.log('[GET-INTEGRATIONS-USE-CASE] OpenAI integration found:', {
+        id: integration.id,
+        status: integration.status,
+        hasConfig: !!integration.config,
+        configKeys: integration.config ? Object.keys(integration.config) : []
+      });
+
+      // Check if API key is configured
+      const hasApiKey = integration.config?.apiKey && integration.config.apiKey.startsWith('sk-');
+
+      const result = {
+        success: true,
+        message: 'OpenAI integration retrieved successfully',
+        data: {
+          id: integration.id,
+          name: integration.name,
+          provider: integration.provider,
+          description: integration.description || 'AI language model integration',
+          status: hasApiKey ? 'connected' : 'disconnected',
+          apiKeyConfigured: hasApiKey,
+          config: integration.config || {},
+          createdAt: integration.createdAt,
+          updatedAt: integration.updatedAt
+        }
+      };
+
+      return result;
+    } catch (error) {
+      console.error('[GET-INTEGRATIONS-USE-CASE] Error getting OpenAI integration:', error);
+      return {
+        success: false,
+        message: 'Failed to get OpenAI integration'
       };
     }
   }
