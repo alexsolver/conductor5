@@ -93,6 +93,17 @@ export const sendInvitationEmail = async ({
   try {
     console.log("📧 [SENDGRID-INVITATION] Preparing to send invitation email to:", to);
     
+    // Check SendGrid configuration
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error("❌ [SENDGRID-INVITATION] SENDGRID_API_KEY not configured");
+      return false;
+    }
+
+    if (!process.env.SENDGRID_FROM_EMAIL) {
+      console.error("❌ [SENDGRID-INVITATION] SENDGRID_FROM_EMAIL not configured");
+      return false;
+    }
+
     const roleDisplayNames: Record<string, string> = {
       'saas_admin': 'Administrador SaaS',
       'tenant_admin': 'Administrador do Workspace',
@@ -137,15 +148,21 @@ export const sendInvitationEmail = async ({
     `;
 
     console.log("📧 [SENDGRID-INVITATION] Email content prepared, sending via SendGrid...");
+    console.log("📧 [SENDGRID-INVITATION] Using FROM email:", process.env.SENDGRID_FROM_EMAIL);
 
     const result = await SendGridService.sendEmail({
       to: to,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com',
+      from: process.env.SENDGRID_FROM_EMAIL,
       subject: `Convite para Conductor - ${roleDisplay}`,
       html: emailContent,
     });
 
-    console.log("📧 [SENDGRID-INVITATION] SendGrid result:", result);
+    if (result) {
+      console.log("✅ [SENDGRID-INVITATION] Email sent successfully to:", to);
+    } else {
+      console.log("❌ [SENDGRID-INVITATION] Failed to send email - check SendGrid Sender Identity configuration");
+    }
+
     return result;
     
   } catch (error) {

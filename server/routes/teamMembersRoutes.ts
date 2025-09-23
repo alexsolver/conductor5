@@ -63,7 +63,7 @@ router.get(
         FROM ${sql.raw(`"${schemaName}".user_group_memberships`)} ugm
         INNER JOIN ${sql.raw(`"${schemaName}".user_groups`)} ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id = ${tenantId}::uuid
+        WHERE ugm.tenant_id = ${tenantId}
           AND ug.is_active = true
       `;
 
@@ -129,7 +129,7 @@ router.post(
   requirePermission('tenant', 'manage_users'),
   async (req, res: Response) => {
     const authorizedReq = req as AuthorizedRequest;
-    
+
     try {
       const tenantId = authorizedReq.user!.tenantId;
       const { email, role, notes, sendEmail } = req.body;
@@ -202,17 +202,17 @@ router.post(
           console.log('🔍 [TEAM-INVITATION] Starting email sending process...');
           console.log('🔍 [TEAM-INVITATION] Environment check - SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
           console.log('🔍 [TEAM-INVITATION] Environment check - SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL);
-          
+
           const invitationUrl = `${process.env.FRONTEND_URL || 'https://conductor.lansolver.com'}/accept-invitation?token=${invitationToken}`;
           console.log('🔍 [TEAM-INVITATION] Invitation URL generated:', invitationUrl);
-          
+
           const inviterName = authorizedReq.user!.firstName && authorizedReq.user!.lastName 
             ? `${authorizedReq.user!.firstName} ${authorizedReq.user!.lastName}` 
             : authorizedReq.user!.email;
-          
+
           console.log('🔍 [TEAM-INVITATION] Inviter name:', inviterName);
           console.log('🔍 [TEAM-INVITATION] Email parameters prepared, calling sendInvitationEmail...');
-          
+
           const emailResult = await sendInvitationEmail({
             to: email,
             invitationUrl: invitationUrl,
