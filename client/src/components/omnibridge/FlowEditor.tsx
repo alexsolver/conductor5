@@ -358,12 +358,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       console.log('🔄 [FLOW-SAVE] Error status:', error?.status);
       console.log('🔄 [FLOW-SAVE] Selected flow:', selectedFlow);
       
-      // Handle 404 error (flow not found) by creating a new flow
-      if (error?.message?.startsWith('404:') && selectedFlow) {
-        console.log('🔄 [FLOW-SAVE] Flow not found (404), creating new one...');
+      // Handle flow not found error by creating a new flow
+      if ((error?.message?.startsWith('404:') || error?.message?.startsWith('500:')) && 
+          error?.message?.includes('Flow not found') && selectedFlow) {
+        console.log('🔄 [FLOW-SAVE] Flow not found, creating new one...');
         createFlowMutation.mutate(selectedFlow);
       } else {
-        console.log('🔄 [FLOW-SAVE] Not a 404 error, showing error toast');
+        console.log('🔄 [FLOW-SAVE] Different error, showing error toast');
         toast({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar o flow',

@@ -47,7 +47,7 @@ const updateBotUseCase = new UpdateChatbotBotUseCase(botRepository);
 const deleteBotUseCase = new DeleteChatbotBotUseCase(botRepository);
 const toggleBotUseCase = new ToggleChatbotBotUseCase(botRepository);
 
-const createFlowUseCase = new CreateChatbotFlowUseCase(flowRepository);
+const createFlowUseCase = new CreateChatbotFlowUseCase(flowRepository, botRepository);
 const getFlowsUseCase = new GetChatbotFlowsUseCase(flowRepository, botRepository);
 const getFlowByIdUseCase = new GetChatbotFlowByIdUseCase(flowRepository);
 const updateFlowUseCase = new UpdateChatbotFlowUseCase(flowRepository, botRepository);
