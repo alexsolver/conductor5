@@ -524,7 +524,7 @@ export default function AutomationRuleBuilder({
         }));
       }
 
-      // Priority 2: Check for trigger.conditions (legacy format)
+      // Priority 3: Check for trigger.conditions (legacy format)
       else if (existingRule.trigger?.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
         console.log('🔧 [AutomationRuleBuilder] Found trigger conditions array with', existingRule.trigger.conditions.length, 'items');
         const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
@@ -549,7 +549,7 @@ export default function AutomationRuleBuilder({
         });
       }
 
-      // Priority 3: Single trigger object (minimal format)
+      // Priority 4: Single trigger object (minimal format)
       else if (existingRule.trigger && existingRule.trigger.type) {
         console.log('🔧 [AutomationRuleBuilder] Found single trigger object');
         const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type;
@@ -705,7 +705,7 @@ export default function AutomationRuleBuilder({
     setSelectedTrigger(trigger);
     setShowTriggerConfig(true);
   };
-  
+
   const handleActionSelect = (template: Omit<Action, 'id' | 'config'>) => {
     setSelectedAction({ ...template, id: `action_${Date.now()}`, config: {} });
     setShowActionConfig(true);
