@@ -55,7 +55,10 @@ import {
   RefreshCw,
   ExternalLink,
   Download,
-  Upload
+  Upload,
+  AlertTriangle,
+  CreditCard,
+  Link
 } from 'lucide-react';
 
 interface Trigger {
@@ -119,6 +122,57 @@ const triggerTemplates: Omit<Trigger, 'id' | 'config'>[] = [
     icon: AlertCircle,
     color: 'bg-red-500'
   },
+  // Novos triggers focados em chamados
+  {
+    type: 'ticket_keywords',
+    name: 'Palavras de chamado',
+    description: 'Detecta termos que indicam necessidade de chamado',
+    icon: Target,
+    color: 'bg-red-600'
+  },
+  {
+    type: 'complaint_detection',
+    name: 'Detecção de reclamação',
+    description: 'Identifica mensagens de reclamação',
+    icon: AlertTriangle,
+    color: 'bg-orange-600'
+  },
+  {
+    type: 'service_request',
+    name: 'Solicitação de serviço',
+    description: 'Detecta pedidos de suporte técnico',
+    icon: Settings,
+    color: 'bg-blue-600'
+  },
+  {
+    type: 'escalation_needed',
+    name: 'Necessita escalação',
+    description: 'Identifica casos que precisam de escalação',
+    icon: ArrowRight,
+    color: 'bg-purple-600'
+  },
+  {
+    type: 'customer_frustrated',
+    name: 'Cliente frustrado',
+    description: 'Detecta sinais de frustração do cliente',
+    icon: AlertCircle,
+    color: 'bg-red-700'
+  },
+  {
+    type: 'technical_issue',
+    name: 'Problema técnico',
+    description: 'Identifica questões técnicas',
+    icon: Cog,
+    color: 'bg-gray-600'
+  },
+  {
+    type: 'billing_inquiry',
+    name: 'Dúvida financeira',
+    description: 'Detecta questões sobre cobrança',
+    icon: CreditCard,
+    color: 'bg-green-600'
+  },
+  // Triggers existentes
   {
     type: 'sender',
     name: 'Remetente específico',
@@ -158,6 +212,64 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     icon: FileText,
     color: 'bg-green-500'
   },
+  // Novos nós focados em chamados
+  {
+    type: 'create_urgent_ticket',
+    name: 'Criar ticket urgente',
+    description: 'Cria ticket com prioridade alta',
+    icon: AlertCircle,
+    color: 'bg-red-600'
+  },
+  {
+    type: 'create_ticket_from_template',
+    name: 'Ticket por template',
+    description: 'Cria ticket usando template pré-definido',
+    icon: FileText,
+    color: 'bg-emerald-600'
+  },
+  {
+    type: 'assign_ticket_by_category',
+    name: 'Atribuir por categoria',
+    description: 'Atribui ticket baseado na categoria',
+    icon: Target,
+    color: 'bg-blue-600'
+  },
+  {
+    type: 'escalate_ticket',
+    name: 'Escalar chamado',
+    description: 'Escala ticket para supervisor',
+    icon: ArrowRight,
+    color: 'bg-orange-600'
+  },
+  {
+    type: 'set_ticket_sla',
+    name: 'Definir SLA',
+    description: 'Define tempo limite para resolução',
+    icon: Clock,
+    color: 'bg-yellow-600'
+  },
+  {
+    type: 'link_related_tickets',
+    name: 'Vincular tickets',
+    description: 'Vincula a tickets relacionados',
+    icon: Link,
+    color: 'bg-purple-600'
+  },
+  {
+    type: 'create_followup_task',
+    name: 'Criar follow-up',
+    description: 'Agenda tarefa de acompanhamento',
+    icon: Calendar,
+    color: 'bg-cyan-600'
+  },
+  {
+    type: 'notify_customer',
+    name: 'Notificar cliente',
+    description: 'Envia notificação ao cliente',
+    icon: MessageSquare,
+    color: 'bg-green-600'
+  },
+  // Ações existentes
   {
     type: 'send_notification',
     name: 'Enviar notificação',
