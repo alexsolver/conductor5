@@ -337,26 +337,17 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
     },
-    onError: async (error: any) => {
+    onError: (error: any) => {
       console.error('🔄 [FLOW-SAVE] Error saving flow:', error);
       
       // Handle 404 error (flow not found) by creating a new flow
-      try {
-        const response = await error;
-        if (response?.status === 404 && selectedFlow) {
-          console.log('🔄 [FLOW-SAVE] Flow not found (404), creating new one...');
-          createFlowMutation.mutate(selectedFlow);
-        } else {
-          toast({
-            title: 'Erro ao Salvar',
-            description: 'Não foi possível salvar o flow',
-            variant: 'destructive'
-          });
-        }
-      } catch (e) {
+      if (error?.message?.startsWith('404:') && selectedFlow) {
+        console.log('🔄 [FLOW-SAVE] Flow not found (404), creating new one...');
+        createFlowMutation.mutate(selectedFlow);
+      } else {
         toast({
           title: 'Erro ao Salvar',
-          description: 'Erro interno ao processar salvamento',
+          description: 'Não foi possível salvar o flow',
           variant: 'destructive'
         });
       }
