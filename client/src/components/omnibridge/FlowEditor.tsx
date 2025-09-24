@@ -325,7 +325,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   }, []);
 
   // Load complete flow data with nodes and edges when a flow is selected
-  const { data: completeFlowData, isLoading: loadingCompleteFlow, error: completeFlowError } = useQuery<{
+  const { data: completeFlowData, isLoading: isLoadingCompleteFlow, error: completeFlowError } = useQuery<{
     data: ChatbotFlow & {
       nodes: Array<{
         id: string;
@@ -617,13 +617,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         flowId: selectedFlowId,
         isTemporary: selectedFlowId.startsWith('flow_'),
         enabled: !!(selectedFlowId && !selectedFlowId.startsWith('flow_')),
-        isLoading: loadingCompleteFlow,
+        isLoading: isLoadingCompleteFlow,
         hasData: !!completeFlowData,
         hasError: !!completeFlowError,
         errorMsg: completeFlowError?.message
       });
     }
-  }, [selectedFlowId, loadingCompleteFlow, completeFlowData, completeFlowError]);
+  }, [selectedFlowId, isLoadingCompleteFlow, completeFlowData, completeFlowError]);
 
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
