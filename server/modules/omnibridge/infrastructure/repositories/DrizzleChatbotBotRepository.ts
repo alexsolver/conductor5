@@ -4,27 +4,26 @@ import {
   InsertChatbotBot, 
   UpdateChatbotBot,
   ChatbotBotWithFlows,
-  chatbotBots,
   chatbotFlows,
   chatbotNodes,
   chatbotEdges,
   chatbotVariables,
   chatbotBotChannels
 } from '../../../../../shared/schema-chatbot';
-import { db } from '../../../../../shared/schema';
+import { db, omnibridgeChatbots } from '../../../../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export class DrizzleChatbotBotRepository implements IChatbotBotRepository {
   async create(bot: InsertChatbotBot): Promise<SelectChatbotBot> {
-    const [createdBot] = await db.insert(chatbotBots).values(bot).returning();
+    const [createdBot] = await db.insert(omnibridgeChatbots).values(bot).returning();
     return createdBot;
   }
 
   async findById(id: string, tenantId: string): Promise<SelectChatbotBot | null> {
     const [bot] = await db
       .select()
-      .from(chatbotBots)
-      .where(and(eq(chatbotBots.id, id), eq(chatbotBots.tenantId, tenantId)))
+      .from(omnibridgeChatbots)
+      .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
       .limit(1);
     
     return bot || null;
@@ -33,30 +32,30 @@ export class DrizzleChatbotBotRepository implements IChatbotBotRepository {
   async findByTenant(tenantId: string): Promise<SelectChatbotBot[]> {
     return await db
       .select()
-      .from(chatbotBots)
-      .where(eq(chatbotBots.tenantId, tenantId))
-      .orderBy(desc(chatbotBots.createdAt));
+      .from(omnibridgeChatbots)
+      .where(eq(omnibridgeChatbots.tenantId, tenantId))
+      .orderBy(desc(omnibridgeChatbots.createdAt));
   }
 
   async findActiveByTenant(tenantId: string): Promise<SelectChatbotBot[]> {
     return await db
       .select()
-      .from(chatbotBots)
+      .from(omnibridgeChatbots)
       .where(and(
-        eq(chatbotBots.tenantId, tenantId),
-        eq(chatbotBots.isEnabled, true)
+        eq(omnibridgeChatbots.tenantId, tenantId),
+        eq(omnibridgeChatbots.isEnabled, true)
       ))
-      .orderBy(desc(chatbotBots.createdAt));
+      .orderBy(desc(omnibridgeChatbots.createdAt));
   }
 
   async update(id: string, tenantId: string, updates: UpdateChatbotBot): Promise<SelectChatbotBot | null> {
     const [updatedBot] = await db
-      .update(chatbotBots)
+      .update(omnibridgeChatbots)
       .set({
         ...updates,
         updatedAt: new Date()
       })
-      .where(and(eq(chatbotBots.id, id), eq(chatbotBots.tenantId, tenantId)))
+      .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)))
       .returning();
     
     return updatedBot || null;
@@ -64,20 +63,20 @@ export class DrizzleChatbotBotRepository implements IChatbotBotRepository {
 
   async delete(id: string, tenantId: string): Promise<boolean> {
     const result = await db
-      .delete(chatbotBots)
-      .where(and(eq(chatbotBots.id, id), eq(chatbotBots.tenantId, tenantId)));
+      .delete(omnibridgeChatbots)
+      .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)));
     
     return (result.rowCount || 0) > 0;
   }
 
   async toggleStatus(id: string, tenantId: string, isEnabled: boolean): Promise<boolean> {
     const result = await db
-      .update(chatbotBots)
+      .update(omnibridgeChatbots)
       .set({
         isEnabled,
         updatedAt: new Date()
       })
-      .where(and(eq(chatbotBots.id, id), eq(chatbotBots.tenantId, tenantId)));
+      .where(and(eq(omnibridgeChatbots.id, id), eq(omnibridgeChatbots.tenantId, tenantId)));
     
     return (result.rowCount || 0) > 0;
   }
@@ -113,30 +112,30 @@ export class DrizzleChatbotBotRepository implements IChatbotBotRepository {
     const whereConditions = [
       eq(chatbotBotChannels.channelId, channelId),
       eq(chatbotBotChannels.isEnabled, true),
-      eq(chatbotBots.isEnabled, true)
+      eq(omnibridgeChatbots.isEnabled, true)
     ];
 
     // CRITICAL SECURITY: Always filter by tenant when provided
     if (tenantId) {
-      whereConditions.push(eq(chatbotBots.tenantId, tenantId));
+      whereConditions.push(eq(omnibridgeChatbots.tenantId, tenantId));
     }
 
     return await db
       .select({
-        id: chatbotBots.id,
-        tenantId: chatbotBots.tenantId,
-        name: chatbotBots.name,
-        description: chatbotBots.description,
-        isEnabled: chatbotBots.isEnabled,
-        defaultLanguage: chatbotBots.defaultLanguage,
-        fallbackToHuman: chatbotBots.fallbackToHuman,
-        timeout: chatbotBots.timeout,
-        maxRetries: chatbotBots.maxRetries,
-        createdAt: chatbotBots.createdAt,
-        updatedAt: chatbotBots.updatedAt
+        id: omnibridgeChatbots.id,
+        tenantId: omnibridgeChatbots.tenantId,
+        name: omnibridgeChatbots.name,
+        description: omnibridgeChatbots.description,
+        isEnabled: omnibridgeChatbots.isEnabled,
+        defaultLanguage: omnibridgeChatbots.defaultLanguage,
+        fallbackToHuman: omnibridgeChatbots.fallbackToHuman,
+        timeout: omnibridgeChatbots.timeout,
+        maxRetries: omnibridgeChatbots.maxRetries,
+        createdAt: omnibridgeChatbots.createdAt,
+        updatedAt: omnibridgeChatbots.updatedAt
       })
-      .from(chatbotBots)
-      .leftJoin(chatbotBotChannels, eq(chatbotBots.id, chatbotBotChannels.botId))
+      .from(omnibridgeChatbots)
+      .leftJoin(chatbotBotChannels, eq(omnibridgeChatbots.id, chatbotBotChannels.botId))
       .where(and(...whereConditions))
       .orderBy(desc(chatbotBotChannels.priority));
   }

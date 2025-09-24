@@ -824,9 +824,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     try {
       // First, ensure the bot exists by trying to get it
-      const botCheckResult = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}`, {
-        method: 'GET'
-      });
+      const botCheckResult = await apiRequest('GET', `/api/omnibridge/chatbots/${selectedBot.id}`);
 
       if (!botCheckResult.ok) {
         console.error('❌ [FLOW-SAVE] Bot not found, creating bot first');
@@ -879,16 +877,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       // Always try to create a new flow if we don't have a selectedFlow or if it's a temporary flow
       if (!selectedFlow?.id || selectedFlow.id.startsWith('flow_')) {
         console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedBot.id);
-        result = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
-          method: 'POST',
-          data: completeFlowData
-        });
+        result = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, completeFlowData);
       } else {
         console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
-        result = await apiRequest(`/api/omnibridge/flows/${selectedFlow.id}`, {
-          method: 'PUT',
-          data: completeFlowData
-        });
+        result = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, completeFlowData);
       }
 
       console.log('🔄 [FLOW-SAVE] Response status:', result?.status, 'ok:', result?.ok);

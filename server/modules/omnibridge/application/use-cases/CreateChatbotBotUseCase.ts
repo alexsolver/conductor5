@@ -1,5 +1,6 @@
 import { IChatbotBotRepository } from '../../domain/repositories/IChatbotBotRepository';
 import { InsertChatbotBot, SelectChatbotBot } from '../../../../../shared/schema-chatbot';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface CreateChatbotBotRequest {
   tenantId: string;
@@ -16,6 +17,7 @@ export class CreateChatbotBotUseCase {
 
   async execute(request: CreateChatbotBotRequest): Promise<SelectChatbotBot> {
     const botData: InsertChatbotBot = {
+      id: uuidv4(),
       tenantId: request.tenantId,
       name: request.name,
       description: request.description || null,

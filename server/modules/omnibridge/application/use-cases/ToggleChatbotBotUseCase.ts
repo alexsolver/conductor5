@@ -13,13 +13,13 @@ export class ToggleChatbotBotUseCase {
     const { botId, tenantId } = request;
     
     // Get current bot state
-    const existingBot = await this.chatbotBotRepository.findById(botId);
+    const existingBot = await this.chatbotBotRepository.findById(botId, tenantId);
     if (!existingBot || existingBot.tenantId !== tenantId) {
       throw new Error('Bot not found');
     }
 
     // Toggle the isEnabled state
-    const updatedBot = await this.chatbotBotRepository.update(botId, {
+    const updatedBot = await this.chatbotBotRepository.update(botId, tenantId, {
       isEnabled: !existingBot.isEnabled
     });
 

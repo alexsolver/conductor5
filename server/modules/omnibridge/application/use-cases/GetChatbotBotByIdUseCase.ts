@@ -12,7 +12,7 @@ export class GetChatbotBotByIdUseCase {
   async execute(request: GetChatbotBotByIdRequest): Promise<SelectChatbotBot | null> {
     const { botId, tenantId } = request;
     
-    const bot = await this.chatbotBotRepository.findById(botId);
+    const bot = await this.chatbotBotRepository.findById(botId, tenantId);
     
     // SECURITY: Verify bot belongs to tenant
     if (!bot || bot.tenantId !== tenantId) {
