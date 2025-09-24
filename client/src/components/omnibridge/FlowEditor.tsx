@@ -333,13 +333,29 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   }, [searchTerm]);
 
   const handleDragStart = (e: React.DragEvent, nodeType: string) => {
+    console.log('🐛 [DRAG] Starting drag for node type:', nodeType);
     setDraggedNodeType(nodeType);
     e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', nodeType);
+    
+    // Add visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
   };
 
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!draggedNodeType || !canvasRef.current) return;
+    console.log('🐛 [DRAG] Drop event fired', {
+      draggedNodeType,
+      hasCanvasRef: !!canvasRef.current,
+      selectedFlow: selectedFlow?.id
+    });
+    
+    if (!draggedNodeType || !canvasRef.current) {
+      console.log('🐛 [DRAG] Drop failed - missing draggedNodeType or canvasRef');
+      return;
+    }
 
     const rect = canvasRef.current.getBoundingClientRect();
     const position = {
@@ -347,10 +363,14 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       y: (e.clientY - rect.top - canvasOffset.y) / zoom
     };
 
+    console.log('🐛 [DRAG] Drop position:', position);
+
     // Find node definition
     const nodeData = Object.values(NODE_CATEGORIES)
       .flatMap(cat => cat.nodes)
       .find(n => n.id === draggedNodeType);
+
+    console.log('🐛 [DRAG] Node data found:', nodeData);
 
     if (nodeData && selectedFlow) {
       const newNode: FlowNode = {
@@ -365,8 +385,16 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         isActive: true
       };
 
+      console.log('🐛 [DRAG] Creating new node:', newNode);
       setNodes(prev => [...prev, newNode]);
       setDraggedNodeType(null);
+      
+      toast({
+        title: 'Nó Adicionado',
+        description: `Nó ${nodeData.name} adicionado ao fluxo`
+      });
+    } else {
+      console.log('🐛 [DRAG] Failed to create node - missing nodeData or selectedFlow');
     }
   };
 
