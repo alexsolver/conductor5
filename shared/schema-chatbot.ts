@@ -104,13 +104,18 @@ export const chatbotFlows = pgTable('chatbot_flows', {
   id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   botId: varchar('bot_id', { length: 36 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
-  isActive: boolean('is_active').default(false).notNull(),
   description: text('description'),
+  nodes: jsonb('nodes').default([]).notNull(),
+  edges: jsonb('edges').default([]).notNull(),
+  variables: jsonb('variables').default([]).notNull(),
+  isActive: boolean('is_active').default(false).notNull(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  publishedAt: timestamp('published_at')
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 }, (table) => ({
   botIdx: index('chatbot_flows_bot_idx').on(table.botId),
   activeIdx: index('chatbot_flows_active_idx').on(table.botId, table.isActive),
+  tenantIdx: index('chatbot_flows_tenant_idx').on(table.tenantId),
   botIdFk: foreignKey({
     columns: [table.botId],
     foreignColumns: [omnibridgeChatbots.id]
