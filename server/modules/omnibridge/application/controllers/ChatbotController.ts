@@ -291,10 +291,16 @@ export class ChatbotController {
       console.log('🔧 [CONTROLLER] Validated data keys:', Object.keys(validatedData));
 
       // Create the request for the use case with tenantId separately
-      const createRequest: CreateChatbotFlowRequest = {
+      const createRequest = {
         tenantId, // Pass tenantId separately for validation, not for database insert
-        ...validatedData
+        botId: validatedData.botId,
+        name: validatedData.name,
+        description: validatedData.description,
+        isActive: validatedData.isActive,
+        settings: validatedData.settings || {}
       };
+
+      console.log('🔧 [CONTROLLER] Final createRequest:', createRequest);
 
       const flow = await this.createFlowUseCase.execute(createRequest);
 
