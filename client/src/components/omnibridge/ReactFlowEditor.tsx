@@ -21,7 +21,7 @@ import {
   ArrowRight, Workflow, Plug, HelpCircle, Info, AlertTriangle, ZoomIn,
   ZoomOut, Home, Star, BarChart, Lightbulb, MessageCircle, Grid3X3, Move,
   RotateCcw, ChevronRight, ChevronDown, Focus, Maximize2, Minimize2,
-  PanTool, Hand
+  Hand
 } from 'lucide-react';
 import NodeConfigForm from './NodeConfigForm';
 
@@ -285,24 +285,33 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
       setSelectedFlow(flow);
       
       // Convert nodes to ReactFlow format
-      const reactFlowNodes: ReactFlowNode[] = (flow.nodes || []).map((node: any) => ({
-        id: node.id,
-        type: 'custom',
-        position: node.position || { x: 0, y: 0 },
-        data: {
-          label: node.title || node.name || 'Untitled Node',
-          title: node.title || node.name || 'Untitled Node',
-          description: node.description || '',
-          config: node.config || {},
-          nodeType: node.type,
-          category: node.category,
-          isStart: node.isStart || false,
-          isEnd: node.isEnd || false,
-          isEnabled: node.isEnabled !== false
-        },
-        selected: false,
-        dragging: false
-      }));
+      const reactFlowNodes: ReactFlowNode[] = (flow.nodes || []).map((node: any) => {
+        // Find the node type data from NODE_CATEGORIES
+        let nodeTypeData = null;
+        for (const category of Object.values(NODE_CATEGORIES)) {
+          nodeTypeData = category.nodes.find(n => n.id === node.type);
+          if (nodeTypeData) break;
+        }
+        
+        return {
+          id: node.id,
+          type: 'custom',
+          position: node.position || { x: 0, y: 0 },
+          data: {
+            label: nodeTypeData?.name || node.title || node.name || 'Untitled Node',
+            title: nodeTypeData?.name || node.title || node.name || 'Untitled Node',
+            description: nodeTypeData?.description || node.description || 'No description',
+            config: node.config || {},
+            nodeType: node.type,
+            category: node.category || getNodeCategory(node.type),
+            isStart: node.isStart || false,
+            isEnd: node.isEnd || false,
+            isEnabled: node.isEnabled !== false
+          },
+          selected: false,
+          dragging: false
+        };
+      });
 
       // Convert edges to ReactFlow format
       const reactFlowEdges: ReactFlowEdge[] = (flow.edges || []).map((edge: any) => ({
@@ -440,8 +449,8 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
         config: {},
         nodeType: nodeType,
         category: getNodeCategory(nodeType),
-        isStart: false,
-        isEnd: false,
+        isStart: nodeType.includes('trigger'),
+        isEnd: nodeType.includes('end'),
         isEnabled: true
       },
       selected: false,
@@ -604,6 +613,12 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
       .flatMap(category => category.nodes)
       .find(nt => nt.id === data.nodeType);
     const IconComponent = nodeType?.icon || Bot;
+    
+    // Get category for styling
+    const categoryKey = Object.keys(NODE_CATEGORIES).find(key => 
+      NODE_CATEGORIES[key as keyof typeof NODE_CATEGORIES].nodes.some(n => n.id === data.nodeType)
+    );
+    const category = categoryKey ? NODE_CATEGORIES[categoryKey as keyof typeof NODE_CATEGORIES] : null;
 
     return (
       <div
@@ -617,9 +632,17 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
           <div className="flex items-center space-x-2">
             <IconComponent className="h-4 w-4" />
             <span className="text-sm font-semibold truncate">
-              {data.title || data.label}
+              {data.title || data.label || nodeType?.name || 'Untitled Node'}
             </span>
           </div>
+          {/* Category badge */}
+          {category && (
+            <div className="mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {category.name}
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Node Body */}
@@ -629,12 +652,26 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
           </div>
           
           {/* Configuration indicator */}
-          {Object.keys(selectedNodeConfig[id] || {}).length > 0 && (
+          {Object.keys(selectedNodeConfig[id] || data.config || {}).length > 0 && (
             <div className="mt-2 flex items-center space-x-1">
               <Settings className="h-3 w-3 text-green-600" />
               <span className="text-xs text-green-600">Configurado</span>
             </div>
           )}
+          
+          {/* Special indicators */}
+          <div className="mt-2 flex items-center space-x-2">
+            {data.isStart && (
+              <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+                Início
+              </Badge>
+            )}
+            {data.isEnd && (
+              <Badge variant="outline" className="text-xs text-red-600 border-red-300">
+                Fim
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Handles */}
@@ -978,7 +1015,9 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
                 nodes.find(n => n.id === selectedNodeForConfig)?.data?.config ||
                 {}
               }
-              onSave={handleNodeConfigSave}
+              onSave={(nodeId: string, newConfig: Record<string, any>) => 
+                handleNodeConfigSave(nodeId, newConfig)
+              }
               onCancel={() => {
                 setShowNodeConfig(false);
                 setSelectedNodeForConfig(null);
