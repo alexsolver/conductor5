@@ -27,7 +27,7 @@ export class UpdateChatbotFlowUseCase {
     const { flowId, tenantId, ...updateData } = request;
 
     // Verify flow exists
-    const existingFlow = await this.chatbotFlowRepository.findById(flowId);
+    const existingFlow = await this.chatbotFlowRepository.findById(flowId, tenantId);
     if (!existingFlow) {
       throw new Error('Flow not found');
     }

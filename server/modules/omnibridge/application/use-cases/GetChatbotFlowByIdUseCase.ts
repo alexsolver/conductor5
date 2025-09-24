@@ -10,9 +10,9 @@ export class GetChatbotFlowByIdUseCase {
   constructor(private chatbotFlowRepository: IChatbotFlowRepository) {}
 
   async execute(request: GetChatbotFlowByIdRequest): Promise<SelectChatbotFlow | null> {
-    const { flowId } = request;
+    const { flowId, tenantId } = request;
     
-    const flow = await this.chatbotFlowRepository.findById(flowId);
+    const flow = await this.chatbotFlowRepository.findById(flowId, tenantId);
     
     // Tenant isolation is handled by schema-level separation
     if (!flow) {
