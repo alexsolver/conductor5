@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useTranslation } from 'react-i18next';
-import FlowEditor from './FlowEditor';
+import ReactFlowEditor from './ReactFlowEditor';
 import {
   Bot, MessageSquare, Plus, Save, Play, Trash2, Settings, Eye, Copy, Download, Upload,
   Edit, Pause, Workflow, Users, Calendar, Mail, Phone, Globe, Database, Brain, 
@@ -196,7 +196,7 @@ export default function ChatbotManager() {
 
   if (selectedView === 'flow-editor' && selectedBot) {
     return (
-      <FlowEditor 
+      <ReactFlowEditor 
         botId={selectedBot.id} 
         onClose={handleBackToList}
       />

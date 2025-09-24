@@ -63,7 +63,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
-import FlowEditor from '@/components/omnibridge/FlowEditor';
+import ReactFlowEditor from '@/components/omnibridge/ReactFlowEditor';
 import ChatbotManager from '@/components/omnibridge/ChatbotManager';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 
