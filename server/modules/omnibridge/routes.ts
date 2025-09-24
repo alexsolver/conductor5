@@ -128,7 +128,7 @@ import { UpdateAutomationRuleUseCase } from './application/use-cases/UpdateAutom
 import { DeleteAutomationRuleUseCase } from './application/use-cases/DeleteAutomationRuleUseCase';
 import { ExecuteAutomationRuleUseCase } from './application/use-cases/ExecuteAutomationRuleUseCase';
 import { AutomationController } from './application/controllers/AutomationController';
-import { ChatbotController } from './application/controllers/ChatbotController';
+import { chatbotRoutes } from './chatbot-routes';
 
 
 // Initialize Automation repositories and use cases
@@ -148,8 +148,8 @@ const automationController = new AutomationController(
   executeAutomationRuleUseCase
 );
 
-// Initialize Chatbot controller
-const chatbotController = new ChatbotController();
+// Use dedicated chatbot routes
+router.use('/', chatbotRoutes);
 
 
 // Automation rules routes
@@ -159,12 +159,7 @@ router.put('/automation-rules/:ruleId', jwtAuth, (req, res) => automationControl
 router.delete('/automation-rules/:ruleId', jwtAuth, (req, res) => automationController.deleteRule(req, res));
 router.post('/automation-rules/:ruleId/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
 
-// Chatbot routes
-router.get('/chatbots', jwtAuth, (req, res) => chatbotController.getChatbots(req, res));
-router.post('/chatbots', jwtAuth, (req, res) => chatbotController.createChatbot(req, res));
-router.put('/chatbots/:id', jwtAuth, (req, res) => chatbotController.updateChatbot(req, res));
-router.delete('/chatbots/:id', jwtAuth, (req, res) => chatbotController.deleteChatbot(req, res));
-router.post('/chatbots/:id/toggle', jwtAuth, (req, res) => chatbotController.toggleChatbot(req, res));
+// Chatbot routes are now imported from ./chatbot-routes.ts
 
 // Test chatbot without saving (preview mode)
 router.post('/chatbots/test', jwtAuth, async (req, res) => {
