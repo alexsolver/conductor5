@@ -205,4 +205,43 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       lastExecuted: stats.lastExecuted || undefined
     };
   }
+
+  async saveCompleteFlow(flowId: string, nodes: any[], edges: any[]): Promise<boolean> {
+    try {
+      // Start transaction to save nodes and edges
+      await db.transaction(async (tx) => {
+        // Clear existing nodes and edges
+        await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
+        await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
+
+        // Insert new nodes if any
+        if (nodes.length > 0) {
+          await tx.insert(chatbotNodes).values(
+            nodes.map(node => ({
+              ...node,
+              flowId,
+              position: JSON.stringify(node.position),
+              config: JSON.stringify(node.config || {}),
+            }))
+          );
+        }
+
+        // Insert new edges if any
+        if (edges.length > 0) {
+          await tx.insert(chatbotEdges).values(
+            edges.map(edge => ({
+              ...edge,
+              flowId,
+              metadata: JSON.stringify(edge.metadata || {})
+            }))
+          );
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error saving complete flow:', error);
+      return false;
+    }
+  }
 }

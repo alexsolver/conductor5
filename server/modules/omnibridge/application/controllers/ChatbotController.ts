@@ -87,7 +87,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const bots = await this.getBotsUseCase.execute({ tenantId });
-      
+
       res.json({
         success: true,
         data: bots
@@ -104,7 +104,7 @@ export class ChatbotController {
   async createBot(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = this.getTenantId(req);
-      
+
       // Validate request body using Zod schema
       const validatedData = insertChatbotBotSchema.parse({
         ...req.body,
@@ -112,7 +112,7 @@ export class ChatbotController {
       });
 
       const bot = await this.createBotUseCase.execute(validatedData);
-      
+
       res.status(201).json({
         success: true,
         data: bot,
@@ -139,10 +139,10 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       // Get bot with tenant validation using dedicated use case
       const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
-      
+
       if (!bot) {
         res.status(404).json({
           success: false,
@@ -150,7 +150,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         data: bot
@@ -168,7 +168,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = updateChatbotBotSchema.parse(req.body);
 
@@ -177,7 +177,7 @@ export class ChatbotController {
         tenantId,
         ...validatedData
       });
-      
+
       res.json({
         success: true,
         data: updatedBot,
@@ -204,9 +204,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       const success = await this.deleteBotUseCase.execute({ botId, tenantId });
-      
+
       if (!success) {
         res.status(404).json({
           success: false,
@@ -214,7 +214,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         message: 'Bot deleted successfully'
@@ -232,9 +232,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       const updatedBot = await this.toggleBotUseCase.execute({ botId, tenantId });
-      
+
       res.json({
         success: true,
         data: updatedBot,
@@ -254,9 +254,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       const flows = await this.getFlowsUseCase.execute({ botId, tenantId });
-      
+
       res.json({
         success: true,
         data: flows
@@ -274,7 +274,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = insertChatbotFlowSchema.parse({
         ...req.body,
@@ -283,7 +283,7 @@ export class ChatbotController {
       });
 
       const flow = await this.createFlowUseCase.execute(validatedData);
-      
+
       res.status(201).json({
         success: true,
         data: flow,
@@ -310,10 +310,10 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       // Get flow with tenant validation using dedicated use case
       const flow = await this.getFlowByIdUseCase.execute({ flowId, tenantId });
-      
+
       if (!flow) {
         res.status(404).json({
           success: false,
@@ -321,7 +321,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         data: flow
@@ -339,7 +339,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = updateChatbotFlowSchema.parse(req.body);
 
@@ -348,7 +348,7 @@ export class ChatbotController {
         tenantId,
         ...validatedData
       });
-      
+
       res.json({
         success: true,
         data: updatedFlow,
@@ -375,9 +375,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       const success = await this.deleteFlowUseCase.execute({ flowId, tenantId });
-      
+
       if (!success) {
         res.status(404).json({
           success: false,
@@ -385,7 +385,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         message: 'Flow deleted successfully'
@@ -404,7 +404,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = insertChatbotNodeSchema.parse({
         ...req.body,
@@ -413,7 +413,7 @@ export class ChatbotController {
       });
 
       const node = await this.createNodeUseCase.execute(validatedData);
-      
+
       res.status(201).json({
         success: true,
         data: node,
@@ -440,7 +440,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { nodeId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = updateChatbotNodeSchema.parse(req.body);
 
@@ -449,7 +449,7 @@ export class ChatbotController {
         tenantId,
         ...validatedData
       });
-      
+
       res.json({
         success: true,
         data: updatedNode,
@@ -476,9 +476,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { nodeId } = req.params;
-      
+
       const success = await this.deleteNodeUseCase.execute({ nodeId, tenantId });
-      
+
       if (!success) {
         res.status(404).json({
           success: false,
@@ -486,7 +486,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         message: 'Node deleted successfully'
@@ -505,7 +505,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       // Validate request body using Zod schema
       const validatedData = insertChatbotEdgeSchema.parse({
         ...req.body,
@@ -514,7 +514,7 @@ export class ChatbotController {
       });
 
       const edge = await this.createEdgeUseCase.execute(validatedData);
-      
+
       res.status(201).json({
         success: true,
         data: edge,
@@ -541,9 +541,9 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { edgeId } = req.params;
-      
+
       const success = await this.deleteEdgeUseCase.execute({ edgeId, tenantId });
-      
+
       if (!success) {
         res.status(404).json({
           success: false,
@@ -551,7 +551,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         message: 'Edge deleted successfully'
@@ -569,7 +569,7 @@ export class ChatbotController {
   async processMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = this.getTenantId(req);
-      
+
       // Validate request body using Zod schema
       const validatedData = processMessageSchema.parse(req.body);
 
@@ -577,15 +577,10 @@ export class ChatbotController {
         ...validatedData,
         tenantId
       });
-      
+
       res.json({
-        success: result.success,
-        data: {
-          executionId: result.executionId,
-          responses: result.responses,
-          fallbackToHuman: result.fallbackToHuman
-        },
-        error: result.error
+        success: true,
+        data: result
       });
     } catch (error) {
       console.error('Error processing message:', error);
@@ -604,13 +599,53 @@ export class ChatbotController {
     }
   }
 
+  async saveCompleteFlow(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = this.getTenantId(req);
+      const { flowId } = req.params;
+      const { nodes = [], edges = [] } = req.body;
+
+      // Verify flow exists and belongs to tenant
+      const flow = await this.getFlowByIdUseCase.execute({ flowId, tenantId });
+
+      if (!flow) {
+        res.status(404).json({
+          success: false,
+          error: 'Flow not found'
+        });
+        return;
+      }
+
+      const success = await this.updateFlowUseCase['chatbotFlowRepository'].saveCompleteFlow(flowId, nodes, edges);
+
+      if (!success) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to save flow'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Flow saved successfully'
+      });
+    } catch (error) {
+      console.error('Error saving complete flow:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save flow'
+      });
+    }
+  }
+
   // Execution management
   async getExecution(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { executionId } = req.params;
-      
+
       const execution = await this.processMessageUseCase.getExecution(executionId);
-      
+
       if (!execution) {
         res.status(404).json({
           success: false,
@@ -618,7 +653,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         data: execution
@@ -635,9 +670,9 @@ export class ChatbotController {
   async cancelExecution(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { executionId } = req.params;
-      
+
       const success = await this.processMessageUseCase.cancelExecution(executionId);
-      
+
       if (!success) {
         res.status(404).json({
           success: false,
@@ -645,7 +680,7 @@ export class ChatbotController {
         });
         return;
       }
-      
+
       res.json({
         success: true,
         message: 'Execution cancelled successfully'
@@ -664,7 +699,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
-      
+
       // TODO: Implement actual analytics use case
       res.json({
         success: true,
@@ -691,7 +726,7 @@ export class ChatbotController {
   async getTenantAnalytics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = this.getTenantId(req);
-      
+
       // TODO: Implement actual analytics use case
       res.json({
         success: true,
@@ -719,7 +754,7 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
-      
+
       // TODO: Implement actual flow validation use case
       res.json({
         success: true,

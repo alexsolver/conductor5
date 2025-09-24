@@ -50,7 +50,7 @@ const toggleBotUseCase = new ToggleChatbotBotUseCase(botRepository);
 const createFlowUseCase = new CreateChatbotFlowUseCase(flowRepository);
 const getFlowsUseCase = new GetChatbotFlowsUseCase(flowRepository, botRepository);
 const getFlowByIdUseCase = new GetChatbotFlowByIdUseCase(flowRepository);
-const updateFlowUseCase = new UpdateChatbotFlowUseCase(flowRepository);
+const updateFlowUseCase = new UpdateChatbotFlowUseCase(flowRepository, botRepository);
 const deleteFlowUseCase = new DeleteChatbotFlowUseCase(flowRepository);
 
 const createNodeUseCase = new CreateChatbotNodeUseCase(nodeRepository);
@@ -165,6 +165,11 @@ router.get('/chatbots/:botId/analytics', jwtAuth, chatbotController.getBotAnalyt
 
 // Get tenant-level analytics
 router.get('/chatbots/analytics/tenant', jwtAuth, chatbotController.getTenantAnalytics.bind(chatbotController));
+
+// ===== FLOW SAVE ROUTES =====
+
+// Save complete flow with nodes and edges
+router.put('/flows/:flowId/complete', jwtAuth, chatbotController.saveCompleteFlow.bind(chatbotController));
 
 // ===== VALIDATION ROUTES =====
 

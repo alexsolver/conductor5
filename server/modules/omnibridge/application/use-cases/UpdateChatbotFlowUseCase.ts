@@ -1,5 +1,6 @@
 import { IChatbotFlowRepository } from '../../domain/repositories/IChatbotFlowRepository';
-import { SelectChatbotFlow, InsertChatbotFlow } from '../../../../../shared/schema-chatbot';
+import { IChatbotBotRepository } from '../../domain/repositories/IChatbotBotRepository';
+import { SelectChatbotFlow, UpdateChatbotFlow } from '../../../../../shared/schema-chatbot';
 
 interface UpdateChatbotFlowRequest {
   flowId: string;
@@ -13,15 +14,24 @@ interface UpdateChatbotFlowRequest {
 }
 
 export class UpdateChatbotFlowUseCase {
-  constructor(private chatbotFlowRepository: IChatbotFlowRepository) {}
+  constructor(
+    private chatbotFlowRepository: IChatbotFlowRepository,
+    private chatbotBotRepository: IChatbotBotRepository
+  ) {}
 
   async execute(request: UpdateChatbotFlowRequest): Promise<SelectChatbotFlow> {
     const { flowId, tenantId, ...updateData } = request;
     
-    // Verify flow exists and belongs to tenant
+    // Verify flow exists
     const existingFlow = await this.chatbotFlowRepository.findById(flowId);
-    if (!existingFlow || existingFlow.tenantId !== tenantId) {
+    if (!existingFlow) {
       throw new Error('Flow not found');
+    }
+
+    // Verify bot belongs to tenant
+    const bot = await this.chatbotBotRepository.findById(existingFlow.botId, tenantId);
+    if (!bot) {
+      throw new Error('Flow not found or access denied');
     }
 
     const updatedFlow = await this.chatbotFlowRepository.update(flowId, updateData);

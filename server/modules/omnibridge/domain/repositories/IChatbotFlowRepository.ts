@@ -36,4 +36,7 @@ export interface IChatbotFlowRepository {
     averageDuration: number;
     lastExecuted?: Date;
   }>;
+
+  // Complete flow management
+  saveCompleteFlow(flowId: string, nodes: any[], edges: any[]): Promise<boolean>;
 }
