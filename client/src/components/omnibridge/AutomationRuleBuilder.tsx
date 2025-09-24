@@ -870,8 +870,8 @@ export default function AutomationRuleBuilder({
         </DialogHeader>
         <div className="flex h-full">
           {/* Left Sidebar - Templates */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                 Criador de Regras
               </h3>
@@ -880,8 +880,8 @@ export default function AutomationRuleBuilder({
               </p>
             </div>
 
-            <ScrollArea className="h-[calc(100%-80px)]">
-              <div className="p-4 space-y-6">
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-6 h-full">
                 {/* Triggers Section */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
