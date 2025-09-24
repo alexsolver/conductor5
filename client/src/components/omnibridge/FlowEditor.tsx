@@ -296,6 +296,38 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [selectedFlowId, setSelectedFlowId] = useState<string | undefined>(undefined);
   const [selectedChatbot, setSelectedChatbot] = useState<ChatbotBot | null>(null); // State for the selected bot
 
+  // Bot data query
+  const {
+    data: botData,
+    isLoading: isLoadingBot,
+    error: botError
+  } = useQuery({
+    queryKey: ['chatbot-bot', botId],
+    queryFn: async () => {
+      if (!botId) return null;
+      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}`);
+      if (!response.ok) throw new Error('Failed to fetch bot');
+      return response.json();
+    },
+    enabled: !!botId
+  });
+
+  // Bot flows query
+  const {
+    data: botFlows,
+    isLoading: isLoadingFlows,
+    error: flowsError
+  } = useQuery({
+    queryKey: ['chatbot-flows', botId],
+    queryFn: async () => {
+      if (!botId) return null;
+      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}/flows`);
+      if (!response.ok) throw new Error('Failed to fetch flows');
+      return response.json();
+    },
+    enabled: !!botId
+  });
+
   // Flow query with proper error handling
   const {
     data: completeFlowData,
