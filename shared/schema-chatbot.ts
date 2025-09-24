@@ -115,11 +115,7 @@ export const chatbotFlows = pgTable('chatbot_flows', {
 }, (table) => ({
   botIdx: index('chatbot_flows_bot_idx').on(table.botId),
   activeIdx: index('chatbot_flows_active_idx').on(table.botId, table.isActive),
-  tenantIdx: index('chatbot_flows_tenant_idx').on(table.tenantId),
-  botIdFk: foreignKey({
-    columns: [table.botId],
-    foreignColumns: [chatbotBots.id]
-  }).onDelete('cascade')
+  tenantIdx: index('chatbot_flows_tenant_idx').on(table.tenantId)
 }));
 
 // Individual nodes in flows

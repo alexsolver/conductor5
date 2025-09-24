@@ -849,7 +849,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       }
 
       // Prepare the complete flow data including nodes and edges
-      const completeFlowData = {
+      const completeFlowDataToSave = {
         name: flowData?.name || selectedFlow?.name || 'Fluxo Principal',
         description: flowData?.description || selectedFlow?.description || 'Fluxo padrão do chatbot',
         isActive: flowData?.isActive !== undefined ? flowData.isActive : (selectedFlow?.isActive !== undefined ? selectedFlow.isActive : true),
@@ -884,39 +884,72 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         } : null
       });
 
-      let result;
+      let response;
 
-      // Always try to create a new flow if we don't have a selectedFlow or if it's a temporary flow
+      // If it's a new flow (temporary ID or no ID)
       if (!selectedFlow?.id || selectedFlow.id.startsWith('flow_')) {
+        // Prepare nodes and edges for creation payload
+        const preparedNodes = nodes.map(node => ({
+          id: node.id,
+          flowId: selectedFlowId,
+          name: node.data?.label || node.label || 'Untitled Node',
+          type: node.type,
+          category: node.data?.category || 'actions',
+          position: node.position,
+          configuration: node.data || {},
+          metadata: {},
+          isActive: true
+        }));
+
+        const preparedEdges = edges.map(edge => ({
+          id: edge.id,
+          flowId: selectedFlowId,
+          sourceNodeId: edge.source,
+          targetNodeId: edge.target,
+          metadata: {}
+        }));
+
+        // Create new flow for bot
         console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedBot.id);
-        result = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, completeFlowData);
-      } else {
-        console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
-        result = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, completeFlowData);
-      }
 
-      console.log('🔄 [FLOW-SAVE] Response status:', result?.status, 'ok:', result?.ok);
-
-      if (!result.ok) {
-        const errorText = await result.text();
-        console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { error: errorText };
-        }
-
-        toast({
-          title: "Erro ao salvar",
-          description: errorData?.error || 'Erro desconhecido ao salvar fluxo',
-          variant: "destructive"
+        response = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: selectedFlowId,
+            name: 'Fluxo Principal',
+            description: 'Fluxo padrão do chatbot',
+            isActive: true,
+            nodes: preparedNodes || [],
+            edges: preparedEdges || [],
+            variables: []
+          })
         });
-        return;
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
+          throw new Error(`Failed to create flow: ${response.status} ${errorText}`);
+        }
+        const createdFlow = await response.json();
+        console.log('🔄 [FLOW-SAVE] Created flow data:', createdFlow.data);
+        setSelectedFlow(createdFlow.data);
+        setSelectedFlowId(createdFlow.data.id); // Update selectedFlowId
+      } else {
+        // Update existing flow
+        console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
+        response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, completeFlowDataToSave);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
+          throw new Error(`${response.status}: ${errorText}`);
+        }
       }
 
-      const responseData = await result.json();
+      const responseData = await response.json();
       console.log('🔄 [FLOW-SAVE] Success response:', responseData);
 
       toast({
@@ -925,20 +958,25 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         variant: "default"
       });
 
-      // Update selectedFlow if we got new data
+      // Update selectedFlow with the latest data if available
       if (responseData?.data) {
         setSelectedFlow(responseData.data);
         setSelectedFlowId(responseData.data.id); // Ensure selectedFlowId is updated
+      } else if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
+        // If response doesn't contain data but it was an update, refresh the query
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/flows', selectedFlow.id] });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [FLOW-SAVE] Exception during save:', error);
 
       toast({
         title: "Erro",
-        description: "Erro ao salvar fluxo. Tente novamente.",
+        description: error.message || "Erro ao salvar fluxo. Tente novamente.",
         variant: "destructive"
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -967,7 +1005,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         </div>
         <div className="flex items-center space-x-3">
           <Button
-            onClick={() => handleSaveFlow({ name: selectedFlow?.name, description: selectedFlow?.description, isActive: selectedFlow?.isActive })}
+            onClick={() => {
+              setSaving(true);
+              handleSaveFlow({ name: selectedFlow?.name, description: selectedFlow?.description, isActive: selectedFlow?.isActive });
+            }}
             disabled={!selectedFlow || saving}
             data-testid="button-save-flow"
           >

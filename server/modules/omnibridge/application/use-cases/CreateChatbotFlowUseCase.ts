@@ -3,12 +3,14 @@ import { IChatbotBotRepository } from '../../domain/repositories/IChatbotBotRepo
 import { InsertChatbotFlow, SelectChatbotFlow } from '../../../../../shared/schema-chatbot';
 
 export interface CreateChatbotFlowRequest {
-  tenantId: string; // For validation, not for database insert
+  tenantId: string;
   botId: string;
-  id?: string; // Optional custom ID
   name: string;
   description?: string;
   isActive?: boolean;
+  nodes?: any[];
+  edges?: any[];
+  variables?: any[];
 }
 
 export class CreateChatbotFlowUseCase {
@@ -17,34 +19,36 @@ export class CreateChatbotFlowUseCase {
     private chatbotBotRepository: IChatbotBotRepository
   ) {}
 
-  async execute(request: CreateChatbotFlowRequest & { id?: string }): Promise<SelectChatbotFlow> {
-    const { botId, tenantId, id, ...flowData } = request;
+  async execute(request: CreateChatbotFlowRequest): Promise<SelectChatbotFlow> {
+    const { tenantId, botId, name, description, isActive = false, nodes = [], edges = [], variables = [] } = request;
 
-    console.log('🔧 [USE-CASE] Creating flow:', { botId, tenantId, id, flowData });
+    console.log('🔄 [USE-CASE] CreateChatbotFlow executing with:', { tenantId, botId, name, description, isActive });
 
-    // Verify bot belongs to tenant
+    // Verify bot exists and belongs to tenant
     const bot = await this.chatbotBotRepository.findById(botId, tenantId);
     if (!bot) {
+      console.log('❌ [USE-CASE] Bot not found:', { botId, tenantId });
       throw new Error('Bot not found or access denied');
     }
 
     console.log('✅ [USE-CASE] Bot verified:', { botId: bot.id, botName: bot.name });
 
-    const flowToCreate = {
+    const flowData: InsertChatbotFlow & { tenantId: string } = {
       botId,
-      tenantId, // ✅ Include tenantId for tenant-specific repository
-      ...flowData
+      name,
+      description,
+      nodes,
+      edges,
+      variables,
+      isActive,
+      tenantId // Pass tenantId for repository to use correct schema
     };
 
-    // Include custom ID if provided
-    if (id) {
-      (flowToCreate as any).id = id;
-      console.log('🆔 [USE-CASE] Using custom flow ID:', id);
-    }
+    console.log('🔧 [USE-CASE] Creating flow with data:', flowData);
 
-    console.log('🔧 [USE-CASE] Passing data to repository with tenantId:', { ...flowToCreate, hasCustomId: !!id });
-    const flow = await this.chatbotFlowRepository.create(flowToCreate);
-    console.log('✅ [USE-CASE] Flow created successfully:', flow.id);
+    const flow = await this.chatbotFlowRepository.create(flowData);
+
+    console.log('✅ [USE-CASE] Flow created successfully:', { flowId: flow.id, flowName: flow.name });
 
     return flow;
   }

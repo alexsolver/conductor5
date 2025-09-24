@@ -49,9 +49,12 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       // Get tenant-specific database connection
       const tenantDb = await this.getTenantDb(flow.tenantId);
       
+      // Remove tenantId from flow data as it's not part of the table schema
+      const { tenantId: _, ...flowData } = flow;
+      
       // Ensure we have all required fields
       const flowToInsert = {
-        ...flow,
+        ...flowData,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -63,6 +66,8 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       }
       
       console.log('🔧 [REPOSITORY] Using tenant database for schema:', this.getSchemaName(flow.tenantId));
+      console.log('🔧 [REPOSITORY] Flow data to insert:', flowToInsert);
+      
       const [createdFlow] = await tenantDb.insert(chatbotFlows).values(flowToInsert).returning();
       console.log('✅ [REPOSITORY] Flow created successfully in tenant schema:', {
         id: createdFlow.id,
@@ -75,6 +80,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     } catch (error) {
       console.error('❌ [REPOSITORY] Error creating flow:', {
         error: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
         flowData: flow,
         timestamp: new Date().toISOString()
       });

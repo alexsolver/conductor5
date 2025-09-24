@@ -303,7 +303,7 @@ export class ChatbotController {
       // Remove tenantId from request body since it's not part of flow table
       const { tenantId: _, ...bodyWithoutTenantId } = req.body;
 
-      // Validate request body using Zod schema (without tenantId since it's not part of flow table)
+      // Validate request body using Zod schema
       const validatedData = insertChatbotFlowSchema.parse({
         ...bodyWithoutTenantId,
         botId
@@ -312,12 +312,15 @@ export class ChatbotController {
       console.log('🔧 [CONTROLLER] Validated data keys:', Object.keys(validatedData));
 
       // Create the request for the use case with tenantId separately
-      const createRequest = {
-        tenantId, // Pass tenantId separately for validation, not for database insert
+      const createRequest: CreateChatbotFlowRequest = {
+        tenantId,
         botId: validatedData.botId,
         name: validatedData.name,
         description: validatedData.description,
-        isActive: validatedData.isActive
+        isActive: validatedData.isActive || false,
+        nodes: validatedData.nodes || [],
+        edges: validatedData.edges || [],
+        variables: validatedData.variables || []
       };
 
       console.log('🔧 [CONTROLLER] Final createRequest:', createRequest);
@@ -330,7 +333,7 @@ export class ChatbotController {
         message: 'Flow created successfully'
       });
     } catch (error) {
-      console.error('Error creating flow:', error);
+      console.error('❌ [CONTROLLER] Error creating flow:', error);
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
