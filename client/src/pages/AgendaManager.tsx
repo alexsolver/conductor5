@@ -499,7 +499,7 @@ const AgendaManager: React.FC = () => {
       </Card>
 
       {/* Main Layout */}
-      <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="flex-1 overflow-hidden">
         {view === 'timeline' ? (
           <TimelineScheduleGrid
             schedules={combinedAgendaItems as Schedule[]}
