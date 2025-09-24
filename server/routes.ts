@@ -96,6 +96,9 @@ import technicalSkillsRoutes from "./modules/technical-skills/routes";
 // TenantTemplateService - required for copy hierarchy functionality
 import { TenantTemplateService } from "./services/TenantTemplateService";
 
+// Import internal-forms routes
+import internalFormsRoutes from './modules/internal-forms/routes';
+
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
 );
@@ -3593,6 +3596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // app.use('/api/geolocation', geolocationRoutes); // Temporarily disabled due to module export issue
 
   // app.use('/api/internal-forms', internalFormsRoutes); // Temporarily removed
+  // Register internal-forms routes
+  app.use('/api/internal-forms', internalFormsRoutes);
+
 
   // Locations routes
 
@@ -4727,7 +4733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tenantId = req.user?.tenantId;
 
         if (!tenantId) {
-          returnres.status(401).json({ message: "Tenant required" });
+          return res.status(401).json({ message: "Tenant required" });
         }
 
         const { schemaManager } = await import("./db");
