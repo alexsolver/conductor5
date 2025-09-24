@@ -407,7 +407,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       </div>
 
       {/* Timeline Grid */}
-      <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+      <div className="border rounded-lg bg-white overflow-hidden">
         {/* Header with time slots */}
         <div className="flex border-b bg-gray-50 sticky top-0 z-10">
           {/* Left sidebar space */}
@@ -432,10 +432,19 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
         </div>
 
-        {/* Content area */}
-        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
-          {/* Left sidebar with agent list */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-50">
+        {/* Content area - synchronized scrolling */}
+        <div className="flex" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+          {/* Left sidebar with agent list - scrollable */}
+          <div 
+            className="w-64 flex-shrink-0 border-r bg-gray-50 overflow-y-auto"
+            style={{ maxHeight: 'calc(100vh - 360px)' }}
+            onScroll={(e) => {
+              // Sync vertical scroll with timeline
+              if (contentScrollRef.current) {
+                contentScrollRef.current.scrollTop = e.currentTarget.scrollTop;
+              }
+            }}
+          >
             {filteredAgents.map((agent) => {
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
