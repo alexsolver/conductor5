@@ -79,17 +79,18 @@ export default function ChatbotManager() {
   // Load chatbots
   const { data: chatbots, isLoading: loadingBots, refetch: refetchBots } = useQuery<{data: ChatbotBot[]}>({
     queryKey: ['/api/omnibridge/chatbots'],
-    queryFn: () => apiRequest('/api/omnibridge/chatbots', { method: 'GET' }),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/omnibridge/chatbots');
+      return response.json();
+    },
     retry: 1
   });
 
   // Create chatbot mutation
   const createBotMutation = useMutation({
     mutationFn: async (botData: Partial<ChatbotBot>) => {
-      return apiRequest('/api/omnibridge/chatbots', {
-        method: 'POST',
-        body: JSON.stringify(botData)
-      });
+      const response = await apiRequest('POST', '/api/omnibridge/chatbots', botData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -126,10 +127,8 @@ export default function ChatbotManager() {
   // Update chatbot mutation
   const updateBotMutation = useMutation({
     mutationFn: async ({ id, botData }: { id: string; botData: Partial<ChatbotBot> }) => {
-      return apiRequest(`/api/omnibridge/chatbots/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(botData)
-      });
+      const response = await apiRequest('PUT', `/api/omnibridge/chatbots/${id}`, botData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -145,9 +144,8 @@ export default function ChatbotManager() {
   // Delete chatbot mutation
   const deleteBotMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/omnibridge/chatbots/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await apiRequest('DELETE', `/api/omnibridge/chatbots/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       toast({
