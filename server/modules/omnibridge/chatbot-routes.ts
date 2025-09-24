@@ -171,6 +171,9 @@ router.get('/chatbots/analytics/tenant', jwtAuth, chatbotController.getTenantAna
 // Save complete flow with nodes and edges
 router.put('/flows/:flowId/complete', jwtAuth, chatbotController.saveCompleteFlow.bind(chatbotController));
 
+// Update flow basic information
+router.put('/flows/:flowId', jwtAuth, chatbotController.updateFlow.bind(chatbotController));
+
 // ===== VALIDATION ROUTES =====
 
 // Validate flow configuration

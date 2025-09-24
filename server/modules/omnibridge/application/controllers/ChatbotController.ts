@@ -565,6 +565,120 @@ export class ChatbotController {
     }
   }
 
+  // Save complete flow with nodes and edges
+  async saveCompleteFlow(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = this.getTenantId(req);
+      const { flowId } = req.params;
+      const { nodes = [], edges = [] } = req.body;
+
+      console.log('💾 [FLOW-SAVE] Saving complete flow:', { flowId, nodeCount: nodes.length, edgeCount: edges.length });
+
+      // Verify flow exists and belongs to tenant
+      const existingFlow = await this.getFlowByIdUseCase.execute({ flowId, tenantId });
+      if (!existingFlow) {
+        res.status(404).json({
+          success: false,
+          error: 'Flow not found or access denied'
+        });
+        return;
+      }
+
+      // Use the repository method to save nodes and edges
+      const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(flowId, nodes, edges);
+
+      if (!success) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to save flow'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Flow saved successfully',
+        data: { flowId, nodesSaved: nodes.length, edgesSaved: edges.length }
+      });
+
+    } catch (error) {
+      console.error('Error saving complete flow:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save complete flow'
+      });
+    }
+  }
+
+  // Validate flow configuration
+  async validateFlow(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = this.getTenantId(req);
+      const { flowId } = req.params;
+
+      // Get flow with nodes and edges
+      const flow = await this.updateFlowUseCase.chatbotFlowRepository.findWithNodes(flowId);
+      
+      if (!flow) {
+        res.status(404).json({
+          success: false,
+          error: 'Flow not found'
+        });
+        return;
+      }
+
+      // Basic validation rules
+      const errors = [];
+      const warnings = [];
+
+      // Check if flow has nodes
+      if (!flow.nodes || flow.nodes.length === 0) {
+        warnings.push('Flow has no nodes defined');
+      }
+
+      // Check for start node
+      const startNodes = flow.nodes?.filter(node => node.type === 'start') || [];
+      if (startNodes.length === 0) {
+        errors.push('Flow must have at least one start node');
+      }
+
+      // Check for orphaned nodes (nodes without connections)
+      if (flow.nodes && flow.edges) {
+        const connectedNodeIds = new Set();
+        flow.edges.forEach(edge => {
+          connectedNodeIds.add(edge.sourceNodeId);
+          connectedNodeIds.add(edge.targetNodeId);
+        });
+
+        const orphanedNodes = flow.nodes.filter(node => !connectedNodeIds.has(node.id));
+        if (orphanedNodes.length > 0) {
+          warnings.push(`Found ${orphanedNodes.length} orphaned nodes`);
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          flowId,
+          isValid: errors.length === 0,
+          errors,
+          warnings,
+          stats: {
+            nodeCount: flow.nodes?.length || 0,
+            edgeCount: flow.edges?.length || 0
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Error validating flow:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to validate flow'
+      });
+    }
+  }
+
   // Message processing
   async processMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {

@@ -208,6 +208,8 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
   async saveCompleteFlow(flowId: string, nodes: any[], edges: any[]): Promise<boolean> {
     try {
+      console.log('💾 [REPOSITORY] Saving complete flow:', { flowId, nodeCount: nodes.length, edgeCount: edges.length });
+      
       // Start transaction to save nodes and edges
       await db.transaction(async (tx) => {
         // Clear existing nodes and edges
@@ -216,31 +218,44 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
         // Insert new nodes if any
         if (nodes.length > 0) {
-          await tx.insert(chatbotNodes).values(
-            nodes.map(node => ({
-              ...node,
-              flowId,
-              position: JSON.stringify(node.position),
-              config: JSON.stringify(node.config || {}),
-            }))
-          );
+          const nodesToInsert = nodes.map(node => ({
+            id: node.id,
+            flowId,
+            type: node.type,
+            label: node.data?.label || node.label || '',
+            position: JSON.stringify(node.position || { x: 0, y: 0 }),
+            config: JSON.stringify(node.data || node.config || {}),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }));
+          
+          console.log('💾 [REPOSITORY] Inserting nodes:', nodesToInsert.length);
+          await tx.insert(chatbotNodes).values(nodesToInsert);
         }
 
         // Insert new edges if any
         if (edges.length > 0) {
-          await tx.insert(chatbotEdges).values(
-            edges.map(edge => ({
-              ...edge,
-              flowId,
-              metadata: JSON.stringify(edge.metadata || {})
-            }))
-          );
+          const edgesToInsert = edges.map(edge => ({
+            id: edge.id,
+            flowId,
+            sourceNodeId: edge.source,
+            targetNodeId: edge.target,
+            sourceHandle: edge.sourceHandle || 'output',
+            targetHandle: edge.targetHandle || 'input',
+            metadata: JSON.stringify(edge.metadata || {}),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }));
+          
+          console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
+          await tx.insert(chatbotEdges).values(edgesToInsert);
         }
       });
 
+      console.log('✅ [REPOSITORY] Complete flow saved successfully');
       return true;
     } catch (error) {
-      console.error('Error saving complete flow:', error);
+      console.error('❌ [REPOSITORY] Error saving complete flow:', error);
       return false;
     }
   }

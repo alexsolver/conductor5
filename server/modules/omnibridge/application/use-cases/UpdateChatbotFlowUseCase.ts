@@ -14,10 +14,14 @@ interface UpdateChatbotFlowRequest {
 }
 
 export class UpdateChatbotFlowUseCase {
+  public chatbotFlowRepository: IChatbotFlowRepository;
+  
   constructor(
-    private chatbotFlowRepository: IChatbotFlowRepository,
+    chatbotFlowRepository: IChatbotFlowRepository,
     private chatbotBotRepository: IChatbotBotRepository
-  ) {}
+  ) {
+    this.chatbotFlowRepository = chatbotFlowRepository;
+  }
 
   async execute(request: UpdateChatbotFlowRequest): Promise<SelectChatbotFlow> {
     const { flowId, tenantId, ...updateData } = request;
