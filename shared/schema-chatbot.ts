@@ -104,7 +104,6 @@ export const chatbotFlows = pgTable('chatbot_flows', {
   id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   botId: varchar('bot_id', { length: 36 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
-  version: integer('version').default(1).notNull(),
   isActive: boolean('is_active').default(false).notNull(),
   description: text('description'),
   settings: jsonb('settings').default({}).notNull(), // Flow-specific settings
