@@ -1,4 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Node,
+  Edge,
+  Connection,
+  NodeTypes,
+  Panel,
+  ReactFlowProvider
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -106,101 +123,6 @@ const NODE_CATEGORIES = {
       { id: 'response-poll', name: 'Enquete', icon: BarChart, description: 'Cria enquete' },
       { id: 'response-media', name: 'Mídia Rich', icon: Image, description: 'Conteúdo rich media' }
     ]
-  },
-  integrations: {
-    name: 'Integrations',
-    color: 'bg-indigo-500',
-    icon: Plug,
-    nodes: [
-      { id: 'integration-crm', name: 'CRM', icon: Users, description: 'Integração CRM' },
-      { id: 'integration-database', name: 'Database', icon: Database, description: 'Consulta banco' },
-      { id: 'integration-api', name: 'API REST', icon: Globe, description: 'API externa' },
-      { id: 'integration-spreadsheet', name: 'Planilha', icon: FileText, description: 'Google Sheets/Excel' },
-      { id: 'integration-calendar', name: 'Calendário', icon: Calendar, description: 'Google/Outlook Calendar' },
-      { id: 'integration-payment', name: 'Pagamento', icon: CreditCard, description: 'Stripe/PayPal' },
-      { id: 'integration-email', name: 'Email Provider', icon: Mail, description: 'SendGrid/SMTP' },
-      { id: 'integration-sms', name: 'SMS Provider', icon: Phone, description: 'Twilio/SMS' },
-      { id: 'integration-storage', name: 'Storage', icon: Database, description: 'AWS S3/Cloud Storage' },
-      { id: 'integration-analytics', name: 'Analytics', icon: BarChart, description: 'Google Analytics' },
-      { id: 'integration-social', name: 'Social Media', icon: Users, description: 'Facebook/Instagram' },
-      { id: 'integration-ecommerce', name: 'E-commerce', icon: ShoppingCart, description: 'Shopify/WooCommerce' }
-    ]
-  },
-  ai: {
-    name: 'AI Processing',
-    color: 'bg-pink-500',
-    icon: Brain,
-    nodes: [
-      { id: 'ai-nlp', name: 'NLP', icon: Brain, description: 'Processamento linguagem' },
-      { id: 'ai-sentiment', name: 'Sentiment', icon: Brain, description: 'Análise sentimento' },
-      { id: 'ai-intent', name: 'Intent Recognition', icon: Target, description: 'Reconhece intenção' },
-      { id: 'ai-entity', name: 'Entity Extraction', icon: Tag, description: 'Extrai entidades' },
-      { id: 'ai-translation', name: 'Translation', icon: Globe, description: 'Tradução automática' },
-      { id: 'ai-summarization', name: 'Summarization', icon: FileText, description: 'Resume texto' },
-      { id: 'ai-recommendation', name: 'Recommendation', icon: Lightbulb, description: 'Sistema recomendação' },
-      { id: 'ai-classification', name: 'Classification', icon: Tag, description: 'Classifica conteúdo' },
-      { id: 'ai-conversation', name: 'Conversation AI', icon: MessageSquare, description: 'Chat inteligente' },
-      { id: 'ai-voice', name: 'Voice Processing', icon: Mic, description: 'Processa áudio' },
-      { id: 'ai-image', name: 'Image AI', icon: Image, description: 'Processa imagem' },
-      { id: 'ai-custom', name: 'Custom AI', icon: Cpu, description: 'IA personalizada' }
-    ]
-  },
-  flow_control: {
-    name: 'Flow Control',
-    color: 'bg-gray-500',
-    icon: Workflow,
-    nodes: [
-      { id: 'flow-delay', name: 'Delay', icon: Clock, description: 'Aguardar tempo' },
-      { id: 'flow-loop', name: 'Loop', icon: Repeat, description: 'Repetir ações' },
-      { id: 'flow-branch', name: 'Branch', icon: GitBranch, description: 'Dividir fluxo' },
-      { id: 'flow-merge', name: 'Merge', icon: GitBranch, description: 'Unir fluxos' },
-      { id: 'flow-switch', name: 'Switch', icon: GitBranch, description: 'Múltiplas condições' },
-      { id: 'flow-goto', name: 'Go To', icon: ArrowRight, description: 'Ir para node' },
-      { id: 'flow-end', name: 'End', icon: Flag, description: 'Finalizar fluxo' },
-      { id: 'flow-transfer', name: 'Transfer Human', icon: Users, description: 'Transferir humano' },
-      { id: 'flow-escalate', name: 'Escalate', icon: ArrowRight, description: 'Escalar atendimento' },
-      { id: 'flow-fallback', name: 'Fallback', icon: AlertTriangle, description: 'Ação de fallback' },
-      { id: 'flow-retry', name: 'Retry', icon: Repeat, description: 'Tentar novamente' },
-      { id: 'flow-timeout', name: 'Timeout', icon: Clock, description: 'Timeout handler' }
-    ]
-  },
-  validation: {
-    name: 'Validation',
-    color: 'bg-cyan-500',
-    icon: CheckCircle,
-    nodes: [
-      { id: 'validation-email', name: 'Email', icon: Mail, description: 'Valida email' },
-      { id: 'validation-phone', name: 'Telefone', icon: Phone, description: 'Valida telefone' },
-      { id: 'validation-cpf', name: 'CPF', icon: Hash, description: 'Valida CPF' },
-      { id: 'validation-cnpj', name: 'CNPJ', icon: Hash, description: 'Valida CNPJ' },
-      { id: 'validation-number', name: 'Número', icon: Hash, description: 'Valida número' },
-      { id: 'validation-date', name: 'Data', icon: Calendar, description: 'Valida data' },
-      { id: 'validation-url', name: 'URL', icon: Globe, description: 'Valida URL' },
-      { id: 'validation-regex', name: 'Regex', icon: Target, description: 'Validação customizada' },
-      { id: 'validation-length', name: 'Comprimento', icon: Hash, description: 'Valida tamanho' },
-      { id: 'validation-required', name: 'Obrigatório', icon: AlertCircle, description: 'Campo obrigatório' },
-      { id: 'validation-unique', name: 'Único', icon: CheckCircle, description: 'Valor único' },
-      { id: 'validation-range', name: 'Intervalo', icon: ArrowRight, description: 'Valida intervalo' }
-    ]
-  },
-  advanced: {
-    name: 'Advanced',
-    color: 'bg-red-500',
-    icon: Cpu,
-    nodes: [
-      { id: 'advanced-script', name: 'JavaScript', icon: Cpu, description: 'Código personalizado' },
-      { id: 'advanced-template', name: 'Template', icon: FileText, description: 'Template engine' },
-      { id: 'advanced-queue', name: 'Queue', icon: Clock, description: 'Sistema de filas' },
-      { id: 'advanced-cache', name: 'Cache', icon: Database, description: 'Sistema cache' },
-      { id: 'advanced-rate-limit', name: 'Rate Limit', icon: Clock, description: 'Limite de taxa' },
-      { id: 'advanced-batch', name: 'Batch Process', icon: Layers, description: 'Processamento lote' },
-      { id: 'advanced-parallel', name: 'Parallel', icon: GitBranch, description: 'Execução paralela' },
-      { id: 'advanced-scheduler', name: 'Scheduler', icon: Calendar, description: 'Agendador avançado' },
-      { id: 'advanced-monitor', name: 'Monitor', icon: Eye, description: 'Monitoramento' },
-      { id: 'advanced-debug', name: 'Debug', icon: Settings, description: 'Debug helper' },
-      { id: 'advanced-middleware', name: 'Middleware', icon: Network, description: 'Middleware customizado' },
-      { id: 'advanced-plugin', name: 'Plugin', icon: Plug, description: 'Plugin personalizado' }
-    ]
   }
 };
 
@@ -239,9 +161,9 @@ interface ChatbotFlow {
   nodes?: FlowNode[];
   edges?: FlowEdge[];
   settings?: Record<string, any>;
-  variables?: any[]; // Added for variables
-  createdAt?: string; // Added for createdAt
-  updatedAt?: string; // Added for updatedAt
+  variables?: any[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ChatbotBot {
@@ -260,45 +182,88 @@ interface FlowEditorProps {
   onClose?: () => void;
 }
 
-export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
+// Custom Node Component
+const CustomNode = ({ data, selected }: { data: any; selected: boolean }) => {
+  const categoryInfo = Object.values(NODE_CATEGORIES).find(cat => 
+    cat.nodes.some(node => node.id === data.nodeType)
+  );
+  const nodeInfo = categoryInfo?.nodes.find(node => node.id === data.nodeType);
+  const IconComponent = nodeInfo?.icon || Bot;
+
+  return (
+    <Card 
+      className={`min-w-[200px] shadow-md transition-all ${
+        selected ? 'ring-2 ring-blue-500 shadow-lg' : ''
+      } ${data.isStart ? 'ring-2 ring-green-500' : ''}`}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <div className={`p-1.5 rounded ${categoryInfo?.color || 'bg-gray-500'}`}>
+            <IconComponent className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1">
+            <CardTitle className="text-sm font-semibold truncate">
+              {data.label || 'Untitled Node'}
+            </CardTitle>
+            {nodeInfo && (
+              <Badge variant="secondary" className="text-xs mt-1">
+                {categoryInfo?.name}
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {nodeInfo && (
+          <p className="text-xs text-muted-foreground">
+            {nodeInfo.description}
+          </p>
+        )}
+        {data.isStart && (
+          <Badge variant="outline" className="text-xs mt-2">
+            <Zap className="w-3 h-3 mr-1" />
+            Start
+          </Badge>
+        )}
+        {data.isEnd && (
+          <Badge variant="outline" className="text-xs mt-2">
+            <Flag className="w-3 h-3 mr-1" />
+            End
+          </Badge>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const nodeTypes: NodeTypes = {
+  custom: CustomNode,
+};
+
+function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const canvasRef = useRef<HTMLDivElement>(null);
 
   // State management
   const [selectedBot, setSelectedBot] = useState<ChatbotBot | null>(null);
   const [selectedFlow, setSelectedFlow] = useState<ChatbotFlow | null>(null);
-  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
-  const [nodes, setNodes] = useState<FlowNode[]>([]);
-  const [edges, setEdges] = useState<FlowEdge[]>([]);
-  const [variables, setVariables] = useState<any[]>([]); // State for variables
-  const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
-  const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [connecting, setConnecting] = useState(false); // Simplified to boolean
-  const [connectionStart, setConnectionStart] = useState<string | null>(null); // Node ID to start connection
-  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [variables, setVariables] = useState<any[]>([]);
+  const [flows, setFlows] = useState<ChatbotFlow[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNodeConfig, setShowNodeConfig] = useState(false);
-  const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
-  const [saving, setSaving] = useState(false); // Add saving state
-  const [selectedNodeConfig, setSelectedNodeConfig] = useState<Record<string, any>>({}); // State to hold configurations for each node
+  const [selectedNodeConfig, setSelectedNodeConfig] = useState<Record<string, any>>({});
   const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<string | null>(null);
-
-  // Mouse position for connection preview
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isCanvasDragging, setIsCanvasDragging] = useState(false);
-  const [startCanvasDragPos, setStartCanvasDragPos] = useState({ x: 0, y: 0 });
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [flows, setFlows] = useState<ChatbotFlow[]>([]); // State for list of flows
+  const [saving, setSaving] = useState(false);
 
   // State for the selected flow ID to trigger the query
   const [selectedFlowId, setSelectedFlowId] = useState<string | undefined>(undefined);
-  const [selectedChatbot, setSelectedChatbot] = useState<ChatbotBot | null>(null); // State for the selected bot
+  const [selectedChatbot, setSelectedChatbot] = useState<ChatbotBot | null>(null);
 
   // Bot data query
   const {
@@ -341,34 +306,20 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   } = useQuery({
     queryKey: ['chatbot-flow-complete', selectedFlowId, selectedChatbot?.id],
     queryFn: async () => {
-      console.log('🔄 [FLOW-QUERY] Fetching complete flow data:', { flowId: selectedFlowId, botId: selectedChatbot?.id });
-
-      if (!selectedFlowId || !selectedChatbot?.id) {
-        console.log('❌ [FLOW-QUERY] Missing required parameters');
-        return null;
-      }
+      if (!selectedFlowId || !selectedChatbot?.id) return null;
 
       try {
         const url = `/api/omnibridge/flows/${selectedFlowId}`;
-        console.log('🔍 [FLOW-QUERY] Making request to:', url);
-
         const response = await apiRequest('GET', url);
 
         if (!response.ok) {
-          console.error('❌ [FLOW-QUERY] API error:', response.status, response.statusText);
           throw new Error(`Failed to fetch flow: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('✅ [FLOW-QUERY] Flow data loaded:', {
-          flowId: data?.data?.id,
-          nodeCount: data?.data?.nodes?.length || 0,
-          edgeCount: data?.data?.edges?.length || 0
-        });
-
         return data.data;
       } catch (error) {
-        console.error('❌ [FLOW-QUERY] Error fetching flow:', error);
+        console.error('Error fetching flow:', error);
         throw error;
       }
     },
@@ -377,25 +328,14 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     staleTime: 30000
   });
 
-  console.log('🔄 [FLOW-QUERY-DEBUG] Query status:', {
-    flowId: selectedFlowId,
-    botId: selectedChatbot?.id,
-    isTemporary: selectedFlowId?.startsWith('flow_'),
-    enabled: !!selectedFlowId && !selectedFlowId.startsWith('flow_') && !!selectedChatbot?.id,
-    isLoading: isLoadingCompleteFlow,
-    hasData: !!completeFlowData,
-    hasError: !!flowError
-  });
-
   // Initialize selectedBot and flows state
   useEffect(() => {
     if (botData?.data) {
       setSelectedBot(botData.data);
-      setSelectedChatbot(botData.data); // Set selectedChatbot here
+      setSelectedChatbot(botData.data);
     }
     if (botFlows?.data) {
       setFlows(botFlows.data);
-      // Set default selected flow if none is selected
       if (!selectedFlowId && botFlows.data.length > 0) {
         setSelectedFlowId(botFlows.data[0].id);
       }
@@ -404,42 +344,28 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // Effect to load complete flow data when selectedFlowId changes
   useEffect(() => {
-    console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
-      hasCompleteFlowData: !!completeFlowData,
-      selectedFlowId,
-      isLoadingCompleteFlow
-    });
-
     if (completeFlowData && !isLoadingCompleteFlow) {
-      console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
-        flowId: completeFlowData.id,
-        nodeCount: completeFlowData.nodes?.length || 0,
-        edgeCount: completeFlowData.edges?.length || 0
-      });
-
-      // Convert database nodes to ReactFlow format with preserved configuration
-      const flowNodes = (completeFlowData.nodes || []).map((node: any) => {
-        const nodeId = node.id;
+      // Convert database nodes to ReactFlow format
+      const reactFlowNodes: Node[] = (completeFlowData.nodes || []).map((node: any) => {
         const nodeConfig = node.config || {};
 
-        // Store configuration in selectedNodeConfig for form editing
         setSelectedNodeConfig(prev => ({
           ...prev,
-          [nodeId]: nodeConfig
+          [node.id]: nodeConfig
         }));
 
         return {
-          id: nodeId,
+          id: node.id,
           type: 'custom',
           position: node.position || { x: 0, y: 0 },
           data: {
             label: node.title || node.name || 'Untitled Node',
             title: node.title || node.name || 'Untitled Node',
-            type: node.type,
+            nodeType: node.type,
             category: node.category,
             description: node.description,
             config: nodeConfig,
-            configuration: nodeConfig, // Duplicate for compatibility
+            configuration: nodeConfig,
             isStart: node.isStart || false,
             isEnd: node.isEnd !== false,
             isEnabled: node.isEnabled !== false
@@ -448,7 +374,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       });
 
       // Convert database edges to ReactFlow format
-      const flowEdges = (completeFlowData.edges || []).map((edge: any) => ({
+      const reactFlowEdges: Edge[] = (completeFlowData.edges || []).map((edge: any) => ({
         id: edge.id,
         source: edge.fromNodeId,
         target: edge.toNodeId,
@@ -463,883 +389,414 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         }
       }));
 
-      console.log('✅ [FLOW-LOAD] Setting nodes and edges with preserved configs:', {
-        nodeCount: flowNodes.length,
-        edgeCount: flowEdges.length,
-        sampleNodeConfig: flowNodes[0]?.data?.config
-      });
-
-      setNodes(flowNodes);
-      setEdges(flowEdges);
+      setNodes(reactFlowNodes);
+      setEdges(reactFlowEdges);
     } else if (!selectedFlowId || selectedFlowId.startsWith('flow_')) {
-      console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
       setNodes([]);
       setEdges([]);
     }
-  }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
+  }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId, setNodes, setEdges]);
 
   // Initialize with first flow if available or create a default one
   useEffect(() => {
-    console.log('🐛 [FLOW-INIT] Checking flow initialization', {
-      botData: !!selectedBot,
-      flowsList: flows.length,
-      firstFlow: flows[0]?.id || 'none',
-      botId: botId
-    });
-
-    if (botId && !selectedBot) {
-      // If botId is provided but bot data is not yet loaded, we might need to handle this.
-      // For now, we rely on botData loading.
-      console.log('🐛 [FLOW-INIT] BotId provided, but bot data not loaded yet.');
-    }
-
-    // Flow selection logic - maintain current selection or select default
     if (botId && selectedBot) {
       if (flows.length > 0) {
-        // Check if current selectedFlow still exists in the flows list
         if (selectedFlow) {
           const currentFlowStillExists = flows.find(f => f.id === selectedFlow.id);
           if (currentFlowStillExists) {
-            console.log('🐛 [FLOW-INIT] Keeping current selectedFlow:', selectedFlow.id);
-            // Update with latest data but keep same flow
             if (JSON.stringify(selectedFlow) !== JSON.stringify(currentFlowStillExists)) {
               setSelectedFlow(currentFlowStillExists);
-              // No need to update selectedFlowId here as it's already set to this flow's ID
             }
           } else {
-            console.log('🐛 [FLOW-INIT] Current flow no longer exists, selecting first:', flows[0]);
             setSelectedFlow(flows[0]);
-            setSelectedFlowId(flows[0].id); // Update selectedFlowId
+            setSelectedFlowId(flows[0].id);
           }
         } else {
-          console.log('🐛 [FLOW-INIT] No selectedFlow, setting to first:', flows[0]);
           setSelectedFlow(flows[0]);
-          setSelectedFlowId(flows[0].id); // Update selectedFlowId
+          setSelectedFlowId(flows[0].id);
         }
-      } else if (!selectedFlow) {
-        // Create a default flow if none exists
+      } else {
+        // Create a default temporary flow
         const defaultFlow: ChatbotFlow = {
           id: `flow_${Date.now()}`,
-          botId: botId!, // botId is guaranteed by the outer if condition
+          botId: selectedBot.id,
           name: 'Fluxo Principal',
           description: 'Fluxo padrão do chatbot',
           isActive: true,
-          isMain: true, // Assuming this is the main flow
+          isMain: true,
           version: 1,
           metadata: {},
+          nodes: [],
+          edges: [],
+          variables: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        console.log('🐛 [FLOW-INIT] Creating default flow:', defaultFlow);
+
         setSelectedFlow(defaultFlow);
-        setSelectedFlowId(defaultFlow.id); // Update selectedFlowId
-        setFlows(prevFlows => [...prevFlows, defaultFlow]); // Add to the flows list
+        setSelectedFlowId(defaultFlow.id);
+        setFlows([defaultFlow]);
       }
     }
   }, [botId, selectedBot, flows, selectedFlow, selectedFlowId]);
 
-  // Debug log for query status
-  useEffect(() => {
-    console.log('🔄 [FLOW-EDITOR-DEBUG] State:', {
-      selectedFlowId: selectedFlow?.id,
-      selectedBotId: selectedBot?.id,
-      isLoadingCompleteFlow,
-      completeFlowData: !!completeFlowData,
-      flowError: !!flowError,
-      nodesCount: nodes.length,
-      edgesCount: edges.length
-    });
-  }, [selectedFlow, selectedBot, isLoadingCompleteFlow, completeFlowData, flowError, nodes, edges]);
+  // Handle connection between nodes
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
+  // Handle node click
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNodeId(node.id);
+    setSelectedNodeForConfig(node.id);
+    setShowNodeConfig(true);
+  }, []);
+
+  // Handle drag over for node palette
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  // Handle drop from node palette
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+      const position = {
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      };
+
+      const nodeData = JSON.parse(type);
+      const newNode: Node = {
+        id: `node_${Date.now()}`,
+        type: 'custom',
+        position,
+        data: {
+          label: nodeData.name,
+          title: nodeData.name,
+          nodeType: nodeData.id,
+          category: nodeData.category,
+          description: nodeData.description,
+          config: {},
+          isStart: false,
+          isEnd: false,
+          isEnabled: true
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [setNodes]
+  );
+
+  // Handle drag start from node palette
+  const onDragStart = (event: React.DragEvent, nodeType: any) => {
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeType));
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  // Save flow mutation
+  const saveFlowMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedFlow || !selectedBot) return;
+
+      setSaving(true);
+
+      const flowData = {
+        name: selectedFlow.name,
+        description: selectedFlow.description,
+        nodes: nodes.map(node => ({
+          id: node.id,
+          type: node.data.nodeType || 'custom',
+          title: node.data.title || 'Untitled Node',
+          category: node.data.category || 'custom',
+          description: node.data.description || '',
+          position: node.position,
+          config: selectedNodeConfig[node.id] || {},
+          isStart: node.data.isStart || false,
+          isEnd: node.data.isEnd || false,
+          isEnabled: node.data.isEnabled !== false
+        })),
+        edges: edges.map(edge => ({
+          id: edge.id,
+          fromNodeId: edge.source,
+          toNodeId: edge.target,
+          label: edge.label || '',
+          condition: edge.data?.condition || '',
+          kind: edge.data?.kind || 'default',
+          order: edge.data?.order || 0,
+          isEnabled: edge.data?.isEnabled !== false
+        })),
+        variables: variables || []
+      };
+
+      let response;
+      if (selectedFlowId && !selectedFlowId.startsWith('flow_')) {
+        // Update existing flow
+        response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlowId}`, flowData);
+      } else {
+        // Create new flow
+        response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, flowData);
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to save flow: ${errorText}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Sucesso",
+        description: "Fluxo salvo com sucesso!",
+      });
+
+      if (data?.data) {
+        // Update flow data
+        const savedFlow = data.data;
+        setSelectedFlow(savedFlow);
+        setSelectedFlowId(savedFlow.id);
+
+        // Update flows list
+        setFlows(prev => {
+          const existingIndex = prev.findIndex(f => f.id === savedFlow.id);
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = savedFlow;
+            return updated;
+          }
+          return [...prev, savedFlow];
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['chatbot-flows', botId] });
+      queryClient.invalidateQueries({ queryKey: ['chatbot-flow-complete'] });
+    },
+    onError: (error: any) => {
+      console.error('Save flow error:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar fluxo",
+        variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      setSaving(false);
+    }
+  });
 
   // Filter nodes based on search and category
-  const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
-    const categoryNodes = NODE_CATEGORIES[category]?.nodes || [];
-    return categoryNodes.filter(node =>
+  const filteredNodes = Object.entries(NODE_CATEGORIES).reduce((acc, [categoryKey, category]) => {
+    if (selectedCategory !== 'all' && selectedCategory !== categoryKey) return acc;
+
+    const filteredCategoryNodes = category.nodes.filter(node =>
       node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       node.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
 
-  const handleDragStart = (e: React.DragEvent, nodeType: string) => {
-    console.log('🐛 [DRAG] Starting drag for node type:', nodeType);
-    setDraggedNodeType(nodeType);
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('nodeType', nodeType); // Use 'nodeType' as the key
-
-    // Add visual feedback
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5';
-    }
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    console.log('🐛 [DRAG] Drag ended');
-    // Restore opacity
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1';
-    }
-    setDraggedNodeType(null); // Clear draggedNodeType after drop or end
-  };
-
-  // Helper to get the category key from a node type ID
-  const getNodeCategory = (typeId: string): string => {
-    for (const [categoryKey, category] of Object.entries(NODE_CATEGORIES)) {
-      if (category.nodes.some(node => node.id === typeId)) {
-        return categoryKey;
-      }
-    }
-    return 'unknown'; // Fallback category
-  };
-
-  // Define handleSaveFlow first to avoid initialization errors
-  const handleSaveFlow = useCallback(async () => {
-    if (!selectedFlow || !selectedChatbot) {
-      toast({
-        title: "Erro",
-        description: "Selecione um fluxo válido antes de salvar",
-        variant: "destructive"
-      });
-      return;
+    if (filteredCategoryNodes.length > 0) {
+      acc[categoryKey] = { ...category, nodes: filteredCategoryNodes };
     }
 
-    console.log('🔄 [FLOW-SAVE] Starting save process...', {
-      flowId: selectedFlow.id,
-      nodeCount: nodes.length,
-      edgeCount: edges.length,
-      botId: selectedChatbot.id
-    });
-
-    try {
-      setSaving(true);
-
-      // Verify bot exists
-      const botResponse = await apiRequest('GET', `/api/omnibridge/chatbots/${selectedChatbot.id}`);
-      if (!botResponse.ok) {
-        throw new Error('Bot not found or access denied');
-      }
-
-      // Convert nodes with complete configuration preservation
-      const formattedNodes = nodes.map(node => {
-        // Preserve all configuration data including from forms
-        const nodeConfig = {
-          ...node.data?.config,
-          ...node.data?.configuration,
-          // Include any form data that might exist
-          ...(selectedNodeConfig[node.id] || {})
-        };
-
-        return {
-          id: node.id || `node_${Date.now()}_${Math.random()}`,
-          type: node.type || 'unknown',
-          title: node.data?.title || node.data?.label || 'Untitled Node',
-          category: getNodeCategory(node.type),
-          description: node.data?.description || '',
-          position: node.position || { x: 0, y: 0 },
-          config: nodeConfig, // Use the complete configuration
-          isStart: node.data?.isStart || false,
-          isEnd: node.data?.isEnd || false,
-          isEnabled: node.data?.isEnabled !== false
-        };
-      });
-
-      const formattedEdges = edges.map(edge => ({
-        id: edge.id || `edge_${Date.now()}_${Math.random()}`,
-        fromNodeId: edge.source,
-        toNodeId: edge.target,
-        label: edge.label || edge.data?.label || '',
-        condition: edge.data?.condition || '',
-        kind: edge.data?.kind || 'default',
-        order: edge.data?.order || 0,
-        isEnabled: edge.data?.isEnabled !== false
-      }));
-
-      console.log('🔄 [FLOW-SAVE] Prepared data for API:', {
-        nodeCount: formattedNodes.length,
-        edgeCount: formattedEdges.length,
-        sampleNode: formattedNodes[0],
-        sampleNodeConfig: formattedNodes[0]?.config
-      });
-
-      let responseData;
-
-      if (selectedFlow.id.startsWith('flow_')) {
-        // Create new flow for bot
-        console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedChatbot.id);
-
-        const newFlowData = {
-          name: selectedFlow.name,
-          description: selectedFlow.description || "Fluxo do chatbot",
-          nodes: formattedNodes,
-          edges: formattedEdges,
-          variables: selectedFlow.variables || [],
-          isActive: true
-        };
-
-        const response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedChatbot.id}/flows`, newFlowData);
-
-        console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-          throw new Error(`Failed to create flow: ${response.status}`);
-        }
-
-        responseData = await response.json();
-      } else {
-        // Update existing flow with complete data
-        console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
-
-        const updateData = {
-          name: selectedFlow.name,
-          description: selectedFlow.description,
-          nodes: formattedNodes,
-          edges: formattedEdges,
-          variables: selectedFlow.variables || [],
-          isActive: selectedFlow.isActive
-        };
-
-        const response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, updateData);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('🔄 [FLOW-SAVE] Update error:', errorText);
-          throw new Error(`Failed to update flow: ${response.status}`);
-        }
-
-        responseData = await response.json();
-      }
-
-      console.log('🔄 [FLOW-SAVE] Save successful:', responseData);
-
-      // Update local state with response data
-      if (responseData?.data) {
-        const updatedFlow = responseData.data;
-
-        // Update selectedFlow
-        setSelectedFlow(updatedFlow);
-
-        // If this was a new flow, update the ID
-        if (selectedFlow.id.startsWith('flow_')) {
-          setSelectedFlowId(updatedFlow.id);
-          // Add to flows list if not already there
-          setFlows(prevFlows => {
-            const exists = prevFlows.find(f => f.id === updatedFlow.id);
-            if (!exists) {
-              return [...prevFlows.filter(f => !f.id.startsWith('flow_')), updatedFlow];
-            }
-            return prevFlows.map(f => f.id === updatedFlow.id ? updatedFlow : f);
-          });
-        } else {
-          // Update existing flow in flows list
-          setFlows(prevFlows => 
-            prevFlows.map(f => f.id === updatedFlow.id ? updatedFlow : f)
-          );
-        }
-
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ['chatbot-flows', selectedChatbot.id] });
-        queryClient.invalidateQueries({ queryKey: ['chatbot-flow-complete', updatedFlow.id] });
-      }
-
-      toast({
-        title: "Sucesso",
-        description: "Fluxo salvo com sucesso!"
-      });
-
-    } catch (error) {
-      console.error('🔄 [FLOW-SAVE] Save failed:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: error instanceof Error ? error.message : "Erro desconhecido ao salvar o fluxo",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false); // Reset saving state
-    }
-  }, [selectedFlow, selectedChatbot, nodes, edges, toast, queryClient, selectedNodeConfig]);
-
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setIsCanvasDragging(true);
-      setStartCanvasDragPos({ x: e.clientX, y: e.clientY });
-    }
-  }, []);
-
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    setMousePosition({ x: e.clientX, y: e.clientY });
-
-    if (isCanvasDragging) {
-      const deltaX = e.clientX - startCanvasDragPos.x;
-      const deltaY = e.clientY - startCanvasDragPos.y;
-
-      setCanvasOffset(prev => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY
-      }));
-
-      setStartCanvasDragPos({ x: e.clientX, y: e.clientY });
-    }
-  }, [isCanvasDragging, startCanvasDragPos]);
-
-  const handleCanvasMouseUp = useCallback(() => {
-    setIsCanvasDragging(false);
-  }, []);
-
-  const handleCanvasDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    console.log('🐛 [DRAG] Drop event fired', {
-      draggedNodeType,
-      hasCanvasRef: !!canvasRef.current,
-      selectedFlow: selectedFlow?.id,
-      selectedFlowExists: !!selectedFlow
-    });
-
-    if (!draggedNodeType || !canvasRef.current || !selectedFlow) {
-      console.log('🐛 [DRAG] Drop aborted - missing requirements');
-      return;
-    }
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
-    const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
-
-    console.log('🐛 [DRAG] Drop position:', { x, y });
-
-    // Find the node type data
-    let nodeData = null;
-    for (const category of Object.values(NODE_CATEGORIES)) {
-      nodeData = category.nodes.find(n => n.id === draggedNodeType);
-      if (nodeData) break;
-    }
-
-    if (!nodeData) {
-      console.log('🐛 [DRAG] Node data not found for type:', draggedNodeType);
-      return;
-    }
-
-    console.log('🐛 [DRAG] Node data found:', nodeData);
-
-    const newNode: FlowNode = {
-      id: `node_${Date.now()}`,
-      flowId: selectedFlow.id,
-      name: nodeData.name,
-      type: draggedNodeType,
-      category: getNodeCategory(draggedNodeType),
-      position: { x, y },
-      configuration: {},
-      metadata: {},
-      isActive: true
-    };
-
-    console.log('🐛 [DRAG] Creating new node:', newNode);
-
-    setNodes(prev => [...prev, newNode]);
-    setDraggedNodeType(null);
-
-    // Auto-save after 500ms
-    if (handleSaveFlow) {
-      setTimeout(() => {
-        handleSaveFlow();
-      }, 500);
-    }
-
-    setDraggedNode(null); // Reset dragged node state
-
-  }, [selectedFlow, handleSaveFlow, draggedNodeType, canvasRef, canvasOffset, zoom]);
-
-
-  const handleNodeDragStart = useCallback((e: React.DragEvent, node: FlowNode) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(node));
-    setDraggedNode(node);
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-    setDragOffset({ x: offsetX, y: offsetY });
-  }, []);
-
-  const handleNodeDrag = useCallback((e: React.DragEvent, nodeId: string) => {
-    e.preventDefault();
-
-    if (!canvasRef.current) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
-    const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
-
-    setNodes(prev => prev.map(node => 
-      node.id === nodeId 
-        ? { ...node, position: { x, y } }
-        : node
-    ));
-  }, [canvasOffset, dragOffset, zoom]);
-
-  const handleNodeDragEnd = useCallback(() => {
-    setDraggedNode(null);
-
-    // Auto-save after moving node
-    if (selectedFlow && selectedChatbot) {
-      setTimeout(() => {
-        handleSaveFlow();
-      }, 500);
-    }
-  }, [selectedFlow, selectedChatbot, handleSaveFlow]);
-
-  // Helper to get node position with offset and zoom applied
-  const getNodePosition = (nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (!node) return null;
-
-    // Adjust position for canvas offset and zoom
-    const adjustedX = node.position.x + canvasOffset.x;
-    const adjustedY = node.position.y + canvasOffset.y;
-
-    return { x: adjustedX, y: adjustedY };
-  };
-
-  const handleNodeClick = (node: FlowNode) => {
-    setSelectedNode(node);
-    setSelectedNodeId(node.id);
-  };
-
-  const handleNodeDoubleClick = (node: FlowNode) => {
-    setSelectedNode(node);
-    setSelectedNodeId(node.id);
-    setNodeConfig(node.configuration || {});
-    setSelectedNodeForConfig(node.id); // Set the node ID for the form
-    setShowNodeConfig(true);
-  };
-
-  const handleNodeConfigSave = (nodeId: string, newConfig: Record<string, any>) => {
-    setSelectedNodeConfig(prev => ({
-      ...prev,
-      [nodeId]: newConfig
-    }));
-    // Find the node in the current nodes state and update its configuration
-    setNodes(prevNodes =>
-      prevNodes.map(node =>
-        node.id === nodeId ? { ...node, configuration: newConfig, data: { ...node.data, config: newConfig, configuration: newConfig } } : node
-      )
-    );
-    setShowNodeConfig(false);
-    setSelectedNodeForConfig(null);
-    // Optionally auto-save after config change
-    setTimeout(() => {
-      handleSaveFlow();
-    }, 500);
-  };
-
-
-  // Render loading state only if we don't have basic data
-  if (isLoadingBots || (isLoadingFlows && !botData)) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Carregando chatbot...</span>
-      </div>
-    );
-  }
-
-  // Show loading message for flow data but still show the interface
-  if (isLoadingCompleteFlow && selectedFlowId && !selectedFlowId.startsWith('flow_')) {
-    console.log('🔄 [FLOW-EDITOR] Loading flow data...');
-  }
+    return acc;
+  }, {} as typeof NODE_CATEGORIES);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50" data-testid="flow-editor">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Bot className="h-6 w-6 text-blue-600" />
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900" data-testid="bot-name">
-              {selectedBot?.name || 'Flow Editor'}
-            </h1>
-            <p className="text-sm text-gray-500" data-testid="flow-name">
-              {selectedFlow?.name || 'No flow selected'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            onClick={handleSaveFlow}
-            disabled={!selectedFlow || saving}
-            data-testid="button-save-flow"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Salvando...' : 'Salvar'}
-          </Button>
-          {onClose && (
-            <Button variant="outline" onClick={onClose} data-testid="button-close">
-              Close
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="h-screen flex">
+      {/* Left Sidebar - Node Palette */}
+      <div className="w-80 border-r bg-background flex flex-col">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold mb-4">Componentes do Fluxo</h2>
 
-      <div className="flex-1 flex">
-        {/* Left Sidebar - Node Palette */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <div className="space-y-3">
-              <Input
-                placeholder="Search nodes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                data-testid="input-search-nodes"
-              />
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger data-testid="select-category">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {Object.entries(NODE_CATEGORIES).map(([key, category]) => (
-                    <SelectItem key={key} value={key}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-6">
-              {Object.entries(NODE_CATEGORIES).map(([categoryKey, category]) => {
-                if (selectedCategory !== 'all' && selectedCategory !== categoryKey) return null;
-
-                const filteredNodes = getFilteredNodes(categoryKey as keyof typeof NODE_CATEGORIES);
-                if (filteredNodes.length === 0) return null;
-
-                return (
-                  <div key={categoryKey}>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className={`w-3 h-3 rounded ${category.color}`}></div>
-                      <h3 className="font-medium text-gray-900">{category.name}</h3>
-                      <Badge variant="secondary">{filteredNodes.length}</Badge>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2">
-                      {filteredNodes.map(node => (
-                        <Card
-                          key={node.id}
-                          className="cursor-move hover:shadow-md transition-shadow"
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, node.id)}
-                          onDragEnd={handleDragEnd}
-                          data-testid={`node-${node.id}`}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-center space-x-2">
-                              <node.icon className="h-4 w-4 text-gray-600" />
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-medium text-gray-900 truncate">
-                                  {node.name}
-                                </div>
-                                <div className="text-xs text-gray-500 truncate">
-                                  {node.description}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Main Canvas Area */}
-        <div className="flex-1 relative bg-gray-50 overflow-hidden">
-          {/* Loading indicator for flow data */}
-          {isLoadingCompleteFlow && (
-            <div className="absolute top-4 right-4 z-50 bg-white shadow-md rounded-lg p-3 flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-sm text-gray-600">Carregando fluxo...</span>
-            </div>
-          )}
-
-          <div
-            ref={canvasRef}
-            className="w-full h-full relative cursor-grab active:cursor-grabbing"
-            style={{
-              transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
-              transformOrigin: 'top left'
-            }}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onDrop={handleCanvasDrop}
-            onDragOver={e => e.preventDefault()} // Allow drop
-          >
-            {/* Grid Background */}
-            <div
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: `
-                  linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-                  linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
-                `,
-                backgroundSize: `${20 * zoom}px ${20 * zoom}px`
-              }}
+          <div className="space-y-2">
+            <Input
+              placeholder="Buscar componentes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            {/* Empty State Message */}
-            {nodes.length === 0 && !isLoadingCompleteFlow && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-gray-500 bg-white p-8 rounded-lg shadow-sm border-2 border-dashed border-gray-300">
-                  <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">Canvas Vazio</h3>
-                  <p className="text-sm mb-4">Arraste um nó da paleta lateral para começar a criar seu fluxo</p>
-                  <div className="flex justify-center space-x-2 text-xs">
-                    <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
-                      <Zap className="w-3 h-3 mr-1 text-blue-600" />
-                      Triggers
-                    </div>
-                    <div className="flex items-center bg-green-50 px-2 py-1 rounded">
-                      <MessageSquare className="w-3 h-3 mr-1 text-green-600" />
-                      Ações
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Render Nodes */}
-            {nodes.map(node => {
-              const nodeType = Object.values(NODE_CATEGORIES)
-                .flatMap(category => category.nodes)
-                .find(nt => nt.id === node.type);
-              const IconComponent = nodeType?.icon || Bot;
-
-              return (
-                <div
-                  key={node.id}
-                  className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow node-container
-                    ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
-                  `}
-                  style={{
-                    left: node.position.x,
-                    top: node.position.y,
-                    transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
-                    transformOrigin: 'top left',
-                    minWidth: '150px',
-                    zIndex: draggedNode?.id === node.id ? 1000 : 1
-                  }}
-                  draggable
-                  onDragStart={(e) => {
-                    handleNodeDragStart(e, node);
-                    setSelectedNodeId(node.id);
-                  }}
-                  onDrag={(e) => handleNodeDrag(e, node.id)}
-                  onDragEnd={handleNodeDragEnd}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNodeClick(node);
-                  }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    handleNodeDoubleClick(node);
-                  }}
-                  data-testid={`canvas-node-${node.id}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <IconComponent className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-800">{node.name}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {nodeType?.description || 'Node description'}
-                  </div>
-
-                  {/* Connection points */}
-                  <div
-                    className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
-                      ${connecting && connectionStart === node.id
-                        ? 'bg-yellow-400 border-2 border-yellow-600'
-                        : 'bg-blue-500 hover:bg-blue-600'
-                      }`}
-                    style={{ transform: 'translateY(-50%)' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConnectionStart(node.id);
-                      setConnecting(true);
-                      // When starting a connection, we don't want to select the node
-                      setSelectedNodeId(null); 
-                    }}
-                    title="Entrada - Clique para conectar"
-                  ></div>
-                  <div
-                    className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
-                      ${connecting && connectionStart !== node.id
-                        ? 'bg-yellow-400 border-2 border-yellow-600'
-                        : 'bg-green-500 hover:bg-green-600'
-                      }`}
-                    style={{ transform: 'translateY(-50%)' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (connecting && connectionStart && connectionStart !== node.id) {
-                        // Create connection
-                        const newEdge: FlowEdge = {
-                          id: `edge_${Date.now()}`,
-                          flowId: selectedFlow?.id || '',
-                          sourceNodeId: connectionStart,
-                          targetNodeId: node.id,
-                          metadata: {},
-                          isActive: true
-                        };
-                        setEdges(prev => [...prev, newEdge]);
-                        setConnecting(false);
-                        setConnectionStart(null);
-
-                        // Auto-save
-                        setTimeout(() => handleSaveFlow(), 500);
-                      } else if (connectionStart === node.id) { // If clicking the same node's output
-                        setConnecting(false);
-                        setConnectionStart(null);
-                      }
-                    }}
-                    title="Saída - Clique para conectar"
-                  ></div>
-                </div>
-              );
-            })}
-
-            {/* Render edges */}
-            {edges.map(edge => {
-              const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
-              const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-
-              if (!sourceNode || !targetNode) return null;
-
-              const sourcePos = getNodePosition(edge.sourceNodeId);
-              const targetPos = getNodePosition(edge.targetNodeId);
-
-              if (!sourcePos || !targetPos) return null;
-
-              // Adjust for node width and height to connect to handles
-              const sourceHandleX = sourcePos.x + 150; // Assuming node width is 150
-              const sourceHandleY = sourcePos.y + 20; // Assuming node height is 40
-              const targetHandleX = targetPos.x;
-              const targetHandleY = targetPos.y + 20;
-
-              // Create curved path
-              const midX = (sourceHandleX + targetHandleX) / 2;
-              const path = `M ${sourceHandleX} ${sourceHandleY} C ${midX} ${sourceHandleY}, ${midX} ${targetHandleY}, ${targetHandleX} ${targetHandleY}`;
-
-              return (
-                <svg key={edge.id} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-                  <path
-                    d={path}
-                    stroke="#6b7280"
-                    strokeWidth="2"
-                    fill="none"
-                    markerEnd="url(#arrowhead)"
-                  />
-                </svg>
-              );
-            })}
-
-            {/* Arrow marker definition */}
-            <defs>
-              <marker
-                id="arrowhead"
-                markerWidth="10"
-                markerHeight="7"
-                refX="9"
-                refY="3.5"
-                orient="auto"
-              >
-                <polygon
-                  points="0 0, 10 3.5, 0 7"
-                  fill="#6b7280"
-                />
-              </marker>
-            </defs>
-
-            {/* Show connection line when connecting */}
-            {connecting && connectionStart && (
-              <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-                <line
-                  x1={getNodePosition(connectionStart)?.x ?? 0}
-                  y1={getNodePosition(connectionStart)?.y ?? 0}
-                  x2={mousePosition.x} // Mouse position is relative to the viewport, needs canvas offset
-                  y2={mousePosition.y} // Mouse position is relative to the viewport, needs canvas offset
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                />
-              </svg>
-            )}
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar por categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {Object.entries(NODE_CATEGORIES).map(([key, category]) => (
+                  <SelectItem key={key} value={key}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {/* Canvas Controls */}
-        <div className="absolute top-4 right-4 flex space-x-2 z-10">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setZoom(prev => Math.min(2, prev + 0.1))}
-            data-testid="button-zoom-in"
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {Object.entries(filteredNodes).map(([categoryKey, category]) => (
+              <div key={categoryKey}>
+                <div className="flex items-center gap-2 mb-2">
+                  <category.icon className="w-4 h-4" />
+                  <h3 className="font-medium text-sm">{category.name}</h3>
+                </div>
+
+                <div className="grid gap-2">
+                  {category.nodes.map((node) => {
+                    const IconComponent = node.icon;
+                    return (
+                      <div
+                        key={node.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, { ...node, category: categoryKey })}
+                        className="flex items-center gap-2 p-2 rounded border cursor-grab hover:bg-accent transition-colors"
+                      >
+                        <div className={`p-1 rounded ${category.color}`}>
+                          <IconComponent className="w-3 h-3 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">{node.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {node.description}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Main Canvas Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Toolbar */}
+        <div className="h-16 border-b bg-background flex items-center px-4 gap-4">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5" />
+            <h1 className="text-lg font-semibold">
+              {selectedBot?.name || 'Flow Editor'}
+            </h1>
+          </div>
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedFlowId || ''}
+              onValueChange={(value) => {
+                const flow = flows.find(f => f.id === value);
+                if (flow) {
+                  setSelectedFlow(flow);
+                  setSelectedFlowId(value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Selecionar fluxo" />
+              </SelectTrigger>
+              <SelectContent>
+                {flows.map((flow) => (
+                  <SelectItem key={flow.id} value={flow.id}>
+                    {flow.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={() => saveFlowMutation.mutate()}
+              disabled={saving}
+              size="sm"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </div>
+
+        {/* ReactFlow Canvas */}
+        <div className="flex-1 bg-gray-50">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            nodeTypes={nodeTypes}
+            fitView
+            attributionPosition="bottom-left"
           >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))}
-            data-testid="button-zoom-out"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
-            data-testid="button-reset-view"
-          >
-            <Home className="h-4 w-4" />
-          </Button>
+            <Controls />
+            <MiniMap />
+            <Background variant="dots" gap={12} size={1} />
+
+            <Panel position="top-left" className="bg-white p-2 rounded shadow">
+              <div className="text-sm text-muted-foreground">
+                Arraste componentes da paleta para criar seu fluxo
+              </div>
+            </Panel>
+          </ReactFlow>
         </div>
       </div>
 
-      {/* Node Configuration Modal */}
-      <Dialog open={showNodeConfig} onOpenChange={(open) => {
-        setShowNodeConfig(open);
-        if (!open) {
-          setSelectedNodeForConfig(null); // Clear when modal is closed
-        }
-      }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="node-config-modal">
+      {/* Node Configuration Dialog */}
+      <Dialog open={showNodeConfig} onOpenChange={setShowNodeConfig}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Configure Node: {selectedNode?.name}</DialogTitle>
+            <DialogTitle>Configurar Nó</DialogTitle>
             <DialogDescription>
-              Configure the properties and behavior for this {selectedNode?.category} node.
+              Configure as propriedades do nó selecionado
             </DialogDescription>
           </DialogHeader>
 
           {selectedNodeForConfig && (
             <NodeConfigForm
               nodeId={selectedNodeForConfig}
-              nodeType={nodes.find(n => n.id === selectedNodeForConfig)?.data?.type || ''}
-              currentConfig={
-                selectedNodeConfig[selectedNodeForConfig] ||
-                nodes.find(n => n.id === selectedNodeForConfig)?.data?.config ||
-                {}
-              }
-              onSave={handleNodeConfigSave}
-              onCancel={() => {
-                setShowNodeConfig(false);
-                setSelectedNodeForConfig(null);
+              nodeData={nodes.find(n => n.id === selectedNodeForConfig)?.data}
+              config={selectedNodeConfig[selectedNodeForConfig] || {}}
+              onConfigChange={(config) => {
+                setSelectedNodeConfig(prev => ({
+                  ...prev,
+                  [selectedNodeForConfig]: config
+                }));
+
+                // Update node data
+                setNodes(prevNodes => 
+                  prevNodes.map(node => 
+                    node.id === selectedNodeForConfig 
+                      ? { ...node, data: { ...node.data, config } }
+                      : node
+                  )
+                );
               }}
+              onClose={() => setShowNodeConfig(false)}
             />
           )}
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function FlowEditorWrapper(props: FlowEditorProps) {
+  return (
+    <ReactFlowProvider>
+      <FlowEditor {...props} />
+    </ReactFlowProvider>
   );
 }
