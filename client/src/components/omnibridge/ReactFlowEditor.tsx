@@ -371,6 +371,108 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
     });
   }, []);
 
+  // Save flow function - defined early before any usage  
+  const handleSaveFlow = useCallback(async () => {
+    if (!selectedFlow || !selectedBot) {
+      toast({
+        title: "Erro",
+        description: "Selecione um fluxo válido antes de salvar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const formattedNodes = nodes.map(node => ({
+        id: node.id,
+        type: node.data.nodeType || 'unknown',
+        title: node.data.title || node.data.label,
+        category: node.data.category || 'unknown',
+        description: node.data.description || '',
+        position: node.position,
+        config: { ...node.data.config, ...selectedNodeConfig[node.id] },
+        isStart: node.data.isStart || false,
+        isEnd: node.data.isEnd || false,
+        isEnabled: node.data.isEnabled !== false
+      }));
+
+      const formattedEdges = edges.map(edge => ({
+        id: edge.id,
+        fromNodeId: edge.source,
+        toNodeId: edge.target,
+        label: edge.label || '',
+        condition: edge.data?.condition || '',
+        kind: edge.data?.kind || 'default',
+        order: edge.data?.order || 0,
+        isEnabled: edge.data?.isEnabled !== false
+      }));
+
+      let response;
+      
+      if (selectedFlow.id.startsWith('flow_')) {
+        const newFlowData = {
+          name: selectedFlow.name,
+          description: selectedFlow.description || "Fluxo do chatbot",
+          nodes: formattedNodes,
+          edges: formattedEdges,
+          variables: selectedFlow.variables || [],
+          isActive: true
+        };
+
+        response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, newFlowData);
+      } else {
+        const updateData = {
+          name: selectedFlow.name,
+          description: selectedFlow.description,
+          nodes: formattedNodes,
+          edges: formattedEdges,
+          variables: selectedFlow.variables || [],
+          isActive: selectedFlow.isActive
+        };
+
+        response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, updateData);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to save flow: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      
+      if (responseData?.data) {
+        const updatedFlow = responseData.data;
+        setSelectedFlow(updatedFlow);
+        
+        if (selectedFlow.id.startsWith('flow_')) {
+          setSelectedFlowId(updatedFlow.id);
+          setFlows(prev => [...prev.filter(f => !f.id.startsWith('flow_')), updatedFlow]);
+        } else {
+          setFlows(prev => prev.map(f => f.id === updatedFlow.id ? updatedFlow : f));
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['chatbot-flows', selectedBot.id] });
+        queryClient.invalidateQueries({ queryKey: ['chatbot-flow-complete', updatedFlow.id] });
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Fluxo salvo com sucesso!"
+      });
+
+    } catch (error) {
+      console.error('Save failed:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: error instanceof Error ? error.message : "Erro desconhecido ao salvar o fluxo",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedFlow, selectedBot, nodes, edges, selectedNodeConfig, toast, queryClient]);
+
   const onConnect = useCallback((connection: Connection) => {
     const newEdge: ReactFlowEdge = {
       id: `edge_${Date.now()}_${Math.random()}`,
@@ -393,7 +495,7 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
     
     // Auto-save after connection
     setTimeout(() => handleSaveFlow(), 500);
-  }, []);
+  }, [handleSaveFlow]);
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: ReactFlowNode) => {
     setSelectedNode(node);
