@@ -508,14 +508,15 @@ export class ChatbotController {
           const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(
             flowId,
             validNodes,
-            validEdges
+            validEdges,
+            tenantId
           );
 
           if (success) {
             console.log('✅ [CONTROLLER] Complete flow saved successfully - retrieving updated data');
 
             // Return the updated flow with nodes and edges
-            const updatedFlowWithNodes = await this.updateFlowUseCase.chatbotFlowRepository.findWithNodes(flowId);
+            const updatedFlowWithNodes = await this.updateFlowUseCase.chatbotFlowRepository.findWithNodes(flowId, tenantId);
 
             if (!updatedFlowWithNodes) {
               console.error('❌ [CONTROLLER] Flow not found after save operation');
