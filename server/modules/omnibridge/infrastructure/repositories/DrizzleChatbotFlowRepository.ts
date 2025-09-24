@@ -96,7 +96,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .select()
       .from(chatbotFlows)
       .where(eq(chatbotFlows.botId, botId))
-      .orderBy(desc(chatbotFlows.version));
+      .orderBy(desc(chatbotFlows.createdAt));
   }
 
   async findActiveByBot(botId: string): Promise<SelectChatbotFlow | null> {
@@ -182,7 +182,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .select()
       .from(chatbotFlows)
       .where(eq(chatbotFlows.botId, botId))
-      .orderBy(desc(chatbotFlows.version))
+      .orderBy(desc(chatbotFlows.createdAt))
       .limit(1);
     
     return latestFlow || null;
@@ -193,7 +193,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .select()
       .from(chatbotFlows)
       .where(eq(chatbotFlows.botId, botId))
-      .orderBy(desc(chatbotFlows.version));
+      .orderBy(desc(chatbotFlows.createdAt));
   }
 
   async findWithNodes(id: string): Promise<ChatbotFlowWithNodes | null> {
