@@ -25,6 +25,7 @@ import {
   ArrowRight, Workflow, Plug, HelpCircle, Info, AlertTriangle, ZoomIn, 
   ZoomOut, Home, Star, BarChart, Lightbulb, MessageCircle
 } from 'lucide-react';
+import NodeConfigForm from './NodeConfigForm';
 
 // Complete Node Categories with All 87 Functionalities
 const NODE_CATEGORIES = {
@@ -597,7 +598,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
       {/* Node Configuration Modal */}
       <Dialog open={showNodeConfig} onOpenChange={setShowNodeConfig}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="node-config-modal">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="node-config-modal">
           <DialogHeader>
             <DialogTitle>Configure Node: {selectedNode?.name}</DialogTitle>
             <DialogDescription>
@@ -605,86 +606,17 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="node-name">Node Name</Label>
-              <Input
-                id="node-name"
-                value={nodeConfig.name || selectedNode?.name || ''}
-                onChange={(e) => setNodeConfig(prev => ({ ...prev, name: e.target.value }))}
-                data-testid="input-node-name"
-              />
-            </div>
-
-            {/* Dynamic configuration based on node type */}
-            {selectedNode?.type === 'trigger-keyword' && (
-              <div>
-                <Label htmlFor="keywords">Keywords (one per line)</Label>
-                <Textarea
-                  id="keywords"
-                  placeholder="help&#10;support&#10;assistance"
-                  value={nodeConfig.keywords || ''}
-                  onChange={(e) => setNodeConfig(prev => ({ ...prev, keywords: e.target.value }))}
-                  data-testid="textarea-keywords"
-                />
-              </div>
-            )}
-
-            {selectedNode?.type === 'action-send-text' && (
-              <div>
-                <Label htmlFor="message">Message Text</Label>
-                <Textarea
-                  id="message"
-                  placeholder="Enter the message to send..."
-                  value={nodeConfig.message || ''}
-                  onChange={(e) => setNodeConfig(prev => ({ ...prev, message: e.target.value }))}
-                  data-testid="textarea-message"
-                />
-              </div>
-            )}
-
-            {selectedNode?.type === 'condition-text' && (
-              <>
-                <div>
-                  <Label htmlFor="condition-text">Text to Compare</Label>
-                  <Input
-                    id="condition-text"
-                    value={nodeConfig.conditionText || ''}
-                    onChange={(e) => setNodeConfig(prev => ({ ...prev, conditionText: e.target.value }))}
-                    data-testid="input-condition-text"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="operator">Operator</Label>
-                  <Select 
-                    value={nodeConfig.operator || 'equals'} 
-                    onValueChange={(value) => setNodeConfig(prev => ({ ...prev, operator: value }))}
-                  >
-                    <SelectTrigger data-testid="select-operator">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="equals">Equals</SelectItem>
-                      <SelectItem value="contains">Contains</SelectItem>
-                      <SelectItem value="starts_with">Starts With</SelectItem>
-                      <SelectItem value="ends_with">Ends With</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-
-            {/* Add more node type configurations as needed */}
-            
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setShowNodeConfig(false)}>
-                Cancel
-              </Button>
-              <Button onClick={saveNodeConfig} data-testid="button-save-config">
-                Save Configuration
-              </Button>
-            </div>
-          </div>
+          {selectedNode && (
+            <NodeConfigForm
+              nodeType={selectedNode.type}
+              nodeName={selectedNode.name}
+              nodeCategory={selectedNode.category}
+              configuration={{ ...selectedNode.configuration, name: nodeConfig.name || selectedNode.name }}
+              onChange={(config) => setNodeConfig(config)}
+              onSave={saveNodeConfig}
+              onCancel={() => setShowNodeConfig(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
