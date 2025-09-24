@@ -443,9 +443,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email || 'Técnico';
 
               return (
-                <div key={agent.id} className="border-b flex-shrink-0">
+                <div key={agent.id} className="border-b">
                   {/* Planned row */}
-                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
                     <div className="text-sm flex-1 flex items-center gap-2">
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
@@ -472,17 +472,26 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   </div>
 
                   {/* Actual row */}
-                  <div className="h-10 px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-                    <div className="text-sm flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
+                    <div className="text-sm flex-1 flex items-center gap-2">
+                      <SimpleAvatar 
+                        src={agent.profileImageUrl} 
+                        name={agentName} 
+                        size="sm" 
+                      />
+                      <div>
+                        <div className="font-medium text-gray-700 text-xs">{agentName}</div>
+                        <div className="text-xs text-blue-600">Realizado</div>
                       </div>
-                      <span className="text-xs text-gray-600">Executado</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {!worksToday && (
-                        <span className="text-xs text-gray-400">Não trabalha</span>
-                      )}
+                    <div className="text-xs text-gray-500">
+                      {worksToday && workSchedule?.breakStart && workSchedule?.breakEnd ? (
+                        <div className="text-right">
+                          <div className="text-orange-600">
+                            ☕ {workSchedule.breakStart}-{workSchedule.breakEnd}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -493,7 +502,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           {/* Timeline grid */}
           <div 
             ref={contentScrollRef}
-            className="flex-1 overflow-y-auto overflow-x-auto"
+            className="flex-1 overflow-x-auto relative"
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
             data-timeline-container
@@ -546,7 +555,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     })() : false;
 
                     return (
-                      <div key={agent.id} className="border-b flex-shrink-0">
+                      <div key={agent.id} className="border-b">
                         {(() => {
                           // Organize schedules in layers to handle overlaps
                           const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
