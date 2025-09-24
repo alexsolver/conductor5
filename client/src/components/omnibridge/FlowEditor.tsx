@@ -300,6 +300,23 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     enabled: !!botId
   });
 
+  // Create flow mutation
+  const createFlowMutation = useMutation({
+    mutationFn: async (flowData: Partial<ChatbotFlow>) => {
+      const response = await apiRequest('POST', `/api/omnibridge/flows`, flowData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('🔄 [FLOW-CREATE] Flow created successfully:', data.data);
+      setSelectedFlow(data.data);
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
+      toast({
+        title: 'Flow Criado',
+        description: 'Flow salvo com sucesso no banco de dados'
+      });
+    }
+  });
+
   // Save flow mutation
   const saveFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
@@ -309,10 +326,22 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     },
     onSuccess: () => {
       toast({
-        title: 'Flow Saved',
-        description: 'Flow has been saved successfully'
+        title: 'Flow Salvo',
+        description: 'Flow atualizado com sucesso'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
+    },
+    onError: (error: any) => {
+      console.error('🔄 [FLOW-SAVE] Error saving flow:', error);
+      // If flow doesn't exist, try to create it
+      if (error.message?.includes('Flow not found') && selectedFlow) {
+        console.log('🔄 [FLOW-SAVE] Flow not found, creating new one...');
+        createFlowMutation.mutate({
+          ...selectedFlow,
+          nodes: JSON.stringify(nodes),
+          edges: JSON.stringify(edges)
+        });
+      }
     }
   });
 
@@ -333,6 +362,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         description: 'Bot temporário para edição',
         tenantId: '',
         isActive: true,
+        configuration: {},
+        metadata: {},
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -352,7 +383,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           name: 'Fluxo Principal',
           description: 'Fluxo padrão do chatbot',
           isActive: true,
-          isDefault: true,
           triggerEvent: 'message_received',
           metadata: {},
           createdAt: new Date().toISOString(),
@@ -516,31 +546,48 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // Handle connection start
   const handleConnectionStart = (nodeId: string, isOutput: boolean) => {
+    if (connecting) {
+      // If we already have a connection started, complete it
+      handleConnectionEnd(nodeId, !isOutput);
+      return;
+    }
+    
     setConnecting({ nodeId, isSource: isOutput });
     console.log('🔗 [CONNECTION] Starting connection from:', nodeId, isOutput ? 'output' : 'input');
   };
 
   // Handle connection end
   const handleConnectionEnd = (nodeId: string, isInput: boolean) => {
-    if (!connecting || !isInput || connecting.nodeId === nodeId) {
+    if (!connecting || connecting.nodeId === nodeId) {
+      console.log('🔗 [CONNECTION] Cancelling connection - same node or no active connection');
       setConnecting(null);
       return;
     }
 
-    // Create new edge
-    const newEdge: FlowEdge = {
-      id: `edge_${Date.now()}`,
-      flowId: selectedFlow?.id || '',
-      sourceNodeId: connecting.nodeId,
-      targetNodeId: nodeId,
-      sourceHandle: 'output',
-      targetHandle: 'input',
-      style: {},
-      metadata: {}
-    };
+    // Only connect if we're connecting from output to input or input to output
+    if ((connecting.isSource && isInput) || (!connecting.isSource && !isInput)) {
+      // Create new edge
+      const newEdge: FlowEdge = {
+        id: `edge_${Date.now()}`,
+        flowId: selectedFlow?.id || '',
+        sourceNodeId: connecting.isSource ? connecting.nodeId : nodeId,
+        targetNodeId: connecting.isSource ? nodeId : connecting.nodeId,
+        sourceHandle: 'output',
+        targetHandle: 'input',
+        metadata: {}
+      };
 
-    console.log('🔗 [CONNECTION] Creating edge:', newEdge);
-    setEdges(prev => [...prev, newEdge]);
+      console.log('🔗 [CONNECTION] Creating edge:', newEdge);
+      setEdges(prev => [...prev, newEdge]);
+      
+      toast({
+        title: 'Conexão Criada',
+        description: 'Nós conectados com sucesso'
+      });
+    } else {
+      console.log('🔗 [CONNECTION] Invalid connection type');
+    }
+    
     setConnecting(null);
   };
 
@@ -586,11 +633,11 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         <div className="flex items-center space-x-3">
           <Button 
             onClick={handleSaveFlow}
-            disabled={!selectedFlow || saveFlowMutation.isPending}
+            disabled={!selectedFlow || saveFlowMutation.isPending || createFlowMutation.isPending}
             data-testid="button-save-flow"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saveFlowMutation.isPending ? 'Saving...' : 'Save'}
+            {(saveFlowMutation.isPending || createFlowMutation.isPending) ? 'Salvando...' : 'Salvar'}
           </Button>
           {onClose && (
             <Button variant="outline" onClick={onClose} data-testid="button-close">
@@ -715,17 +762,17 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                 >
                   {/* Connection point - input */}
                   <div 
-                    className="absolute -left-2 top-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600 transition-colors"
+                    className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
+                      connecting?.nodeId === node.id && !connecting.isSource 
+                        ? 'bg-yellow-400 border-2 border-yellow-600' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
                     style={{ transform: 'translateY(-50%)' }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleConnectionEnd(node.id, true);
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
                       handleConnectionStart(node.id, false);
                     }}
-                    title="Entrada"
+                    title="Entrada - Clique para conectar"
                   />
                   
                   {/* Node content */}
@@ -737,17 +784,17 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   
                   {/* Connection point - output */}
                   <div 
-                    className="absolute -right-2 top-1/2 w-4 h-4 bg-green-500 rounded-full cursor-pointer hover:bg-green-600 transition-colors"
+                    className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
+                      connecting?.nodeId === node.id && connecting.isSource 
+                        ? 'bg-yellow-400 border-2 border-yellow-600' 
+                        : 'bg-green-500 hover:bg-green-600'
+                    }`}
                     style={{ transform: 'translateY(-50%)' }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleConnectionEnd(node.id, false);
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
                       handleConnectionStart(node.id, true);
                     }}
-                    title="Saída"
+                    title="Saída - Clique para conectar"
                   />
                 </div>
               ))}
