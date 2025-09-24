@@ -218,69 +218,110 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       }
 
       // Start transaction to save nodes and edges
-      await db.transaction(async (tx) => {
-        // Clear existing nodes and edges
-        console.log('🗑️ [REPOSITORY] Clearing existing nodes and edges for flow:', flowId);
-        await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
-        await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
-
-        // Insert new nodes if any
-        if (nodes.length > 0) {
-          const nodesToInsert = nodes.map(node => ({
-            id: node.id,
-            flowId,
-            category: node.category || 'action',
-            type: node.type || 'default',
-            title: node.data?.label || node.label || node.title || 'Untitled Node',
-            description: node.data?.description || node.description,
-            position: node.position || { x: 0, y: 0 },
-            config: node.data || node.config || {},
-            isStart: Boolean(node.isStart || node.data?.isStart),
-            isEnd: Boolean(node.isEnd || node.data?.isEnd),
-            isEnabled: Boolean(node.isEnabled !== undefined ? node.isEnabled : true),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }));
+      const result = await db.transaction(async (tx) => {
+        try {
+          // Clear existing nodes and edges
+          console.log('🗑️ [REPOSITORY] Clearing existing nodes and edges for flow:', flowId);
+          const deletedNodes = await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
+          const deletedEdges = await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
           
-          console.log('💾 [REPOSITORY] Inserting nodes:', nodesToInsert.length);
-          await tx.insert(chatbotNodes).values(nodesToInsert);
-        }
+          console.log('🗑️ [REPOSITORY] Deletion results:', { 
+            deletedNodes: deletedNodes.rowCount || 0, 
+            deletedEdges: deletedEdges.rowCount || 0 
+          });
 
-        // Insert new edges if any
-        if (edges.length > 0) {
-          const edgesToInsert = edges.map(edge => ({
-            id: edge.id,
-            flowId,
-            fromNodeId: edge.source,
-            toNodeId: edge.target,
-            label: edge.label || edge.data?.label,
-            condition: edge.data?.condition,
-            kind: edge.kind || edge.data?.kind || 'default',
-            order: edge.order || 0,
-            isEnabled: Boolean(edge.isEnabled !== undefined ? edge.isEnabled : true),
-            createdAt: new Date()
-          }));
+          // Insert new nodes if any
+          if (nodes && nodes.length > 0) {
+            const nodesToInsert = nodes.map(node => {
+              const nodeData = {
+                id: node.id || `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                flowId,
+                category: (node.category || node.data?.category || 'action') as any,
+                type: node.type || node.data?.type || 'default',
+                title: node.data?.label || node.label || node.title || node.data?.title || 'Untitled Node',
+                description: node.data?.description || node.description || null,
+                position: node.position || { x: 0, y: 0 },
+                config: node.data || node.config || {},
+                isStart: Boolean(node.isStart || node.data?.isStart || false),
+                isEnd: Boolean(node.isEnd || node.data?.isEnd || false),
+                isEnabled: Boolean(node.isEnabled !== undefined ? node.isEnabled : (node.data?.isEnabled !== undefined ? node.data.isEnabled : true)),
+                createdAt: new Date(),
+                updatedAt: new Date()
+              };
+              
+              console.log('💾 [REPOSITORY] Node to insert:', {
+                id: nodeData.id,
+                category: nodeData.category,
+                type: nodeData.type,
+                title: nodeData.title
+              });
+              
+              return nodeData;
+            });
+            
+            console.log('💾 [REPOSITORY] Inserting nodes:', nodesToInsert.length);
+            const insertedNodes = await tx.insert(chatbotNodes).values(nodesToInsert).returning();
+            console.log('✅ [REPOSITORY] Nodes inserted successfully:', insertedNodes.length);
+          }
+
+          // Insert new edges if any
+          if (edges && edges.length > 0) {
+            const edgesToInsert = edges.map(edge => {
+              const edgeData = {
+                id: edge.id || `edge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                flowId,
+                fromNodeId: edge.source || edge.sourceNodeId || edge.fromNodeId,
+                toNodeId: edge.target || edge.targetNodeId || edge.toNodeId,
+                label: edge.label || edge.data?.label || null,
+                condition: edge.data?.condition || edge.condition || null,
+                kind: (edge.kind || edge.data?.kind || 'default') as any,
+                order: edge.order || edge.data?.order || 0,
+                isEnabled: Boolean(edge.isEnabled !== undefined ? edge.isEnabled : (edge.data?.isEnabled !== undefined ? edge.data.isEnabled : true)),
+                createdAt: new Date()
+              };
+              
+              console.log('💾 [REPOSITORY] Edge to insert:', {
+                id: edgeData.id,
+                from: edgeData.fromNodeId,
+                to: edgeData.toNodeId,
+                kind: edgeData.kind
+              });
+              
+              return edgeData;
+            });
+            
+            console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
+            const insertedEdges = await tx.insert(chatbotEdges).values(edgesToInsert).returning();
+            console.log('✅ [REPOSITORY] Edges inserted successfully:', insertedEdges.length);
+          }
+
+          // Update the flow's updatedAt timestamp
+          const updatedFlow = await tx.update(chatbotFlows)
+            .set({ updatedAt: new Date() })
+            .where(eq(chatbotFlows.id, flowId))
+            .returning();
           
-          console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
-          await tx.insert(chatbotEdges).values(edgesToInsert);
+          console.log('✅ [REPOSITORY] Flow timestamp updated:', updatedFlow.length > 0);
+          
+          return true;
+        } catch (txError) {
+          console.error('❌ [REPOSITORY] Transaction error:', txError);
+          throw txError;
         }
-
-        // Update the flow's updatedAt timestamp
-        await tx.update(chatbotFlows)
-          .set({ updatedAt: new Date() })
-          .where(eq(chatbotFlows.id, flowId));
       });
 
-      console.log('✅ [REPOSITORY] Complete flow saved successfully');
-      return true;
+      console.log('✅ [REPOSITORY] Complete flow saved successfully with transaction result:', result);
+      return result;
     } catch (error) {
       console.error('❌ [REPOSITORY] Error saving complete flow:', error);
       console.error('❌ [REPOSITORY] Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
         flowId,
-        nodeCount: nodes.length,
-        edgeCount: edges.length
+        nodeCount: nodes?.length || 0,
+        edgeCount: edges?.length || 0,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name
       });
       return false;
     }

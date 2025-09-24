@@ -15,7 +15,7 @@ interface UpdateChatbotFlowRequest {
 
 export class UpdateChatbotFlowUseCase {
   public chatbotFlowRepository: IChatbotFlowRepository;
-  
+
   constructor(
     chatbotFlowRepository: IChatbotFlowRepository,
     private chatbotBotRepository: IChatbotBotRepository
@@ -25,7 +25,7 @@ export class UpdateChatbotFlowUseCase {
 
   async execute(request: UpdateChatbotFlowRequest): Promise<SelectChatbotFlow> {
     const { flowId, tenantId, ...updateData } = request;
-    
+
     // Verify flow exists
     const existingFlow = await this.chatbotFlowRepository.findById(flowId);
     if (!existingFlow) {
@@ -39,7 +39,7 @@ export class UpdateChatbotFlowUseCase {
     }
 
     const updatedFlow = await this.chatbotFlowRepository.update(flowId, updateData);
-    
+
     if (!updatedFlow) {
       throw new Error('Failed to update flow');
     }

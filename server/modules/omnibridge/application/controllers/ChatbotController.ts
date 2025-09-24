@@ -347,7 +347,8 @@ export class ChatbotController {
         hasEdges: !!edges,
         nodeCount: nodes?.length || 0,
         edgeCount: edges?.length || 0,
-        tenantId
+        tenantId,
+        requestBody: Object.keys(req.body)
       });
 
       // If nodes and edges are provided, save complete flow
@@ -368,7 +369,8 @@ export class ChatbotController {
 
         console.log('✅ [CONTROLLER] Flow found:', { 
           flowId: existingFlow.id, 
-          botId: existingFlow.botId 
+          botId: existingFlow.botId,
+          name: existingFlow.name
         });
 
         // Verify bot belongs to tenant
@@ -389,32 +391,70 @@ export class ChatbotController {
           return;
         }
 
-        console.log('✅ [CONTROLLER] Bot found and access verified');
+        console.log('✅ [CONTROLLER] Bot found and access verified:', {
+          botId: bot.id,
+          botName: bot.name
+        });
+
+        // Validate nodes and edges before saving
+        const validNodes = Array.isArray(nodes) ? nodes : [];
+        const validEdges = Array.isArray(edges) ? edges : [];
+        
+        console.log('📊 [CONTROLLER] Validated data:', {
+          validNodeCount: validNodes.length,
+          validEdgeCount: validEdges.length,
+          sampleNode: validNodes[0] ? {
+            id: validNodes[0].id,
+            type: validNodes[0].type,
+            label: validNodes[0].data?.label || validNodes[0].label
+          } : null,
+          sampleEdge: validEdges[0] ? {
+            id: validEdges[0].id,
+            source: validEdges[0].source,
+            target: validEdges[0].target
+          } : null
+        });
 
         // Save nodes and edges
         const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(
           flowId,
-          nodes || [],
-          edges || []
+          validNodes,
+          validEdges
         );
 
         if (success) {
-          console.log('✅ [CONTROLLER] Complete flow saved successfully');
+          console.log('✅ [CONTROLLER] Complete flow saved successfully - retrieving updated data');
           
           // Return the updated flow with nodes and edges
           const updatedFlowWithNodes = await this.updateFlowUseCase.chatbotFlowRepository.findWithNodes(flowId);
           
+          console.log('📄 [CONTROLLER] Updated flow retrieved:', {
+            hasFlow: !!updatedFlowWithNodes,
+            nodeCount: updatedFlowWithNodes?.nodes?.length || 0,
+            edgeCount: updatedFlowWithNodes?.edges?.length || 0
+          });
+          
           res.json({
             success: true,
             data: updatedFlowWithNodes || existingFlow,
-            message: 'Flow saved successfully'
+            message: 'Flow saved successfully',
+            metadata: {
+              savedNodes: validNodes.length,
+              savedEdges: validEdges.length,
+              timestamp: new Date().toISOString()
+            }
           });
         } else {
-          console.error('❌ [CONTROLLER] Failed to save complete flow');
+          console.error('❌ [CONTROLLER] Failed to save complete flow - repository returned false');
           res.status(500).json({
             success: false,
-            error: 'Failed to save flow',
-            details: { flowId, nodeCount: nodes?.length || 0, edgeCount: edges?.length || 0 }
+            error: 'Failed to save flow - database operation failed',
+            details: { 
+              flowId, 
+              nodeCount: validNodes.length, 
+              edgeCount: validEdges.length,
+              timestamp: new Date().toISOString()
+            }
           });
         }
         return;
@@ -436,6 +476,20 @@ export class ChatbotController {
       });
     } catch (error) {
       console.error('❌ [CONTROLLER] Error updating flow:', error);
+      
+      // Enhanced error logging
+      console.error('❌ [CONTROLLER] Error context:', {
+        flowId: req.params.flowId,
+        tenantId: req.user?.tenantId,
+        hasNodes: !!req.body.nodes,
+        hasEdges: !!req.body.edges,
+        nodeCount: req.body.nodes?.length || 0,
+        edgeCount: req.body.edges?.length || 0,
+        requestKeys: Object.keys(req.body),
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
+      
       if (error instanceof z.ZodError) {
         res.status(400).json({
           success: false,
@@ -449,7 +503,8 @@ export class ChatbotController {
           details: {
             flowId: req.params.flowId,
             hasNodes: !!req.body.nodes,
-            hasEdges: !!req.body.edges
+            hasEdges: !!req.body.edges,
+            timestamp: new Date().toISOString()
           }
         });
       }
