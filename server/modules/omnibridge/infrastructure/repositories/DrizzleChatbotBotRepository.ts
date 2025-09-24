@@ -175,8 +175,8 @@ export class DrizzleChatbotBotRepository implements IChatbotBotRepository {
 
     return {
       ...bot,
-      flows: flowsWithNodes,
-      channels
+      flows: flowsWithNodes as any, // Type assertion for settings field
+      channels: channels as any // Type assertion for routingRules field
     };
   }
 

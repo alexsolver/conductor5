@@ -18,7 +18,7 @@ export class GetChatbotFlowsUseCase {
     
     if (botId) {
       // SECURITY: Verify bot belongs to tenant before getting flows
-      const bot = await this.chatbotBotRepository.findById(botId);
+      const bot = await this.chatbotBotRepository.findById(botId, tenantId);
       if (!bot || bot.tenantId !== tenantId) {
         throw new Error('Bot not found or access denied');
       }
@@ -26,7 +26,15 @@ export class GetChatbotFlowsUseCase {
       return await this.chatbotFlowRepository.findByBot(botId);
     }
     
-    // If no botId provided, get all flows for tenant
-    return await this.chatbotFlowRepository.findByTenant(tenantId);
+    // If no botId provided, get all flows for all bots in tenant
+    const bots = await this.chatbotBotRepository.findByTenant(tenantId);
+    const allFlows: SelectChatbotFlow[] = [];
+    
+    for (const bot of bots) {
+      const flows = await this.chatbotFlowRepository.findByBot(bot.id);
+      allFlows.push(...flows);
+    }
+    
+    return allFlows;
   }
 }
