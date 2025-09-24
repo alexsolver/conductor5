@@ -339,10 +339,69 @@ export class ChatbotController {
     try {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
+      const { nodes, edges, ...flowData } = req.body;
 
-      // Validate request body using Zod schema
-      const validatedData = updateChatbotFlowSchema.parse(req.body);
+      console.log('🔄 [CONTROLLER] Updating flow:', { 
+        flowId, 
+        hasNodes: !!nodes, 
+        hasEdges: !!edges,
+        nodeCount: nodes?.length || 0,
+        edgeCount: edges?.length || 0
+      });
 
+      // If nodes and edges are provided, save complete flow
+      if (nodes !== undefined || edges !== undefined) {
+        console.log('💾 [CONTROLLER] Detected complete flow save request');
+        
+        // Verify flow exists and belongs to tenant
+        const existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId);
+        if (!existingFlow) {
+          res.status(404).json({
+            success: false,
+            error: 'Flow not found'
+          });
+          return;
+        }
+
+        // Verify bot belongs to tenant
+        const bot = await this.getBotByIdUseCase.execute({ 
+          botId: existingFlow.botId, 
+          tenantId 
+        });
+        if (!bot) {
+          res.status(404).json({
+            success: false,
+            error: 'Flow not found or access denied'
+          });
+          return;
+        }
+
+        // Save nodes and edges
+        const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(
+          flowId,
+          nodes || [],
+          edges || []
+        );
+
+        if (success) {
+          console.log('✅ [CONTROLLER] Complete flow saved successfully');
+          res.json({
+            success: true,
+            data: existingFlow,
+            message: 'Flow saved successfully'
+          });
+        } else {
+          console.error('❌ [CONTROLLER] Failed to save complete flow');
+          res.status(500).json({
+            success: false,
+            error: 'Failed to save flow'
+          });
+        }
+        return;
+      }
+
+      // Otherwise, update flow metadata only
+      const validatedData = updateChatbotFlowSchema.parse(flowData);
       const updatedFlow = await this.updateFlowUseCase.execute({
         flowId,
         tenantId,
@@ -534,6 +593,72 @@ export class ChatbotController {
           error: error instanceof Error ? error.message : 'Failed to create edge'
         });
       }
+    }
+  }
+
+  // Complete flow management
+  async saveCompleteFlow(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const tenantId = this.getTenantId(req);
+      const { flowId } = req.params;
+      const { nodes = [], edges = [] } = req.body;
+
+      console.log('💾 [CONTROLLER] Saving complete flow:', { 
+        flowId, 
+        nodeCount: nodes.length, 
+        edgeCount: edges.length,
+        tenantId 
+      });
+
+      // Verify flow exists and belongs to tenant
+      const existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId);
+      if (!existingFlow) {
+        res.status(404).json({
+          success: false,
+          error: 'Flow not found'
+        });
+        return;
+      }
+
+      // Verify bot belongs to tenant
+      const bot = await this.getBotByIdUseCase.execute({ 
+        botId: existingFlow.botId, 
+        tenantId 
+      });
+      if (!bot) {
+        res.status(404).json({
+          success: false,
+          error: 'Flow not found or access denied'
+        });
+        return;
+      }
+
+      // Save nodes and edges using the repository method
+      const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(
+        flowId,
+        nodes,
+        edges
+      );
+
+      if (success) {
+        console.log('✅ [CONTROLLER] Complete flow saved successfully');
+        res.json({
+          success: true,
+          message: 'Flow saved successfully'
+        });
+      } else {
+        console.error('❌ [CONTROLLER] Failed to save complete flow');
+        res.status(500).json({
+          success: false,
+          error: 'Failed to save flow'
+        });
+      }
+    } catch (error) {
+      console.error('❌ [CONTROLLER] Error saving complete flow:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to save flow'
+      });
     }
   }
 

@@ -213,6 +213,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       // Start transaction to save nodes and edges
       await db.transaction(async (tx) => {
         // Clear existing nodes and edges
+        console.log('🗑️ [REPOSITORY] Clearing existing nodes and edges for flow:', flowId);
         await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
         await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
 
@@ -250,12 +251,21 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
           console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
           await tx.insert(chatbotEdges).values(edgesToInsert);
         }
+
+        // Update the flow's updatedAt timestamp
+        await tx.update(chatbotFlows)
+          .set({ updatedAt: new Date() })
+          .where(eq(chatbotFlows.id, flowId));
       });
 
       console.log('✅ [REPOSITORY] Complete flow saved successfully');
       return true;
     } catch (error) {
       console.error('❌ [REPOSITORY] Error saving complete flow:', error);
+      console.error('❌ [REPOSITORY] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return false;
     }
   }
