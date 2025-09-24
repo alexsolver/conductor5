@@ -404,9 +404,17 @@ export class ChatbotController {
         if (!existingFlow) {
           console.log('🔧 [CONTROLLER] Flow not found, creating it first:', flowId);
 
-          // Extract botId from flowData or derive from flowId pattern
-          const botId = flowData.botId || req.body.botId;
-          if (!botId) {
+          // Try to extract botId from different sources
+          const botId = flowData.botId || req.body.botId || req.params.botId;
+          
+          // If we still don't have botId, try to get it from the path
+          const pathSegments = req.path.split('/');
+          const chatbotIndex = pathSegments.indexOf('chatbots');
+          const derivedBotId = chatbotIndex !== -1 ? pathSegments[chatbotIndex + 1] : null;
+          
+          const finalBotId = botId || derivedBotId;
+          
+          if (!finalBotId) {
             console.error('❌ [CONTROLLER] Cannot create flow without botId');
             res.status(400).json({
               success: false,
@@ -416,15 +424,15 @@ export class ChatbotController {
           }
 
           // Verify bot exists and belongs to tenant
-          const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
+          const bot = await this.getBotByIdUseCase.execute({ botId: finalBotId, tenantId });
           if (!bot) {
-            console.error('❌ [CONTROLLER] Bot not found or access denied:', botId);
+            console.error('❌ [CONTROLLER] Bot not found or access denied:', finalBotId);
             res.status(404).json({
               success: false,
               error: 'Bot not found or access denied',
               details: {
                 flowId,
-                botId,
+                botId: finalBotId,
                 tenantId,
                 timestamp: new Date().toISOString()
               }
@@ -435,7 +443,7 @@ export class ChatbotController {
           // Create flow with provided data and specific ID
           const createFlowRequest = {
             tenantId,
-            botId,
+            botId: finalBotId,
             id: flowId, // Use the specific flowId
             name: flowData.name || 'Fluxo Salvo',
             description: flowData.description || 'Fluxo salvo automaticamente',
