@@ -418,6 +418,48 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   }, [bot, flows, botId, selectedBot, selectedFlow]);
 
+  // Load nodes and edges when a flow is selected
+  useEffect(() => {
+    if (selectedFlow?.id && selectedFlow.metadata) {
+      console.log('🔄 [FLOW-LOAD] Loading nodes and edges for flow:', selectedFlow.id);
+      
+      try {
+        // Load nodes from metadata
+        if (selectedFlow.metadata.flowNodes) {
+          const parsedNodes = typeof selectedFlow.metadata.flowNodes === 'string' 
+            ? JSON.parse(selectedFlow.metadata.flowNodes) 
+            : selectedFlow.metadata.flowNodes;
+          console.log('🔄 [FLOW-LOAD] Loaded nodes:', parsedNodes);
+          setNodes(parsedNodes);
+        } else {
+          console.log('🔄 [FLOW-LOAD] No nodes found, resetting to empty');
+          setNodes([]);
+        }
+        
+        // Load edges from metadata
+        if (selectedFlow.metadata.flowEdges) {
+          const parsedEdges = typeof selectedFlow.metadata.flowEdges === 'string' 
+            ? JSON.parse(selectedFlow.metadata.flowEdges) 
+            : selectedFlow.metadata.flowEdges;
+          console.log('🔄 [FLOW-LOAD] Loaded edges:', parsedEdges);
+          setEdges(parsedEdges);
+        } else {
+          console.log('🔄 [FLOW-LOAD] No edges found, resetting to empty');
+          setEdges([]);
+        }
+      } catch (error) {
+        console.error('🔄 [FLOW-LOAD] Error parsing flow data:', error);
+        setNodes([]);
+        setEdges([]);
+      }
+    } else if (selectedFlow?.id) {
+      // New flow with no saved data
+      console.log('🔄 [FLOW-LOAD] New flow detected, starting with empty canvas');
+      setNodes([]);
+      setEdges([]);
+    }
+  }, [selectedFlow?.id, selectedFlow?.metadata]);
+
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
     const categoryNodes = NODE_CATEGORIES[category]?.nodes || [];
@@ -602,6 +644,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         title: 'Conexão Criada',
         description: 'Nós conectados com sucesso'
       });
+      
+      // Auto-save after creating connection
+      setTimeout(() => {
+        if (selectedFlow) {
+          handleSaveFlow();
+        }
+      }, 500);
     } else {
       console.log('🔗 [CONNECTION] Invalid connection type');
     }
@@ -616,11 +665,19 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       ...selectedFlow,
       metadata: {
         ...selectedFlow.metadata,
-        nodes: nodes.length,
-        edges: edges.length,
+        flowNodes: JSON.stringify(nodes),
+        flowEdges: JSON.stringify(edges),
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
         lastModified: new Date().toISOString()
       }
     };
+
+    console.log('💾 [FLOW-SAVE] Saving flow with nodes and edges:', { 
+      nodeCount: nodes.length, 
+      edgeCount: edges.length,
+      flowId: selectedFlow.id 
+    });
 
     saveFlowMutation.mutate(flowData);
   };
