@@ -685,9 +685,10 @@ export default function AutomationRuleBuilder({
     }
   });
 
-  const addTrigger = (template: Omit<Trigger, 'id' | 'config'>) => {
+  // Helper function to add a new trigger
+  const addTrigger = (triggerTemplate: Omit<Trigger, 'id' | 'config'>) => {
     const newTrigger: Trigger = {
-      ...template,
+      ...triggerTemplate,
       id: `trigger_${Date.now()}`,
       config: {}
     };
@@ -695,6 +696,12 @@ export default function AutomationRuleBuilder({
       ...prev,
       triggers: [...prev.triggers, newTrigger]
     }));
+  };
+
+  // Handle trigger selection for configuration
+  const handleTriggerSelect = (trigger: Trigger) => {
+    setSelectedTrigger(trigger);
+    setShowTriggerConfig(true);
   };
 
   const addAction = (template: Omit<Action, 'id' | 'config'>) => {
