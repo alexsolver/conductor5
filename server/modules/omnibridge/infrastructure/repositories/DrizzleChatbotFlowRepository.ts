@@ -21,7 +21,19 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       name: flow.name 
     });
     
-    const [createdFlow] = await db.insert(chatbotFlows).values(flow).returning();
+    // Ensure we have all required fields
+    const flowToInsert = {
+      ...flow,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // If custom ID is provided, use it
+    if (flow.id) {
+      flowToInsert.id = flow.id;
+    }
+    
+    const [createdFlow] = await db.insert(chatbotFlows).values(flowToInsert).returning();
     console.log('✅ [REPOSITORY] Flow created successfully:', createdFlow.id);
     return createdFlow as SelectChatbotFlow;
   }
@@ -221,8 +233,14 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       const existingFlow = await this.findById(flowId);
       if (!existingFlow) {
         console.error('❌ [REPOSITORY] Flow not found:', flowId);
-        return false;
+        throw new Error(`Flow with ID ${flowId} not found`);
       }
+
+      console.log('✅ [REPOSITORY] Flow exists, proceeding with save:', {
+        flowId: existingFlow.id,
+        flowName: existingFlow.name,
+        botId: existingFlow.botId
+      });
 
       // Start transaction to save nodes and edges
       const result = await db.transaction(async (tx) => {
