@@ -282,9 +282,12 @@ export class ChatbotController {
         reqBodyKeys: Object.keys(req.body || {})
       });
 
+      // Remove tenantId from request body since it's not part of flow table
+      const { tenantId: _, ...bodyWithoutTenantId } = req.body;
+      
       // Validate request body using Zod schema (without tenantId since it's not part of flow table)
       const validatedData = insertChatbotFlowSchema.parse({
-        ...req.body,
+        ...bodyWithoutTenantId,
         botId
       });
 
