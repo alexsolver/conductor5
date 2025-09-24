@@ -49,6 +49,29 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       // Get tenant-specific database connection
       const tenantDb = await this.getTenantDb(flow.tenantId);
       
+      // ✅ CRITICAL: Verify bot exists in tenant schema before creating flow
+      const { chatbotBots } = await import('../../../../../shared/schema-chatbot');
+      const [existingBot] = await tenantDb
+        .select()
+        .from(chatbotBots)
+        .where(eq(chatbotBots.id, flow.botId))
+        .limit(1);
+      
+      if (!existingBot) {
+        console.error('❌ [REPOSITORY] Bot not found in tenant schema:', {
+          botId: flow.botId,
+          tenantId: flow.tenantId,
+          schema: this.getSchemaName(flow.tenantId)
+        });
+        throw new Error(`Bot with ID ${flow.botId} not found in tenant ${flow.tenantId}`);
+      }
+      
+      console.log('✅ [REPOSITORY] Bot validation successful:', {
+        botId: existingBot.id,
+        botName: existingBot.name,
+        tenantId: flow.tenantId
+      });
+      
       // Remove tenantId from flow data as it's not part of the table schema
       const { tenantId: _, ...flowData } = flow;
       
