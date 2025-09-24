@@ -18,7 +18,7 @@ import { GetChatbotBotByIdUseCase } from '../use-cases/GetChatbotBotByIdUseCase'
 import { UpdateChatbotBotUseCase } from '../use-cases/UpdateChatbotBotUseCase';
 import { DeleteChatbotBotUseCase } from '../use-cases/DeleteChatbotBotUseCase';
 import { ToggleChatbotBotUseCase } from '../use-cases/ToggleChatbotBotUseCase';
-import { CreateChatbotFlowUseCase } from '../use-cases/CreateChatbotFlowUseCase';
+import { CreateChatbotFlowUseCase, CreateChatbotFlowRequest } from '../use-cases/CreateChatbotFlowUseCase';
 import { GetChatbotFlowsUseCase } from '../use-cases/GetChatbotFlowsUseCase';
 import { GetChatbotFlowByIdUseCase } from '../use-cases/GetChatbotFlowByIdUseCase';
 import { UpdateChatbotFlowUseCase } from '../use-cases/UpdateChatbotFlowUseCase';
@@ -275,14 +275,28 @@ export class ChatbotController {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
 
-      // Validate request body using Zod schema
-      const validatedData = insertChatbotFlowSchema.parse({
-        ...req.body,
-        botId,
-        tenantId
+      console.log('🔧 [CONTROLLER] CreateFlow debug:', { 
+        tenantId, 
+        botId, 
+        userTenantId: req.user?.tenantId,
+        reqBodyKeys: Object.keys(req.body || {})
       });
 
-      const flow = await this.createFlowUseCase.execute(validatedData);
+      // Validate request body using Zod schema (without tenantId since it's not part of flow table)
+      const validatedData = insertChatbotFlowSchema.parse({
+        ...req.body,
+        botId
+      });
+
+      console.log('🔧 [CONTROLLER] Validated data keys:', Object.keys(validatedData));
+
+      // Create the request for the use case with tenantId separately
+      const createRequest: CreateChatbotFlowRequest = {
+        tenantId, // Pass tenantId separately for validation, not for database insert
+        ...validatedData
+      };
+
+      const flow = await this.createFlowUseCase.execute(createRequest);
 
       res.status(201).json({
         success: true,
