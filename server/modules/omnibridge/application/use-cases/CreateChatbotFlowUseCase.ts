@@ -3,12 +3,13 @@ import { IChatbotBotRepository } from '../../domain/repositories/IChatbotBotRepo
 import { InsertChatbotFlow, SelectChatbotFlow } from '../../../../../shared/schema-chatbot';
 
 export interface CreateChatbotFlowRequest {
-  tenantId: string;
+  tenantId: string; // For validation, not for database insert
   botId: string;
+  id?: string; // Optional custom ID
   name: string;
   description?: string;
-  settings?: any;
   isActive?: boolean;
+  settings?: Record<string, any>;
 }
 
 export class CreateChatbotFlowUseCase {

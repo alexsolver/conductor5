@@ -18,11 +18,11 @@ import { apiRequest } from '@/lib/queryClient';
 import { useTranslation } from 'react-i18next';
 import {
   Bot, MessageSquare, Plus, Save, Play, Trash2, Settings, Eye, Copy, Download, Upload,
-  Zap, Clock, Users, Calendar, Mail, Phone, Globe, Database, Brain, Cpu, 
+  Zap, Clock, Users, Calendar, Mail, Phone, Globe, Database, Brain, Cpu,
   GitBranch, CheckCircle, AlertCircle, Target, Tag, Hash, FileText, Image,
   Video, Mic, Camera, Map, ShoppingCart, CreditCard, Webhook, Network,
   Timer, Flag, Repeat, Shuffle, MousePointer2, Layers, Filter, Search,
-  ArrowRight, Workflow, Plug, HelpCircle, Info, AlertTriangle, ZoomIn, 
+  ArrowRight, Workflow, Plug, HelpCircle, Info, AlertTriangle, ZoomIn,
   ZoomOut, Home, Star, BarChart, Lightbulb, MessageCircle
 } from 'lucide-react';
 import NodeConfigForm from './NodeConfigForm';
@@ -48,7 +48,7 @@ const NODE_CATEGORIES = {
   },
   conditions: {
     name: 'Conditions',
-    color: 'bg-yellow-500', 
+    color: 'bg-yellow-500',
     icon: GitBranch,
     nodes: [
       { id: 'condition-text', name: 'Texto', icon: MessageSquare, description: 'Compara texto' },
@@ -238,6 +238,7 @@ interface ChatbotFlow {
   metadata: Record<string, any>;
   nodes?: FlowNode[];
   edges?: FlowEdge[];
+  settings?: Record<string, any>;
 }
 
 interface ChatbotBot {
@@ -279,6 +280,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNodeConfig, setShowNodeConfig] = useState(false);
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
+  const [saving, setSaving] = useState(false); // Add saving state
 
   // Load bot data
   const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
@@ -302,7 +304,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // Load complete flow data with nodes and edges when a flow is selected
   const { data: completeFlowData, isLoading: loadingCompleteFlow, error: completeFlowError } = useQuery<{
-    data: ChatbotFlow & { 
+    data: ChatbotFlow & {
       nodes: Array<{
         id: string;
         flowId: string;
@@ -366,7 +368,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     },
     onSuccess: (data) => {
       console.log('🔄 [FLOW-CREATE] Flow created successfully:', data.data);
-      
+
       // Preserve current nodes and edges when updating to real flow
       const updatedFlow = {
         ...data.data,
@@ -379,7 +381,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           lastModified: new Date().toISOString()
         }
       };
-      
+
       setSelectedFlow(updatedFlow);
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
       toast({
@@ -394,18 +396,18 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
       console.log('🔄 [FLOW-SAVE] Starting mutation with data:', flowData);
       if (!selectedFlow?.id) throw new Error('No flow selected');
-      
+
       console.log('🔄 [FLOW-SAVE] Making API request to:', `/api/omnibridge/flows/${selectedFlow.id}`);
       const response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, flowData);
-      
+
       console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
         throw new Error(`${response.status}: ${errorText}`);
       }
-      
+
       const result = await response.json();
       console.log('🔄 [FLOW-SAVE] Success response:', result);
       return result;
@@ -423,9 +425,9 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       console.log('🔄 [FLOW-SAVE] Error message:', error?.message);
       console.log('🔄 [FLOW-SAVE] Error status:', error?.status);
       console.log('🔄 [FLOW-SAVE] Selected flow:', selectedFlow);
-      
+
       // Handle flow not found error by creating a new flow
-      if ((error?.message?.startsWith('404:') || error?.message?.startsWith('500:')) && 
+      if ((error?.message?.startsWith('404:') || error?.message?.startsWith('500:')) &&
           error?.message?.includes('Flow not found') && selectedFlow) {
         console.log('🔄 [FLOW-SAVE] Flow not found, creating new one with current data...');
         createFlowMutation.mutate(variables);
@@ -448,7 +450,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       firstFlow: flows?.data?.[0]?.id || 'none',
       botId: botId
     });
-    
+
     // If we have a botId but no bot data yet, create a temporary bot
     if (botId && !selectedBot) {
       const tempBot = {
@@ -464,7 +466,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       };
       setSelectedBot(tempBot);
     }
-    
+
     // Flow selection logic - maintain current selection or select default
     if (botId) {
       if (flows?.data?.length && flows.data.length > 0) {
@@ -502,7 +504,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         setSelectedFlow(defaultFlow);
       }
     }
-    
+
     // Update with real bot data when available
     if (bot?.data && bot.data.id === botId) {
       console.log('🐛 [FLOW-INIT] Updating with real bot data:', bot.data);
@@ -601,7 +603,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
     const categoryNodes = NODE_CATEGORIES[category]?.nodes || [];
-    return categoryNodes.filter(node => 
+    return categoryNodes.filter(node =>
       node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       node.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -612,7 +614,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     setDraggedNodeType(nodeType);
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', nodeType);
-    
+
     // Add visual feedback
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
@@ -629,20 +631,20 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    
+
     // Check if we're moving an existing node
     if (draggedNode) {
       handleNodeMove(e);
       return;
     }
-    
+
     console.log('🐛 [DRAG] Drop event fired', {
       draggedNodeType,
       hasCanvasRef: !!canvasRef.current,
       selectedFlow: selectedFlow?.id || 'MISSING',
       selectedFlowExists: !!selectedFlow
     });
-    
+
     if (!draggedNodeType || !canvasRef.current) {
       console.log('🐛 [DRAG] Drop failed - missing draggedNodeType or canvasRef');
       return;
@@ -679,12 +681,12 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       console.log('🐛 [DRAG] Creating new node:', newNode);
       setNodes(prev => [...prev, newNode]);
       setDraggedNodeType(null);
-      
+
       toast({
         title: 'Nó Adicionado',
         description: `Nó ${nodeData.name} adicionado ao fluxo`
       });
-      
+
       // Auto-save disabled temporarily to prevent node deletion
       // setTimeout(() => {
       //   if (selectedFlow) {
@@ -705,8 +707,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const saveNodeConfig = () => {
     if (!selectedNode) return;
 
-    setNodes(prev => prev.map(node => 
-      node.id === selectedNode.id 
+    setNodes(prev => prev.map(node =>
+      node.id === selectedNode.id
         ? { ...node, configuration: nodeConfig }
         : node
     ));
@@ -729,7 +731,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Handle node move via canvas drop
   const handleNodeMove = (e: React.DragEvent) => {
     e.preventDefault();
-    
+
     if (draggedNode) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -737,12 +739,12 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
       const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
 
-      setNodes(prev => prev.map(node => 
-        node.id === draggedNode.id 
+      setNodes(prev => prev.map(node =>
+        node.id === draggedNode.id
           ? { ...node, position: { x, y } }
           : node
       ));
-      
+
       console.log('🐛 [NODE-MOVE] Moved node to:', { x, y });
       setDraggedNode(null);
       setDragOffset({ x: 0, y: 0 });
@@ -756,7 +758,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       handleConnectionEnd(nodeId, !isOutput);
       return;
     }
-    
+
     setConnecting({ nodeId, isSource: isOutput });
     console.log('🔗 [CONNECTION] Starting connection from:', nodeId, isOutput ? 'output' : 'input');
   };
@@ -784,12 +786,12 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
       console.log('🔗 [CONNECTION] Creating edge:', newEdge);
       setEdges(prev => [...prev, newEdge]);
-      
+
       toast({
         title: 'Conexão Criada',
         description: 'Nós conectados com sucesso'
       });
-      
+
       // Auto-save after creating connection
       setTimeout(() => {
         if (selectedFlow) {
@@ -799,32 +801,142 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     } else {
       console.log('🔗 [CONNECTION] Invalid connection type');
     }
-    
+
     setConnecting(null);
   };
 
-  const handleSaveFlow = () => {
-    if (!selectedFlow) return;
+  const handleSaveFlow = async () => {
+    if (!selectedFlow || !selectedBot) {
+      console.error('❌ [FLOW-SAVE] No flow or bot selected');
+      toast({
+        title: "Erro ao salvar",
+        description: "Nenhum fluxo ou bot selecionado",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const flowData = {
-      ...selectedFlow,
-      metadata: {
-        ...selectedFlow.metadata,
-        flowNodes: JSON.stringify(nodes),
-        flowEdges: JSON.stringify(edges),
+    try {
+      setSaving(true);
+      console.log('🔄 [FLOW-SAVE] Starting save process...', {
+        flowId: selectedFlow.id,
         nodeCount: nodes.length,
         edgeCount: edges.length,
-        lastModified: new Date().toISOString()
+        botId: selectedBot.id
+      });
+
+      // Validate flow data before saving
+      if (!selectedFlow.id || !selectedBot.id) {
+        throw new Error('Flow ID or Bot ID is missing');
       }
-    };
 
-    console.log('💾 [FLOW-SAVE] Saving flow with nodes and edges:', { 
-      nodeCount: nodes.length, 
-      edgeCount: edges.length,
-      flowId: selectedFlow.id 
-    });
+      const saveData = {
+        ...selectedFlow,
+        botId: selectedBot.id, // Ensure botId is included
+        nodes: nodes.map(node => ({
+          id: node.id,
+          type: node.type,
+          position: node.position,
+          data: node.data
+        })),
+        edges: edges.map(edge => ({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          type: edge.type,
+          data: edge.data
+        }))
+      };
 
-    saveFlowMutation.mutate(flowData);
+      const response = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows/${selectedFlow.id}`, {
+        method: 'PUT',
+        data: saveData
+      });
+
+      console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
+
+      if (response.status === 500) {
+        const errorText = await response.text();
+        console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
+
+        try {
+          const errorObj = JSON.parse(errorText);
+          console.log('🔄 [FLOW-SAVE] Error object:', errorObj);
+          console.log('🔄 [FLOW-SAVE] Selected flow:', selectedFlow);
+
+          if (errorObj.error === 'Flow not found') {
+            console.log('🔄 [FLOW-SAVE] Flow not found, creating new one with current data...');
+
+            // Try to create the flow first with proper data
+            const createFlowData = {
+              id: selectedFlow.id,
+              name: selectedFlow.name || 'Fluxo Principal',
+              description: selectedFlow.description || 'Fluxo padrão do chatbot',
+              isActive: selectedFlow.isActive !== undefined ? selectedFlow.isActive : true,
+              botId: selectedBot.id,
+              settings: selectedFlow.settings || {}
+            };
+
+            console.log('🔄 [FLOW-CREATE] Creating flow with data:', createFlowData);
+
+            const createResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
+              method: 'POST',
+              data: createFlowData
+            });
+
+            console.log('🔄 [FLOW-CREATE] Flow created successfully:', createResponse.data);
+
+            // Now try to save the complete flow again
+            const retryResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows/${selectedFlow.id}`, {
+              method: 'PUT',
+              data: saveData
+            });
+
+            if (retryResponse.ok) {
+              console.log('✅ [FLOW-SAVE] Flow saved successfully after creation');
+              toast({
+                title: "Fluxo salvo",
+                description: "Fluxo e nós salvos com sucesso",
+              });
+              return;
+            } else {
+              const retryErrorText = await retryResponse.text();
+              console.error('❌ [FLOW-SAVE] Retry failed:', retryErrorText);
+              throw new Error(`Retry failed: ${retryResponse.status}: ${retryErrorText}`);
+            }
+          }
+
+          throw new Error(`${response.status}: ${errorText}`);
+        } catch (parseError) {
+          console.error('❌ [FLOW-SAVE] Error parsing response:', parseError);
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+      }
+
+      // If response is OK, proceed with success handling
+      if (response.ok) {
+        toast({
+          title: "Fluxo Salvo",
+          description: "O fluxo foi salvo com sucesso.",
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
+      } else {
+        // Handle other non-500 errors
+        const errorText = await response.text();
+        console.error(`❌ [FLOW-SAVE] Failed to save flow: ${response.status} - ${errorText}`);
+        throw new Error(`Failed to save flow: ${response.status} - ${errorText}`);
+      }
+
+    } catch (error: any) {
+      console.error('❌ [FLOW-SAVE] Exception during save:', error);
+      toast({
+        title: "Erro ao Salvar Fluxo",
+        description: error.message || "Ocorreu um erro desconhecido ao salvar o fluxo.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loadingBot || loadingFlows) {
@@ -851,13 +963,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <Button 
+          <Button
             onClick={handleSaveFlow}
-            disabled={!selectedFlow || saveFlowMutation.isPending || createFlowMutation.isPending}
+            disabled={!selectedFlow || saving}
             data-testid="button-save-flow"
           >
             <Save className="h-4 w-4 mr-2" />
-            {(saveFlowMutation.isPending || createFlowMutation.isPending) ? 'Salvando...' : 'Salvar'}
+            {saving ? 'Salvando...' : 'Salvar'}
           </Button>
           {onClose && (
             <Button variant="outline" onClick={onClose} data-testid="button-close">
@@ -898,7 +1010,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             <div className="p-4 space-y-6">
               {Object.entries(NODE_CATEGORIES).map(([categoryKey, category]) => {
                 if (selectedCategory !== 'all' && selectedCategory !== categoryKey) return null;
-                
+
                 const filteredNodes = getFilteredNodes(categoryKey as keyof typeof NODE_CATEGORIES);
                 if (filteredNodes.length === 0) return null;
 
@@ -909,10 +1021,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                       <h3 className="font-medium text-gray-900">{category.name}</h3>
                       <Badge variant="secondary">{filteredNodes.length}</Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 gap-2">
                       {filteredNodes.map(node => (
-                        <Card 
+                        <Card
                           key={node.id}
                           className="cursor-move hover:shadow-md transition-shadow"
                           draggable
@@ -945,7 +1057,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
         {/* Main Canvas Area */}
         <div className="flex-1 relative">
-          <div 
+          <div
             ref={canvasRef}
             className="absolute inset-0 bg-gray-50 overflow-hidden"
             onDrop={handleCanvasDrop}
@@ -958,7 +1070,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             data-testid="flow-canvas"
           >
             {/* Canvas content */}
-            <div 
+            <div
               className="relative"
               style={{
                 transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`
@@ -981,10 +1093,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   data-testid={`canvas-node-${node.id}`}
                 >
                   {/* Connection point - input */}
-                  <div 
+                  <div
                     className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
-                      connecting?.nodeId === node.id && !connecting.isSource 
-                        ? 'bg-yellow-400 border-2 border-yellow-600' 
+                      connecting?.nodeId === node.id && !connecting.isSource
+                        ? 'bg-yellow-400 border-2 border-yellow-600'
                         : 'bg-blue-500 hover:bg-blue-600'
                     }`}
                     style={{ transform: 'translateY(-50%)' }}
@@ -994,19 +1106,19 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                     }}
                     title="Entrada - Clique para conectar"
                   />
-                  
+
                   {/* Node content */}
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${NODE_CATEGORIES[node.category as keyof typeof NODE_CATEGORIES]?.color || 'bg-gray-400'}`}></div>
                     <span className="font-medium text-sm">{node.name}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">{node.type}</div>
-                  
+
                   {/* Connection point - output */}
-                  <div 
+                  <div
                     className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
-                      connecting?.nodeId === node.id && connecting.isSource 
-                        ? 'bg-yellow-400 border-2 border-yellow-600' 
+                      connecting?.nodeId === node.id && connecting.isSource
+                        ? 'bg-yellow-400 border-2 border-yellow-600'
                         : 'bg-green-500 hover:bg-green-600'
                     }`}
                     style={{ transform: 'translateY(-50%)' }}
@@ -1024,18 +1136,18 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                 {edges.map(edge => {
                   const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
                   const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-                  
+
                   if (!sourceNode || !targetNode) return null;
-                  
+
                   const x1 = sourceNode.position.x + 150; // Source output point
                   const y1 = sourceNode.position.y + 20; // Center of node
                   const x2 = targetNode.position.x; // Target input point
                   const y2 = targetNode.position.y + 20; // Center of node
-                  
+
                   // Create curved path
                   const midX = (x1 + x2) / 2;
                   const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-                  
+
                   return (
                     <g key={edge.id}>
                       <path
@@ -1048,7 +1160,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                     </g>
                   );
                 })}
-                
+
                 {/* Arrow marker definition */}
                 <defs>
                   <marker
@@ -1066,7 +1178,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   </marker>
                 </defs>
               </svg>
-              
+
               {/* Show connection line when connecting */}
               {connecting && (
                 <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
@@ -1086,24 +1198,24 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
           {/* Canvas Controls */}
           <div className="absolute top-4 right-4 flex space-x-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => setZoom(Math.min(2, zoom + 0.1))}
               data-testid="button-zoom-in"
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
               data-testid="button-zoom-out"
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
               data-testid="button-reset-view"
@@ -1123,7 +1235,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
               Configure the properties and behavior for this {selectedNode?.category} node.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedNode && (
             <NodeConfigForm
               nodeType={selectedNode.type}

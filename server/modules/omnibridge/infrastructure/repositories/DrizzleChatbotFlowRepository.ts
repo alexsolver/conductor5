@@ -16,26 +16,43 @@ import { eq, and, desc, max, count, avg, sql } from 'drizzle-orm';
 export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
   async create(flow: InsertChatbotFlow & { id?: string }): Promise<SelectChatbotFlow> {
     console.log('💾 [REPOSITORY] Creating flow with data:', { 
-      id: flow.id, 
+      customId: flow.id, 
       botId: flow.botId, 
-      name: flow.name 
+      name: flow.name,
+      isActive: flow.isActive,
+      hasCustomId: !!flow.id
     });
     
-    // Ensure we have all required fields
-    const flowToInsert = {
-      ...flow,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      // Ensure we have all required fields
+      const flowToInsert = {
+        ...flow,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-    // If custom ID is provided, use it
-    if (flow.id) {
-      flowToInsert.id = flow.id;
+      // If custom ID is provided, use it explicitly
+      if (flow.id) {
+        flowToInsert.id = flow.id;
+        console.log('🆔 [REPOSITORY] Using custom ID for flow creation:', flow.id);
+      }
+      
+      const [createdFlow] = await db.insert(chatbotFlows).values(flowToInsert).returning();
+      console.log('✅ [REPOSITORY] Flow created successfully:', {
+        id: createdFlow.id,
+        name: createdFlow.name,
+        botId: createdFlow.botId,
+        isActive: createdFlow.isActive
+      });
+      return createdFlow as SelectChatbotFlow;
+    } catch (error) {
+      console.error('❌ [REPOSITORY] Error creating flow:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        flowData: flow,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
     }
-    
-    const [createdFlow] = await db.insert(chatbotFlows).values(flowToInsert).returning();
-    console.log('✅ [REPOSITORY] Flow created successfully:', createdFlow.id);
-    return createdFlow as SelectChatbotFlow;
   }
 
   async findById(id: string): Promise<SelectChatbotFlow | null> {
@@ -226,20 +243,32 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
   }
 
   async saveCompleteFlow(flowId: string, nodes: any[], edges: any[]): Promise<boolean> {
+    const startTime = Date.now();
     try {
-      console.log('💾 [REPOSITORY] Saving complete flow:', { flowId, nodeCount: nodes.length, edgeCount: edges.length });
+      console.log('💾 [REPOSITORY] [saveCompleteFlow] Starting complete flow save:', { 
+        flowId, 
+        nodeCount: nodes.length, 
+        edgeCount: edges.length,
+        timestamp: new Date().toISOString()
+      });
       
       // Verify flow exists first
       const existingFlow = await this.findById(flowId);
       if (!existingFlow) {
-        console.error('❌ [REPOSITORY] Flow not found:', flowId);
+        console.error('❌ [REPOSITORY] [saveCompleteFlow] Flow not found:', {
+          flowId,
+          searchAttempted: true,
+          timestamp: new Date().toISOString()
+        });
         throw new Error(`Flow with ID ${flowId} not found`);
       }
 
-      console.log('✅ [REPOSITORY] Flow exists, proceeding with save:', {
+      console.log('✅ [REPOSITORY] [saveCompleteFlow] Flow exists, proceeding with save:', {
         flowId: existingFlow.id,
         flowName: existingFlow.name,
-        botId: existingFlow.botId
+        botId: existingFlow.botId,
+        isActive: existingFlow.isActive,
+        version: existingFlow.version
       });
 
       // Start transaction to save nodes and edges

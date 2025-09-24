@@ -289,7 +289,7 @@ export class ChatbotController {
 
       // Remove tenantId from request body since it's not part of flow table
       const { tenantId: _, ...bodyWithoutTenantId } = req.body;
-      
+
       // Validate request body using Zod schema (without tenantId since it's not part of flow table)
       const validatedData = insertChatbotFlowSchema.parse({
         ...bodyWithoutTenantId,
@@ -353,7 +353,7 @@ export class ChatbotController {
       // Get nodes and edges for this flow
       // Use the repository directly from the update use case which should have access
       const nodeRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
-      
+
       // For now, return flow without nodes/edges until we implement proper repository access
       console.log('🔄 [CONTROLLER] Retrieved flow (basic):', {
         flowId,
@@ -418,26 +418,33 @@ export class ChatbotController {
           // Verify bot exists and belongs to tenant
           const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
           if (!bot) {
-            console.error('❌ [CONTROLLER] Bot not found or access denied:', { botId, tenantId });
+            console.error('❌ [CONTROLLER] Bot not found or access denied:', botId);
             res.status(404).json({
               success: false,
-              error: 'Bot not found or access denied'
+              error: 'Bot not found or access denied',
+              details: {
+                flowId,
+                botId,
+                tenantId,
+                timestamp: new Date().toISOString()
+              }
             });
             return;
           }
 
-          // Create the flow
-          const newFlow = await this.createFlowUseCase.execute({
-            id: flowId, // Use the provided flowId
-            botId: botId,
-            name: flowData.name || 'Fluxo Principal',
-            description: flowData.description || 'Fluxo padrão do chatbot',
-            version: 1,
+          // Create flow with provided data and specific ID
+          const createFlowRequest = {
+            tenantId,
+            botId,
+            id: flowId, // Use the specific flowId
+            name: flowData.name || 'Fluxo Salvo',
+            description: flowData.description || 'Fluxo salvo automaticamente',
             isActive: flowData.isActive !== undefined ? flowData.isActive : true,
             settings: flowData.settings || {}
-          });
+          };
 
-          existingFlow = newFlow;
+          console.log('🔧 [CONTROLLER] Creating flow with specific ID:', createFlowRequest);
+          existingFlow = await this.createFlowUseCase.execute(createFlowRequest);
           console.log('✅ [CONTROLLER] Flow created successfully:', existingFlow.id);
         }
 
