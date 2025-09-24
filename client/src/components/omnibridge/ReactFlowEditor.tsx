@@ -414,20 +414,41 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
   // Add node to canvas
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.dropEffect = 'copy';
+    
+    // Visual feedback for valid drop area
+    const target = event.currentTarget as HTMLElement;
+    target.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+  }, []);
+
+  const onDragLeave = useCallback((event: React.DragEvent) => {
+    const target = event.currentTarget as HTMLElement;
+    target.style.backgroundColor = '';
   }, []);
 
   const onDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    console.log('🔥 [DROP] Evento de drop triggered');
+
+    // Remove visual feedback
+    const target = event.currentTarget as HTMLElement;
+    target.style.backgroundColor = '';
 
     const nodeType = event.dataTransfer.getData('application/reactflow');
-    if (!nodeType || !reactFlowWrapper.current || !selectedFlow) return;
+    console.log('🔥 [DROP] Tipo de nó obtido:', nodeType);
+    
+    if (!nodeType || !reactFlowWrapper.current || !selectedFlow) {
+      console.warn('⚠️ [DROP] Condições não atendidas:', { nodeType, hasWrapper: !!reactFlowWrapper.current, hasFlow: !!selectedFlow });
+      return;
+    }
 
     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
     const position = {
       x: (event.clientX - reactFlowBounds.left - viewport.x) / viewport.zoom,
       y: (event.clientY - reactFlowBounds.top - viewport.y) / viewport.zoom,
     };
+
+    console.log('🔥 [DROP] Posição calculada:', position);
 
     // Find node data
     let nodeData = null;
@@ -436,7 +457,12 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
       if (nodeData) break;
     }
 
-    if (!nodeData) return;
+    if (!nodeData) {
+      console.warn('⚠️ [DROP] Dados do nó não encontrados para tipo:', nodeType);
+      return;
+    }
+
+    console.log('🔥 [DROP] Dados do nó encontrados:', nodeData);
 
     const newNode: ReactFlowNode = {
       id: `node_${Date.now()}_${Math.random()}`,
@@ -457,9 +483,16 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
       dragging: false
     };
 
-    setNodes((nds) => [...nds, newNode]);
+    console.log('🔥 [DROP] Novo nó criado:', newNode);
+    setNodes((nds) => {
+      const updatedNodes = [...nds, newNode];
+      console.log('🔥 [DROP] Nodes atualizados, total:', updatedNodes.length);
+      return updatedNodes;
+    });
+    
+    // Save flow after a short delay
     setTimeout(() => handleSaveFlow(), 500);
-  }, [reactFlowWrapper, viewport, selectedFlow]);
+  }, [reactFlowWrapper, viewport, selectedFlow, handleSaveFlow]);
 
   // Helper functions
   const getNodeCategory = (typeId: string): string => {
@@ -479,107 +512,6 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
     );
   }, [searchTerm]);
 
-  // Save flow function
-  const handleSaveFlow = useCallback(async () => {
-    if (!selectedFlow || !selectedBot) {
-      toast({
-        title: "Erro",
-        description: "Selecione um fluxo válido antes de salvar",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      const formattedNodes = nodes.map(node => ({
-        id: node.id,
-        type: node.data.nodeType || 'unknown',
-        title: node.data.title || node.data.label,
-        category: node.data.category || 'unknown',
-        description: node.data.description || '',
-        position: node.position,
-        config: { ...node.data.config, ...selectedNodeConfig[node.id] },
-        isStart: node.data.isStart || false,
-        isEnd: node.data.isEnd || false,
-        isEnabled: node.data.isEnabled !== false
-      }));
-
-      const formattedEdges = edges.map(edge => ({
-        id: edge.id,
-        fromNodeId: edge.source,
-        toNodeId: edge.target,
-        label: edge.label || '',
-        condition: edge.data?.condition || '',
-        kind: edge.data?.kind || 'default',
-        order: edge.data?.order || 0,
-        isEnabled: edge.data?.isEnabled !== false
-      }));
-
-      let response;
-      
-      if (selectedFlow.id.startsWith('flow_')) {
-        const newFlowData = {
-          name: selectedFlow.name,
-          description: selectedFlow.description || "Fluxo do chatbot",
-          nodes: formattedNodes,
-          edges: formattedEdges,
-          variables: selectedFlow.variables || [],
-          isActive: true
-        };
-
-        response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, newFlowData);
-      } else {
-        const updateData = {
-          name: selectedFlow.name,
-          description: selectedFlow.description,
-          nodes: formattedNodes,
-          edges: formattedEdges,
-          variables: selectedFlow.variables || [],
-          isActive: selectedFlow.isActive
-        };
-
-        response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, updateData);
-      }
-
-      if (!response.ok) {
-        throw new Error(`Failed to save flow: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-      
-      if (responseData?.data) {
-        const updatedFlow = responseData.data;
-        setSelectedFlow(updatedFlow);
-        
-        if (selectedFlow.id.startsWith('flow_')) {
-          setSelectedFlowId(updatedFlow.id);
-          setFlows(prev => [...prev.filter(f => !f.id.startsWith('flow_')), updatedFlow]);
-        } else {
-          setFlows(prev => prev.map(f => f.id === updatedFlow.id ? updatedFlow : f));
-        }
-
-        queryClient.invalidateQueries({ queryKey: ['chatbot-flows', selectedBot.id] });
-        queryClient.invalidateQueries({ queryKey: ['chatbot-flow-complete', updatedFlow.id] });
-      }
-
-      toast({
-        title: "Sucesso",
-        description: "Fluxo salvo com sucesso!"
-      });
-
-    } catch (error) {
-      console.error('Save failed:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: error instanceof Error ? error.message : "Erro desconhecido ao salvar o fluxo",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, [selectedFlow, selectedBot, nodes, edges, selectedNodeConfig, toast, queryClient]);
 
   // Node configuration save
   const handleNodeConfigSave = (nodeId: string, newConfig: Record<string, any>) => {
@@ -606,6 +538,7 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
     setSelectedNodeForConfig(null);
     setTimeout(() => handleSaveFlow(), 500);
   };
+
 
   // Custom Node Component
   const CustomNode = ({ data, selected, id }: { data: any; selected: boolean; id: string }) => {
@@ -683,8 +616,30 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
 
   // Drag start for node palette
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    console.log('🔥 [DRAG-START] Iniciando drag do nó:', nodeType);
     event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.effectAllowed = 'copy';
+    
+    // Visual feedback
+    const target = event.currentTarget as HTMLElement;
+    target.style.opacity = '0.5';
+    
+    // Create drag image
+    const rect = target.getBoundingClientRect();
+    const dragImage = target.cloneNode(true) as HTMLElement;
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    dragImage.style.left = '-1000px';
+    dragImage.style.pointerEvents = 'none';
+    document.body.appendChild(dragImage);
+    
+    event.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
+    
+    setTimeout(() => {
+      if (dragImage.parentNode) {
+        dragImage.parentNode.removeChild(dragImage);
+      }
+    }, 0);
   };
 
   if (isLoadingBots || (isLoadingFlows && !botData)) {
@@ -804,12 +759,15 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
                       {filteredNodes.map(node => (
                         <div
                           key={node.id}
-                          className="cursor-move hover:shadow-md transition-all duration-200 rounded-lg"
-                          draggable
+                          className="cursor-grab hover:cursor-grabbing hover:shadow-md transition-all duration-200 rounded-lg select-none"
+                          draggable={true}
                           onDragStart={(e) => onDragStart(e, node.id)}
+                          onDragEnd={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                          }}
                           data-testid={`node-palette-${node.id}`}
                         >
-                          <Card className={`border-l-4 border-l-transparent hover:border-l-blue-500 ${node.color}`}>
+                          <Card className={`border-l-4 border-l-transparent hover:border-l-blue-500 ${node.color} transition-colors duration-200`}>
                             <CardContent className="p-3">
                               <div className="flex items-center space-x-2">
                                 <node.icon className="h-4 w-4" />
@@ -865,9 +823,10 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
 
           {/* ReactFlow Viewport */}
           <div
-            className="w-full h-full relative bg-gray-50 overflow-hidden"
+            className="w-full h-full relative bg-gray-50 overflow-hidden border-2 border-dashed border-transparent transition-colors duration-200"
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
             data-testid="reactflow-canvas"
           >
             {/* Grid Background */}
@@ -1015,9 +974,7 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
                 nodes.find(n => n.id === selectedNodeForConfig)?.data?.config ||
                 {}
               }
-              onSave={(nodeId: string, newConfig: Record<string, any>) => 
-                handleNodeConfigSave(nodeId, newConfig)
-              }
+              onSave={handleNodeConfigSave}
               onCancel={() => {
                 setShowNodeConfig(false);
                 setSelectedNodeForConfig(null);
