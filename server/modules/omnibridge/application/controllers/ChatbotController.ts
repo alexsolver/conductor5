@@ -340,11 +340,12 @@ export class ChatbotController {
 
       console.log('🔄 [CONTROLLER] Getting complete flow:', { flowId, tenantId });
 
-      // Get complete flow with nodes and edges using repository
+      // Use the flow repository properly with tenant isolation
       const flowRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
-      const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
-
-      if (!completeFlow) {
+      
+      // First check if flow exists and belongs to tenant
+      const basicFlow = await flowRepository.findById(flowId, tenantId);
+      if (!basicFlow) {
         console.log('❌ [CONTROLLER] Flow not found:', flowId);
         res.status(404).json({
           success: false,
@@ -353,11 +354,30 @@ export class ChatbotController {
         return;
       }
 
+      // Get complete flow with nodes and edges
+      const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
+
+      if (!completeFlow) {
+        console.log('❌ [CONTROLLER] Complete flow data not found:', flowId);
+        // Return basic flow with empty arrays if no nodes/edges found
+        res.json({
+          success: true,
+          data: {
+            ...basicFlow,
+            nodes: [],
+            edges: [],
+            variables: []
+          }
+        });
+        return;
+      }
+
       console.log('✅ [CONTROLLER] Retrieved complete flow:', {
         flowId: completeFlow.id,
         flowName: completeFlow.name,
         nodeCount: completeFlow.nodes?.length || 0,
-        edgeCount: completeFlow.edges?.length || 0
+        edgeCount: completeFlow.edges?.length || 0,
+        variableCount: completeFlow.variables?.length || 0
       });
 
       res.json({

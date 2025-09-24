@@ -83,14 +83,32 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<SelectChatbotFlow | null> {
-    const tenantDb = await this.getTenantDb(tenantId);
-    const [flow] = await tenantDb
-      .select()
-      .from(chatbotFlows)
-      .where(eq(chatbotFlows.id, id))
-      .limit(1);
-    
-    return flow || null;
+    try {
+      console.log('🔍 [REPOSITORY] findById:', { id, tenantId, schema: this.getSchemaName(tenantId) });
+      
+      const tenantDb = await this.getTenantDb(tenantId);
+      const [flow] = await tenantDb
+        .select()
+        .from(chatbotFlows)
+        .where(eq(chatbotFlows.id, id))
+        .limit(1);
+      
+      if (flow) {
+        console.log('✅ [REPOSITORY] Flow found:', {
+          id: flow.id,
+          name: flow.name,
+          botId: flow.botId,
+          isActive: flow.isActive
+        });
+      } else {
+        console.log('❌ [REPOSITORY] Flow not found:', id);
+      }
+      
+      return flow || null;
+    } catch (error) {
+      console.error('❌ [REPOSITORY] Error in findById:', error);
+      return null;
+    }
   }
 
   async findByBot(botId: string, tenantId: string): Promise<SelectChatbotFlow[]> {
@@ -214,30 +232,27 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     try {
       const tenantDb = await this.getTenantDb(tenantId);
       
-      // Query nodes, edges and variables with proper error handling
-      let nodes = [];
-      let edges = [];
-      let variables = [];
+      // Perform parallel queries for better performance
+      const [nodesResult, edgesResult, variablesResult] = await Promise.allSettled([
+        tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
+        tenantDb.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id)),
+        tenantDb.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id))
+      ]);
 
-      try {
-        nodes = await tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id));
-      } catch (nodeError) {
-        console.warn('⚠️ [REPOSITORY] Error fetching nodes:', nodeError);
-        nodes = [];
+      // Extract results with error handling
+      const nodes = nodesResult.status === 'fulfilled' ? nodesResult.value : [];
+      const edges = edgesResult.status === 'fulfilled' ? edgesResult.value : [];
+      const variables = variablesResult.status === 'fulfilled' ? variablesResult.value : [];
+
+      // Log any errors
+      if (nodesResult.status === 'rejected') {
+        console.warn('⚠️ [REPOSITORY] Error fetching nodes:', nodesResult.reason);
       }
-
-      try {
-        edges = await tenantDb.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id));
-      } catch (edgeError) {
-        console.warn('⚠️ [REPOSITORY] Error fetching edges:', edgeError);
-        edges = [];
+      if (edgesResult.status === 'rejected') {
+        console.warn('⚠️ [REPOSITORY] Error fetching edges:', edgesResult.reason);
       }
-
-      try {
-        variables = await tenantDb.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id));
-      } catch (variableError) {
-        console.warn('⚠️ [REPOSITORY] Error fetching variables:', variableError);
-        variables = [];
+      if (variablesResult.status === 'rejected') {
+        console.warn('⚠️ [REPOSITORY] Error fetching variables:', variablesResult.reason);
       }
 
       console.log('✅ [REPOSITORY] Retrieved complete flow data:', {
@@ -246,18 +261,21 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         nodeCount: nodes.length,
         edgeCount: edges.length,
         variableCount: variables.length,
-        tenantId
+        tenantId,
+        schema: this.getSchemaName(tenantId)
       });
 
+      // Ensure we always return valid arrays
       return {
         ...flow,
-        nodes: nodes || [],
-        edges: edges || [],
-        variables: variables || []
+        nodes: Array.isArray(nodes) ? nodes : [],
+        edges: Array.isArray(edges) ? edges : [],
+        variables: Array.isArray(variables) ? variables : []
       };
     } catch (error) {
-      console.error('❌ [REPOSITORY] Error in findWithNodes:', error);
-      // Return flow with empty arrays instead of null
+      console.error('❌ [REPOSITORY] Critical error in findWithNodes:', error);
+      
+      // Return flow with empty arrays as fallback
       return {
         ...flow,
         nodes: [],

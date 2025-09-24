@@ -117,8 +117,58 @@ router.get('/chatbots/:botId/flows', jwtAuth, chatbotController.getFlows.bind(ch
 // Create new flow for a bot
 router.post('/chatbots/:botId/flows', jwtAuth, chatbotController.createFlow.bind(chatbotController));
 
-// Get specific flow
+// Get specific flow by ID
 router.get('/flows/:flowId', jwtAuth, chatbotController.getFlow.bind(chatbotController));
+
+// Debug route to check flow existence
+router.get('/flows/:flowId/debug', jwtAuth, async (req: any, res: any) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { flowId } = req.params;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    // Check flow existence in different ways
+    const flowRepository = chatbotController.updateFlowUseCase?.chatbotFlowRepository;
+    if (!flowRepository) {
+      return res.status(500).json({ error: 'Repository not available' });
+    }
+
+    const basicFlow = await flowRepository.findById(flowId, tenantId);
+    const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
+
+    res.json({
+      success: true,
+      debug: {
+        flowId,
+        tenantId,
+        basicFlowExists: !!basicFlow,
+        completeFlowExists: !!completeFlow,
+        basicFlow: basicFlow ? {
+          id: basicFlow.id,
+          name: basicFlow.name,
+          botId: basicFlow.botId,
+          isActive: basicFlow.isActive
+        } : null,
+        completeFlow: completeFlow ? {
+          id: completeFlow.id,
+          name: completeFlow.name,
+          nodeCount: completeFlow.nodes?.length || 0,
+          edgeCount: completeFlow.edges?.length || 0,
+          variableCount: completeFlow.variables?.length || 0
+        } : null
+      }
+    });
+  } catch (error) {
+    console.error('Debug flow error:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Debug failed'
+    });
+  }
+});
+
 
 // Update flow
 router.put('/flows/:flowId', jwtAuth, chatbotController.updateFlow.bind(chatbotController));
