@@ -315,11 +315,37 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   });
 
-  // Initialize with first flow if available
+  // Initialize with first flow if available or create a default one
   useEffect(() => {
-    if (bot?.data && flows?.data?.length && flows.data.length > 0) {
+    console.log('🐛 [FLOW-INIT] Checking flow initialization', {
+      botData: !!bot?.data,
+      flowsData: flows?.data?.length || 0,
+      firstFlow: flows?.data?.[0]?.id || 'none'
+    });
+    
+    if (bot?.data) {
       setSelectedBot(bot.data);
-      setSelectedFlow(flows.data[0]);
+      
+      if (flows?.data?.length && flows.data.length > 0) {
+        console.log('🐛 [FLOW-INIT] Setting selectedFlow to:', flows.data[0]);
+        setSelectedFlow(flows.data[0]);
+      } else {
+        // Create a default flow if none exists
+        const defaultFlow: ChatbotFlow = {
+          id: `flow_${Date.now()}`,
+          botId: bot.data.id,
+          name: 'Fluxo Principal',
+          description: 'Fluxo padrão do chatbot',
+          isActive: true,
+          isDefault: true,
+          triggerEvent: 'message_received',
+          metadata: {},
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        console.log('🐛 [FLOW-INIT] Creating default flow:', defaultFlow);
+        setSelectedFlow(defaultFlow);
+      }
     }
   }, [bot, flows]);
 
@@ -357,7 +383,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     console.log('🐛 [DRAG] Drop event fired', {
       draggedNodeType,
       hasCanvasRef: !!canvasRef.current,
-      selectedFlow: selectedFlow?.id
+      selectedFlow: selectedFlow?.id || 'MISSING',
+      selectedFlowExists: !!selectedFlow
     });
     
     if (!draggedNodeType || !canvasRef.current) {
