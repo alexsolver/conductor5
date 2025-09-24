@@ -407,7 +407,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       </div>
 
       {/* Timeline Grid */}
-      <div className="border rounded-lg bg-white overflow-hidden">
+      <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         {/* Header with time slots */}
         <div className="flex border-b bg-gray-50 sticky top-0 z-10">
           {/* Left sidebar space */}
@@ -433,9 +433,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         </div>
 
         {/* Content area */}
-        <div className="flex" style={{ maxHeight: 'calc(100vh - 360px)', overflow: 'hidden' }}>
+        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
           {/* Left sidebar with agent list */}
-          <div className="w-64 flex-shrink-0 border-r bg-gray-50 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+          <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
@@ -502,9 +502,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           {/* Timeline grid */}
           <div 
             ref={contentScrollRef}
-            className="flex-1 overflow-auto relative"
+            className="flex-1 overflow-x-auto relative"
             onScroll={syncScrollToHeader}
-            style={{ maxWidth: 'calc(100vw - 320px)', maxHeight: 'calc(100vh - 360px)' }}
+            style={{ maxWidth: 'calc(100vw - 320px)' }}
             data-timeline-container
           >
             <div className="flex relative" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
