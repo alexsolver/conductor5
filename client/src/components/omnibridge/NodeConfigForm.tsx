@@ -719,7 +719,7 @@ export default function NodeConfigForm({
         return (
           <Textarea
             {...commonProps}
-            value={value || ''}
+            value={value ?? ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
             rows={4}
           />
