@@ -292,6 +292,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
   const [flows, setFlows] = useState<ChatbotFlow[]>([]); // State for list of flows
 
+  // State for node configuration
+  const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<string | null>(null);
+  const [selectedNodeConfig, setSelectedNodeConfig] = useState<Record<string, any>>({});
+
   // Load bot data
   const { data: botData, isLoading: isLoadingBots } = useQuery<{data: ChatbotBot}>({
     queryKey: ['/api/omnibridge/chatbots', botId],
@@ -392,7 +396,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   }, [botData, botFlows]);
 
-  // Effect to load complete flow data when available
+  // Effect to load complete flow data when selectedFlowId changes
   useEffect(() => {
     console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
       hasCompleteFlowData: !!completeFlowData,
@@ -400,22 +404,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       isLoadingCompleteFlow
     });
 
-    if (!selectedFlowId) {
-      console.log('🔄 [FLOW-LOAD] No flow selected, clearing data');
-      setNodes([]);
-      setEdges([]);
-      return;
-    }
-
-    // Handle temporary flows
-    if (selectedFlowId.startsWith('flow_')) {
-      console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
-      setNodes([]);
-      setEdges([]);
-      return;
-    }
-
-    // Handle real flows
     if (completeFlowData && !isLoadingCompleteFlow) {
       console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
         flowId: completeFlowData.id,
@@ -423,48 +411,64 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         edgeCount: completeFlowData.edges?.length || 0
       });
 
-      // Update flow data in the flows list
-      setFlows(prevFlows => 
-        prevFlows.map(flow => 
-          flow.id === completeFlowData.id 
-            ? { ...completeFlowData, isTemporary: false }
-            : flow
-        )
-      );
+      // Convert database nodes to ReactFlow format with preserved configuration
+      const flowNodes = (completeFlowData.nodes || []).map((node: any) => {
+        const nodeId = node.id;
+        const nodeConfig = node.config || {};
 
-      // Set nodes and edges
-      const flowNodes = (completeFlowData.nodes || []).map(node => ({
-        ...node,
-        id: node.id,
-        flowId: completeFlowData.id,
-        name: node.name || 'Untitled Node',
-        type: node.type,
-        category: node.category || 'trigger',
-        position: node.position || { x: 100, y: 100 },
-        configuration: node.configuration || {},
-        metadata: node.metadata || {},
-        isActive: node.isActive !== false
-      }));
+        // Store configuration in selectedNodeConfig for form editing
+        setSelectedNodeConfig(prev => ({
+          ...prev,
+          [nodeId]: nodeConfig
+        }));
 
-      const flowEdges = (completeFlowData.edges || []).map(edge => ({
-        ...edge,
+        return {
+          id: nodeId,
+          type: 'custom',
+          position: node.position || { x: 0, y: 0 },
+          data: {
+            label: node.title || node.name || 'Untitled Node',
+            title: node.title || node.name || 'Untitled Node',
+            type: node.type,
+            category: node.category,
+            description: node.description,
+            config: nodeConfig,
+            configuration: nodeConfig, // Duplicate for compatibility
+            isStart: node.isStart || false,
+            isEnd: node.isEnd || false,
+            isEnabled: node.isEnabled !== false
+          }
+        };
+      });
+
+      // Convert database edges to ReactFlow format
+      const flowEdges = (completeFlowData.edges || []).map((edge: any) => ({
         id: edge.id,
-        flowId: completeFlowData.id,
-        sourceNodeId: edge.sourceNodeId,
-        targetNodeId: edge.targetNodeId,
-        sourcePort: edge.sourcePort || 'output',
-        targetPort: edge.targetPort || 'input',
-        metadata: edge.metadata || {}
+        source: edge.fromNodeId,
+        target: edge.toNodeId,
+        label: edge.label,
+        type: 'smoothstep',
+        data: {
+          label: edge.label,
+          condition: edge.condition,
+          kind: edge.kind || 'default',
+          order: edge.order || 0,
+          isEnabled: edge.isEnabled !== false
+        }
       }));
 
-      console.log('🔄 [FLOW-LOAD] Setting nodes and edges:', {
+      console.log('✅ [FLOW-LOAD] Setting nodes and edges with preserved configs:', {
         nodeCount: flowNodes.length,
-        edgeCount: flowEdges.length
+        edgeCount: flowEdges.length,
+        sampleNodeConfig: flowNodes[0]?.data?.config
       });
 
       setNodes(flowNodes);
       setEdges(flowEdges);
-      setSelectedFlow(prevFlow => ({ ...prevFlow, ...completeFlowData, isTemporary: false }));
+    } else if (!selectedFlowId || selectedFlowId.startsWith('flow_')) {
+      console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
+      setNodes([]);
+      setEdges([]);
     }
   }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
 
@@ -742,162 +746,127 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     setConnectionStart(null);
   };
 
-  const handleSaveFlow = async (flowData?: any) => {
+  const getCategoryFromType = (type: string | undefined): string => {
+    if (!type) return 'unknown';
+    return type.split('-')[0];
+  };
+
+  const handleSaveFlow = async () => {
+    if (!selectedFlow || !selectedChatbot) {
+      toast({
+        title: "Erro",
+        description: "Selecione um fluxo válido antes de salvar",
+        variant: "destructive"
+      });
+      return;
+    }
+
     console.log('🔄 [FLOW-SAVE] Starting save process...', {
-      flowId: selectedFlow?.id,
+      flowId: selectedFlow.id,
       nodeCount: nodes.length,
       edgeCount: edges.length,
-      botId: selectedBot?.id
+      botId: selectedChatbot.id
     });
 
-    if (!selectedBot?.id) {
-      toast({
-        title: "Erro",
-        description: "Nenhum bot selecionado",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Ensure selectedFlow is not null before proceeding
-    if (!selectedFlow) {
-      toast({
-        title: "Erro",
-        description: "Nenhum fluxo selecionado para salvar.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true); // Set saving state
-
     try {
-      // Prepare the complete flow data including nodes and edges
-      const completeFlowDataToSave = {
-        name: flowData?.name || selectedFlow.name || 'Fluxo Principal',
-        description: flowData?.description || selectedFlow.description || 'Fluxo padrão do chatbot',
-        isActive: flowData?.isActive !== undefined ? flowData.isActive : (selectedFlow.isActive !== undefined ? selectedFlow.isActive : true),
-        metadata: {
-          flowNodes: JSON.stringify(nodes.map(node => ({
-            id: node.id,
-            flowId: selectedFlow.id,
-            category: node.category, // Use category from FlowNode interface
-            type: node.type,
-            title: node.name, // Use name from FlowNode interface
-            description: '', // Assuming description is not directly mapped here
-            position: node.position,
-            configuration: node.configuration, // Use configuration from FlowNode interface
-            isStart: false, // Default value, needs logic if applicable
-            isEnd: false, // Default value, needs logic if applicable
-            isEnabled: node.isActive
-          }))),
-          flowEdges: JSON.stringify(edges.map(edge => ({
-            id: edge.id,
-            flowId: edge.flowId,
-            sourceNodeId: edge.sourceNodeId,
-            targetNodeId: edge.targetNodeId,
-            sourceHandle: edge.sourceHandle,
-            targetHandle: edge.targetHandle,
-            label: edge.label,
-            condition: edge.condition,
-            metadata: edge.metadata
-          }))),
-          nodeCount: nodes.length,
-          edgeCount: edges.length,
-          lastModified: new Date().toISOString()
-        },
-        variables: variables // Include variables in the save payload
-      };
+      setSaving(true);
+
+      // Verify bot exists
+      const botResponse = await apiRequest('GET', `/api/omnibridge/chatbots/${selectedChatbot.id}`);
+      if (!botResponse.ok) {
+        throw new Error('Bot not found or access denied');
+      }
+
+      // Convert nodes with complete configuration preservation
+      const formattedNodes = nodes.map(node => {
+        // Preserve all configuration data including from forms
+        const nodeConfig = {
+          ...node.data?.config,
+          ...node.data?.configuration,
+          // Include any form data that might exist
+          ...(selectedNodeConfig[node.id] || {})
+        };
+
+        return {
+          id: node.id || `node_${Date.now()}_${Math.random()}`,
+          type: node.type || 'unknown',
+          title: node.data?.title || node.data?.label || 'Untitled Node',
+          category: getCategoryFromType(node.type),
+          description: node.data?.description || '',
+          position: node.position || { x: 0, y: 0 },
+          config: nodeConfig, // Use the complete configuration
+          isStart: node.data?.isStart || false,
+          isEnd: node.data?.isEnd || false,
+          isEnabled: node.data?.isEnabled !== false
+        };
+      });
+
+      const formattedEdges = edges.map(edge => ({
+        id: edge.id || `edge_${Date.now()}_${Math.random()}`,
+        fromNodeId: edge.source,
+        toNodeId: edge.target,
+        label: edge.label || edge.data?.label || '',
+        condition: edge.data?.condition || '',
+        kind: edge.data?.kind || 'default',
+        order: edge.data?.order || 0,
+        isEnabled: edge.data?.isEnabled !== false
+      }));
 
       console.log('🔄 [FLOW-SAVE] Prepared data for API:', {
-        nodeCount: nodes.length,
-        edgeCount: edges.length,
-        sampleNode: nodes[0] ? {
-          id: nodes[0].id,
-          type: nodes[0].type,
-          title: nodes[0].name
-        } : null
+        nodeCount: formattedNodes.length,
+        edgeCount: formattedEdges.length,
+        sampleNode: formattedNodes[0],
+        sampleNodeConfig: formattedNodes[0]?.config
       });
 
-      let response;
-      const flowId = selectedFlow.id;
+      let responseData;
 
-      // If it's a new flow (temporary ID or no ID)
-      if (!flowId || flowId.startsWith('flow_')) {
-        // Verify bot exists first
-        console.log('🔄 [FLOW-SAVE] Verifying bot exists:', selectedChatbot.id);
-        const botResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}`);
-
-        if (!botResponse.success) {
-          console.error('❌ [FLOW-SAVE] Bot not found:', botResponse.error);
-          throw new Error('Bot not found. Please refresh and try again.');
-        }
-
-        console.log('✅ [FLOW-SAVE] Bot verified, creating flow for:', selectedChatbot.id);
-
-        // Prepare nodes and edges for saving
-        const nodesToSave = nodes.map(node => ({
-          id: node.id,
-          flowId: selectedFlow.id, // Use the temporary ID for the initial save
-          name: node.name,
-          type: node.type,
-          category: node.category,
-          position: node.position,
-          configuration: node.configuration,
-          metadata: node.metadata,
-          isActive: node.isActive
-        }));
-
-        const edgesToSave = edges.map(edge => ({
-          id: edge.id,
-          flowId: selectedFlow.id, // Use the temporary ID
-          sourceNodeId: edge.sourceNodeId,
-          targetNodeId: edge.targetNodeId,
-          sourceHandle: edge.sourceHandle,
-          targetHandle: edge.targetHandle,
-          metadata: edge.metadata
-        }));
-
-        // Create flow for bot
+      if (selectedFlow.id.startsWith('flow_')) {
+        // Create new flow for bot
         console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedChatbot.id);
-        const createResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}/flows`, {
-          method: 'POST',
-          data: {
-            id: flowId, // Send custom ID
-            name: selectedFlow.name,
-            description: selectedFlow.description || 'Flow criado automaticamente',
-            isActive: selectedFlow.isActive || false,
-            nodes: nodesToSave,
-            edges: edgesToSave,
-            variables: []
-          }
-        });
 
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-          throw new Error(`Failed to create flow: ${createResponse.status} ${errorText}`);
-        }
-        const createdFlow = await createResponse.json();
-        console.log('🔄 [FLOW-SAVE] Created flow data:', createdFlow.data);
-        setSelectedFlow(createdFlow.data); // Update selectedFlow with the newly created flow
-        setSelectedFlowId(createdFlow.data.id); // Update selectedFlowId
-        setFlows(prevFlows => [...prevFlows.filter(f => f.id !== flowId), createdFlow.data]); // Update flows list
-        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] }); // Invalidate to refresh the list of flows
-      } else {
-        // Update existing flow
-        console.log('🔄 [FLOW-SAVE] Updating existing flow:', flowId);
-        response = await apiRequest('PUT', `/api/omnibridge/flows/${flowId}`, completeFlowDataToSave);
+        const newFlowData = {
+          name: selectedFlow.name,
+          description: selectedFlow.description || "Fluxo do chatbot",
+          nodes: formattedNodes,
+          edges: formattedEdges,
+          variables: selectedFlow.variables || [],
+          isActive: true
+        };
+
+        const response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedChatbot.id}/flows`, newFlowData);
+
+        console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
 
         if (!response.ok) {
           const errorText = await response.text();
           console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-          throw new Error(`${response.status}: ${errorText}`);
+          throw new Error(`Failed to create flow: ${response.status}`);
         }
+
+        responseData = await response.json();
+      } else {
+        // Update existing flow with complete data
+        console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
+
+        const updateData = {
+          name: selectedFlow.name,
+          description: selectedFlow.description,
+          nodes: formattedNodes,
+          edges: formattedEdges,
+          variables: selectedFlow.variables || []
+        };
+
+        const response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, updateData);
+
+        if (!response.ok) {
+          throw new Error(`Failed to update flow: ${response.status}`);
+        }
+
+        responseData = await response.json();
       }
 
-      const responseData = await response.json();
-      console.log('🔄 [FLOW-SAVE] Success response:', responseData);
+      console.log('✅ [FLOW-SAVE] Flow saved successfully:', responseData);
 
       toast({
         title: "Sucesso",
@@ -905,9 +874,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         variant: "default"
       });
 
-      // Update selectedFlow with the latest data if available from the response
-      if (responseData?.data) {
-        setSelectedFlow(responseData.data);
+      // Update the selected flow with the returned data
+      if (responseData?.success && responseData?.data) {
         setSelectedFlowId(responseData.data.id); // Ensure selectedFlowId is updated
       } else if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
         // If response doesn't contain data but it was an update, refresh the query to ensure state consistency
@@ -921,11 +889,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       if (error.message?.startsWith('404:')) {
         console.log('🔄 [FLOW-SAVE] Flow not found (404), attempting to create...');
         // Re-attempt save as create operation
-        handleSaveFlow({
-          name: selectedFlow.name,
-          description: selectedFlow.description,
-          isActive: selectedFlow.isActive
-        });
+        handleSaveFlow();
       } else {
         toast({
           title: "Erro",
@@ -937,21 +901,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       setSaving(false); // Reset saving state
     }
   };
-
-  // Render loading state only if we don't have basic data
-  if (isLoadingBots || (isLoadingFlows && !botData)) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Carregando chatbot...</span>
-      </div>
-    );
-  }
-
-  // Show loading message for flow data but still show the interface
-  if (isLoadingCompleteFlow && selectedFlowId && !selectedFlowId.startsWith('flow_')) {
-    console.log('🔄 [FLOW-EDITOR] Loading flow data...');
-  }
 
   // Helper to get node position for connection lines
   const getNodePosition = (nodeId: string) => {
@@ -1061,6 +1010,54 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     e.preventDefault();
   };
 
+  // Save node configuration from the form
+  const handleNodeConfigSave = (nodeId: string, config: any) => {
+    // Store in selectedNodeConfig for persistence
+    setSelectedNodeConfig(prev => ({
+      ...prev,
+      [nodeId]: config
+    }));
+
+    // Update the node in the flow
+    setNodes(prev => prev.map(node => 
+      node.id === nodeId 
+        ? { 
+            ...node, 
+            data: { 
+              ...node.data, 
+              config,
+              configuration: config, // Duplicate for compatibility
+              label: config.title || node.data.label,
+              title: config.title || node.data.title
+            }
+          }
+        : node
+    ));
+
+    setSelectedNodeForConfig(null);
+
+    toast({
+      title: "Configuração salva",
+      description: "As configurações do nó foram salvas com sucesso.",
+      variant: "default"
+    });
+  };
+
+  // Render loading state only if we don't have basic data
+  if (isLoadingBots || (isLoadingFlows && !botData)) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Carregando chatbot...</span>
+      </div>
+    );
+  }
+
+  // Show loading message for flow data but still show the interface
+  if (isLoadingCompleteFlow && selectedFlowId && !selectedFlowId.startsWith('flow_')) {
+    console.log('🔄 [FLOW-EDITOR] Loading flow data...');
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50" data-testid="flow-editor">
       {/* Header */}
@@ -1078,10 +1075,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         </div>
         <div className="flex items-center space-x-3">
           <Button
-            onClick={() => {
-              // Pass current selected flow data to handleSaveFlow
-              handleSaveFlow({ name: selectedFlow?.name, description: selectedFlow?.description, isActive: selectedFlow?.isActive });
-            }}
+            onClick={handleSaveFlow}
             disabled={!selectedFlow || saving}
             data-testid="button-save-flow"
           >
@@ -1253,6 +1247,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   setSelectedNodeId(node.id);
                   setSelectedNode(node);
                   setNodeConfig(node.configuration);
+                  setSelectedNodeForConfig(node.id);
                   setShowNodeConfig(true);
                 }}
                 data-testid={`canvas-node-${node.id}`}
@@ -1404,15 +1399,17 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             </DialogDescription>
           </DialogHeader>
 
-          {selectedNode && (
+          {selectedNodeForConfig && (
             <NodeConfigForm
-              nodeType={selectedNode.type}
-              nodeName={selectedNode.name}
-              nodeCategory={selectedNode.category}
-              configuration={{ ...selectedNode.configuration, name: nodeConfig.name || selectedNode.name }}
-              onChange={(config) => setNodeConfig(config)}
-              onSave={saveNodeConfig}
-              onCancel={() => setShowNodeConfig(false)}
+              nodeId={selectedNodeForConfig}
+              nodeType={nodes.find(n => n.id === selectedNodeForConfig)?.data?.type || ''}
+              currentConfig={
+                selectedNodeConfig[selectedNodeForConfig] || 
+                nodes.find(n => n.id === selectedNodeForConfig)?.data?.config || 
+                {}
+              }
+              onSave={handleNodeConfigSave}
+              onCancel={() => setSelectedNodeForConfig(null)}
             />
           )}
         </DialogContent>
