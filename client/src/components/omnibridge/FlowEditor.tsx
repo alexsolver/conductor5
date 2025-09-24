@@ -806,133 +806,91 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   };
 
   const handleSaveFlow = async () => {
-    if (!selectedFlow || !selectedBot) {
-      console.error('❌ [FLOW-SAVE] No flow or bot selected');
-      toast({
-        title: "Erro ao salvar",
-        description: "Nenhum fluxo ou bot selecionado",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       setSaving(true);
       console.log('🔄 [FLOW-SAVE] Starting save process...', {
-        flowId: selectedFlow.id,
+        flowId: selectedFlow?.id,
         nodeCount: nodes.length,
         edgeCount: edges.length,
-        botId: selectedBot.id
+        botId: botId
       });
 
-      // Validate flow data before saving
-      if (!selectedFlow.id || !selectedBot.id) {
-        throw new Error('Flow ID or Bot ID is missing');
+      if (!selectedFlow || !botId) {
+        console.error('❌ [FLOW-SAVE] No flow or bot selected');
+        toast({
+          title: 'Erro',
+          description: 'Nenhum flow ou bot selecionado',
+          variant: 'destructive'
+        });
+        return;
       }
+
+      // Map ReactFlow format to backend format
+      const backendNodes = nodes.map(node => ({
+        id: node.id,
+        flowId: selectedFlow.id,
+        category: node.data?.category || 'triggers',
+        type: node.type || 'trigger-keyword',
+        title: node.data?.label || 'Untitled Node',
+        description: node.data?.description || '',
+        position: node.position,
+        config: node.data?.config || {},
+        isStart: node.data?.isStart || false,
+        isEnd: node.data?.isEnd || false,
+        isEnabled: node.data?.isEnabled !== false
+      }));
+
+      const backendEdges = edges.map(edge => ({
+        id: edge.id,
+        flowId: selectedFlow.id,
+        fromNodeId: edge.source,
+        toNodeId: edge.target,
+        label: edge.label || '',
+        condition: edge.data?.condition || '',
+        kind: edge.data?.kind || 'flow',
+        order: edge.data?.order || 0,
+        isEnabled: edge.data?.isEnabled !== false
+      }));
+
+      console.log('🔄 [FLOW-SAVE] Prepared data for API:', {
+        nodeCount: backendNodes.length,
+        edgeCount: backendEdges.length,
+        sampleNode: backendNodes[0] ? {
+          id: backendNodes[0].id,
+          type: backendNodes[0].type,
+          title: backendNodes[0].title
+        } : null
+      });
 
       const saveData = {
-        ...selectedFlow,
-        botId: selectedBot.id, // Ensure botId is included
-        nodes: nodes.map(node => ({
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data
-        })),
-        edges: edges.map(edge => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          type: edge.type,
-          data: edge.data
-        }))
+        name: selectedFlow.name,
+        description: selectedFlow.description,
+        isActive: selectedFlow.isActive,
+        triggerEvent: selectedFlow.triggerEvent || 'message_received',
+        metadata: {
+          ...selectedFlow.metadata,
+          flowNodes: JSON.stringify(backendNodes),
+          flowEdges: JSON.stringify(backendEdges),
+          nodeCount: backendNodes.length,
+          edgeCount: backendEdges.length,
+          lastModified: new Date().toISOString()
+        }
       };
 
-      const response = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows/${selectedFlow.id}`, {
-        method: 'PUT',
-        data: saveData
+      // Use the mutation to save
+      await saveFlowMutation.mutateAsync(saveData);
+
+      toast({
+        title: 'Flow Salvo',
+        description: 'Flow salvo com sucesso!'
       });
-
-      console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
-
-      if (response.status === 500) {
-        const errorText = await response.text();
-        console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-
-        try {
-          const errorObj = JSON.parse(errorText);
-          console.log('🔄 [FLOW-SAVE] Error object:', errorObj);
-          console.log('🔄 [FLOW-SAVE] Selected flow:', selectedFlow);
-
-          if (errorObj.error === 'Flow not found') {
-            console.log('🔄 [FLOW-SAVE] Flow not found, creating new one with current data...');
-
-            // Try to create the flow first with proper data
-            const createFlowData = {
-              id: selectedFlow.id,
-              name: selectedFlow.name || 'Fluxo Principal',
-              description: selectedFlow.description || 'Fluxo padrão do chatbot',
-              isActive: selectedFlow.isActive !== undefined ? selectedFlow.isActive : true,
-              botId: selectedBot.id,
-              settings: selectedFlow.settings || {}
-            };
-
-            console.log('🔄 [FLOW-CREATE] Creating flow with data:', createFlowData);
-
-            const createResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
-              method: 'POST',
-              data: createFlowData
-            });
-
-            console.log('🔄 [FLOW-CREATE] Flow created successfully:', createResponse.data);
-
-            // Now try to save the complete flow again
-            const retryResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedBot.id}/flows/${selectedFlow.id}`, {
-              method: 'PUT',
-              data: saveData
-            });
-
-            if (retryResponse.ok) {
-              console.log('✅ [FLOW-SAVE] Flow saved successfully after creation');
-              toast({
-                title: "Fluxo salvo",
-                description: "Fluxo e nós salvos com sucesso",
-              });
-              return;
-            } else {
-              const retryErrorText = await retryResponse.text();
-              console.error('❌ [FLOW-SAVE] Retry failed:', retryErrorText);
-              throw new Error(`Retry failed: ${retryResponse.status}: ${retryErrorText}`);
-            }
-          }
-
-          throw new Error(`${response.status}: ${errorText}`);
-        } catch (parseError) {
-          console.error('❌ [FLOW-SAVE] Error parsing response:', parseError);
-          throw new Error(`${response.status}: ${errorText}`);
-        }
-      }
-
-      // If response is OK, proceed with success handling
-      if (response.ok) {
-        toast({
-          title: "Fluxo Salvo",
-          description: "O fluxo foi salvo com sucesso.",
-        });
-        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
-      } else {
-        // Handle other non-500 errors
-        const errorText = await response.text();
-        console.error(`❌ [FLOW-SAVE] Failed to save flow: ${response.status} - ${errorText}`);
-        throw new Error(`Failed to save flow: ${response.status} - ${errorText}`);
-      }
 
     } catch (error: any) {
       console.error('❌ [FLOW-SAVE] Exception during save:', error);
       toast({
-        title: "Erro ao Salvar Fluxo",
-        description: error.message || "Ocorreu um erro desconhecido ao salvar o fluxo.",
-        variant: "destructive",
+        title: 'Erro ao Salvar',
+        description: error?.message || 'Erro desconhecido ao salvar flow',
+        variant: 'destructive'
       });
     } finally {
       setSaving(false);

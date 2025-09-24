@@ -46,16 +46,14 @@ export const apiRequest = async (
 ): Promise<Response> => {
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
 
-  // 🔍 Debug tokens for POST requests
-  if (method === 'POST') {
-    console.log('🔍 [API-REQUEST-DEBUG] POST request details:', {
-      method,
-      url,
-      hasData: !!data,
-      credentials: 'include',
-      cookiesWillBeSent: true
-    });
-  }
+  // 🔍 Debug for all requests to catch issues
+  console.log('🔍 [API-REQUEST-DEBUG] Request details:', {
+    method,
+    url,
+    hasData: !!data,
+    credentials: 'include',
+    dataType: typeof data
+  });
 
   // 🔧 Get tenant ID from queryClient cache or local storage
   let tenantId = '';
