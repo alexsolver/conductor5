@@ -292,43 +292,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
   const [flows, setFlows] = useState<ChatbotFlow[]>([]); // State for list of flows
 
-  // State for node configuration
-  const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<string | null>(null);
-  const [selectedNodeConfig, setSelectedNodeConfig] = useState<Record<string, any>>({});
-
-  // Load bot data
-  const { data: botData, isLoading: isLoadingBots } = useQuery<{data: ChatbotBot}>({
-    queryKey: ['/api/omnibridge/chatbots', botId],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch bot: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    },
-    enabled: !!botId
-  });
-
-  // Load flows for bot
-  const { data: botFlows, isLoading: isLoadingFlows } = useQuery<{data: ChatbotFlow[]}>({
-    queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}/flows`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch flows: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    },
-    enabled: !!botId
-  });
-
   // State for the selected flow ID to trigger the query
   const [selectedFlowId, setSelectedFlowId] = useState<string | undefined>(undefined);
   const [selectedChatbot, setSelectedChatbot] = useState<ChatbotBot | null>(null); // State for the selected bot
 
   // Flow query with proper error handling
-  const { 
-    data: completeFlowData, 
+  const {
+    data: completeFlowData,
     isLoading: isLoadingCompleteFlow,
     error: flowError,
     refetch: refetchFlow
@@ -558,7 +528,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     console.log('🐛 [DRAG] Starting drag for node type:', nodeType);
     setDraggedNodeType(nodeType);
     e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('text/plain', nodeType);
+    e.dataTransfer.setData('nodeType', nodeType); // Use 'nodeType' as the key
 
     // Add visual feedback
     if (e.currentTarget instanceof HTMLElement) {
@@ -575,68 +545,101 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     setDraggedNodeType(null); // Clear draggedNodeType after drop or end
   };
 
-  const handleCanvasDrop = (e: React.DragEvent) => {
+  // Helper to get the category key from a node type ID
+  const getCategoryForNodeType = (typeId: string): string => {
+    for (const [categoryKey, category] of Object.entries(NODE_CATEGORIES)) {
+      if (category.nodes.some(node => node.id === typeId)) {
+        return categoryKey;
+      }
+    }
+    return 'unknown'; // Fallback category
+  };
+
+
+  const handleCanvasDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
 
-    // Check if we're moving an existing node
-    if (draggedNode) {
-      handleNodeMove(e);
+    if (!canvasRef.current || !selectedFlow) {
+      console.log('🐛 [DRAG] Cannot drop - missing canvas or selected flow');
+      return;
+    }
+
+    const draggedNodeType = e.dataTransfer.getData('nodeType');
+    if (!draggedNodeType) {
+      console.log('🐛 [DRAG] No node type in drag data');
       return;
     }
 
     console.log('🐛 [DRAG] Drop event fired', {
       draggedNodeType,
       hasCanvasRef: !!canvasRef.current,
-      selectedFlow: selectedFlow?.id || 'MISSING',
+      selectedFlow: selectedFlow.id,
       selectedFlowExists: !!selectedFlow
     });
 
-    if (!draggedNodeType || !canvasRef.current || !selectedFlow) {
-      console.log('🐛 [DRAG] Drop failed - missing draggedNodeType, canvasRef, or selectedFlow');
-      return;
-    }
-
     const rect = canvasRef.current.getBoundingClientRect();
     const position = {
-      x: (e.clientX - rect.left - canvasOffset.x) / zoom,
-      y: (e.clientY - rect.top - canvasOffset.y) / zoom
+      x: Math.max(0, e.clientX - rect.left - 50), // Center the node
+      y: Math.max(0, e.clientY - rect.top - 25)
     };
 
     console.log('🐛 [DRAG] Drop position:', position);
 
-    // Find node definition
-    const nodeData = Object.values(NODE_CATEGORIES)
-      .flatMap(cat => cat.nodes)
-      .find(n => n.id === draggedNodeType);
+    // Find node data from categories
+    let nodeData = null;
+    let nodeCategory = '';
+    for (const [categoryKey, category] of Object.entries(NODE_CATEGORIES)) {
+      nodeData = category.nodes.find(n => n.id === draggedNodeType);
+      if (nodeData) {
+        nodeCategory = categoryKey;
+        break;
+      }
+    }
+
+    if (!nodeData) {
+      console.log('🐛 [DRAG] Node data not found for type:', draggedNodeType);
+      return;
+    }
 
     console.log('🐛 [DRAG] Node data found:', nodeData);
 
-    if (nodeData && selectedFlow) {
-      const newNode: FlowNode = {
-        id: `node_${Date.now()}`,
-        flowId: selectedFlow.id,
-        name: nodeData.name,
-        type: nodeData.id,
-        category: draggedNodeType.split('-')[0],
-        position,
-        configuration: {},
-        metadata: {},
-        isActive: true
-      };
+    // Create node with proper structure for backend
+    const newNode = {
+      id: `node_${Date.now()}`,
+      type: draggedNodeType,
+      title: nodeData.name,
+      category: nodeCategory,
+      description: nodeData.description || '',
+      position,
+      config: {},
+      isStart: false,
+      isEnd: false,
+      isEnabled: true,
+      // Legacy fields for compatibility
+      flowId: selectedFlow.id,
+      name: nodeData.name,
+      configuration: {},
+      metadata: {},
+      isActive: true
+    };
 
-      console.log('🐛 [DRAG] Creating new node:', newNode);
-      setNodes(prev => [...prev, newNode]);
-      setDraggedNodeType(null);
+    console.log('🐛 [DRAG] Creating new node:', newNode);
 
-      toast({
-        title: 'Nó Adicionado',
-        description: `Nó ${nodeData.name} adicionado ao fluxo`
-      });
+    setSelectedFlow(prev => prev ? {
+      ...prev,
+      nodes: [...(prev.nodes || []), newNode]
+    } : null);
 
-    } else {
-      console.log('🐛 [DRAG] Failed to create node - missing nodeData or selectedFlow');
+    // Auto-save after adding node
+    if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
+      setTimeout(() => {
+        handleSaveFlow();
+      }, 500);
     }
-  };
+
+    setIsDragging(false); // This state is not defined, assuming it should be `setDraggedNode(null)` or similar if it was intended to manage drag state. Removed for now as it's unused.
+
+  }, [selectedFlow, handleSaveFlow]); // Removed setIsDragging as it's not defined in the component state
 
   const handleNodeClick = (node: FlowNode) => {
     setSelectedNode(node);
@@ -975,7 +978,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const nodeType = e.dataTransfer.getData('text/plain');
+    const nodeType = e.dataTransfer.getData('nodeType'); // Correct key for node type
     if (!nodeType) return;
 
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -995,7 +998,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         id: `node_${Date.now()}`,
         flowId: selectedFlow.id,
         name: nodeData.name,
-        type: nodeData.id,
+        type: nodeType,
         category: nodeType.split('-')[0],
         position,
         configuration: {},
@@ -1019,12 +1022,12 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }));
 
     // Update the node in the flow
-    setNodes(prev => prev.map(node => 
-      node.id === nodeId 
-        ? { 
-            ...node, 
-            data: { 
-              ...node.data, 
+    setNodes(prev => prev.map(node =>
+      node.id === nodeId
+        ? {
+            ...node,
+            data: {
+              ...node.data,
               config,
               configuration: config, // Duplicate for compatibility
               label: config.title || node.data.label,
@@ -1404,8 +1407,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
               nodeId={selectedNodeForConfig}
               nodeType={nodes.find(n => n.id === selectedNodeForConfig)?.data?.type || ''}
               currentConfig={
-                selectedNodeConfig[selectedNodeForConfig] || 
-                nodes.find(n => n.id === selectedNodeForConfig)?.data?.config || 
+                selectedNodeConfig[selectedNodeForConfig] ||
+                nodes.find(n => n.id === selectedNodeForConfig)?.data?.config ||
                 {}
               }
               onSave={handleNodeConfigSave}

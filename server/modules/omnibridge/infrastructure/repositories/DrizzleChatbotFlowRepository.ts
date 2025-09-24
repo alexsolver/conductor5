@@ -44,11 +44,11 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       tenantId: flow.tenantId,
       hasCustomId: !!flow.id
     });
-    
+
     try {
       // Get tenant-specific database connection
       const tenantDb = await this.getTenantDb(flow.tenantId);
-      
+
       // ✅ CRITICAL: Verify bot exists in tenant schema before creating flow
       const { chatbotBots } = await import('../../../../../shared/schema-chatbot');
       const [existingBot] = await tenantDb
@@ -56,7 +56,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         .from(chatbotBots)
         .where(eq(chatbotBots.id, flow.botId))
         .limit(1);
-      
+
       if (!existingBot) {
         console.error('❌ [REPOSITORY] Bot not found in tenant schema:', {
           botId: flow.botId,
@@ -65,16 +65,16 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         });
         throw new Error(`Bot with ID ${flow.botId} not found in tenant ${flow.tenantId}`);
       }
-      
+
       console.log('✅ [REPOSITORY] Bot validation successful:', {
         botId: existingBot.id,
         botName: existingBot.name,
         tenantId: flow.tenantId
       });
-      
+
       // Remove tenantId from flow data as it's not part of the table schema
       const { tenantId: _, ...flowData } = flow;
-      
+
       // Ensure we have all required fields
       const flowToInsert = {
         ...flowData,
@@ -87,10 +87,10 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         flowToInsert.id = flow.id;
         console.log('🆔 [REPOSITORY] Using custom ID for flow creation:', flow.id);
       }
-      
+
       console.log('🔧 [REPOSITORY] Using tenant database for schema:', this.getSchemaName(flow.tenantId));
       console.log('🔧 [REPOSITORY] Flow data to insert:', flowToInsert);
-      
+
       const [createdFlow] = await tenantDb.insert(chatbotFlows).values(flowToInsert).returning();
       console.log('✅ [REPOSITORY] Flow created successfully in tenant schema:', {
         id: createdFlow.id,
@@ -124,14 +124,14 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       }
 
       console.log('🔍 [REPOSITORY] findById:', { id, tenantId, schema: this.getSchemaName(tenantId) });
-      
+
       const tenantDb = await this.getTenantDb(tenantId);
       const [flow] = await tenantDb
         .select()
         .from(chatbotFlows)
         .where(eq(chatbotFlows.id, id))
         .limit(1);
-      
+
       if (flow) {
         console.log('✅ [REPOSITORY] Flow found:', {
           id: flow.id,
@@ -142,7 +142,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       } else {
         console.log('❌ [REPOSITORY] Flow not found:', id);
       }
-      
+
       return flow || null;
     } catch (error) {
       console.error('❌ [REPOSITORY] Error in findById:', error);
@@ -169,19 +169,155 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         eq(chatbotFlows.isActive, true)
       ))
       .limit(1);
-    
+
     return activeFlow || null;
   }
 
-  async update(id: string, updates: UpdateChatbotFlow, tenantId: string): Promise<SelectChatbotFlow | null> {
-    const tenantDb = await this.getTenantDb(tenantId);
-    const [updatedFlow] = await tenantDb
-      .update(chatbotFlows)
-      .set(updates)
-      .where(eq(chatbotFlows.id, id))
-      .returning();
-    
-    return updatedFlow || null;
+  async update(flowId: string, data: Partial<ChatbotFlow>, tenantId: string): Promise<SelectChatbotFlow | null> {
+    try {
+      console.log('🔄 [FLOW-REPO] Updating flow:', { flowId, tenantId, hasNodes: !!data.nodes, hasEdges: !!data.edges });
+
+      const tenantDb = await this.getTenantDb(tenantId);
+
+      // Start transaction
+      const result = await tenantDb.transaction(async (tx) => {
+        // Update main flow record first
+        const { nodes, edges, variables, ...flowData } = data;
+
+        // Prepare flow update data
+        const updateData: any = {
+          ...flowData,
+          updatedAt: new Date()
+        };
+
+        // Store nodes, edges, and variables as JSON in the flow record
+        if (nodes !== undefined) {
+          updateData.nodes = nodes || [];
+        }
+        if (edges !== undefined) {
+          updateData.edges = edges || [];
+        }
+        if (variables !== undefined) {
+          updateData.variables = variables || [];
+        }
+
+        const [updatedFlow] = await tx
+          .update(chatbotFlows)
+          .set(updateData)
+          .where(eq(chatbotFlows.id, flowId))
+          .returning();
+
+        if (!updatedFlow) {
+          throw new Error('Flow not found');
+        }
+
+        // Also save individual nodes to the nodes table for queries
+        if (nodes && Array.isArray(nodes)) {
+          console.log('🔄 [FLOW-REPO] Saving individual nodes:', nodes.length);
+
+          // Delete existing nodes for this flow
+          await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
+
+          // Insert new nodes with proper validation
+          if (nodes.length > 0) {
+            const validNodes = nodes.filter(node => {
+              // Validate node has required fields
+              return node.type && (node.title || node.name);
+            });
+
+            if (validNodes.length > 0) {
+              const nodesToInsert = validNodes.map(node => ({
+                id: node.id || `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                flowId: flowId,
+                category: this.validateNodeCategory(node.category, node.type),
+                type: node.type,
+                title: node.title || node.name || 'Untitled Node',
+                description: node.description || '',
+                position: node.position || { x: 0, y: 0 },
+                config: node.configuration || node.config || {},
+                isStart: node.isStart || false,
+                isEnd: node.isEnd || false,
+                isEnabled: node.isActive !== false
+              }));
+
+              await tx.insert(chatbotNodes).values(nodesToInsert);
+            }
+          }
+        }
+
+        // Save individual edges to the edges table
+        if (edges && Array.isArray(edges)) {
+          console.log('🔄 [FLOW-REPO] Saving individual edges:', edges.length);
+
+          // Delete existing edges for this flow
+          await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
+
+          // Insert new edges with proper validation
+          if (edges.length > 0) {
+            const validEdges = edges.filter(edge => {
+              return (edge.source || edge.sourceNodeId || edge.from) && 
+                     (edge.target || edge.targetNodeId || edge.to);
+            });
+
+            if (validEdges.length > 0) {
+              const edgesToInsert = validEdges.map((edge, index) => ({
+                id: edge.id || `edge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                flowId: flowId,
+                fromNodeId: edge.source || edge.sourceNodeId || edge.from,
+                toNodeId: edge.target || edge.targetNodeId || edge.to,
+                label: edge.label || '',
+                condition: edge.condition || null,
+                kind: (edge.kind as any) || 'default',
+                order: edge.order || index,
+                isEnabled: edge.isActive !== false
+              }));
+
+              await tx.insert(chatbotEdges).values(edgesToInsert);
+            }
+          }
+        }
+
+        return updatedFlow;
+      });
+
+      console.log('✅ [FLOW-REPO] Flow updated successfully:', result.id);
+      return result;
+
+    } catch (error) {
+      console.error('❌ [FLOW-REPO] Error updating flow:', error);
+      throw error;
+    }
+  }
+
+  private validateNodeCategory(category: string | undefined, nodeType: string): string {
+    // Map common node types to categories
+    const typeToCategory: Record<string, string> = {
+      'trigger-keyword': 'trigger',
+      'trigger-intent': 'trigger',
+      'trigger-time': 'trigger',
+      'trigger-event': 'trigger',
+      'condition-text': 'condition',
+      'condition-number': 'condition',
+      'action-send-text': 'action',
+      'action-send-image': 'action',
+      'response-text': 'response',
+      'response-quick-reply': 'response',
+      'custom': 'action' // Default custom nodes to action category
+    };
+
+    // If category is provided and valid, use it
+    const validCategories = ['trigger', 'condition', 'action', 'response', 'integration', 'ai', 'flow_control', 'validation', 'advanced'];
+    if (category && validCategories.includes(category)) {
+      return category;
+    }
+
+    // Try to infer from node type
+    if (typeToCategory[nodeType]) {
+      return typeToCategory[nodeType];
+    }
+
+    // Default fallback
+    return 'action';
   }
 
   async delete(id: string, tenantId: string): Promise<boolean> {
@@ -189,7 +325,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     const result = await tenantDb
       .delete(chatbotFlows)
       .where(eq(chatbotFlows.id, id));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -227,7 +363,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         publishedAt: new Date()
       })
       .where(eq(chatbotFlows.id, flowId));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -236,7 +372,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .update(chatbotFlows)
       .set({ isActive: false })
       .where(eq(chatbotFlows.id, flowId));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -247,7 +383,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .where(eq(chatbotFlows.botId, botId))
       .orderBy(desc(chatbotFlows.createdAt))
       .limit(1);
-    
+
     return latestFlow || null;
   }
 
@@ -261,7 +397,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
   async findWithNodes(id: string, tenantId: string): Promise<ChatbotFlowWithNodes | null> {
     console.log('🔍 [REPOSITORY] findWithNodes:', { id, tenantId, schema: this.getSchemaName(tenantId) });
-    
+
     const flow = await this.findById(id, tenantId);
     if (!flow) {
       console.log('❌ [REPOSITORY] Flow not found for findWithNodes:', id);
@@ -270,9 +406,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
     try {
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       console.log('🔍 [REPOSITORY] Querying flow components for:', { flowId: id, tenantId });
-      
+
       // Perform parallel queries for better performance
       const [nodesResult, edgesResult, variablesResult] = await Promise.allSettled([
         tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
@@ -323,7 +459,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         tenantId,
         schema: this.getSchemaName(tenantId)
       });
-      
+
       // Return flow with empty arrays as fallback
       return {
         ...flow,
@@ -346,7 +482,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .update(chatbotFlows)
       .set({ publishedAt: new Date() })
       .where(eq(chatbotFlows.id, id));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -355,7 +491,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .update(chatbotFlows)
       .set({ publishedAt: null })
       .where(eq(chatbotFlows.id, id));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -398,7 +534,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         tenantId,
         timestamp: new Date().toISOString()
       });
-      
+
       // Verify flow exists first
       const existingFlow = await this.findById(flowId, tenantId);
       if (!existingFlow) {
@@ -421,7 +557,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
       // Get tenant-specific database connection
       const tenantDb = await this.getTenantDb(tenantId);
-      
+
       // Start transaction to save nodes and edges
       const result = await tenantDb.transaction(async (tx) => {
         try {
@@ -429,7 +565,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
           console.log('🗑️ [REPOSITORY] Clearing existing nodes and edges for flow:', flowId);
           const deletedNodes = await tx.delete(chatbotNodes).where(eq(chatbotNodes.flowId, flowId));
           const deletedEdges = await tx.delete(chatbotEdges).where(eq(chatbotEdges.flowId, flowId));
-          
+
           console.log('🗑️ [REPOSITORY] Deletion results:', { 
             deletedNodes: deletedNodes.rowCount || 0, 
             deletedEdges: deletedEdges.rowCount || 0 
@@ -453,17 +589,17 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
                 createdAt: new Date(),
                 updatedAt: new Date()
               };
-              
+
               console.log('💾 [REPOSITORY] Node to insert:', {
                 id: nodeData.id,
                 category: nodeData.category,
                 type: nodeData.type,
                 title: nodeData.title
               });
-              
+
               return nodeData;
             });
-            
+
             console.log('💾 [REPOSITORY] Inserting nodes:', nodesToInsert.length);
             const insertedNodes = await tx.insert(chatbotNodes).values(nodesToInsert).returning();
             console.log('✅ [REPOSITORY] Nodes inserted successfully:', insertedNodes.length);
@@ -484,17 +620,17 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
                 isEnabled: Boolean(edge.isEnabled !== undefined ? edge.isEnabled : (edge.data?.isEnabled !== undefined ? edge.data.isEnabled : true)),
                 createdAt: new Date()
               };
-              
+
               console.log('💾 [REPOSITORY] Edge to insert:', {
                 id: edgeData.id,
                 from: edgeData.fromNodeId,
                 to: edgeData.toNodeId,
                 kind: edgeData.kind
               });
-              
+
               return edgeData;
             });
-            
+
             console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
             const insertedEdges = await tx.insert(chatbotEdges).values(edgesToInsert).returning();
             console.log('✅ [REPOSITORY] Edges inserted successfully:', insertedEdges.length);
@@ -505,9 +641,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
             .set({ updatedAt: new Date() })
             .where(eq(chatbotFlows.id, flowId))
             .returning();
-          
+
           console.log('✅ [REPOSITORY] Flow timestamp updated:', updatedFlow.length > 0);
-          
+
           return true;
         } catch (txError) {
           console.error('❌ [REPOSITORY] Transaction error:', txError);
