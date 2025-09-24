@@ -812,550 +812,430 @@ export default function AutomationRuleBuilder({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col px-6 min-h-0">
-          {/* Header */}
-          <div className="pb-4 border-b">
-            <DialogHeader>
-              <DialogTitle className="text-2xl">
-                {existingRule ? 'Editar Regra de Automação' : 'Nova Regra de Automação'}
-              </DialogTitle>
-              <DialogDescription>
-                {existingRule 
-                  ? 'Modifique os gatilhos e ações desta regra de automação.'
-                  : 'Configure gatilhos e ações para automatizar processos no OmniBridge.'
-                }
-              </DialogDescription>
-            </DialogHeader>
+      <DialogContent className="max-w-6xl h-[90vh] p-0" data-testid="automation-rule-builder">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Criador de Regras de Automação</DialogTitle>
+          <DialogDescription>Interface para criar e configurar regras de automação de mensagens</DialogDescription>
+        </DialogHeader>
+        <div className="flex h-full">
+          {/* Left Sidebar - Templates */}
+          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Criador de Regras
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Arraste e solte para criar automações
+              </p>
+            </div>
+
+            <ScrollArea className="h-[calc(100%-80px)]">
+              <div className="p-4 space-y-6">
+                {/* Triggers Section */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Gatilhos (QUANDO)
+                  </h4>
+                  <div className="space-y-2">
+                    {triggerTemplates.map((template, index) => (
+                      <Card
+                        key={index}
+                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
+                        onClick={() => addTrigger(template)}
+                        data-testid={`trigger-template-${template.type}`}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`p-1 rounded ${template.color} text-white`}>
+                              <template.icon className="h-3 w-3" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {template.name}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {template.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Actions Section */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Ações (ENTÃO)
+                  </h4>
+                  <div className="space-y-2">
+                    {actionTemplates.map((template, index) => (
+                      <Card
+                        key={index}
+                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400"
+                        onClick={() => addAction(template)}
+                        data-testid={`action-template-${template.type}`}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`p-1 rounded ${template.color} text-white`}>
+                              <template.icon className="h-3 w-3" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {template.name}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {template.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
           </div>
 
-          <Tabs defaultValue="builder" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="builder">Construtor Visual</TabsTrigger>
-              <TabsTrigger value="preview">Pré-visualização</TabsTrigger>
-            </TabsList>
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 max-w-md space-y-2">
+                  <Input
+                    placeholder="Nome da regra..."
+                    value={rule.name || ''}
+                    onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
+                    className="font-medium"
+                    data-testid="rule-name"
+                  />
+                  <Input
+                    placeholder="Descrição (opcional)..."
+                    value={rule.description || ''}
+                    onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
+                    className="text-sm"
+                    data-testid="rule-description"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="rule-enabled" className="text-sm">Ativa</Label>
+                  <Switch
+                    id="rule-enabled"
+                    checked={rule.enabled}
+                    onCheckedChange={(enabled) => setRule(prev => ({ ...prev, enabled }))}
+                    data-testid="rule-enabled"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPreview(!isPreview)}
+                    data-testid="preview-toggle"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    {isPreview ? 'Editar' : 'Visualizar'}
+                  </Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={saveMutation.isPending}
+                    data-testid="save-rule"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </div>
+            </div>
 
-            <TabsContent value="builder" className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 flex gap-4 min-h-0">
-                {/* Left Panel - Form */}
-                <div className="w-1/3 flex flex-col gap-4 min-h-0">
+            {/* Canvas */}
+            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
+              {isPreview ? (
+                /* Preview Mode */
+                <div className="max-w-4xl mx-auto">
                   <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Configurações Gerais</CardTitle>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Workflow className="h-5 w-5" />
+                        Visualização da Regra
+                      </CardTitle>
+                      <CardDescription>
+                        Como esta regra funcionará na prática
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <Label htmlFor="rule-name">Nome da Regra</Label>
-                        <Input
-                          id="rule-name"
-                          value={rule.name}
-                          onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Ex: Resposta Automática para Problemas"
-                        />
-                      </div>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {/* Rule Summary */}
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                            {rule.name || 'Nova Regra'}
+                          </h4>
+                          {rule.description && (
+                            <p className="text-blue-700 dark:text-blue-300 text-sm">
+                              {rule.description}
+                            </p>
+                          )}
+                        </div>
 
-                      <div>
-                        <Label htmlFor="rule-description">Descrição</Label>
-                        <Textarea
-                          id="rule-description"
-                          value={rule.description}
-                          onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Descreva o que esta regra faz..."
-                          rows={3}
-                        />
-                      </div>
+                        {/* Flow Visualization */}
+                        <div className="flex items-center justify-center space-x-4">
+                          {/* Triggers */}
+                          <div className="text-center">
+                            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg mb-2">
+                              <Zap className="h-8 w-8 mx-auto text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              QUANDO
+                            </p>
+                            <div className="mt-2 space-y-1">
+                              {rule.triggers.map((trigger) => (
+                                <Badge key={trigger.id} variant="outline" className="block">
+                                  {trigger.name}
+                                </Badge>
+                              ))}
+                              {rule.triggers.length === 0 && (
+                                <p className="text-xs text-gray-500">Nenhum gatilho</p>
+                              )}
+                            </div>
+                          </div>
 
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="rule-enabled">Regra Ativa</Label>
-                        <Switch
-                          id="rule-enabled"
-                          checked={rule.enabled}
-                          onCheckedChange={(checked) => 
-                            setRule(prev => ({ ...prev, enabled: checked }))
-                          }
-                        />
-                      </div>
+                          <ArrowRight className="h-6 w-6 text-gray-400" />
 
-                      <div>
-                        <Label htmlFor="rule-priority">Prioridade</Label>
-                        <Select
-                          value={rule.priority.toString()}
-                          onValueChange={(value) => 
-                            setRule(prev => ({ ...prev, priority: parseInt(value) }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">Alta (1)</SelectItem>
-                            <SelectItem value="2">Média (2)</SelectItem>
-                            <SelectItem value="3">Baixa (3)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          {/* Actions */}
+                          <div className="text-center">
+                            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-lg mb-2">
+                              <Settings className="h-8 w-8 mx-auto text-green-600 dark:text-green-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              ENTÃO
+                            </p>
+                            <div className="mt-2 space-y-1">
+                              {rule.actions.map((action) => (
+                                <Badge key={action.id} variant="outline" className="block">
+                                  {action.name}
+                                </Badge>
+                              ))}
+                              {rule.actions.length === 0 && (
+                                <p className="text-xs text-gray-500">Nenhuma ação</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Example Scenario */}
+                        {rule.triggers.length > 0 && rule.actions.length > 0 && (
+                          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                              Exemplo de funcionamento:
+                            </h5>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              Quando uma mensagem for recebida e atender aos critérios definidos pelos gatilhos, 
+                              o sistema automaticamente executará as ações configuradas.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
+              ) : (
+                /* Edit Mode */
+                <div className="max-w-4xl mx-auto space-y-6">
+                  {/* Getting Started */}
+                  {rule.triggers.length === 0 && rule.actions.length === 0 && (
+                    <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600">
+                      <CardContent className="p-8 text-center">
+                        <Lightbulb className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                          Comece criando sua automação
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                          1. Adicione gatilhos (QUANDO) da barra lateral esquerda<br />
+                          2. Adicione ações (ENTÃO) que devem ser executadas<br />
+                          3. Configure cada item clicando nele
+                        </p>
+                        <div className="flex justify-center gap-4">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Zap className="h-3 w-3 mr-1" />
+                            Gatilhos definem QUANDO
+                          </Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Ações definem O QUE fazer
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-                {/* Middle Panel - Rule Builder */}
-                <div className="flex-1 flex flex-col gap-4 min-h-0">
-                  <ScrollArea className="flex-1">
-                    <div className="space-y-6">
-                      {/* Triggers Section */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <Zap className="w-5 h-5" />
-                              Gatilhos ({rule.triggers.length})
-                            </CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {rule.triggers.map((trigger, index) => (
-                              <div
-                                key={trigger.id}
-                                className="flex items-center gap-3 p-3 border rounded-lg"
-                              >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${trigger.color}`}>
-                                  <trigger.icon className="w-4 h-4 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium">{trigger.name}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {trigger.description}
-                                  </div>
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedTrigger(trigger);
-                                      setShowTriggerConfig(true);
-                                    }}
-                                  >
-                                    <Settings className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeTrigger(trigger.id)}
-                                  >
-                                    <Minus className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Actions Section */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <Bot className="w-5 h-5" />
-                              Ações ({rule.actions.length})
-                            </CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {rule.actions.map((action, index) => (
-                              <div
-                                key={action.id}
-                                className="flex items-center gap-3 p-3 border rounded-lg"
-                              >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${action.color}`}>
-                                  <action.icon className="w-4 h-4 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium">{action.name}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {action.description}
-                                  </div>
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedAction(action);
-                                      setShowActionConfig(true);
-                                    }}
-                                  >
-                                    <Settings className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeAction(action.id)}
-                                  >
-                                    <Minus className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </div>
-
-                {/* Right Panel - Templates */}
-                <div className="w-1/3 flex flex-col gap-4 min-h-0">
-                  <ScrollArea className="flex-1">
-                    <div className="space-y-4">
-                      {/* Trigger Templates */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg">Gatilhos Disponíveis</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            {triggerTemplates.map((template) => (
-                              <div
-                                key={template.type}
-                                className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                onClick={() => addTrigger(template)}
-                              >
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${template.color}`}>
-                                  <template.icon className="w-3 h-3 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm">{template.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {template.description}
-                                  </div>
-                                </div>
-                                <Plus className="w-4 h-4" />
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Action Templates */}
-                      <Card>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg">Ações Disponíveis</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            {actionTemplates.map((template) => (
-                              <div
-                                key={template.type}
-                                className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                onClick={() => addAction(template)}
-                              >
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${template.color}`}>
-                                  <template.icon className="w-3 h-3 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm">{template.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {template.description}
-                                  </div>
-                                </div>
-                                <Plus className="w-4 h-4" />
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="preview" className="flex-1">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Pré-visualização da Regra</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold">Nome:</h4>
-                      <p>{rule.name || 'Sem nome'}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Descrição:</h4>
-                      <p>{rule.description || 'Sem descrição'}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Status:</h4>
-                      <Badge variant={rule.enabled ? 'default' : 'secondary'}>
-                        {rule.enabled ? 'Ativa' : 'Inativa'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Gatilhos ({rule.triggers.length}):</h4>
-                      {rule.triggers.length === 0 ? (
-                        <p className="text-muted-foreground">Nenhum gatilho configurado</p>
-                      ) : (
-                        <ul className="list-disc list-inside space-y-1">
+                  {/* Triggers Section */}
+                  {rule.triggers.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Zap className="h-5 w-5 text-blue-600" />
+                          Gatilhos (QUANDO)
+                        </CardTitle>
+                        <CardDescription>
+                          Condições que ativam esta automação
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {rule.triggers.map((trigger) => (
-                            <li key={trigger.id}>{trigger.name}</li>
+                            <Card 
+                              key={trigger.id} 
+                              className="cursor-pointer hover:shadow-md transition-all border-blue-200 dark:border-blue-700"
+                              onClick={() => openTriggerConfig(trigger)}
+                              data-testid={`trigger-${trigger.id}`}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`p-2 rounded ${trigger.color} text-white`}>
+                                      <trigger.icon className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                                      {trigger.name}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeTrigger(trigger.id);
+                                    }}
+                                    data-testid={`remove-trigger-${trigger.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {trigger.description}
+                                </p>
+                                {Object.keys(trigger.config).length > 0 && (
+                                  <Badge variant="secondary" className="mt-2">
+                                    Configurado
+                                  </Badge>
+                                )}
+                              </CardContent>
+                            </Card>
                           ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Ações ({rule.actions.length}):</h4>
-                      {rule.actions.length === 0 ? (
-                        <p className="text-muted-foreground">Nenhuma ação configurada</p>
-                      ) : (
-                        <ul className="list-disc list-inside space-y-1">
-                          {rule.actions.map((action) => (
-                            <li key={action.id}>{action.name}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-          {/* Footer */}
-          <div className="flex justify-between pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              disabled={saveMutation.isPending}
-            >
-              Cancelar
-            </Button>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsPreview(!isPreview)}
-                disabled={saveMutation.isPending}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                {isPreview ? 'Editar' : 'Pré-visualizar'}
-              </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={saveMutation.isPending || !rule.name.trim()}
-              >
-                {saveMutation.isPending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Regra
-                  </>
-                )}
-              </Button>
+                  {/* Actions Section */}
+                  {rule.actions.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Settings className="h-5 w-5 text-green-600" />
+                          Ações (ENTÃO)
+                        </CardTitle>
+                        <CardDescription>
+                          O que fazer quando os gatilhos forem ativados
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {rule.actions.map((action) => (
+                            <Card 
+                              key={action.id} 
+                              className="cursor-pointer hover:shadow-md transition-all border-green-200 dark:border-green-700"
+                              onClick={() => openActionConfig(action)}
+                              data-testid={`action-${action.id}`}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`p-2 rounded ${action.color} text-white`}>
+                                      <action.icon className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                                      {action.name}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeAction(action.id);
+                                    }}
+                                    data-testid={`remove-action-${action.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {action.description}
+                                </p>
+                                {Object.keys(action.config).length > 0 && (
+                                  <Badge variant="secondary" className="mt-2">
+                                    Configurado
+                                  </Badge>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
 
-      {/* Trigger Configuration Modal */}
-      {showTriggerConfig && selectedTrigger && (
+        {/* Trigger Configuration Modal */}
         <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent data-testid="trigger-config-modal">
             <DialogHeader>
-              <DialogTitle>Configurar Gatilho: {selectedTrigger.name}</DialogTitle>
+              <DialogTitle>Configurar {selectedTrigger?.name}</DialogTitle>
               <DialogDescription>
-                {selectedTrigger.description}
+                {selectedTrigger?.description}
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="space-y-4">
-              {selectedTrigger.type === 'keyword' && (
-                <div>
-                  <Label htmlFor="keywords">Palavras-chave</Label>
-                  <Input
-                    id="keywords"
-                    placeholder="Digite as palavras-chave separadas por vírgula"
-                    value={selectedTrigger.config.keywords || ''}
-                    onChange={(e) => updateTriggerConfig(selectedTrigger.id, {
-                      ...selectedTrigger.config,
-                      keywords: e.target.value
-                    })}
-                  />
-                </div>
-              )}
-              
-              {selectedTrigger.type === 'channel' && (
-                <div>
-                  <Label htmlFor="channel">Canal</Label>
-                  <Select
-                    value={selectedTrigger.config.channel || ''}
-                    onValueChange={(value) => updateTriggerConfig(selectedTrigger.id, {
-                      ...selectedTrigger.config,
-                      channel: value
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um canal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                      <SelectItem value="telegram">Telegram</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowTriggerConfig(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => setShowTriggerConfig(false)}
-              >
-                Salvar
-              </Button>
-            </div>
+            {selectedTrigger && (
+              <TriggerConfigForm
+                trigger={selectedTrigger}
+                onSave={(config) => {
+                  updateTriggerConfig(selectedTrigger.id, config);
+                  setShowTriggerConfig(false);
+                }}
+                onCancel={() => setShowTriggerConfig(false)}
+              />
+            )}
           </DialogContent>
         </Dialog>
-      )}
 
-      {/* Action Configuration Modal */}
-      {showActionConfig && selectedAction && (
+        {/* Action Configuration Modal */}
         <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent data-testid="action-config-modal">
             <DialogHeader>
-              <DialogTitle>Configurar Ação: {selectedAction.name}</DialogTitle>
+              <DialogTitle>Configurar {selectedAction?.name}</DialogTitle>
               <DialogDescription>
-                {selectedAction.description}
+                {selectedAction?.description}
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="space-y-4">
-              {selectedAction.type === 'auto_reply' && (
-                <div>
-                  <Label htmlFor="message">Mensagem</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Digite a mensagem de resposta automática"
-                    value={selectedAction.config.message || ''}
-                    onChange={(e) => updateActionConfig(selectedAction.id, {
-                      ...selectedAction.config,
-                      message: e.target.value
-                    })}
-                  />
-                </div>
-              )}
-              
-              {selectedAction.type === 'create_ticket' && (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">Título do Ticket</Label>
-                    <Input
-                      id="title"
-                      placeholder="Título padrão do ticket"
-                      value={selectedAction.config.title || ''}
-                      onChange={(e) => updateActionConfig(selectedAction.id, {
-                        ...selectedAction.config,
-                        title: e.target.value
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Prioridade</Label>
-                    <Select
-                      value={selectedAction.config.priority || 'medium'}
-                      onValueChange={(value) => updateActionConfig(selectedAction.id, {
-                        ...selectedAction.config,
-                        priority: value
-                      })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="critical">Crítica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowActionConfig(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => setShowActionConfig(false)}
-              >
-                Salvar
-              </Button>
-            </div>
+            {selectedAction && (
+              <ActionConfigForm
+                action={selectedAction}
+                onSave={(config) => {
+                  updateActionConfig(selectedAction.id, config);
+                  setShowActionConfig(false);
+                }}
+                onCancel={() => setShowActionConfig(false)}
+              />
+            )}
           </DialogContent>
         </Dialog>
-      )}</old_str>
-      <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-        <DialogContent data-testid="trigger-config-modal">
-          <DialogHeader>
-            <DialogTitle>Configurar {selectedTrigger?.name}</DialogTitle>
-            <DialogDescription>
-              {selectedTrigger?.description}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedTrigger && (
-            <TriggerConfigForm
-              trigger={selectedTrigger}
-              onSave={(config) => {
-                updateTriggerConfig(selectedTrigger.id, config);
-                setShowTriggerConfig(false);
-              }}
-              onCancel={() => setShowTriggerConfig(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Action Configuration Modal */}
-      <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-        <DialogContent data-testid="action-config-modal">
-          <DialogHeader>
-            <DialogTitle>Configurar {selectedAction?.name}</DialogTitle>
-            <DialogDescription>
-              {selectedAction?.description}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedAction && (
-            <ActionConfigForm
-              action={selectedAction}
-              onSave={(config) => {
-                updateActionConfig(selectedAction.id, config);
-                setShowActionConfig(false);
-              }}
-              onCancel={() => setShowActionConfig(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      </DialogContent>
     </Dialog>
   );
 }
