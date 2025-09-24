@@ -331,29 +331,36 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   } = useQuery({
     queryKey: ['chatbot-flow-complete', selectedFlowId, selectedChatbot?.id],
     queryFn: async () => {
-      if (!selectedFlowId || selectedFlowId.startsWith('flow_') || !selectedChatbot?.id) {
-        console.log('🔄 [FLOW-QUERY-DEBUG] Skipping query for temporary flow or missing bot:', { selectedFlowId, botId: selectedChatbot?.id });
+      console.log('🔄 [FLOW-QUERY] Fetching complete flow data:', { flowId: selectedFlowId, botId: selectedChatbot?.id });
+
+      if (!selectedFlowId || !selectedChatbot?.id) {
+        console.log('❌ [FLOW-QUERY] Missing required parameters');
         return null;
       }
 
-      console.log('🔄 [FLOW-QUERY-DEBUG] Fetching complete flow:', { selectedFlowId, botId: selectedChatbot.id });
+      try {
+        const url = `/api/omnibridge/flows/${selectedFlowId}`;
+        console.log('🔍 [FLOW-QUERY] Making request to:', url);
 
-      // Use the bot-specific route to ensure proper validation
-      const response = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}/flows/${selectedFlowId}`);
+        const response = await apiRequest('GET', url);
 
-      if (!response.success) {
-        console.error('❌ [FLOW-QUERY] Failed to fetch flow:', response.error);
-        throw new Error(response.error || 'Failed to fetch flow');
+        if (!response.ok) {
+          console.error('❌ [FLOW-QUERY] API error:', response.status, response.statusText);
+          throw new Error(`Failed to fetch flow: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ [FLOW-QUERY] Flow data loaded:', {
+          flowId: data?.data?.id,
+          nodeCount: data?.data?.nodes?.length || 0,
+          edgeCount: data?.data?.edges?.length || 0
+        });
+
+        return data.data;
+      } catch (error) {
+        console.error('❌ [FLOW-QUERY] Error fetching flow:', error);
+        throw error;
       }
-
-      console.log('✅ [FLOW-QUERY] Successfully fetched flow:', {
-        flowId: response.data.id,
-        flowName: response.data.name,
-        nodeCount: response.data.nodes?.length || 0,
-        edgeCount: response.data.edges?.length || 0
-      });
-
-      return response.data;
     },
     enabled: !!selectedFlowId && !selectedFlowId.startsWith('flow_') && !!selectedChatbot?.id,
     retry: 2,
@@ -904,7 +911,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         setSelectedFlowId(responseData.data.id); // Ensure selectedFlowId is updated
       } else if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
         // If response doesn't contain data but it was an update, refresh the query to ensure state consistency
-        queryClient.invalidateQueries({ queryKey: ['flow-complete', selectedFlow.id] });
+        queryClient.invalidateQueries({ queryKey: ['chatbot-flow-complete', selectedFlow.id, selectedChatbot?.id] });
       }
 
     } catch (error: any) {
