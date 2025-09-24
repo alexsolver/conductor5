@@ -278,6 +278,47 @@ export default function ReactFlowEditor({ botId, onClose }: ReactFlowEditorProps
     }
   }, [botData, botFlows]);
 
+  // Handle new flows (IDs starting with 'flow_') - create temp flow to enable drag&drop
+  useEffect(() => {
+    console.log('🔍 [TEMP-FLOW-DEBUG] Checking conditions:', { 
+      selectedFlowId, 
+      startsWithFlow: selectedFlowId?.startsWith('flow_'), 
+      hasSelectedFlow: !!selectedFlow,
+      flowsCount: flows.length 
+    });
+    
+    if (selectedFlowId && selectedFlowId.startsWith('flow_') && !selectedFlow) {
+      // Find the flow from the flows list, or create a temporary one
+      let tempFlow = flows.find(f => f.id === selectedFlowId);
+      console.log('🔍 [TEMP-FLOW-DEBUG] Found temp flow from list:', tempFlow);
+      
+      if (!tempFlow) {
+        // Create a temporary flow object to enable drag&drop
+        tempFlow = {
+          id: selectedFlowId,
+          name: 'Novo Fluxo',
+          description: 'Fluxo temporário para edição',
+          nodes: [],
+          edges: [],
+          variables: [],
+          isActive: true,
+          chatbotId: selectedBot?.id || '',
+          tenantId: '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        console.log('🔍 [TEMP-FLOW-DEBUG] Created temporary flow:', tempFlow);
+      }
+      
+      console.log('✅ [TEMP-FLOW-DEBUG] Setting temp flow as selectedFlow');
+      setSelectedFlow(tempFlow);
+      // Initialize empty nodes and edges for new flow
+      setNodes([]);
+      setEdges([]);
+      setSelectedNodeConfig({});
+    }
+  }, [selectedFlowId, flows, selectedFlow, selectedBot]);
+
   // Load flow data and convert to ReactFlow format
   useEffect(() => {
     if (flowData?.data) {
