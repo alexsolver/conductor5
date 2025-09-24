@@ -812,148 +812,222 @@ export default function AutomationRuleBuilder({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0" data-testid="automation-rule-builder">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Criador de Regras de Automação</DialogTitle>
-          <DialogDescription>Interface para criar e configurar regras de automação de mensagens</DialogDescription>
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4">
+          <DialogTitle>
+            {existingRule ? 'Editar Regra de Automação' : 'Criar Nova Regra de Automação'}
+          </DialogTitle>
+          <DialogDescription>
+            Configure gatilhos e ações para automação de mensagens
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex h-full">
-          {/* Left Sidebar - Templates */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                Criador de Regras
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Arraste e solte para criar automações
-              </p>
-            </div>
 
-            <ScrollArea className="h-[calc(100%-80px)]">
-              <div className="p-4 space-y-6">
-                {/* Triggers Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Gatilhos (QUANDO)
-                  </h4>
-                  <div className="space-y-2">
-                    {triggerTemplates.map((template, index) => (
-                      <Card
-                        key={index}
-                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
-                        onClick={() => addTrigger(template)}
-                        data-testid={`trigger-template-${template.type}`}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1 rounded ${template.color} text-white`}>
-                              <template.icon className="h-3 w-3" />
+        <div className="flex-1 flex flex-col px-6 min-h-0">
+          <Tabs defaultValue="builder" className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="builder">Construtor</TabsTrigger>
+              <TabsTrigger value="preview">Visualização</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="builder" className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 flex gap-4 min-h-0">
+                {/* Left Panel - Rule Configuration */}
+                <div className="w-1/3 flex flex-col border-r pr-4">
+                  <ScrollArea className="flex-1 pr-4">
+                    <div className="space-y-4 mb-4">
+                      <div>
+                        <Label htmlFor="rule-name">Nome da Regra</Label>
+                        <Input
+                          id="rule-name"
+                          value={rule.name}
+                          onChange={(e) => setRule({ ...rule, name: e.target.value })}
+                          placeholder="Digite o nome da regra"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="rule-description">Descrição</Label>
+                        <Textarea
+                          id="rule-description"
+                          value={rule.description}
+                          onChange={(e) => setRule({ ...rule, description: e.target.value })}
+                          placeholder="Descreva o que esta regra faz"
+                          rows={2}
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="rule-enabled"
+                          checked={rule.enabled}
+                          onCheckedChange={(enabled) => setRule({ ...rule, enabled })}
+                        />
+                        <Label htmlFor="rule-enabled">Regra ativa</Label>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="rule-priority">Prioridade</Label>
+                        <Select
+                          value={rule.priority.toString()}
+                          onValueChange={(value) => setRule({ ...rule, priority: parseInt(value) })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">Alta (1)</SelectItem>
+                            <SelectItem value="2">Média (2)</SelectItem>
+                            <SelectItem value="3">Baixa (3)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Triggers Section */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium">Gatilhos</h3>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowTriggerConfig(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {rule.triggers.map((trigger) => (
+                          <div
+                            key={trigger.id}
+                            className="flex items-center justify-between p-2 bg-muted rounded"
+                          >
+                            <div className="flex items-center gap-2">
+                              <trigger.icon className="h-4 w-4" />
+                              <span className="text-sm">{trigger.name}</span>
                             </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {template.name}
-                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeTrigger(trigger.id)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {template.description}
+                        ))}
+                        {rule.triggers.length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Nenhum gatilho configurado
                           </p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className="pb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium">Ações</h3>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowActionConfig(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {rule.actions.map((action) => (
+                          <div
+                            key={action.id}
+                            className="flex items-center justify-between p-2 bg-muted rounded"
+                          >
+                            <div className="flex items-center gap-2">
+                              <action.icon className="h-4 w-4" />
+                              <span className="text-sm">{action.name}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeAction(action.id)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        {rule.actions.length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Nenhuma ação configurada
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                {/* Right Panel - Available Nodes */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold mb-2">Nós Disponíveis</h3>
+                    <Tabs defaultValue="triggers" className="w-full flex-1 flex flex-col">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="triggers">Gatilhos</TabsTrigger>
+                        <TabsTrigger value="actions">Ações</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="triggers" className="mt-4 flex-1 min-h-0">
+                        <ScrollArea className="h-[50vh]">
+                          <div className="grid grid-cols-2 gap-2 pr-4">
+                            {triggerTemplates.map((template) => (
+                              <Card
+                                key={template.type}
+                                className="p-3 cursor-pointer hover:bg-muted transition-colors"
+                                onClick={() => addTrigger(template)}
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className={`p-1 rounded ${template.color}`}>
+                                    <template.icon className="h-4 w-4 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium">{template.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {template.description}
+                                </p>
+                              </Card>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </TabsContent>
+
+                      <TabsContent value="actions" className="mt-4 flex-1 min-h-0">
+                        <ScrollArea className="h-[50vh]">
+                          <div className="grid grid-cols-2 gap-2 pr-4">
+                            {actionTemplates.map((template) => (
+                              <Card
+                                key={template.type}
+                                className="p-3 cursor-pointer hover:bg-muted transition-colors"
+                                onClick={() => addAction(template)}
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className={`p-1 rounded ${template.color}`}>
+                                    <template.icon className="h-4 w-4 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium">{template.name}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {template.description}
+                                </p>
+                              </Card>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </div>
+              </TabsContent>
 
-                <Separator />
-
-                {/* Actions Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Ações (ENTÃO)
-                  </h4>
-                  <div className="space-y-2">
-                    {actionTemplates.map((template, index) => (
-                      <Card
-                        key={index}
-                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400"
-                        onClick={() => addAction(template)}
-                        data-testid={`action-template-${template.type}`}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1 rounded ${template.color} text-white`}>
-                              <template.icon className="h-3 w-3" />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {template.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {template.description}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 max-w-md space-y-2">
-                  <Input
-                    placeholder="Nome da regra..."
-                    value={rule.name || ''}
-                    onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
-                    className="font-medium"
-                    data-testid="rule-name"
-                  />
-                  <Input
-                    placeholder="Descrição (opcional)..."
-                    value={rule.description || ''}
-                    onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
-                    className="text-sm"
-                    data-testid="rule-description"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="rule-enabled" className="text-sm">Ativa</Label>
-                  <Switch
-                    id="rule-enabled"
-                    checked={rule.enabled}
-                    onCheckedChange={(enabled) => setRule(prev => ({ ...prev, enabled }))}
-                    data-testid="rule-enabled"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPreview(!isPreview)}
-                    data-testid="preview-toggle"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    {isPreview ? 'Editar' : 'Visualizar'}
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    disabled={saveMutation.isPending}
-                    data-testid="save-rule"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Canvas */}
-            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
-              {isPreview ? (
-                /* Preview Mode */
-                <div className="max-w-4xl mx-auto">
+              <TabsContent value="preview" className="flex-1 flex justify-center items-center min-h-0">
+                {/* Preview Content */}
+                <div className="max-w-4xl w-full">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -1039,203 +1113,65 @@ export default function AutomationRuleBuilder({
                     </CardContent>
                   </Card>
                 </div>
-              ) : (
-                /* Edit Mode */
-                <div className="max-w-4xl mx-auto space-y-6">
-                  {/* Getting Started */}
-                  {rule.triggers.length === 0 && rule.actions.length === 0 && (
-                    <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600">
-                      <CardContent className="p-8 text-center">
-                        <Lightbulb className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                          Comece criando sua automação
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
-                          1. Adicione gatilhos (QUANDO) da barra lateral esquerda<br />
-                          2. Adicione ações (ENTÃO) que devem ser executadas<br />
-                          3. Configure cada item clicando nele
-                        </p>
-                        <div className="flex justify-center gap-4">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            <Zap className="h-3 w-3 mr-1" />
-                            Gatilhos definem QUANDO
-                          </Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <Settings className="h-3 w-3 mr-1" />
-                            Ações definem O QUE fazer
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Triggers Section */}
-                  {rule.triggers.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Zap className="h-5 w-5 text-blue-600" />
-                          Gatilhos (QUANDO)
-                        </CardTitle>
-                        <CardDescription>
-                          Condições que ativam esta automação
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {rule.triggers.map((trigger) => (
-                            <Card 
-                              key={trigger.id} 
-                              className="cursor-pointer hover:shadow-md transition-all border-blue-200 dark:border-blue-700"
-                              onClick={() => openTriggerConfig(trigger)}
-                              data-testid={`trigger-${trigger.id}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`p-2 rounded ${trigger.color} text-white`}>
-                                      <trigger.icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                                      {trigger.name}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeTrigger(trigger.id);
-                                    }}
-                                    data-testid={`remove-trigger-${trigger.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {trigger.description}
-                                </p>
-                                {Object.keys(trigger.config).length > 0 && (
-                                  <Badge variant="secondary" className="mt-2">
-                                    Configurado
-                                  </Badge>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Actions Section */}
-                  {rule.actions.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Settings className="h-5 w-5 text-green-600" />
-                          Ações (ENTÃO)
-                        </CardTitle>
-                        <CardDescription>
-                          O que fazer quando os gatilhos forem ativados
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {rule.actions.map((action) => (
-                            <Card 
-                              key={action.id} 
-                              className="cursor-pointer hover:shadow-md transition-all border-green-200 dark:border-green-700"
-                              onClick={() => openActionConfig(action)}
-                              data-testid={`action-${action.id}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`p-2 rounded ${action.color} text-white`}>
-                                      <action.icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                                      {action.name}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeAction(action.id);
-                                    }}
-                                    data-testid={`remove-action-${action.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {action.description}
-                                </p>
-                                {Object.keys(action.config).length > 0 && (
-                                  <Badge variant="secondary" className="mt-2">
-                                    Configurado
-                                  </Badge>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
-        </div>
 
-        {/* Trigger Configuration Modal */}
-        <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-          <DialogContent data-testid="trigger-config-modal">
-            <DialogHeader>
-              <DialogTitle>Configurar {selectedTrigger?.name}</DialogTitle>
-              <DialogDescription>
-                {selectedTrigger?.description}
-              </DialogDescription>
-            </DialogHeader>
-            {selectedTrigger && (
-              <TriggerConfigForm
-                trigger={selectedTrigger}
-                onSave={(config) => {
-                  updateTriggerConfig(selectedTrigger.id, config);
-                  setShowTriggerConfig(false);
-                }}
-                onCancel={() => setShowTriggerConfig(false)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+          {/* Save Actions */}
+          <div className="flex justify-end gap-2 p-6 pt-4 border-t mt-auto">
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Action Configuration Modal */}
-        <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-          <DialogContent data-testid="action-config-modal">
-            <DialogHeader>
-              <DialogTitle>Configurar {selectedAction?.name}</DialogTitle>
-              <DialogDescription>
-                {selectedAction?.description}
-              </DialogDescription>
-            </DialogHeader>
-            {selectedAction && (
-              <ActionConfigForm
-                action={selectedAction}
-                onSave={(config) => {
-                  updateActionConfig(selectedAction.id, config);
-                  setShowActionConfig(false);
-                }}
-                onCancel={() => setShowActionConfig(false)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-      </DialogContent>
+      {/* Trigger Configuration Modal */}
+      <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
+        <DialogContent data-testid="trigger-config-modal">
+          <DialogHeader>
+            <DialogTitle>Configurar {selectedTrigger?.name}</DialogTitle>
+            <DialogDescription>
+              {selectedTrigger?.description}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTrigger && (
+            <TriggerConfigForm
+              trigger={selectedTrigger}
+              onSave={(config) => {
+                updateTriggerConfig(selectedTrigger.id, config);
+                setShowTriggerConfig(false);
+              }}
+              onCancel={() => setShowTriggerConfig(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Configuration Modal */}
+      <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
+        <DialogContent data-testid="action-config-modal">
+          <DialogHeader>
+            <DialogTitle>Configurar {selectedAction?.name}</DialogTitle>
+            <DialogDescription>
+              {selectedAction?.description}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedAction && (
+            <ActionConfigForm
+              action={selectedAction}
+              onSave={(config) => {
+                updateActionConfig(selectedAction.id, config);
+                setShowActionConfig(false);
+              }}
+              onCancel={() => setShowActionConfig(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
