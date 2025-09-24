@@ -10,20 +10,42 @@ import {
   chatbotVariables,
   chatbotExecutions
 } from '../../../../../shared/schema-chatbot';
-import { db } from '../../../../../shared/schema';
+import { db, pool } from '../../../../../shared/schema';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '../../../../../shared/schema';
 import { eq, and, desc, max, count, avg, sql } from 'drizzle-orm';
 
 export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
-  async create(flow: InsertChatbotFlow & { id?: string }): Promise<SelectChatbotFlow> {
+  // ✅ Get tenant-specific database instance
+  private async getTenantDb(tenantId: string) {
+    const schemaName = this.getSchemaName(tenantId);
+    const tenantPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      options: `-c search_path=${schemaName}`,
+      ssl: false,
+    });
+    return drizzle({ client: tenantPool, schema });
+  }
+
+  // ✅ Get tenant schema name
+  private getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
+  async create(flow: InsertChatbotFlow & { id?: string, tenantId: string }): Promise<SelectChatbotFlow> {
     console.log('💾 [REPOSITORY] Creating flow with data:', { 
       customId: flow.id, 
       botId: flow.botId, 
       name: flow.name,
       isActive: flow.isActive,
+      tenantId: flow.tenantId,
       hasCustomId: !!flow.id
     });
     
     try {
+      // Get tenant-specific database connection
+      const tenantDb = await this.getTenantDb(flow.tenantId);
+      
       // Ensure we have all required fields
       const flowToInsert = {
         ...flow,
@@ -37,12 +59,14 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         console.log('🆔 [REPOSITORY] Using custom ID for flow creation:', flow.id);
       }
       
-      const [createdFlow] = await db.insert(chatbotFlows).values(flowToInsert).returning();
-      console.log('✅ [REPOSITORY] Flow created successfully:', {
+      console.log('🔧 [REPOSITORY] Using tenant database for schema:', this.getSchemaName(flow.tenantId));
+      const [createdFlow] = await tenantDb.insert(chatbotFlows).values(flowToInsert).returning();
+      console.log('✅ [REPOSITORY] Flow created successfully in tenant schema:', {
         id: createdFlow.id,
         name: createdFlow.name,
         botId: createdFlow.botId,
-        isActive: createdFlow.isActive
+        isActive: createdFlow.isActive,
+        tenantId: flow.tenantId
       });
       return createdFlow as SelectChatbotFlow;
     } catch (error) {
@@ -55,8 +79,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     }
   }
 
-  async findById(id: string): Promise<SelectChatbotFlow | null> {
-    const [flow] = await db
+  async findById(id: string, tenantId: string): Promise<SelectChatbotFlow | null> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [flow] = await tenantDb
       .select()
       .from(chatbotFlows)
       .where(eq(chatbotFlows.id, id))
@@ -65,8 +90,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     return flow || null;
   }
 
-  async findByBot(botId: string): Promise<SelectChatbotFlow[]> {
-    return await db
+  async findByBot(botId: string, tenantId: string): Promise<SelectChatbotFlow[]> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb
       .select()
       .from(chatbotFlows)
       .where(eq(chatbotFlows.botId, botId))

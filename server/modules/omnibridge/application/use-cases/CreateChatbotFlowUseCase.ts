@@ -33,6 +33,7 @@ export class CreateChatbotFlowUseCase {
 
     const flowToCreate = {
       botId,
+      tenantId, // ✅ Include tenantId for tenant-specific repository
       ...flowData
     };
 
@@ -42,6 +43,7 @@ export class CreateChatbotFlowUseCase {
       console.log('🆔 [USE-CASE] Using custom flow ID:', id);
     }
 
+    console.log('🔧 [USE-CASE] Passing data to repository with tenantId:', { ...flowToCreate, hasCustomId: !!id });
     const flow = await this.chatbotFlowRepository.create(flowToCreate);
     console.log('✅ [USE-CASE] Flow created successfully:', flow.id);
 
