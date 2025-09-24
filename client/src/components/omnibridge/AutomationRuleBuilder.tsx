@@ -461,6 +461,8 @@ export default function AutomationRuleBuilder({
   const [showTriggerConfig, setShowTriggerConfig] = useState(false);
   const [showActionConfig, setShowActionConfig] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
+  const [showTriggerModal, setShowTriggerModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
 
   // Update rule state when existingRule prop changes
   useEffect(() => {
@@ -703,6 +705,11 @@ export default function AutomationRuleBuilder({
     setSelectedTrigger(trigger);
     setShowTriggerConfig(true);
   };
+  
+  const handleActionSelect = (template: Omit<Action, 'id' | 'config'>) => {
+    setSelectedAction({ ...template, id: `action_${Date.now()}`, config: {} });
+    setShowActionConfig(true);
+  };
 
   const addAction = (template: Omit<Action, 'id' | 'config'>) => {
     const newAction: Action = {
@@ -886,7 +893,7 @@ export default function AutomationRuleBuilder({
                       <Card
                         key={index}
                         className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
-                        onClick={() => addTrigger(template)}
+                        onClick={() => { addTrigger(template); setShowTriggerModal(true); }}
                         data-testid={`trigger-template-${template.type}`}
                       >
                         <CardContent className="p-3">
@@ -920,7 +927,7 @@ export default function AutomationRuleBuilder({
                       <Card
                         key={index}
                         className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400"
-                        onClick={() => addAction(template)}
+                        onClick={() => { addAction(template); setShowActionModal(true); }}
                         data-testid={`action-template-${template.type}`}
                       >
                         <CardContent className="p-3">
