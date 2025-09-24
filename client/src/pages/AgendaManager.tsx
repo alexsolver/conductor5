@@ -98,6 +98,22 @@ const AgendaManager: React.FC = () => {
 
     scrollToCurrentTime();
   }, [view]);
+
+  // Ensure timeline modal maintains proper structure
+  useEffect(() => {
+    if (view === 'timeline') {
+      // Force recalculation of timeline dimensions
+      const timeoutId = setTimeout(() => {
+        const timelineGrid = document.querySelector('[data-timeline-container]');
+        if (timelineGrid) {
+          // Trigger a reflow to ensure proper alignment
+          timelineGrid.scrollTop = timelineGrid.scrollTop;
+        }
+      }, 150);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [view, selectedTechnicians.length]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
   const [newScheduleDefaults, setNewScheduleDefaults] = useState<{
