@@ -541,74 +541,61 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // Apply loaded flow data to canvas
   useEffect(() => {
-    if (completeFlowData) {
-      console.log('🔄 [FLOW-APPLY] Applying complete flow data to canvas:', {
-        flowId: completeFlowData.id,
-        flowName: completeFlowData.name,
-        nodeCount: completeFlowData.nodes?.length || 0,
-        edgeCount: completeFlowData.edges?.length || 0,
-        rawNodes: completeFlowData.nodes,
-        rawEdges: completeFlowData.edges
+    if (completeFlowData && selectedFlowId) {
+      console.log('🔄 [FLOW-APPLY] Applying flow data to canvas:', {
+        flowId: selectedFlowId,
+        nodeCount: completeFlowData.data.nodes?.length || 0,
+        edgeCount: completeFlowData.data.edges?.length || 0,
+        hasFlowData: !!completeFlowData.data,
+        flowName: completeFlowData.data.name
       });
 
-      // Convert nodes to FlowNode format - handle both direct arrays and nested data
-      let nodesToConvert = completeFlowData.nodes || [];
-      if (typeof nodesToConvert === 'string') {
-        try {
-          nodesToConvert = JSON.parse(nodesToConvert);
-        } catch (e) {
-          console.warn('Failed to parse nodes JSON:', e);
-          nodesToConvert = [];
-        }
-      }
+      // Convert backend format to React Flow format
+      const backendNodes = completeFlowData.data.nodes || [];
+      const backendEdges = completeFlowData.data.edges || [];
 
-      const convertedNodes: FlowNode[] = nodesToConvert.map((node: any) => ({
+      const convertedNodes = backendNodes.map(node => ({
         id: node.id,
-        flowId: completeFlowData.id,
-        name: node.title || node.name || 'Untitled Node',
-        type: node.type,
-        category: node.category as FlowNode['category'],
+        type: 'custom',
         position: node.position || { x: 100, y: 100 },
-        configuration: node.config || node.configuration || {},
-        metadata: node.metadata || {},
-        isActive: node.isEnabled ?? node.isActive ?? true
+        data: {
+          label: node.title || node.name || 'Untitled Node',
+          type: node.type,
+          category: node.category,
+          config: node.config || {},
+          isStart: node.isStart || false,
+          isEnd: node.isEnd || false
+        }
       }));
 
-      // Convert edges to FlowEdge format - handle both direct arrays and nested data
-      let edgesToConvert = completeFlowData.edges || [];
-      if (typeof edgesToConvert === 'string') {
-        try {
-          edgesToConvert = JSON.parse(edgesToConvert);
-        } catch (e) {
-          console.warn('Failed to parse edges JSON:', e);
-          edgesToConvert = [];
-        }
-      }
-
-      const convertedEdges: FlowEdge[] = edgesToConvert.map((edge: any) => ({
+      const convertedEdges = backendEdges.map(edge => ({
         id: edge.id,
-        flowId: completeFlowData.id,
-        fromNodeId: edge.fromNodeId,
-        toNodeId: edge.toNodeId,
+        source: edge.fromNodeId,
+        target: edge.toNodeId,
         label: edge.label || '',
-        condition: edge.condition || '',
-        isActive: edge.isEnabled ?? edge.isActive ?? true
+        type: 'smoothstep'
       }));
 
       console.log('🔄 [FLOW-APPLY] Converted data:', {
         convertedNodes: convertedNodes.length,
-        convertedEdges: convertedEdges.length
+        convertedEdges: convertedEdges.length,
+        sampleNode: convertedNodes[0] || 'none',
+        sampleEdge: convertedEdges[0] || 'none'
       });
 
       setNodes(convertedNodes);
       setEdges(convertedEdges);
-      setSelectedFlow({
-        ...completeFlowData,
-        nodes: convertedNodes,
-        edges: convertedEdges
-      });
+
+      // Update flow metadata if available
+      if (completeFlowData.data.name) {
+        setSelectedFlow(prev => prev ? {
+          ...prev,
+          name: completeFlowData.data.name,
+          description: completeFlowData.data.description || prev.description
+        } : prev);
+      }
     }
-  }, [completeFlowData]);
+  }, [completeFlowData, selectedFlowId, setNodes, setEdges]);
 
   // Debug log for query status
   useEffect(() => {

@@ -260,7 +260,7 @@ export const chatbotExecutions = pgTable('chatbot_executions', {
   dateIdx: index('chatbot_executions_date_idx').on(table.startedAt),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [omnibridgeChatbots.id]
+    foreignColumns: [chatbotBots.id]
   }).onDelete('cascade'),
   flowIdFk: foreignKey({
     columns: [table.flowId],
@@ -288,7 +288,7 @@ export const chatbotSchedules = pgTable('chatbot_schedules', {
   enabledIdx: index('chatbot_schedules_enabled_idx').on(table.isEnabled),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [omnibridgeChatbots.id]
+    foreignColumns: [chatbotBots.id]
   }).onDelete('cascade'),
   flowIdFk: foreignKey({
     columns: [table.flowId],
@@ -315,7 +315,7 @@ export const chatbotBotChannels = pgTable('chatbot_bot_channels', {
   priorityIdx: index('chatbot_bot_channels_priority_idx').on(table.channelId, table.priority),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [omnibridgeChatbots.id]
+    foreignColumns: [chatbotBots.id]
   }).onDelete('cascade')
 }));
 
@@ -496,7 +496,7 @@ export const CHATBOT_NODE_TYPES = {
     PRIORITY: 'priority',
     LOCATION: 'location'
   },
-  
+
   // Conditions (10 types)
   CONDITION: {
     TEXT: 'text',
@@ -510,7 +510,7 @@ export const CHATBOT_NODE_TYPES = {
     ATTACHMENT: 'attachment',
     GEOLOCATION: 'geolocation'
   },
-  
+
   // Actions (12 types)  
   ACTION: {
     SEND_MESSAGE: 'send_message',
@@ -526,7 +526,7 @@ export const CHATBOT_NODE_TYPES = {
     SCHEDULE_ACTION: 'schedule_action',
     UPDATE_DATABASE: 'update_database'
   },
-  
+
   // Response Types (10 types)
   RESPONSE: {
     SIMPLE: 'simple',
@@ -540,7 +540,7 @@ export const CHATBOT_NODE_TYPES = {
     DATE_PICKER: 'date_picker',
     FILE_UPLOAD: 'file_upload'
   },
-  
+
   // Integrations (10 types)
   INTEGRATION: {
     CRM: 'crm',
@@ -554,7 +554,7 @@ export const CHATBOT_NODE_TYPES = {
     THIRD_PARTY_API: 'third_party_api',
     OUTBOUND_WEBHOOK: 'outbound_webhook'
   },
-  
+
   // AI Processing (10 types)
   AI: {
     SENTIMENT_ANALYSIS: 'sentiment_analysis',
@@ -568,7 +568,7 @@ export const CHATBOT_NODE_TYPES = {
     OCR: 'ocr',
     VOICE_RECOGNITION: 'voice_recognition'
   },
-  
+
   // Flow Control (10 types)
   FLOW: {
     WAIT: 'wait',
@@ -582,7 +582,7 @@ export const CHATBOT_NODE_TYPES = {
     SWITCH_CASE: 'switch_case',
     COUNTER: 'counter'
   },
-  
+
   // Validation (10 types)  
   VALIDATION: {
     EMAIL: 'email',
@@ -596,7 +596,7 @@ export const CHATBOT_NODE_TYPES = {
     FORMAT: 'format',
     SANITIZATION: 'sanitization'
   },
-  
+
   // Advanced (Context/Memory)
   ADVANCED: {
     MEMORY_PERSIST: 'memory_persist',

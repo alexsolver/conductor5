@@ -427,7 +427,7 @@ export class ChatbotController {
         console.log('💾 [CONTROLLER] Detected complete flow save request');
 
         // Verify flow exists and belongs to tenant
-        let existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId);
+        let existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId, tenantId);
 
         // If flow doesn't exist, create it first
         if (!existingFlow) {

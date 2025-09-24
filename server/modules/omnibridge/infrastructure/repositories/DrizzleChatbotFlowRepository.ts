@@ -82,8 +82,18 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     }
   }
 
-  async findById(id: string, tenantId: string): Promise<SelectChatbotFlow | null> {
+  async findById(id: string, tenantId?: string): Promise<SelectChatbotFlow | null> {
     try {
+      if (!tenantId) {
+        // Fallback to main database if tenantId not provided
+        const [flow] = await db
+          .select()
+          .from(chatbotFlows)
+          .where(eq(chatbotFlows.id, id))
+          .limit(1);
+        return flow || null;
+      }
+
       console.log('🔍 [REPOSITORY] findById:', { id, tenantId, schema: this.getSchemaName(tenantId) });
       
       const tenantDb = await this.getTenantDb(tenantId);
