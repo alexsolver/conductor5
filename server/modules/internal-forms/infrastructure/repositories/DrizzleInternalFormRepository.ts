@@ -32,8 +32,10 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
   
   async create(form: InternalForm): Promise<InternalForm> {
     console.log(`✅ [InternalFormRepository] Creating form for tenant: ${form.tenantId}`);
+    console.log(`[InternalFormRepository] Form data:`, JSON.stringify(form, null, 2));
     
     const schemaName = this.getSchemaName(form.tenantId);
+    console.log(`[InternalFormRepository] Using schema: ${schemaName}`);
     
     // ✅ 1QA.MD MULTITENANT: Always validate tenant_id
     if (!form.tenantId || form.tenantId.length !== 36) {
@@ -52,7 +54,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       form.id,
       form.tenantId,
       form.name,
-      form.description,
+      form.description || '',
       form.category,
       JSON.stringify(form.fields),
       JSON.stringify(form.actions),
@@ -63,16 +65,40 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       form.updatedBy
     ];
 
-    const result = await this.pool.query(query, values);
-    const row = result.rows[0];
+    console.log(`[InternalFormRepository] Executing query:`, query);
+    console.log(`[InternalFormRepository] With values:`, values);
 
-    return {
-      ...row,
-      fields: JSON.parse(row.fields || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
-    };
+    try {
+      const result = await this.pool.query(query, values);
+      console.log(`[InternalFormRepository] Query result:`, result.rows[0]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('No rows returned from insert operation');
+      }
+
+      const row = result.rows[0];
+
+      const createdForm = {
+        id: row.id,
+        tenantId: row.tenant_id,
+        name: row.name,
+        description: row.description,
+        category: row.category,
+        fields: JSON.parse(row.fields || '[]'),
+        actions: JSON.parse(row.actions || '[]'),
+        isActive: row.is_active,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        createdBy: row.created_by,
+        updatedBy: row.updated_by
+      };
+
+      console.log(`✅ [InternalFormRepository] Form created successfully:`, createdForm);
+      return createdForm;
+    } catch (error) {
+      console.error(`❌ [InternalFormRepository] Error creating form:`, error);
+      throw error;
+    }
   }
 
   async findById(id: string, tenantId: string): Promise<InternalForm | null> {

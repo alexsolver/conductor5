@@ -138,6 +138,7 @@ export class InternalFormController {
 
     try {
       if (!req.user?.tenantId) {
+        console.error('❌ [InternalFormController] No tenant ID found in request');
         return res.status(401).json({
           success: false,
           message: 'Authentication required'
@@ -148,13 +149,31 @@ export class InternalFormController {
       const userId = req.user.id;
 
       console.log(`[InternalFormController] Creating form for tenant: ${tenantId}`);
+      console.log(`[InternalFormController] Request body:`, JSON.stringify(req.body, null, 2));
+
+      // Validação básica
+      if (!req.body.name || !req.body.name.trim()) {
+        console.error('❌ [InternalFormController] Form name is required');
+        return res.status(400).json({
+          success: false,
+          message: 'Nome do formulário é obrigatório'
+        });
+      }
+
+      if (!req.body.fields || !Array.isArray(req.body.fields) || req.body.fields.length === 0) {
+        console.error('❌ [InternalFormController] Form fields are required');
+        return res.status(400).json({
+          success: false,
+          message: 'Pelo menos um campo é obrigatório'
+        });
+      }
 
       const formData: InternalForm = {
         id: uuidv4(),
         tenantId,
-        name: req.body.name,
-        description: req.body.description,
-        category: req.body.category || 'general',
+        name: req.body.name.trim(),
+        description: req.body.description || '',
+        category: req.body.category || 'Geral',
         fields: req.body.fields || [],
         actions: req.body.actions || [],
         isActive: req.body.isActive !== false,
@@ -163,6 +182,8 @@ export class InternalFormController {
         createdBy: userId,
         updatedBy: userId
       };
+
+      console.log(`[InternalFormController] Form data to be created:`, JSON.stringify(formData, null, 2));
 
       const form = await this.internalFormRepository.create(formData);
 
