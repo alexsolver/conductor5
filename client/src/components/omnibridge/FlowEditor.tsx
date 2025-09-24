@@ -465,12 +465,27 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       setSelectedBot(tempBot);
     }
     
-    // Create default flow if needed
-    if (botId && !selectedFlow) {
+    // Flow selection logic - maintain current selection or select default
+    if (botId) {
       if (flows?.data?.length && flows.data.length > 0) {
-        console.log('🐛 [FLOW-INIT] Setting selectedFlow to:', flows.data[0]);
-        setSelectedFlow(flows.data[0]);
-      } else {
+        // Check if current selectedFlow still exists in the flows list
+        if (selectedFlow) {
+          const currentFlowStillExists = flows.data.find(f => f.id === selectedFlow.id);
+          if (currentFlowStillExists) {
+            console.log('🐛 [FLOW-INIT] Keeping current selectedFlow:', selectedFlow.id);
+            // Update with latest data but keep same flow
+            if (JSON.stringify(selectedFlow) !== JSON.stringify(currentFlowStillExists)) {
+              setSelectedFlow(currentFlowStillExists);
+            }
+          } else {
+            console.log('🐛 [FLOW-INIT] Current flow no longer exists, selecting first:', flows.data[0]);
+            setSelectedFlow(flows.data[0]);
+          }
+        } else {
+          console.log('🐛 [FLOW-INIT] No selectedFlow, setting to first:', flows.data[0]);
+          setSelectedFlow(flows.data[0]);
+        }
+      } else if (!selectedFlow) {
         // Create a default flow if none exists
         const defaultFlow: ChatbotFlow = {
           id: `flow_${Date.now()}`,
