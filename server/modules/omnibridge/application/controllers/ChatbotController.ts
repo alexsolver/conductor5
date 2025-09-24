@@ -205,9 +205,12 @@ export class ChatbotController {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
 
+      console.log('🗑️ [CONTROLLER] Deleting bot:', { botId, tenantId });
+
       const success = await this.deleteBotUseCase.execute({ botId, tenantId });
 
       if (!success) {
+        console.log('❌ [CONTROLLER] Bot not found:', botId);
         res.status(404).json({
           success: false,
           error: 'Bot not found'
@@ -215,12 +218,14 @@ export class ChatbotController {
         return;
       }
 
+      console.log('✅ [CONTROLLER] Bot deleted successfully:', botId);
       res.json({
         success: true,
+        data: { id: botId },
         message: 'Bot deleted successfully'
       });
     } catch (error) {
-      console.error('Error deleting bot:', error);
+      console.error('❌ [CONTROLLER] Error deleting bot:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to delete bot'

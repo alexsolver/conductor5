@@ -387,8 +387,9 @@ export default function ChatbotManager() {
                               </Button>
                               <Button 
                                 size="sm" 
-                                variant="outline" 
+                                variant="destructive"
                                 onClick={() => handleDeleteBot(bot)}
+                                disabled={deleteBotMutation.isPending}
                                 data-testid={`button-delete-bot-${bot.id}`}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -415,7 +416,7 @@ export default function ChatbotManager() {
               Configure as informações básicas do seu chatbot
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="bot-name">Nome do Chatbot</Label>
@@ -515,7 +516,7 @@ export default function ChatbotManager() {
               Modifique as configurações do chatbot
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="edit-bot-name">Nome do Chatbot</Label>
