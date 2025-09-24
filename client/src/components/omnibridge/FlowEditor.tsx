@@ -303,7 +303,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Create flow mutation
   const createFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
-      const response = await apiRequest('POST', `/api/omnibridge/flows`, flowData);
+      const response = await apiRequest('POST', `/api/omnibridge/chatbots/${botId}/flows`, {
+        name: flowData.name,
+        description: flowData.description,
+        isActive: flowData.isActive,
+        triggerEvent: flowData.triggerEvent,
+        metadata: flowData.metadata
+      });
       return response.json();
     },
     onSuccess: (data) => {
@@ -331,15 +337,27 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
     },
-    onError: (error: any) => {
+    onError: async (error: any) => {
       console.error('🔄 [FLOW-SAVE] Error saving flow:', error);
-      // If flow doesn't exist, try to create it
-      if (error.message?.includes('Flow not found') && selectedFlow) {
-        console.log('🔄 [FLOW-SAVE] Flow not found, creating new one...');
-        createFlowMutation.mutate({
-          ...selectedFlow,
-          nodes: JSON.stringify(nodes),
-          edges: JSON.stringify(edges)
+      
+      // Handle 404 error (flow not found) by creating a new flow
+      try {
+        const response = await error;
+        if (response?.status === 404 && selectedFlow) {
+          console.log('🔄 [FLOW-SAVE] Flow not found (404), creating new one...');
+          createFlowMutation.mutate(selectedFlow);
+        } else {
+          toast({
+            title: 'Erro ao Salvar',
+            description: 'Não foi possível salvar o flow',
+            variant: 'destructive'
+          });
+        }
+      } catch (e) {
+        toast({
+          title: 'Erro ao Salvar',
+          description: 'Erro interno ao processar salvamento',
+          variant: 'destructive'
         });
       }
     }
