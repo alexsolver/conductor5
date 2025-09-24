@@ -17,6 +17,7 @@ import {
 import { sql } from 'drizzle-orm';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { omnibridgeChatbots } from './schema-master';
 
 // ========================================
 // ENUMS
@@ -114,7 +115,7 @@ export const chatbotFlows = pgTable('chatbot_flows', {
   activeIdx: index('chatbot_flows_active_idx').on(table.botId, table.isActive),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [chatbotBots.id]
+    foreignColumns: [omnibridgeChatbots.id]
   }).onDelete('cascade')
 }));
 
@@ -256,7 +257,7 @@ export const chatbotExecutions = pgTable('chatbot_executions', {
   dateIdx: index('chatbot_executions_date_idx').on(table.startedAt),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [chatbotBots.id]
+    foreignColumns: [omnibridgeChatbots.id]
   }).onDelete('cascade'),
   flowIdFk: foreignKey({
     columns: [table.flowId],
@@ -284,7 +285,7 @@ export const chatbotSchedules = pgTable('chatbot_schedules', {
   enabledIdx: index('chatbot_schedules_enabled_idx').on(table.isEnabled),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [chatbotBots.id]
+    foreignColumns: [omnibridgeChatbots.id]
   }).onDelete('cascade'),
   flowIdFk: foreignKey({
     columns: [table.flowId],
@@ -311,7 +312,7 @@ export const chatbotBotChannels = pgTable('chatbot_bot_channels', {
   priorityIdx: index('chatbot_bot_channels_priority_idx').on(table.channelId, table.priority),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [chatbotBots.id]
+    foreignColumns: [omnibridgeChatbots.id]
   }).onDelete('cascade')
 }));
 
