@@ -38,7 +38,7 @@ export class UpdateChatbotFlowUseCase {
       throw new Error('Flow not found or access denied');
     }
 
-    const updatedFlow = await this.chatbotFlowRepository.update(flowId, updateData);
+    const updatedFlow = await this.chatbotFlowRepository.update(flowId, updateData, tenantId);
 
     if (!updatedFlow) {
       throw new Error('Failed to update flow');
