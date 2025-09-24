@@ -277,7 +277,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
   const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [connecting, setConnecting] = useState<{nodeId: string, isSource: boolean} | null>(null);
+  const [connecting, setConnecting] = useState(false); // Simplified to boolean
+  const [connectionStart, setConnectionStart] = useState<string | null>(null); // Node ID to start connection
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -293,7 +294,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [isCanvasDragging, setIsCanvasDragging] = useState(false);
   const [startCanvasDragPos, setStartCanvasDragPos] = useState({ x: 0, y: 0 });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [connectionStart, setConnectionStart] = useState<string | null>(null);
   const [flows, setFlows] = useState<ChatbotFlow[]>([]); // State for list of flows
 
   // State for the selected flow ID to trigger the query
@@ -582,7 +582,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   };
 
   // Helper to get the category key from a node type ID
-  const getCategoryForNodeType = (typeId: string): string => {
+  const getNodeCategory = (typeId: string): string => {
     for (const [categoryKey, category] of Object.entries(NODE_CATEGORIES)) {
       if (category.nodes.some(node => node.id === typeId)) {
         return categoryKey;
@@ -632,7 +632,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           id: node.id || `node_${Date.now()}_${Math.random()}`,
           type: node.type || 'unknown',
           title: node.data?.title || node.data?.label || 'Untitled Node',
-          category: getCategoryForNodeType(node.type),
+          category: getNodeCategory(node.type),
           description: node.data?.description || '',
           position: node.position || { x: 0, y: 0 },
           config: nodeConfig, // Use the complete configuration
@@ -825,7 +825,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       flowId: selectedFlow.id,
       name: nodeData.name,
       type: draggedNodeType,
-      category: getCategoryForNodeType(draggedNodeType),
+      category: getNodeCategory(draggedNodeType),
       position: { x, y },
       configuration: {},
       metadata: {},
@@ -846,8 +846,45 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     setDraggedNode(null); // Reset dragged node state
 
-  }, [selectedFlow, handleSaveFlow]);
+  }, [selectedFlow, handleSaveFlow, draggedNodeType, canvasRef, canvasOffset, zoom]);
 
+
+  const handleNodeDragStart = useCallback((e: React.DragEvent, node: FlowNode) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(node));
+    setDraggedNode(node);
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    setDragOffset({ x: offsetX, y: offsetY });
+  }, []);
+
+  const handleNodeDrag = useCallback((e: React.DragEvent, nodeId: string) => {
+    e.preventDefault();
+
+    if (!canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
+    const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
+
+    setNodes(prev => prev.map(node => 
+      node.id === nodeId 
+        ? { ...node, position: { x, y } }
+        : node
+    ));
+  }, [canvasOffset, dragOffset, zoom]);
+
+  const handleNodeDragEnd = useCallback(() => {
+    setDraggedNode(null);
+
+    // Auto-save after moving node
+    if (selectedFlow && selectedChatbot) {
+      setTimeout(() => {
+        handleSaveFlow();
+      }, 500);
+    }
+  }, [selectedFlow, selectedChatbot, handleSaveFlow]);
 
   // Helper to get node position with offset and zoom applied
   const getNodePosition = (nodeId: string) => {
@@ -861,13 +898,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     return { x: adjustedX, y: adjustedY };
   };
 
-  const handleNodeDragStart = (e: React.DragEvent, node: FlowNode) => {
-    console.log('🐛 [NODE-DRAG] Starting node drag:', node.id);
-    setDraggedNode(node);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('nodeId', node.id);
-  };
-
   const handleNodeClick = (node: FlowNode) => {
     setSelectedNode(node);
     setSelectedNodeId(node.id);
@@ -877,6 +907,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     setSelectedNode(node);
     setSelectedNodeId(node.id);
     setNodeConfig(node.configuration || {});
+    setSelectedNodeForConfig(node.id); // Set the node ID for the form
     setShowNodeConfig(true);
   };
 
@@ -888,10 +919,11 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     // Find the node in the current nodes state and update its configuration
     setNodes(prevNodes =>
       prevNodes.map(node =>
-        node.id === nodeId ? { ...node, configuration: newConfig } : node
+        node.id === nodeId ? { ...node, configuration: newConfig, data: { ...node.data, config: newConfig, configuration: newConfig } } : node
       )
     );
     setShowNodeConfig(false);
+    setSelectedNodeForConfig(null);
     // Optionally auto-save after config change
     setTimeout(() => {
       handleSaveFlow();
@@ -1079,94 +1111,103 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             )}
 
             {/* Render Nodes */}
-            {nodes.map(node => (
-              <div
-                key={node.id}
-                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow node-container
-                  ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
-                `}
-                style={{
-                  left: node.position.x,
-                  top: node.position.y,
-                  minWidth: 150,
-                  transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`, // Apply offset and zoom to nodes
-                  transformOrigin: 'top left'
-                }}
-                draggable
-                onDragStart={(e) => {
-                  handleNodeDragStart(e, node);
-                  setSelectedNodeId(node.id);
-                }}
-                onDrag={(e) => {
-                  if (draggedNode?.id === node.id && canvasRef.current && e.clientX > 0 && e.clientY > 0) {
-                    const rect = canvasRef.current.getBoundingClientRect();
-                    const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
-                    const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
+            {nodes.map(node => {
+              const nodeType = Object.values(NODE_CATEGORIES)
+                .flatMap(category => category.nodes)
+                .find(nt => nt.id === node.type);
+              const IconComponent = nodeType?.icon || Bot;
 
-                    setNodes(prev => prev.map(n => 
-                      n.id === node.id 
-                        ? { ...n, position: { x, y } }
-                        : n
-                    ));
-                  }
-                }}
-                onDragEnd={() => {
-                  setDraggedNode(null);
-                  // Auto-save after drag
-                  if (handleSaveFlow) {
-                    setTimeout(() => {
-                      handleSaveFlow();
-                    }, 500);
-                  }
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNodeClick(node);
-                }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  handleNodeDoubleClick(node);
-                }}
-                data-testid={`canvas-node-${node.id}`}
-              >
-                {/* Connection point - input */}
+              return (
                 <div
-                  className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
-                    ${connecting?.nodeId === node.id && !connecting.isSource
-                      ? 'bg-yellow-400 border-2 border-yellow-600'
-                      : 'bg-blue-500 hover:bg-blue-600'
-                    }`}
-                  style={{ transform: 'translateY(-50%)' }}
+                  key={node.id}
+                  className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow node-container
+                    ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
+                  `}
+                  style={{
+                    left: node.position.x,
+                    top: node.position.y,
+                    transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
+                    transformOrigin: 'top left',
+                    minWidth: '150px',
+                    zIndex: draggedNode?.id === node.id ? 1000 : 1
+                  }}
+                  draggable
+                  onDragStart={(e) => {
+                    handleNodeDragStart(e, node);
+                    setSelectedNodeId(node.id);
+                  }}
+                  onDrag={(e) => handleNodeDrag(e, node.id)}
+                  onDragEnd={handleNodeDragEnd}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleConnectionStart(node.id, false);
+                    handleNodeClick(node);
                   }}
-                  title="Entrada - Clique para conectar"
-                />
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    handleNodeDoubleClick(node);
+                  }}
+                  data-testid={`canvas-node-${node.id}`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <IconComponent className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-800">{node.name}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {nodeType?.description || 'Node description'}
+                  </div>
 
-                {/* Node content */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${NODE_CATEGORIES[node.category as keyof typeof NODE_CATEGORIES]?.color || 'bg-gray-400'}`}></div>
-                  <span className="font-medium text-sm">{node.name}</span>
+                  {/* Connection points */}
+                  <div
+                    className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
+                      ${connecting && connectionStart === node.id
+                        ? 'bg-yellow-400 border-2 border-yellow-600'
+                        : 'bg-blue-500 hover:bg-blue-600'
+                      }`}
+                    style={{ transform: 'translateY(-50%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConnectionStart(node.id);
+                      setConnecting(true);
+                      // When starting a connection, we don't want to select the node
+                      setSelectedNodeId(null); 
+                    }}
+                    title="Entrada - Clique para conectar"
+                  ></div>
+                  <div
+                    className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
+                      ${connecting && connectionStart !== node.id
+                        ? 'bg-yellow-400 border-2 border-yellow-600'
+                        : 'bg-green-500 hover:bg-green-600'
+                      }`}
+                    style={{ transform: 'translateY(-50%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (connecting && connectionStart && connectionStart !== node.id) {
+                        // Create connection
+                        const newEdge: FlowEdge = {
+                          id: `edge_${Date.now()}`,
+                          flowId: selectedFlow?.id || '',
+                          sourceNodeId: connectionStart,
+                          targetNodeId: node.id,
+                          metadata: {},
+                          isActive: true
+                        };
+                        setEdges(prev => [...prev, newEdge]);
+                        setConnecting(false);
+                        setConnectionStart(null);
+
+                        // Auto-save
+                        setTimeout(() => handleSaveFlow(), 500);
+                      } else if (connectionStart === node.id) { // If clicking the same node's output
+                        setConnecting(false);
+                        setConnectionStart(null);
+                      }
+                    }}
+                    title="Saída - Clique para conectar"
+                  ></div>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{node.type}</div>
-
-                {/* Connection point - output */}
-                <div
-                  className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
-                    ${connecting?.nodeId === node.id && connecting.isSource
-                      ? 'bg-yellow-400 border-2 border-yellow-600'
-                      : 'bg-green-500 hover:bg-green-600'
-                    }`}
-                  style={{ transform: 'translateY(-50%)' }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleConnectionStart(node.id, true);
-                  }}
-                  title="Saída - Clique para conectar"
-                />
-              </div>
-            ))}
+              );
+            })}
 
             {/* Render edges */}
             {edges.map(edge => {
@@ -1226,8 +1267,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                 <line
                   x1={getNodePosition(connectionStart)?.x ?? 0}
                   y1={getNodePosition(connectionStart)?.y ?? 0}
-                  x2={mousePosition.x} // Mouse position is relative to the canvas
-                  y2={mousePosition.y} // Mouse position is relative to the canvas
+                  x2={mousePosition.x} // Mouse position is relative to the viewport, needs canvas offset
+                  y2={mousePosition.y} // Mouse position is relative to the viewport, needs canvas offset
                   stroke="#3b82f6"
                   strokeWidth="2"
                   strokeDasharray="5,5"
@@ -1267,7 +1308,12 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       </div>
 
       {/* Node Configuration Modal */}
-      <Dialog open={showNodeConfig} onOpenChange={setShowNodeConfig}>
+      <Dialog open={showNodeConfig} onOpenChange={(open) => {
+        setShowNodeConfig(open);
+        if (!open) {
+          setSelectedNodeForConfig(null); // Clear when modal is closed
+        }
+      }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="node-config-modal">
           <DialogHeader>
             <DialogTitle>Configure Node: {selectedNode?.name}</DialogTitle>
@@ -1286,7 +1332,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                 {}
               }
               onSave={handleNodeConfigSave}
-              onCancel={() => setSelectedNodeForConfig(null)}
+              onCancel={() => {
+                setShowNodeConfig(false);
+                setSelectedNodeForConfig(null);
+              }}
             />
           )}
         </DialogContent>
