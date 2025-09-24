@@ -320,12 +320,26 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     console.log('🐛 [FLOW-INIT] Checking flow initialization', {
       botData: !!bot?.data,
       flowsData: flows?.data?.length || 0,
-      firstFlow: flows?.data?.[0]?.id || 'none'
+      firstFlow: flows?.data?.[0]?.id || 'none',
+      botId: botId
     });
     
-    if (bot?.data) {
-      setSelectedBot(bot.data);
-      
+    // If we have a botId but no bot data yet, create a temporary bot
+    if (botId && !selectedBot) {
+      const tempBot = {
+        id: botId,
+        name: 'Chatbot Temporário',
+        description: 'Bot temporário para edição',
+        tenantId: '',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setSelectedBot(tempBot);
+    }
+    
+    // Create default flow if needed
+    if (botId && !selectedFlow) {
       if (flows?.data?.length && flows.data.length > 0) {
         console.log('🐛 [FLOW-INIT] Setting selectedFlow to:', flows.data[0]);
         setSelectedFlow(flows.data[0]);
@@ -333,7 +347,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         // Create a default flow if none exists
         const defaultFlow: ChatbotFlow = {
           id: `flow_${Date.now()}`,
-          botId: bot.data.id,
+          botId: botId,
           name: 'Fluxo Principal',
           description: 'Fluxo padrão do chatbot',
           isActive: true,
@@ -347,7 +361,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         setSelectedFlow(defaultFlow);
       }
     }
-  }, [bot, flows]);
+    
+    // Update with real bot data when available
+    if (bot?.data && bot.data.id === botId) {
+      console.log('🐛 [FLOW-INIT] Updating with real bot data:', bot.data);
+      setSelectedBot(bot.data);
+    }
+  }, [bot, flows, botId, selectedBot, selectedFlow]);
 
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
