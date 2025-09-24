@@ -1167,6 +1167,153 @@ export default function AutomationRuleBuilder({
     </Dialog>
 
       {/* Trigger Configuration Modal */}
+      {showTriggerConfig && selectedTrigger && (
+        <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Configurar Gatilho: {selectedTrigger.name}</DialogTitle>
+              <DialogDescription>
+                {selectedTrigger.description}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {selectedTrigger.type === 'keyword' && (
+                <div>
+                  <Label htmlFor="keywords">Palavras-chave</Label>
+                  <Input
+                    id="keywords"
+                    placeholder="Digite as palavras-chave separadas por vírgula"
+                    value={selectedTrigger.config.keywords || ''}
+                    onChange={(e) => updateTriggerConfig(selectedTrigger.id, {
+                      ...selectedTrigger.config,
+                      keywords: e.target.value
+                    })}
+                  />
+                </div>
+              )}
+              
+              {selectedTrigger.type === 'channel' && (
+                <div>
+                  <Label htmlFor="channel">Canal</Label>
+                  <Select
+                    value={selectedTrigger.config.channel || ''}
+                    onValueChange={(value) => updateTriggerConfig(selectedTrigger.id, {
+                      ...selectedTrigger.config,
+                      channel: value
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um canal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      <SelectItem value="telegram">Telegram</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowTriggerConfig(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => setShowTriggerConfig(false)}
+              >
+                Salvar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Action Configuration Modal */}
+      {showActionConfig && selectedAction && (
+        <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Configurar Ação: {selectedAction.name}</DialogTitle>
+              <DialogDescription>
+                {selectedAction.description}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {selectedAction.type === 'auto_reply' && (
+                <div>
+                  <Label htmlFor="message">Mensagem</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Digite a mensagem de resposta automática"
+                    value={selectedAction.config.message || ''}
+                    onChange={(e) => updateActionConfig(selectedAction.id, {
+                      ...selectedAction.config,
+                      message: e.target.value
+                    })}
+                  />
+                </div>
+              )}
+              
+              {selectedAction.type === 'create_ticket' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Título do Ticket</Label>
+                    <Input
+                      id="title"
+                      placeholder="Título padrão do ticket"
+                      value={selectedAction.config.title || ''}
+                      onChange={(e) => updateActionConfig(selectedAction.id, {
+                        ...selectedAction.config,
+                        title: e.target.value
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="priority">Prioridade</Label>
+                    <Select
+                      value={selectedAction.config.priority || 'medium'}
+                      onValueChange={(value) => updateActionConfig(selectedAction.id, {
+                        ...selectedAction.config,
+                        priority: value
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowActionConfig(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => setShowActionConfig(false)}
+              >
+                Salvar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}</old_str>
       <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
         <DialogContent data-testid="trigger-config-modal">
           <DialogHeader>
