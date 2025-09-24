@@ -283,6 +283,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [showNodeConfig, setShowNodeConfig] = useState(false);
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false); // Add saving state
+  const [selectedNodeConfig, setSelectedNodeConfig] = useState<Record<string, any>>({}); // State to hold configurations for each node
+  const [selectedNodeForConfig, setSelectedNodeForConfig] = useState<string | null>(null);
 
   // Mouse position for connection preview
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -299,7 +301,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Bot data query
   const {
     data: botData,
-    isLoading: isLoadingBot,
+    isLoading: isLoadingBots,
     error: botError
   } = useQuery({
     queryKey: ['chatbot-bot', botId],
@@ -669,9 +671,9 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       }, 500);
     }
 
-    setIsDragging(false); // This state is not defined, assuming it should be `setDraggedNode(null)` or similar if it was intended to manage drag state. Removed for now as it's unused.
+    setDraggedNode(null); // Reset dragged node state
 
-  }, [selectedFlow, handleSaveFlow]); // Removed setIsDragging as it's not defined in the component state
+  }, [selectedFlow, handleSaveFlow]);
 
   const handleNodeClick = (node: FlowNode) => {
     setSelectedNode(node);
@@ -786,7 +788,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     return type.split('-')[0];
   };
 
-  const handleSaveFlow = async () => {
+  // Define handleSaveFlow once
+  const handleSaveFlow = useCallback(async () => {
     if (!selectedFlow || !selectedChatbot) {
       toast({
         title: "Erro",
@@ -935,7 +938,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     } finally {
       setSaving(false); // Reset saving state
     }
-  };
+  }, [selectedFlow, selectedChatbot, nodes, edges, toast, queryClient, selectedNodeConfig, setSaving, setSelectedFlowId]);
+
 
   // Helper to get node position for connection lines
   const getNodePosition = (nodeId: string) => {
@@ -1261,7 +1265,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             {nodes.map(node => (
               <div
                 key={node.id}
-                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow select-none node-container
+                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow node-container
                   ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
                 `}
                 style={{
