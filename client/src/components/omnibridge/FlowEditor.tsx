@@ -290,9 +290,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [startCanvasDragPos, setStartCanvasDragPos] = useState({ x: 0, y: 0 });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
+  const [flows, setFlows] = useState<ChatbotFlow[]>([]); // State for list of flows
 
   // Load bot data
-  const { data: bot, isLoading: isLoadingBots } = useQuery<{data: ChatbotBot}>({
+  const { data: botData, isLoading: isLoadingBots } = useQuery<{data: ChatbotBot}>({
     queryKey: ['/api/omnibridge/chatbots', botId],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}`);
@@ -305,7 +306,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   });
 
   // Load flows for bot
-  const { data: flows, isLoading: isLoadingFlows } = useQuery<{data: ChatbotFlow[]}>({
+  const { data: botFlows, isLoading: isLoadingFlows } = useQuery<{data: ChatbotFlow[]}>({
     queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}/flows`);
@@ -319,58 +320,72 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   // State for the selected flow ID to trigger the query
   const [selectedFlowId, setSelectedFlowId] = useState<string | undefined>(undefined);
+  const [selectedChatbot, setSelectedChatbot] = useState<ChatbotBot | null>(null); // State for the selected bot
 
-  // Function to fetch complete flow data
-  const fetchCompleteFlow = useCallback(async (flowId: string) => {
-    if (!flowId) return null;
-    console.log('🌐 [FLOW-QUERY] Fetching complete flow data for:', flowId);
-    const response = await apiRequest('GET', `/api/omnibridge/flows/${flowId}`);
-    console.log('🌐 [FLOW-QUERY] Response status:', response.status);
-    if (!response.ok) {
-      console.error('🌐 [FLOW-QUERY] Failed to fetch flow:', response.statusText);
-      throw new Error(`Failed to fetch flow: ${response.status} ${response.statusText}`);
-    }
-    const result = await response.json();
-    console.log('🌐 [FLOW-QUERY] Got complete flow data:', {
-      flowId: result.data?.id,
-      nodeCount: result.data?.nodes?.length || 0,
-      edgeCount: result.data?.edges?.length || 0
-    });
-    return result;
-  }, []);
-
-  // Load complete flow data when flowId changes
-  const { data: completeFlowData, isLoading: isLoadingCompleteFlow, error: flowError } = useQuery({
-    queryKey: ['flow-complete', selectedFlowId],
+  // Flow query with proper error handling
+  const { 
+    data: completeFlowData, 
+    isLoading: isLoadingCompleteFlow,
+    error: flowError,
+    refetch: refetchFlow
+  } = useQuery({
+    queryKey: ['chatbot-flow-complete', selectedFlowId, selectedChatbot?.id],
     queryFn: async () => {
-      if (!selectedFlowId || selectedFlowId.startsWith('flow_')) {
-        console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
-        return null; // Don't load temporary flows
+      if (!selectedFlowId || selectedFlowId.startsWith('flow_') || !selectedChatbot?.id) {
+        console.log('🔄 [FLOW-QUERY-DEBUG] Skipping query for temporary flow or missing bot:', { selectedFlowId, botId: selectedChatbot?.id });
+        return null;
       }
 
-      console.log('🔄 [FLOW-LOAD] Loading complete flow data for:', selectedFlowId);
-      const response = await apiRequest('GET', `/api/omnibridge/flows/${selectedFlowId}`);
-      if (!response.ok) {
-        throw new Error('Failed to load flow');
+      console.log('🔄 [FLOW-QUERY-DEBUG] Fetching complete flow:', { selectedFlowId, botId: selectedChatbot.id });
+
+      // Use the bot-specific route to ensure proper validation
+      const response = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}/flows/${selectedFlowId}`);
+
+      if (!response.success) {
+        console.error('❌ [FLOW-QUERY] Failed to fetch flow:', response.error);
+        throw new Error(response.error || 'Failed to fetch flow');
       }
-      const result = await response.json();
-      return result.data;
+
+      console.log('✅ [FLOW-QUERY] Successfully fetched flow:', {
+        flowId: response.data.id,
+        flowName: response.data.name,
+        nodeCount: response.data.nodes?.length || 0,
+        edgeCount: response.data.edges?.length || 0
+      });
+
+      return response.data;
     },
-    enabled: !!selectedFlowId && !!selectedBot?.id && !selectedFlowId.startsWith('flow_'),
-    retry: 1
+    enabled: !!selectedFlowId && !selectedFlowId.startsWith('flow_') && !!selectedChatbot?.id,
+    retry: 2,
+    staleTime: 30000
   });
 
   console.log('🔄 [FLOW-QUERY-DEBUG] Query status:', {
     flowId: selectedFlowId,
+    botId: selectedChatbot?.id,
     isTemporary: selectedFlowId?.startsWith('flow_'),
-    enabled: !!selectedFlowId && !!selectedBot?.id && !selectedFlowId?.startsWith('flow_'),
+    enabled: !!selectedFlowId && !selectedFlowId.startsWith('flow_') && !!selectedChatbot?.id,
     isLoading: isLoadingCompleteFlow,
     hasData: !!completeFlowData,
-    hasError: !!flowError,
-    error: flowError?.message
+    hasError: !!flowError
   });
 
-  // Update flow data when complete flow loads
+  // Initialize selectedBot and flows state
+  useEffect(() => {
+    if (botData?.data) {
+      setSelectedBot(botData.data);
+      setSelectedChatbot(botData.data); // Set selectedChatbot here
+    }
+    if (botFlows?.data) {
+      setFlows(botFlows.data);
+      // Set default selected flow if none is selected
+      if (!selectedFlowId && botFlows.data.length > 0) {
+        setSelectedFlowId(botFlows.data[0].id);
+      }
+    }
+  }, [botData, botFlows]);
+
+  // Effect to load complete flow data when available
   useEffect(() => {
     console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
       hasCompleteFlowData: !!completeFlowData,
@@ -378,6 +393,22 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       isLoadingCompleteFlow
     });
 
+    if (!selectedFlowId) {
+      console.log('🔄 [FLOW-LOAD] No flow selected, clearing data');
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
+    // Handle temporary flows
+    if (selectedFlowId.startsWith('flow_')) {
+      console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
+    // Handle real flows
     if (completeFlowData && !isLoadingCompleteFlow) {
       console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
         flowId: completeFlowData.id,
@@ -385,119 +416,99 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         edgeCount: completeFlowData.edges?.length || 0
       });
 
-      // Set the flow data
-      setSelectedFlow(completeFlowData);
+      // Update flow data in the flows list
+      setFlows(prevFlows => 
+        prevFlows.map(flow => 
+          flow.id === completeFlowData.id 
+            ? { ...completeFlowData, isTemporary: false }
+            : flow
+        )
+      );
 
-      // Load nodes and edges
-      if (completeFlowData.nodes && Array.isArray(completeFlowData.nodes)) {
-        const transformedNodes = completeFlowData.nodes.map(node => ({
-          id: node.id,
-          flowId: node.flowId,
-          name: node.title || node.name || 'Untitled Node',
-          type: node.type,
-          category: node.category,
-          position: node.position || { x: 100, y: 100 },
-          configuration: node.config || {},
-          metadata: node.metadata || {},
-          isActive: node.isEnabled !== false
-        }));
-        setNodes(transformedNodes);
-        console.log('🔄 [FLOW-LOAD] Loaded nodes:', transformedNodes.length);
-      }
+      // Set nodes and edges
+      const flowNodes = (completeFlowData.nodes || []).map(node => ({
+        ...node,
+        id: node.id,
+        flowId: completeFlowData.id,
+        name: node.name || 'Untitled Node',
+        type: node.type,
+        category: node.category || 'trigger',
+        position: node.position || { x: 100, y: 100 },
+        configuration: node.configuration || {},
+        metadata: node.metadata || {},
+        isActive: node.isActive !== false
+      }));
 
-      if (completeFlowData.edges && Array.isArray(completeFlowData.edges)) {
-        const transformedEdges = completeFlowData.edges.map(edge => ({
-          id: edge.id,
-          flowId: edge.flowId,
-          fromNodeId: edge.fromNodeId,
-          toNodeId: edge.toNodeId,
-          label: edge.label || '',
-          condition: edge.condition || '',
-          metadata: {}
-        }));
-        setEdges(transformedEdges);
-        console.log('🔄 [FLOW-LOAD] Loaded edges:', transformedEdges.length);
-      }
+      const flowEdges = (completeFlowData.edges || []).map(edge => ({
+        ...edge,
+        id: edge.id,
+        flowId: completeFlowData.id,
+        sourceNodeId: edge.sourceNodeId,
+        targetNodeId: edge.targetNodeId,
+        sourcePort: edge.sourcePort || 'output',
+        targetPort: edge.targetPort || 'input',
+        metadata: edge.metadata || {}
+      }));
 
-      if (completeFlowData.variables && Array.isArray(completeFlowData.variables)) {
-        setVariables(completeFlowData.variables);
-        console.log('🔄 [FLOW-LOAD] Loaded variables:', completeFlowData.variables.length);
-      }
-    }
-
-    // If we have a real flow ID but no data yet, ensure we have a valid flow object
-    if (selectedFlowId && !selectedFlowId.startsWith('flow_') && !completeFlowData && !isLoadingCompleteFlow) {
-      console.log('🔄 [FLOW-LOAD] Creating empty flow state for existing flow');
-      setSelectedFlow({
-        id: selectedFlowId,
-        name: 'Loading...',
-        description: '',
-        isActive: false,
-        nodes: [],
-        edges: [],
-        variables: []
+      console.log('🔄 [FLOW-LOAD] Setting nodes and edges:', {
+        nodeCount: flowNodes.length,
+        edgeCount: flowEdges.length
       });
+
+      setNodes(flowNodes);
+      setEdges(flowEdges);
+      setSelectedFlow(prevFlow => ({ ...prevFlow, ...completeFlowData, isTemporary: false }));
     }
   }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
-
 
   // Initialize with first flow if available or create a default one
   useEffect(() => {
     console.log('🐛 [FLOW-INIT] Checking flow initialization', {
-      botData: !!bot?.data,
-      flowsData: flows?.data?.length || 0,
-      firstFlow: flows?.data?.[0]?.id || 'none',
+      botData: !!selectedBot,
+      flowsList: flows.length,
+      firstFlow: flows[0]?.id || 'none',
       botId: botId
     });
 
-    // If we have a botId but no bot data yet, create a temporary bot
     if (botId && !selectedBot) {
-      const tempBot = {
-        id: botId,
-        name: 'Chatbot Temporário',
-        description: 'Bot temporário para edição',
-        tenantId: '',
-        isActive: true,
-        configuration: {},
-        metadata: {},
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setSelectedBot(tempBot);
+      // If botId is provided but bot data is not yet loaded, we might need to handle this.
+      // For now, we rely on botData loading.
+      console.log('🐛 [FLOW-INIT] BotId provided, but bot data not loaded yet.');
     }
 
     // Flow selection logic - maintain current selection or select default
-    if (botId) {
-      if (flows?.data?.length && flows.data.length > 0) {
+    if (botId && selectedBot) {
+      if (flows.length > 0) {
         // Check if current selectedFlow still exists in the flows list
         if (selectedFlow) {
-          const currentFlowStillExists = flows.data.find(f => f.id === selectedFlow.id);
+          const currentFlowStillExists = flows.find(f => f.id === selectedFlow.id);
           if (currentFlowStillExists) {
             console.log('🐛 [FLOW-INIT] Keeping current selectedFlow:', selectedFlow.id);
             // Update with latest data but keep same flow
             if (JSON.stringify(selectedFlow) !== JSON.stringify(currentFlowStillExists)) {
               setSelectedFlow(currentFlowStillExists);
-              setSelectedFlowId(currentFlowStillExists.id); // Update selectedFlowId
+              // No need to update selectedFlowId here as it's already set to this flow's ID
             }
           } else {
-            console.log('🐛 [FLOW-INIT] Current flow no longer exists, selecting first:', flows.data[0]);
-            setSelectedFlow(flows.data[0]);
-            setSelectedFlowId(flows.data[0].id); // Update selectedFlowId
+            console.log('🐛 [FLOW-INIT] Current flow no longer exists, selecting first:', flows[0]);
+            setSelectedFlow(flows[0]);
+            setSelectedFlowId(flows[0].id); // Update selectedFlowId
           }
         } else {
-          console.log('🐛 [FLOW-INIT] No selectedFlow, setting to first:', flows.data[0]);
-          setSelectedFlow(flows.data[0]);
-          setSelectedFlowId(flows.data[0].id); // Update selectedFlowId
+          console.log('🐛 [FLOW-INIT] No selectedFlow, setting to first:', flows[0]);
+          setSelectedFlow(flows[0]);
+          setSelectedFlowId(flows[0].id); // Update selectedFlowId
         }
       } else if (!selectedFlow) {
         // Create a default flow if none exists
         const defaultFlow: ChatbotFlow = {
           id: `flow_${Date.now()}`,
-          botId: botId,
+          botId: botId!, // botId is guaranteed by the outer if condition
           name: 'Fluxo Principal',
           description: 'Fluxo padrão do chatbot',
           isActive: true,
-          triggerEvent: 'message_received',
+          isMain: true, // Assuming this is the main flow
+          version: 1,
           metadata: {},
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -505,101 +516,23 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         console.log('🐛 [FLOW-INIT] Creating default flow:', defaultFlow);
         setSelectedFlow(defaultFlow);
         setSelectedFlowId(defaultFlow.id); // Update selectedFlowId
+        setFlows(prevFlows => [...prevFlows, defaultFlow]); // Add to the flows list
       }
     }
-
-    // Update with real bot data when available
-    if (bot?.data && bot.data.id === botId) {
-      console.log('🐛 [FLOW-INIT] Updating with real bot data:', bot.data);
-      setSelectedBot(bot.data);
-    }
-  }, [bot, flows, botId, selectedBot, selectedFlow]);
-
-
-  // Update flow data when complete flow loads
-  useEffect(() => {
-    console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
-      hasCompleteFlowData: !!completeFlowData,
-      selectedFlowId,
-      isLoadingCompleteFlow
-    });
-
-    if (completeFlowData && !isLoadingCompleteFlow) {
-      console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
-        flowId: completeFlowData.id,
-        nodeCount: completeFlowData.nodes?.length || 0,
-        edgeCount: completeFlowData.edges?.length || 0
-      });
-
-      // Set the flow data
-      setSelectedFlow(completeFlowData);
-
-      // Load nodes and edges
-      if (completeFlowData.nodes && Array.isArray(completeFlowData.nodes)) {
-        const transformedNodes = completeFlowData.nodes.map(node => ({
-          id: node.id,
-          flowId: node.flowId,
-          name: node.title || node.name || 'Untitled Node',
-          type: node.type,
-          category: node.category,
-          position: node.position || { x: 100, y: 100 },
-          configuration: node.config || {},
-          metadata: node.metadata || {},
-          isActive: node.isEnabled !== false
-        }));
-        setNodes(transformedNodes);
-        console.log('🔄 [FLOW-LOAD] Loaded nodes:', transformedNodes.length);
-      }
-
-      if (completeFlowData.edges && Array.isArray(completeFlowData.edges)) {
-        const transformedEdges = completeFlowData.edges.map(edge => ({
-          id: edge.id,
-          flowId: edge.flowId,
-          fromNodeId: edge.fromNodeId,
-          toNodeId: edge.toNodeId,
-          label: edge.label || '',
-          condition: edge.condition || '',
-          metadata: {}
-        }));
-        setEdges(transformedEdges);
-        console.log('🔄 [FLOW-LOAD] Loaded edges:', transformedEdges.length);
-      }
-
-      if (completeFlowData.variables && Array.isArray(completeFlowData.variables)) {
-        setVariables(completeFlowData.variables);
-        console.log('🔄 [FLOW-LOAD] Loaded variables:', completeFlowData.variables.length);
-      }
-    }
-
-    // If we have a real flow ID but no data yet, ensure we have a valid flow object
-    if (selectedFlowId && !selectedFlowId.startsWith('flow_') && !completeFlowData && !isLoadingCompleteFlow) {
-      console.log('🔄 [FLOW-LOAD] Creating empty flow state for existing flow');
-      setSelectedFlow({
-        id: selectedFlowId,
-        name: 'Loading...',
-        description: '',
-        isActive: false,
-        nodes: [],
-        edges: [],
-        variables: []
-      });
-    }
-  }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
+  }, [botId, selectedBot, flows, selectedFlow, selectedFlowId]);
 
   // Debug log for query status
   useEffect(() => {
-    console.log('🔄 [FLOW-QUERY-DEBUG] Query status:', {
-      flowId: selectedFlow?.id,
-      botId: selectedBot?.id,
-      isTemporary: selectedFlow?.id?.startsWith('flow_'),
-      enabled: !!selectedFlow?.id && !selectedFlow?.id.startsWith('flow_') && !!selectedBot?.id,
-      isLoading: isLoadingCompleteFlow,
-      hasData: !!completeFlowData,
-      hasError: !!flowError,
-      errorMessage: flowError?.message,
-      queryKey: [`/api/omnibridge/chatbots/${selectedBot?.id}/flows/${selectedFlow?.id}`]
+    console.log('🔄 [FLOW-EDITOR-DEBUG] State:', {
+      selectedFlowId: selectedFlow?.id,
+      selectedBotId: selectedBot?.id,
+      isLoadingCompleteFlow,
+      completeFlowData: !!completeFlowData,
+      flowError: !!flowError,
+      nodesCount: nodes.length,
+      edgesCount: edges.length
     });
-  }, [selectedFlow, selectedBot, isLoadingCompleteFlow, completeFlowData, flowError]);
+  }, [selectedFlow, selectedBot, isLoadingCompleteFlow, completeFlowData, flowError, nodes, edges]);
 
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
@@ -647,8 +580,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       selectedFlowExists: !!selectedFlow
     });
 
-    if (!draggedNodeType || !canvasRef.current) {
-      console.log('🐛 [DRAG] Drop failed - missing draggedNodeType or canvasRef');
+    if (!draggedNodeType || !canvasRef.current || !selectedFlow) {
+      console.log('🐛 [DRAG] Drop failed - missing draggedNodeType, canvasRef, or selectedFlow');
       return;
     }
 
@@ -846,7 +779,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             title: node.name, // Use name from FlowNode interface
             description: '', // Assuming description is not directly mapped here
             position: node.position,
-            config: node.configuration, // Use configuration from FlowNode interface
+            configuration: node.configuration, // Use configuration from FlowNode interface
             isStart: false, // Default value, needs logic if applicable
             isEnd: false, // Default value, needs logic if applicable
             isEnabled: node.isActive
@@ -880,15 +813,25 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       });
 
       let response;
+      const flowId = selectedFlow.id;
 
       // If it's a new flow (temporary ID or no ID)
-      if (!selectedFlow.id || selectedFlow.id.startsWith('flow_')) {
-        // Create new flow for bot
-        console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedBot.id);
+      if (!flowId || flowId.startsWith('flow_')) {
+        // Verify bot exists first
+        console.log('🔄 [FLOW-SAVE] Verifying bot exists:', selectedChatbot.id);
+        const botResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}`);
 
-        const preparedNodes = nodes.map(node => ({
+        if (!botResponse.success) {
+          console.error('❌ [FLOW-SAVE] Bot not found:', botResponse.error);
+          throw new Error('Bot not found. Please refresh and try again.');
+        }
+
+        console.log('✅ [FLOW-SAVE] Bot verified, creating flow for:', selectedChatbot.id);
+
+        // Prepare nodes and edges for saving
+        const nodesToSave = nodes.map(node => ({
           id: node.id,
-          flowId: selectedFlow.id, // Use the temporary ID
+          flowId: selectedFlow.id, // Use the temporary ID for the initial save
           name: node.name,
           type: node.type,
           category: node.category,
@@ -898,7 +841,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           isActive: node.isActive
         }));
 
-        const preparedEdges = edges.map(edge => ({
+        const edgesToSave = edges.map(edge => ({
           id: edge.id,
           flowId: selectedFlow.id, // Use the temporary ID
           sourceNodeId: edge.sourceNodeId,
@@ -908,29 +851,36 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           metadata: edge.metadata
         }));
 
-        response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
-          name: selectedFlow.name || 'Fluxo Principal',
-          description: selectedFlow.description || 'Fluxo padrão do chatbot',
-          isActive: selectedFlow.isActive,
-          nodes: preparedNodes,
-          edges: preparedEdges,
-          variables: variables
+        // Create flow for bot
+        console.log('🔄 [FLOW-SAVE] Creating new flow for bot:', selectedChatbot.id);
+        const createResponse = await apiRequest(`/api/omnibridge/chatbots/${selectedChatbot.id}/flows`, {
+          method: 'POST',
+          data: {
+            id: flowId, // Send custom ID
+            name: selectedFlow.name,
+            description: selectedFlow.description || 'Flow criado automaticamente',
+            isActive: selectedFlow.isActive || false,
+            nodes: nodesToSave,
+            edges: edgesToSave,
+            variables: []
+          }
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
           console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
-          throw new Error(`Failed to create flow: ${response.status} ${errorText}`);
+          throw new Error(`Failed to create flow: ${createResponse.status} ${errorText}`);
         }
-        const createdFlow = await response.json();
+        const createdFlow = await createResponse.json();
         console.log('🔄 [FLOW-SAVE] Created flow data:', createdFlow.data);
         setSelectedFlow(createdFlow.data); // Update selectedFlow with the newly created flow
         setSelectedFlowId(createdFlow.data.id); // Update selectedFlowId
+        setFlows(prevFlows => [...prevFlows.filter(f => f.id !== flowId), createdFlow.data]); // Update flows list
         queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] }); // Invalidate to refresh the list of flows
       } else {
         // Update existing flow
-        console.log('🔄 [FLOW-SAVE] Updating existing flow:', selectedFlow.id);
-        response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, completeFlowDataToSave);
+        console.log('🔄 [FLOW-SAVE] Updating existing flow:', flowId);
+        response = await apiRequest('PUT', `/api/omnibridge/flows/${flowId}`, completeFlowDataToSave);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -982,7 +932,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   };
 
   // Render loading state only if we don't have basic data
-  if (isLoadingBots || (isLoadingFlows && !selectedBot)) {
+  if (isLoadingBots || (isLoadingFlows && !botData)) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

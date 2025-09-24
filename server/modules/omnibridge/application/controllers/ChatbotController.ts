@@ -359,6 +359,20 @@ export class ChatbotController {
       // Use the flow repository properly with tenant isolation
       const flowRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
       
+      // If botId is provided, verify the bot exists and belongs to tenant first
+      if (botId) {
+        const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
+        if (!bot) {
+          console.log('❌ [CONTROLLER] Bot not found or access denied:', { botId, tenantId });
+          res.status(404).json({
+            success: false,
+            error: 'Bot not found or access denied'
+          });
+          return;
+        }
+        console.log('✅ [CONTROLLER] Bot validated:', { botId: bot.id, botName: bot.name });
+      }
+      
       // First check if flow exists and belongs to tenant
       const basicFlow = await flowRepository.findById(flowId, tenantId);
       if (!basicFlow) {

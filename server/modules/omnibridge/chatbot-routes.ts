@@ -121,7 +121,72 @@ router.post('/chatbots/:botId/flows', jwtAuth, chatbotController.createFlow.bind
 router.get('/flows/:flowId', jwtAuth, chatbotController.getFlow.bind(chatbotController));
 
 // Alternative route for getting flow by bot and flow ID
-router.get('/chatbots/:botId/flows/:flowId', jwtAuth, chatbotController.getFlow.bind(chatbotController));
+router.get('/chatbots/:botId/flows/:flowId', jwtAuth, async (req: any, res: any) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { botId, flowId } = req.params;
+
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Tenant ID required' 
+      });
+    }
+
+    // First verify bot exists and belongs to tenant
+    const botRepository = chatbotController.getBotByIdUseCase?.chatbotBotRepository;
+    if (!botRepository) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Bot repository not available' 
+      });
+    }
+
+    const bot = await botRepository.findById(botId, tenantId);
+    if (!bot) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bot not found or access denied'
+      });
+    }
+
+    // Now get the flow and verify it belongs to this bot
+    const flowRepository = chatbotController.updateFlowUseCase?.chatbotFlowRepository;
+    if (!flowRepository) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Flow repository not available' 
+      });
+    }
+
+    const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
+    if (!completeFlow) {
+      return res.status(404).json({
+        success: false,
+        error: 'Flow not found'
+      });
+    }
+
+    // Verify flow belongs to the specified bot
+    if (completeFlow.botId !== botId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Flow does not belong to the specified bot'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: completeFlow
+    });
+  } catch (error) {
+    console.error('❌ [ROUTES] Error in bot-specific flow route:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error'
+    });
+  }
+});
 
 // Debug route to check flow existence
 router.get('/flows/:flowId/debug', jwtAuth, async (req: any, res: any) => {
