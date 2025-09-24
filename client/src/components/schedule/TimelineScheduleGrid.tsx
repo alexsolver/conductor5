@@ -35,6 +35,8 @@ interface Agent {
   name: string;
   email: string;
   profileImageUrl?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface WorkSchedule {
@@ -214,11 +216,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
       // Match agent ID (handle both UUID formats)
-      const agentMatch = schedule.agentId === agentId || 
+      const agentMatch = schedule.agentId === agentId ||
                         schedule.agentId.startsWith(agentId.substring(0, 8));
 
       // For internal actions, always show in 'planned' row, and also show completed ones in 'actual' row
-      const typeMatch = schedule.type === type || 
+      const typeMatch = schedule.type === type ||
                        (schedule.type === 'internal_action' && type === 'planned') ||
                        (schedule.activityTypeId === 'internal-action' && type === 'planned') ||
                        (schedule.type === 'internal_action' && type === 'actual' && (schedule.status === 'completed' || schedule.status === 'done')) ||
@@ -416,7 +418,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
 
           {/* Time slots header */}
-          <div 
+          <div
             ref={headerScrollRef}
             className="flex-1 flex overflow-x-auto"
             onScroll={syncScrollToContent}
@@ -447,10 +449,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   {/* Planned row */}
                   <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
                     <div className="text-sm flex-1 flex items-center gap-2">
-                      <SimpleAvatar 
-                        src={agent.profileImageUrl} 
-                        name={agentName} 
-                        size="sm" 
+                      <SimpleAvatar
+                        src={agent.profileImageUrl}
+                        name={agentName}
+                        size="sm"
                       />
                       <div>
                         <div className="font-medium text-gray-900 text-xs">{agentName}</div>
@@ -474,10 +476,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   {/* Actual row */}
                   <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
                     <div className="text-sm flex-1 flex items-center gap-2">
-                      <SimpleAvatar 
-                        src={agent.profileImageUrl} 
-                        name={agentName} 
-                        size="sm" 
+                      <SimpleAvatar
+                        src={agent.profileImageUrl}
+                        name={agentName}
+                        size="sm"
                       />
                       <div>
                         <div className="font-medium text-gray-700 text-xs">{agentName}</div>
@@ -499,10 +501,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             })}
           </div>
 
-          {/* Timeline grid */}
-          <div 
+          {/* Timeline content */}
+          <div
             ref={contentScrollRef}
-            className="flex-1 overflow-x-auto relative"
+            className="flex-1 overflow-x-auto overflow-y-auto relative"
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
             data-timeline-container
@@ -520,389 +522,357 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                 />
               )}
 
-              {timeSlots.map((timeSlot, timeIndex) => (
-                <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative">
-                  {filteredAgents.map((agent) => {
-                    const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
-                    const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
+              {/* Timeline rows for each agent */}
+            {filteredAgents.map((agent) => {
+              const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
+              const dayOfWeek = selectedDate.getDay();
+              const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
 
-                    // Get work schedule for this agent
-                    const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
-                    const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
-                    const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
+              return (
+                <div key={`timeline-${agent.id}`} className="border-b flex-shrink-0">
+                  {/* Planned row */}
+                  <div className="flex border-b border-gray-100" style={{ minHeight: '64px' }}>
+                    {timeSlots.map((timeSlot, timeIndex) => {
+                      const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
+                      const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
+                      const totalLayers = scheduleLayers.length;
+                      const rowHeight = Math.max(40, totalLayers * 40); // Dynamic height based on layers
 
-                    // Check if it's working hour based on actual schedule
-                    const isWorkingHour = worksToday && workSchedule ? (() => {
-                      const currentHour = timeSlot.getHours();
-                      const currentMinute = timeSlot.getMinutes();
-                      const currentTime = currentHour * 60 + currentMinute;
+                      return (
+                        <div
+                          className={`relative border-r border-gray-100 ${
+                            !worksToday
+                              ? 'bg-gray-200'
+                              : isBreakTime
+                                ? 'bg-orange-100'
+                                : isWorkingHour
+                                  ? 'bg-white'
+                                  : 'bg-gray-100'
+                          }`}
+                          style={{ height: `${rowHeight}px`, width: '64px' }}
+                          title={
+                            !worksToday
+                              ? 'Não trabalha neste dia'
+                              : isBreakTime
+                                ? 'Horário de intervalo'
+                                : isWorkingHour
+                                  ? 'Horário disponível'
+                                  : 'Fora do horário de trabalho'
+                          }
+                        >
+                          {/* Status indicator bar */}
+                          <div className={`absolute inset-x-0 bottom-0 h-1 ${
+                            !worksToday
+                              ? 'bg-gray-400'
+                              : isBreakTime
+                                ? 'bg-orange-400'
+                                : isWorkingHour
+                                  ? 'bg-blue-400'
+                                  : 'bg-gray-300'
+                          }`}></div>
 
-                      const [startHour, startMinute] = workSchedule.startTime.split(':').map(Number);
-                      const [endHour, endMinute] = workSchedule.endTime.split(':').map(Number);
-                      const startTime = startHour * 60 + startMinute;
-                      const endTime = endHour * 60 + endMinute;
+                          {/* Render actions in their time slots */}
+                          {plannedSchedules.length > 0 &&
+                            plannedSchedules.map((schedule, index) => {
+                              const activityType = getActivityType(schedule.activityTypeId);
+                              const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
-                      return currentTime >= startTime && currentTime < endTime;
-                    })() : false;
+                              const scheduleStart = parseISO(schedule.startDateTime);
+                              const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                    // Check if it's break time
-                    const isBreakTime = worksToday && workSchedule?.breakStart && workSchedule?.breakEnd ? (() => {
-                      const currentHour = timeSlot.getHours();
-                      const currentMinute = timeSlot.getMinutes();
-                      const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+                              const startingSlotIndex = timeSlots.findIndex(slot => {
+                                const slotStart = slot.getTime();
+                                const scheduleStartTime = scheduleStart.getTime();
+                                const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                return hoursDiff < 1 &&
+                                       slot.getHours() === scheduleStart.getHours() &&
+                                       slot.getDate() === scheduleStart.getDate() &&
+                                       slot.getMonth() === scheduleStart.getMonth() &&
+                                       slot.getFullYear() === scheduleStart.getFullYear();
+                              });
 
-                      return currentTime >= workSchedule.breakStart && currentTime <= workSchedule.breakEnd;
-                    })() : false;
+                              if (timeIndex !== startingSlotIndex) return null;
 
-                    return (
-                      <div key={agent.id} className="border-b">
-                        {(() => {
-                          // Organize schedules in layers to handle overlaps
-                          const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
-                          const totalLayers = scheduleLayers.length;
-                          const rowHeight = Math.max(40, totalLayers * 40); // Dynamic height based on layers
+                              const slotStart = timeSlots[timeIndex];
+                              const minutesFromSlotStart = scheduleStart.getMinutes();
 
-                          return (
-                            <div 
-                              className={`relative border-b border-gray-100 ${
-                                !worksToday 
-                                  ? 'bg-gray-200' 
-                                  : isBreakTime 
-                                    ? 'bg-orange-100'
-                                    : isWorkingHour 
-                                      ? 'bg-white' 
-                                      : 'bg-gray-100'
-                              }`}
-                              style={{ height: `${rowHeight}px` }}
-                              title={
-                                !worksToday 
-                                  ? 'Não trabalha neste dia'
-                                  : isBreakTime 
-                                    ? 'Horário de intervalo'
-                                    : isWorkingHour 
-                                      ? 'Horário disponível' 
-                                      : 'Fora do horário de trabalho'
+                              let currentSlotWidth = 64;
+                              let slotDurationMinutes = 60;
+
+                              switch (timeFilter) {
+                                case '2min':
+                                  currentSlotWidth = 32;
+                                  slotDurationMinutes = 2;
+                                  break;
+                                case '10min':
+                                  currentSlotWidth = 48;
+                                  slotDurationMinutes = 10;
+                                  break;
+                                case '30min':
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 30;
+                                  break;
+                                case '1hora':
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 60;
+                                  break;
+                                case '24horas':
+                                  currentSlotWidth = 128;
+                                  slotDurationMinutes = 24 * 60;
+                                  break;
+                                default:
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 60;
+                                  break;
                               }
-                            >
-                              {/* Status indicator bar */}
-                              <div className={`absolute inset-x-0 bottom-0 h-1 ${
-                                !worksToday 
-                                  ? 'bg-gray-400'
-                                  : isBreakTime 
-                                    ? 'bg-orange-400'
-                                    : isWorkingHour 
-                                      ? 'bg-blue-400' 
-                                      : 'bg-gray-300'
-                              }`}></div>
 
-                              {/* Render actions in their time slots */}
-                              {plannedSchedules.length > 0 && 
-                                plannedSchedules.map((schedule, index) => {
-                                  const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                              const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
+                              const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
+                              const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
+                              const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
+                              const blockWidth = durationInSlots * currentSlotWidth - 4;
+                              const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'planned') : 'bg-blue-500 border-blue-300';
 
-                                  // Parse schedule start and end times
-                                  const scheduleStart = parseISO(schedule.startDateTime);
-                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+                              return (
+                                <div
+                                  key={`${schedule.id}-planned-${index}`}
+                                  className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
+                                  style={{
+                                    left: `${2 + minuteOffset}px`,
+                                    top: `${Math.max(2, (rowHeight - 32) / 2 - 4)}px`,
+                                    height: '32px',
+                                    width: `${Math.min(blockWidth, 316)}px`,
+                                    zIndex: 10,
+                                    minWidth: '60px'
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isInternalAction) {
+                                      setSelectedInternalAction(schedule);
+                                      setShowInternalActionModal(true);
+                                    } else {
+                                      onScheduleClick(schedule);
+                                    }
+                                  }}
+                                  title={(() => {
+                                    const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
+                                    const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
+                                    const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
 
-                                  // Find the starting time slot index for this schedule
-                                  const startingSlotIndex = timeSlots.findIndex(slot => {
-                                    const slotStart = slot.getTime();
-                                    const scheduleStartTime = scheduleStart.getTime();
-                                    const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
-                                    return hoursDiff < 1 && 
-                                           slot.getHours() === scheduleStart.getHours() &&
-                                           slot.getDate() === scheduleStart.getDate() &&
-                                           slot.getMonth() === scheduleStart.getMonth() &&
-                                           slot.getFullYear() === scheduleStart.getFullYear();
-                                  });
+                                    let tooltip = `${actionType}: ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
 
-                                  // Only render in the correct starting slot
-                                  if (timeIndex !== startingSlotIndex) return null;
+                                    if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
+                                    if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
+                                    if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
 
-                                  // Calculate precise positioning within the slot based on minutes
-                                  const slotStart = timeSlots[timeIndex];
-                                  const minutesFromSlotStart = scheduleStart.getMinutes();
+                                    return tooltip;
+                                  })()}
+                                >
+                                  {isInternalAction ? (
+                                    <Home className="w-3 h-3 flex-shrink-0" />
+                                  ) : (
+                                    <Navigation className="w-3 h-3 flex-shrink-0" />
+                                  )}
+                                  <span className="text-xs font-medium flex-shrink-0">
+                                    {duration}
+                                  </span>
+                                  <span className="truncate text-xs font-medium">
+                                    {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                                  // Dynamic slot width calculation
-                                  let currentSlotWidth = 64;
-                                  let slotDurationMinutes = 60;
+                  {/* Actual row */}
+                  <div className="flex" style={{ minHeight: '64px' }}>
+                    {timeSlots.map((timeSlot, timeIndex) => {
+                      const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
+                      const actualScheduleLayers = organizeSchedulesInLayers(actualSchedules, timeSlot);
+                      const totalActualLayers = actualScheduleLayers.length;
+                      const actualRowHeight = Math.max(40, totalActualLayers * 40);
 
-                                  switch (timeFilter) {
-                                    case '2min':
-                                      currentSlotWidth = 32;
-                                      slotDurationMinutes = 2;
-                                      break;
-                                    case '10min':
-                                      currentSlotWidth = 48;
-                                      slotDurationMinutes = 10;
-                                      break;
-                                    case '30min':
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 30;
-                                      break;
-                                    case '1hora':
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 60;
-                                      break;
-                                    case '24horas':
-                                      currentSlotWidth = 128;
-                                      slotDurationMinutes = 24 * 60;
-                                      break;
-                                    default:
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 60;
-                                      break;
-                                  }
+                      const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
+                      const dayOfWeek = selectedDate.getDay();
+                      const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
 
-                                  const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
+                      const isWorkingHour = worksToday && workSchedule ? (() => {
+                        const currentHour = timeSlot.getHours();
+                        const currentMinute = timeSlot.getMinutes();
+                        const currentTime = currentHour * 60 + currentMinute;
 
-                                  // Calculate duration for display
-                                  const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
-                                  const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
-                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
+                        const [startHour, startMinute] = workSchedule.startTime.split(':').map(Number);
+                        const [endHour, endMinute] = workSchedule.endTime.split(':').map(Number);
+                        const startTime = startHour * 60 + startMinute;
+                        const endTime = endHour * 60 + endMinute;
 
-                                  // Calculate the width based on number of slots
-                                  const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
+                        return currentTime >= startTime && currentTime < endTime;
+                      })() : false;
 
-                                  // Use status-based colors for internal actions, blue for external
-                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'planned') : 'bg-blue-500 border-blue-300';
+                      const isBreakTime = worksToday && workSchedule?.breakStart && workSchedule?.breakEnd ? (() => {
+                        const currentHour = timeSlot.getHours();
+                        const currentMinute = timeSlot.getMinutes();
+                        const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
 
-                                  return (
-                                    <div
-                                      key={`${schedule.id}-planned-${index}`}
-                                      className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
-                                      style={{ 
-                                        left: `${2 + minuteOffset}px`,
-                                        top: `${Math.max(2, (rowHeight - 32) / 2 - 4)}px`,
-                                        height: '32px',
-                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
-                                        zIndex: 10,
-                                        minWidth: '60px'
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isInternalAction) {
-                                          setSelectedInternalAction(schedule);
-                                          setShowInternalActionModal(true);
-                                        } else {
-                                          onScheduleClick(schedule);
-                                        }
-                                      }}
-                                      title={(() => {
-                                        const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
-                                        const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
-                                        const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
+                        return currentTime >= workSchedule.breakStart && currentTime <= workSchedule.breakEnd;
+                      })() : false;
 
-                                        let tooltip = `${actionType}: ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
 
-                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
-                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
-                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
+                      return (
+                        <div
+                          className={`relative border-r border-gray-100 ${
+                            !worksToday
+                              ? 'bg-gray-200'
+                              : isBreakTime
+                                ? 'bg-orange-100'
+                                : isWorkingHour
+                                  ? 'bg-white'
+                                  : 'bg-gray-100'
+                          }`}
+                          style={{ height: `${actualRowHeight}px`, width: '64px' }}
+                          title={
+                            !worksToday
+                              ? 'Não trabalha neste dia'
+                              : isBreakTime
+                                ? 'Horário de intervalo'
+                                : isWorkingHour
+                                  ? 'Horário disponível'
+                                  : 'Fora do horário de trabalho'
+                          }
+                        >
+                          {/* Status indicator bar */}
+                          <div className={`absolute inset-x-0 bottom-0 h-1 ${
+                            !worksToday
+                              ? 'bg-gray-400'
+                              : isBreakTime
+                                ? 'bg-orange-400'
+                                : isWorkingHour
+                                  ? 'bg-blue-400'
+                                  : 'bg-gray-300'
+                          }`}></div>
 
-                                        return tooltip;
-                                      })()}
-                                    >
-                                      {/* Icon */}
-                                      {isInternalAction ? (
-                                        <Home className="w-3 h-3 flex-shrink-0" />
-                                      ) : (
-                                        <Navigation className="w-3 h-3 flex-shrink-0" />
-                                      )}
+                          {/* Render actual actions in their time slots */}
+                          {actualSchedules.length > 0 &&
+                            actualSchedules.map((schedule, index) => {
+                              const activityType = getActivityType(schedule.activityTypeId);
+                              const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
-                                      {/* Duration */}
-                                      <span className="text-xs font-medium flex-shrink-0">
-                                        {duration}
-                                      </span>
+                              const scheduleStart = parseISO(schedule.startDateTime);
+                              const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                                      {/* Ticket Number and Title (truncated) */}
-                                      <span className="truncate text-xs font-medium">
-                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
-                                      </span>
-                                    </div>
-                                  );
-                                })
+                              const startingSlotIndex = timeSlots.findIndex(slot => {
+                                const slotStart = slot.getTime();
+                                const scheduleStartTime = scheduleStart.getTime();
+                                const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                return hoursDiff < 1 &&
+                                       slot.getHours() === scheduleStart.getHours() &&
+                                       slot.getDate() === scheduleStart.getDate() &&
+                                       slot.getMonth() === scheduleStart.getMonth() &&
+                                       slot.getFullYear() === scheduleStart.getFullYear();
+                              });
+
+                              if (timeIndex !== startingSlotIndex) return null;
+
+                              const slotStart = timeSlots[timeIndex];
+                              const minutesFromSlotStart = scheduleStart.getMinutes();
+
+                              let currentSlotWidth = 64;
+                              let slotDurationMinutes = 60;
+
+                              switch (timeFilter) {
+                                case '2min':
+                                  currentSlotWidth = 32;
+                                  slotDurationMinutes = 2;
+                                  break;
+                                case '10min':
+                                  currentSlotWidth = 48;
+                                  slotDurationMinutes = 10;
+                                  break;
+                                case '30min':
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 30;
+                                  break;
+                                case '1hora':
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 60;
+                                  break;
+                                case '24horas':
+                                  currentSlotWidth = 128;
+                                  slotDurationMinutes = 24 * 60;
+                                  break;
+                                default:
+                                  currentSlotWidth = 64;
+                                  slotDurationMinutes = 60;
+                                  break;
                               }
-                            </div>
-                          );
-                        })()}
 
-                        {(() => {
-                          // Organize actual schedules in layers to handle overlaps
-                          const actualScheduleLayers = organizeSchedulesInLayers(actualSchedules, timeSlot);
-                          const totalActualLayers = actualScheduleLayers.length;
-                          const actualRowHeight = Math.max(40, totalActualLayers * 40); // Dynamic height based on layers
+                              const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
+                              const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
+                              const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
+                              const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
+                              const blockWidth = durationInSlots * currentSlotWidth - 4;
+                              const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'actual') : 'bg-blue-700 border-blue-500';
 
-                          return (
-                            <div 
-                              className={`relative ${
-                                !worksToday 
-                                  ? 'bg-gray-200' 
-                                  : isBreakTime 
-                                    ? 'bg-orange-100'
-                                    : isWorkingHour 
-                                      ? 'bg-white' 
-                                      : 'bg-gray-100'
-                              }`}
-                              style={{ height: `${actualRowHeight}px` }}
-                              title={
-                                !worksToday 
-                                  ? 'Não trabalha neste dia'
-                                  : isBreakTime 
-                                    ? 'Horário de intervalo'
-                                    : isWorkingHour 
-                                      ? 'Horário disponível' 
-                                      : 'Fora do horário de trabalho'
-                              }
-                            >
-                              {/* Status indicator bar */}
-                              <div className={`absolute inset-x-0 bottom-0 h-1 ${
-                                !worksToday 
-                                  ? 'bg-gray-400'
-                                  : isBreakTime 
-                                    ? 'bg-orange-400'
-                                    : isWorkingHour 
-                                      ? 'bg-blue-400' 
-                                      : 'bg-gray-300'
-                              }`}></div>
+                              return (
+                                <div
+                                  key={`${schedule.id}-actual-${index}`}
+                                  className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
+                                  style={{
+                                    left: `${2 + minuteOffset}px`,
+                                    top: `${Math.max(2, (actualRowHeight - 32) / 2 - 4)}px`,
+                                    height: '32px',
+                                    opacity: 0.8,
+                                    width: `${Math.min(blockWidth, 316)}px`,
+                                    zIndex: 8,
+                                    minWidth: '60px'
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isInternalAction) {
+                                      setSelectedInternalAction(schedule);
+                                      setShowInternalActionModal(true);
+                                    } else {
+                                      onScheduleClick(schedule);
+                                    }
+                                  }}
+                                  title={(() => {
+                                    const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
+                                    const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
+                                    const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
 
-                              {/* Render actual actions in their time slots */}
-                              {actualSchedules.length > 0 && 
-                                actualSchedules.map((schedule, index) => {
-                                  const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                    let tooltip = `${actionType} (Realizada): ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
 
-                                  // Parse schedule start and end times
-                                  const scheduleStart = parseISO(schedule.startDateTime);
-                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+                                    if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
+                                    if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
+                                    if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
 
-                                  // Find the starting time slot index for this schedule
-                                  const startingSlotIndex = timeSlots.findIndex(slot => {
-                                    const slotStart = slot.getTime();
-                                    const scheduleStartTime = scheduleStart.getTime();
-                                    const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
-                                    return hoursDiff < 1 && 
-                                           slot.getHours() === scheduleStart.getHours() &&
-                                           slot.getDate() === scheduleStart.getDate() &&
-                                           slot.getMonth() === scheduleStart.getMonth() &&
-                                           slot.getFullYear() === scheduleStart.getFullYear();
-                                  });
-
-                                  // Only render in the correct starting slot
-                                  if (timeIndex !== startingSlotIndex) return null;
-
-                                  // Calculate precise positioning within the slot based on minutes
-                                  const slotStart = timeSlots[timeIndex];
-                                  const minutesFromSlotStart = scheduleStart.getMinutes();
-
-                                  // Dynamic slot width calculation
-                                  let currentSlotWidth = 64;
-                                  let slotDurationMinutes = 60;
-
-                                  switch (timeFilter) {
-                                    case '2min':
-                                      currentSlotWidth = 32;
-                                      slotDurationMinutes = 2;
-                                      break;
-                                    case '10min':
-                                      currentSlotWidth = 48;
-                                      slotDurationMinutes = 10;
-                                      break;
-                                    case '30min':
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 30;
-                                      break;
-                                    case '1hora':
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 60;
-                                      break;
-                                    case '24horas':
-                                      currentSlotWidth = 128;
-                                      slotDurationMinutes = 24 * 60;
-                                      break;
-                                    default:
-                                      currentSlotWidth = 64;
-                                      slotDurationMinutes = 60;
-                                      break;
-                                  }
-
-                                  const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
-
-                                  // Calculate duration for display
-                                  const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
-                                  const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
-                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
-
-                                  // Calculate the width based on number of slots
-                                  const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
-
-                                  // Use status-based colors for internal actions, blue for external
-                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'actual') : 'bg-blue-700 border-blue-500';
-
-                                  return (
-                                    <div
-                                      key={`${schedule.id}-actual-${index}`}
-                                      className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
-                                      style={{ 
-                                        left: `${2 + minuteOffset}px`,
-                                        top: `${Math.max(2, (actualRowHeight - 32) / 2 - 4)}px`,
-                                        height: '32px',
-                                        opacity: 0.8, // Slightly more transparent for actual
-                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
-                                        zIndex: 8, // Lower than planned
-                                        minWidth: '60px'
-                                      }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isInternalAction) {
-                                          setSelectedInternalAction(schedule);
-                                          setShowInternalActionModal(true);
-                                        } else {
-                                          onScheduleClick(schedule);
-                                        }
-                                      }}
-                                      title={(() => {
-                                        const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
-                                        const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
-                                        const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
-
-                                        let tooltip = `${actionType} (Realizada): ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
-
-                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
-                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
-                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
-
-                                        return tooltip;
-                                      })()}
-                                    >
-                                      {/* Icon */}
-                                      {isInternalAction ? (
-                                        <Home className="w-3 h-3 flex-shrink-0" />
-                                      ) : (
-                                        <Navigation className="w-3 h-3 flex-shrink-0" />
-                                      )}
-
-                                      {/* Duration */}
-                                      <span className="text-xs font-medium flex-shrink-0">
-                                        {duration}
-                                      </span>
-
-                                      {/* Ticket Number and Title (truncated) */}
-                                      <span className="truncate text-xs font-medium">
-                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
-                                      </span>
-                                    </div>
-                                  );
-                                })
-                              }
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    );
-                  })}
+                                    return tooltip;
+                                  })()}
+                                >
+                                  {isInternalAction ? (
+                                    <Home className="w-3 h-3 flex-shrink-0" />
+                                  ) : (
+                                    <Navigation className="w-3 h-3 flex-shrink-0" />
+                                  )}
+                                  <span className="text-xs font-medium flex-shrink-0">
+                                    {duration}
+                                  </span>
+                                  <span className="truncate text-xs font-medium">
+                                    {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         </div>
