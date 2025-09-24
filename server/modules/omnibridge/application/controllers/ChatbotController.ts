@@ -338,10 +338,14 @@ export class ChatbotController {
       const tenantId = this.getTenantId(req);
       const { flowId } = req.params;
 
-      // Get flow with tenant validation using dedicated use case
-      const flow = await this.getFlowByIdUseCase.execute({ flowId, tenantId });
+      console.log('🔄 [CONTROLLER] Getting complete flow:', { flowId, tenantId });
 
-      if (!flow) {
+      // Get complete flow with nodes and edges using repository
+      const flowRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
+      const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
+
+      if (!completeFlow) {
+        console.log('❌ [CONTROLLER] Flow not found:', flowId);
         res.status(404).json({
           success: false,
           error: 'Flow not found'
@@ -349,26 +353,19 @@ export class ChatbotController {
         return;
       }
 
-      // Get nodes and edges for this flow
-      // Use the repository directly from the update use case which should have access
-      const nodeRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
-
-      // For now, return flow without nodes/edges until we implement proper repository access
-      console.log('🔄 [CONTROLLER] Retrieved flow (basic):', {
-        flowId,
-        flowName: flow.name
+      console.log('✅ [CONTROLLER] Retrieved complete flow:', {
+        flowId: completeFlow.id,
+        flowName: completeFlow.name,
+        nodeCount: completeFlow.nodes?.length || 0,
+        edgeCount: completeFlow.edges?.length || 0
       });
 
       res.json({
         success: true,
-        data: {
-          ...flow,
-          nodes: [], // TODO: Implement proper node retrieval
-          edges: []  // TODO: Implement proper edge retrieval
-        }
+        data: completeFlow
       });
     } catch (error) {
-      console.error('Error getting flow:', error);
+      console.error('❌ [CONTROLLER] Error getting flow:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get flow'

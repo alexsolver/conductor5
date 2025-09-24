@@ -214,27 +214,50 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     try {
       const tenantDb = await this.getTenantDb(tenantId);
       
-      const [nodes, edges, variables] = await Promise.all([
-        tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
-        tenantDb.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id)),
-        tenantDb.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id))
-      ]);
+      // Query nodes, edges and variables with proper error handling
+      let nodes = [];
+      let edges = [];
+      let variables = [];
+
+      try {
+        nodes = await tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id));
+      } catch (nodeError) {
+        console.warn('⚠️ [REPOSITORY] Error fetching nodes:', nodeError);
+        nodes = [];
+      }
+
+      try {
+        edges = await tenantDb.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id));
+      } catch (edgeError) {
+        console.warn('⚠️ [REPOSITORY] Error fetching edges:', edgeError);
+        edges = [];
+      }
+
+      try {
+        variables = await tenantDb.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id));
+      } catch (variableError) {
+        console.warn('⚠️ [REPOSITORY] Error fetching variables:', variableError);
+        variables = [];
+      }
 
       console.log('✅ [REPOSITORY] Retrieved complete flow data:', {
         flowId: id,
+        flowName: flow.name,
         nodeCount: nodes.length,
         edgeCount: edges.length,
-        variableCount: variables.length
+        variableCount: variables.length,
+        tenantId
       });
 
       return {
         ...flow,
-        nodes,
-        edges,
-        variables
+        nodes: nodes || [],
+        edges: edges || [],
+        variables: variables || []
       };
     } catch (error) {
       console.error('❌ [REPOSITORY] Error in findWithNodes:', error);
+      // Return flow with empty arrays instead of null
       return {
         ...flow,
         nodes: [],
@@ -244,11 +267,11 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     }
   }
 
-  async findActiveWithNodes(botId: string): Promise<ChatbotFlowWithNodes | null> {
-    const activeFlow = await this.findActiveByBot(botId);
+  async findActiveWithNodes(botId: string, tenantId: string): Promise<ChatbotFlowWithNodes | null> {
+    const activeFlow = await this.findActiveByBot(botId, tenantId);
     if (!activeFlow) return null;
 
-    return await this.findWithNodes(activeFlow.id);
+    return await this.findWithNodes(activeFlow.id, tenantId);
   }
 
   async publish(id: string): Promise<boolean> {
