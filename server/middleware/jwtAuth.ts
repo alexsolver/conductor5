@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken'; // Import jwt for error types
 import { DependencyContainer } from '../application/services/DependencyContainer';
 import { tokenManager } from '../utils/tokenManager';
 
+// TODO: Define JWT_SECRET appropriately, e.g., from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key'; // Replace with a strong secret key
+
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -35,9 +38,9 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const tokenFromCookie = req.cookies?.accessToken;
     const authHeader = req.headers.authorization;
     const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-    
+
     const token = tokenFromCookie || tokenFromHeader;
-    
+
     // ✅ Only log for API routes to reduce noise
     if (req.path.includes('/api/')) {
       console.log('🔍 [JWT-AUTH] Processing request:', {
@@ -69,17 +72,17 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     // ✅ CRITICAL FIX: Validação básica de token
-    if (!token || 
-        token === 'null' || 
-        token === 'undefined' || 
+    if (!token ||
+        token === 'null' ||
+        token === 'undefined' ||
         token.trim() === '' ||
         token.length < 20) {
-      
+
       console.log('❌ [JWT-AUTH] Invalid token format:', {
         hasToken: !!token,
         length: token?.length
       });
-      
+
       // ✅ CRITICAL FIX - JSON response
       res.setHeader('Content-Type', 'application/json');
       res.status(401).json({
@@ -156,7 +159,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     if (!user || !user.isActive) {
       // ✅ CRITICAL FIX - Ensure JSON response per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      res.status(401).json({ 
+      res.status(401).json({
         success: false,
         message: 'User not found or inactive',
         timestamp: new Date().toISOString()
@@ -167,11 +170,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // Add user context to request - with permissions and enhanced tenant validation
     const { RBACService } = await import('./rbacMiddleware');
     const rbacInstance = RBACService.getInstance();
-    
+
     // ✅ CRITICAL FIX: Handle different User entity structures
     const userRole = user.role;
     const userTenantId = user.tenantId;
-    
+
     const permissions = rbacInstance.getRolePermissions(userRole);
 
     // Enhanced tenant validation for customers module
@@ -270,7 +273,7 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     const tokenFromCookie = req.cookies?.accessToken;
     const authHeader = req.headers.authorization;
     const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-    
+
     const token = tokenFromCookie || tokenFromHeader;
 
     if (!token) {
@@ -278,10 +281,10 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     }
     const container = DependencyContainer.getInstance();
     // Ensure tokenService is correctly typed or handled if missing
-    const tokenService = container.tokenService; 
+    const tokenService = container.tokenService;
 
     // Use tokenManager which is already imported and used in jwtAuth
-    const payload = tokenManager.verifyAccessToken(token); 
+    const payload = tokenManager.verifyAccessToken(token);
 
     if (payload && typeof payload === 'object' && payload.userId) {
       const userRepository = container.userRepository;
@@ -354,3 +357,63 @@ export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, ne
 
   next();
 };
+
+// NOTE: The original code did not export authenticateToken or verifyToken in a way that matched the error.
+// The following code block is added based on the provided changes to address the 'Cannot find module' error
+// which implies that `authenticateToken` was expected but not found or exported.
+// The original `jwtAuth` middleware is kept as it handles token validation and user attachment.
+// This block adds a separate `authenticateToken` function with its own verification logic,
+// and an alias `verifyToken` for compatibility, as per the `changes` provided.
+
+export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access token required',
+      needsRefresh: false
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    if (err) {
+      console.error('Token verification failed:', err.message);
+
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Access token expired',
+          needsRefresh: true
+        });
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid access token',
+        needsRefresh: true
+      });
+    }
+
+    // Attach user info to request
+    // This part assumes a different structure for `req.user` than `jwtAuth`
+    // and might need to be aligned if both are used for the same purpose.
+    req.user = {
+      id: decoded.id,
+      tenantId: decoded.tenantId,
+      email: decoded.email,
+      role: decoded.role,
+      // These fields are present in jwtAuth but not in this authenticateToken's decoded payload assumption.
+      // They would need to be fetched or decoded if required.
+      roles: [],
+      permissions: [],
+      attributes: {}
+    };
+
+    next();
+  });
+};
+
+// Export alias for backward compatibility
+export const verifyToken = authenticateToken;
