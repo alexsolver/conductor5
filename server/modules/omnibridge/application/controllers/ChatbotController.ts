@@ -280,9 +280,9 @@ export class ChatbotController {
       const tenantId = this.getTenantId(req);
       const { botId } = req.params;
 
-      console.log('🔧 [CONTROLLER] CreateFlow debug:', { 
-        tenantId, 
-        botId, 
+      console.log('🔧 [CONTROLLER] CreateFlow debug:', {
+        tenantId,
+        botId,
         userTenantId: req.user?.tenantId,
         reqBodyKeys: Object.keys(req.body || {})
       });
@@ -405,14 +405,14 @@ export class ChatbotController {
 
           // Try to extract botId from different sources
           const botId = flowData.botId || req.body.botId || req.params.botId;
-          
+
           // If we still don't have botId, try to get it from the path
           const pathSegments = req.path.split('/');
           const chatbotIndex = pathSegments.indexOf('chatbots');
           const derivedBotId = chatbotIndex !== -1 ? pathSegments[chatbotIndex + 1] : null;
-          
+
           const finalBotId = botId || derivedBotId;
-          
+
           if (!finalBotId) {
             console.error('❌ [CONTROLLER] Cannot create flow without botId');
             res.status(400).json({
@@ -505,10 +505,11 @@ export class ChatbotController {
 
         // Save nodes and edges
         try {
+          // Save complete flow data
           const success = await this.updateFlowUseCase.chatbotFlowRepository.saveCompleteFlow(
             flowId,
-            validNodes,
-            validEdges,
+            nodes,
+            edges,
             tenantId
           );
 

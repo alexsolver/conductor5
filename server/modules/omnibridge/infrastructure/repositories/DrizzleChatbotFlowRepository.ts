@@ -202,22 +202,46 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .orderBy(desc(chatbotFlows.createdAt));
   }
 
-  async findWithNodes(id: string): Promise<ChatbotFlowWithNodes | null> {
-    const flow = await this.findById(id);
-    if (!flow) return null;
+  async findWithNodes(id: string, tenantId: string): Promise<ChatbotFlowWithNodes | null> {
+    console.log('🔍 [REPOSITORY] findWithNodes:', { id, tenantId });
+    
+    const flow = await this.findById(id, tenantId);
+    if (!flow) {
+      console.log('❌ [REPOSITORY] Flow not found for findWithNodes:', id);
+      return null;
+    }
 
-    const [nodes, edges, variables] = await Promise.all([
-      db.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
-      db.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id)),
-      db.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id))
-    ]);
+    try {
+      const tenantDb = await this.getTenantDb(tenantId);
+      
+      const [nodes, edges, variables] = await Promise.all([
+        tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
+        tenantDb.select().from(chatbotEdges).where(eq(chatbotEdges.flowId, id)),
+        tenantDb.select().from(chatbotVariables).where(eq(chatbotVariables.flowId, id))
+      ]);
 
-    return {
-      ...flow,
-      nodes,
-      edges,
-      variables
-    };
+      console.log('✅ [REPOSITORY] Retrieved complete flow data:', {
+        flowId: id,
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+        variableCount: variables.length
+      });
+
+      return {
+        ...flow,
+        nodes,
+        edges,
+        variables
+      };
+    } catch (error) {
+      console.error('❌ [REPOSITORY] Error in findWithNodes:', error);
+      return {
+        ...flow,
+        nodes: [],
+        edges: [],
+        variables: []
+      };
+    }
   }
 
   async findActiveWithNodes(botId: string): Promise<ChatbotFlowWithNodes | null> {
@@ -274,21 +298,23 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     };
   }
 
-  async saveCompleteFlow(flowId: string, nodes: any[], edges: any[]): Promise<boolean> {
+  async saveCompleteFlow(flowId: string, nodes: any[], edges: any[], tenantId: string): Promise<boolean> {
     const startTime = Date.now();
     try {
       console.log('💾 [REPOSITORY] [saveCompleteFlow] Starting complete flow save:', { 
         flowId, 
         nodeCount: nodes.length, 
         edgeCount: edges.length,
+        tenantId,
         timestamp: new Date().toISOString()
       });
       
       // Verify flow exists first
-      const existingFlow = await this.findById(flowId);
+      const existingFlow = await this.findById(flowId, tenantId);
       if (!existingFlow) {
         console.error('❌ [REPOSITORY] [saveCompleteFlow] Flow not found:', {
           flowId,
+          tenantId,
           searchAttempted: true,
           timestamp: new Date().toISOString()
         });
@@ -303,8 +329,11 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         version: existingFlow.version
       });
 
+      // Get tenant-specific database connection
+      const tenantDb = await this.getTenantDb(tenantId);
+      
       // Start transaction to save nodes and edges
-      const result = await db.transaction(async (tx) => {
+      const result = await tenantDb.transaction(async (tx) => {
         try {
           // Clear existing nodes and edges
           console.log('🗑️ [REPOSITORY] Clearing existing nodes and edges for flow:', flowId);
