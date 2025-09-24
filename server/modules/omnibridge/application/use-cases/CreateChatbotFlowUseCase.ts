@@ -9,7 +9,6 @@ export interface CreateChatbotFlowRequest {
   name: string;
   description?: string;
   isActive?: boolean;
-  settings?: Record<string, any>;
 }
 
 export class CreateChatbotFlowUseCase {

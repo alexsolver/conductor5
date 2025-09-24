@@ -106,7 +106,6 @@ export const chatbotFlows = pgTable('chatbot_flows', {
   name: varchar('name', { length: 255 }).notNull(),
   isActive: boolean('is_active').default(false).notNull(),
   description: text('description'),
-  settings: jsonb('settings').default({}).notNull(), // Flow-specific settings
   createdAt: timestamp('created_at').defaultNow().notNull(),
   publishedAt: timestamp('published_at')
 }, (table) => ({

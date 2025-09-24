@@ -30,6 +30,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
 
   // ✅ Get tenant schema name
   private getSchemaName(tenantId: string): string {
+    if (!tenantId) {
+      throw new Error('TenantId is required but was undefined');
+    }
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
   async create(flow: InsertChatbotFlow & { id?: string, tenantId: string }): Promise<SelectChatbotFlow> {

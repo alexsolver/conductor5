@@ -304,8 +304,7 @@ export class ChatbotController {
         botId: validatedData.botId,
         name: validatedData.name,
         description: validatedData.description,
-        isActive: validatedData.isActive,
-        settings: validatedData.settings || {}
+        isActive: validatedData.isActive
       };
 
       console.log('🔧 [CONTROLLER] Final createRequest:', createRequest);

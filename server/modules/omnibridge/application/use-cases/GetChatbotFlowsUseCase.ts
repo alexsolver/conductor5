@@ -23,7 +23,7 @@ export class GetChatbotFlowsUseCase {
         throw new Error('Bot not found or access denied');
       }
       
-      return await this.chatbotFlowRepository.findByBot(botId);
+      return await this.chatbotFlowRepository.findByBot(botId, tenantId);
     }
     
     // If no botId provided, get all flows for all bots in tenant
@@ -31,7 +31,7 @@ export class GetChatbotFlowsUseCase {
     const allFlows: SelectChatbotFlow[] = [];
     
     for (const bot of bots) {
-      const flows = await this.chatbotFlowRepository.findByBot(bot.id);
+      const flows = await this.chatbotFlowRepository.findByBot(bot.id, tenantId);
       allFlows.push(...flows);
     }
     
