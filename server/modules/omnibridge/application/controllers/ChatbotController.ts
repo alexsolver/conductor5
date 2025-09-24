@@ -345,9 +345,23 @@ export class ChatbotController {
         return;
       }
 
+      // Get nodes and edges for this flow
+      // Use the repository directly from the update use case which should have access
+      const nodeRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
+      
+      // For now, return flow without nodes/edges until we implement proper repository access
+      console.log('🔄 [CONTROLLER] Retrieved flow (basic):', {
+        flowId,
+        flowName: flow.name
+      });
+
       res.json({
         success: true,
-        data: flow
+        data: {
+          ...flow,
+          nodes: [], // TODO: Implement proper node retrieval
+          edges: []  // TODO: Implement proper edge retrieval
+        }
       });
     } catch (error) {
       console.error('Error getting flow:', error);

@@ -300,6 +300,58 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     enabled: !!botId
   });
 
+  // Load complete flow data with nodes and edges when a flow is selected
+  const { data: completeFlowData, isLoading: loadingCompleteFlow, error: completeFlowError } = useQuery<{
+    data: ChatbotFlow & { 
+      nodes: Array<{
+        id: string;
+        flowId: string;
+        category: string;
+        type: string;
+        title: string;
+        description?: string;
+        position: { x: number; y: number };
+        config: any;
+        isStart: boolean;
+        isEnd: boolean;
+        isEnabled: boolean;
+      }>;
+      edges: Array<{
+        id: string;
+        flowId: string;
+        fromNodeId: string;
+        toNodeId: string;
+        label?: string;
+        condition?: string;
+        kind: string;
+        order: number;
+        isEnabled: boolean;
+      }>;
+    }
+  }>({
+    queryKey: ['/api/omnibridge/flows', selectedFlow?.id],
+    queryFn: async () => {
+      if (!selectedFlow?.id) throw new Error('No flow selected');
+      console.log('🌐 [FLOW-QUERY] Fetching complete flow data for:', selectedFlow.id);
+      const response = await apiRequest('GET', `/api/omnibridge/flows/${selectedFlow.id}`);
+      console.log('🌐 [FLOW-QUERY] Response status:', response.status);
+      if (!response.ok) {
+        console.error('🌐 [FLOW-QUERY] Failed to fetch flow:', response.statusText);
+        throw new Error(`Failed to fetch flow: ${response.status} ${response.statusText}`);
+      }
+      const result = await response.json();
+      console.log('🌐 [FLOW-QUERY] Got complete flow data:', {
+        flowId: result.data?.id,
+        nodeCount: result.data?.nodes?.length || 0,
+        edgeCount: result.data?.edges?.length || 0
+      });
+      return result;
+    },
+    enabled: !!(selectedFlow?.id && !selectedFlow.id.startsWith('flow_')), // Only for real UUIDs, not temp IDs
+    retry: 3,
+    retryDelay: 1000
+  });
+
   // Create flow mutation
   const createFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
@@ -443,47 +495,93 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   }, [bot, flows, botId, selectedBot, selectedFlow]);
 
-  // Load nodes and edges when a flow is selected
+  // Load nodes and edges from complete flow data
   useEffect(() => {
-    if (selectedFlow?.id && selectedFlow.metadata) {
-      console.log('🔄 [FLOW-LOAD] Loading nodes and edges for flow:', selectedFlow.id);
-      
-      try {
-        // Load nodes from metadata
-        if (selectedFlow.metadata.flowNodes) {
-          const parsedNodes = typeof selectedFlow.metadata.flowNodes === 'string' 
-            ? JSON.parse(selectedFlow.metadata.flowNodes) 
-            : selectedFlow.metadata.flowNodes;
-          console.log('🔄 [FLOW-LOAD] Loaded nodes:', parsedNodes);
-          setNodes(parsedNodes);
-        } else {
-          console.log('🔄 [FLOW-LOAD] No nodes found, resetting to empty');
-          setNodes([]);
+    console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
+      hasCompleteFlowData: !!completeFlowData?.data,
+      selectedFlowId: selectedFlow?.id,
+      isLoadingCompleteFlow: loadingCompleteFlow,
+      completeFlowError: completeFlowError?.message
+    });
+
+    if (completeFlowData?.data) {
+      console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
+        flowId: completeFlowData.data.id,
+        nodeCount: completeFlowData.data.nodes?.length || 0,
+        edgeCount: completeFlowData.data.edges?.length || 0
+      });
+
+      // Map backend nodes to ReactFlow format
+      const mappedNodes = (completeFlowData.data.nodes || []).map(node => ({
+        id: node.id,
+        type: node.type,
+        position: node.position,
+        data: {
+          label: node.title,
+          description: node.description,
+          category: node.category,
+          isStart: node.isStart,
+          isEnd: node.isEnd,
+          isEnabled: node.isEnabled,
+          config: node.config,
+          flowId: node.flowId
         }
-        
-        // Load edges from metadata
-        if (selectedFlow.metadata.flowEdges) {
-          const parsedEdges = typeof selectedFlow.metadata.flowEdges === 'string' 
-            ? JSON.parse(selectedFlow.metadata.flowEdges) 
-            : selectedFlow.metadata.flowEdges;
-          console.log('🔄 [FLOW-LOAD] Loaded edges:', parsedEdges);
-          setEdges(parsedEdges);
-        } else {
-          console.log('🔄 [FLOW-LOAD] No edges found, resetting to empty');
-          setEdges([]);
-        }
-      } catch (error) {
-        console.error('🔄 [FLOW-LOAD] Error parsing flow data:', error);
-        setNodes([]);
-        setEdges([]);
-      }
-    } else if (selectedFlow?.id) {
-      // New flow with no saved data
-      console.log('🔄 [FLOW-LOAD] New flow detected, starting with empty canvas');
+      }));
+
+      // Map backend edges to ReactFlow format
+      const mappedEdges = (completeFlowData.data.edges || []).map(edge => ({
+        id: edge.id,
+        source: edge.fromNodeId,
+        target: edge.toNodeId,
+        label: edge.label,
+        data: {
+          condition: edge.condition,
+          kind: edge.kind,
+          order: edge.order,
+          isEnabled: edge.isEnabled,
+          flowId: edge.flowId
+        },
+        animated: false
+      }));
+
+      console.log('🔄 [FLOW-LOAD] Mapped data:', {
+        nodes: mappedNodes.length,
+        edges: mappedEdges.length,
+        firstNode: mappedNodes[0]?.data?.label,
+        firstEdge: mappedEdges[0]?.label
+      });
+
+      setNodes(mappedNodes);
+      setEdges(mappedEdges);
+    } else if (selectedFlow?.id && !selectedFlow.id.startsWith('flow_') && !loadingCompleteFlow && completeFlowError) {
+      console.log('🔄 [FLOW-LOAD] Query failed, setting empty canvas. Error:', completeFlowError.message);
+      setNodes([]);
+      setEdges([]);
+    } else if (selectedFlow?.id && !selectedFlow.id.startsWith('flow_') && !loadingCompleteFlow) {
+      // Real flow but no data loaded yet - keep current state or set empty
+      console.log('🔄 [FLOW-LOAD] Waiting for complete flow data...');
+    } else if (selectedFlow?.id && selectedFlow.id.startsWith('flow_')) {
+      // Temporary flow ID - start with empty canvas
+      console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
       setNodes([]);
       setEdges([]);
     }
-  }, [selectedFlow?.id, selectedFlow?.metadata]);
+  }, [completeFlowData, selectedFlow?.id, loadingCompleteFlow, completeFlowError]);
+
+  // Debug log for query status
+  useEffect(() => {
+    if (selectedFlow?.id) {
+      console.log('🔄 [FLOW-QUERY-DEBUG] Query status:', {
+        flowId: selectedFlow.id,
+        isTemporary: selectedFlow.id.startsWith('flow_'),
+        enabled: !!(selectedFlow?.id && !selectedFlow.id.startsWith('flow_')),
+        isLoading: loadingCompleteFlow,
+        hasData: !!completeFlowData,
+        hasError: !!completeFlowError,
+        errorMsg: completeFlowError?.message
+      });
+    }
+  }, [selectedFlow?.id, loadingCompleteFlow, completeFlowData, completeFlowError]);
 
   // Filter nodes based on search and category
   const getFilteredNodes = useCallback((category: keyof typeof NODE_CATEGORIES) => {
