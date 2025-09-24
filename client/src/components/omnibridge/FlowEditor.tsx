@@ -761,42 +761,29 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   const handleCanvasDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-
-    if (!canvasRef.current || !selectedFlow) {
-      console.log('🐛 [DRAG] Cannot drop - missing canvas or selected flow');
-      return;
-    }
-
-    const draggedNodeType = e.dataTransfer.getData('nodeType');
-    if (!draggedNodeType) {
-      console.log('🐛 [DRAG] No node type in drag data');
-      return;
-    }
-
     console.log('🐛 [DRAG] Drop event fired', {
       draggedNodeType,
       hasCanvasRef: !!canvasRef.current,
-      selectedFlow: selectedFlow.id,
+      selectedFlow: selectedFlow?.id,
       selectedFlowExists: !!selectedFlow
     });
 
+    if (!draggedNodeType || !canvasRef.current || !selectedFlow) {
+      console.log('🐛 [DRAG] Drop cancelled - missing requirements');
+      return;
+    }
+
     const rect = canvasRef.current.getBoundingClientRect();
-    const position = {
-      x: Math.max(0, e.clientX - rect.left - 50), // Center the node
-      y: Math.max(0, e.clientY - rect.top - 25)
-    };
+    const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
+    const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
 
-    console.log('🐛 [DRAG] Drop position:', position);
+    console.log('🐛 [DRAG] Drop position:', { x, y });
 
-    // Find node data from categories
-    let nodeData = null;
-    let nodeCategory = '';
-    for (const [categoryKey, category] of Object.entries(NODE_CATEGORIES)) {
-      nodeData = category.nodes.find(n => n.id === draggedNodeType);
-      if (nodeData) {
-        nodeCategory = categoryKey;
-        break;
-      }
+    // Find the node data from all categories
+    let nodeData: any = null;
+    for (const category of Object.values(NODE_CATEGORIES)) {
+      nodeData = category.nodes.find(node => node.id === draggedNodeType);
+      if (nodeData) break;
     }
 
     if (!nodeData) {
@@ -806,21 +793,14 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     console.log('🐛 [DRAG] Node data found:', nodeData);
 
-    // Create node with proper structure for backend
-    const newNode = {
+    // Create new node
+    const newNode: FlowNode = {
       id: `node_${Date.now()}`,
-      type: draggedNodeType,
-      title: nodeData.name,
-      category: nodeCategory,
-      description: nodeData.description || '',
-      position,
-      config: {},
-      isStart: false,
-      isEnd: false,
-      isEnabled: true,
-      // Legacy fields for compatibility
       flowId: selectedFlow.id,
       name: nodeData.name,
+      type: draggedNodeType,
+      category: getCategoryForNodeType(draggedNodeType),
+      position: { x, y },
       configuration: {},
       metadata: {},
       isActive: true
@@ -828,13 +808,11 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     console.log('🐛 [DRAG] Creating new node:', newNode);
 
-    setSelectedFlow(prev => prev ? {
-      ...prev,
-      nodes: [...(prev.nodes || []), newNode]
-    } : null);
+    // Add to nodes state
+    setNodes(prevNodes => [...prevNodes, newNode]);
 
-    // Auto-save after adding node
-    if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
+    // Auto-save the flow after a short delay
+    if (handleSaveFlow) {
       setTimeout(() => {
         handleSaveFlow();
       }, 500);
@@ -844,118 +822,77 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   }, [selectedFlow, handleSaveFlow]);
 
-  const handleNodeClick = (node: FlowNode) => {
-    setSelectedNode(node);
-    setNodeConfig(node.configuration);
-    setShowNodeConfig(true);
-  };
+  // Canvas mouse event handlers
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Only handle left click
 
-  const saveNodeConfig = () => {
-    if (!selectedNode) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-    setNodes(prev => prev.map(node =>
-      node.id === selectedNode.id
-        ? { ...node, configuration: nodeConfig }
-        : node
-    ));
-
-    setShowNodeConfig(false);
-  };
-
-  // Handle node drag start (for moving existing nodes)
-  const handleNodeDragStart = (e: React.DragEvent, node: FlowNode) => {
-    e.stopPropagation();
-    setDraggedNode(node);
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+    setIsCanvasDragging(true);
+    setStartCanvasDragPos({
+      x: e.clientX - canvasOffset.x,
+      y: e.clientY - canvasOffset.y
     });
-    console.log('🐛 [NODE-MOVE] Starting to move node:', node.id);
-  };
+  }, [canvasOffset]);
 
-  // Handle node move via canvas drop
-  const handleNodeMove = (e: React.DragEvent) => {
-    e.preventDefault();
-
-    if (draggedNode && canvasRef.current) {
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    // Update mouse position for connection preview
+    if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
-      const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
-
-      setNodes(prev => prev.map(node =>
-        node.id === draggedNode.id
-          ? { ...node, position: { x, y } }
-          : node
-      ));
-
-      console.log('🐛 [NODE-MOVE] Moved node to:', { x, y });
-    }
-    setDraggedNode(null); // Reset draggedNode state after move
-    setDragOffset({ x: 0, y: 0 });
-  };
-
-  // Handle connection start
-  const handleConnectionStart = (nodeId: string, isOutput: boolean) => {
-    if (connecting) {
-      // If we already have a connection started, complete it
-      handleConnectionEnd(nodeId, !isOutput);
-      return;
-    }
-
-    setConnecting({ nodeId, isSource: isOutput });
-    setConnectionStart(nodeId); // Set connection start node
-    console.log('🔗 [CONNECTION] Starting connection from:', nodeId, isOutput ? 'output' : 'input');
-  };
-
-  // Handle connection end
-  const handleConnectionEnd = (nodeId: string, isInput: boolean) => {
-    if (!connecting || connecting.nodeId === nodeId) {
-      console.log('🔗 [CONNECTION] Cancelling connection - same node or no active connection');
-      setConnecting(null);
-      setConnectionStart(null);
-      return;
-    }
-
-    // Only connect if we're connecting from output to input
-    if (connecting.isSource && isInput) {
-      // Create new edge
-      const newEdge: FlowEdge = {
-        id: `edge_${Date.now()}`,
-        flowId: selectedFlow?.id || '',
-        sourceNodeId: connecting.nodeId, // Use the nodeId from connecting state
-        targetNodeId: nodeId, // Use the nodeId from the argument
-        sourceHandle: 'output',
-        targetHandle: 'input',
-        metadata: {}
-      };
-
-      console.log('🔗 [CONNECTION] Creating edge:', newEdge);
-      setEdges(prev => [...prev, newEdge]);
-
-      toast({
-        title: 'Conexão Criada',
-        description: 'Nós conectados com sucesso'
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
       });
-
-      // Auto-save after creating connection
-      setTimeout(() => {
-        if (selectedFlow) {
-          handleSaveFlow();
-        }
-      }, 500);
-    } else {
-      console.log('🔗 [CONNECTION] Invalid connection type');
     }
 
-    setConnecting(null);
-    setConnectionStart(null);
+    if (!isCanvasDragging) return;
+
+    const deltaX = e.clientX - startCanvasDragPos.x;
+    const deltaY = e.clientY - startCanvasDragPos.y;
+
+    setCanvasOffset({
+      x: deltaX,
+      y: deltaY
+    });
+  }, [isCanvasDragging, startCanvasDragPos]);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    setIsCanvasDragging(false);
+  }, []);
+
+
+  // Helper to get node position with offset and zoom applied
+  const getNodePosition = (nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return null;
+
+    // Adjust position for canvas offset and zoom
+    const adjustedX = node.position.x + canvasOffset.x;
+    const adjustedY = node.position.y + canvasOffset.y;
+
+    return { x: adjustedX, y: adjustedY };
   };
 
-  const getCategoryFromType = (type: string | undefined): string => {
-    if (!type) return 'unknown';
-    return type.split('-')[0];
+
+  const handleNodeConfigSave = (nodeId: string, newConfig: Record<string, any>) => {
+    setSelectedNodeConfig(prev => ({
+      ...prev,
+      [nodeId]: newConfig
+    }));
+    // Find the node in the current nodes state and update its configuration
+    setNodes(prevNodes =>
+      prevNodes.map(node =>
+        node.id === nodeId ? { ...node, configuration: newConfig } : node
+      )
+    );
+    setShowNodeConfig(false);
+    // Optionally auto-save after config change
+    setTimeout(() => {
+      handleSaveFlow();
+    }, 500);
   };
+
 
   // Render loading state only if we don't have basic data
   if (isLoadingBots || (isLoadingFlows && !botData)) {
@@ -1092,7 +1029,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
           <div
             ref={canvasRef}
-            className="w-full h-full relative cursor-move"
+            className="w-full h-full relative cursor-grab active:cursor-grabbing"
             style={{
               transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
               transformOrigin: 'top left'
@@ -1100,8 +1037,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
-            onDrop={handleCanvasDrop} // Use handleCanvasDrop for dropping nodes
-            onDragOver={handleCanvasDrop} // Use handleCanvasDrop for drag over as well
+            onDrop={handleCanvasDrop}
+            onDragOver={e => e.preventDefault()} // Allow drop
           >
             {/* Grid Background */}
             <div
@@ -1140,7 +1077,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             {nodes.map(node => (
               <div
                 key={node.id}
-                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow node-container
+                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow node-container
                   ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
                 `}
                 style={{
@@ -1155,7 +1092,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   handleNodeDragStart(e, node);
                   setSelectedNodeId(node.id);
                 }}
-                onDragEnd={() => setDraggedNode(null)} // Reset dragged node state
+                onDragEnd={() => setDraggedNode(null)}
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent canvas drag from starting
                   setSelectedNodeId(node.id);
@@ -1217,11 +1154,11 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
               if (!sourcePos || !targetPos) return null;
 
-              // Use specific handles if available, otherwise default to center
-              const sourceHandleX = edge.sourceHandle === 'output' ? sourceNode.position.x + 150 : sourceNode.position.x + 75; // Example adjustment
-              const sourceHandleY = sourceNode.position.y + 20;
-              const targetHandleX = edge.targetHandle === 'input' ? targetNode.position.x : targetNode.position.x + 75; // Example adjustment
-              const targetHandleY = targetNode.position.y + 20;
+              // Adjust for node width and height to connect to handles
+              const sourceHandleX = sourcePos.x + 150; // Assuming node width is 150
+              const sourceHandleY = sourcePos.y + 20; // Assuming node height is 40
+              const targetHandleX = targetPos.x;
+              const targetHandleY = targetPos.y + 20;
 
               // Create curved path
               const midX = (sourceHandleX + targetHandleX) / 2;
@@ -1261,10 +1198,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             {connecting && connectionStart && (
               <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
                 <line
-                  x1={getNodePosition(connectionStart)?.x || 0}
-                  y1={getNodePosition(connectionStart)?.y || 0}
-                  x2={mousePosition.x - (canvasRef.current?.getBoundingClientRect().left || 0)} // Adjust for canvas offset
-                  y2={mousePosition.y - (canvasRef.current?.getBoundingClientRect().top || 0)} // Adjust for canvas offset
+                  x1={getNodePosition(connectionStart)?.x ?? 0}
+                  y1={getNodePosition(connectionStart)?.y ?? 0}
+                  x2={mousePosition.x} // Mouse position is relative to the canvas
+                  y2={mousePosition.y} // Mouse position is relative to the canvas
                   stroke="#3b82f6"
                   strokeWidth="2"
                   strokeDasharray="5,5"
