@@ -17,6 +17,6 @@ export class DeleteChatbotBotUseCase {
       return false;
     }
 
-    return await this.chatbotBotRepository.delete(botId);
+    return await this.chatbotBotRepository.delete(botId, tenantId);
   }
 }
