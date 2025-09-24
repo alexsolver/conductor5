@@ -314,7 +314,21 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     },
     onSuccess: (data) => {
       console.log('🔄 [FLOW-CREATE] Flow created successfully:', data.data);
-      setSelectedFlow(data.data);
+      
+      // Preserve current nodes and edges when updating to real flow
+      const updatedFlow = {
+        ...data.data,
+        metadata: {
+          ...data.data.metadata,
+          flowNodes: JSON.stringify(nodes),
+          flowEdges: JSON.stringify(edges),
+          nodeCount: nodes.length,
+          edgeCount: edges.length,
+          lastModified: new Date().toISOString()
+        }
+      };
+      
+      setSelectedFlow(updatedFlow);
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
       toast({
         title: 'Flow Criado',
