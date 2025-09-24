@@ -336,8 +336,10 @@ export const selectChatbotBotSchema = createSelectSchema(chatbotBots);
 
 // Flow schemas
 export const insertChatbotFlowSchema = createInsertSchema(chatbotFlows).omit({
+  id: true,
+  tenantId: true, // Handled separately in controller for security
   createdAt: true,
-  publishedAt: true
+  updatedAt: true
 }).extend({
   id: z.string().optional()
 });

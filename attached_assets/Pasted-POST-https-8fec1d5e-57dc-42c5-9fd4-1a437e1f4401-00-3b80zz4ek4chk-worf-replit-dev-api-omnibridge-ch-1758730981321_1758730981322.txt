@@ -1,0 +1,38 @@
+POST https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/omnibridge/chatbots/83a270cb-f10d-4bac-839d-8e322c589e96/flows 400
+
+Request Data
+
+{"name":"Fluxo Principal","description":"Fluxo padrão do chatbot","isActive":true,"metadata":{"flowNodes":"[{\"id\":\"node_1758730967984\",\"flowId\":\"flow_1758730966516\",\"category\":\"actions\",\"type\":\"trigger-intent\",\"title\":\"Untitled Node\",\"description\":\"\",\"position\":{\"x\":226,\"y\":179},\"config\":{},\"isStart\":false,\"isEnd\":false,\"isEnabled\":true}]","flowEdges":"[]","nodeCount":1,"edgeCount":0,"lastModified":"2025-09-24T16:22:48.961Z"}}
+
+Request Headers
+
+Content-Type: application/json
+x-tenant-id: 3f99462f-3621-4b1b-bea8-782acc50d62e
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 164
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Wed, 24 Sep 2025 16:22:49 GMT
+etag: W/"a4-WMzMNjvBMgzvvM4XPxsXha386dM"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-25T16:22:49.040Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"error":"Validation error","details":[{"code":"invalid_type","expected":"string","received":"undefined","path":["tenantId"],"message":"Required"}]}
