@@ -1238,7 +1238,7 @@ export default function AutomationRuleBuilder({
 
         {/* Trigger Configuration Modal */}
         <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-          <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle>Configurar Gatilho</DialogTitle>
               <DialogDescription>
@@ -1248,36 +1248,47 @@ export default function AutomationRuleBuilder({
             <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
                 {/* Trigger Selection */}
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Tipos de Gatilho</h3>
-                    <div className="grid gap-3">
-                      {triggerTemplates.map((template) => {
-                        const IconComponent = template.icon;
-                        return (
-                          <Card 
-                            key={template.type} 
-                            className={`cursor-pointer transition-all hover:shadow-md ${
-                              selectedTrigger?.type === template.type ? 'ring-2 ring-blue-500' : ''
-                            }`}
-                            onClick={() => handleTriggerSelect(template)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-md ${template.color}`}>
-                                  <IconComponent className="h-5 w-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-medium">{template.name}</h4>
-                                  <p className="text-sm text-gray-500">{template.description}</p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                          <Target className="h-5 w-5" />
+                          Gatilhos Disponíveis
+                        </h3>
+                        <div className="space-y-3">
+                          {triggerTemplates.map((template) => {
+                            const IconComponent = template.icon;
+                            return (
+                              <Card
+                                key={template.type}
+                                className={`cursor-pointer transition-all hover:shadow-md ${
+                                  selectedTrigger?.type === template.type ? 'ring-2 ring-blue-500' : ''
+                                }`}
+                                onClick={() => handleTriggerSelect({
+                                  ...template,
+                                  id: `trigger_${Date.now()}`,
+                                  config: {}
+                                })}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-md ${template.color}`}>
+                                      <IconComponent className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="font-medium">{template.name}</h4>
+                                      <p className="text-sm text-gray-500">{template.description}</p>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Trigger Configuration */}
@@ -1320,7 +1331,7 @@ export default function AutomationRuleBuilder({
 
         {/* Action Configuration Modal */}
         <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-          <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle>Configurar Ação</DialogTitle>
               <DialogDescription>
@@ -1330,36 +1341,43 @@ export default function AutomationRuleBuilder({
             <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
                 {/* Action Selection */}
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Tipos de Ação</h3>
-                    <div className="grid gap-3">
-                      {actionTemplates.map((template) => {
-                        const IconComponent = template.icon;
-                        return (
-                          <Card 
-                            key={template.type} 
-                            className={`cursor-pointer transition-all hover:shadow-md ${
-                              selectedAction?.type === template.type ? 'ring-2 ring-blue-500' : ''
-                            }`}
-                            onClick={() => handleActionSelect(template)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-md ${template.color}`}>
-                                  <IconComponent className="h-5 w-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-medium">{template.name}</h4>
-                                  <p className="text-sm text-gray-500">{template.description}</p>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                          <Zap className="h-5 w-5" />
+                          Ações Disponíveis
+                        </h3>
+                        <div className="space-y-3">
+                          {actionTemplates.map((template) => {
+                            const IconComponent = template.icon;
+                            return (
+                              <Card
+                                key={template.type}
+                                className={`cursor-pointer transition-all hover:shadow-md ${
+                                  selectedAction?.type === template.type ? 'ring-2 ring-blue-500' : ''
+                                }`}
+                                onClick={() => handleActionSelect(template)}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-md ${template.color}`}>
+                                      <IconComponent className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="font-medium">{template.name}</h4>
+                                      <p className="text-sm text-gray-500">{template.description}</p>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Action Configuration */}
