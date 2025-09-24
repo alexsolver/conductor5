@@ -287,6 +287,19 @@ export class ChatbotController {
         reqBodyKeys: Object.keys(req.body || {})
       });
 
+      // First verify that the bot exists and belongs to this tenant
+      const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
+      if (!bot) {
+        console.log('❌ [CONTROLLER] Bot not found or access denied:', { botId, tenantId });
+        res.status(404).json({
+          success: false,
+          error: 'Bot not found or access denied'
+        });
+        return;
+      }
+
+      console.log('✅ [CONTROLLER] Bot verified:', { botId: bot.id, botName: bot.name });
+
       // Remove tenantId from request body since it's not part of flow table
       const { tenantId: _, ...bodyWithoutTenantId } = req.body;
 

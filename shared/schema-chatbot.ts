@@ -118,7 +118,7 @@ export const chatbotFlows = pgTable('chatbot_flows', {
   tenantIdx: index('chatbot_flows_tenant_idx').on(table.tenantId),
   botIdFk: foreignKey({
     columns: [table.botId],
-    foreignColumns: [omnibridgeChatbots.id]
+    foreignColumns: [chatbotBots.id]
   }).onDelete('cascade')
 }));
 
