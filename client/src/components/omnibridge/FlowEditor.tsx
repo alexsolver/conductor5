@@ -270,14 +270,15 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [nodes, setNodes] = useState<FlowNode[]>([]);
   const [edges, setEdges] = useState<FlowEdge[]>([]);
   const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
+  const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [connecting, setConnecting] = useState<{nodeId: string, isSource: boolean} | null>(null);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNodeConfig, setShowNodeConfig] = useState(false);
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
-  const [connecting, setConnecting] = useState(false);
-  const [connectionStart, setConnectionStart] = useState<string | null>(null);
 
   // Load bot data
   const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
@@ -400,6 +401,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    
+    // Check if we're moving an existing node
+    if (draggedNode) {
+      handleNodeMove(e);
+      return;
+    }
+    
     console.log('🐛 [DRAG] Drop event fired', {
       draggedNodeType,
       hasCanvasRef: !!canvasRef.current,
@@ -469,6 +477,71 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     ));
 
     setShowNodeConfig(false);
+  };
+
+  // Handle node drag start (for moving existing nodes)
+  const handleNodeDragStart = (e: React.DragEvent, node: FlowNode) => {
+    e.stopPropagation();
+    setDraggedNode(node);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    console.log('🐛 [NODE-MOVE] Starting to move node:', node.id);
+  };
+
+  // Handle node move via canvas drop
+  const handleNodeMove = (e: React.DragEvent) => {
+    e.preventDefault();
+    
+    if (draggedNode) {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
+      const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
+
+      setNodes(prev => prev.map(node => 
+        node.id === draggedNode.id 
+          ? { ...node, position: { x, y } }
+          : node
+      ));
+      
+      console.log('🐛 [NODE-MOVE] Moved node to:', { x, y });
+      setDraggedNode(null);
+      setDragOffset({ x: 0, y: 0 });
+    }
+  };
+
+  // Handle connection start
+  const handleConnectionStart = (nodeId: string, isOutput: boolean) => {
+    setConnecting({ nodeId, isSource: isOutput });
+    console.log('🔗 [CONNECTION] Starting connection from:', nodeId, isOutput ? 'output' : 'input');
+  };
+
+  // Handle connection end
+  const handleConnectionEnd = (nodeId: string, isInput: boolean) => {
+    if (!connecting || !isInput || connecting.nodeId === nodeId) {
+      setConnecting(null);
+      return;
+    }
+
+    // Create new edge
+    const newEdge: FlowEdge = {
+      id: `edge_${Date.now()}`,
+      flowId: selectedFlow?.id || '',
+      sourceNodeId: connecting.nodeId,
+      targetNodeId: nodeId,
+      sourceHandle: 'output',
+      targetHandle: 'input',
+      style: {},
+      metadata: {}
+    };
+
+    console.log('🔗 [CONNECTION] Creating edge:', newEdge);
+    setEdges(prev => [...prev, newEdge]);
+    setConnecting(null);
   };
 
   const handleSaveFlow = () => {
@@ -628,29 +701,119 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
               {nodes.map(node => (
                 <div
                   key={node.id}
-                  className="absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-pointer hover:shadow-lg transition-shadow"
+                  className="absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow select-none"
                   style={{
                     left: node.position.x,
                     top: node.position.y,
                     minWidth: 150
                   }}
+                  draggable
+                  onDragStart={(e) => handleNodeDragStart(e, node)}
+                  onDragEnd={() => setDraggedNode(null)}
                   onClick={() => handleNodeClick(node)}
                   data-testid={`canvas-node-${node.id}`}
                 >
+                  {/* Connection point - input */}
+                  <div 
+                    className="absolute -left-2 top-1/2 w-4 h-4 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600 transition-colors"
+                    style={{ transform: 'translateY(-50%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConnectionEnd(node.id, true);
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleConnectionStart(node.id, false);
+                    }}
+                    title="Entrada"
+                  />
+                  
+                  {/* Node content */}
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${NODE_CATEGORIES[node.category as keyof typeof NODE_CATEGORIES]?.color || 'bg-gray-400'}`}></div>
                     <span className="font-medium text-sm">{node.name}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">{node.type}</div>
+                  
+                  {/* Connection point - output */}
+                  <div 
+                    className="absolute -right-2 top-1/2 w-4 h-4 bg-green-500 rounded-full cursor-pointer hover:bg-green-600 transition-colors"
+                    style={{ transform: 'translateY(-50%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConnectionEnd(node.id, false);
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleConnectionStart(node.id, true);
+                    }}
+                    title="Saída"
+                  />
                 </div>
               ))}
 
               {/* Render edges */}
-              {edges.map(edge => (
-                <svg key={edge.id} className="absolute inset-0 pointer-events-none">
-                  {/* Edge rendering logic would go here */}
+              <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+                {edges.map(edge => {
+                  const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
+                  const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+                  
+                  if (!sourceNode || !targetNode) return null;
+                  
+                  const x1 = sourceNode.position.x + 150; // Source output point
+                  const y1 = sourceNode.position.y + 20; // Center of node
+                  const x2 = targetNode.position.x; // Target input point
+                  const y2 = targetNode.position.y + 20; // Center of node
+                  
+                  // Create curved path
+                  const midX = (x1 + x2) / 2;
+                  const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+                  
+                  return (
+                    <g key={edge.id}>
+                      <path
+                        d={path}
+                        stroke="#6b7280"
+                        strokeWidth="2"
+                        fill="none"
+                        markerEnd="url(#arrowhead)"
+                      />
+                    </g>
+                  );
+                })}
+                
+                {/* Arrow marker definition */}
+                <defs>
+                  <marker
+                    id="arrowhead"
+                    markerWidth="10"
+                    markerHeight="7"
+                    refX="9"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <polygon
+                      points="0 0, 10 3.5, 0 7"
+                      fill="#6b7280"
+                    />
+                  </marker>
+                </defs>
+              </svg>
+              
+              {/* Show connection line when connecting */}
+              {connecting && (
+                <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+                  <line
+                    x1={nodes.find(n => n.id === connecting.nodeId)?.position.x! + (connecting.isSource ? 150 : 0)}
+                    y1={nodes.find(n => n.id === connecting.nodeId)?.position.y! + 20}
+                    x2={0}
+                    y2={0}
+                    stroke="#3b82f6"
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                  />
                 </svg>
-              ))}
+              )}
             </div>
           </div>
 
