@@ -546,6 +546,13 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         title: 'Nó Adicionado',
         description: `Nó ${nodeData.name} adicionado ao fluxo`
       });
+      
+      // Auto-save after creating node
+      setTimeout(() => {
+        if (selectedFlow) {
+          handleSaveFlow();
+        }
+      }, 500);
     } else {
       console.log('🐛 [DRAG] Failed to create node - missing nodeData or selectedFlow');
     }
