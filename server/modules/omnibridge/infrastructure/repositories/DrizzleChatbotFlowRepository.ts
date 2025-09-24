@@ -210,6 +210,13 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     try {
       console.log('💾 [REPOSITORY] Saving complete flow:', { flowId, nodeCount: nodes.length, edgeCount: edges.length });
       
+      // Verify flow exists first
+      const existingFlow = await this.findById(flowId);
+      if (!existingFlow) {
+        console.error('❌ [REPOSITORY] Flow not found:', flowId);
+        return false;
+      }
+
       // Start transaction to save nodes and edges
       await db.transaction(async (tx) => {
         // Clear existing nodes and edges
@@ -222,10 +229,15 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
           const nodesToInsert = nodes.map(node => ({
             id: node.id,
             flowId,
-            type: node.type,
-            label: node.data?.label || node.label || '',
-            position: JSON.stringify(node.position || { x: 0, y: 0 }),
-            config: JSON.stringify(node.data || node.config || {}),
+            category: node.category || 'action',
+            type: node.type || 'default',
+            title: node.data?.label || node.label || node.title || 'Untitled Node',
+            description: node.data?.description || node.description,
+            position: node.position || { x: 0, y: 0 },
+            config: node.data || node.config || {},
+            isStart: Boolean(node.isStart || node.data?.isStart),
+            isEnd: Boolean(node.isEnd || node.data?.isEnd),
+            isEnabled: Boolean(node.isEnabled !== undefined ? node.isEnabled : true),
             createdAt: new Date(),
             updatedAt: new Date()
           }));
@@ -239,13 +251,14 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
           const edgesToInsert = edges.map(edge => ({
             id: edge.id,
             flowId,
-            sourceNodeId: edge.source,
-            targetNodeId: edge.target,
-            sourceHandle: edge.sourceHandle || 'output',
-            targetHandle: edge.targetHandle || 'input',
-            metadata: JSON.stringify(edge.metadata || {}),
-            createdAt: new Date(),
-            updatedAt: new Date()
+            fromNodeId: edge.source,
+            toNodeId: edge.target,
+            label: edge.label || edge.data?.label,
+            condition: edge.data?.condition,
+            kind: edge.kind || edge.data?.kind || 'default',
+            order: edge.order || 0,
+            isEnabled: Boolean(edge.isEnabled !== undefined ? edge.isEnabled : true),
+            createdAt: new Date()
           }));
           
           console.log('💾 [REPOSITORY] Inserting edges:', edgesToInsert.length);
@@ -264,7 +277,10 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       console.error('❌ [REPOSITORY] Error saving complete flow:', error);
       console.error('❌ [REPOSITORY] Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
+        flowId,
+        nodeCount: nodes.length,
+        edgeCount: edges.length
       });
       return false;
     }
