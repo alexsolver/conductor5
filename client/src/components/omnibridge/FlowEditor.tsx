@@ -582,8 +582,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       return;
     }
 
-    // Only connect if we're connecting from output to input or input to output
-    if ((connecting.isSource && isInput) || (!connecting.isSource && !isInput)) {
+    // Only connect if we're connecting from output to input
+    if (connecting.isSource && isInput) {
       // Create new edge
       const newEdge: FlowEdge = {
         id: `edge_${Date.now()}`,
