@@ -322,9 +322,6 @@ export default function AutomationRuleBuilder({
   const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // State for the unified mode toggle
-  const [isUnifiedMode, setIsUnifiedMode] = useState(false); 
-
   const [rule, setRule] = useState<AutomationRule>(() => {
     if (existingRule) {
       return {
@@ -352,9 +349,6 @@ export default function AutomationRuleBuilder({
   const [showTriggerConfig, setShowTriggerConfig] = useState(false);
   const [showActionConfig, setShowActionConfig] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
-
-  // Mock saving state for demonstration
-  const [saving, setSaving] = useState(false);
 
   // Update rule state when existingRule prop changes
   useEffect(() => {
@@ -797,48 +791,144 @@ export default function AutomationRuleBuilder({
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Bot className="h-6 w-6 text-blue-600" />
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              {existingRule ? 'Editar Regra' : 'Nova Regra de Automação'}
-            </h1>
-            <p className="text-sm text-gray-500">
-              Configure gatilhos e ações para automatizar o atendimento
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={isUnifiedMode}
-              onCheckedChange={setIsUnifiedMode}
-              id="unified-mode"
-            />
-            <Label htmlFor="unified-mode" className="text-sm font-medium">
-              Modo Fluxo Visual
-            </Label>
-          </div>
-          <Button variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Regra'}
-          </Button>
-        </div>
-      </div>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 max-w-md space-y-2">
+                  <Input
+                    placeholder="Nome da regra..."
+                    value={rule.name || ''}
+                    onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
+                    className="font-medium"
+                    data-testid="rule-name"
+                  />
+                  <Input
+                    placeholder="Descrição (opcional)..."
+                    value={rule.description || ''}
+                    onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
+                    className="text-sm"
+                    data-testid="rule-description"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="rule-enabled" className="text-sm">Ativa</Label>
+                  <Switch
+                    id="rule-enabled"
+                    checked={rule.enabled}
+                    onCheckedChange={(enabled) => setRule(prev => ({ ...prev, enabled }))}
+                    data-testid="rule-enabled"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPreview(!isPreview)}
+                    data-testid="preview-toggle"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    {isPreview ? 'Editar' : 'Visualizar'}
+                  </Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={saveMutation.isPending}
+                    data-testid="save-rule"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </div>
+            </div>
 
-            {/* Tabs */}
-            <Tabs defaultValue="config" className="h-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="config">Configuração</TabsTrigger>
-            {isUnifiedMode && <TabsTrigger value="flow">Fluxo Visual</TabsTrigger>}
-            <TabsTrigger value="preview">Visualização</TabsTrigger>
-            <TabsTrigger value="test">Teste</TabsTrigger>
-          </TabsList>
-              <TabsContent value="config" className="p-6 bg-gray-50 dark:bg-gray-900 h-[calc(100%-60px)] overflow-y-auto">
-                {/* Config Content */}
+            {/* Canvas */}
+            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
+              {isPreview ? (
+                /* Preview Mode */
+                <div className="max-w-4xl mx-auto">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Workflow className="h-5 w-5" />
+                        Visualização da Regra
+                      </CardTitle>
+                      <CardDescription>
+                        Como esta regra funcionará na prática
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {/* Rule Summary */}
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                            {rule.name || 'Nova Regra'}
+                          </h4>
+                          {rule.description && (
+                            <p className="text-blue-700 dark:text-blue-300 text-sm">
+                              {rule.description}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Flow Visualization */}
+                        <div className="flex items-center justify-center space-x-4">
+                          {/* Triggers */}
+                          <div className="text-center">
+                            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg mb-2">
+                              <Zap className="h-8 w-8 mx-auto text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              QUANDO
+                            </p>
+                            <div className="mt-2 space-y-1">
+                              {rule.triggers.map((trigger) => (
+                                <Badge key={trigger.id} variant="outline" className="block">
+                                  {trigger.name}
+                                </Badge>
+                              ))}
+                              {rule.triggers.length === 0 && (
+                                <p className="text-xs text-gray-500">Nenhum gatilho</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <ArrowRight className="h-6 w-6 text-gray-400" />
+
+                          {/* Actions */}
+                          <div className="text-center">
+                            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-lg mb-2">
+                              <Settings className="h-8 w-8 mx-auto text-green-600 dark:text-green-400" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              ENTÃO
+                            </p>
+                            <div className="mt-2 space-y-1">
+                              {rule.actions.map((action) => (
+                                <Badge key={action.id} variant="outline" className="block">
+                                  {action.name}
+                                </Badge>
+                              ))}
+                              {rule.actions.length === 0 && (
+                                <p className="text-xs text-gray-500">Nenhuma ação</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Example Scenario */}
+                        {rule.triggers.length > 0 && rule.actions.length > 0 && (
+                          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                              Exemplo de funcionamento:
+                            </h5>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              Quando uma mensagem for recebida e atender aos critérios definidos pelos gatilhos, 
+                              o sistema automaticamente executará as ações configuradas.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                /* Edit Mode */
                 <div className="max-w-4xl mx-auto space-y-6">
                   {/* Getting Started */}
                   {rule.triggers.length === 0 && rule.actions.length === 0 && (
@@ -985,206 +1075,8 @@ export default function AutomationRuleBuilder({
                     </Card>
                   )}
                 </div>
-              </TabsContent>
-
-              {/* Flow Tab */}
-              {isUnifiedMode && (
-                <TabsContent value="flow" className="p-6 bg-gray-50 dark:bg-gray-900 h-[calc(100%-60px)] overflow-y-auto">
-                  <div className="max-w-4xl mx-auto">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Workflow className="h-5 w-5" />
-                          Fluxo Visual da Regra
-                        </CardTitle>
-                        <CardDescription>
-                          Configure a sequência de gatilhos e ações de forma visual
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-col items-center justify-center space-y-6">
-                          {/* Triggers Section */}
-                          <div className="w-full">
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Gatilhos (QUANDO)</h4>
-                            <div className="flex flex-wrap gap-4">
-                              {rule.triggers.map((trigger) => (
-                                <Card 
-                                  key={trigger.id} 
-                                  className="min-w-[200px] border-2 border-dashed"
-                                  style={{ borderColor: trigger.color.split('-')[1] || 'gray' }}
-                                  onClick={() => openTriggerConfig(trigger)}
-                                >
-                                  <CardContent className="p-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div className={`p-2 rounded ${trigger.color} text-white`}>
-                                        <trigger.icon className="h-5 w-5" />
-                                      </div>
-                                      <span className="font-medium text-gray-900 dark:text-gray-100">{trigger.name}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">{trigger.description}</p>
-                                    {Object.keys(trigger.config).length > 0 && <Badge variant="secondary" className="mt-2">Configurado</Badge>}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                              {rule.triggers.length === 0 && <p className="text-gray-500">Nenhum gatilho adicionado.</p>}
-                            </div>
-                          </div>
-
-                          {/* Arrows */}
-                          {rule.triggers.length > 0 && rule.actions.length > 0 && (
-                            <ArrowRight className="h-8 w-8 text-gray-400 transform rotate-90 md:rotate-0" />
-                          )}
-
-                          {/* Actions Section */}
-                          <div className="w-full">
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Ações (ENTÃO)</h4>
-                            <div className="flex flex-wrap gap-4">
-                              {rule.actions.map((action) => (
-                                <Card 
-                                  key={action.id} 
-                                  className="min-w-[200px] border-2 border-dashed"
-                                  style={{ borderColor: action.color.split('-')[1] || 'gray' }}
-                                  onClick={() => openActionConfig(action)}
-                                >
-                                  <CardContent className="p-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div className={`p-2 rounded ${action.color} text-white`}>
-                                        <action.icon className="h-5 w-5" />
-                                      </div>
-                                      <span className="font-medium text-gray-900 dark:text-gray-100">{action.name}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">{action.description}</p>
-                                    {Object.keys(action.config).length > 0 && <Badge variant="secondary" className="mt-2">Configurado</Badge>}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                              {rule.actions.length === 0 && <p className="text-gray-500">Nenhuma ação adicionada.</p>}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
               )}
-
-              {/* Preview Tab */}
-              <TabsContent value="preview" className="p-6 bg-gray-50 dark:bg-gray-900 h-[calc(100%-60px)] overflow-y-auto">
-                <div className="max-w-4xl mx-auto">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Workflow className="h-5 w-5" />
-                        Visualização da Regra
-                      </CardTitle>
-                      <CardDescription>
-                        Como esta regra funcionará na prática
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {/* Rule Summary */}
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                            {rule.name || 'Nova Regra'}
-                          </h4>
-                          {rule.description && (
-                            <p className="text-blue-700 dark:text-blue-300 text-sm">
-                              {rule.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Flow Visualization */}
-                        <div className="flex items-center justify-center space-x-4">
-                          {/* Triggers */}
-                          <div className="text-center">
-                            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg mb-2">
-                              <Zap className="h-8 w-8 mx-auto text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              QUANDO
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              {rule.triggers.map((trigger) => (
-                                <Badge key={trigger.id} variant="outline" className="block">
-                                  {trigger.name}
-                                </Badge>
-                              ))}
-                              {rule.triggers.length === 0 && (
-                                <p className="text-xs text-gray-500">Nenhum gatilho</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <ArrowRight className="h-6 w-6 text-gray-400" />
-
-                          {/* Actions */}
-                          <div className="text-center">
-                            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-lg mb-2">
-                              <Settings className="h-8 w-8 mx-auto text-green-600 dark:text-green-400" />
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              ENTÃO
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              {rule.actions.map((action) => (
-                                <Badge key={action.id} variant="outline" className="block">
-                                  {action.name}
-                                </Badge>
-                              ))}
-                              {rule.actions.length === 0 && (
-                                <p className="text-xs text-gray-500">Nenhuma ação</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Example Scenario */}
-                        {rule.triggers.length > 0 && rule.actions.length > 0 && (
-                          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                              Exemplo de funcionamento:
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              Quando uma mensagem for recebida e atender aos critérios definidos pelos gatilhos, 
-                              o sistema automaticamente executará as ações configuradas.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              {/* Test Tab */}
-              <TabsContent value="test" className="p-6 bg-gray-50 dark:bg-gray-900 h-[calc(100%-60px)] overflow-y-auto">
-                <div className="max-w-4xl mx-auto">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Testar Regra de Automação</CardTitle>
-                      <CardDescription>Simule uma mensagem para testar sua regra</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <Label htmlFor="testMessage">Mensagem de teste</Label>
-                        <Textarea
-                          id="testMessage"
-                          placeholder="Digite uma mensagem para testar..."
-                          rows={5}
-                          className="resize-none"
-                        />
-                        <Button onClick={() => toast({ title: 'Funcionalidade de teste em desenvolvimento!' })}>
-                          <Play className="h-4 w-4 mr-2" />
-                          Executar Teste
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            </Tabs>
+            </div>
           </div>
         </div>
 
