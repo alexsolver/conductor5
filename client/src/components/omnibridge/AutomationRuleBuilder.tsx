@@ -880,8 +880,8 @@ export default function AutomationRuleBuilder({
               </p>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div className="p-4 space-y-6 h-full">
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-6">
                 {/* Triggers Section */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -948,7 +948,7 @@ export default function AutomationRuleBuilder({
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Main Content */}
