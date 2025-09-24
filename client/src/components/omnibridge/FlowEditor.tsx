@@ -344,6 +344,14 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   };
 
+  const handleDragEnd = (e: React.DragEvent) => {
+    console.log('🐛 [DRAG] Drag ended');
+    // Restore opacity
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+  };
+
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
     console.log('🐛 [DRAG] Drop event fired', {
@@ -522,6 +530,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                           className="cursor-move hover:shadow-md transition-shadow"
                           draggable
                           onDragStart={(e) => handleDragStart(e, node.id)}
+                          onDragEnd={handleDragEnd}
                           data-testid={`node-${node.id}`}
                         >
                           <CardContent className="p-3">
