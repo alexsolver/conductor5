@@ -352,9 +352,9 @@ export class ChatbotController {
   async getFlow(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = this.getTenantId(req);
-      const { flowId } = req.params;
+      const { flowId, botId } = req.params;
 
-      console.log('🔄 [CONTROLLER] Getting complete flow:', { flowId, tenantId });
+      console.log('🔄 [CONTROLLER] Getting complete flow:', { flowId, botId, tenantId });
 
       // Use the flow repository properly with tenant isolation
       const flowRepository = (this.updateFlowUseCase as any).chatbotFlowRepository;
@@ -370,11 +370,21 @@ export class ChatbotController {
         return;
       }
 
+      // If botId is provided, verify the flow belongs to the bot
+      if (botId && basicFlow.botId !== botId) {
+        console.log('❌ [CONTROLLER] Flow does not belong to bot:', { flowId, botId, actualBotId: basicFlow.botId });
+        res.status(403).json({
+          success: false,
+          error: 'Flow does not belong to the specified bot'
+        });
+        return;
+      }
+
       // Get complete flow with nodes and edges
       const completeFlow = await flowRepository.findWithNodes(flowId, tenantId);
 
       if (!completeFlow) {
-        console.log('❌ [CONTROLLER] Complete flow data not found:', flowId);
+        console.log('⚠️ [CONTROLLER] Complete flow data not found, returning basic flow:', flowId);
         // Return basic flow with empty arrays if no nodes/edges found
         res.json({
           success: true,
@@ -391,6 +401,7 @@ export class ChatbotController {
       console.log('✅ [CONTROLLER] Retrieved complete flow:', {
         flowId: completeFlow.id,
         flowName: completeFlow.name,
+        botId: completeFlow.botId,
         nodeCount: completeFlow.nodes?.length || 0,
         edgeCount: completeFlow.edges?.length || 0,
         variableCount: completeFlow.variables?.length || 0

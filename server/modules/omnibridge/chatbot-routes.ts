@@ -120,6 +120,9 @@ router.post('/chatbots/:botId/flows', jwtAuth, chatbotController.createFlow.bind
 // Get specific flow by ID
 router.get('/flows/:flowId', jwtAuth, chatbotController.getFlow.bind(chatbotController));
 
+// Alternative route for getting flow by bot and flow ID
+router.get('/chatbots/:botId/flows/:flowId', jwtAuth, chatbotController.getFlow.bind(chatbotController));
+
 // Debug route to check flow existence
 router.get('/flows/:flowId/debug', jwtAuth, async (req: any, res: any) => {
   try {

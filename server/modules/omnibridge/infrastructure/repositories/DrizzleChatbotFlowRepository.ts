@@ -260,7 +260,7 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
   }
 
   async findWithNodes(id: string, tenantId: string): Promise<ChatbotFlowWithNodes | null> {
-    console.log('🔍 [REPOSITORY] findWithNodes:', { id, tenantId });
+    console.log('🔍 [REPOSITORY] findWithNodes:', { id, tenantId, schema: this.getSchemaName(tenantId) });
     
     const flow = await this.findById(id, tenantId);
     if (!flow) {
@@ -271,6 +271,8 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     try {
       const tenantDb = await this.getTenantDb(tenantId);
       
+      console.log('🔍 [REPOSITORY] Querying flow components for:', { flowId: id, tenantId });
+      
       // Perform parallel queries for better performance
       const [nodesResult, edgesResult, variablesResult] = await Promise.allSettled([
         tenantDb.select().from(chatbotNodes).where(eq(chatbotNodes.flowId, id)),
@@ -279,24 +281,25 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       ]);
 
       // Extract results with error handling
-      const nodes = nodesResult.status === 'fulfilled' ? nodesResult.value : [];
-      const edges = edgesResult.status === 'fulfilled' ? edgesResult.value : [];
-      const variables = variablesResult.status === 'fulfilled' ? variablesResult.value : [];
+      const nodes = nodesResult.status === 'fulfilled' ? (nodesResult.value || []) : [];
+      const edges = edgesResult.status === 'fulfilled' ? (edgesResult.value || []) : [];
+      const variables = variablesResult.status === 'fulfilled' ? (variablesResult.value || []) : [];
 
-      // Log any errors
+      // Log any errors but don't fail
       if (nodesResult.status === 'rejected') {
-        console.warn('⚠️ [REPOSITORY] Error fetching nodes:', nodesResult.reason);
+        console.warn('⚠️ [REPOSITORY] Error fetching nodes:', nodesResult.reason?.message || nodesResult.reason);
       }
       if (edgesResult.status === 'rejected') {
-        console.warn('⚠️ [REPOSITORY] Error fetching edges:', edgesResult.reason);
+        console.warn('⚠️ [REPOSITORY] Error fetching edges:', edgesResult.reason?.message || edgesResult.reason);
       }
       if (variablesResult.status === 'rejected') {
-        console.warn('⚠️ [REPOSITORY] Error fetching variables:', variablesResult.reason);
+        console.warn('⚠️ [REPOSITORY] Error fetching variables:', variablesResult.reason?.message || variablesResult.reason);
       }
 
       console.log('✅ [REPOSITORY] Retrieved complete flow data:', {
         flowId: id,
         flowName: flow.name,
+        botId: flow.botId,
         nodeCount: nodes.length,
         edgeCount: edges.length,
         variableCount: variables.length,
@@ -304,15 +307,22 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
         schema: this.getSchemaName(tenantId)
       });
 
-      // Ensure we always return valid arrays
-      return {
+      // Build complete flow object with guaranteed arrays
+      const completeFlow: ChatbotFlowWithNodes = {
         ...flow,
         nodes: Array.isArray(nodes) ? nodes : [],
         edges: Array.isArray(edges) ? edges : [],
         variables: Array.isArray(variables) ? variables : []
       };
+
+      return completeFlow;
     } catch (error) {
-      console.error('❌ [REPOSITORY] Critical error in findWithNodes:', error);
+      console.error('❌ [REPOSITORY] Critical error in findWithNodes:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        flowId: id,
+        tenantId,
+        schema: this.getSchemaName(tenantId)
+      });
       
       // Return flow with empty arrays as fallback
       return {

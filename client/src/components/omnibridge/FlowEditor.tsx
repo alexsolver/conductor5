@@ -239,6 +239,7 @@ interface ChatbotFlow {
   nodes?: FlowNode[];
   edges?: FlowEdge[];
   settings?: Record<string, any>;
+  variables?: any[]; // Added for variables
 }
 
 interface ChatbotBot {
@@ -270,6 +271,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [nodes, setNodes] = useState<FlowNode[]>([]);
   const [edges, setEdges] = useState<FlowEdge[]>([]);
+  const [variables, setVariables] = useState<any[]>([]); // State for variables
   const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
   const [draggedNode, setDraggedNode] = useState<FlowNode | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -282,8 +284,15 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false); // Add saving state
 
+  // Mouse position for connection preview
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isCanvasDragging, setIsCanvasDragging] = useState(false);
+  const [startCanvasDragPos, setStartCanvasDragPos] = useState({ x: 0, y: 0 });
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [connectionStart, setConnectionStart] = useState<string | null>(null);
+
   // Load bot data
-  const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
+  const { data: bot, isLoading: isLoadingBots } = useQuery<{data: ChatbotBot}>({
     queryKey: ['/api/omnibridge/chatbots', botId],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}`);
@@ -296,7 +305,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   });
 
   // Load flows for bot
-  const { data: flows, isLoading: loadingFlows } = useQuery<{data: ChatbotFlow[]}>({
+  const { data: flows, isLoading: isLoadingFlows } = useQuery<{data: ChatbotFlow[]}>({
     queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}/flows`);
@@ -330,47 +339,107 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     return result;
   }, []);
 
-  // Query for complete flow data (nodes + edges + variables)
-  const {
-    data: completeFlowData,
-    isLoading: isLoadingCompleteFlow,
-    error: flowError
-  } = useQuery({
-    queryKey: [`/api/omnibridge/chatbots/${selectedBot?.id}/flows/${selectedFlow?.id}`],
-    enabled: !!selectedFlow?.id && !selectedFlow?.id.startsWith('flow_') && !!selectedBot?.id,
+  // Load complete flow data when flowId changes
+  const { data: completeFlowData, isLoading: isLoadingCompleteFlow, error: flowError } = useQuery({
+    queryKey: ['flow-complete', selectedFlowId],
     queryFn: async () => {
-      console.log('🔄 [FLOW-QUERY] Fetching complete flow data:', {
-        flowId: selectedFlow?.id,
-        botId: selectedBot?.id
-      });
+      if (!selectedFlowId || selectedFlowId.startsWith('flow_')) {
+        console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
+        return null; // Don't load temporary flows
+      }
 
-      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${selectedBot?.id}/flows/${selectedFlow?.id}`);
-
+      console.log('🔄 [FLOW-LOAD] Loading complete flow data for:', selectedFlowId);
+      const response = await apiRequest('GET', `/api/omnibridge/flows/${selectedFlowId}`);
       if (!response.ok) {
-        console.error('🔄 [FLOW-QUERY] HTTP error:', response.status, response.statusText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error('Failed to load flow');
       }
-
       const result = await response.json();
-
-      console.log('🔄 [FLOW-QUERY] Response received:', {
-        success: result.success,
-        hasData: !!result.data,
-        nodeCount: result.data?.nodes?.length || 0,
-        edgeCount: result.data?.edges?.length || 0,
-        variableCount: result.data?.variables?.length || 0
-      });
-
-      if (!result.success) {
-        console.error('🔄 [FLOW-QUERY] API error:', result.error);
-        throw new Error(result.error || 'Failed to fetch flow data');
-      }
-
       return result.data;
     },
-    retry: 1,
-    retryDelay: 1000
+    enabled: !!selectedFlowId && !!selectedBot?.id && !selectedFlowId.startsWith('flow_'),
+    retry: 1
   });
+
+  console.log('🔄 [FLOW-QUERY-DEBUG] Query status:', {
+    flowId: selectedFlowId,
+    isTemporary: selectedFlowId?.startsWith('flow_'),
+    enabled: !!selectedFlowId && !!selectedBot?.id && !selectedFlowId?.startsWith('flow_'),
+    isLoading: isLoadingCompleteFlow,
+    hasData: !!completeFlowData,
+    hasError: !!flowError,
+    error: flowError?.message
+  });
+
+  // Update flow data when complete flow loads
+  useEffect(() => {
+    console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
+      hasCompleteFlowData: !!completeFlowData,
+      selectedFlowId,
+      isLoadingCompleteFlow
+    });
+
+    if (completeFlowData && !isLoadingCompleteFlow) {
+      console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
+        flowId: completeFlowData.id,
+        nodeCount: completeFlowData.nodes?.length || 0,
+        edgeCount: completeFlowData.edges?.length || 0
+      });
+
+      // Set the flow data
+      setSelectedFlow(completeFlowData);
+
+      // Load nodes and edges
+      if (completeFlowData.nodes && Array.isArray(completeFlowData.nodes)) {
+        const transformedNodes = completeFlowData.nodes.map(node => ({
+          id: node.id,
+          flowId: node.flowId,
+          name: node.title || node.name || 'Untitled Node',
+          type: node.type,
+          category: node.category,
+          position: node.position || { x: 100, y: 100 },
+          configuration: node.config || {},
+          metadata: node.metadata || {},
+          isActive: node.isEnabled !== false
+        }));
+        setNodes(transformedNodes);
+        console.log('🔄 [FLOW-LOAD] Loaded nodes:', transformedNodes.length);
+      }
+
+      if (completeFlowData.edges && Array.isArray(completeFlowData.edges)) {
+        const transformedEdges = completeFlowData.edges.map(edge => ({
+          id: edge.id,
+          flowId: edge.flowId,
+          fromNodeId: edge.fromNodeId,
+          toNodeId: edge.toNodeId,
+          label: edge.label || '',
+          condition: edge.condition || '',
+          metadata: {}
+        }));
+        setEdges(transformedEdges);
+        console.log('🔄 [FLOW-LOAD] Loaded edges:', transformedEdges.length);
+      }
+
+      if (completeFlowData.variables && Array.isArray(completeFlowData.variables)) {
+        setVariables(completeFlowData.variables);
+        console.log('🔄 [FLOW-LOAD] Loaded variables:', completeFlowData.variables.length);
+      }
+    }
+
+    // If we have a real flow ID but no data yet, ensure we have a valid flow object
+    if (selectedFlowId && !selectedFlowId.startsWith('flow_') && !completeFlowData && !isLoadingCompleteFlow) {
+      console.log('🔄 [FLOW-LOAD] Creating empty flow state for existing flow');
+      setSelectedFlow({
+        id: selectedFlowId,
+        name: 'Loading...',
+        description: '',
+        isActive: false,
+        nodes: [],
+        edges: [],
+        variables: []
+      });
+    }
+  }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
+
 
   // Initialize with first flow if available or create a default one
   useEffect(() => {
@@ -447,46 +516,75 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   }, [bot, flows, botId, selectedBot, selectedFlow]);
 
 
-  // Load complete flow data when selectedFlow changes
+  // Update flow data when complete flow loads
   useEffect(() => {
     console.log('🔄 [FLOW-LOAD-DEBUG] useEffect triggered:', {
       hasCompleteFlowData: !!completeFlowData,
-      selectedFlowId: selectedFlow?.id,
+      selectedFlowId,
       isLoadingCompleteFlow
     });
 
-    if (!completeFlowData && selectedFlow?.id && !isLoadingCompleteFlow) {
-      // Only fetch if we don't have complete data and it's not a temporary flow
-      const isTemporary = selectedFlow.id.startsWith('flow_');
-
-      console.log('🔄 [FLOW-LOAD-DEBUG] Flow loading decision:', {
-        hasCompleteFlowData: !!completeFlowData,
-        isLoadingCompleteFlow,
-        isTemporary,
-        flowId: selectedFlow.id
-      });
-
-      if (isTemporary) {
-        console.log('🔄 [FLOW-LOAD] Temporary flow detected, starting with empty canvas');
-        setNodes([]);
-        setEdges([]);
-        return;
-      } else {
-        // For real flows, ensure we have the complete data
-        console.log('🔄 [FLOW-LOAD] Real flow detected, should load from query');
-        // The query will automatically load the data
-      }
-    } else if (completeFlowData) {
-      // Set nodes and edges from loaded data
-      console.log('🔄 [FLOW-LOAD] Setting flow data from query:', {
+    if (completeFlowData && !isLoadingCompleteFlow) {
+      console.log('🔄 [FLOW-LOAD] Loading complete flow data:', {
+        flowId: completeFlowData.id,
         nodeCount: completeFlowData.nodes?.length || 0,
         edgeCount: completeFlowData.edges?.length || 0
       });
 
-      setNodes(completeFlowData.nodes || []);
-      setEdges(completeFlowData.edges || []);
+      // Set the flow data
+      setSelectedFlow(completeFlowData);
+
+      // Load nodes and edges
+      if (completeFlowData.nodes && Array.isArray(completeFlowData.nodes)) {
+        const transformedNodes = completeFlowData.nodes.map(node => ({
+          id: node.id,
+          flowId: node.flowId,
+          name: node.title || node.name || 'Untitled Node',
+          type: node.type,
+          category: node.category,
+          position: node.position || { x: 100, y: 100 },
+          configuration: node.config || {},
+          metadata: node.metadata || {},
+          isActive: node.isEnabled !== false
+        }));
+        setNodes(transformedNodes);
+        console.log('🔄 [FLOW-LOAD] Loaded nodes:', transformedNodes.length);
+      }
+
+      if (completeFlowData.edges && Array.isArray(completeFlowData.edges)) {
+        const transformedEdges = completeFlowData.edges.map(edge => ({
+          id: edge.id,
+          flowId: edge.flowId,
+          fromNodeId: edge.fromNodeId,
+          toNodeId: edge.toNodeId,
+          label: edge.label || '',
+          condition: edge.condition || '',
+          metadata: {}
+        }));
+        setEdges(transformedEdges);
+        console.log('🔄 [FLOW-LOAD] Loaded edges:', transformedEdges.length);
+      }
+
+      if (completeFlowData.variables && Array.isArray(completeFlowData.variables)) {
+        setVariables(completeFlowData.variables);
+        console.log('🔄 [FLOW-LOAD] Loaded variables:', completeFlowData.variables.length);
+      }
     }
-  }, [completeFlowData, selectedFlow, isLoadingCompleteFlow]);
+
+    // If we have a real flow ID but no data yet, ensure we have a valid flow object
+    if (selectedFlowId && !selectedFlowId.startsWith('flow_') && !completeFlowData && !isLoadingCompleteFlow) {
+      console.log('🔄 [FLOW-LOAD] Creating empty flow state for existing flow');
+      setSelectedFlow({
+        id: selectedFlowId,
+        name: 'Loading...',
+        description: '',
+        isActive: false,
+        nodes: [],
+        edges: [],
+        variables: []
+      });
+    }
+  }, [completeFlowData, isLoadingCompleteFlow, selectedFlowId]);
 
   // Debug log for query status
   useEffect(() => {
@@ -530,6 +628,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '1';
     }
+    setDraggedNodeType(null); // Clear draggedNodeType after drop or end
   };
 
   const handleCanvasDrop = (e: React.DragEvent) => {
@@ -590,12 +689,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         description: `Nó ${nodeData.name} adicionado ao fluxo`
       });
 
-      // Auto-save disabled temporarily to prevent node deletion
-      // setTimeout(() => {
-      //   if (selectedFlow) {
-      //     handleSaveFlow();
-      //   }
-      // }, 500);
     } else {
       console.log('🐛 [DRAG] Failed to create node - missing nodeData or selectedFlow');
     }
@@ -635,10 +728,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const handleNodeMove = (e: React.DragEvent) => {
     e.preventDefault();
 
-    if (draggedNode) {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
+    if (draggedNode && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / zoom;
       const y = (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / zoom;
 
@@ -649,9 +740,9 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       ));
 
       console.log('🐛 [NODE-MOVE] Moved node to:', { x, y });
-      setDraggedNode(null);
-      setDragOffset({ x: 0, y: 0 });
     }
+    setDraggedNode(null); // Reset draggedNode state after move
+    setDragOffset({ x: 0, y: 0 });
   };
 
   // Handle connection start
@@ -663,6 +754,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
 
     setConnecting({ nodeId, isSource: isOutput });
+    setConnectionStart(nodeId); // Set connection start node
     console.log('🔗 [CONNECTION] Starting connection from:', nodeId, isOutput ? 'output' : 'input');
   };
 
@@ -671,6 +763,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     if (!connecting || connecting.nodeId === nodeId) {
       console.log('🔗 [CONNECTION] Cancelling connection - same node or no active connection');
       setConnecting(null);
+      setConnectionStart(null);
       return;
     }
 
@@ -680,8 +773,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       const newEdge: FlowEdge = {
         id: `edge_${Date.now()}`,
         flowId: selectedFlow?.id || '',
-        sourceNodeId: connecting.isSource ? connecting.nodeId : nodeId,
-        targetNodeId: connecting.isSource ? nodeId : connecting.nodeId,
+        sourceNodeId: connecting.nodeId, // Use the nodeId from connecting state
+        targetNodeId: nodeId, // Use the nodeId from the argument
         sourceHandle: 'output',
         targetHandle: 'input',
         metadata: {}
@@ -706,6 +799,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
 
     setConnecting(null);
+    setConnectionStart(null);
   };
 
   const handleSaveFlow = async (flowData?: any) => {
@@ -747,21 +841,32 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
           flowNodes: JSON.stringify(nodes.map(node => ({
             id: node.id,
             flowId: selectedFlow.id,
-            category: node.data?.category || 'actions',
+            category: node.category, // Use category from FlowNode interface
             type: node.type,
-            title: node.data?.label || node.label || 'Untitled Node',
-            description: node.data?.description || '',
+            title: node.name, // Use name from FlowNode interface
+            description: '', // Assuming description is not directly mapped here
             position: node.position,
-            config: node.data || {},
-            isStart: node.data?.isStart || false,
-            isEnd: node.data?.isEnd || false,
-            isEnabled: node.data?.isEnabled !== undefined ? node.data.isEnabled : true
+            config: node.configuration, // Use configuration from FlowNode interface
+            isStart: false, // Default value, needs logic if applicable
+            isEnd: false, // Default value, needs logic if applicable
+            isEnabled: node.isActive
           }))),
-          flowEdges: JSON.stringify(edges),
+          flowEdges: JSON.stringify(edges.map(edge => ({
+            id: edge.id,
+            flowId: edge.flowId,
+            sourceNodeId: edge.sourceNodeId,
+            targetNodeId: edge.targetNodeId,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
+            label: edge.label,
+            condition: edge.condition,
+            metadata: edge.metadata
+          }))),
           nodeCount: nodes.length,
           edgeCount: edges.length,
           lastModified: new Date().toISOString()
-        }
+        },
+        variables: variables // Include variables in the save payload
       };
 
       console.log('🔄 [FLOW-SAVE] Prepared data for API:', {
@@ -770,7 +875,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         sampleNode: nodes[0] ? {
           id: nodes[0].id,
           type: nodes[0].type,
-          title: nodes[0].data?.label || nodes[0].label || 'Untitled Node'
+          title: nodes[0].name
         } : null
       });
 
@@ -784,30 +889,32 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         const preparedNodes = nodes.map(node => ({
           id: node.id,
           flowId: selectedFlow.id, // Use the temporary ID
-          name: node.data?.label || node.label || 'Untitled Node',
+          name: node.name,
           type: node.type,
-          category: node.data?.category || 'actions',
+          category: node.category,
           position: node.position,
-          configuration: node.data || {},
-          metadata: {},
-          isActive: true
+          configuration: node.configuration,
+          metadata: node.metadata,
+          isActive: node.isActive
         }));
 
         const preparedEdges = edges.map(edge => ({
           id: edge.id,
           flowId: selectedFlow.id, // Use the temporary ID
-          sourceNodeId: edge.source,
-          targetNodeId: edge.target,
-          metadata: {}
+          sourceNodeId: edge.sourceNodeId,
+          targetNodeId: edge.targetNodeId,
+          sourceHandle: edge.sourceHandle,
+          targetHandle: edge.targetHandle,
+          metadata: edge.metadata
         }));
 
         response = await apiRequest('POST', `/api/omnibridge/chatbots/${selectedBot.id}/flows`, {
-          name: 'Fluxo Principal', // Default name
-          description: 'Fluxo padrão do chatbot', // Default description
-          isActive: true,
+          name: selectedFlow.name || 'Fluxo Principal',
+          description: selectedFlow.description || 'Fluxo padrão do chatbot',
+          isActive: selectedFlow.isActive,
           nodes: preparedNodes,
           edges: preparedEdges,
-          variables: []
+          variables: variables
         });
 
         if (!response.ok) {
@@ -847,7 +954,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         setSelectedFlowId(responseData.data.id); // Ensure selectedFlowId is updated
       } else if (selectedFlow && !selectedFlow.id.startsWith('flow_')) {
         // If response doesn't contain data but it was an update, refresh the query to ensure state consistency
-        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/flows', selectedFlow.id] });
+        queryClient.invalidateQueries({ queryKey: ['flow-complete', selectedFlow.id] });
       }
 
     } catch (error: any) {
@@ -874,13 +981,128 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   };
 
-  if (loadingBot || loadingFlows) {
+  // Render loading state only if we don't have basic data
+  if (isLoadingBots || (isLoadingFlows && !selectedBot)) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Carregando chatbot...</span>
       </div>
     );
   }
+
+  // Show loading message for flow data but still show the interface
+  if (isLoadingCompleteFlow && selectedFlowId && !selectedFlowId.startsWith('flow_')) {
+    console.log('🔄 [FLOW-EDITOR] Loading flow data...');
+  }
+
+  // Helper to get node position for connection lines
+  const getNodePosition = (nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return null;
+    // Adjust position to the output/input handle
+    const nodeElement = document.querySelector(`[data-testid="canvas-node-${nodeId}"]`);
+    if (!nodeElement) return node.position;
+
+    const outputHandle = nodeElement.querySelector('.absolute.-right-2');
+    const inputHandle = nodeElement.querySelector('.absolute.-left-2');
+
+    if (connecting?.nodeId === nodeId && connecting.isSource && outputHandle) {
+      const rect = outputHandle.getBoundingClientRect();
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (!canvasRect) return node.position;
+      return {
+        x: rect.left + rect.width / 2 - canvasRect.left,
+        y: rect.top + rect.height / 2 - canvasRect.top
+      };
+    }
+    if (connecting?.nodeId === nodeId && !connecting.isSource && inputHandle) {
+      const rect = inputHandle.getBoundingClientRect();
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (!canvasRect) return node.position;
+      return {
+        x: rect.left + rect.width / 2 - canvasRect.left,
+        y: rect.top + rect.height / 2 - canvasRect.top
+      };
+    }
+
+    return node.position; // Fallback to node center
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left click
+      setIsCanvasDragging(true);
+      setStartCanvasDragPos({ x: e.clientX, y: e.clientY });
+      setSelectedNodeId(null); // Deselect node when clicking on canvas
+      setConnecting(null); // Cancel connection when clicking on canvas
+      setConnectionStart(null);
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY }); // Update mouse position for preview line
+    if (isCanvasDragging && canvasRef.current) {
+      const deltaX = e.clientX - startCanvasDragPos.x;
+      const deltaY = e.clientY - startCanvasDragPos.y;
+      setCanvasOffset(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      setStartCanvasDragPos({ x: e.clientX, y: e.clientY }); // Update start position for continuous dragging
+    }
+
+    // Update connecting line if dragging a connection
+    if (connecting) {
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (canvasRect) {
+        setMousePosition({
+          x: e.clientX,
+          y: e.clientY
+        });
+      }
+    }
+  };
+
+  const handleCanvasMouseUp = () => {
+    setIsCanvasDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const nodeType = e.dataTransfer.getData('text/plain');
+    if (!nodeType) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const position = {
+      x: (e.clientX - rect.left - canvasOffset.x) / zoom,
+      y: (e.clientY - rect.top - canvasOffset.y) / zoom
+    };
+
+    const nodeData = Object.values(NODE_CATEGORIES)
+      .flatMap(cat => cat.nodes)
+      .find(n => n.id === nodeType);
+
+    if (nodeData && selectedFlow) {
+      const newNode: FlowNode = {
+        id: `node_${Date.now()}`,
+        flowId: selectedFlow.id,
+        name: nodeData.name,
+        type: nodeData.id,
+        category: nodeType.split('-')[0],
+        position,
+        configuration: {},
+        metadata: {},
+        isActive: true
+      };
+      setNodes(prev => [...prev, newNode]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50" data-testid="flow-editor">
@@ -994,173 +1216,224 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
         </div>
 
         {/* Main Canvas Area */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative bg-gray-50 overflow-hidden">
+          {/* Loading indicator for flow data */}
+          {isLoadingCompleteFlow && (
+            <div className="absolute top-4 right-4 z-50 bg-white shadow-md rounded-lg p-3 flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-sm text-gray-600">Carregando fluxo...</span>
+            </div>
+          )}
+
           <div
             ref={canvasRef}
-            className="absolute inset-0 bg-gray-50 overflow-hidden"
-            onDrop={handleCanvasDrop}
-            onDragOver={(e) => e.preventDefault()}
+            className="w-full h-full relative cursor-move"
             style={{
-              backgroundImage: `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`,
-              backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
-              backgroundPosition: `${canvasOffset.x}px ${canvasOffset.y}px`
+              transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
+              transformOrigin: 'top left'
             }}
-            data-testid="flow-canvas"
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onDrop={handleCanvasDrop} // Use handleCanvasDrop for dropping nodes
+            onDragOver={handleCanvasDrop} // Use handleCanvasDrop for drag over as well
           >
-            {/* Canvas content */}
+            {/* Grid Background */}
             <div
-              className="relative"
+              className="absolute inset-0 opacity-20"
               style={{
-                transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`
+                backgroundImage: `
+                  linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+                  linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+                `,
+                backgroundSize: `${20 * zoom}px ${20 * zoom}px`
               }}
-            >
-              {/* Render nodes */}
-              {nodes.map(node => (
-                <div
-                  key={node.id}
-                  className="absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow select-none"
-                  style={{
-                    left: node.position.x,
-                    top: node.position.y,
-                    minWidth: 150
-                  }}
-                  draggable
-                  onDragStart={(e) => handleNodeDragStart(e, node)}
-                  onDragEnd={() => setDraggedNode(null)}
-                  onClick={() => handleNodeClick(node)}
-                  data-testid={`canvas-node-${node.id}`}
-                >
-                  {/* Connection point - input */}
-                  <div
-                    className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
-                      connecting?.nodeId === node.id && !connecting.isSource
-                        ? 'bg-yellow-400 border-2 border-yellow-600'
-                        : 'bg-blue-500 hover:bg-blue-600'
-                    }`}
-                    style={{ transform: 'translateY(-50%)' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleConnectionStart(node.id, false);
-                    }}
-                    title="Entrada - Clique para conectar"
-                  />
+            />
 
-                  {/* Node content */}
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${NODE_CATEGORIES[node.category as keyof typeof NODE_CATEGORIES]?.color || 'bg-gray-400'}`}></div>
-                    <span className="font-medium text-sm">{node.name}</span>
+            {/* Empty State Message */}
+            {nodes.length === 0 && !isLoadingCompleteFlow && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-gray-500 bg-white p-8 rounded-lg shadow-sm border-2 border-dashed border-gray-300">
+                  <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">Canvas Vazio</h3>
+                  <p className="text-sm mb-4">Arraste um nó da paleta lateral para começar a criar seu fluxo</p>
+                  <div className="flex justify-center space-x-2 text-xs">
+                    <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
+                      <Zap className="w-3 h-3 mr-1 text-blue-600" />
+                      Triggers
+                    </div>
+                    <div className="flex items-center bg-green-50 px-2 py-1 rounded">
+                      <MessageSquare className="w-3 h-3 mr-1 text-green-600" />
+                      Ações
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{node.type}</div>
-
-                  {/* Connection point - output */}
-                  <div
-                    className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10 ${
-                      connecting?.nodeId === node.id && connecting.isSource
-                        ? 'bg-yellow-400 border-2 border-yellow-600'
-                        : 'bg-green-500 hover:bg-green-600'
-                    }`}
-                    style={{ transform: 'translateY(-50%)' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleConnectionStart(node.id, true);
-                    }}
-                    title="Saída - Clique para conectar"
-                  />
                 </div>
-              ))}
+              </div>
+            )}
 
-              {/* Render edges */}
-              <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-                {edges.map(edge => {
-                  const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
-                  const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+            {/* Render Nodes */}
+            {nodes.map(node => (
+              <div
+                key={node.id}
+                className={`absolute bg-white rounded-lg shadow-md border border-gray-200 p-3 cursor-move hover:shadow-lg transition-shadow select-none node-container
+                  ${selectedNodeId === node.id ? 'border-blue-500 shadow-lg' : ''}
+                `}
+                style={{
+                  left: node.position.x,
+                  top: node.position.y,
+                  minWidth: 150,
+                  transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`, // Apply offset and zoom to nodes
+                  transformOrigin: 'top left'
+                }}
+                draggable
+                onDragStart={(e) => {
+                  handleNodeDragStart(e, node);
+                  setSelectedNodeId(node.id);
+                }}
+                onDragEnd={() => setDraggedNode(null)} // Reset dragged node state
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent canvas drag from starting
+                  setSelectedNodeId(node.id);
+                  setSelectedNode(node);
+                  setNodeConfig(node.configuration);
+                  setShowNodeConfig(true);
+                }}
+                data-testid={`canvas-node-${node.id}`}
+              >
+                {/* Connection point - input */}
+                <div
+                  className={`absolute -left-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
+                    ${connecting?.nodeId === node.id && !connecting.isSource
+                      ? 'bg-yellow-400 border-2 border-yellow-600'
+                      : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                  style={{ transform: 'translateY(-50%)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConnectionStart(node.id, false);
+                  }}
+                  title="Entrada - Clique para conectar"
+                />
 
-                  if (!sourceNode || !targetNode) return null;
+                {/* Node content */}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${NODE_CATEGORIES[node.category as keyof typeof NODE_CATEGORIES]?.color || 'bg-gray-400'}`}></div>
+                  <span className="font-medium text-sm">{node.name}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">{node.type}</div>
 
-                  const x1 = sourceNode.position.x + 150; // Source output point
-                  const y1 = sourceNode.position.y + 20; // Center of node
-                  const x2 = targetNode.position.x; // Target input point
-                  const y2 = targetNode.position.y + 20; // Center of node
+                {/* Connection point - output */}
+                <div
+                  className={`absolute -right-2 top-1/2 w-4 h-4 rounded-full cursor-pointer transition-colors z-10
+                    ${connecting?.nodeId === node.id && connecting.isSource
+                      ? 'bg-yellow-400 border-2 border-yellow-600'
+                      : 'bg-green-500 hover:bg-green-600'
+                    }`}
+                  style={{ transform: 'translateY(-50%)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConnectionStart(node.id, true);
+                  }}
+                  title="Saída - Clique para conectar"
+                />
+              </div>
+            ))}
 
-                  // Create curved path
-                  const midX = (x1 + x2) / 2;
-                  const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+            {/* Render edges */}
+            {edges.map(edge => {
+              const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
+              const targetNode = nodes.find(n => n.id === edge.targetNodeId);
 
-                  return (
-                    <g key={edge.id}>
-                      <path
-                        d={path}
-                        stroke="#6b7280"
-                        strokeWidth="2"
-                        fill="none"
-                        markerEnd="url(#arrowhead)"
-                      />
-                    </g>
-                  );
-                })}
+              if (!sourceNode || !targetNode) return null;
 
-                {/* Arrow marker definition */}
-                <defs>
-                  <marker
-                    id="arrowhead"
-                    markerWidth="10"
-                    markerHeight="7"
-                    refX="9"
-                    refY="3.5"
-                    orient="auto"
-                  >
-                    <polygon
-                      points="0 0, 10 3.5, 0 7"
-                      fill="#6b7280"
-                    />
-                  </marker>
-                </defs>
-              </svg>
+              const sourcePos = getNodePosition(edge.sourceNodeId);
+              const targetPos = getNodePosition(edge.targetNodeId);
 
-              {/* Show connection line when connecting */}
-              {connecting && (
-                <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-                  <line
-                    x1={nodes.find(n => n.id === connecting.nodeId)?.position.x! + (connecting.isSource ? 150 : 0)}
-                    y1={nodes.find(n => n.id === connecting.nodeId)?.position.y! + 20}
-                    x2={0} // Placeholder, will be updated by mouse event
-                    y2={0} // Placeholder, will be updated by mouse event
-                    stroke="#3b82f6"
+              if (!sourcePos || !targetPos) return null;
+
+              // Use specific handles if available, otherwise default to center
+              const sourceHandleX = edge.sourceHandle === 'output' ? sourceNode.position.x + 150 : sourceNode.position.x + 75; // Example adjustment
+              const sourceHandleY = sourceNode.position.y + 20;
+              const targetHandleX = edge.targetHandle === 'input' ? targetNode.position.x : targetNode.position.x + 75; // Example adjustment
+              const targetHandleY = targetNode.position.y + 20;
+
+              // Create curved path
+              const midX = (sourceHandleX + targetHandleX) / 2;
+              const path = `M ${sourceHandleX} ${sourceHandleY} C ${midX} ${sourceHandleY}, ${midX} ${targetHandleY}, ${targetHandleX} ${targetHandleY}`;
+
+              return (
+                <svg key={edge.id} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+                  <path
+                    d={path}
+                    stroke="#6b7280"
                     strokeWidth="2"
-                    strokeDasharray="5,5"
+                    fill="none"
+                    markerEnd="url(#arrowhead)"
                   />
                 </svg>
-              )}
-            </div>
-          </div>
+              );
+            })}
 
-          {/* Canvas Controls */}
-          <div className="absolute top-4 right-4 flex space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-              data-testid="button-zoom-in"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-              data-testid="button-zoom-out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
-              data-testid="button-reset-view"
-            >
-              <Home className="h-4 w-4" />
-            </Button>
+            {/* Arrow marker definition */}
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="9"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon
+                  points="0 0, 10 3.5, 0 7"
+                  fill="#6b7280"
+                />
+              </marker>
+            </defs>
+
+            {/* Show connection line when connecting */}
+            {connecting && connectionStart && (
+              <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+                <line
+                  x1={getNodePosition(connectionStart)?.x || 0}
+                  y1={getNodePosition(connectionStart)?.y || 0}
+                  x2={mousePosition.x - (canvasRef.current?.getBoundingClientRect().left || 0)} // Adjust for canvas offset
+                  y2={mousePosition.y - (canvasRef.current?.getBoundingClientRect().top || 0)} // Adjust for canvas offset
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+              </svg>
+            )}
           </div>
+        </div>
+
+        {/* Canvas Controls */}
+        <div className="absolute top-4 right-4 flex space-x-2 z-10">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setZoom(prev => Math.min(2, prev + 0.1))}
+            data-testid="button-zoom-in"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))}
+            data-testid="button-zoom-out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { setZoom(1); setCanvasOffset({ x: 0, y: 0 }); }}
+            data-testid="button-reset-view"
+          >
+            <Home className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
