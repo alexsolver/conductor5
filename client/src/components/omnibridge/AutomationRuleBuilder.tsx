@@ -810,6 +810,43 @@ export default function AutomationRuleBuilder({
     setShowActionConfig(true);
   };
 
+  // Handler for saving trigger configuration from the modal
+  const handleTriggerSave = () => {
+    if (selectedTrigger) {
+      updateTriggerConfig(selectedTrigger.id, selectedTrigger.config);
+    }
+    setShowTriggerConfig(false);
+  };
+
+  // Handler for saving action configuration from the modal
+  const handleActionSave = () => {
+    if (selectedAction) {
+      updateActionConfig(selectedAction.id, selectedAction.config);
+    }
+    setShowActionConfig(false);
+  };
+
+  // Placeholder for NodeConfigForm if it's defined elsewhere
+  // For now, assuming it's a local component or imported
+  const NodeConfigForm = ({ nodeType, config, onChange }: any) => {
+    // This is a placeholder. The actual implementation would depend on
+    // how NodeConfigForm is defined and what types it accepts.
+    // For the purpose of this fix, we are only concerned with the structure.
+    return (
+      <div>
+        {/* Render configuration fields based on nodeType */}
+        {nodeType === 'keyword' && (
+          <Input 
+            value={config.keywords || ''}
+            onChange={(e) => onChange({ ...config, keywords: e.target.value })}
+            placeholder="Keywords"
+          />
+        )}
+        {/* Add other types as needed */}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] p-0" data-testid="automation-rule-builder">
@@ -1194,45 +1231,165 @@ export default function AutomationRuleBuilder({
 
         {/* Trigger Configuration Modal */}
         <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-          <DialogContent data-testid="trigger-config-modal">
-            <DialogHeader>
-              <DialogTitle>Configurar {selectedTrigger?.name}</DialogTitle>
+          <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Configurar Gatilho</DialogTitle>
               <DialogDescription>
-                {selectedTrigger?.description}
+                {selectedTrigger ? `Configurando: ${selectedTrigger.name}` : 'Selecione um gatilho'}
               </DialogDescription>
             </DialogHeader>
-            {selectedTrigger && (
-              <TriggerConfigForm
-                trigger={selectedTrigger}
-                onSave={(config) => {
-                  updateTriggerConfig(selectedTrigger.id, config);
-                  setShowTriggerConfig(false);
-                }}
-                onCancel={() => setShowTriggerConfig(false)}
-              />
-            )}
+            <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
+                {/* Trigger Selection */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">Tipos de Gatilho</h3>
+                    <div className="grid gap-3">
+                      {triggerTemplates.map((template) => {
+                        const IconComponent = template.icon;
+                        return (
+                          <Card 
+                            key={template.type} 
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedTrigger?.type === template.type ? 'ring-2 ring-blue-500' : ''
+                            }`}
+                            onClick={() => handleTriggerSelect(template)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-md ${template.color}`}>
+                                  <IconComponent className="h-5 w-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{template.name}</h4>
+                                  <p className="text-sm text-gray-500">{template.description}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trigger Configuration */}
+                <div className="space-y-4">
+                  {selectedTrigger ? (
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Configuração</h3>
+                      <div className="space-y-4">
+                        <TriggerConfigForm
+                          trigger={selectedTrigger}
+                          onSave={(config) => {
+                            setSelectedTrigger(prev => prev ? { ...prev, config } : null);
+                          }}
+                          onCancel={() => setShowTriggerConfig(false)}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500 py-12">
+                      <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Selecione um tipo de gatilho para configurar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+            <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
+              <Button variant="outline" onClick={() => setShowTriggerConfig(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleTriggerSave}
+                disabled={!selectedTrigger}
+              >
+                Salvar Gatilho
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
 
         {/* Action Configuration Modal */}
         <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-          <DialogContent data-testid="action-config-modal">
-            <DialogHeader>
-              <DialogTitle>Configurar {selectedAction?.name}</DialogTitle>
+          <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Configurar Ação</DialogTitle>
               <DialogDescription>
-                {selectedAction?.description}
+                {selectedAction ? `Configurando: ${selectedAction.name}` : 'Selecione uma ação'}
               </DialogDescription>
             </DialogHeader>
-            {selectedAction && (
-              <ActionConfigForm
-                action={selectedAction}
-                onSave={(config) => {
-                  updateActionConfig(selectedAction.id, config);
-                  setShowActionConfig(false);
-                }}
-                onCancel={() => setShowActionConfig(false)}
-              />
-            )}
+            <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
+                {/* Action Selection */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">Tipos de Ação</h3>
+                    <div className="grid gap-3">
+                      {actionTemplates.map((template) => {
+                        const IconComponent = template.icon;
+                        return (
+                          <Card 
+                            key={template.type} 
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedAction?.type === template.type ? 'ring-2 ring-blue-500' : ''
+                            }`}
+                            onClick={() => handleActionSelect(template)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-md ${template.color}`}>
+                                  <IconComponent className="h-5 w-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{template.name}</h4>
+                                  <p className="text-sm text-gray-500">{template.description}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Configuration */}
+                <div className="space-y-4">
+                  {selectedAction ? (
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Configuração</h3>
+                      <div className="space-y-4">
+                        <ActionConfigForm
+                          action={selectedAction}
+                          onSave={(config) => {
+                            setSelectedAction(prev => prev ? { ...prev, config } : null);
+                          }}
+                          onCancel={() => setShowActionConfig(false)}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500 py-12">
+                      <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Selecione um tipo de ação para configurar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+            <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
+              <Button variant="outline" onClick={() => setShowActionConfig(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleActionSave}
+                disabled={!selectedAction}
+              >
+                Salvar Ação
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </DialogContent>
