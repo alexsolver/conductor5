@@ -326,9 +326,23 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Save flow mutation
   const saveFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
+      console.log('🔄 [FLOW-SAVE] Starting mutation with data:', flowData);
       if (!selectedFlow?.id) throw new Error('No flow selected');
+      
+      console.log('🔄 [FLOW-SAVE] Making API request to:', `/api/omnibridge/flows/${selectedFlow.id}`);
       const response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, flowData);
-      return response.json();
+      
+      console.log('🔄 [FLOW-SAVE] Response status:', response.status, 'ok:', response.ok);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('🔄 [FLOW-SAVE] Error response text:', errorText);
+        throw new Error(`${response.status}: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('🔄 [FLOW-SAVE] Success response:', result);
+      return result;
     },
     onSuccess: () => {
       toast({
