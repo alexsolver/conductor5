@@ -171,8 +171,33 @@ router.get('/chatbots/analytics/tenant', jwtAuth, chatbotController.getTenantAna
 // Save complete flow with nodes and edges
 router.put('/flows/:flowId/complete', jwtAuth, chatbotController.saveCompleteFlow.bind(chatbotController));
 
-// Update flow basic information
-router.put('/flows/:flowId', jwtAuth, chatbotController.updateFlow.bind(chatbotController));
+// Update flow basic information (also handles flow creation if not exists)
+router.put('/flows/:flowId', jwtAuth, async (req, res) => {
+  try {
+    await chatbotController.updateFlow.bind(chatbotController)(req, res);
+  } catch (error) {
+    console.error('❌ [ROUTES] Error in flow update route:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Alternative route for flow creation with specific ID
+router.post('/flows/:flowId', jwtAuth, async (req, res) => {
+  try {
+    await chatbotController.updateFlow.bind(chatbotController)(req, res);
+  } catch (error) {
+    console.error('❌ [ROUTES] Error in flow creation route:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
 
 // ===== VALIDATION ROUTES =====
 

@@ -332,9 +332,10 @@ export const selectChatbotBotSchema = createSelectSchema(chatbotBots);
 
 // Flow schemas
 export const insertChatbotFlowSchema = createInsertSchema(chatbotFlows).omit({
-  id: true,
   createdAt: true,
   publishedAt: true
+}).extend({
+  id: z.string().optional()
 });
 
 export const updateChatbotFlowSchema = insertChatbotFlowSchema.partial();

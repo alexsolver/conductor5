@@ -14,8 +14,15 @@ import { db } from '../../../../../shared/schema';
 import { eq, and, desc, max, count, avg, sql } from 'drizzle-orm';
 
 export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
-  async create(flow: InsertChatbotFlow): Promise<SelectChatbotFlow> {
+  async create(flow: InsertChatbotFlow & { id?: string }): Promise<SelectChatbotFlow> {
+    console.log('💾 [REPOSITORY] Creating flow with data:', { 
+      id: flow.id, 
+      botId: flow.botId, 
+      name: flow.name 
+    });
+    
     const [createdFlow] = await db.insert(chatbotFlows).values(flow).returning();
+    console.log('✅ [REPOSITORY] Flow created successfully:', createdFlow.id);
     return createdFlow as SelectChatbotFlow;
   }
 

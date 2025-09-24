@@ -13,36 +13,30 @@ export interface CreateChatbotFlowRequest {
 
 export class CreateChatbotFlowUseCase {
   constructor(
-    private flowRepository: IChatbotFlowRepository,
-    private botRepository: IChatbotBotRepository
+    private chatbotFlowRepository: IChatbotFlowRepository,
+    private chatbotBotRepository: IChatbotBotRepository
   ) {}
 
-  async execute(request: CreateChatbotFlowRequest): Promise<SelectChatbotFlow> {
-    // Validate bot exists and belongs to tenant
-    const bot = await this.botRepository.findById(request.botId, request.tenantId);
+  async execute(request: CreateChatbotFlowRequest & { id?: string }): Promise<SelectChatbotFlow> {
+    const { botId, tenantId, id, ...flowData } = request;
+
+    // Verify bot belongs to tenant
+    const bot = await this.chatbotBotRepository.findById(botId, tenantId);
     if (!bot) {
-      throw new Error('Bot not found or does not belong to tenant');
+      throw new Error('Bot not found or access denied');
     }
 
-    // Get next version number for this bot
-    const latestFlow = await this.flowRepository.getLatestVersion(request.botId);
-    const nextVersion = latestFlow ? latestFlow.version + 1 : 1;
-
-    const flowData: InsertChatbotFlow = {
-      botId: request.botId,
-      name: request.name,
-      version: nextVersion,
-      description: request.description || null,
-      settings: request.settings || {},
-      isActive: request.isActive || false
+    const flowToCreate = {
+      botId,
+      ...flowData
     };
 
-    const flow = await this.flowRepository.create(flowData);
-
-    // If this should be active, activate it (deactivating others)
-    if (request.isActive) {
-      await this.flowRepository.activateVersion(flow.id);
+    // Include custom ID if provided
+    if (id) {
+      (flowToCreate as any).id = id;
     }
+
+    const flow = await this.chatbotFlowRepository.create(flowToCreate);
 
     return flow;
   }

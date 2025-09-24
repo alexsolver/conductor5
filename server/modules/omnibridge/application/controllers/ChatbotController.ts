@@ -356,15 +356,47 @@ export class ChatbotController {
         console.log('💾 [CONTROLLER] Detected complete flow save request');
         
         // Verify flow exists and belongs to tenant
-        const existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId);
+        let existingFlow = await this.updateFlowUseCase.chatbotFlowRepository.findById(flowId);
+        
+        // If flow doesn't exist, create it first
         if (!existingFlow) {
-          console.error('❌ [CONTROLLER] Flow not found in database:', flowId);
-          res.status(404).json({
-            success: false,
-            error: 'Flow not found',
-            details: { flowId, tenantId }
+          console.log('🔧 [CONTROLLER] Flow not found, creating it first:', flowId);
+          
+          // Extract botId from flowData or derive from flowId pattern
+          const botId = flowData.botId || req.body.botId;
+          if (!botId) {
+            console.error('❌ [CONTROLLER] Cannot create flow without botId');
+            res.status(400).json({
+              success: false,
+              error: 'BotId is required to create flow'
+            });
+            return;
+          }
+
+          // Verify bot exists and belongs to tenant
+          const bot = await this.getBotByIdUseCase.execute({ botId, tenantId });
+          if (!bot) {
+            console.error('❌ [CONTROLLER] Bot not found or access denied:', { botId, tenantId });
+            res.status(404).json({
+              success: false,
+              error: 'Bot not found or access denied'
+            });
+            return;
+          }
+
+          // Create the flow
+          const newFlow = await this.createFlowUseCase.execute({
+            id: flowId, // Use the provided flowId
+            botId: botId,
+            name: flowData.name || 'Fluxo Principal',
+            description: flowData.description || 'Fluxo padrão do chatbot',
+            version: 1,
+            isActive: flowData.isActive !== undefined ? flowData.isActive : true,
+            settings: flowData.settings || {}
           });
-          return;
+
+          existingFlow = newFlow;
+          console.log('✅ [CONTROLLER] Flow created successfully:', existingFlow.id);
         }
 
         console.log('✅ [CONTROLLER] Flow found:', { 
