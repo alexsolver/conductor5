@@ -35,14 +35,14 @@ const generateTicketDisplay = (ticketId: string, createdAt?: string): string => 
   if (!createdAt) {
     return `T-${ticketId.slice(0, 8).toUpperCase()}`;
   }
-
+  
   try {
     const date = new Date(createdAt);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const shortId = ticketId.slice(0, 6).toUpperCase();
-
+    
     return `T${year}${month}${day}-${shortId}`;
   } catch (error) {
     // Fallback if date parsing fails
@@ -62,7 +62,6 @@ interface Ticket {
   caller_name?: string;
   created_at?: string;
   updated_at?: string;
-  ticket_number?: string; // Added ticket_number field
 }
 
 interface TicketRelationship {
@@ -180,7 +179,7 @@ export const ResponsiveTicketsTable = ({
                 key={`ticket-${ticket.id}`}
                 className="hover:bg-gray-50 transition-colors"
                 role="row"
-                aria-label={`Ticket ${ticket.ticket_number || generateTicketDisplay(ticket.id, ticket.created_at)}: ${ticket.subject}`}
+                aria-label={`Ticket ${ticket.number || generateTicketDisplay(ticket.id, ticket.created_at)}: ${ticket.subject}`}
               >
                   <TableCell className="font-mono text-sm">
                     <div className="flex items-center gap-2">
@@ -190,7 +189,7 @@ export const ResponsiveTicketsTable = ({
                           size="sm"
                           onClick={() => handleToggleExpand(ticket.id)}
                           className="p-1 h-6 w-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
-                          aria-label={`${currentExpandedTickets.has(ticket.id) ? "Recolher" : "Expandir"} relacionamentos do ticket ${ticket.ticket_number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
+                          aria-label={`${currentExpandedTickets.has(ticket.id) ? "Recolher" : "Expandir"} relacionamentos do ticket ${ticket.number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
                           title="Expandir/Recolher tickets vinculados"
                         >
                           {currentExpandedTickets.has(ticket.id) ?
@@ -202,9 +201,9 @@ export const ResponsiveTicketsTable = ({
                       <Link
                         href={`/tickets/${ticket.id}`}
                         className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
-                        aria-label={`Ver detalhes do ticket ${ticket.ticket_number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
+                        aria-label={`Ver detalhes do ticket ${ticket.number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
                       >
-                        {ticket.ticket_number || generateTicketDisplay(ticket.id, ticket.created_at)}
+                        {ticket.number || generateTicketDisplay(ticket.id, ticket.created_at)}
                       </Link>
                     </div>
                   </TableCell>
@@ -259,7 +258,7 @@ export const ResponsiveTicketsTable = ({
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0"
-                          aria-label={`Ações para ticket ${ticket.ticket_number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
+                          aria-label={`Ações para ticket ${ticket.number || generateTicketDisplay(ticket.id, ticket.created_at)}`}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
