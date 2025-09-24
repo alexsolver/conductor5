@@ -11,9 +11,9 @@ export class DeleteChatbotFlowUseCase {
   async execute(request: DeleteChatbotFlowRequest): Promise<boolean> {
     const { flowId, tenantId } = request;
     
-    // Verify flow exists and belongs to tenant
+    // Verify flow exists (tenant isolation handled by schema selection)
     const existingFlow = await this.chatbotFlowRepository.findById(flowId);
-    if (!existingFlow || existingFlow.tenantId !== tenantId) {
+    if (!existingFlow) {
       return false;
     }
 

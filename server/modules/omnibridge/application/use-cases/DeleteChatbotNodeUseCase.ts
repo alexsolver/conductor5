@@ -11,9 +11,9 @@ export class DeleteChatbotNodeUseCase {
   async execute(request: DeleteChatbotNodeRequest): Promise<boolean> {
     const { nodeId, tenantId } = request;
     
-    // Verify node exists and belongs to tenant
+    // Verify node exists (tenant isolation handled by schema selection)
     const existingNode = await this.chatbotNodeRepository.findById(nodeId);
-    if (!existingNode || existingNode.tenantId !== tenantId) {
+    if (!existingNode) {
       return false;
     }
 

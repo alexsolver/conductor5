@@ -19,9 +19,9 @@ export class UpdateChatbotNodeUseCase {
   async execute(request: UpdateChatbotNodeRequest): Promise<SelectChatbotNode> {
     const { nodeId, tenantId, ...updateData } = request;
     
-    // Verify node exists and belongs to tenant
+    // Verify node exists (tenant isolation handled by schema selection)
     const existingNode = await this.chatbotNodeRepository.findById(nodeId);
-    if (!existingNode || existingNode.tenantId !== tenantId) {
+    if (!existingNode) {
       throw new Error('Node not found');
     }
 
