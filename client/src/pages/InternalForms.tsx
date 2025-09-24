@@ -36,7 +36,7 @@ export default function InternalForms() {
     }
   });
 
-  const filteredForms = forms.filter((form: any) => {
+  const filteredForms = (Array.isArray(forms) ? forms : []).filter((form: any) => {
     const matchesSearch = form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || form.category === selectedCategory;
@@ -44,12 +44,12 @@ export default function InternalForms() {
   });
 
   const getCategoryIcon = (category: string) => {
-    const categoryData = categories.find((c: any) => c.name === category);
+    const categoryData = (Array.isArray(categories) ? categories : []).find((c: any) => c.name === category);
     return categoryData?.icon || 'FileText';
   };
 
   const getCategoryColor = (category: string) => {
-    const categoryData = categories.find((c: any) => c.name === category);
+    const categoryData = (Array.isArray(categories) ? categories : []).find((c: any) => c.name === category);
     return categoryData?.color || '#3B82F6';
   };
 
@@ -88,7 +88,7 @@ export default function InternalForms() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Formulários</p>
-                <p className="text-2xl font-bold">{forms.length}</p>
+                <p className="text-2xl font-bold">{Array.isArray(forms) ? forms.length : 0}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
@@ -100,7 +100,7 @@ export default function InternalForms() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Formulários Ativos</p>
-                <p className="text-2xl font-bold">{forms.filter((f: any) => f.isActive).length}</p>
+                <p className="text-2xl font-bold">{Array.isArray(forms) ? forms.filter((f: any) => f.isActive).length : 0}</p>
               </div>
               <Settings className="h-8 w-8 text-green-600" />
             </div>
@@ -112,7 +112,7 @@ export default function InternalForms() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categorias</p>
-                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-2xl font-bold">{Array.isArray(categories) ? categories.length : 0}</p>
               </div>
               <BarChart3 className="h-8 w-8 text-purple-600" />
             </div>
@@ -151,7 +151,7 @@ export default function InternalForms() {
               className="px-3 py-2 border rounded-md"
             >
               <option value="all">Todas as Categorias</option>
-              {categories.map((category: any) => (
+              {(Array.isArray(categories) ? categories : []).map((category: any) => (
                 <option key={category.id} value={category.name}>
                   {category.name}
                 </option>
