@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 
 // Repositories
-import { DrizzleChatbotBotRepository } from './infrastructure/repositories/DrizzleChatbotBotRepository';
+import { DrizzleChatbotRepository } from './infrastructure/repositories/DrizzleChatbotRepository';
 import { DrizzleChatbotFlowRepository } from './infrastructure/repositories/DrizzleChatbotFlowRepository';
 import { DrizzleChatbotNodeRepository } from './infrastructure/repositories/DrizzleChatbotNodeRepository';
 import { DrizzleChatbotEdgeRepository } from './infrastructure/repositories/DrizzleChatbotEdgeRepository';
@@ -33,7 +33,7 @@ import { ChatbotController } from './application/controllers/ChatbotController';
 const router = Router();
 
 // Initialize repositories
-const botRepository = new DrizzleChatbotBotRepository();
+const botRepository = new DrizzleChatbotRepository();
 const flowRepository = new DrizzleChatbotFlowRepository();
 const nodeRepository = new DrizzleChatbotNodeRepository();
 const edgeRepository = new DrizzleChatbotEdgeRepository();
