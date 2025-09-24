@@ -1001,10 +1001,11 @@ export default function AutomationRuleBuilder({
             </div>
 
             {/* Canvas */}
-            <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
-              {isPreview ? (
-                /* Preview Mode */
-                <div className="max-w-4xl mx-auto">
+            <ScrollArea className="flex-1 h-full">
+              <div className="p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
+                {isPreview ? (
+                  /* Preview Mode */
+                  <div className="max-w-4xl mx-auto">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -1239,7 +1240,8 @@ export default function AutomationRuleBuilder({
                   )}
                 </div>
               )}
-            </div>
+              </div>
+            </ScrollArea>
           </div>
         </div>
 
