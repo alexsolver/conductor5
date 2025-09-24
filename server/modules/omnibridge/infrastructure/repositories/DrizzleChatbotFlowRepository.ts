@@ -102,8 +102,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
       .orderBy(desc(chatbotFlows.createdAt));
   }
 
-  async findActiveByBot(botId: string): Promise<SelectChatbotFlow | null> {
-    const [activeFlow] = await db
+  async findActiveByBot(botId: string, tenantId: string): Promise<SelectChatbotFlow | null> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [activeFlow] = await tenantDb
       .select()
       .from(chatbotFlows)
       .where(and(
@@ -115,8 +116,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     return activeFlow || null;
   }
 
-  async update(id: string, updates: UpdateChatbotFlow): Promise<SelectChatbotFlow | null> {
-    const [updatedFlow] = await db
+  async update(id: string, updates: UpdateChatbotFlow, tenantId: string): Promise<SelectChatbotFlow | null> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [updatedFlow] = await tenantDb
       .update(chatbotFlows)
       .set(updates)
       .where(eq(chatbotFlows.id, id))
@@ -125,8 +127,9 @@ export class DrizzleChatbotFlowRepository implements IChatbotFlowRepository {
     return updatedFlow || null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await db
+  async delete(id: string, tenantId: string): Promise<boolean> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb
       .delete(chatbotFlows)
       .where(eq(chatbotFlows.id, id));
     
