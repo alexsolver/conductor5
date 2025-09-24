@@ -282,12 +282,20 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   // Load bot data
   const { data: bot, isLoading: loadingBot } = useQuery<{data: ChatbotBot}>({
     queryKey: ['/api/omnibridge/chatbots', botId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}`);
+      return response.json();
+    },
     enabled: !!botId
   });
 
   // Load flows for bot
   const { data: flows, isLoading: loadingFlows } = useQuery<{data: ChatbotFlow[]}>({
     queryKey: ['/api/omnibridge/chatbots', botId, 'flows'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/omnibridge/chatbots/${botId}/flows`);
+      return response.json();
+    },
     enabled: !!botId
   });
 
@@ -295,11 +303,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
   const saveFlowMutation = useMutation({
     mutationFn: async (flowData: Partial<ChatbotFlow>) => {
       if (!selectedFlow?.id) throw new Error('No flow selected');
-      const response = await fetch(`/api/omnibridge/flows/${selectedFlow.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(flowData)
-      });
+      const response = await apiRequest('PUT', `/api/omnibridge/flows/${selectedFlow.id}`, flowData);
       return response.json();
     },
     onSuccess: () => {

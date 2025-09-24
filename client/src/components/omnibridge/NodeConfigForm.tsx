@@ -757,7 +757,7 @@ export default function NodeConfigForm({
         return (
           <div className="flex items-center space-x-2">
             <Switch
-              checked={value || false}
+              checked={Boolean(value)}
               onCheckedChange={(checked) => handleFieldChange(field, checked)}
               data-testid={`switch-${field.key}`}
             />
@@ -769,7 +769,7 @@ export default function NodeConfigForm({
         return (
           <div className="flex items-center space-x-2">
             <Checkbox
-              checked={value || false}
+              checked={Boolean(value)}
               onCheckedChange={(checked) => handleFieldChange(field, checked)}
               data-testid={`checkbox-${field.key}`}
             />
@@ -865,7 +865,7 @@ export default function NodeConfigForm({
         return (
           <Textarea
             {...commonProps}
-            value={typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+            value={value ? (typeof value === 'string' ? value : JSON.stringify(value, null, 2)) : ''}
             onChange={(e) => {
               try {
                 const parsed = field.type === 'json' ? JSON.parse(e.target.value) : e.target.value;
