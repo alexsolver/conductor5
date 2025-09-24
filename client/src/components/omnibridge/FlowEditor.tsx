@@ -351,7 +351,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/chatbots', botId, 'flows'] });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables: any) => {
       console.error('🔄 [FLOW-SAVE] Error saving flow:', error);
       console.log('🔄 [FLOW-SAVE] Error object keys:', Object.keys(error));
       console.log('🔄 [FLOW-SAVE] Error message:', error?.message);
@@ -361,8 +361,8 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
       // Handle flow not found error by creating a new flow
       if ((error?.message?.startsWith('404:') || error?.message?.startsWith('500:')) && 
           error?.message?.includes('Flow not found') && selectedFlow) {
-        console.log('🔄 [FLOW-SAVE] Flow not found, creating new one...');
-        createFlowMutation.mutate(selectedFlow);
+        console.log('🔄 [FLOW-SAVE] Flow not found, creating new one with current data...');
+        createFlowMutation.mutate(variables);
       } else {
         console.log('🔄 [FLOW-SAVE] Different error, showing error toast');
         toast({
