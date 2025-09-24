@@ -441,7 +441,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
             config: nodeConfig,
             configuration: nodeConfig, // Duplicate for compatibility
             isStart: node.isStart || false,
-            isEnd: node.isEnd || false,
+            isEnd: node.isEnd !== false,
             isEnabled: node.isEnabled !== false
           }
         };
@@ -759,6 +759,33 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     }
   }, [selectedFlow, selectedChatbot, nodes, edges, toast, queryClient, selectedNodeConfig]);
 
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsCanvasDragging(true);
+      setStartCanvasDragPos({ x: e.clientX, y: e.clientY });
+    }
+  }, []);
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
+
+    if (isCanvasDragging) {
+      const deltaX = e.clientX - startCanvasDragPos.x;
+      const deltaY = e.clientY - startCanvasDragPos.y;
+
+      setCanvasOffset(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+
+      setStartCanvasDragPos({ x: e.clientX, y: e.clientY });
+    }
+  }, [isCanvasDragging, startCanvasDragPos]);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    setIsCanvasDragging(false);
+  }, []);
+
   const handleCanvasDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     console.log('🐛 [DRAG] Drop event fired', {
@@ -769,7 +796,7 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     });
 
     if (!draggedNodeType || !canvasRef.current || !selectedFlow) {
-      console.log('🐛 [DRAG] Drop cancelled - missing requirements');
+      console.log('🐛 [DRAG] Drop aborted - missing requirements');
       return;
     }
 
@@ -779,10 +806,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     console.log('🐛 [DRAG] Drop position:', { x, y });
 
-    // Find the node data from all categories
-    let nodeData: any = null;
+    // Find the node type data
+    let nodeData = null;
     for (const category of Object.values(NODE_CATEGORIES)) {
-      nodeData = category.nodes.find(node => node.id === draggedNodeType);
+      nodeData = category.nodes.find(n => n.id === draggedNodeType);
       if (nodeData) break;
     }
 
@@ -793,7 +820,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     console.log('🐛 [DRAG] Node data found:', nodeData);
 
-    // Create new node
     const newNode: FlowNode = {
       id: `node_${Date.now()}`,
       flowId: selectedFlow.id,
@@ -808,10 +834,10 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
 
     console.log('🐛 [DRAG] Creating new node:', newNode);
 
-    // Add to nodes state
-    setNodes(prevNodes => [...prevNodes, newNode]);
+    setNodes(prev => [...prev, newNode]);
+    setDraggedNodeType(null);
 
-    // Auto-save the flow after a short delay
+    // Auto-save after 500ms
     if (handleSaveFlow) {
       setTimeout(() => {
         handleSaveFlow();
@@ -821,45 +847,6 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     setDraggedNode(null); // Reset dragged node state
 
   }, [selectedFlow, handleSaveFlow]);
-
-  // Canvas mouse event handlers
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return; // Only handle left click
-
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    setIsCanvasDragging(true);
-    setStartCanvasDragPos({
-      x: e.clientX - canvasOffset.x,
-      y: e.clientY - canvasOffset.y
-    });
-  }, [canvasOffset]);
-
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    // Update mouse position for connection preview
-    if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      setMousePosition({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-    }
-
-    if (!isCanvasDragging) return;
-
-    const deltaX = e.clientX - startCanvasDragPos.x;
-    const deltaY = e.clientY - startCanvasDragPos.y;
-
-    setCanvasOffset({
-      x: deltaX,
-      y: deltaY
-    });
-  }, [isCanvasDragging, startCanvasDragPos]);
-
-  const handleCanvasMouseUp = useCallback(() => {
-    setIsCanvasDragging(false);
-  }, []);
 
 
   // Helper to get node position with offset and zoom applied
@@ -874,6 +861,24 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
     return { x: adjustedX, y: adjustedY };
   };
 
+  const handleNodeDragStart = (e: React.DragEvent, node: FlowNode) => {
+    console.log('🐛 [NODE-DRAG] Starting node drag:', node.id);
+    setDraggedNode(node);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('nodeId', node.id);
+  };
+
+  const handleNodeClick = (node: FlowNode) => {
+    setSelectedNode(node);
+    setSelectedNodeId(node.id);
+  };
+
+  const handleNodeDoubleClick = (node: FlowNode) => {
+    setSelectedNode(node);
+    setSelectedNodeId(node.id);
+    setNodeConfig(node.configuration || {});
+    setShowNodeConfig(true);
+  };
 
   const handleNodeConfigSave = (nodeId: string, newConfig: Record<string, any>) => {
     setSelectedNodeConfig(prev => ({
@@ -1092,14 +1097,35 @@ export default function FlowEditor({ botId, onClose }: FlowEditorProps) {
                   handleNodeDragStart(e, node);
                   setSelectedNodeId(node.id);
                 }}
-                onDragEnd={() => setDraggedNode(null)}
+                onDrag={(e) => {
+                  if (draggedNode?.id === node.id && canvasRef.current && e.clientX > 0 && e.clientY > 0) {
+                    const rect = canvasRef.current.getBoundingClientRect();
+                    const x = (e.clientX - rect.left - canvasOffset.x) / zoom;
+                    const y = (e.clientY - rect.top - canvasOffset.y) / zoom;
+
+                    setNodes(prev => prev.map(n => 
+                      n.id === node.id 
+                        ? { ...n, position: { x, y } }
+                        : n
+                    ));
+                  }
+                }}
+                onDragEnd={() => {
+                  setDraggedNode(null);
+                  // Auto-save after drag
+                  if (handleSaveFlow) {
+                    setTimeout(() => {
+                      handleSaveFlow();
+                    }, 500);
+                  }
+                }}
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent canvas drag from starting
-                  setSelectedNodeId(node.id);
-                  setSelectedNode(node);
-                  setNodeConfig(node.configuration);
-                  setSelectedNodeForConfig(node.id);
-                  setShowNodeConfig(true);
+                  e.stopPropagation();
+                  handleNodeClick(node);
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  handleNodeDoubleClick(node);
                 }}
                 data-testid={`canvas-node-${node.id}`}
               >
