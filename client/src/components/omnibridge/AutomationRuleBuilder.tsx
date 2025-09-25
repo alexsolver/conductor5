@@ -315,15 +315,30 @@ export default function AutomationRuleBuilder({
   // Confirmar configuração da ação
   const confirmActionConfig = () => {
     if (currentAction) {
-      const updatedAction = {
-        ...currentAction,
-        config: actionConfig
-      };
+      const actionIndex = rule.actions.findIndex(a => a.id === currentAction.id);
+      
+      if (actionIndex >= 0) {
+        // Editar ação existente
+        setRule(prev => {
+          const newActions = [...prev.actions];
+          newActions[actionIndex] = {
+            ...newActions[actionIndex],
+            config: actionConfig
+          };
+          return { ...prev, actions: newActions };
+        });
+      } else {
+        // Adicionar nova ação
+        const updatedAction = {
+          ...currentAction,
+          config: actionConfig
+        };
 
-      setRule(prev => ({
-        ...prev,
-        actions: [...prev.actions, updatedAction]
-      }));
+        setRule(prev => ({
+          ...prev,
+          actions: [...prev.actions, updatedAction]
+        }));
+      }
 
       setShowActionConfig(false);
       setCurrentAction(null);
@@ -372,18 +387,11 @@ export default function AutomationRuleBuilder({
   };
 
   // Helper para atualizar configuração da ação
-  const updateActionConfig = (index: number, key: string, value: any) => {
-    setRule(prev => {
-      const newActions = [...prev.actions];
-      newActions[index] = {
-        ...newActions[index],
-        config: {
-          ...newActions[index].config,
-          [key]: value
-        }
-      };
-      return { ...prev, actions: newActions };
-    });
+  const updateActionConfig = (key: string, value: any) => {
+    setActionConfig(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   // Renderizar configuração da ação
@@ -398,8 +406,8 @@ export default function AutomationRuleBuilder({
                 <Textarea
                   id={`action-message-${actionIndex}`}
                   placeholder="Digite a mensagem de resposta automática..."
-                  value={action.config?.message || ''}
-                  onChange={(e) => updateActionConfig(actionIndex, 'message', e.target.value)}
+                  value={actionConfig?.message || ''}
+                  onChange={(e) => updateActionConfig('message', e.target.value)}
                   rows={3}
                 />
               </div>
@@ -409,8 +417,8 @@ export default function AutomationRuleBuilder({
                   id={`action-delay-${actionIndex}`}
                   type="number"
                   placeholder="0"
-                  value={action.config?.delay || 0}
-                  onChange={(e) => updateActionConfig(actionIndex, 'delay', parseInt(e.target.value) || 0)}
+                  value={actionConfig?.delay || 0}
+                  onChange={(e) => updateActionConfig('delay', parseInt(e.target.value) || 0)}
                 />
               </div>
             </div>
@@ -424,8 +432,8 @@ export default function AutomationRuleBuilder({
               <div>
                 <Label htmlFor={`action-tone-${actionIndex}`}>Tom da Resposta</Label>
                 <Select
-                  value={action.config?.tone || 'professional'}
-                  onValueChange={(value) => updateActionConfig(actionIndex, 'tone', value)}
+                  value={actionConfig?.tone || 'professional'}
+                  onValueChange={(value) => updateActionConfig('tone', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tom" />
@@ -443,8 +451,8 @@ export default function AutomationRuleBuilder({
               <div>
                 <Label htmlFor={`action-language-${actionIndex}`}>Idioma</Label>
                 <Select
-                  value={action.config?.language || 'pt-BR'}
-                  onValueChange={(value) => updateActionConfig(actionIndex, 'language', value)}
+                  value={actionConfig?.language || 'pt-BR'}
+                  onValueChange={(value) => updateActionConfig('language', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o idioma" />
@@ -463,8 +471,8 @@ export default function AutomationRuleBuilder({
               <Textarea
                 id={`action-instructions-${actionIndex}`}
                 placeholder="Digite instruções específicas para a IA sobre como responder..."
-                value={action.config?.customInstructions || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'customInstructions', e.target.value)}
+                value={actionConfig?.customInstructions || ''}
+                onChange={(e) => updateActionConfig('customInstructions', e.target.value)}
                 rows={3}
               />
               <p className="text-sm text-muted-foreground mt-1">
@@ -476,8 +484,8 @@ export default function AutomationRuleBuilder({
               <Textarea
                 id={`action-template-${actionIndex}`}
                 placeholder="Olá! {response} Caso precise de mais alguma coisa, estou à disposição."
-                value={action.config?.template || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'template', e.target.value)}
+                value={actionConfig?.template || ''}
+                onChange={(e) => updateActionConfig('template', e.target.value)}
                 rows={2}
               />
               <p className="text-sm text-muted-foreground mt-1">
@@ -488,8 +496,8 @@ export default function AutomationRuleBuilder({
               <input
                 type="checkbox"
                 id={`action-include-original-${actionIndex}`}
-                checked={action.config?.includeOriginalMessage || false}
-                onChange={(e) => updateActionConfig(actionIndex, 'includeOriginalMessage', e.target.checked)}
+                checked={actionConfig?.includeOriginalMessage || false}
+                onChange={(e) => updateActionConfig('includeOriginalMessage', e.target.checked)}
                 className="rounded"
               />
               <Label htmlFor={`action-include-original-${actionIndex}`}>
@@ -516,8 +524,8 @@ export default function AutomationRuleBuilder({
               <Label htmlFor={`action-recipient-${actionIndex}`}>Destinatário</Label>
               <Input
                 id={`action-recipient-${actionIndex}`}
-                value={action.config?.recipient || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'recipient', e.target.value)}
+                value={actionConfig?.recipient || ''}
+                onChange={(e) => updateActionConfig('recipient', e.target.value)}
                 placeholder="email@exemplo.com"
               />
             </div>
@@ -525,8 +533,8 @@ export default function AutomationRuleBuilder({
               <Label htmlFor={`action-message-${actionIndex}`}>Mensagem</Label>
               <Textarea
                 id={`action-message-${actionIndex}`}
-                value={action.config?.message || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'message', e.target.value)}
+                value={actionConfig?.message || ''}
+                onChange={(e) => updateActionConfig('message', e.target.value)}
                 placeholder="Mensagem de notificação..."
               />
             </div>
@@ -540,14 +548,14 @@ export default function AutomationRuleBuilder({
               <Label htmlFor={`action-title-${actionIndex}`}>Título do ticket</Label>
               <Input
                 id={`action-title-${actionIndex}`}
-                value={action.config?.title || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'title', e.target.value)}
+                value={actionConfig?.title || ''}
+                onChange={(e) => updateActionConfig('title', e.target.value)}
                 placeholder="Título automático do ticket"
               />
             </div>
             <div>
               <Label htmlFor={`action-priority-${actionIndex}`}>Prioridade</Label>
-              <Select value={action.config?.priority || 'medium'} onValueChange={(value) => updateActionConfig(actionIndex, 'priority', value)}>
+              <Select value={actionConfig?.priority || 'medium'} onValueChange={(value) => updateActionConfig('priority', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -569,8 +577,8 @@ export default function AutomationRuleBuilder({
               <Label htmlFor={`action-tags-${actionIndex}`}>Tags (separadas por vírgula)</Label>
               <Input
                 id={`action-tags-${actionIndex}`}
-                value={action.config?.tags || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'tags', e.target.value)}
+                value={actionConfig?.tags || ''}
+                onChange={(e) => updateActionConfig('tags', e.target.value)}
                 placeholder="tag1, tag2, tag3"
               />
             </div>
@@ -584,8 +592,8 @@ export default function AutomationRuleBuilder({
               <Label htmlFor={`action-agentId-${actionIndex}`}>ID do Agente</Label>
               <Input
                 id={`action-agentId-${actionIndex}`}
-                value={action.config?.agentId || ''}
-                onChange={(e) => updateActionConfig(actionIndex, 'agentId', e.target.value)}
+                value={actionConfig?.agentId || ''}
+                onChange={(e) => updateActionConfig('agentId', e.target.value)}
                 placeholder="ID ou email do agente"
               />
             </div>
