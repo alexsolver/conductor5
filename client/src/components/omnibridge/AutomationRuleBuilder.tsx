@@ -633,1261 +633,316 @@ export default function AutomationRuleBuilder({
             </div>
             <div>
               <Label htmlFor={`action-priority-${actionIndex}`}>Prioridade</Label>
-              <Select value={actionConfig?.priority || 'medium'} onValueChange={(value) => updateActionConfig('priority', value)}>[
-  {
-    "type": "line",
-    "line": "                <SelectTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "                  <SelectValue />"
-  },
-  {
-    "type": "line",
-    "line": "                </SelectTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "                <SelectContent>"
-  },
-  {
-    "type": "line",
-    "line": "                  <SelectItem value=\"low\">Baixa</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                  <SelectItem value=\"medium\">Média</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                  <SelectItem value=\"high\">Alta</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                  <SelectItem value=\"urgent\">Urgente</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                </SelectContent>"
-  },
-  {
-    "type": "line",
-    "line": "              </Select>"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": "          </div>"
-  },
-  {
-    "type": "line",
-    "line": "        );"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "      case 'add_tags':"
-  },
-  {
-    "type": "line",
-    "line": "        return ("
-  },
-  {
-    "type": "line",
-    "line": "          <div className=\"space-y-4\">"
-  },
-  {
-    "type": "line",
-    "line": "            <div>"
-  },
-  {
-    "type": "line",
-    "line": "              <Label htmlFor={`action-tags-${actionIndex}`}>Tags (separadas por vírgula)</Label>"
-  },
-  {
-    "type": "line",
-    "line": "              <Input"
-  },
-  {
-    "type": "line",
-    "line": "                id={`action-tags-${actionIndex}`}"
-  },
-  {
-    "type": "line",
-    "line": "                value={actionConfig?.tags || ''}"
-  },
-  {
-    "type": "line",
-    "line": "                onChange={(e) => updateActionConfig('tags', e.target.value)}"
-  },
-  {
-    "type": "line",
-    "line": "                placeholder=\"tag1, tag2, tag3\""
-  },
-  {
-    "type": "line",
-    "line": "              />"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": "          </div>"
-  },
-  {
-    "type": "line",
-    "line": "        );"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "      case 'assign_agent':"
-  },
-  {
-    "type": "line",
-    "line": "        return ("
-  },
-  {
-    "type": "line",
-    "line": "          <div className=\"space-y-4\">"
-  },
-  {
-    "type": "line",
-    "line": "            <div>"
-  },
-  {
-    "type": "line",
-    "line": "              <Label htmlFor={`action-agentId-${actionIndex}`}>ID do Agente</Label>"
-  },
-  {
-    "type": "line",
-    "line": "              <Input"
-  },
-  {
-    "type": "line",
-    "line": "                id={`action-agentId-${actionIndex}`}"
-  },
-  {
-    "type": "line",
-    "line": "                value={actionConfig?.agentId || ''}"
-  },
-  {
-    "type": "line",
-    "line": "                onChange={(e) => updateActionConfig('agentId', e.target.value)}"
-  },
-  {
-    "type": "line",
-    "line": "                placeholder=\"ID ou email do agente\""
-  },
-  {
-    "type": "line",
-    "line": "              />"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": "          </div>"
-  },
-  {
-    "type": "line",
-    "line": "        );"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "      default:"
-  },
-  {
-    "type": "line",
-    "line": "        return ("
-  },
-  {
-    "type": "line",
-    "line": "          <div>"
-  },
-  {
-    "type": "line",
-    "line": "            <p className=\"text-sm text-gray-600\">"
-  },
-  {
-    "type": "line",
-    "line": "              Configurações específicas para esta ação serão implementadas em breve."
-  },
-  {
-    "type": "line",
-    "line": "            </p>"
-  },
-  {
-    "type": "line",
-    "line": "          </div>"
-  },
-  {
-    "type": "line",
-    "line": "        );"
-  },
-  {
-    "type": "line",
-    "line": "    }"
-  },
-  {
-    "type": "line",
-    "line": "  };"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "  return ("
-  },
-  {
-    "type": "line",
-    "line": "    <Dialog open={isOpen} onOpenChange={onClose}>"
-  },
-  {
-    "type": "line",
-    "line": "      <DialogContent className=\"max-w-4xl max-h-[90vh] overflow-hidden\">"
-  },
-  {
-    "type": "line",
-    "line": "        <DialogHeader>"
-  },
-  {
-    "type": "line",
-    "line": "          <DialogTitle className=\"flex items-center gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "            <Workflow className=\"w-5 h-5\" />"
-  },
-  {
-    "type": "line",
-    "line": "            {existingRule ? 'Editar Regra de Automação' : 'Nova Regra de Automação'}"
-  },
-  {
-    "type": "line",
-    "line": "          </DialogTitle>"
-  },
-  {
-    "type": "line",
-    "line": "          <DialogDescription>"
-  },
-  {
-    "type": "line",
-    "line": "            Use o Query Builder para criar condições complexas e configure ações para automatizar seu atendimento."
-  },
-  {
-    "type": "line",
-    "line": "          </DialogDescription>"
-  },
-  {
-    "type": "line",
-    "line": "        </DialogHeader>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "        <ScrollArea className=\"h-[calc(90vh-100px)] pr-2\"> {/* Ajustado para acomodar o cabeçalho e rodapé */}"
-  },
-  {
-    "type": "line",
-    "line": "          <div className=\"flex flex-col gap-4 px-2 pb-4\">"
-  },
-  {
-    "type": "line",
-    "line": "            {/* Informações Básicas */}"
-  },
-  {
-    "type": "line",
-    "line": "            <Card>"
-  },
-  {
-    "type": "line",
-    "line": "              <CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "                <CardTitle className=\"text-lg\">Informações da Regra</CardTitle>"
-  },
-  {
-    "type": "line",
-    "line": "              </CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "              <CardContent className=\"space-y-4\">"
-  },
-  {
-    "type": "line",
-    "line": "                <div className=\"grid grid-cols-2 gap-4\">"
-  },
-  {
-    "type": "line",
-    "line": "                  <div>"
-  },
-  {
-    "type": "line",
-    "line": "                    <Label htmlFor=\"rule-name\">Nome da Regra</Label>"
-  },
-  {
-    "type": "line",
-    "line": "                    <Input"
-  },
-  {
-    "type": "line",
-    "line": "                      id=\"rule-name\""
-  },
-  {
-    "type": "line",
-    "line": "                      value={rule.name}"
-  },
-  {
-    "type": "line",
-    "line": "                      onChange={(e) => setRule({...rule, name: e.target.value})}"
-  },
-  {
-    "type": "line",
-    "line": "                      placeholder=\"Ex: Resposta automática para urgente\""
-  },
-  {
-    "type": "line",
-    "line": "                    />"
-  },
-  {
-    "type": "line",
-    "line": "                  </div>"
-  },
-  {
-    "type": "line",
-    "line": "                  <div>"
-  },
-  {
-    "type": "line",
-    "line": "                    <Label htmlFor=\"rule-priority\">Prioridade</Label>"
-  },
-  {
-    "type": "line",
-    "line": "                    <Select value={rule.priority.toString()} onValueChange={(value) => setRule({...rule, priority: parseInt(value)})}>"
-  },
-  {
-    "type": "line",
-    "line": "                      <SelectTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectValue />"
-  },
-  {
-    "type": "line",
-    "line": "                      </SelectTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "                      <SelectContent>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectItem value=\"1\">1 - Mais alta</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectItem value=\"2\">2 - Alta</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectItem value=\"3\">3 - Normal</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectItem value=\"4\">4 - Baixa</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                        <SelectItem value=\"5\">5 - Mais baixa</SelectItem>"
-  },
-  {
-    "type": "line",
-    "line": "                      </SelectContent>"
-  },
-  {
-    "type": "line",
-    "line": "                    </Select>"
-  },
-  {
-    "type": "line",
-    "line": "                  </div>"
-  },
-  {
-    "type": "line",
-    "line": "                </div>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "                <div>"
-  },
-  {
-    "type": "line",
-    "line": "                  <Label htmlFor=\"rule-description\">Descrição</Label>"
-  },
-  {
-    "type": "line",
-    "line": "                  <Textarea"
-  },
-  {
-    "type": "line",
-    "line": "                    id=\"rule-description\""
-  },
-  {
-    "type": "line",
-    "line": "                    value={rule.description}"
-  },
-  {
-    "type": "line",
-    "line": "                    onChange={(e) => setRule({...rule, description: e.target.value})}"
-  },
-  {
-    "type": "line",
-    "line": "                    placeholder=\"Descreva o que esta regra faz...\""
-  },
-  {
-    "type": "line",
-    "line": "                    rows={2}"
-  },
-  {
-    "type": "line",
-    "line": "                  />"
-  },
-  {
-    "type": "line",
-    "line": "                </div>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "                <div className=\"flex items-center space-x-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                  <Switch"
-  },
-  {
-    "type": "line",
-    "line": "                    id=\"rule-enabled\""
-  },
-  {
-    "type": "line",
-    "line": "                    checked={rule.enabled}"
-  },
-  {
-    "type": "line",
-    "line": "                    onCheckedChange={(enabled) => setRule({...rule, enabled})}"
-  },
-  {
-    "type": "line",
-    "line": "                  />"
-  },
-  {
-    "type": "line",
-    "line": "                  <Label htmlFor=\"rule-enabled\">Regra ativa</Label>"
-  },
-  {
-    "type": "line",
-    "line": "                </div>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "                <div className=\"flex items-center space-x-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                  <Switch"
-  },
-  {
-    "type": "line",
-    "line": "                    id=\"ai-enabled\""
-  },
-  {
-    "type": "line",
-    "line": "                    checked={rule.aiEnabled}"
-  },
-  {
-    "type": "line",
-    "line": "                    onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}"
-  },
-  {
-    "type": "line",
-    "line": "                  />"
-  },
-  {
-    "type": "line",
-    "line": "                  <Label htmlFor=\"ai-enabled\">Usar análise de IA</Label>"
-  },
-  {
-    "type": "line",
-    "line": "                </div>"
-  },
-  {
-    "type": "line",
-    "line": "              </CardContent>"
-  },
-  {
-    "type": "line",
-    "line": "            </Card>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "            {/* Tabs para Condições e Ações */}"
-  },
-  {
-    "type": "line",
-    "line": "            <Tabs value={activeTab} onValueChange={setActiveTab}>"
-  },
-  {
-    "type": "line",
-    "line": "              <TabsList className=\"grid w-full grid-cols-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                <TabsTrigger value=\"conditions\">Condições</TabsTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "                <TabsTrigger value=\"actions\">Ações</TabsTrigger>"
-  },
-  {
-    "type": "line",
-    "line": "              </TabsList>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "              {/* Tab de Condições */}"
-  },
-  {
-    "type": "line",
-    "line": "              <TabsContent value=\"conditions\">"
-  },
-  {
-    "type": "line",
-    "line": "                <Card>"
-  },
-  {
-    "type": "line",
-    "line": "                  <CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "                    <CardTitle className=\"flex items-center gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                      <Filter className=\"w-5 h-5\" />"
-  },
-  {
-    "type": "line",
-    "line": "                      Condições da Regra"
-  },
-  {
-    "type": "line",
-    "line": "                    </CardTitle>"
-  },
-  {
-    "type": "line",
-    "line": "                    <CardDescription>"
-  },
-  {
-    "type": "line",
-    "line": "                      Configure quando esta regra deve ser executada usando o Query Builder avançado."
-  },
-  {
-    "type": "line",
-    "line": "                    </CardDescription>"
-  },
-  {
-    "type": "line",
-    "line": "                  </CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "                  <CardContent>"
-  },
-  {
-    "type": "line",
-    "line": "                    <QueryBuilderComponent"
-  },
-  {
-    "type": "line",
-    "line": "                      value={rule.conditions}"
-  },
-  {
-    "type": "line",
-    "line": "                      onChange={(conditions) => setRule({...rule, conditions})}"
-  },
-  {
-    "type": "line",
-    "line": "                      fieldOptions={omnibridgeFields}"
-  },
-  {
-    "type": "line",
-    "line": "                      operatorOptions={omnibridgeOperators}"
-  },
-  {
-    "type": "line",
-    "line": "                    />"
-  },
-  {
-    "type": "line",
-    "line": "                  </CardContent>"
-  },
-  {
-    "type": "line",
-    "line": "                </Card>"
-  },
-  {
-    "type": "line",
-    "line": "              </TabsContent>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "              {/* Tab de Ações */}"
-  },
-  {
-    "type": "line",
-    "line": "              <TabsContent value=\"actions\">"
-  },
-  {
-    "type": "line",
-    "line": "                <Card>"
-  },
-  {
-    "type": "line",
-    "line": "                  <CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "                    <CardTitle className=\"flex items-center gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                      <Zap className=\"w-5 h-5\" />"
-  },
-  {
-    "type": "line",
-    "line": "                      Ações da Regra"
-  },
-  {
-    "type": "line",
-    "line": "                    </CardTitle>"
-  },
-  {
-    "type": "line",
-    "line": "                    <CardDescription>"
-  },
-  {
-    "type": "line",
-    "line": "                      Configure o que acontece quando as condições são atendidas."
-  },
-  {
-    "type": "line",
-    "line": "                    </CardDescription>"
-  },
-  {
-    "type": "line",
-    "line": "                  </CardHeader>"
-  },
-  {
-    "type": "line",
-    "line": "                  <CardContent className=\"space-y-4\">"
-  },
-  {
-    "type": "line",
-    "line": "                    {/* Ações Configuradas */}"
-  },
-  {
-    "type": "line",
-    "line": "                    {rule.actions.length > 0 && ("
-  },
-  {
-    "type": "line",
-    "line": "                      <div className=\"space-y-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                        <h4 className=\"font-medium\">Ações Configuradas:</h4>"
-  },
-  {
-    "type": "line",
-    "line": "                        {rule.actions.map((action, index) => ( "
-  },
-  {
-    "type": "line",
-    "line": "                          <div key={action.id} className=\"flex items-center justify-between p-3 border rounded-lg\">"
-  },
-  {
-    "type": "line",
-    "line": "                            <div className=\"flex items-center gap-3\">"
-  },
-  {
-    "type": "line",
-    "line": "                              <div className={`p-2 rounded-lg ${action.color}`}>"
-  },
-  {
-    "type": "line",
-    "line": "                                <action.icon className=\"w-4 h-4 text-white\" />"
-  },
-  {
-    "type": "line",
-    "line": "                              </div>"
-  },
-  {
-    "type": "line",
-    "line": "                              <div>"
-  },
-  {
-    "type": "line",
-    "line": "                                <p className=\"font-medium\">{action.name}</p>"
-  },
-  {
-    "type": "line",
-    "line": "                                <p className=\"text-sm text-gray-600\">{action.description}</p>"
-  },
-  {
-    "type": "line",
-    "line": "                              </div>"
-  },
-  {
-    "type": "line",
-    "line": "                              <Badge variant=\"outline\">#{index + 1}</Badge>"
-  },
-  {
-    "type": "line",
-    "line": "                            </div>"
-  },
-  {
-    "type": "line",
-    "line": "                            <div className=\"flex gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                              <Button"
-  },
-  {
-    "type": "line",
-    "line": "                                variant=\"outline\""
-  },
-  {
-    "type": "line",
-    "line": "                                size=\"sm\""
-  },
-  {
-    "type": "line",
-    "line": "                                onClick={() => editAction(action.id)}"
-  },
-  {
-    "type": "line",
-    "line": "                              >"
-  },
-  {
-    "type": "line",
-    "line": "                                <Settings className=\"h-3 w-3\" />"
-  },
-  {
-    "type": "line",
-    "line": "                                Configurar"
-  },
-  {
-    "type": "line",
-    "line": "                              </Button>"
-  },
-  {
-    "type": "line",
-    "line": "                              <Button"
-  },
-  {
-    "type": "line",
-    "line": "                                variant=\"outline\""
-  },
-  {
-    "type": "line",
-    "line": "                                size=\"sm\""
-  },
-  {
-    "type": "line",
-    "line": "                                onClick={() => removeAction(action.id)}"
-  },
-  {
-    "type": "line",
-    "line": "                              >"
-  },
-  {
-    "type": "line",
-    "line": "                                <Trash2 className=\"w-4 h-4\" />"
-  },
-  {
-    "type": "line",
-    "line": "                              </Button>"
-  },
-  {
-    "type": "line",
-    "line": "                            </div>"
-  },
-  {
-    "type": "line",
-    "line": "                          </div>"
-  },
-  {
-    "type": "line",
-    "line": "                        ))}"
-  },
-  {
-    "type": "line",
-    "line": "                      </div>"
-  },
-  {
-    "type": "line",
-    "line": "                    )}"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "                    <Separator />"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "                    {/* Templates de Ações */}"
-  },
-  {
-    "type": "line",
-    "line": "                    <div>"
-  },
-  {
-    "type": "line",
-    "line": "                      <h4 className=\"font-medium mb-3\">Adicionar Ação:</h4>"
-  },
-  {
-    "type": "line",
-    "line": "                      <div className=\"grid grid-cols-2 gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                        {actionTemplates.map((template) => ( "
-  },
-  {
-    "type": "line",
-    "line": "                          <Button"
-  },
-  {
-    "type": "line",
-    "line": "                            key={template.type}"
-  },
-  {
-    "type": "line",
-    "line": "                            variant=\"outline\""
-  },
-  {
-    "type": "line",
-    "line": "                            className=\"justify-start h-auto p-3\""
-  },
-  {
-    "type": "line",
-    "line": "                            onClick={() => {"
-  },
-  {
-    "type": "line",
-    "line": "                              const newAction: Action = {"
-  },
-  {
-    "type": "line",
-    "line": "                                id: `action_${Date.now()}_${template.type}`,"
-  },
-  {
-    "type": "line",
-    "line": "                                ...template,"
-  },
-  {
-    "type": "line",
-    "line": "                                config: {}"
-  },
-  {
-    "type": "line",
-    "line": "                              };"
-  },
-  {
-    "type": "line",
-    "line": "                              setRule(prev => ({"
-  },
-  {
-    "type": "line",
-    "line": "                                ...prev,"
-  },
-  {
-    "type": "line",
-    "line": "                                actions: [...prev.actions, newAction]"
-  },
-  {
-    "type": "line",
-    "line": "                              }));"
-  },
-  {
-    "type": "line",
-    "line": "                            }}"
-  },
-  {
-    "type": "line",
-    "line": "                          >"
-  },
-  {
-    "type": "line",
-    "line": "                            <div className=\"flex items-center gap-3\">"
-  },
-  {
-    "type": "line",
-    "line": "                              <div className={`p-2 rounded-lg ${template.color}`}>"
-  },
-  {
-    "type": "line",
-    "line": "                                <template.icon className=\"w-4 h-4 text-white\" />"
-  },
-  {
-    "type": "line",
-    "line": "                              </div>"
-  },
-  {
-    "type": "line",
-    "line": "                              <div className=\"text-left\">"
-  },
-  {
-    "type": "line",
-    "line": "                                <p className=\"font-medium text-sm\">{template.name}</p>"
-  },
-  {
-    "type": "line",
-    "line": "                                <p className=\"text-xs text-gray-600\">{template.description}</p>"
-  },
-  {
-    "type": "line",
-    "line": "                              </div>"
-  },
-  {
-    "type": "line",
-    "line": "                            </div>"
-  },
-  {
-    "type": "line",
-    "line": "                          </Button>"
-  },
-  {
-    "type": "line",
-    "line": "                        ))}"
-  },
-  {
-    "type": "line",
-    "line": "                      </div>"
-  },
-  {
-    "type": "line",
-    "line": "                    </div>"
-  },
-  {
-    "type": "line",
-    "line": "                  </CardContent>"
-  },
-  {
-    "type": "line",
-    "line": "                </Card>"
-  },
-  {
-    "type": "line",
-    "line": "              </TabsContent>"
-  },
-  {
-    "type": "line",
-    "line": "            </Tabs>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "            {/* Botões de Ação */}"
-  },
-  {
-    "type": "line",
-    "line": "            <div className=\"flex justify-between pt-4 border-t\">"
-  },
-  {
-    "type": "line",
-    "line": "              <Button variant=\"outline\" onClick={onClose}>"
-  },
-  {
-    "type": "line",
-    "line": "                Cancelar"
-  },
-  {
-    "type": "line",
-    "line": "              </Button>"
-  },
-  {
-    "type": "line",
-    "line": "              <div className=\"flex gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                <Button variant=\"outline\" onClick={() => setActiveTab(activeTab === 'conditions' ? 'actions' : 'conditions')}>"
-  },
-  {
-    "type": "line",
-    "line": "                  {activeTab === 'conditions' ? 'Configurar Ações' : 'Voltar às Condições'}"
-  },
-  {
-    "type": "line",
-    "line": "                </Button>"
-  },
-  {
-    "type": "line",
-    "line": "                <Button"
-  },
-  {
-    "type": "line",
-    "line": "                  onClick={handleSave}"
-  },
-  {
-    "type": "line",
-    "line": "                  disabled={saveRuleMutation.isPending}"
-  },
-  {
-    "type": "line",
-    "line": "                >"
-  },
-  {
-    "type": "line",
-    "line": "                  {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}"
-  },
-  {
-    "type": "line",
-    "line": "                </Button>"
-  },
-  {
-    "type": "line",
-    "line": "              </div>"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": "          </div>"
-  },
-  {
-    "type": "line",
-    "line": "        </ScrollArea>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "        {/* Dialog de Configuração de Ação */}"
-  },
-  {
-    "type": "line",
-    "line": "        <Dialog open={showActionConfig} onOpenChange={(open) => {"
-  },
-  {
-    "type": "line",
-    "line": "          if (!open) {"
-  },
-  {
-    "type": "line",
-    "line": "            setShowActionConfig(false);"
-  },
-  {
-    "type": "line",
-    "line": "            setCurrentAction(null);"
-  },
-  {
-    "type": "line",
-    "line": "            setActionConfig({});"
-  },
-  {
-    "type": "line",
-    "line": "            setEditingActionIndex(-1);"
-  },
-  {
-    "type": "line",
-    "line": "          }"
-  },
-  {
-    "type": "line",
-    "line": "        }}>"
-  },
-  {
-    "type": "line",
-    "line": "          <DialogContent>"
-  },
-  {
-    "type": "line",
-    "line": "            <DialogHeader>"
-  },
-  {
-    "type": "line",
-    "line": "              <DialogTitle className=\"flex items-center gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "                {currentAction && <currentAction.icon className=\"w-5 h-5\" />}"
-  },
-  {
-    "type": "line",
-    "line": "                Configurar {currentAction?.name}"
-  },
-  {
-    "type": "line",
-    "line": "              </DialogTitle>"
-  },
-  {
-    "type": "line",
-    "line": "              <DialogDescription>"
-  },
-  {
-    "type": "line",
-    "line": "                {currentAction?.description}"
-  },
-  {
-    "type": "line",
-    "line": "              </DialogDescription>"
-  },
-  {
-    "type": "line",
-    "line": "            </DialogHeader>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "            <div className=\"py-4\">"
-  },
-  {
-    "type": "line",
-    "line": "              {currentAction && renderActionConfig(currentAction, rule.actions.findIndex(a => a.id === currentAction.id))}"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": ""
-  },
-  {
-    "type": "line",
-    "line": "            <div className=\"flex justify-end gap-2\">"
-  },
-  {
-    "type": "line",
-    "line": "              <Button variant=\"outline\" onClick={() => setShowActionConfig(false)}>"
-  },
-  {
-    "type": "line",
-    "line": "                Cancelar"
-  },
-  {
-    "type": "line",
-    "line": "              </Button>"
-  },
-  {
-    "type": "line",
-    "line": "              <Button onClick={confirmActionConfig}>"
-  },
-  {
-    "type": "line",
-    "line": "                Confirmar"
-  },
-  {
-    "type": "line",
-    "line": "              </Button>"
-  },
-  {
-    "type": "line",
-    "line": "            </div>"
-  },
-  {
-    "type": "line",
-    "line": "          </DialogContent>"
-  },
-  {
-    "type": "line",
-    "line": "        </Dialog>"
-  },
-  {
-    "type": "line",
-    "line": "      </DialogContent>"
-  },
-  {
-    "type": "line",
-    "line": "    </Dialog>"
-  },
-  {
-    "type": "line",
-    "line": "  );"
-  },
-  {
-    "type": "line",
-    "line": "}"
-  }
-]
+              <Select value={actionConfig?.priority || 'medium'} onValueChange={(value) => updateActionConfig('priority', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'add_tags':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`action-tags-${actionIndex}`}>Tags (separadas por vírgula)</Label>
+              <Input
+                id={`action-tags-${actionIndex}`}
+                value={actionConfig?.tags || ''}
+                onChange={(e) => updateActionConfig('tags', e.target.value)}
+                placeholder="tag1, tag2, tag3"
+              />
+            </div>
+          </div>
+        );
+
+      case 'assign_agent':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`action-agentId-${actionIndex}`}>ID do Agente</Label>
+              <Input
+                id={`action-agentId-${actionIndex}`}
+                value={actionConfig?.agentId || ''}
+                onChange={(e) => updateActionConfig('agentId', e.target.value)}
+                placeholder="ID ou email do agente"
+              />
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div>
+            <p className="text-sm text-gray-600">
+              Configurações específicas para esta ação serão implementadas em breve.
+            </p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Workflow className="w-5 h-5" />
+            {existingRule ? 'Editar Regra de Automação' : 'Nova Regra de Automação'}
+          </DialogTitle>
+          <DialogDescription>
+            Use o Query Builder para criar condições complexas e configure ações para automatizar seu atendimento.
+          </DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="h-[calc(90vh-100px)] pr-2"> {/* Ajustado para acomodar o cabeçalho e rodapé */}
+          <div className="flex flex-col gap-4 px-2 pb-4">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Informações da Regra</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="rule-name">Nome da Regra</Label>
+                    <Input
+                      id="rule-name"
+                      value={rule.name}
+                      onChange={(e) => setRule({...rule, name: e.target.value})}
+                      placeholder="Ex: Resposta automática para urgente"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="rule-priority">Prioridade</Label>
+                    <Select value={rule.priority.toString()} onValueChange={(value) => setRule({...rule, priority: parseInt(value)})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 - Mais alta</SelectItem>
+                        <SelectItem value="2">2 - Alta</SelectItem>
+                        <SelectItem value="3">3 - Normal</SelectItem>
+                        <SelectItem value="4">4 - Baixa</SelectItem>
+                        <SelectItem value="5">5 - Mais baixa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="rule-description">Descrição</Label>
+                  <Textarea
+                    id="rule-description"
+                    value={rule.description}
+                    onChange={(e) => setRule({...rule, description: e.target.value})}
+                    placeholder="Descreva o que esta regra faz..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="rule-enabled"
+                    checked={rule.enabled}
+                    onCheckedChange={(enabled) => setRule({...rule, enabled})}
+                  />
+                  <Label htmlFor="rule-enabled">Regra ativa</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ai-enabled"
+                    checked={rule.aiEnabled}
+                    onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
+                  />
+                  <Label htmlFor="ai-enabled">Usar análise de IA</Label>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tabs para Condições e Ações */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="conditions">Condições</TabsTrigger>
+                <TabsTrigger value="actions">Ações</TabsTrigger>
+              </TabsList>
+
+              {/* Tab de Condições */}
+              <TabsContent value="conditions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Filter className="w-5 h-5" />
+                      Condições da Regra
+                    </CardTitle>
+                    <CardDescription>
+                      Configure quando esta regra deve ser executada usando o Query Builder avançado.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <QueryBuilderComponent
+                      value={rule.conditions}
+                      onChange={(conditions) => setRule({...rule, conditions})}
+                      fieldOptions={omnibridgeFields}
+                      operatorOptions={omnibridgeOperators}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab de Ações */}
+              <TabsContent value="actions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="w-5 h-5" />
+                      Ações da Regra
+                    </CardTitle>
+                    <CardDescription>
+                      Configure o que acontece quando as condições são atendidas.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Ações Configuradas */}
+                    {rule.actions.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Ações Configuradas:</h4>
+                        {rule.actions.map((action, index) => ( 
+                          <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${action.color}`}>
+                                <action.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{action.name}</p>
+                                <p className="text-sm text-gray-600">{action.description}</p>
+                              </div>
+                              <Badge variant="outline">#{index + 1}</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => editAction(action.id)}
+                              >
+                                <Settings className="h-3 w-3" />
+                                Configurar
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeAction(action.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    {/* Templates de Ações */}
+                    <div>
+                      <h4 className="font-medium mb-3">Adicionar Ação:</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {actionTemplates.map((template) => ( 
+                          <Button
+                            key={template.type}
+                            variant="outline"
+                            className="justify-start h-auto p-3"
+                            onClick={() => {
+                              const newAction: Action = {
+                                id: `action_${Date.now()}_${template.type}`,
+                                ...template,
+                                config: {}
+                              };
+                              setRule(prev => ({
+                                ...prev,
+                                actions: [...prev.actions, newAction]
+                              }));
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${template.color}`}>
+                                <template.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium text-sm">{template.name}</p>
+                                <p className="text-xs text-gray-600">{template.description}</p>
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </ScrollArea>
+
+        {/* Footer com botões */}
+        <div className="flex justify-between p-6 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} disabled={saveRuleMutation.isPending}>
+            {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
+          </Button>
+        </div>
+      </DialogContent>
+
+      {/* Dialog de configuração de ação */}
+      <Dialog open={showActionConfig} onOpenChange={(open) => {
+          if (!open) {
+            setShowActionConfig(false);
+            setCurrentAction(null);
+            setActionConfig({});
+            setEditingActionIndex(-1);
+          }
+        }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {currentAction && (
+                <>
+                  <div className={`p-2 rounded-lg ${currentAction.color}`}>
+                    <currentAction.icon className="w-4 h-4 text-white" />
+                  </div>
+                  Configurar: {currentAction.name}
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {currentAction?.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4">
+            {currentAction && renderActionConfig(currentAction, editingActionIndex)}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowActionConfig(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmActionConfig}>
+              Confirmar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Dialog>
+  );
+}
