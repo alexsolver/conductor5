@@ -20,7 +20,12 @@ export interface AutomationCondition {
 
 export interface AutomationAction {
   id: string;
-  type: 'create_ticket' | 'send_auto_reply' | 'forward_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'webhook' | 'ai_response' | 'notify_team';
+  type: 'create_ticket' | 'send_auto_reply' | 'forward_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'webhook' | 'ai_response' | 'notify_team' |
+        'create_urgent_ticket' | 'create_ticket_from_template' | 'assign_by_skill' | 'assign_round_robin' | 'escalate_ticket' | 'link_related_tickets' |
+        'send_sms' | 'send_survey' | 'ai_categorize' | 'ai_translate' | 'update_crm' | 'generate_report' | 'assign_team' | 'remove_tags' |
+        'create_followup_task' | 'schedule_reminder' | 'add_note' | 'log_activity' | 'notify_customer' | 'send_email' | 'notify_manager' |
+        'api_request' | 'close_ticket' | 'reopen_ticket' | 'set_ticket_sla' | 'assign_ticket_by_category' | 'update_priority' | 'update_metrics' |
+        'add_tags' | 'assign_agent' | 'archive' | 'mark_priority' | 'webhook_call' | 'send_notification';
   target?: string;
   params: Record<string, any>;
   aiEnabled?: boolean;
