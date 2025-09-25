@@ -68,20 +68,20 @@ export class OmniBridgeAutoStart {
       console.log(`📧 [GMAIL-AUTOSTART] Starting Gmail monitoring for: ${integration.config.emailAddress}`);
 
       const result = await this.gmailService.startEmailMonitoring(tenantId, integration.id);
-      
+
       if (result.success) {
         console.log(`✅ [GMAIL-AUTOSTART] Gmail monitoring started successfully`);
-        
+
         // Ensure channel is synced and enabled
         try {
           const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
           const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
           const { storage } = await import('../storage-simple');
-          
+
           const channelRepository = new DrizzleChannelRepository();
           const syncService = new IntegrationChannelSync(channelRepository, storage);
           await syncService.syncIntegrationsToChannels(tenantId);
-          
+
           console.log(`🔗 [GMAIL-AUTOSTART] Channels synced for tenant: ${tenantId}`);
         } catch (syncError) {
           console.error('❌ [GMAIL-AUTOSTART] Channel sync error:', syncError);
@@ -167,10 +167,20 @@ export class OmniBridgeAutoStart {
         }
 
         console.log(`✅ IMAP monitoring started successfully for ${integration.name}`);
-        console.log(`📥 Inbox will be populated with emails from ${config.emailAddress}`);
+        console.log(`✅ [OMNIBRIDGE-AUTO-START] Email monitoring active for ${integration.config.emailAddress}`);
+        console.log(`✅ [OMNIBRIDGE-AUTO-START] Server: ${integration.config.imapServer}:${integration.config.imapPort}`);
+        console.log(`✅ [OMNIBRIDGE-AUTO-START] Security: ${integration.config.imapSecurity}`);
+        console.log(`✅ [OMNIBRIDGE-AUTO-START] Tenant: ${tenantId}`);
 
-        // Start periodic sync every 2 minutes for real-time updates
-        await this.gmailService.startPeriodicSync(tenantId, integration.id, 2);
+        // Force an immediate check for emails
+        setTimeout(async () => {
+          try {
+            console.log(`🔄 [OMNIBRIDGE-AUTO-START] Triggering immediate email check for ${integration.config.emailAddress}`);
+            await this.gmailService.fetchRecentEmails(tenantId, integration.id);
+          } catch (error) {
+            console.error(`❌ [OMNIBRIDGE-AUTO-START] Immediate email check failed:`, error);
+          }
+        }, 5000); // Wait 5 seconds then check
         console.log(`🔄 Periodic sync started: every 2 minutes`);
       } else {
         console.error(`❌ Failed to start IMAP monitoring: ${result.message}`);

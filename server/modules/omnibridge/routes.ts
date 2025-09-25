@@ -258,6 +258,51 @@ router.post('/debug/gmail/fetch', jwtAuth, async (req, res) => {
   }
 });
 
+// Debug route for checking inbox messages count
+router.get('/debug/inbox/count', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Checking inbox count for tenant: ${tenantId}`);
+
+    const { DrizzleMessageRepository } = await import('./infrastructure/repositories/DrizzleMessageRepository');
+    const messageRepository = new DrizzleMessageRepository();
+    
+    const messages = await messageRepository.findByTenant(tenantId, 50, 0);
+    
+    // Filter messages by email type
+    const emailMessages = messages.filter(msg => msg.channelType === 'email');
+    const recentEmailMessages = emailMessages.filter(msg => {
+      const messageDate = new Date(msg.createdAt);
+      const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      return messageDate > hourAgo;
+    });
+
+    res.json({
+      success: true,
+      totalMessages: messages.length,
+      emailMessages: emailMessages.length,
+      recentEmailMessages: recentEmailMessages.length,
+      recentEmails: recentEmailMessages.map(msg => ({
+        id: msg.id,
+        from: msg.from,
+        subject: msg.subject,
+        createdAt: msg.createdAt,
+        channelType: msg.channelType
+      }))
+    });
+  } catch (error) {
+    console.error('❌ [OMNIBRIDGE-DEBUG] Inbox count error:', error);
+    res.status(500).json({
+      error: 'Failed to check inbox count',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Force start Gmail monitoring
 router.post('/debug/gmail/start-monitoring', jwtAuth, async (req, res) => {
   try {

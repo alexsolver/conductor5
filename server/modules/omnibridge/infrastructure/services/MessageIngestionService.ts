@@ -147,6 +147,8 @@ export class MessageIngestionService {
    */
   async processImapEmail(emailData: any, tenantId: string): Promise<MessageEntity> {
     console.log(`📨 [IMAP-INGESTION] Processing email for tenant: ${tenantId}`);
+    console.log(`📨 [IMAP-INGESTION] Email from: ${emailData.from}`);
+    console.log(`📨 [IMAP-INGESTION] Email subject: ${emailData.subject}`);
 
     const incomingMessage: IncomingMessage = {
       channelId: 'imap-email',
@@ -159,13 +161,18 @@ export class MessageIngestionService {
         messageId: emailData.messageId,
         date: emailData.date,
         headers: emailData.headers,
-        hasAttachments: Boolean(emailData.attachments?.length)
+        hasAttachments: Boolean(emailData.attachments?.length),
+        imapProcessed: true,
+        processedAt: new Date().toISOString()
       },
       priority: emailData.priority === 'high' ? 'high' : 'medium',
       tenantId
     };
 
-    return await this.ingestMessage(incomingMessage);
+    const result = await this.ingestMessage(incomingMessage);
+    console.log(`✅ [IMAP-INGESTION] Email processed successfully with ID: ${result.id}`);
+    
+    return result;
   }
 
   /**

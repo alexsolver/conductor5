@@ -16,9 +16,15 @@ interface GmailConfig {
   tls: boolean;
 }
 
+interface ActiveConnection {
+  imap: Imap;
+  config: GmailConfig;
+  lastActivity: Date;
+}
+
 export class GmailService {
   private static instance: GmailService;
-  private imapConnections: Map<string, Imap> = new Map();
+  private activeConnections: Map<string, ActiveConnection> = new Map();
   private syncIntervals: Map<string, NodeJS.Timeout> = new Map();
 
   static getInstance(): GmailService {
@@ -141,7 +147,7 @@ export class GmailService {
         imap.once('ready', () => {
           if (!resolved) {
             resolved = true;
-            this.imapConnections.set(tenantId, imap);
+            this.activeConnections.set(tenantId, { imap, config, lastActivity: new Date() });
             console.log(`✅ Gmail connected successfully for tenant: ${tenantId}`);
             resolve(true);
           }
@@ -151,12 +157,13 @@ export class GmailService {
           if (!resolved) {
             resolved = true;
             console.error(`❌ Gmail connection failed for tenant ${tenantId}:`, err.message);
+            this.activeConnections.delete(tenantId); // Remove from active connections on error
             reject(err);
           }
         });
 
         imap.once('end', () => {
-          this.imapConnections.delete(tenantId);
+          this.activeConnections.delete(tenantId);
           console.log(`📪 Gmail connection ended for tenant: ${tenantId}`);
         });
 
@@ -165,6 +172,7 @@ export class GmailService {
         } catch (error) {
           if (!resolved) {
             resolved = true;
+            this.activeConnections.delete(tenantId); // Remove from active connections on error
             reject(error);
           }
         }
@@ -215,24 +223,41 @@ export class GmailService {
   }
 
   async stopEmailMonitoring(tenantId: string): Promise<void> {
-    try {
-      console.log(`📪 Stopping Gmail monitoring for tenant: ${tenantId}`);
+    console.log(`🛑 [GMAIL-SERVICE] Stopping email monitoring for tenant: ${tenantId}`);
 
-      const connection = this.imapConnections.get(tenantId);
-      if (connection) {
-        connection.end();
-        this.imapConnections.delete(tenantId);
-        console.log(`✅ Gmail monitoring stopped for tenant: ${tenantId}`);
-      } else {
-        console.log(`⚠️  No active Gmail connection found for tenant: ${tenantId}`);
+    const connection = this.activeConnections.get(tenantId);
+    if (connection) {
+      try {
+        connection.imap.end();
+        this.activeConnections.delete(tenantId);
+        console.log(`✅ [GMAIL-SERVICE] Email monitoring stopped for tenant: ${tenantId}`);
+      } catch (error) {
+        console.error(`❌ [GMAIL-SERVICE] Error stopping email monitoring:`, error);
       }
-    } catch (error) {
-      console.error('Error stopping Gmail monitoring:', error);
     }
   }
 
+  /**
+   * Get monitoring status
+   */
+  getMonitoringStatus() {
+    return {
+      activeConnections: this.activeConnections.size,
+      tenants: Array.from(this.activeConnections.keys()),
+      connections: Array.from(this.activeConnections.entries()).map(([tenantId, conn]) => ({
+        tenantId,
+        email: conn.config.user,
+        host: conn.config.host,
+        connected: conn.imap.state === 'connected',
+        lastActivity: conn.lastActivity || new Date()
+      }))
+    };
+  }
+
   async fetchRecentEmails(tenantId: string, channelId: string): Promise<void> {
-    const imap = this.imapConnections.get(tenantId);
+    const connection = this.activeConnections.get(tenantId);
+    const imap = connection?.imap;
+
     if (!imap) {
       console.log(`❌ No Gmail connection found for tenant: ${tenantId}`);
       return;
@@ -241,12 +266,13 @@ export class GmailService {
     return new Promise((resolve, reject) => {
       imap.openBox('INBOX', true, (err: any, box: any) => {
         if (err) {
-          console.error('Error opening inbox:', err);
+          console.error(`❌ Error opening inbox for tenant ${tenantId}:`, err);
+          connection.lastActivity = new Date(); // Update last activity even on error
           reject(err);
           return;
         }
 
-        console.log(`📧 Fetching recent emails from inbox (${box.messages.total} total)`);
+        console.log(`📧 Fetching recent emails from inbox (${box.messages.total} total) for tenant ${tenantId}`);
 
         // Fetch last 50 messages
         const searchCriteria = ['ALL'];
@@ -257,20 +283,22 @@ export class GmailService {
 
         imap.search(searchCriteria, (err: any, results: number[]) => {
           if (err) {
-            console.error('Error searching emails:', err);
+            console.error(`❌ Error searching emails for tenant ${tenantId}:`, err);
+            connection.lastActivity = new Date();
             reject(err);
             return;
           }
 
           if (!results || results.length === 0) {
-            console.log('📪 No emails found');
+            console.log(`📪 No emails found for tenant ${tenantId}`);
+            connection.lastActivity = new Date();
             resolve();
             return;
           }
 
           // Get the last 20 emails
           const recentResults = results.slice(-20);
-          console.log(`📬 Processing ${recentResults.length} recent emails`);
+          console.log(`📬 Processing ${recentResults.length} recent emails for tenant ${tenantId}`);
 
           const f = imap.fetch(recentResults, fetchOptions);
           const emails: any[] = [];
@@ -285,8 +313,12 @@ export class GmailService {
               });
 
               stream.once('end', () => {
-                const headers = Imap.parseHeader(buffer.toString());
-                email.headers = headers;
+                try {
+                  const headers = Imap.parseHeader(buffer.toString());
+                  email.headers = headers;
+                } catch (headerError) {
+                  console.error(`❌ Error parsing email headers for seqno ${seqno}:`, headerError);
+                }
               });
             });
 
@@ -301,12 +333,14 @@ export class GmailService {
 
           f.once('error', (err: any) => {
             console.error('Error fetching messages:', err);
+            connection.lastActivity = new Date();
             reject(err);
           });
 
           f.once('end', async () => {
-            console.log(`✅ Fetched ${emails.length} emails, processing...`);
+            console.log(`✅ Fetched ${emails.length} emails, processing for tenant ${tenantId}...`);
             await this.processEmails(tenantId, channelId, emails);
+            connection.lastActivity = new Date(); // Update last activity after processing
             resolve();
           });
         });
@@ -317,7 +351,7 @@ export class GmailService {
   private async processEmails(tenantId: string, channelId: string, emails: any[]): Promise<void> {
     try {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-      let processedCount = 0;
+      let processedEmails = 0;
 
       for (const email of emails) {
         try {
@@ -354,7 +388,6 @@ export class GmailService {
 
           const emailBody = `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message captured from Gmail.`;
 
-
           // ✅ CRITICAL FIX: Use MessageIngestionService para garantir que chegue no OmniBridge inbox
           try {
             const { MessageIngestionService } = await import('../../../modules/omnibridge/infrastructure/services/MessageIngestionService');
@@ -381,38 +414,25 @@ export class GmailService {
                 hasAttachments: Boolean(email.attachments?.length),
                 gmailProcessed: true,
                 rawFrom: from,
-                rawTo: to
+                rawTo: to,
+                emailProcessedAt: new Date().toISOString(),
+                imapServer: this.activeConnections.get(tenantId)?.config?.host || 'unknown'
               },
               priority: priority as any,
               tenantId
             };
 
-            console.log(`🎯 [GMAIL-SERVICE] Ingesting email for alexsolver@gmail.com into OmniBridge: ${subject}`);
-            console.log(`🎯 [GMAIL-SERVICE] Email details - From: ${fromEmail}, To: ${to}, Date: ${date.toISOString()}`);
-            
-            const savedMessage = await ingestionService.ingestMessage(incomingMessage);
+            console.log(`🎯 [GMAIL-SERVICE] Ingesting email for ${fromEmail} into OmniBridge:`);
+            console.log(`📧 [GMAIL-SERVICE] Subject: ${subject}`);
+            console.log(`📧 [GMAIL-SERVICE] From: ${fromEmail} -> To: ${to}`);
+            console.log(`📧 [GMAIL-SERVICE] Date: ${date.toISOString()}`);
+            console.log(`📧 [GMAIL-SERVICE] Content preview: ${emailBody.substring(0, 200)}...`);
 
-            console.log(`✅ [GMAIL-SERVICE] Email successfully saved to OmniBridge inbox with ID: ${savedMessage.id}`);
-            
-            // Verify message was saved by checking directly
-            try {
-              const { schemaManager } = await import('../../../db');
-              const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-              const verifyQuery = await tenantDb.execute(sql`
-                SELECT id, subject, sender, status FROM inbox 
-                WHERE id = ${savedMessage.id} AND tenant_id = ${tenantId}
-              `);
-              
-              if (verifyQuery.rows.length > 0) {
-                console.log(`✅ [GMAIL-SERVICE] Verified email in database: ${verifyQuery.rows[0].subject}`);
-              } else {
-                console.error(`❌ [GMAIL-SERVICE] Email not found in database after save!`);
-              }
-            } catch (verifyError) {
-              console.error(`❌ [GMAIL-SERVICE] Error verifying saved email:`, verifyError);
-            }
-            
-            processedCount++;
+            const savedMessage = await ingestionService.ingestMessage(incomingMessage);
+            console.log(`✅ [GMAIL-SERVICE] Email ingested successfully with ID: ${savedMessage.id}`);
+            console.log(`💾 [GMAIL-SERVICE] Message saved to tenant: ${tenantId}, table: omnibridge_messages`);
+
+            processedEmails++;
 
           } catch (ingestionError) {
             console.error(`❌ [GMAIL-SERVICE] Failed to ingest email via OmniBridge service:`, ingestionError);
@@ -421,7 +441,7 @@ export class GmailService {
             try {
               const { schemaManager } = await import('../../../db');
               const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-              
+
               await tenantDb.execute(sql`
                 INSERT INTO omnibridge_messages (
                   id, channel_id, channel_type, "from", "to", subject, 
@@ -445,7 +465,7 @@ export class GmailService {
               `);
 
               console.log(`✅ [GMAIL-SERVICE] Email saved via fallback method to omnibridge_messages: ${subject}`);
-              processedCount++;
+              processedEmails++;
             } catch (fallbackError) {
               console.error(`❌ [GMAIL-SERVICE] Fallback insert also failed:`, fallbackError);
             }
@@ -498,10 +518,8 @@ export class GmailService {
     }
   }
 
-  // Removed duplicate stopEmailMonitoring method - already exists above
-
   isConnected(tenantId: string): boolean {
-    return this.imapConnections.has(tenantId);
+    return this.activeConnections.has(tenantId);
   }
 
   async startPeriodicSync(tenantId: string, channelId: string, intervalMinutes: number = 5): Promise<void> {
