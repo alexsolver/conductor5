@@ -10,6 +10,7 @@ import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleC
 import { DrizzleMessageRepository } from './infrastructure/repositories/DrizzleMessageRepository';
 // Temporarily disabled AI agent routes due to type conflicts
 // import { createAiAgentRoutes } from './routes/aiAgentRoutes';
+import { createAiAgentRoutes } from './routes/aiAgentRoutes';
 
 const router = Router();
 
@@ -85,7 +86,7 @@ router.get('/automation-rules/:ruleId', jwtAuth, async (req, res) => {
 router.post('/automation-rules/test', jwtAuth, async (req, res) => {
   try {
     const { rule, message, channel } = req.body;
-    
+
     // Simulate rule testing
     const triggered = rule.triggers?.some((trigger: any) => {
       if (trigger.type === 'keyword' && trigger.config?.keywords) {
@@ -125,7 +126,7 @@ router.get('/ai-response-configurations', jwtAuth, async (req, res) => {
   try {
     const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
     const configurations = AIResponseConfigurationService.getAllConfigurations();
-    
+
     res.json({
       success: true,
       data: configurations
@@ -141,7 +142,7 @@ router.get('/ai-response-configurations/:id', jwtAuth, async (req, res) => {
     const { id } = req.params;
     const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
     const configuration = AIResponseConfigurationService.getConfigurationById(id);
-    
+
     if (!configuration) {
       return res.status(404).json({ success: false, error: 'Configuration not found' });
     }
@@ -160,7 +161,7 @@ router.post('/ai-response-configurations/validate', jwtAuth, async (req, res) =>
   try {
     const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
     const errors = AIResponseConfigurationService.validateConfiguration(req.body);
-    
+
     res.json({
       success: true,
       data: {
@@ -178,14 +179,14 @@ router.post('/ai-response-configurations/preview', jwtAuth, async (req, res) => 
   try {
     const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
     const { configuration, testMessage } = req.body;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
     const { AIAnalysisService } = await import('./infrastructure/services/AIAnalysisService');
     const aiService = new AIAnalysisService();
-    
+
     // Analyze test message
     const analysis = await aiService.analyzeMessage({
       content: testMessage || 'Mensagem de teste para visualização',
@@ -254,14 +255,14 @@ router.get('/debug/messages', jwtAuth, async (req, res) => {
 
     const messageRepository = new (await import('./infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
     const messages = await messageRepository.findByTenant(tenantId, 10, 0);
-    
+
     return res.json({
       success: true,
       count: messages.length,
       messages: messages,
       tenant: tenantId
     });
-    
+
   } catch (error) {
     console.error(`❌ [OMNIBRIDGE-DEBUG] Error checking messages:`, error);
     return res.status(500).json({
@@ -339,7 +340,7 @@ router.get('/debug/gmail/status', jwtAuth, async (req, res) => {
 
     const { storage } = await import('../../storage-simple');
     const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
-    
+
     if (!imapIntegration) {
       return res.json({
         success: false,
@@ -427,9 +428,9 @@ router.get('/debug/inbox/count', jwtAuth, async (req, res) => {
 
     const { DrizzleMessageRepository } = await import('./infrastructure/repositories/DrizzleMessageRepository');
     const messageRepository = new DrizzleMessageRepository();
-    
+
     const messages = await messageRepository.findByTenant(tenantId, 50, 0);
-    
+
     // Filter messages by email type
     const emailMessages = messages.filter(msg => msg.channelType === 'email');
     const recentEmailMessages = emailMessages.filter(msg => {
@@ -472,7 +473,7 @@ router.post('/debug/gmail/start-monitoring', jwtAuth, async (req, res) => {
 
     const { storage } = await import('../../storage-simple');
     const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
-    
+
     if (!imapIntegration) {
       return res.status(404).json({ 
         error: 'No IMAP integration found for tenant' 
@@ -483,7 +484,7 @@ router.post('/debug/gmail/start-monitoring', jwtAuth, async (req, res) => {
 
     const { OmniBridgeAutoStart } = await import('../../services/OmniBridgeAutoStart');
     const autoStart = new OmniBridgeAutoStart();
-    
+
     await autoStart.detectAndStartCommunicationChannels(tenantId);
 
     res.json({
@@ -577,13 +578,13 @@ router.post('/templates', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const userId = (req as any).user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(400).json({ success: false, error: 'Tenant ID and User ID required' });
     }
 
     const { name, description, subject, content, variables, category } = req.body;
-    
+
     if (!name || !content || !category) {
       return res.status(400).json({ 
         success: false, 
@@ -625,7 +626,7 @@ router.put('/templates/:id', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -636,7 +637,7 @@ router.put('/templates/:id', jwtAuth, async (req, res) => {
     }
 
     const { name, description, subject, content, variables, category, isActive } = req.body;
-    
+
     // Update template properties
     if (name !== undefined) existingTemplate.name = name;
     if (description !== undefined) existingTemplate.description = description;
@@ -669,13 +670,13 @@ router.delete('/templates/:id', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
 
     const success = await templateRepository.delete(templateId, tenantId);
-    
+
     if (!success) {
       return res.status(404).json({ success: false, error: 'Template not found' });
     }
@@ -695,7 +696,7 @@ router.post('/templates/:id/toggle', jwtAuth, async (req, res) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const templateId = req.params.id;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -729,7 +730,7 @@ router.post('/templates/install', jwtAuth, async (req, res) => {
   try {
     const { templateId, config } = req.body;
     const tenantId = (req as any).user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -741,9 +742,9 @@ router.post('/templates/install', jwtAuth, async (req, res) => {
     }
 
     await templateRepository.incrementUsage(templateId, tenantId);
-    
+
     console.log(`Installing template ${templateId} for tenant ${tenantId}`);
-    
+
     res.json({ 
       success: true, 
       data: { 
@@ -808,7 +809,7 @@ router.post('/setup', jwtAuth, async (req, res) => {
   try {
     const setupData = req.body;
     const tenantId = (req as any).user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID required' });
     }
@@ -816,7 +817,7 @@ router.post('/setup', jwtAuth, async (req, res) => {
     // Simulate setup completion
     // In a real implementation, this would create initial configs
     console.log(`Completing setup for tenant ${tenantId}:`, setupData);
-    
+
     res.json({ 
       success: true, 
       data: { 
@@ -937,7 +938,7 @@ router.get('/ai-config', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
-    
+
     const config = await db
       .select()
       .from(omnibridgeAiConfig)
@@ -998,7 +999,7 @@ router.put('/ai-config', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiConfig } = await import('./infrastructure/database/schema');
-    
+
     const configData = {
       tenantId,
       model,
@@ -1048,11 +1049,11 @@ router.get('/ai-metrics', jwtAuth, async (req, res) => {
     const { db, getSchemaForTenant } = await import('../../db');
     const schema = getSchemaForTenant(tenantId);
     const { omnibridgeAiMetrics } = await import('./infrastructure/database/schema');
-    
+
     // Get today's metrics
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const metrics = await db
       .select()
       .from(omnibridgeAiMetrics)
@@ -1101,7 +1102,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
     }
 
     const { prompt, testMessage, promptType } = req.body;
-    
+
     // Simulate AI analysis response
     const simulatedResponses = {
       intentionAnalysis: ['reclamacao', 'duvida', 'solicitacao', 'elogio'][Math.floor(Math.random() * 4)],
@@ -1112,7 +1113,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
     };
 
     const response = simulatedResponses[promptType as keyof typeof simulatedResponses] || 'Análise concluída com sucesso';
-    
+
     res.json({ 
       success: true, 
       data: {
@@ -1129,7 +1130,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
   }
 });
 
-// AI Agent routes - temporarily disabled due to type conflicts
-// router.use('/ai', jwtAuth, createAiAgentRoutes());
+// AI Agent routes
+router.use('/ai', jwtAuth, createAiAgentRoutes());
 
 export { router as omniBridgeRoutes };

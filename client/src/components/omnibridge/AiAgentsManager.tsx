@@ -119,26 +119,26 @@ const AiAgentsManager: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [selectedAgent, setSelectedAgent] = useState<AiAgent | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Queries
   const { data: agentsResponse, isLoading: agentsLoading } = useQuery({
-    queryKey: ['/api/ai-agents/agents'],
-    queryFn: () => apiRequest('GET', '/api/ai-agents/agents'),
+    queryKey: ['/api/omnibridge/ai-agents/agents'],
+    queryFn: () => apiRequest('GET', '/api/omnibridge/ai-agents/agents'),
     enabled: !!user?.tenantId,
     refetchOnWindowFocus: false
   });
 
   const { data: metricsResponse, isLoading: metricsLoading } = useQuery({
-    queryKey: ['/api/ai-agents/agents/metrics'],
+    queryKey: ['/api/omnibridge/ai-agents/agents/metrics'],
     enabled: !!user?.tenantId
   });
 
   const { data: conversationsResponse, isLoading: conversationsLoading } = useQuery({
-    queryKey: ['/api/ai-agents/conversations'],
+    queryKey: ['/api/omnibridge/ai-agents/conversations'],
     enabled: !!user?.tenantId
   });
 
@@ -149,9 +149,9 @@ const AiAgentsManager: React.FC = () => {
 
   // Mutations
   const createAgentMutation = useMutation({
-    mutationFn: (data: AgentFormData) => apiRequest('POST', '/api/ai-agents/agents', data),
+    mutationFn: (data: AgentFormData) => apiRequest('POST', '/api/omnibridge/ai-agents/agents', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
       setShowCreateDialog(false);
       toast({
         title: "Agente criado com sucesso",
@@ -169,9 +169,9 @@ const AiAgentsManager: React.FC = () => {
 
   const updateAgentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AgentFormData> }) => 
-      apiRequest('PUT', `/api/ai-agents/agents/${id}`, data),
+      apiRequest('PUT', `/api/omnibridge/ai-agents/agents/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
       toast({
         title: "Agente atualizado",
         description: "As configurações do agente foram salvas com sucesso."
@@ -181,16 +181,16 @@ const AiAgentsManager: React.FC = () => {
 
   const toggleAgentMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
-      apiRequest('PUT', `/api/ai-agents/agents/${id}`, { isActive }),
+      apiRequest('PUT', `/api/omnibridge/ai-agents/agents/${id}`, { isActive }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
     }
   });
 
   const deleteAgentMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/ai-agents/agents/${id}`),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/omnibridge/ai-agents/agents/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
       toast({
         title: "Agente removido",
         description: "O agente IA foi removido permanentemente."
@@ -473,7 +473,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Basic Info */}
               <div className="space-y-4">
                 <h4 className="font-medium">Informações Básicas</h4>
-                
+
                 <FormField
                   control={form.control}
                   name="name"
@@ -508,7 +508,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Channels and Actions */}
               <div className="space-y-4">
                 <h4 className="font-medium">Canais e Ações Suportados</h4>
-                
+
                 <FormField
                   control={form.control}
                   name="supportedChannels"
@@ -583,7 +583,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Personality */}
               <div className="space-y-4">
                 <h4 className="font-medium">Personalidade e Linguagem</h4>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -667,7 +667,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Escalation Configuration */}
               <div className="space-y-4">
                 <h4 className="font-medium">Configuração de Escalação</h4>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -717,7 +717,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Menu Configuration */}
               <div className="space-y-4">
                 <h4 className="font-medium">Configuração de Menu</h4>
-                
+
                 <FormField
                   control={form.control}
                   name="menuConfig.enabled"

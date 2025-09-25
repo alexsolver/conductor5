@@ -281,11 +281,16 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
       row.enabledActions as string[],
       row.conversationConfig as AiAgentConversationConfig,
       row.aiConfig as AiAgentConfig,
-      row.isActive,
-      row.priority,
-      row.stats as AiAgentStats,
-      row.createdAt,
-      row.updatedAt
+      row.isActive || true,
+      row.priority || 1,
+      row.stats as AiAgentStats || {
+        conversationsHandled: 0,
+        actionsExecuted: 0,
+        successRate: 100,
+        averageResponseTime: 0
+      },
+      new Date(row.createdAt),
+      new Date(row.updatedAt)
     );
   }
 
