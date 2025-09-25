@@ -232,6 +232,296 @@ export class OmniBridgeController {
     }
   }
 
+  async archiveMessage(req: Request, res: Response): Promise<void> {
+    try {
+      const { messageId } = req.params;
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+
+      if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-ARCHIVE] No tenant ID found');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      if (!messageId) {
+        console.error('❌ [OMNIBRIDGE-ARCHIVE] No message ID provided');
+        res.status(400).json({ success: false, error: 'Message ID required' });
+        return;
+      }
+
+      console.log(`🗂️ [OMNIBRIDGE-ARCHIVE] Archiving message ${messageId} for tenant: ${tenantId}`);
+
+      const messageRepository = new (await import('../../infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+      
+      // Check if message exists
+      const message = await messageRepository.findById(messageId, tenantId);
+      if (!message) {
+        console.error(`❌ [OMNIBRIDGE-ARCHIVE] Message ${messageId} not found`);
+        res.status(404).json({ success: false, error: 'Message not found' });
+        return;
+      }
+
+      // Update message status to archived
+      message.status = 'archived';
+      message.updatedAt = new Date();
+      
+      await messageRepository.update(message);
+
+      console.log(`✅ [OMNIBRIDGE-ARCHIVE] Message ${messageId} archived successfully`);
+
+      res.json({
+        success: true,
+        message: 'Message archived successfully',
+        data: {
+          messageId,
+          status: 'archived',
+          archivedAt: new Date().toISOString()
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-ARCHIVE] Error archiving message:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to archive message',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async forwardMessage(req: Request, res: Response): Promise<void> {
+    try {
+      const { messageId, recipients, content } = req.body;
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+
+      if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-FORWARD] No tenant ID found');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      if (!messageId || !recipients || !content?.trim()) {
+        console.error('❌ [OMNIBRIDGE-FORWARD] Missing required fields');
+        res.status(400).json({ success: false, error: 'MessageId, recipients and content are required' });
+        return;
+      }
+
+      console.log(`↗️ [OMNIBRIDGE-FORWARD] Forwarding message ${messageId} for tenant: ${tenantId}`);
+
+      // Get the original message
+      const messageRepository = new (await import('../../infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+      const message = await messageRepository.findById(messageId, tenantId);
+      if (!message) {
+        console.error(`❌ [OMNIBRIDGE-FORWARD] Original message ${messageId} not found`);
+        res.status(404).json({ success: false, error: 'Original message not found' });
+        return;
+      }
+
+      console.log(`📧 [OMNIBRIDGE-FORWARD] Found original message from: ${message.from}, channel: ${message.channelType}`);
+
+      // Create forward message object
+      const forwardMessage = {
+        id: require('crypto').randomUUID(),
+        tenantId,
+        channelId: message.channelId,
+        channelType: message.channelType,
+        from: message.to || 'sistema@conductor.com',
+        to: recipients,
+        subject: message.subject ? `Fwd: ${message.subject}` : 'Fwd: Mensagem encaminhada',
+        body: `Mensagem encaminhada:\n\n${content}\n\n--- Mensagem original ---\nDe: ${message.from}\nPara: ${message.to}\nAssunto: ${message.subject || 'Sem assunto'}\n\n${message.body}`,
+        content: `Mensagem encaminhada:\n\n${content}\n\n--- Mensagem original ---\nDe: ${message.from}\nPara: ${message.to}\nAssunto: ${message.subject || 'Sem assunto'}\n\n${message.body}`,
+        messageType: 'forward',
+        status: 'sent',
+        priority: 'normal',
+        parentMessageId: messageId,
+        sentAt: new Date(),
+        receivedAt: new Date(),
+        metadata: {
+          forwardOf: messageId,
+          originalFrom: message.from,
+          originalSubject: message.subject,
+          forwardedTo: recipients
+        }
+      };
+
+      // Save forward to database
+      try {
+        await messageRepository.create(forwardMessage, tenantId);
+      } catch (createError) {
+        console.error('❌ [OMNIBRIDGE-FORWARD] Error saving forward to database:', createError);
+      }
+
+      console.log(`✅ [OMNIBRIDGE-FORWARD] Forward saved to database with ID: ${forwardMessage.id}`);
+
+      res.json({
+        success: true,
+        message: 'Message forwarded successfully',
+        data: {
+          forwardId: forwardMessage.id,
+          originalMessageId: messageId,
+          recipients: recipients,
+          channel: message.channelType,
+          details: `Message forwarded to ${recipients}`
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-FORWARD] Error forwarding message:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to forward message',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async markAsRead(req: Request, res: Response): Promise<void> {
+    try {
+      const { messageId } = req.params;
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+
+      if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-READ] No tenant ID found');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      if (!messageId) {
+        console.error('❌ [OMNIBRIDGE-READ] No message ID provided');
+        res.status(400).json({ success: false, error: 'Message ID required' });
+        return;
+      }
+
+      console.log(`👁️ [OMNIBRIDGE-READ] Marking message ${messageId} as read for tenant: ${tenantId}`);
+
+      const messageRepository = new (await import('../../infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+      
+      const success = await messageRepository.markAsRead(messageId, tenantId);
+      
+      if (success) {
+        console.log(`✅ [OMNIBRIDGE-READ] Message ${messageId} marked as read`);
+        res.json({
+          success: true,
+          message: 'Message marked as read',
+          data: { messageId, status: 'read' }
+        });
+      } else {
+        console.error(`❌ [OMNIBRIDGE-READ] Failed to mark message ${messageId} as read`);
+        res.status(404).json({ success: false, error: 'Message not found or could not be updated' });
+      }
+      
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-READ] Error marking message as read:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to mark message as read',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async starMessage(req: Request, res: Response): Promise<void> {
+    try {
+      const { messageId } = req.params;
+      const { starred } = req.body;
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+
+      if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-STAR] No tenant ID found');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      if (!messageId || typeof starred !== 'boolean') {
+        console.error('❌ [OMNIBRIDGE-STAR] Invalid parameters');
+        res.status(400).json({ success: false, error: 'Message ID and starred status required' });
+        return;
+      }
+
+      console.log(`⭐ [OMNIBRIDGE-STAR] ${starred ? 'Starring' : 'Unstarring'} message ${messageId} for tenant: ${tenantId}`);
+
+      const messageRepository = new (await import('../../infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+      
+      // Get message first
+      const message = await messageRepository.findById(messageId, tenantId);
+      if (!message) {
+        console.error(`❌ [OMNIBRIDGE-STAR] Message ${messageId} not found`);
+        res.status(404).json({ success: false, error: 'Message not found' });
+        return;
+      }
+
+      // Update metadata with starred status
+      const updatedMetadata = { ...message.metadata, starred };
+      
+      // Update message with new metadata
+      message.metadata = updatedMetadata;
+      message.updatedAt = new Date();
+      
+      await messageRepository.update(message);
+
+      console.log(`✅ [OMNIBRIDGE-STAR] Message ${messageId} ${starred ? 'starred' : 'unstarred'} successfully`);
+
+      res.json({
+        success: true,
+        message: `Message ${starred ? 'starred' : 'unstarred'} successfully`,
+        data: { messageId, starred }
+      });
+      
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-STAR] Error starring/unstarring message:', error);
+      res.status(500).json({
+        success: false,
+        error: `Failed to ${req.body.starred ? 'star' : 'unstar'} message`,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getInboxStats(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+
+      if (!tenantId) {
+        console.error('❌ [OMNIBRIDGE-STATS] No tenant ID found');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      console.log(`📊 [OMNIBRIDGE-STATS] Getting inbox stats for tenant: ${tenantId}`);
+
+      const messageRepository = new (await import('../../infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+      
+      const [unreadCount, totalCount, channelStats] = await Promise.all([
+        messageRepository.getUnreadCount(tenantId),
+        messageRepository.findByTenant(tenantId, 1, 0).then(msgs => msgs.length),
+        messageRepository.getStatsByChannel(tenantId)
+      ]);
+
+      const stats = {
+        unreadCount,
+        totalCount,
+        readCount: totalCount - unreadCount,
+        channelStats,
+        lastUpdated: new Date().toISOString()
+      };
+
+      console.log(`✅ [OMNIBRIDGE-STATS] Retrieved stats for tenant: ${tenantId}`, stats);
+
+      res.json({
+        success: true,
+        data: stats
+      });
+      
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-STATS] Error getting inbox stats:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get inbox stats',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
   async replyMessage(req: Request, res: Response): Promise<void> {
     try {
       const { messageId, content } = req.body;

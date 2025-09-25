@@ -75,19 +75,107 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
     return matchesSearch && matchesFilter;
   });
 
-  const handleQuickAction = (message: any, action: string) => {
+  const handleQuickAction = async (message: any, action: string) => {
     switch (action) {
       case 'create_rule':
         onCreateRule?.(message);
         break;
       case 'reply':
-        toast({ title: 'Resposta', description: 'Funcionalidade de resposta em desenvolvimento' });
+        await handleReplyMessage(message);
         break;
       case 'archive':
-        toast({ title: 'Arquivado', description: 'Mensagem arquivada com sucesso' });
+        await handleArchiveMessage(message.id);
         break;
       default:
         break;
+    }
+  };
+
+  const handleReplyMessage = async (message: any) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // For now, we'll show a simple prompt for reply content
+      const replyContent = prompt('Digite sua resposta:');
+      if (!replyContent?.trim()) {
+        return;
+      }
+
+      const response = await fetch('/api/omnibridge/messages/reply', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          messageId: message.id,
+          content: replyContent
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          toast({ 
+            title: 'Resposta enviada', 
+            description: `Mensagem respondida com sucesso para ${message.from}` 
+          });
+          // Refresh messages to show updated status
+          refetch();
+        } else {
+          throw new Error(result.message || 'Falha ao enviar resposta');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('❌ [SIMPLIFIED-INBOX] Error replying to message:', error);
+      toast({ 
+        title: 'Erro', 
+        description: `Falha ao enviar resposta: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const handleArchiveMessage = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`/api/omnibridge/messages/${messageId}/archive`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          toast({ 
+            title: 'Arquivado', 
+            description: 'Mensagem arquivada com sucesso' 
+          });
+          // Refresh messages to update the list
+          refetch();
+        } else {
+          throw new Error(result.message || 'Falha ao arquivar mensagem');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('❌ [SIMPLIFIED-INBOX] Error archiving message:', error);
+      toast({ 
+        title: 'Erro', 
+        description: `Falha ao arquivar mensagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        variant: 'destructive' 
+      });
     }
   };
 

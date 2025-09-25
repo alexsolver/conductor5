@@ -185,43 +185,38 @@ export class DrizzleMessageRepository implements IMessageRepository {
     ));
   }
 
-  async create(message: MessageEntity): Promise<MessageEntity> {
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Creating message for tenant: ${message.tenantId}`);
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Message ID: ${message.id}`);
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Channel: ${message.channelId} (${message.channelType})`);
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] From: ${message.from}`);
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Content: ${message.body?.substring(0, 100)}...`);
-    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Full message data:`, JSON.stringify({
-      id: message.id,
-      tenantId: message.tenantId,
-      channelId: message.channelId,
-      channelType: message.channelType,
-      fromAddress: message.from,
-      toAddress: message.to,
-      subject: message.subject,
-      content: message.body,
-      status: message.status,
-      priority: message.priority
-    }, null, 2));
+  async create(message: MessageEntity | any, tenantId?: string): Promise<MessageEntity> {
+    // Handle both MessageEntity and simple objects
+    const messageData = message instanceof MessageEntity ? message : message;
+    const actualTenantId = tenantId || messageData.tenantId;
+    
+    if (!actualTenantId) {
+      throw new Error('Tenant ID is required for message creation');
+    }
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Creating message for tenant: ${actualTenantId}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Message ID: ${messageData.id}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Channel: ${messageData.channelId} (${messageData.channelType})`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] From: ${messageData.from || messageData.fromAddress}`);
+    console.log(`💾 [DRIZZLE-MESSAGE-REPO] Content: ${(messageData.body || messageData.content)?.substring(0, 100)}...`);
 
     try {
-      const tenantDb = await this.getTenantDb(message.tenantId);
+      const tenantDb = await this.getTenantDb(actualTenantId);
       const result = await tenantDb.insert(schema.omnibridgeMessages).values({
-        id: message.id,
-        tenantId: message.tenantId,
-        channelId: message.channelId,
-        channelType: message.channelType,
-        fromAddress: message.from,
-        toAddress: message.to,
-        subject: message.subject,
-        content: message.body,
-        metadata: message.metadata,
-        status: message.status,
-        priority: message.priority,
-        tags: message.tags,
-        timestamp: message.receivedAt,
-        createdAt: message.createdAt,
-        updatedAt: message.updatedAt
+        id: messageData.id,
+        tenantId: actualTenantId,
+        channelId: messageData.channelId,
+        channelType: messageData.channelType,
+        fromAddress: messageData.from || messageData.fromAddress,
+        toAddress: messageData.to || messageData.toAddress,
+        subject: messageData.subject,
+        content: messageData.body || messageData.content,
+        metadata: messageData.metadata || {},
+        status: messageData.status || 'unread',
+        priority: messageData.priority || 'medium',
+        tags: messageData.tags || [],
+        timestamp: messageData.receivedAt || messageData.sentAt || new Date(),
+        createdAt: messageData.createdAt || new Date(),
+        updatedAt: messageData.updatedAt || new Date()
       }).returning();
 
       console.log(`✅ [DRIZZLE-MESSAGE-REPO] Message created successfully in database`);
@@ -234,7 +229,31 @@ export class DrizzleMessageRepository implements IMessageRepository {
       
       console.log(`🔍 [DRIZZLE-MESSAGE-REPO] Verification query result:`, JSON.stringify(verification, null, 2));
       
-      return message;
+      // Return MessageEntity if input was MessageEntity, otherwise return the created data
+      if (message instanceof MessageEntity) {
+        return message;
+      } else {
+        // Convert simple object to MessageEntity for consistent return type
+        return new MessageEntity(
+          messageData.id,
+          messageData.channelId,
+          messageData.channelType,
+          messageData.from || messageData.fromAddress,
+          messageData.body || messageData.content,
+          actualTenantId,
+          messageData.to || messageData.toAddress,
+          messageData.subject,
+          messageData.metadata || {},
+          messageData.status || 'unread',
+          messageData.priority || 'medium',
+          undefined,
+          messageData.tags || [],
+          messageData.receivedAt || messageData.sentAt || new Date(),
+          undefined,
+          messageData.createdAt || new Date(),
+          messageData.updatedAt || new Date()
+        );
+      }
     } catch (error) {
       console.error(`❌ [DRIZZLE-MESSAGE-REPO] Error creating message:`, error);
       throw error;
@@ -247,6 +266,7 @@ export class DrizzleMessageRepository implements IMessageRepository {
       status: message.status,
       priority: message.priority,
       tags: message.tags,
+      metadata: message.metadata,
       updatedAt: message.updatedAt
     }).where(
       and(
