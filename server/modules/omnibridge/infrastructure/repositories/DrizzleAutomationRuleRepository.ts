@@ -324,6 +324,76 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       'archive': { name: 'Arquivar', description: 'Move para arquivo', icon: 'Archive', color: 'bg-gray-500' }
     };
 
+    // ✅ 1QA.MD: Action templates map for UI hydration
+    const actionTemplatesMap = {
+      'auto_reply': {
+        name: 'Resposta automática',
+        description: 'Envia resposta pré-definida',
+        icon: 'Reply',
+        color: 'bg-blue-500'
+      },
+      'send_auto_reply': {
+        name: 'Resposta automática',
+        description: 'Envia resposta pré-definida automaticamente',
+        icon: 'Reply',
+        color: 'bg-blue-500'
+      },
+      'send_notification': {
+        name: 'Enviar notificação',
+        description: 'Notifica equipe responsável',
+        icon: 'Bell',
+        color: 'bg-yellow-500'
+      },
+      'create_ticket': {
+        name: 'Criar ticket',
+        description: 'Cria ticket automaticamente',
+        icon: 'FileText',
+        color: 'bg-green-500'
+      },
+      'forward_message': {
+        name: 'Encaminhar mensagem',
+        description: 'Encaminha para outro agente',
+        icon: 'Forward',
+        color: 'bg-purple-500'
+      },
+      'add_tags': {
+        name: 'Adicionar tags',
+        description: 'Categoriza com tags',
+        icon: 'Tag',
+        color: 'bg-indigo-500'
+      },
+      'assign_agent': {
+        name: 'Atribuir agente',
+        description: 'Designa agente específico',
+        icon: 'Users',
+        color: 'bg-teal-500'
+      },
+      'mark_priority': {
+        name: 'Marcar prioridade',
+        description: 'Define nível de prioridade',
+        icon: 'Star',
+        color: 'bg-red-500'
+      },
+      'ai_response': {
+        name: 'Resposta com IA',
+        description: 'Gera resposta usando IA',
+        icon: 'Brain',
+        color: 'bg-pink-500'
+      },
+      'escalate': {
+        name: 'Escalar',
+        description: 'Escala para supervisor',
+        icon: 'ArrowRight',
+        color: 'bg-orange-500'
+      },
+      'archive': {
+        name: 'Arquivar',
+        description: 'Move para arquivo',
+        icon: 'Archive',
+        color: 'bg-gray-500'
+      }
+    };
+
     // ✅ 1QA.MD: Process actions with proper UI field hydration and error handling
     const processedActions = (row.actions || []).map((action: any, index: number) => {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Processing action ${index}:`, {

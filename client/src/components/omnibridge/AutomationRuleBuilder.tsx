@@ -149,6 +149,13 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-blue-500'
   },
   {
+    type: 'send_auto_reply',
+    name: 'Resposta automática',
+    description: 'Envia resposta pré-definida automaticamente',
+    icon: Reply,
+    color: 'bg-blue-500'
+  },
+  {
     type: 'send_notification',
     name: 'Enviar notificação',
     description: 'Notifica equipe responsável',
@@ -275,6 +282,7 @@ export default function AutomationRuleBuilder({
           const safeTemplate = template || {
             type: action.type,
             name: action.type === 'auto_reply' ? 'Resposta automática' :
+                  action.type === 'send_auto_reply' ? 'Resposta automática' :
                   action.type === 'send_notification' ? 'Enviar notificação' :
                   action.type === 'create_ticket' ? 'Criar ticket' :
                   action.type === 'forward_message' ? 'Encaminhar mensagem' :
@@ -286,6 +294,7 @@ export default function AutomationRuleBuilder({
                   action.type === 'archive' ? 'Arquivar' :
                   `Ação ${action.type}`,
             description: action.type === 'auto_reply' ? 'Envia resposta pré-definida' :
+                        action.type === 'send_auto_reply' ? 'Envia resposta pré-definida automaticamente' :
                         action.type === 'send_notification' ? 'Notifica equipe responsável' :
                         action.type === 'create_ticket' ? 'Cria ticket automaticamente' :
                         action.type === 'forward_message' ? 'Encaminha para outro agente' :
