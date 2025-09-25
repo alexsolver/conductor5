@@ -24,15 +24,12 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import AutomationRuleBuilder from '@/components/omnibridge/AutomationRuleBuilder';
+import { Link } from 'wouter';
 
 
 export default function AutomationRules() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // Debug log para verificar se o componente está montando
@@ -263,77 +260,12 @@ export default function AutomationRules() {
         </div>
 
         <div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-nova-regra">
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Regra
-          </Button>
-
-          <AutomationRuleBuilder
-            isOpen={isCreateDialogOpen}
-            onClose={() => setIsCreateDialogOpen(false)}
-            onSave={async (rule) => {
-              console.log('🔄 [AutomationRules] Rule saved, invalidating cache and refetching...');
-
-              try {
-                // Force immediate cache invalidation and refetch with no cache
-                await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-                await queryClient.refetchQueries({ 
-                  queryKey: ['automation-rules'],
-                  type: 'active'
-                });
-
-                // Force a hard refresh of the data
-                await new Promise(resolve => setTimeout(resolve, 100));
-                await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
-
-                console.log('✅ [AutomationRules] Cache invalidated and refetched successfully');
-              } catch (error) {
-                console.error('❌ [AutomationRules] Error refreshing data:', error);
-              }
-
-              setIsCreateDialogOpen(false);
-              toast({
-                title: '✅ Regra criada',
-                description: 'Regra de automação criada com sucesso!'
-              });
-            }}
-          />
-
-          <AutomationRuleBuilder
-            isOpen={isEditDialogOpen}
-            onClose={() => {
-              setIsEditDialogOpen(false);
-              setEditingRule(null);
-            }}
-            existingRule={editingRule}
-            onSave={async (rule) => {
-              console.log('🔄 [AutomationRules] Rule updated, invalidating cache and refetching...');
-
-              try {
-                // Force immediate cache invalidation and refetch with no cache
-                await queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-                await queryClient.refetchQueries({ 
-                  queryKey: ['automation-rules'],
-                  type: 'active'
-                });
-
-                // Force a hard refresh of the data
-                await new Promise(resolve => setTimeout(resolve, 100));
-                await queryClient.refetchQueries({ queryKey: ['automation-rules'] });
-
-                console.log('✅ [AutomationRules] Cache invalidated and refetched successfully');
-              } catch (error) {
-                console.error('❌ [AutomationRules] Error refreshing data:', error);
-              }
-
-              setIsEditDialogOpen(false);
-              setEditingRule(null);
-              toast({
-                title: '✅ Regra atualizada',
-                description: 'Regra de automação atualizada com sucesso!'
-              });
-            }}
-          />
+          <Link href="/omnibridge/automation-rules/new">
+            <Button data-testid="button-nova-regra">
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Regra
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -474,21 +406,21 @@ export default function AutomationRules() {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingRule(rule);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/omnibridge/automation-rules/${displayRule.id}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            data-testid={`button-editar-${displayRule.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => deleteRuleMutation.mutate(displayRule.id)}
                           disabled={deleteRuleMutation.isPending}
+                          data-testid={`button-deletar-${displayRule.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
