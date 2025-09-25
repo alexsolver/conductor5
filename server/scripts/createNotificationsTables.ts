@@ -83,7 +83,7 @@ export async function createNotificationsTables() {
 }
 
 // Execute if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   createNotificationsTables()
     .then(() => {
       console.log('🏁 [NOTIFICATIONS] Script completed successfully');

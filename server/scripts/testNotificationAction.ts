@@ -70,7 +70,7 @@ async function testNotificationAction() {
 }
 
 // Execute test if run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   testNotificationAction().then(result => {
     console.log('🏁 [TEST] Test completed:', result);
     process.exit(0);
