@@ -26,7 +26,7 @@ import {
   MessageSquare,
   Mail,
   Phone,
-  Settings,
+  Settings as SettingsIcon,
   Plus,
   Search,
   Filter,
@@ -1054,11 +1054,11 @@ export default function OmniBridge() {
             onClick={handleSyncIntegrations}
             disabled={loading}
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <SettingsIcon className="h-4 w-4 mr-2" />
             {loading ? 'Sincronizando...' : 'Sincronizar Integrações'}
           </Button>
           <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
+            <SettingsIcon className="h-4 w-4 mr-2" />
             Configurações
           </Button>
           <Button size="sm" onClick={() => setShowCreateRuleModal(true)}>
@@ -1071,7 +1071,7 @@ export default function OmniBridge() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="channels" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+            <SettingsIcon className="h-4 w-4" />
             Canais
           </TabsTrigger>
           <TabsTrigger value="inbox" className="flex items-center gap-2">
@@ -1112,7 +1112,7 @@ export default function OmniBridge() {
             <CardContent>
               {channels.length === 0 ? (
                 <div className="text-center py-12">
-                  <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <SettingsIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <h3 className="text-lg font-medium mb-2">Nenhum canal configurado</h3>
                   <p className="text-muted-foreground mb-4">
                     Configure seus canais de comunicação no Workspace Admin para que eles apareçam aqui.
@@ -1186,7 +1186,7 @@ export default function OmniBridge() {
                           className="flex-1"
                           onClick={() => window.open('/tenant-admin/integrations', '_blank')}
                         >
-                          <Settings className="h-4 w-4 mr-2" />
+                          <SettingsIcon className="h-4 w-4 mr-2" />
                           Configurar
                         </Button>
                         <Button variant="outline" size="sm" className="flex-1">
@@ -1259,7 +1259,7 @@ export default function OmniBridge() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
+                  <SettingsIcon className="h-5 w-5" />
                   Configurações OpenAI
                 </CardTitle>
                 <CardDescription>
@@ -1366,7 +1366,7 @@ export default function OmniBridge() {
                   disabled={saveAiConfigMutation.isPending}
                   data-testid="button-save-ai-config"
                 >
-                  <Settings className="h-4 w-4 mr-2" />
+                  <SettingsIcon className="h-4 w-4 mr-2" />
                   {saveAiConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
                 </Button>
               </CardContent>
@@ -1470,7 +1470,7 @@ export default function OmniBridge() {
                           {prompt.split('\\n').length} linhas
                         </Badge>
                         <Button variant="ghost" size="sm" data-testid={`button-edit-prompt-${key}`}>
-                          <Settings className="h-3 w-3" />
+                          <SettingsIcon className="h-3 w-3" />
                         </Button>
                       </div>
                     </CardContent>
@@ -1894,7 +1894,7 @@ export default function OmniBridge() {
                   disabled={!tempPromptContent.trim()}
                   data-testid="button-save-prompt"
                 >
-                  <Settings className="h-4 w-4 mr-2" />
+                  <SettingsIcon className="h-4 w-4 mr-2" />
                   Salvar Prompt
                 </Button>
               </div>
