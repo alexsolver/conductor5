@@ -103,6 +103,7 @@ import Customers from "./pages/Customers";
 
 // OmniBridge Module - Full Interface
 import OmniBridge from "./pages/OmniBridge";
+import RuleComposer from "./pages/RuleComposer";
 
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -241,6 +242,8 @@ function AppRouter() {
         <Route path="/agenda-manager" component={AgendaManager} />
         {/* OmniBridge Route - Full Interface */}
         <Route path="/omnibridge" component={OmniBridge} />
+        <Route path="/omnibridge/automation-rules/new" component={RuleComposer} />
+        <Route path="/omnibridge/automation-rules/edit/:id" component={RuleComposer} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
