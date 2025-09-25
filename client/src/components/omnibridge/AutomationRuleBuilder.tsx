@@ -101,6 +101,7 @@ interface AutomationRuleBuilderProps {
 
 // Predefined trigger templates
 const triggerTemplates: Omit<Trigger, 'id' | 'config'>[] = [
+  // Gatilhos Básicos
   {
     type: 'keyword',
     name: 'Palavra-chave',
@@ -122,7 +123,29 @@ const triggerTemplates: Omit<Trigger, 'id' | 'config'>[] = [
     icon: AlertCircle,
     color: 'bg-red-500'
   },
-  // Novos triggers focados em chamados
+  {
+    type: 'sender',
+    name: 'Remetente específico',
+    description: 'Ativa para um remetente específico',
+    icon: Users,
+    color: 'bg-purple-500'
+  },
+  {
+    type: 'time',
+    name: 'Horário específico',
+    description: 'Ativa em horários determinados',
+    icon: Clock,
+    color: 'bg-orange-500'
+  },
+  {
+    type: 'ai_analysis',
+    name: 'Análise de IA',
+    description: 'Ativa baseado em análise inteligente',
+    icon: Brain,
+    color: 'bg-pink-500'
+  },
+
+  // Gatilhos de Atendimento ao Cliente
   {
     type: 'ticket_keywords',
     name: 'Palavras de chamado',
@@ -172,32 +195,161 @@ const triggerTemplates: Omit<Trigger, 'id' | 'config'>[] = [
     icon: CreditCard,
     color: 'bg-green-600'
   },
-  // Triggers existentes
+
+  // Gatilhos Temporais Avançados
   {
-    type: 'sender',
-    name: 'Remetente específico',
-    description: 'Ativa para um remetente específico',
-    icon: Users,
-    color: 'bg-purple-500'
-  },
-  {
-    type: 'time',
-    name: 'Horário específico',
-    description: 'Ativa em horários determinados',
+    type: 'business_hours',
+    name: 'Horário comercial',
+    description: 'Ativa apenas durante horário comercial',
     icon: Clock,
-    color: 'bg-orange-500'
+    color: 'bg-emerald-600'
   },
   {
-    type: 'ai_analysis',
-    name: 'Análise de IA',
-    description: 'Ativa baseado em análise inteligente',
-    icon: Brain,
-    color: 'bg-pink-500'
+    type: 'after_hours',
+    name: 'Fora do horário',
+    description: 'Ativa fora do horário comercial',
+    icon: Clock,
+    color: 'bg-slate-600'
+  },
+  {
+    type: 'holiday_weekend',
+    name: 'Feriados e fins de semana',
+    description: 'Ativa em feriados e fins de semana',
+    icon: Calendar,
+    color: 'bg-yellow-600'
+  },
+  {
+    type: 'response_time_exceeded',
+    name: 'Tempo de resposta excedido',
+    description: 'Ativa quando SLA de resposta é excedido',
+    icon: AlertTriangle,
+    color: 'bg-red-800'
+  },
+
+  // Gatilhos de Comportamento do Cliente
+  {
+    type: 'repeat_customer',
+    name: 'Cliente recorrente',
+    description: 'Ativa para clientes que já entraram em contato',
+    icon: RefreshCw,
+    color: 'bg-blue-700'
+  },
+  {
+    type: 'new_customer',
+    name: 'Novo cliente',
+    description: 'Ativa para clientes que entram em contato pela primeira vez',
+    icon: Star,
+    color: 'bg-green-700'
+  },
+  {
+    type: 'vip_customer',
+    name: 'Cliente VIP',
+    description: 'Ativa para clientes marcados como VIP',
+    icon: Star,
+    color: 'bg-yellow-700'
+  },
+  {
+    type: 'multiple_contacts',
+    name: 'Múltiplos contatos',
+    description: 'Ativa quando cliente entra em contato múltiplas vezes',
+    icon: AlertCircle,
+    color: 'bg-orange-700'
+  },
+
+  // Gatilhos de Conteúdo Avançado
+  {
+    type: 'sentiment_negative',
+    name: 'Sentimento negativo',
+    description: 'Detecta mensagens com sentimento negativo',
+    icon: AlertTriangle,
+    color: 'bg-red-500'
+  },
+  {
+    type: 'sentiment_positive',
+    name: 'Sentimento positivo',
+    description: 'Detecta mensagens com sentimento positivo',
+    icon: Lightbulb,
+    color: 'bg-green-500'
+  },
+  {
+    type: 'contains_attachment',
+    name: 'Contém anexo',
+    description: 'Ativa quando mensagem contém anexos',
+    icon: Download,
+    color: 'bg-indigo-600'
+  },
+  {
+    type: 'message_length',
+    name: 'Tamanho da mensagem',
+    description: 'Ativa baseado no tamanho da mensagem',
+    icon: FileText,
+    color: 'bg-gray-500'
+  },
+  {
+    type: 'language_detection',
+    name: 'Idioma detectado',
+    description: 'Ativa baseado no idioma da mensagem',
+    icon: MessageSquare,
+    color: 'bg-violet-600'
+  },
+
+  // Gatilhos de Sistema
+  {
+    type: 'agent_availability',
+    name: 'Disponibilidade do agente',
+    description: 'Ativa baseado na disponibilidade dos agentes',
+    icon: Users,
+    color: 'bg-teal-600'
+  },
+  {
+    type: 'queue_overflow',
+    name: 'Fila sobrecarregada',
+    description: 'Ativa quando fila de atendimento está cheia',
+    icon: AlertTriangle,
+    color: 'bg-red-600'
+  },
+  {
+    type: 'department_specific',
+    name: 'Departamento específico',
+    description: 'Ativa para departamentos específicos',
+    icon: Settings,
+    color: 'bg-blue-800'
+  },
+  {
+    type: 'product_mention',
+    name: 'Menção de produto',
+    description: 'Ativa quando produto específico é mencionado',
+    icon: Tag,
+    color: 'bg-purple-700'
+  },
+
+  // Gatilhos de Integração
+  {
+    type: 'webhook_received',
+    name: 'Webhook recebido',
+    description: 'Ativa quando webhook externo é recebido',
+    icon: ExternalLink,
+    color: 'bg-cyan-600'
+  },
+  {
+    type: 'api_trigger',
+    name: 'Gatilho por API',
+    description: 'Ativa via chamada de API externa',
+    icon: Cog,
+    color: 'bg-indigo-700'
+  },
+  {
+    type: 'form_submission',
+    name: 'Formulário enviado',
+    description: 'Ativa quando formulário é submetido',
+    icon: FileText,
+    color: 'bg-emerald-700'
   }
 ];
 
 // Predefined action templates
 const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
+  // Ações Básicas de Resposta
   {
     type: 'auto_reply',
     name: 'Resposta automática',
@@ -206,13 +358,28 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-blue-500'
   },
   {
+    type: 'send_notification',
+    name: 'Enviar notificação',
+    description: 'Notifica equipe responsável',
+    icon: Bell,
+    color: 'bg-yellow-500'
+  },
+  {
+    type: 'forward_message',
+    name: 'Encaminhar mensagem',
+    description: 'Encaminha para outro agente',
+    icon: Forward,
+    color: 'bg-purple-500'
+  },
+
+  // Ações de Gestão de Tickets
+  {
     type: 'create_ticket',
     name: 'Criar ticket',
     description: 'Cria ticket automaticamente',
     icon: FileText,
     color: 'bg-green-500'
   },
-  // Novos nós focados em chamados
   {
     type: 'create_urgent_ticket',
     name: 'Criar ticket urgente',
@@ -256,33 +423,48 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-purple-600'
   },
   {
-    type: 'create_followup_task',
-    name: 'Criar follow-up',
-    description: 'Agenda tarefa de acompanhamento',
-    icon: Calendar,
+    type: 'close_ticket',
+    name: 'Fechar ticket',
+    description: 'Fecha o ticket automaticamente',
+    icon: CheckCircle,
+    color: 'bg-green-700'
+  },
+  {
+    type: 'reopen_ticket',
+    name: 'Reabrir ticket',
+    description: 'Reabre ticket fechado',
+    icon: RefreshCw,
+    color: 'bg-blue-700'
+  },
+
+  // Ações de Atribuição e Organização
+  {
+    type: 'assign_agent',
+    name: 'Atribuir agente',
+    description: 'Designa agente específico',
+    icon: Users,
+    color: 'bg-teal-500'
+  },
+  {
+    type: 'assign_team',
+    name: 'Atribuir equipe',
+    description: 'Designa equipe específica',
+    icon: Users,
+    color: 'bg-teal-600'
+  },
+  {
+    type: 'assign_by_skill',
+    name: 'Atribuir por habilidade',
+    description: 'Atribui baseado em habilidades técnicas',
+    icon: Target,
+    color: 'bg-indigo-600'
+  },
+  {
+    type: 'assign_round_robin',
+    name: 'Atribuição rotativa',
+    description: 'Distribui igualmente entre agentes',
+    icon: RefreshCw,
     color: 'bg-cyan-600'
-  },
-  {
-    type: 'notify_customer',
-    name: 'Notificar cliente',
-    description: 'Envia notificação ao cliente',
-    icon: MessageSquare,
-    color: 'bg-green-600'
-  },
-  // Ações existentes
-  {
-    type: 'send_notification',
-    name: 'Enviar notificação',
-    description: 'Notifica equipe responsável',
-    icon: Bell,
-    color: 'bg-yellow-500'
-  },
-  {
-    type: 'forward_message',
-    name: 'Encaminhar mensagem',
-    description: 'Encaminha para outro agente',
-    icon: Forward,
-    color: 'bg-purple-500'
   },
   {
     type: 'add_tags',
@@ -292,11 +474,11 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-indigo-500'
   },
   {
-    type: 'assign_agent',
-    name: 'Atribuir agente',
-    description: 'Designa agente específico',
-    icon: Users,
-    color: 'bg-teal-500'
+    type: 'remove_tags',
+    name: 'Remover tags',
+    description: 'Remove tags específicas',
+    icon: Tag,
+    color: 'bg-gray-500'
   },
   {
     type: 'mark_priority',
@@ -306,11 +488,230 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-red-500'
   },
   {
+    type: 'change_status',
+    name: 'Alterar status',
+    description: 'Muda status do ticket',
+    icon: Settings,
+    color: 'bg-blue-800'
+  },
+
+  // Ações de Acompanhamento
+  {
+    type: 'create_followup_task',
+    name: 'Criar follow-up',
+    description: 'Agenda tarefa de acompanhamento',
+    icon: Calendar,
+    color: 'bg-cyan-600'
+  },
+  {
+    type: 'schedule_reminder',
+    name: 'Agendar lembrete',
+    description: 'Agenda lembrete para agente',
+    icon: Clock,
+    color: 'bg-orange-700'
+  },
+  {
+    type: 'add_note',
+    name: 'Adicionar nota',
+    description: 'Adiciona nota interna ao ticket',
+    icon: FileText,
+    color: 'bg-gray-600'
+  },
+  {
+    type: 'log_activity',
+    name: 'Registrar atividade',
+    description: 'Registra atividade no histórico',
+    icon: FileText,
+    color: 'bg-slate-600'
+  },
+
+  // Ações de Comunicação
+  {
+    type: 'notify_customer',
+    name: 'Notificar cliente',
+    description: 'Envia notificação ao cliente',
+    icon: MessageSquare,
+    color: 'bg-green-600'
+  },
+  {
+    type: 'send_email',
+    name: 'Enviar email',
+    description: 'Envia email personalizado',
+    icon: Mail,
+    color: 'bg-blue-600'
+  },
+  {
+    type: 'send_sms',
+    name: 'Enviar SMS',
+    description: 'Envia SMS para cliente',
+    icon: Phone,
+    color: 'bg-green-700'
+  },
+  {
+    type: 'notify_manager',
+    name: 'Notificar gerente',
+    description: 'Notifica gerente sobre situação',
+    icon: Bell,
+    color: 'bg-red-700'
+  },
+  {
+    type: 'send_survey',
+    name: 'Enviar pesquisa',
+    description: 'Envia pesquisa de satisfação',
+    icon: Star,
+    color: 'bg-yellow-700'
+  },
+
+  // Ações de Integração
+  {
+    type: 'webhook_call',
+    name: 'Chamar webhook',
+    description: 'Executa webhook externo',
+    icon: ExternalLink,
+    color: 'bg-violet-600'
+  },
+  {
+    type: 'api_request',
+    name: 'Requisição API',
+    description: 'Faz requisição para API externa',
+    icon: Cog,
+    color: 'bg-indigo-700'
+  },
+  {
+    type: 'update_crm',
+    name: 'Atualizar CRM',
+    description: 'Atualiza dados no CRM',
+    icon: Users,
+    color: 'bg-emerald-700'
+  },
+  {
+    type: 'sync_database',
+    name: 'Sincronizar banco',
+    description: 'Sincroniza com banco externo',
+    icon: RefreshCw,
+    color: 'bg-blue-800'
+  },
+
+  // Ações de Análise e Relatórios
+  {
+    type: 'generate_report',
+    name: 'Gerar relatório',
+    description: 'Gera relatório automático',
+    icon: FileText,
+    color: 'bg-purple-700'
+  },
+  {
+    type: 'update_metrics',
+    name: 'Atualizar métricas',
+    description: 'Atualiza métricas de performance',
+    icon: BarChart3,
+    color: 'bg-green-800'
+  },
+  {
+    type: 'track_interaction',
+    name: 'Rastrear interação',
+    description: 'Registra interação para análise',
+    icon: MousePointer2,
+    color: 'bg-gray-700'
+  },
+
+  // Ações de Conhecimento
+  {
+    type: 'suggest_knowledge',
+    name: 'Sugerir artigo',
+    description: 'Sugere artigo da base de conhecimento',
+    icon: Lightbulb,
+    color: 'bg-yellow-600'
+  },
+  {
+    type: 'create_knowledge_article',
+    name: 'Criar artigo',
+    description: 'Cria artigo na base de conhecimento',
+    icon: FileText,
+    color: 'bg-emerald-800'
+  },
+  {
+    type: 'update_faq',
+    name: 'Atualizar FAQ',
+    description: 'Atualiza perguntas frequentes',
+    icon: FileText,
+    color: 'bg-blue-900'
+  },
+
+  // Ações de Arquivamento e Limpeza
+  {
     type: 'archive',
     name: 'Arquivar',
     description: 'Move para arquivo',
     icon: Archive,
     color: 'bg-gray-500'
+  },
+  {
+    type: 'delete_old_data',
+    name: 'Limpar dados antigos',
+    description: 'Remove dados antigos automaticamente',
+    icon: Trash2,
+    color: 'bg-red-800'
+  },
+  {
+    type: 'backup_conversation',
+    name: 'Backup da conversa',
+    description: 'Faz backup da conversa',
+    icon: Download,
+    color: 'bg-slate-700'
+  },
+
+  // Ações de IA e Automação Avançada
+  {
+    type: 'ai_sentiment_analysis',
+    name: 'Análise de sentimento',
+    description: 'Analisa sentimento com IA',
+    icon: Brain,
+    color: 'bg-pink-600'
+  },
+  {
+    type: 'ai_categorize',
+    name: 'Categorizar com IA',
+    description: 'Categoriza automaticamente com IA',
+    icon: Sparkles,
+    color: 'bg-purple-800'
+  },
+  {
+    type: 'ai_translate',
+    name: 'Traduzir com IA',
+    description: 'Traduz mensagem automaticamente',
+    icon: MessageSquare,
+    color: 'bg-violet-700'
+  },
+  {
+    type: 'ai_summarize',
+    name: 'Resumir com IA',
+    description: 'Cria resumo da conversa',
+    icon: FileText,
+    color: 'bg-indigo-800'
+  },
+
+  // Ações Condicionais
+  {
+    type: 'conditional_action',
+    name: 'Ação condicional',
+    description: 'Executa ação baseada em condições',
+    icon: Filter,
+    color: 'bg-cyan-800'
+  },
+  {
+    type: 'wait_action',
+    name: 'Aguardar',
+    description: 'Aguarda tempo específico antes de continuar',
+    icon: Clock,
+    color: 'bg-orange-800'
+  },
+  {
+    type: 'loop_action',
+    name: 'Repetir ação',
+    description: 'Repete ação por número específico de vezes',
+    icon: RefreshCw,
+    color: 'bg-blue-900'
   }
 ];
 
@@ -1256,10 +1657,11 @@ export default function AutomationRuleBuilder({
                 {selectedTrigger ? `Configurando: ${selectedTrigger.name}` : 'Selecione um gatilho'}
               </DialogDescription>
             </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
                 {/* Trigger Selection */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
                       <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -1298,6 +1700,7 @@ export default function AutomationRuleBuilder({
                         </div>
                       </div>
                     </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Trigger Configuration */}
@@ -1323,7 +1726,7 @@ export default function AutomationRuleBuilder({
                   )}
                 </div>
               </div>
-            </div>
+            </ScrollArea>
             <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
               <Button variant="outline" onClick={() => setShowTriggerConfig(false)}>
                 Cancelar
