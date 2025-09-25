@@ -536,7 +536,7 @@ app.use((req, res, next) => {
 
   // Add a catch-all route for development that serves the index.html
   if (app.get("env") === "development") {
-    
+
     app.get('*', (req, res, next) => {
       // Skip if it's an API route
       if (req.path.startsWith('/api/')) {

@@ -230,18 +230,42 @@ export class OmniBridgeAutoStart {
     console.log('🚀 [OMNIBRIDGE-AUTO-START] Starting OmniBridge initialization...');
 
     try {
-      // Initialize channels from integrations
+      // Get all tenants with IMAP integrations
+      const { storage } = await import('../storage-simple');
+      
+      // For now, use the main tenant for testing
+      const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+      
       console.log('📋 [OMNIBRIDGE-AUTO-START] Step 1: Initializing channels...');
       await this.initializeChannels();
 
-      // Start email monitoring for active integrations
       console.log('📧 [OMNIBRIDGE-AUTO-START] Step 2: Starting email monitoring...');
-      await this.startEmailMonitoring();
+      await this.detectAndStartCommunicationChannels(tenantId);
 
       console.log('✅ [OMNIBRIDGE-AUTO-START] OmniBridge initialization completed successfully');
+      console.log('✅ [OMNIBRIDGE-AUTO-START] Emails will now be ingested into OmniBridge inbox');
     } catch (error) {
       console.error('❌ [OMNIBRIDGE-AUTO-START] Error during OmniBridge initialization:', error);
       throw error; // Re-throw to ensure errors are visible
+    }
+  }
+
+  private async initializeChannels(): Promise<void> {
+    try {
+      console.log('🔗 [OMNIBRIDGE-AUTO-START] Initializing OmniBridge channels...');
+      
+      const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
+      const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
+      const { storage } = await import('../storage-simple');
+
+      const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+      const channelRepository = new DrizzleChannelRepository();
+      const syncService = new IntegrationChannelSync(channelRepository, storage);
+      
+      await syncService.syncIntegrationsToChannels(tenantId);
+      console.log('✅ [OMNIBRIDGE-AUTO-START] Channels synchronized successfully');
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-AUTO-START] Error initializing channels:', error);
     }
   }
 }

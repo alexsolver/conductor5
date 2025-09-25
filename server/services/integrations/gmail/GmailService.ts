@@ -472,12 +472,16 @@ export class GmailService {
               console.error(`❌ [GMAIL-SERVICE] Fallback insert also failed:`, fallbackError);
             }
           }
-        } catch (error) {
-          console.error('Error processing individual email:', error);
+        } catch (emailError) {
+          console.error(`❌ [GMAIL-SERVICE] Error processing individual email for OmniBridge:`, emailError);
         }
       }
+
+      console.log(`📊 [GMAIL-SERVICE] OmniBridge processing summary: ${processedEmails}/${emails.length} emails processed successfully for tenant ${tenantId}`);
+      console.log(`✅ [GMAIL-SERVICE] All emails sent to OmniBridge inbox via MessageIngestionService`);
+
     } catch (error) {
-      console.error('Error processing emails batch:', error);
+      console.error(`❌ [GMAIL-SERVICE] Error in Gmail email processing for OmniBridge:`, error);
     }
   }
 

@@ -143,38 +143,54 @@ export class MessageIngestionService {
   }
 
   /**
-   * Processa email do IMAP
+   * Processa email do IMAP para OmniBridge inbox
    */
   async processImapEmail(emailData: any, tenantId: string): Promise<MessageEntity> {
-    console.log(`📨 [IMAP-INGESTION] Processing email for tenant: ${tenantId}`);
+    console.log(`📨 [IMAP-INGESTION] Processing email for OmniBridge inbox - tenant: ${tenantId}`);
     console.log(`📨 [IMAP-INGESTION] Email from: ${emailData.from}`);
     console.log(`📨 [IMAP-INGESTION] Email subject: ${emailData.subject}`);
 
+    // ✅ 1QA.MD: Extract email address properly 
+    const extractEmail = (emailField: any) => {
+      if (typeof emailField === 'string') {
+        const match = emailField.match(/<(.+?)>/) || [null, emailField];
+        return match[1] || emailField;
+      }
+      return emailField?.value?.[0]?.address || emailField || 'unknown';
+    };
+
+    const fromEmail = extractEmail(emailData.from);
+    const toEmail = extractEmail(emailData.to);
+
     const incomingMessage: IncomingMessage = {
-      channelId: 'imap-email',
+      channelId: emailData.metadata?.channelId || 'imap-email',
       channelType: 'email',
-      from: emailData.from?.value?.[0]?.address || emailData.from || 'unknown',
-      to: emailData.to?.value?.[0]?.address || emailData.to || 'imap-inbox',
+      from: fromEmail,
+      to: toEmail,
       subject: emailData.subject || 'Sem assunto',
-      content: emailData.text || emailData.html || '[Conteúdo indisponível]',
+      content: emailData.text || emailData.html || '[Email recebido via IMAP - conteúdo não disponível]',
       metadata: {
         messageId: emailData.messageId,
         originalMessageId: emailData.messageId,
         date: emailData.date,
-        headers: emailData.headers,
+        headers: emailData.headers || {},
         hasAttachments: Boolean(emailData.attachments?.length),
         imapProcessed: true,
         processedAt: new Date().toISOString(),
-        ingestionSource: 'message-ingestion-service-imap'
+        ingestionSource: 'message-ingestion-service-imap',
+        originalFrom: emailData.from,
+        priority: emailData.priority,
+        gmailServiceSource: emailData.metadata?.gmailServiceSource || false
       },
-      priority: emailData.priority === 'high' ? 'high' : 'medium',
+      priority: emailData.priority || 'medium',
       tenantId
     };
 
+    console.log(`📥 [IMAP-INGESTION] Ingesting message into OmniBridge inbox`);
     const result = await this.ingestMessage(incomingMessage);
-    console.log(`✅ [IMAP-INGESTION] Email processed successfully with ID: ${result.id}`);
+    console.log(`✅ [IMAP-INGESTION] Email successfully added to OmniBridge inbox with ID: ${result.id}`);
     
-    // 🤖 Process automation rules for IMAP emails
+    // ✅ 1QA.MD: Process automation rules after successful ingestion
     if (this.processMessageUseCase) {
       console.log(`🤖 [IMAP-INGESTION] Triggering automation rules for message ${result.id}`);
       try {
@@ -190,12 +206,13 @@ export class MessageIngestionService {
           }, 
           tenantId
         );
-        console.log(`✅ [IMAP-INGESTION] Automation result:`, automationResult);
+        console.log(`✅ [IMAP-INGESTION] Automation rules processed:`, automationResult);
       } catch (automationError) {
-        console.error(`❌ [IMAP-INGESTION] Automation processing failed:`, automationError);
+        console.error(`❌ [IMAP-INGESTION] Automation processing failed (non-critical):`, automationError);
       }
     }
     
+    console.log(`🎯 [IMAP-INGESTION] Email successfully processed and available in OmniBridge inbox`);
     return result;
   }
 
