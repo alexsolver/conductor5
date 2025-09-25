@@ -223,7 +223,7 @@ export default function TenantAdminIntegrations() {
     setTestResults(prev => ({ ...prev, [integrationId]: null }));
 
     try {
-      const response = await fetch(`/api/tenant-integrations/${integrationId}/test`, {
+      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
@@ -260,6 +260,13 @@ export default function TenantAdminIntegrations() {
         }));
         // Invalidate queries to reflect any status changes
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+        
+        // ✅ IMPROVED: Toast de sucesso visual destacado
+        toast({
+          title: "✅ Teste realizado com sucesso!",
+          description: result.message || "A integração foi testada e está funcionando corretamente.",
+          variant: "default",
+        });
       } else {
         console.warn('⚠️ [TESTE-INTEGRAÇÃO] Falha na integração:', result);
         setTestResults(prev => ({
@@ -270,6 +277,13 @@ export default function TenantAdminIntegrations() {
             details: result.details
           }
         }));
+        
+        // ⚠️ IMPROVED: Toast de erro visual destacado
+        toast({
+          title: "❌ Teste falhou",
+          description: result.message || result.error || 'O teste da integração falhou. Verifique a configuração.',
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
@@ -287,6 +301,13 @@ export default function TenantAdminIntegrations() {
           error: error
         }
       }));
+      
+      // ❌ IMPROVED: Toast de erro de conexão visual destacado
+      toast({
+        title: "❌ Erro de conexão",
+        description: `Falha ao testar integração: ${errorMessage}`,
+        variant: "destructive",
+      });
     } finally {
       setTestingIntegrations(prev => ({ ...prev, [integrationId]: false }));
     }
@@ -1541,6 +1562,48 @@ export default function TenantAdminIntegrations() {
                             )}
                           </Button>
                         </div>
+
+                        {/* ✅ IMPROVED: Card de resultado do teste visível */}
+                        {testResults[integration.id] && (
+                          <div className={`mt-3 p-3 rounded-lg border-2 ${
+                            testResults[integration.id].success 
+                              ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950' 
+                              : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                          }`}>
+                            <div className="flex items-start space-x-2">
+                              {testResults[integration.id].success ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-sm font-semibold ${
+                                  testResults[integration.id].success 
+                                    ? 'text-green-800 dark:text-green-200' 
+                                    : 'text-red-800 dark:text-red-200'
+                                }`}>
+                                  {testResults[integration.id].success ? 'Teste bem-sucedido' : 'Teste falhou'}
+                                </h4>
+                                <p className={`text-xs mt-1 ${
+                                  testResults[integration.id].success 
+                                    ? 'text-green-700 dark:text-green-300' 
+                                    : 'text-red-700 dark:text-red-300'
+                                }`}>
+                                  {testResults[integration.id].message}
+                                </p>
+                                {testResults[integration.id].details && (
+                                  <div className={`text-xs mt-2 font-mono p-2 rounded ${
+                                    testResults[integration.id].success 
+                                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
+                                      : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                  }`}>
+                                    <strong>Detalhes:</strong> {JSON.stringify(testResults[integration.id].details, null, 2)}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {integration.lastSync && (
