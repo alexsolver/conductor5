@@ -1349,11 +1349,10 @@ export default function AutomationRuleBuilder({
                 {selectedAction ? `Configurando: ${selectedAction.name}` : 'Selecione uma ação'}
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
+            <div className="flex-1 min-h-0 overflow-y-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
                 {/* Action Selection */}
-                <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full">
+                <div className="flex-1 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
                       <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -1388,7 +1387,6 @@ export default function AutomationRuleBuilder({
                         </div>
                       </div>
                     </div>
-                  </ScrollArea>
                 </div>
 
                 {/* Action Configuration */}
@@ -1414,7 +1412,7 @@ export default function AutomationRuleBuilder({
                   )}
                 </div>
               </div>
-            </ScrollArea>
+            </div>
             <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
               <Button variant="outline" onClick={() => setShowActionConfig(false)}>
                 Cancelar
