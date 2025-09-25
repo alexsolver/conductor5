@@ -95,7 +95,7 @@ export class OmniBridgeController {
 
       const messages = await this.getMessagesUseCase.execute({
         tenantId,
-        limit: limit ? parseInt(limit as string) : 200,
+        limit: limit ? parseInt(limit as string) : 1000,
         offset: offset ? parseInt(offset as string) : 0,
         channelId: channelId as string,
         status: status as string,

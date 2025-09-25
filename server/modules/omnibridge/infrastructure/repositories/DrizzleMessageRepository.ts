@@ -58,7 +58,7 @@ export class DrizzleMessageRepository implements IMessageRepository {
     );
   }
 
-  async findByTenant(tenantId: string, limit: number = 200, offset: number = 0): Promise<MessageEntity[]> {
+  async findByTenant(tenantId: string, limit: number = 1000, offset: number = 0): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
     console.log(`📧 [DRIZZLE-MESSAGE-REPO] Finding messages for tenant: ${tenantId}, limit: ${limit}, offset: ${offset}`);
