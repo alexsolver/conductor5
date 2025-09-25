@@ -514,6 +514,12 @@ app.use((req, res, next) => {
   // SaaS Admin routes
   app.use('/api/saas-admin', (await import('./routes/saasAdminRoutes')).default);
 
+  // AI Agents routes (independent implementation)
+  console.log('🤖 [SERVER] Registering AI agents routes...');
+  const { aiAgentsRoutes } = await import('./routes/aiAgents');
+  app.use('/api/ai-agents', aiAgentsRoutes);
+  console.log('✅ [SERVER] AI agents routes registered at /api/ai-agents');
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
