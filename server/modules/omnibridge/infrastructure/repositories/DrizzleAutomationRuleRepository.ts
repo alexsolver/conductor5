@@ -283,85 +283,86 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   private mapRowToEntity(row: any): AutomationRule {
     console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`, {
       id: row.id,
-      trigger: row.trigger,
-      actions: row.actions
+      hasActions: !!row.actions,
+      actionsLength: row.actions?.length || 0
     });
 
-    // Convert database trigger to frontend conditions format
+    // ✅ 1QA.MD: Convert single trigger object back to conditions for frontend compatibility
     let conditions = { rules: [], logicalOperator: 'AND' };
 
     if (row.trigger && typeof row.trigger === 'object') {
-      // If trigger has conditions array, use it
-      if (Array.isArray(row.trigger.conditions)) {
+      if (row.trigger.rules && Array.isArray(row.trigger.rules)) {
         conditions = {
-          rules: row.trigger.conditions.map((condition: any, index: number) => ({
-            field: condition.field || condition.type || 'content',
-            operator: condition.operator || 'contains',
-            value: condition.value || '',
-            logicalOperator: index === 0 ? undefined : 'AND'
-          })),
+          rules: row.trigger.rules,
           logicalOperator: row.trigger.logicalOperator || 'AND'
         };
-      } else if (row.trigger.type) {
-        // Convert old trigger format to new conditions format
+      } else if (row.trigger.conditions && Array.isArray(row.trigger.conditions)) {
+        // Handle legacy format
         conditions = {
-          rules: [{
-            field: row.trigger.type === 'keyword_match' ? 'content' : 'content',
-            operator: 'contains',
-            value: '',
-            logicalOperator: undefined
-          }],
-          logicalOperator: 'AND'
+          rules: row.trigger.conditions.map((condition: any) => ({
+            field: condition.field || condition.type,
+            operator: condition.operator || 'equals',
+            value: condition.value || '',
+            logicalOperator: condition.logicalOperator || 'AND'
+          })),
+          logicalOperator: row.trigger.logicalOperator || 'AND'
         };
       }
     }
 
-    // Import action templates for proper mapping
-    const actionTemplates = [
-      { type: 'auto_reply', name: 'Resposta automática', description: 'Envia resposta pré-definida', icon: 'Reply', color: 'bg-blue-500' },
-      { type: 'send_notification', name: 'Enviar notificação', description: 'Notifica equipe responsável', icon: 'Bell', color: 'bg-yellow-500' },
-      { type: 'create_ticket', name: 'Criar ticket', description: 'Cria ticket automaticamente', icon: 'FileText', color: 'bg-green-500' },
-      { type: 'forward_message', name: 'Encaminhar mensagem', description: 'Encaminha para outro agente', icon: 'Forward', color: 'bg-purple-500' },
-      { type: 'add_tags', name: 'Adicionar tags', description: 'Categoriza com tags', icon: 'Tag', color: 'bg-indigo-500' },
-      { type: 'assign_agent', name: 'Atribuir agente', description: 'Designa agente específico', icon: 'Users', color: 'bg-teal-500' },
-      { type: 'mark_priority', name: 'Marcar prioridade', description: 'Define nível de prioridade', icon: 'Star', color: 'bg-red-500' },
-      { type: 'ai_response', name: 'Resposta com IA', description: 'Gera resposta usando IA', icon: 'Brain', color: 'bg-pink-500' },
-      { type: 'escalate', name: 'Escalar', description: 'Escala para supervisor', icon: 'ArrowRight', color: 'bg-orange-500' },
-      { type: 'archive', name: 'Arquivar', description: 'Move para arquivo', icon: 'Archive', color: 'bg-gray-500' }
-    ];
+    // ✅ 1QA.MD: Action templates for UI hydration
+    const actionTemplatesMap = {
+      'auto_reply': { name: 'Resposta automática', description: 'Envia resposta pré-definida', icon: 'Reply', color: 'bg-blue-500' },
+      'send_notification': { name: 'Enviar notificação', description: 'Notifica equipe responsável', icon: 'Bell', color: 'bg-yellow-500' },
+      'create_ticket': { name: 'Criar ticket', description: 'Cria ticket automaticamente', icon: 'FileText', color: 'bg-green-500' },
+      'forward_message': { name: 'Encaminhar mensagem', description: 'Encaminha para outro agente', icon: 'Forward', color: 'bg-purple-500' },
+      'add_tags': { name: 'Adicionar tags', description: 'Categoriza com tags', icon: 'Tag', color: 'bg-indigo-500' },
+      'assign_agent': { name: 'Atribuir agente', description: 'Designa agente específico', icon: 'Users', color: 'bg-teal-500' },
+      'mark_priority': { name: 'Marcar prioridade', description: 'Define nível de prioridade', icon: 'Star', color: 'bg-red-500' },
+      'ai_response': { name: 'Resposta com IA', description: 'Gera resposta usando IA', icon: 'Brain', color: 'bg-pink-500' },
+      'escalate': { name: 'Escalar', description: 'Escala para supervisor', icon: 'ArrowRight', color: 'bg-orange-500' },
+      'archive': { name: 'Arquivar', description: 'Move para arquivo', icon: 'Archive', color: 'bg-gray-500' }
+    };
 
-    // Process actions to ensure they have proper UI fields
+    // ✅ 1QA.MD: Process actions with proper UI field hydration and error handling
     const processedActions = (row.actions || []).map((action: any, index: number) => {
-      const template = actionTemplates.find(t => t.type === action.type);
+      const template = actionTemplatesMap[action.type] || {
+        name: 'Ação personalizada',
+        description: 'Ação configurada pelo usuário',
+        icon: 'Settings',
+        color: 'bg-gray-500'
+      };
 
       return {
-        id: action.id || `${row.id}_${action.type}_${index}`,
-        type: action.type,
-        name: template?.name || action.name || 'Ação desconhecida',
-        description: template?.description || action.description || '',
-        icon: template?.icon || 'Settings',
-        color: template?.color || 'bg-gray-500',
+        id: action.id || `action-${index}-${Date.now()}`,
+        type: action.type || 'send_notification',
+        name: action.name || template.name,
+        description: action.description || template.description,
+        icon: action.icon || template.icon,
+        color: action.color || template.color,
         config: action.config || action.params || {},
         priority: action.priority || 1
       };
     });
 
+    console.log(`✅ [DrizzleAutomationRuleRepository] Processed actions with UI fields:`, processedActions);
+
     return new AutomationRule(
       row.id,
-      row.tenantId,
-      row.name,
+      row.tenantId || row.tenant_id,
+      row.name || 'Regra sem nome',
       row.description || '',
-      conditions, // Use processed conditions instead of raw trigger
+      conditions,
       processedActions,
-      row.enabled ?? true,
+      row.enabled ?? row.isEnabled ?? true,
       row.priority || 1,
       row.aiEnabled || false,
-      row.aiPromptId,
-      row.executionCount || 0,
-      row.successCount || 0,
-      row.lastExecuted,
-      row.createdAt,
-      row.updatedAt
+      row.aiPromptId || row.ai_prompt_id,
+      row.executionCount || row.execution_count || 0,
+      row.successCount || row.success_count || 0,
+      row.lastExecuted || row.last_executed ? new Date(row.lastExecuted || row.last_executed) : undefined,
+      row.createdAt || row.created_at ? new Date(row.createdAt || row.created_at) : new Date(),
+      row.updatedAt || row.updated_at ? new Date(row.updatedAt || row.updated_at) : new Date()
     );
   }
 

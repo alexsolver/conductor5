@@ -274,8 +274,8 @@ export default function AutomationRuleBuilder({
           // ✅ FIXED: Garante que sempre existe um template válido
           const safeTemplate = template || {
             type: action.type,
-            name: action.name || 'Ação desconhecida',
-            description: action.description || 'Tipo de ação não reconhecido',
+            name: action.name || `Ação ${action.type}`,
+            description: action.description || `Ação do tipo ${action.type}`,
             icon: Settings, // ícone padrão para ações não reconhecidas
             color: 'bg-gray-500'
           };
