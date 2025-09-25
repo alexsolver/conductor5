@@ -241,20 +241,7 @@ export default function AutomationRuleBuilder({
 
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
   useEffect(() => {
-    console.log('🔍 [AutomationRuleBuilder] useEffect triggered with existingRule:', existingRule);
-    
     if (existingRule) {
-      console.log('🔧 [AutomationRuleBuilder] Processing existingRule:', {
-        id: existingRule.id,
-        name: existingRule.name,
-        description: existingRule.description,
-        enabled: existingRule.enabled,
-        conditionsCount: existingRule.conditions?.rules?.length || 0,
-        actionsCount: existingRule.actions?.length || 0,
-        rawConditions: existingRule.conditions,
-        rawActions: existingRule.actions
-      });
-      
       // Mapear dados da regra existente para o formato do formulário
       const mappedRule: AutomationRule = {
         name: existingRule.name || '',
@@ -268,12 +255,6 @@ export default function AutomationRuleBuilder({
           // Gerar ID determinístico se não existir
           const stableId = action.id || `${existingRule.id}_${action.type}_${index}`;
           
-          console.log('🔧 [AutomationRuleBuilder] Mapping action:', {
-            originalAction: action,
-            template: template,
-            stableId: stableId
-          });
-          
           return {
             ...template, // Hidrata icon, color, name, description do template
             ...action,   // Sobrescreve com dados persistidos (id, type, config)
@@ -284,7 +265,6 @@ export default function AutomationRuleBuilder({
         aiEnabled: existingRule.aiEnabled || false
       };
 
-      console.log('✅ [AutomationRuleBuilder] Mapped rule:', mappedRule);
       setRule(mappedRule);
     } else {
       // Reset para regra nova
@@ -393,15 +373,7 @@ export default function AutomationRuleBuilder({
 
   // Salvar regra
   const handleSave = () => {
-    console.log('🔍 [AutomationRuleBuilder] Attempting to save rule:', {
-      name: rule.name,
-      description: rule.description,
-      conditionsCount: rule.conditions.rules.length,
-      actionsCount: rule.actions.length
-    });
-
     if (!rule.name.trim()) {
-      console.log('❌ [AutomationRuleBuilder] Validation failed: Missing rule name');
       toast({
         title: "Erro",
         description: "Nome da regra é obrigatório",
@@ -411,7 +383,6 @@ export default function AutomationRuleBuilder({
     }
 
     if (rule.conditions.rules.length === 0) {
-      console.log('❌ [AutomationRuleBuilder] Validation failed: No conditions');
       toast({
         title: "Erro",
         description: "Pelo menos uma condição deve ser configurada",
@@ -421,7 +392,6 @@ export default function AutomationRuleBuilder({
     }
 
     if (rule.actions.length === 0) {
-      console.log('❌ [AutomationRuleBuilder] Validation failed: No actions');
       toast({
         title: "Erro",
         description: "Pelo menos uma ação deve ser configurada",

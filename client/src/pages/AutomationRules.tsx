@@ -187,9 +187,10 @@ export default function AutomationRules() {
           priority: Number(rule.priority) || 1,
           conditionsCount: Number(rule.conditionsCount) || 0,
           actionsCount: Number(rule.actionsCount) || 0,
-          // CRITICAL FIX: Include trigger and actions data
+          // CRITICAL FIX: Include trigger, conditions and actions data
           trigger: rule.trigger || null,
           triggers: rule.triggers || null,
+          conditions: rule.conditions || null,
           actions: rule.actions || null,
           createdAt: rule.createdAt || new Date().toISOString(),
           updatedAt: rule.updatedAt || new Date().toISOString()
