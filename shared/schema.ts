@@ -382,3 +382,101 @@ export const omnibridgeSettings = pgTable('omnibridge_settings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+// AI Agents para atendimento conversacional
+export const omnibridgeAiAgents = pgTable('omnibridge_ai_agents', {
+  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  personality: jsonb('personality').notNull().default({
+    tone: 'professional',
+    language: 'pt-BR',
+    greeting: 'Olá! Como posso ajudar você hoje?',
+    fallbackMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
+  }),
+  channels: jsonb('channels').notNull().default([]), // ['email', 'whatsapp', 'telegram']
+  enabledActions: jsonb('enabled_actions').notNull().default([]), // Lista de ações que pode executar
+  conversationConfig: jsonb('conversation_config').notNull().default({
+    useMenus: true,
+    maxTurns: 10,
+    requireConfirmation: true,
+    escalationKeywords: ['humano', 'atendente', 'supervisor']
+  }),
+  aiConfig: jsonb('ai_config').notNull().default({
+    model: 'gpt-4',
+    temperature: 0.7,
+    maxTokens: 1500,
+    extractionPrompts: {
+      general: 'Extraia as informações necessárias da conversa',
+      confirmation: 'Confirme se entendi corretamente:'
+    }
+  }),
+  isActive: boolean('is_active').default(true),
+  priority: integer('priority').default(1),
+  stats: jsonb('stats').default({
+    conversationsHandled: 0,
+    actionsExecuted: 0,
+    successRate: 100,
+    averageResponseTime: 0
+  }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Conversas ativas dos agentes IA
+export const omnibridgeAiConversations = pgTable('omnibridge_ai_conversations', {
+  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  agentId: varchar('agent_id', { length: 36 }).notNull(),
+  userId: varchar('user_id', { length: 100 }).notNull(), // Email ou identificador do usuário
+  channelId: varchar('channel_id', { length: 36 }).notNull(),
+  channelType: varchar('channel_type', { length: 50 }).notNull(), // 'email', 'whatsapp', 'telegram'
+  status: varchar('status', { length: 20 }).notNull().default('active'), // 'active', 'waiting_input', 'completed', 'escalated'
+  context: jsonb('context').notNull().default({}), // Informações coletadas na conversa
+  currentStep: varchar('current_step', { length: 100 }).notNull().default('greeting'),
+  intendedAction: varchar('intended_action', { length: 100 }), // Ação que o agente pretende executar
+  actionParams: jsonb('action_params').default({}), // Parâmetros coletados para a ação
+  conversationHistory: jsonb('conversation_history').notNull().default([]),
+  lastMessageAt: timestamp('last_message_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'), // Para limpeza automática de conversas antigas
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Menu templates para interação estruturada
+export const omnibridgeAiMenus = pgTable('omnibridge_ai_menus', {
+  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  agentId: varchar('agent_id', { length: 36 }).notNull(),
+  actionType: varchar('action_type', { length: 100 }).notNull(), // Tipo de ação para o qual o menu é usado
+  menuData: jsonb('menu_data').notNull().default({
+    title: 'Selecione uma opção:',
+    options: [],
+    allowCustomInput: false,
+    maxSelections: 1
+  }),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Templates de ações com parâmetros configuráveis
+export const omnibridgeAiActionTemplates = pgTable('omnibridge_ai_action_templates', {
+  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  agentId: varchar('agent_id', { length: 36 }).notNull(),
+  actionType: varchar('action_type', { length: 100 }).notNull(), // Tipo da ação (send_notification, create_ticket, etc.)
+  template: jsonb('template').notNull().default({
+    requiredParams: [],
+    optionalParams: [],
+    extractionPrompt: '',
+    confirmationMessage: '',
+    successMessage: '',
+    errorMessage: ''
+  }),
+  isActive: boolean('is_active').default(true),
+  usageCount: integer('usage_count').default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
