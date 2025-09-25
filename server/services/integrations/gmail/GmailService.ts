@@ -395,70 +395,46 @@ export class GmailService {
             const { DrizzleMessageRepository } = await import('../../../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
             const { ProcessMessageUseCase } = await import('../../../modules/omnibridge/application/use-cases/ProcessMessageUseCase');
 
+            console.log(`📧 [GMAIL-SERVICE] Initializing MessageIngestionService for tenant: ${tenantId}`);
             const messageRepository = new DrizzleMessageRepository();
             const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
             const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
 
-            // Preparar dados para ingestão no OmniBridge
-            const incomingMessage = {
-              channelId: 'imap-email',
-              channelType: 'email' as const,
+            // Create email message for ingestion
+            const emailMessage = {
+              messageId: `gmail-${messageId}-${tenantId}`,
               from: fromEmail,
+              fromName: fromName,
               to: to,
               subject: subject,
-              content: emailBody,
+              text: emailBody,
+              date: date,
+              headers: headers,
+              attachments: [],
+              priority: priority,
               metadata: {
-                messageId: messageId,
                 originalMessageId: messageId,
-                fromName: fromName,
-                date: date.toISOString(),
-                headers: headers,
-                hasAttachments: Boolean(email.attachments?.length),
-                gmailProcessed: true,
-                imapProcessed: true,
-                rawFrom: from,
-                rawTo: to,
-                emailProcessedAt: new Date().toISOString(),
-                imapServer: this.activeConnections.get(tenantId)?.config?.host || 'unknown',
-                ingestionSource: 'gmail-imap-service'
-              },
-              priority: priority as any,
-              tenantId
+                processed: true,
+                processedAt: new Date().toISOString(),
+                ingestionSource: 'gmail-service',
+                emailYear: date.getFullYear()
+              }
             };
 
-            console.log(`🎯 [GMAIL-SERVICE] Ingesting email for ${fromEmail} into OmniBridge:`);
-            console.log(`📧 [GMAIL-SERVICE] Subject: ${subject}`);
-            console.log(`📧 [GMAIL-SERVICE] From: ${fromEmail} -> To: ${to}`);
-            console.log(`📧 [GMAIL-SERVICE] Date: ${date.toISOString()}`);
-            console.log(`📧 [GMAIL-SERVICE] Content preview: ${emailBody.substring(0, 200)}...`);
+            console.log(`📧 [GMAIL-SERVICE] Processing email: ${emailMessage.messageId}`);
+            console.log(`📧 [GMAIL-SERVICE] Email details: From: ${fromEmail}, Subject: ${subject}, Date: ${date.toISOString()}`);
 
-            const savedMessage = await ingestionService.ingestMessage(incomingMessage);
-            console.log(`✅ [GMAIL-SERVICE] Email ingested successfully with ID: ${savedMessage.id}`);
-            console.log(`💾 [GMAIL-SERVICE] Message saved to tenant: ${tenantId}, table: omnibridge_messages`);
-
-            // 🤖 CRITICAL: Process automation rules after ingestion
-            if (processMessageUseCase) {
-              try {
-                console.log(`🤖 [GMAIL-SERVICE] Triggering automation rules for message ${savedMessage.id}`);
-                const automationResult = await processMessageUseCase.processDirectMessage(
-                  {
-                    id: savedMessage.id,
-                    content: emailBody,
-                    sender: fromEmail,
-                    subject: subject,
-                    channel: 'email',
-                    timestamp: date.toISOString(),
-                    metadata: incomingMessage.metadata
-                  }, 
-                  tenantId
-                );
-                console.log(`✅ [GMAIL-SERVICE] Automation result:`, automationResult);
-              } catch (automationError) {
-                console.error(`❌ [GMAIL-SERVICE] Automation processing failed:`, automationError);
-              }
-            }
-
+            // Use MessageIngestionService to save to OmniBridge inbox
+            const result = await ingestionService.processImapEmail(emailMessage, tenantId);
             processedEmails++;
+
+            console.log(`✅ [GMAIL-SERVICE] Email processed and saved to OmniBridge inbox: ${result.id}`);
+            console.log(`✅ [GMAIL-SERVICE] Result details:`, {
+              id: result.id,
+              from: result.from,
+              channelType: result.channelType,
+              status: result.status
+            });
 
           } catch (ingestionError) {
             console.error(`❌ [GMAIL-SERVICE] Failed to ingest email via OmniBridge service:`, ingestionError);

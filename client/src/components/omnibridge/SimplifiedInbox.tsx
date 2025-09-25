@@ -39,10 +39,12 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   // Fetch messages with auto-refresh
-  const { data: messagesData, isLoading, refetch } = useQuery({
+  const { data: messagesData, isLoading, refetch, error } = useQuery({
     queryKey: ['omnibridge-messages', user?.tenantId],
     queryFn: async () => {
       const token = localStorage.getItem('token');
+      console.log(`🔄 [SIMPLIFIED-INBOX] Fetching messages for tenant: ${user?.tenantId}`);
+      
       const response = await fetch('/api/omnibridge/messages', {
         method: 'GET',
         headers: {
@@ -54,10 +56,23 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch messages');
+        console.error(`❌ [SIMPLIFIED-INBOX] Failed to fetch messages: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch messages: ${response.status}`);
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log(`📧 [SIMPLIFIED-INBOX] Received ${result?.messages?.length || 0} messages`);
+      
+      if (result?.messages?.length > 0) {
+        console.log(`📧 [SIMPLIFIED-INBOX] Sample message:`, {
+          id: result.messages[0].id,
+          from: result.messages[0].from,
+          subject: result.messages[0].subject,
+          channelType: result.messages[0].channelType
+        });
+      }
+      
+      return result;
     },
     enabled: !!user?.tenantId,
     refetchInterval: 5000, // Auto-refresh every 5 seconds
@@ -258,6 +273,22 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
           <div className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-2 text-sm text-gray-600">Carregando mensagens...</p>
+          </div>
+        ) : error ? (
+          <div className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-400" />
+            <h3 className="text-lg font-medium mb-2 text-red-600">Erro ao carregar mensagens</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {error instanceof Error ? error.message : 'Erro desconhecido ao buscar mensagens'}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={() => refetch()}>
+                Tentar Novamente
+              </Button>
+              <Button variant="default" onClick={() => window.location.href = '/tenant-admin/integrations'}>
+                Verificar Integrações
+              </Button>
+            </div>
           </div>
         ) : filteredMessages.length === 0 ? (
           <div className="p-6 text-center">

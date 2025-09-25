@@ -61,12 +61,25 @@ export class DrizzleMessageRepository implements IMessageRepository {
   async findByTenant(tenantId: string, limit: number = 200, offset: number = 0): Promise<MessageEntity[]> {
     if (!tenantId) throw new Error('Tenant ID required');
 
+    console.log(`📧 [DRIZZLE-MESSAGE-REPO] Finding messages for tenant: ${tenantId}, limit: ${limit}, offset: ${offset}`);
+
     const tenantDb = await this.getTenantDb(tenantId);
     const results = await tenantDb.select().from(schema.omnibridgeMessages)
       .where(eq(schema.omnibridgeMessages.tenantId, tenantId))
       .orderBy(desc(schema.omnibridgeMessages.createdAt))
       .limit(limit)
       .offset(offset);
+
+    console.log(`📧 [DRIZZLE-MESSAGE-REPO] Found ${results.length} messages in database`);
+    if (results.length > 0) {
+      console.log(`📧 [DRIZZLE-MESSAGE-REPO] Sample message:`, {
+        id: results[0].id,
+        from: results[0].fromAddress,
+        subject: results[0].subject,
+        channelType: results[0].channelType,
+        createdAt: results[0].createdAt
+      });
+    }
 
     return results.map(message => new MessageEntity(
       message.id,

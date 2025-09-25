@@ -225,6 +225,25 @@ export class OmniBridgeAutoStart {
   getActiveMonitoring(): string[] {
     return Array.from(this.activeMonitoring.keys());
   }
+
+  async initializeOmniBridge(): Promise<void> {
+    console.log('🚀 [OMNIBRIDGE-AUTO-START] Starting OmniBridge initialization...');
+
+    try {
+      // Initialize channels from integrations
+      console.log('📋 [OMNIBRIDGE-AUTO-START] Step 1: Initializing channels...');
+      await this.initializeChannels();
+
+      // Start email monitoring for active integrations
+      console.log('📧 [OMNIBRIDGE-AUTO-START] Step 2: Starting email monitoring...');
+      await this.startEmailMonitoring();
+
+      console.log('✅ [OMNIBRIDGE-AUTO-START] OmniBridge initialization completed successfully');
+    } catch (error) {
+      console.error('❌ [OMNIBRIDGE-AUTO-START] Error during OmniBridge initialization:', error);
+      throw error; // Re-throw to ensure errors are visible
+    }
+  }
 }
 
 // Export singleton instance

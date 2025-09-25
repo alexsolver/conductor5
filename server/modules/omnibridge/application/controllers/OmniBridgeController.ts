@@ -106,8 +106,8 @@ export class OmniBridgeController {
 
       res.json({
         success: true,
-        messages,
-        count: messages.length
+        messages: messages || [],
+        count: messages?.length || 0
       });
     } catch (error) {
       console.error('❌ [OMNIBRIDGE-MESSAGES] Error getting messages:', error);
