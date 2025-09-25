@@ -1107,11 +1107,13 @@ export default function AutomationRuleBuilder({
                             >
                               <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-lg ${template.color}`}>
-                                  <template.icon className="w-4 h-4 text-white" />
+                                  {React.createElement(template.icon, { 
+                                    className: "h-4 w-4 text-white" 
+                                  })}
                                 </div>
                                 <div className="text-left">
                                   <p className="font-medium text-sm">{template.name}</p>
-                                  <p className="text-xs text-gray-600">{template.description}</p>
+                                  <p className="text-sm text-gray-600">{template.description}</p>
                                 </div>
                               </div>
                             </Button>
@@ -1166,7 +1168,9 @@ export default function AutomationRuleBuilder({
               {currentAction && (
                 <>
                   <div className={`p-2 rounded-lg ${currentAction.color}`}>
-                    <currentAction.icon className="w-4 h-4 text-white" />
+                    {React.createElement(currentAction.icon, { 
+                      className: "h-4 w-4 text-white" 
+                    })}
                   </div>
                   Configurar: {currentAction.name}
                 </>
