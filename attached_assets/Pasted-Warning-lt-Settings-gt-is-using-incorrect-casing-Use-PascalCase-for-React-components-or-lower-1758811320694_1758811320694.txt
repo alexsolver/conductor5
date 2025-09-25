@@ -1,0 +1,91 @@
+Warning: &lt;Settings /&gt; is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
+    at Settings
+    at div
+    at div
+    at div
+    at div
+    at div
+    at _c9 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=20121e9b:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=4c09b079:177:13
+    at _c5 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=20121e9b:38:15)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=4c09b079:55:7
+    at div
+    at div
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=626d3747:117:13
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=20121e9b:38:15)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=626d3747:55:7
+    at _c (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/scroll-area.tsx:21:11)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=20121e9b:61:7
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=20121e9b:29:5
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:237:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:160:58
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=20121e9b:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:151:64
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+    at…
+at Settings
+at div
+at div
+at div
+at div
+at div
+at _c9 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/card.tsx:114:12)
+at div
+at _c (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/card.tsx:20:11)
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=20121e9b:24:11)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=4c09b079:177:13
+at _c5 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/tabs.tsx:72:12)
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=20121e9b:38:15)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=4c09b079:55:7
+at div
+at div
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=626d3747:117:13
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=20121e9b:38:15)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-scroll-area.js?v=626d3747:55:7
+at _c (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/scroll-area.tsx:21:11)
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=20121e9b:61:7
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:43:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:20:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=20121e9b:29:5
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:237:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:160:58
+at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=20121e9b:24:11)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=20121e9b:151:64
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:43:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=20121e9b:20:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=20121e9b:42:13
+at…
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
