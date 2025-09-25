@@ -183,7 +183,7 @@ export type {
 
 // Removed duplicate userNotificationPreferences table - using the one from schema-notifications.ts per 1qa.md
 
-// Export all tables for migrations - using selective exports to avoid conflicts
+// Export all tables and schemas
 export * from './schema-field-layout';
 
 // ✅ 1QA.MD: Approval Rules Export - Critical for Approval Management Module
@@ -346,4 +346,39 @@ export const userSkills = pgTable('user_skills', {
     skillIdIdx: index('user_skills_skill_id_idx').on(table.skillId),
     uniqueUserSkill: unique('unique_user_skill').on(table.tenantId, table.userId, table.skillId)
   };
+});
+
+export const omnibridgeAiConfig = pgTable('omnibridge_ai_config', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  model: varchar('model', { length: 100 }).notNull().default('gpt-4'),
+  temperature: integer('temperature').notNull().default(7), // stored as int * 10 (0.7 = 7)
+  maxTokens: integer('max_tokens').notNull().default(1000),
+  confidenceThreshold: integer('confidence_threshold').notNull().default(8), // stored as int * 10 (0.8 = 8)
+  enabledAnalysis: jsonb('enabled_analysis').notNull().default({
+    intention: true,
+    priority: true,
+    sentiment: true,
+    language: true,
+    entities: true
+  }),
+  prompts: jsonb('prompts').notNull().default({
+    intentionAnalysis: 'Analise a mensagem e identifique a intenção principal',
+    priorityClassification: 'Classifique a prioridade da mensagem',
+    autoResponse: 'Responda de forma profissional e prestativa',
+    sentimentAnalysis: 'Analise o sentimento da mensagem',
+    entityExtraction: 'Extraia informações importantes da mensagem'
+  }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const omnibridgeSettings = pgTable('omnibridge_settings', {
+  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  channels: jsonb('channels').notNull().default([]),
+  filters: jsonb('filters').notNull().default({}),
+  search: jsonb('search').notNull().default({}),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 });

@@ -21,13 +21,16 @@ const toggleChannelUseCase = new ToggleChannelUseCase(channelRepository);
 const getMessagesUseCase = new GetMessagesUseCase(messageRepository);
 const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
 
-// Controller
+// Controllers
 const omniBridgeController = new OmniBridgeController(
   getChannelsUseCase,
   toggleChannelUseCase,
   getMessagesUseCase,
   processMessageUseCase
 );
+
+const { OmniBridgeSettingsController } = await import('./application/controllers/OmniBridgeSettingsController');
+const settingsController = new OmniBridgeSettingsController();
 
 // Routes - Protected with JWT authentication
 router.get('/channels', jwtAuth, (req, res) => omniBridgeController.getChannels(req, res));
@@ -37,6 +40,11 @@ router.get('/messages', jwtAuth, (req, res) => omniBridgeController.getMessages(
 router.post('/messages/:messageId/process', jwtAuth, (req, res) => omniBridgeController.processMessage(req, res));
 router.post('/messages/process-direct', jwtAuth, (req, res) => omniBridgeController.processDirectMessage(req, res));
 router.post('/automation-rules/:ruleId/test', jwtAuth, (req, res) => omniBridgeController.testAutomationRule(req, res));
+
+// Settings routes
+router.get('/settings', jwtAuth, (req, res) => settingsController.getSettings(req, res));
+router.put('/settings', jwtAuth, (req, res) => settingsController.updateSettings(req, res));
+router.post('/settings/reset', jwtAuth, (req, res) => settingsController.resetSettings(req, res));
 
 // Get individual automation rule
 router.get('/automation-rules/:ruleId', jwtAuth, async (req, res) => {

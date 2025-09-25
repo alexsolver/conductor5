@@ -64,6 +64,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
+import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
 
 
 
@@ -1009,7 +1010,7 @@ export default function OmniBridge() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setActiveTab('settings')}>
             <SettingsIcon className="h-4 w-4 mr-2" />
             Configurações
           </Button>
@@ -1021,11 +1022,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="channels" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            Canais
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
@@ -1033,6 +1030,14 @@ export default function OmniBridge() {
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
+          </TabsTrigger>
+          <TabsTrigger value="channels" className="flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Canais
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <SettingsIcon className="h-4 w-4" />
+            Configurações
           </TabsTrigger>
           <TabsTrigger value="ai-config" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
@@ -1160,6 +1165,10 @@ export default function OmniBridge() {
           <AutomationRules />
         </TabsContent>
 
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <OmniBridgeSettings />
+        </TabsContent>
 
         {/* AI Assistant Tab */}
         <TabsContent value="ai-config" className="space-y-4">
