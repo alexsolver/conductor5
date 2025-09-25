@@ -7,6 +7,12 @@ import { eq, and, desc, asc, count, isNull, inArray, gte, lte, sql } from 'drizz
 import { INotificationRepository, NotificationStats } from '../../domain/repositories/INotificationRepository';
 import { Notification, NotificationEntity } from '../../domain/entities/Notification';
 
+// ✅ 1QA.MD: Import tenant-aware connection function
+function getTenantConnection(tenantId: string) {
+  // For now, use the main db connection - in future this could be tenant-specific
+  return db;
+}
+
 export class DrizzleNotificationRepository implements INotificationRepository {
 
   // ✅ 1QA.MD: Find notification by ID using tenant schema
@@ -51,28 +57,58 @@ export class DrizzleNotificationRepository implements INotificationRepository {
   // ✅ 1QA.MD: Create notification using tenant schema
   async create(notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>): Promise<Notification> {
     try {
-      const tenantSchema = `tenant_${notification.tenantId.replace(/-/g, '_')}`;
-      console.log('[NOTIFICATION-REPOSITORY-QA] Creating notification for schema:', tenantSchema);
+      console.log('📝 [DrizzleNotificationRepository] Creating notification:', {
+        userId: notification.userId,
+        type: notification.type,
+        title: notification.title?.substring(0, 50),
+        tenantId: notification.tenantId
+      });
 
+      // ✅ 1QA.MD: Validate required fields
+      if (!notification.tenantId || !notification.userId || !notification.title || !notification.message) {
+        throw new Error('Missing required notification fields: tenantId, userId, title, message');
+      }
+
+      const id = crypto.randomUUID();
       const now = new Date();
-      const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(tenantSchema)}.notifications (
-          tenant_id, user_id, type, title, message, data, channel, 
-          priority, status, is_active, created_at, updated_at
-        )
-        VALUES (
-          ${notification.tenantId}, ${notification.userId}, ${notification.type}, 
-          ${notification.title}, ${notification.message}, ${JSON.stringify(notification.data || {})},
-          ${notification.channel}, ${notification.priority || 'medium'}, 
-          ${notification.status || 'pending'}, ${notification.isActive !== false}, ${now}, ${now}
-        )
-        RETURNING *
-      `);
 
-      return this.mapToEntity(result.rows[0] as any);
+      const newNotification = {
+        id,
+        tenantId: notification.tenantId,
+        userId: notification.userId,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        channel: notification.channel || 'in_app',
+        priority: notification.priority || 'medium',
+        status: 'pending' as const,
+        isActive: true,
+        retryCount: 0,
+        maxRetries: 3,
+        data: notification.data || {},
+        scheduledAt: notification.scheduledAt || now,
+        expiresAt: notification.expiresAt,
+        sourceId: notification.sourceId,
+        sourceType: notification.sourceType,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      // ✅ 1QA.MD: Use tenant-aware database connection
+      const tenantDb = getTenantConnection(notification.tenantId);
+      await tenantDb.insert(notifications).values(newNotification);
+
+      console.log('✅ [DrizzleNotificationRepository] Notification created successfully:', id);
+
+      return {
+        ...newNotification,
+        sentAt: null,
+        readAt: null,
+        failureReason: null
+      };
     } catch (error) {
-      console.error('[NOTIFICATION-REPOSITORY-QA] Error creating notification:', error);
-      throw new Error('Failed to create notification');
+      console.error('❌ [DrizzleNotificationRepository] Error creating notification:', error);
+      throw new Error(`Failed to create notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

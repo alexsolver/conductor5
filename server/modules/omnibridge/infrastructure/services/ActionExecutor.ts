@@ -386,6 +386,8 @@ export class ActionExecutor implements IActionExecutorPort {
 
         // Salvar resposta como mensagem de resposta
         try {
+          const { DrizzleMessageRepository } = await import('../../infrastructure/repositories/DrizzleMessageRepository'); // Assumindo que este arquivo existe
+          const messageRepository = new DrizzleMessageRepository();
           const replyMessage = {
             id: crypto.randomUUID(), // Usando crypto.randomUUID()
             tenantId: context.tenantId,
@@ -417,16 +419,8 @@ export class ActionExecutor implements IActionExecutorPort {
               }
             }
           };
-
-          // Salvar mensagem de resposta usando repository se disponível
-          try {
-            const { DrizzleMessageRepository } = await import('../../infrastructure/repositories/DrizzleMessageRepository'); // Assumindo que este arquivo existe
-            const messageRepository = new DrizzleMessageRepository();
-            await messageRepository.create(replyMessage, context.tenantId);
-            console.log(`✅ [ActionExecutor] AI response saved as message: ${replyMessage.id}`);
-          } catch (saveError) {
-            console.error(`⚠️ [ActionExecutor] Failed to save AI response as message:`, saveError);
-          }
+          await messageRepository.create(replyMessage, context.tenantId);
+          console.log(`✅ [ActionExecutor] AI response saved as message: ${replyMessage.id}`);
 
         } catch (messageError) {
           console.error(`⚠️ [ActionExecutor] Error creating reply message:`, messageError);
@@ -820,104 +814,95 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async sendNotificationAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      console.log(`📧 [ActionExecutor] Sending notification for rule: ${context.ruleName}`);
+      console.log(`📤 [ActionExecutor] Sending notification from automation rule: ${context.ruleName}`);
 
+      const { messageData, aiAnalysis, tenantId } = context;
+
+      // ✅ 1QA.MD: Extract notification parameters from both params and config for backward compatibility
       const recipient = action.params?.recipient || action.config?.recipient;
-      const message = action.params?.message || action.config?.message;
+      const message = action.params?.message || action.config?.message || 'Notificação automática do sistema';
       const priority = action.params?.priority || action.config?.priority || 'medium';
+      const notificationType = action.params?.type || action.config?.type || 'automation';
+      const channel = action.params?.channel || action.config?.channel || 'in_app';
 
       if (!recipient) {
+        console.error(`❌ [ActionExecutor] No recipient specified for notification action`);
         return {
           success: false,
-          message: 'Recipient is required for notification',
-          error: 'Missing recipient parameter'
+          message: 'Destinatário não especificado para notificação',
+          error: 'Recipient is required for notification action'
         };
       }
 
-      if (!message) {
-        return {
-          success: false,
-          message: 'Message is required for notification',
-          error: 'Missing message parameter'
-        };
-      }
+      console.log(`📝 [ActionExecutor] Notification details: ${recipient} - ${message.substring(0, 50)}...`);
 
-      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}, priority=${priority}`);
-
-      // Import and create notification
-      const { NotificationController } = await import('../../../notifications/application/controllers/NotificationController');
-      const notificationController = new NotificationController();
-
-      // Create mock request object with proper userId
-      const mockReq = {
-        user: {
-          tenantId: context.tenantId,
-          id: '550e8400-e29b-41d4-a716-446655440001' // System user for automation
-        },
-        body: {
-          tenantId: context.tenantId,
-          userId: '550e8400-e29b-41d4-a716-446655440001', // Use system user ID
-          type: 'automation_notification',
-          title: `Automação: ${context.ruleName}`,
-          message: message,
-          data: {
-            automationRule: context.ruleName,
+      // ✅ 1QA.MD: Create notification payload following domain standards
+      const notificationPayload = {
+        tenantId,
+        userId: recipient,
+        type: notificationType,
+        title: `Automação: ${context.ruleName}`,
+        message,
+        priority: priority as 'low' | 'medium' | 'high' | 'critical',
+        channels: [channel],
+        data: {
+          automationRule: {
             ruleId: context.ruleId,
-            originalMessage: context.messageData.content || context.messageData.body,
-            recipientEmail: recipient
+            ruleName: context.ruleName,
+            executedAt: new Date().toISOString()
           },
-          priority: priority as 'low' | 'medium' | 'high' | 'critical',
-          channels: ['email', 'in_app'],
-          recipientEmail: recipient,
-          createdBy: 'automation-system'
-        }
-      } as any;
+          originalMessage: {
+            content: messageData.content,
+            sender: messageData.sender,
+            channel: messageData.channel,
+            timestamp: messageData.timestamp
+          },
+          aiAnalysis: aiAnalysis
+        },
+        sourceId: context.ruleId,
+        sourceType: 'automation_rule',
+        createdBy: 'automation_engine'
+      };
 
-      let notificationResponse: any = null;
+      // ✅ 1QA.MD: Use proper dependency injection following Clean Architecture
+      const { CreateNotificationUseCase } = await import('../../../notifications/application/use-cases/CreateNotificationUseCase');
+      const { DrizzleNotificationRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationRepository');
+      const { DrizzleNotificationPreferenceRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationPreferenceRepository');
 
-      const mockRes = {
-        status: (code: number) => ({
-          json: (data: any) => {
-            console.log(`📧 [ActionExecutor] Notification response:`, data);
-            notificationResponse = { ...data, statusCode: code };
-            return mockRes;
-          }
-        }),
-        json: (data: any) => {
-          console.log(`📧 [ActionExecutor] Notification created:`, data);
-          notificationResponse = { ...data, statusCode: 200 };
-          return mockRes;
-        }
-      } as any;
+      const notificationRepository = new DrizzleNotificationRepository();
+      const preferenceRepository = new DrizzleNotificationPreferenceRepository();
+      const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, preferenceRepository);
 
-      await notificationController.createNotification(mockReq, mockRes);
+      // ✅ 1QA.MD: Execute use case following domain patterns
+      const result = await createNotificationUseCase.execute(notificationPayload);
 
-      if (notificationResponse && (notificationResponse.statusCode === 200 || notificationResponse.statusCode === 201 || notificationResponse.success)) {
-        console.log(`✅ [ActionExecutor] Notification created successfully for ${recipient}`);
+      if (result.success) {
+        console.log(`✅ [ActionExecutor] Notification created successfully: ${result.data?.id}`);
+
+        // ✅ 1QA.MD: Return standardized response format
         return {
           success: true,
           message: `Notificação enviada para ${recipient}`,
-          data: {
+          data: { 
+            notificationId: result.data?.id,
             recipient,
-            message,
-            priority,
-            type: 'automation_notification'
+            channel,
+            priority
           }
         };
       } else {
+        console.error(`❌ [ActionExecutor] Failed to create notification:`, result.message);
         return {
           success: false,
-          message: 'Failed to create notification',
-          error: notificationResponse?.message || 'Unknown notification error',
-          data: { recipient, message, priority }
+          message: `Falha ao enviar notificação: ${result.message}`,
+          error: result.message
         };
       }
-
     } catch (error) {
       console.error(`❌ [ActionExecutor] Error sending notification:`, error);
       return {
         success: false,
-        message: 'Error sending notification',
+        message: 'Erro interno ao enviar notificação',
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }

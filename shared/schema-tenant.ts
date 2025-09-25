@@ -738,39 +738,38 @@ export const itemLinks = pgTable("item_links", { id: uuid("id").primaryKey().def
 export const itemCustomerLinks = pgTable("item_customer_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), customerId: uuid("customer_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const itemSupplierLinks = pgTable("item_supplier_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), supplierId: uuid("supplier_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const customerItemMappings = pgTable("customer_item_mappings", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), customerId: uuid("customer_id").notNull(), itemId: uuid("item_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-// ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATES SCHEMA - FULL COMPLIANCE
-// Multitenant obrigatório com hierarquia de empresa
+// ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE ZOD SCHEMA - VALIDATION
 export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(), // ✅ 1QA.MD: OBRIGATÓRIO
-  
+
   // Campos básicos
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  
+
   // Hierarquia de empresa (null = global, uuid = específico da empresa)
   companyId: uuid("company_id"), // ✅ Hierárquico: null = global, uuid = empresa específica
-  
+
   // Tipo do template: creation (criação) ou edit (edição)
   templateType: varchar("template_type", { length: 50 }).notNull(), // 'creation' | 'edit'
-  
+
   // Campos obrigatórios para template de CRIAÇÃO
   // Empresa, Cliente, Beneficiário, Status e Resumo
   requiredFields: jsonb("required_fields").default('[]'), // Array de campos obrigatórios
-  
+
   // Campos customizáveis opcionais
   customFields: jsonb("custom_fields").default('[]'), // Array de campos customizáveis
-  
+
   // Configurações de template
   category: varchar("category", { length: 100 }),
   subcategory: varchar("subcategory", { length: 100 }),
   priority: varchar("priority", { length: 20 }).notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
   status: varchar("status", { length: 20 }).notNull().default('draft'), // 'active' | 'inactive' | 'draft'
-  
+
   // Configurações de automação
   automation: jsonb("automation").default('{"enabled": false}'),
   workflow: jsonb("workflow").default('{"enabled": false}'),
-  
+
   // Metadados
   tags: text("tags").array(),
   permissions: jsonb("permissions").default('[]'),
@@ -778,18 +777,18 @@ export const ticketTemplates = pgTable("ticket_templates", {
   isSystem: boolean("is_system").default(false),
   usageCount: integer("usage_count").default(0),
   lastUsed: timestamp("last_used"),
-  
+
   // Auditoria
   createdBy: uuid("created_by").notNull(),
   updatedBy: uuid("updated_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  
+
   // Soft delete
   isActive: boolean("is_active").default(true)
 }, (table) => [
   // ✅ 1QA.MD: CONSTRAINT obrigatório para tenant_id
-  check('tenant_id_uuid_format', 
+  check('tenant_id_uuid_format',
     sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
   ),
   // ✅ UNIQUE constraints sempre com tenant_id para isolamento

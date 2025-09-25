@@ -26,6 +26,7 @@ export interface CreateNotificationResponse {
   notificationId?: string;
   message: string;
   errors?: string[];
+  data?: Notification; // Added for consistency with the original intent of returning data
 }
 
 export class CreateNotificationUseCase {
@@ -36,81 +37,105 @@ export class CreateNotificationUseCase {
 
   async execute(request: CreateNotificationRequest): Promise<CreateNotificationResponse> {
     try {
-      // Validate input
-      const validation = this.validateRequest(request);
-      if (!validation.isValid) {
+      console.log('🔔 [CreateNotificationUseCase] Creating notification:', {
+        tenantId: request.tenantId,
+        userId: request.userId,
+        type: request.type,
+        title: request.title?.substring(0, 50)
+      });
+
+      // ✅ 1QA.MD: Validate required fields
+      if (!request.tenantId || !request.userId || !request.title || !request.message) {
+        console.error('❌ [CreateNotificationUseCase] Missing required fields');
         return {
           success: false,
-          message: 'Validation failed',
-          errors: validation.errors
+          message: 'Missing required fields: tenantId, userId, title, message'
         };
       }
 
-      // Get user notification preferences
-      const userPreferences = await this.preferenceRepository.getUserPreferences(
-        request.userId,
-        request.tenantId
-      );
-
-      // Determine channels based on user preferences and request
-      const channels = this.determineChannels(request, userPreferences);
-
-      if (channels.length === 0) {
-        return {
-          success: false,
-          message: 'No enabled channels for this notification type'
-        };
+      // ✅ 1QA.MD: Get user preferences following domain patterns
+      let preferences;
+      try {
+        // Assuming findByUserId returns preferences that might include notificationType and channels
+        preferences = await this.preferenceRepository.findByUserId(
+          request.userId,
+          request.tenantId
+        );
+        console.log('📋 [CreateNotificationUseCase] User preferences loaded:', preferences?.length || 0);
+      } catch (error) {
+        console.warn('⚠️ [CreateNotificationUseCase] Could not load user preferences, using defaults:', error);
+        preferences = null;
       }
 
-      // Create notifications for each channel
-      const notifications: Notification[] = [];
-      const errors: string[] = [];
+      // ✅ 1QA.MD: Determine channels to use based on request and preferences
+      let channelsToUse = request.channels || ['in_app'];
 
-      for (const channel of channels) {
+      if (preferences && Array.isArray(preferences)) {
+        // Filter channels based on user preferences for the specific notification type
+        channelsToUse = channelsToUse.filter(channel => {
+          const pref = preferences.find(p => p.notificationType === request.type);
+          // If preference exists and is enabled, use its channels. Otherwise, consider the channel allowed.
+          return pref ? pref.channels.includes(channel) : true;
+        });
+      }
+
+      if (channelsToUse.length === 0) {
+        channelsToUse = ['in_app']; // Fallback to in-app notifications if no channels are enabled or determined
+      }
+
+      console.log('📡 [CreateNotificationUseCase] Using channels:', channelsToUse);
+
+      // ✅ 1QA.MD: Create notifications for each channel
+      const createdNotifications = [];
+
+      for (const channel of channelsToUse) {
         try {
-          const notificationData = {
+          const notification = await this.notificationRepository.create({
             tenantId: request.tenantId,
             userId: request.userId,
             type: request.type,
-            channel: channel,
             title: request.title,
             message: request.message,
-            data: request.data || {},
-            status: 'pending' as const,
+            channel,
             priority: request.priority || 'medium',
+            data: request.data || {},
             scheduledAt: request.scheduledAt,
             expiresAt: request.expiresAt,
             sourceId: request.sourceId,
             sourceType: request.sourceType,
-            retryCount: 0,
-            maxRetries: this.getMaxRetries(channel),
             isActive: true,
-            createdBy: request.createdBy
-          };
+            status: 'pending', // Assuming default status is pending
+            retryCount: 0, // Assuming default retry count is 0
+            maxRetries: this.getMaxRetries(channel) // Get max retries based on channel
+          });
 
-          const notification = await this.notificationRepository.create(notificationData);
-          notifications.push(notification);
-        } catch (error) {
-          errors.push(`Failed to create notification for channel ${channel}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          createdNotifications.push(notification);
+          console.log(`✅ [CreateNotificationUseCase] Notification created for channel ${channel}:`, notification.id);
+        } catch (channelError) {
+          console.error(`❌ [CreateNotificationUseCase] Failed to create notification for channel ${channel}:`, channelError);
+          // Continue with other channels instead of failing completely
         }
       }
 
-      if (notifications.length === 0) {
+      if (createdNotifications.length === 0) {
+        console.error('❌ [CreateNotificationUseCase] Failed to create notifications for any channel');
         return {
           success: false,
-          message: 'Failed to create any notifications',
-          errors
+          message: 'Failed to create notifications for any channel'
         };
       }
 
+      console.log(`✅ [CreateNotificationUseCase] Successfully created ${createdNotifications.length} notifications`);
+
       return {
         success: true,
-        notificationId: notifications[0].id, // Return ID of first notification
-        message: `Created ${notifications.length} notification(s) across ${channels.length} channel(s)`,
-        errors: errors.length > 0 ? errors : undefined
+        notificationId: createdNotifications[0].id, // Return ID of first created notification
+        message: `Notification created successfully for ${createdNotifications.length} channel(s)`,
+        data: createdNotifications[0] // Return first notification as primary
       };
 
     } catch (error) {
+      console.error('❌ [CreateNotificationUseCase] Error creating notification:', error);
       return {
         success: false,
         message: `Failed to create notification: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -118,82 +143,7 @@ export class CreateNotificationUseCase {
     }
   }
 
-  private validateRequest(request: CreateNotificationRequest): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!request.tenantId) {
-      errors.push('Tenant ID is required');
-    }
-
-    // For automation notifications, we can use a system user ID if no specific user is provided
-    let userId = request.userId;
-    if (!userId && request.type === 'automation_notification') {
-      userId = '550e8400-e29b-41d4-a716-446655440001'; // System automation user
-    }
-
-    if (!userId) {
-      errors.push('User ID is required');
-    }
-
-    if (!request.type) {
-      errors.push('Notification type is required');
-    }
-
-    if (!request.title || request.title.trim().length === 0) {
-      errors.push('Title is required');
-    }
-
-    if (!request.message || request.message.trim().length === 0) {
-      errors.push('Message is required');
-    }
-
-    if (request.title && request.title.length > 255) {
-      errors.push('Title must be 255 characters or less');
-    }
-
-    if (request.scheduledAt && request.scheduledAt < new Date()) {
-      errors.push('Scheduled time cannot be in the past');
-    }
-
-    if (request.expiresAt && request.expiresAt < new Date()) {
-      errors.push('Expiration time cannot be in the past');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-
-  private determineChannels(
-    request: CreateNotificationRequest,
-    userPreferences: any
-  ): NotificationChannel[] {
-    // If specific channels are requested, use those
-    if (request.channels && request.channels.length > 0) {
-      return request.channels;
-    }
-
-    // Get channels from user preferences for this notification type
-    const typePreference = userPreferences.preferences[request.type];
-    if (typePreference && typePreference.enabled) {
-      return typePreference.channels || [];
-    }
-
-    // Default fallback channels based on priority
-    switch (request.priority) {
-      case 'critical':
-        return ['in_app', 'email', 'sms'];
-      case 'high':
-        return ['in_app', 'email'];
-      case 'medium':
-        return ['in_app'];
-      case 'low':
-      default:
-        return ['in_app'];
-    }
-  }
-
+  // Helper method to get max retries based on channel, conforming to 1QA.MD standards if applicable
   private getMaxRetries(channel: NotificationChannel): number {
     switch (channel) {
       case 'email':
@@ -206,7 +156,7 @@ export class CreateNotificationUseCase {
         return 3;
       case 'in_app':
       default:
-        return 1; // In-app notifications don't need retries
+        return 1; // Default retry count for in-app notifications
     }
   }
 }
