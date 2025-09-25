@@ -374,7 +374,15 @@ export default function AutomationRuleBuilder({
 
   // Salvar regra
   const handleSave = () => {
+    console.log('🔍 [AutomationRuleBuilder] Attempting to save rule:', {
+      name: rule.name,
+      description: rule.description,
+      conditionsCount: rule.conditions.rules.length,
+      actionsCount: rule.actions.length
+    });
+
     if (!rule.name.trim()) {
+      console.log('❌ [AutomationRuleBuilder] Validation failed: Missing rule name');
       toast({
         title: "Erro",
         description: "Nome da regra é obrigatório",
@@ -384,6 +392,7 @@ export default function AutomationRuleBuilder({
     }
 
     if (rule.conditions.rules.length === 0) {
+      console.log('❌ [AutomationRuleBuilder] Validation failed: No conditions');
       toast({
         title: "Erro",
         description: "Pelo menos uma condição deve ser configurada",
@@ -393,6 +402,7 @@ export default function AutomationRuleBuilder({
     }
 
     if (rule.actions.length === 0) {
+      console.log('❌ [AutomationRuleBuilder] Validation failed: No actions');
       toast({
         title: "Erro",
         description: "Pelo menos uma ação deve ser configurada",
