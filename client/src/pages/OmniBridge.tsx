@@ -302,12 +302,12 @@ export default function OmniBridge() {
   // Get current values from form or API data
   const currentAiConfig = aiForm.watch();
   const currentMetrics = {
-    totalAnalyses: (aiMetricsData as any)?.totalAnalyses || 0,
-    accuracyRate: (aiMetricsData as any)?.accuracyRate || 0,
-    responseTime: (aiMetricsData as any)?.responseTime || 0,
-    autoResponseRate: (aiMetricsData as any)?.autoResponseRate || 0,
-    escalationRate: (aiMetricsData as any)?.escalationRate || 0,
-    dailyAnalyses: (aiMetricsData as any)?.dailyAnalyses || []
+    totalAnalyses: (aiConfigData as any)?.totalAnalyses || 0,
+    accuracyRate: (aiConfigData as any)?.accuracyRate || 0,
+    responseTime: (aiConfigData as any)?.responseTime || 0,
+    autoResponseRate: (aiConfigData as any)?.autoResponseRate || 0,
+    escalationRate: (aiConfigData as any)?.escalationRate || 0,
+    dailyAnalyses: (aiConfigData as any)?.dailyAnalyses || []
   };
 
   // Add automation state with detailed logging
@@ -710,45 +710,6 @@ export default function OmniBridge() {
     fetchData();
   }, []);
 
-  const handleSyncIntegrations = async () => {
-    try {
-      setLoading(true);
-
-      const token = localStorage.getItem('token');
-
-      console.log('🔄 [OMNIBRIDGE-MANUAL-SYNC] Starting manual sync...');
-
-      const response = await fetch('/api/omnibridge/sync-integrations', {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        }
-      });
-
-      if (response.ok) {
-        console.log('✅ [OmniBridge] Integrations synced successfully');
-
-        // Wait a moment for sync to complete
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Force reload data after sync
-        window.location.reload();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ [OmniBridge] Sync failed:', response.statusText, errorData);
-        alert(`Erro na sincronização: ${errorData.error || response.statusText}`);
-      }
-    } catch (error) {
-      console.error('❌ [OmniBridge] Sync error:', error);
-      alert('Erro na sincronização. Verifique o console para mais detalhes.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
   const handleChannelToggle = async (channelId: string, enabled: boolean) => {
     try {
       const token = localStorage.getItem('token');
@@ -1048,15 +1009,6 @@ export default function OmniBridge() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncIntegrations}
-            disabled={loading}
-          >
-            <SettingsIcon className="h-4 w-4 mr-2" />
-            {loading ? 'Sincronizando...' : 'Sincronizar Integrações'}
-          </Button>
           <Button variant="outline" size="sm">
             <SettingsIcon className="h-4 w-4 mr-2" />
             Configurações
