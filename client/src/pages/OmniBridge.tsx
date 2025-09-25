@@ -58,7 +58,8 @@ import {
   HelpCircle,
   Upload,
   Play,
-  Trash2
+  Trash2,
+  Brain // Added Brain icon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
@@ -145,7 +146,7 @@ interface Chatbot {
     id: string;
     name: string;
     steps: any[];
-  }[];
+  };
   ai_enabled: boolean;
   fallback_to_human: boolean;
 }
@@ -1136,7 +1137,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="channels" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Canais
@@ -1153,12 +1154,8 @@ export default function OmniBridge() {
             <Bot className="h-4 w-4" />
             Chatbots
           </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Templates
-          </TabsTrigger>
           <TabsTrigger value="ai-config" className="flex items-center gap-2">
-            <Bot className="h-4 w-4" />
+            <Brain className="h-4 w-4" />
             Configuração IA
           </TabsTrigger>
         </TabsList>
@@ -1298,46 +1295,6 @@ export default function OmniBridge() {
         {/* Automation Tab - Advanced Rules Builder */}
         <TabsContent value="automation" className="h-full">
           <AutomationRules />
-        </TabsContent>
-
-        {/* Templates Tab */}
-        <TabsContent value="templates" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Templates de Resposta</span>
-                <Button 
-                  size="sm"
-                  onClick={() => {
-                    alert('Criando novo template... (Funcionalidade em desenvolvimento)');
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Template
-                </Button>
-              </CardTitle>
-              <CardDescription>
-                Crie e gerencie templates para respostas rápidas em diferentes canais.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhum template configurado</p>
-                <p className="text-sm">Crie templates para agilizar suas respostas</p>
-                <Button 
-                  className="mt-4" 
-                  variant="outline"
-                  onClick={() => {
-                    alert('Criando primeiro template... (Funcionalidade em desenvolvimento)');
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro Template
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Chatbots Tab - Chatbot Manager */}
