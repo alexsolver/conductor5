@@ -38,18 +38,6 @@ export const omnibridgeMessages = pgTable('omnibridge_messages', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  configuration: jsonb('configuration').default({}),
-  isEnabled: boolean('is_enabled').default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  createdBy: varchar('created_by', { length: 36 }),
-  updatedBy: varchar('updated_by', { length: 36 })
-});
 
 export const omnibridgeRules = pgTable('omnibridge_rules', {
   id: varchar('id', { length: 36 }).primaryKey(),

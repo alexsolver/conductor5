@@ -511,7 +511,7 @@ export const SYSTEM_MODULE_SOURCES: Record<string, ModuleDataSource> = {
   omnibridge: {
     module: 'omnibridge',
     displayName: 'Omnichannel & Comunicação',
-    description: 'Performance de canais, automação e métricas de chatbot',
+    description: 'Performance de canais e automação de comunicação',
     category: 'communication',
     tables: [
       {

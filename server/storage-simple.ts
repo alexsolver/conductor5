@@ -2104,8 +2104,7 @@ export class DatabaseStorage implements IStorage {
         ('crm-integration', '${tenantId}', 'CRM Integration', 'Sincronização com sistemas CRM para gestão unificada de clientes', 'Dados', 'Database', 'disconnected', false, '{}', ARRAY['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']),
         ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', false, '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
         ('sso-saml', '${tenantId}', 'SSO/SAML', 'Single Sign-On para autenticação corporativa segura', 'Segurança', 'Shield', 'disconnected', false, '{}', ARRAY['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']),
-        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', false, '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration']),
-        ('chatbot-ai', '${tenantId}', 'Chatbot IA', 'Assistente virtual inteligente para atendimento automatizado', 'Produtividade', 'Bot', 'disconnected', false, '{}', ARRAY['Respostas automáticas', 'Machine Learning', 'Escalação inteligente'])
+        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', false, '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration'])
         ON CONFLICT (id) DO NOTHING
       `;
 

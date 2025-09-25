@@ -501,7 +501,6 @@ import { UpdateAutomationRuleUseCase } from './application/use-cases/UpdateAutom
 import { DeleteAutomationRuleUseCase } from './application/use-cases/DeleteAutomationRuleUseCase';
 import { ExecuteAutomationRuleUseCase } from './application/use-cases/ExecuteAutomationRuleUseCase';
 import { AutomationController } from './application/controllers/AutomationController';
-import { chatbotRoutes } from './chatbot-routes';
 
 
 // Initialize Automation repositories and use cases
@@ -521,8 +520,6 @@ const automationController = new AutomationController(
   executeAutomationRuleUseCase
 );
 
-// Use dedicated chatbot routes
-router.use('/', chatbotRoutes);
 
 
 // Automation rules routes
@@ -532,42 +529,6 @@ router.put('/automation-rules/:ruleId', jwtAuth, (req, res) => automationControl
 router.delete('/automation-rules/:ruleId', jwtAuth, (req, res) => automationController.deleteRule(req, res));
 router.post('/automation-rules/:ruleId/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
 
-// Chatbot routes are now imported from ./chatbot-routes.ts
-
-// Test chatbot without saving (preview mode)
-router.post('/chatbots/test', jwtAuth, async (req, res) => {
-  try {
-    const { chatbot, message } = req.body;
-    
-    // Simple chatbot simulation
-    let response = chatbot.fallbackMessage || 'Desculpe, não entendi.';
-    let nextStep = null;
-
-    // Check if message matches any step
-    if (chatbot.steps && chatbot.steps.length > 0) {
-      const firstStep = chatbot.steps[0];
-      if (firstStep.type === 'options') {
-        response = firstStep.content;
-        nextStep = firstStep.id;
-      } else if (firstStep.type === 'message') {
-        response = firstStep.content;
-        nextStep = firstStep.nextStep;
-      }
-    }
-
-    res.json({ 
-      success: true, 
-      data: { 
-        response, 
-        nextStep,
-        confidence: 0.8 
-      } 
-    });
-  } catch (error) {
-    console.error('[OmniBridge] Chatbot test error:', error);
-    res.status(500).json({ success: false, error: 'Failed to test chatbot' });
-  }
-});
 
 // Template CRUD operations
 import { DrizzleTemplateRepository } from './infrastructure/repositories/DrizzleTemplateRepository';
@@ -822,7 +783,6 @@ router.get('/dashboard-stats', jwtAuth, async (req, res) => {
       totalMessages: Math.floor(Math.random() * 100) + 50,
       unreadMessages: Math.floor(Math.random() * 10),
       activeRules: Math.floor(Math.random() * 5) + 3,
-      activeChatbots: Math.floor(Math.random() * 3) + 1,
       responseTime: `${Math.floor(Math.random() * 5) + 1} min`,
       automationRate: Math.floor(Math.random() * 30) + 60
     };

@@ -3567,7 +3567,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Webhooks: "Webhook",
       "CRM Integration": "Database",
       "SSO/SAML": "Shield",
-      "Chatbot IA": "Bot",
     };
     return iconMap[type] || "Settings";
   }
@@ -3587,7 +3586,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Webhooks: "Recebimento de webhooks externos",
       "CRM Integration": "Sincronização com sistemas CRM",
       "SSO/SAML": "Autenticação única empresarial",
-      "Chatbot IA": "Assistente virtual com IA",
     };
     return descMap[type] || "Canal de comunicação";
   }
@@ -5775,23 +5773,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  // Chatbot Routes - AI Conversation Management  
-  try {
-    const { chatbotRoutes } = await import("./modules/omnibridge/chatbot-routes");
-    if (chatbotRoutes) {
-      app.use("/api/omnibridge", chatbotRoutes);
-      console.log("✅ [CHATBOT] Routes registered successfully");
-    } else {
-      console.warn(
-        "⚠️ [CHATBOT] Routes module not properly exported, skipping registration",
-      );
-    }
-  } catch (error) {
-    console.warn(
-      "⚠️ [CHATBOT] Routes module failed to load:",
-      error.message,
-    );
-  }
 
   // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPROVAL MANAGEMENT MODULE
   // Approval Management Routes - Comprehensive approval workflow system

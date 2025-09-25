@@ -898,14 +898,6 @@ router.post('/populate-all-14', jwtAuth, async (req: any, res) => {
         category: 'Produtividade',
         icon: 'Calendar',
         features: ['Gmail sync', 'Drive backup', 'Calendar integration']
-      },
-      {
-        id: 'chatbot-ai',
-        name: 'Chatbot IA',
-        description: 'Assistente virtual inteligente para atendimento automatizado',
-        category: 'Produtividade',
-        icon: 'Bot',
-        features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
       }
     ];
 
