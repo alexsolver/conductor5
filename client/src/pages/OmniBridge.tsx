@@ -63,9 +63,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
-import ChatbotKanban from '@/components/omnibridge/ChatbotKanban';
-import ReactFlowEditor from '@/components/omnibridge/ReactFlowEditor';
-import ChatbotManager from '@/components/omnibridge/ChatbotManager';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 
 
@@ -136,20 +133,6 @@ interface Template {
   created_at: string;
 }
 
-interface Chatbot {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  channels: string[];
-  workflows: {
-    id: string;
-    name: string;
-    steps: any[];
-  };
-  ai_enabled: boolean;
-  fallback_to_human: boolean;
-}
 
 // Helper functions for channel mapping
 function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
@@ -193,7 +176,6 @@ export default function OmniBridge() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [automationRules, setAutomationRules] = useState<AutomationRule[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [chatbots, setChatbots] = useState<Chatbot[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -470,56 +452,6 @@ export default function OmniBridge() {
     }
   };
 
-  const handleCreateChatbot = async (type: 'support' | 'faq' | 'custom', name?: string) => {
-    try {
-      const chatbotData = {
-        name: name || (type === 'support' ? 'Assistente de Suporte' : 
-                      type === 'faq' ? 'Assistente de Dúvidas' : 
-                      'Assistente Personalizado'),
-        description: type === 'support' ? 'Assistente para atendimento técnico' :
-                    type === 'faq' ? 'Assistente para perguntas frequentes' :
-                    'Assistente criado do zero para suas necessidades específicas',
-        type,
-        isActive: true,
-        settings: {
-          language: 'pt-BR',
-          tone: type === 'support' ? 'professional' : 'friendly',
-          maxResponseTime: 30
-        }
-      };
-
-      const response = await fetch('/api/omnibridge/chatbots', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(chatbotData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setChatbots(prev => [result.data, ...prev]);
-          console.log(`✅ [OmniBridge] Chatbot ${type} created successfully`);
-
-          toast({
-            title: "Assistente Virtual Criado!",
-            description: `O ${chatbotData.name} foi criado com sucesso e já está ativo.`
-          });
-        }
-      } else {
-        throw new Error('Falha ao criar assistente');
-      }
-    } catch (error) {
-      console.error('❌ [OmniBridge] Error creating chatbot:', error);
-      toast({
-        title: "Erro ao criar assistente",
-        description: "Ocorreu um erro ao criar o assistente virtual",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleCreateAutomationRule = async () => {
     try {
@@ -1137,7 +1069,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="channels" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Canais
@@ -1150,10 +1082,6 @@ export default function OmniBridge() {
             <Zap className="h-4 w-4" />
             Automação
           </TabsTrigger>
-          <TabsTrigger value="chatbots" className="flex items-center gap-2">
-            <Bot className="h-4 w-4" />
-            Chatbots
-          </TabsTrigger>
           <TabsTrigger value="ai-config" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
             Configuração IA
@@ -1164,27 +1092,10 @@ export default function OmniBridge() {
         <TabsContent value="inbox" className="space-y-4">
           <div className="h-[calc(100vh-200px)]">
             <SimplifiedInbox 
-              messages={messages}
-              loading={loading}
-              onMessageSelect={setSelectedMessage}
-              onCreateRule={(message) => {
-                setSelectedMessage(message);
+              onCreateRule={(messageData?: any) => {
+                setSelectedMessage(messageData);
                 setShowCreateRuleModal(true);
               }}
-              onViewMessage={(message) => {
-                setSelectedMessage(message);
-                console.log('📄 [OMNIBRIDGE] Viewing message details:', message);
-              }}
-              onSave={() => {
-                console.log('💾 [OMNIBRIDGE] Saving inbox changes');
-                // Could trigger a save operation if needed
-              }}
-              onUndo={() => {
-                console.log('↩️ [OMNIBRIDGE] Undoing last action');
-                // Refresh messages or restore previous state
-                refreshMessages();
-              }}
-              refetchMessages={refreshMessages}
             />
           </div>
         </TabsContent>
@@ -1297,10 +1208,6 @@ export default function OmniBridge() {
           <AutomationRules />
         </TabsContent>
 
-        {/* Chatbots Tab - Chatbot Manager */}
-        <TabsContent value="chatbots" className="h-full">
-          <ChatbotManager />
-        </TabsContent>
 
         {/* AI Assistant Tab */}
         <TabsContent value="ai-config" className="space-y-4">
