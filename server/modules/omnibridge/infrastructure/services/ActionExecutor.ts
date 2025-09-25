@@ -717,7 +717,7 @@ export class ActionExecutor implements IActionExecutorPort {
       console.log(`📧 [ActionExecutor] Sending notification for rule: ${context.ruleName}`);
 
       const recipient = action.params?.recipient || action.config?.recipient;
-      const message = action.params?.message || action.config?.message;
+      const message = action.params?.message || action.config?.message || 'Notificação de automação';
       const priority = action.params?.priority || action.config?.priority || 'medium';
 
       if (!recipient) {
@@ -728,65 +728,67 @@ export class ActionExecutor implements IActionExecutorPort {
         };
       }
 
-      if (!message) {
-        return {
-          success: false,
-          message: 'Message is required for notification',
-          error: 'Missing message parameter'
-        };
+      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}`);
+
+      // Import and use CreateNotificationUseCase
+      const { CreateNotificationUseCase } = await import('../../../notifications/application/use-cases/CreateNotificationUseCase');
+      const { DrizzleNotificationRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationRepository');
+      const { DrizzleNotificationPreferenceRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationPreferenceRepository');
+
+      const notificationRepository = new DrizzleNotificationRepository();
+      const preferenceRepository = new DrizzleNotificationPreferenceRepository();
+      const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, preferenceRepository);
+
+      // Find user by email if recipient is an email
+      let targetUserId = '550e8400-e29b-41d4-a716-446655440001'; // Default system user
+
+      if (recipient.includes('@')) {
+        try {
+          // Try to find user by email
+          const { DrizzleUserRepository } = await import('../../../users/infrastructure/repositories/DrizzleUserRepository');
+          const userRepository = new DrizzleUserRepository();
+          const user = await userRepository.findByEmail(recipient, context.tenantId);
+          if (user) {
+            targetUserId = user.id;
+            console.log(`📧 [ActionExecutor] Found user for email ${recipient}: ${targetUserId}`);
+          }
+        } catch (error) {
+          console.log(`⚠️ [ActionExecutor] Could not find user for email ${recipient}, using system user`);
+        }
       }
 
-      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}, priority=${priority}`);
-
-      // Import and create notification
-      const { NotificationController } = await import('../../../notifications/application/controllers/NotificationController');
-      const notificationController = new NotificationController();
-
-      // Create mock request object with proper userId
-      const mockReq = {
-        user: { 
-          tenantId: context.tenantId,
-          id: '550e8400-e29b-41d4-a716-446655440001' // System user for automation
-        },
-        body: {
-          tenantId: context.tenantId,
-          userId: '550e8400-e29b-41d4-a716-446655440001', // Use system user ID
-          type: 'automation_notification',
-          title: `Automação: ${context.ruleName}`,
-          message: message,
-          data: {
-            automationRule: context.ruleName,
+      // Create notification request
+      const notificationRequest = {
+        tenantId: context.tenantId,
+        userId: targetUserId,
+        type: 'automation_notification' as const,
+        title: `Automação: ${context.ruleName}`,
+        message: message,
+        data: {
+          automationRule: {
             ruleId: context.ruleId,
-            originalMessage: context.messageData.content || context.messageData.body,
-            recipientEmail: recipient
+            ruleName: context.ruleName,
+            executedAt: new Date().toISOString()
           },
-          priority: priority as 'low' | 'medium' | 'high' | 'critical',
-          channels: ['email', 'in_app'],
-          recipientEmail: recipient,
-          createdBy: 'automation-system'
-        }
-      } as any;
+          originalMessage: {
+            content: context.messageData.content,
+            sender: context.messageData.sender,
+            channel: context.messageData.channel
+          },
+          recipient: recipient
+        },
+        priority: priority as 'low' | 'medium' | 'high' | 'critical',
+        channels: ['in_app'] as ('in_app' | 'email' | 'sms' | 'webhook' | 'slack')[],
+        sourceId: context.ruleId,
+        sourceType: 'automation_rule'
+      };
 
-      let notificationResponse: any = null;
+      // Execute notification creation
+      const result = await createNotificationUseCase.execute(notificationRequest);
 
-      const mockRes = {
-        status: (code: number) => ({
-          json: (data: any) => {
-            console.log(`📧 [ActionExecutor] Notification response:`, data);
-            notificationResponse = { ...data, statusCode: code };
-            return mockRes;
-          }
-        }),
-        json: (data: any) => {
-          console.log(`📧 [ActionExecutor] Notification created:`, data);
-          notificationResponse = { ...data, statusCode: 200 };
-          return mockRes;
-        }
-      } as any;
+      console.log(`📧 [ActionExecutor] Notification response:`, result);
 
-      await notificationController.createNotification(mockReq, mockRes);
-
-      if (notificationResponse && (notificationResponse.statusCode === 200 || notificationResponse.statusCode === 201 || notificationResponse.success)) {
+      if (result.success) {
         console.log(`✅ [ActionExecutor] Notification created successfully for ${recipient}`);
         return {
           success: true,
@@ -795,15 +797,15 @@ export class ActionExecutor implements IActionExecutorPort {
             recipient,
             message,
             priority,
-            type: 'automation_notification'
+            type: 'automation_notification',
+            notificationId: result.notificationId
           }
         };
       } else {
         return {
           success: false,
-          message: 'Failed to create notification',
-          error: notificationResponse?.message || 'Unknown notification error',
-          data: { recipient, message, priority }
+          message: result.message || 'Failed to create notification',
+          error: result.errors?.join(', ') || 'Unknown error'
         };
       }
 
