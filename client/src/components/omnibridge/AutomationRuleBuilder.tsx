@@ -421,28 +421,21 @@ export default function AutomationRuleBuilder({
   };
 
   // Remover ação
-  const removeAction = (actionId: string) => {
+  const removeAction = (actionIndexToRemove: number) => {
     setRule(prev => ({
       ...prev,
-      actions: prev.actions.filter(action => action.id !== actionId)
+      actions: prev.actions.filter((_, index) => index !== actionIndexToRemove)
     }));
   };
 
   // Editar ação
-  const editAction = (actionId: string) => {
-    console.log('🔧 [AutomationRuleBuilder] Editing action:', actionId);
-    const actionIndex = rule.actions.findIndex(a => a.id === actionId);
-    if (actionIndex >= 0) {
-      const action = rule.actions[actionIndex];
-      console.log('📋 [AutomationRuleBuilder] Found action to edit:', action);
+  const editAction = (actionToEdit: Action, index: number) => {
+    console.log('🔧 [AutomationRuleBuilder] Editing action:', actionToEdit, 'at index:', index);
 
-      setCurrentAction(action);
-      setActionConfig(action.config || {});
-      setEditingActionIndex(actionIndex);
-      setShowActionConfig(true);
-    } else {
-      console.warn('⚠️ [AutomationRuleBuilder] Action not found for editing:', actionId);
-    }
+    setCurrentAction(actionToEdit);
+    setActionConfig(actionToEdit.config || {});
+    setEditingActionIndex(index);
+    setShowActionConfig(true);
   };
 
   // Salvar regra
@@ -488,7 +481,7 @@ export default function AutomationRuleBuilder({
         name: action.name,
         description: action.description,
         config: action.config || {},
-        priority: action.priority || 1
+        priority: action.priority || 1 // Assuming priority might be a field in Action in the future
       }))
     };
 
@@ -505,123 +498,53 @@ export default function AutomationRuleBuilder({
   };
 
   // Renderizar configuração da ação
-  const renderActionConfig = (action: Action, actionIndex: number) => {
+  const renderActionConfig = (action: Action) => {
+    if (!action || !action.type) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          Configurações específicas para esta ação serão implementadas em breve.
+        </div>
+      );
+    }
+
     switch (action.type) {
+      case 'send_auto_reply':
       case 'auto_reply':
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`action-message-${actionIndex}`}>Mensagem de Resposta</Label>
-                <Textarea
-                  id={`action-message-${actionIndex}`}
-                  placeholder="Digite a mensagem de resposta automática..."
-                  value={actionConfig?.message || ''}
-                  onChange={(e) => updateActionConfig('message', e.target.value)}
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`action-delay-${actionIndex}`}>Atraso (segundos)</Label>
-                <Input
-                  id={`action-delay-${actionIndex}`}
-                  type="number"
-                  placeholder="0"
-                  value={actionConfig?.delay || 0}
-                  onChange={(e) => updateActionConfig('delay', parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'ai_response':
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`action-tone-${actionIndex}`}>Tom da Resposta</Label>
-                <Select
-                  value={actionConfig?.tone || 'professional'}
-                  onValueChange={(value) => updateActionConfig('tone', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tom" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="professional">Profissional</SelectItem>
-                    <SelectItem value="friendly">Amigável</SelectItem>
-                    <SelectItem value="technical">Técnico</SelectItem>
-                    <SelectItem value="sales">Vendas</SelectItem>
-                    <SelectItem value="empathetic">Empático</SelectItem>
-                    <SelectItem value="formal">Formal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor={`action-language-${actionIndex}`}>Idioma</Label>
-                <Select
-                  value={actionConfig?.language || 'pt-BR'}
-                  onValueChange={(value) => updateActionConfig('language', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o idioma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                    <SelectItem value="en-US">English (US)</SelectItem>
-                    <SelectItem value="es-ES">Español</SelectItem>
-                    <SelectItem value="fr-FR">Français</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="bg-blue-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-blue-900 mb-2">Resposta Automática</h4>
+              <p className="text-sm text-blue-700">Configure a mensagem que será enviada automaticamente</p>
             </div>
             <div>
-              <Label htmlFor={`action-instructions-${actionIndex}`}>Instruções Personalizadas</Label>
+              <Label htmlFor="replyMessage">Mensagem de Resposta</Label>
               <Textarea
-                id={`action-instructions-${actionIndex}`}
-                placeholder="Digite instruções específicas para a IA sobre como responder..."
-                value={actionConfig?.customInstructions || ''}
-                onChange={(e) => updateActionConfig('customInstructions', e.target.value)}
-                rows={3}
+                id="replyMessage"
+                placeholder="Digite a mensagem de resposta automática..."
+                value={actionConfig.message || action.config?.message || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  message: e.target.value
+                }))}
+                className="mt-1"
+                rows={4}
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Exemplo: "Responda de forma empática, oferecendo soluções práticas e incluindo informações de contato."
-              </p>
             </div>
             <div>
-              <Label htmlFor={`action-template-${actionIndex}`}>Template de Resposta (Opcional)</Label>
-              <Textarea
-                id={`action-template-${actionIndex}`}
-                placeholder="Olá! {response} Caso precise de mais alguma coisa, estou à disposição."
-                value={actionConfig?.template || ''}
-                onChange={(e) => updateActionConfig('template', e.target.value)}
-                rows={2}
+              <Label htmlFor="replyDelay">Atraso (segundos)</Label>
+              <Input
+                id="replyDelay"
+                type="number"
+                placeholder="0"
+                value={actionConfig.delay || action.config?.delay || 0}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  delay: parseInt(e.target.value) || 0
+                }))}
+                className="mt-1"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Use {'{response}'} onde a resposta da IA deve ser inserida. Se vazio, apenas a resposta da IA será enviada.
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`action-include-original-${actionIndex}`}
-                checked={actionConfig?.includeOriginalMessage || false}
-                onChange={(e) => updateActionConfig('includeOriginalMessage', e.target.checked)}
-                className="rounded"
-              />
-              <Label htmlFor={`action-include-original-${actionIndex}`}>
-                Incluir mensagem original na resposta
-              </Label>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Brain className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-900">Funcionalidade de IA Ativa</span>
-              </div>
-              <p className="text-sm text-blue-700">
-                Esta ação usa inteligência artificial para gerar respostas contextuais baseadas no conteúdo da mensagem recebida.
-                A IA analisará o sentimento, intenção e contexto antes de gerar uma resposta adequada.
+                Tempo de espera antes de enviar a resposta (0 = imediato)
               </p>
             </div>
           </div>
@@ -630,23 +553,39 @@ export default function AutomationRuleBuilder({
       case 'send_notification':
         return (
           <div className="space-y-4">
+            <div className="bg-yellow-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-yellow-900 mb-2">Enviar Notificação</h4>
+              <p className="text-sm text-yellow-700">Configure os destinatários e mensagem da notificação</p>
+            </div>
             <div>
-              <Label htmlFor={`action-recipient-${actionIndex}`}>Destinatário</Label>
-              <Input
-                id={`action-recipient-${actionIndex}`}
-                value={actionConfig?.recipient || ''}
-                onChange={(e) => updateActionConfig('recipient', e.target.value)}
-                placeholder="email@exemplo.com"
+              <Label htmlFor="notificationMessage">Mensagem da Notificação</Label>
+              <Textarea
+                id="notificationMessage"
+                placeholder="Digite a mensagem da notificação..."
+                value={actionConfig.message || action.config?.message || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  message: e.target.value
+                }))}
+                className="mt-1"
+                rows={3}
               />
             </div>
             <div>
-              <Label htmlFor={`action-message-${actionIndex}`}>Mensagem</Label>
-              <Textarea
-                id={`action-message-${actionIndex}`}
-                value={actionConfig?.message || ''}
-                onChange={(e) => updateActionConfig('message', e.target.value)}
-                placeholder="Mensagem de notificação..."
+              <Label htmlFor="notificationUsers">Usuários para Notificar</Label>
+              <Input
+                id="notificationUsers"
+                placeholder="emails@exemplo.com (separados por vírgula)"
+                value={actionConfig.users || action.config?.users || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  users: e.target.value
+                }))}
+                className="mt-1"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Separe múltiplos emails por vírgula
+              </p>
             </div>
           </div>
         );
@@ -654,20 +593,48 @@ export default function AutomationRuleBuilder({
       case 'create_ticket':
         return (
           <div className="space-y-4">
+            <div className="bg-green-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-green-900 mb-2">Criar Ticket</h4>
+              <p className="text-sm text-green-700">Configure os dados do ticket que será criado automaticamente</p>
+            </div>
             <div>
-              <Label htmlFor={`action-title-${actionIndex}`}>Título do ticket</Label>
+              <Label htmlFor="ticketTitle">Título do Ticket</Label>
               <Input
-                id={`action-title-${actionIndex}`}
-                value={actionConfig?.title || ''}
-                onChange={(e) => updateActionConfig('title', e.target.value)}
-                placeholder="Título automático do ticket"
+                id="ticketTitle"
+                placeholder="Título automático do ticket..."
+                value={actionConfig.title || action.config?.title || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  title: e.target.value
+                }))}
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor={`action-priority-${actionIndex}`}>Prioridade</Label>
-              <Select value={actionConfig?.priority || 'medium'} onValueChange={(value) => updateActionConfig('priority', value)}>
-                <SelectTrigger>
-                  <SelectValue />
+              <Label htmlFor="ticketDescription">Descrição do Ticket</Label>
+              <Textarea
+                id="ticketDescription"
+                placeholder="Descrição automática do ticket..."
+                value={actionConfig.description || action.config?.description || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  description: e.target.value
+                }))}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="ticketPriority">Prioridade</Label>
+              <Select 
+                value={actionConfig.priority || action.config?.priority || 'medium'}
+                onValueChange={(value) => setActionConfig(prev => ({
+                  ...prev,
+                  priority: value
+                }))}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecionar prioridade" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Baixa</SelectItem>
@@ -683,14 +650,25 @@ export default function AutomationRuleBuilder({
       case 'add_tags':
         return (
           <div className="space-y-4">
+            <div className="bg-indigo-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-indigo-900 mb-2">Adicionar Tags</h4>
+              <p className="text-sm text-indigo-700">Configure as tags que serão adicionadas automaticamente</p>
+            </div>
             <div>
-              <Label htmlFor={`action-tags-${actionIndex}`}>Tags (separadas por vírgula)</Label>
+              <Label htmlFor="tagsToAdd">Tags para Adicionar</Label>
               <Input
-                id={`action-tags-${actionIndex}`}
-                value={actionConfig?.tags || ''}
-                onChange={(e) => updateActionConfig('tags', e.target.value)}
-                placeholder="tag1, tag2, tag3"
+                id="tagsToAdd"
+                placeholder="tag1, tag2, tag3..."
+                value={actionConfig.tags || action.config?.tags || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  tags: e.target.value
+                }))}
+                className="mt-1"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Separe múltiplas tags por vírgula
+              </p>
             </div>
           </div>
         );
@@ -698,13 +676,124 @@ export default function AutomationRuleBuilder({
       case 'assign_agent':
         return (
           <div className="space-y-4">
+            <div className="bg-teal-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-teal-900 mb-2">Atribuir Agente</h4>
+              <p className="text-sm text-teal-700">Configure o agente que receberá a atribuição automática</p>
+            </div>
             <div>
-              <Label htmlFor={`action-agentId-${actionIndex}`}>ID do Agente</Label>
+              <Label htmlFor="agentEmail">Email do Agente</Label>
               <Input
-                id={`action-agentId-${actionIndex}`}
-                value={actionConfig?.agentId || ''}
-                onChange={(e) => updateActionConfig('agentId', e.target.value)}
-                placeholder="ID ou email do agente"
+                id="agentEmail"
+                type="email"
+                placeholder="agente@exemplo.com"
+                value={actionConfig.agentEmail || action.config?.agentEmail || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  agentEmail: e.target.value
+                }))}
+                className="mt-1"
+              />
+            </div>
+          </div>
+        );
+
+      case 'forward_message':
+        return (
+          <div className="space-y-4">
+            <div className="bg-purple-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-purple-900 mb-2">Encaminhar Mensagem</h4>
+              <p className="text-sm text-purple-700">Configure o destino e nota para o encaminhamento</p>
+            </div>
+            <div>
+              <Label htmlFor="forwardTo">Encaminhar Para</Label>
+              <Input
+                id="forwardTo"
+                type="email"
+                placeholder="destino@exemplo.com"
+                value={actionConfig.forwardTo || action.config?.forwardTo || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  forwardTo: e.target.value
+                }))}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="forwardNote">Nota de Encaminhamento</Label>
+              <Textarea
+                id="forwardNote"
+                placeholder="Nota adicional para o encaminhamento..."
+                value={actionConfig.note || action.config?.note || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  note: e.target.value
+                }))}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+          </div>
+        );
+
+      case 'mark_priority':
+        return (
+          <div className="space-y-4">
+            <div className="bg-red-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-red-900 mb-2">Marcar Prioridade</h4>
+              <p className="text-sm text-red-700">Configure a nova prioridade que será atribuída</p>
+            </div>
+            <div>
+              <Label htmlFor="newPriority">Nova Prioridade</Label>
+              <Select 
+                value={actionConfig.priority || action.config?.priority || 'medium'}
+                onValueChange={(value) => setActionConfig(prev => ({
+                  ...prev,
+                  priority: value
+                }))}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Selecionar prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'archive':
+        return (
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-gray-900 mb-2">Arquivar</h4>
+              <p className="text-sm text-gray-700">Configure o arquivamento automático da mensagem</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="autoArchive"
+                checked={actionConfig.autoArchive || action.config?.autoArchive || false}
+                onCheckedChange={(checked) => setActionConfig(prev => ({
+                  ...prev,
+                  autoArchive: checked
+                }))}
+              />
+              <Label htmlFor="autoArchive">Arquivar automaticamente</Label>
+            </div>
+            <div>
+              <Label htmlFor="archiveReason">Motivo do Arquivamento</Label>
+              <Input
+                id="archiveReason"
+                placeholder="Motivo do arquivamento automático..."
+                value={actionConfig.reason || action.config?.reason || ''}
+                onChange={(e) => setActionConfig(prev => ({
+                  ...prev,
+                  reason: e.target.value
+                }))}
+                className="mt-1"
               />
             </div>
           </div>
@@ -712,10 +801,14 @@ export default function AutomationRuleBuilder({
 
       default:
         return (
-          <div>
-            <p className="text-sm text-gray-600">
+          <div className="space-y-4">
+            <div className="bg-orange-50 p-3 rounded-lg border">
+              <h4 className="font-medium text-orange-900 mb-2">Ação Personalizada</h4>
+              <p className="text-sm text-orange-700">Esta ação ainda não possui configurações específicas</p>
+            </div>
+            <div className="text-sm text-muted-foreground">
               Configurações específicas para esta ação serão implementadas em breve.
-            </p>
+            </div>
           </div>
         );
     }
@@ -844,43 +937,130 @@ export default function AutomationRuleBuilder({
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Ações Configuradas */}
-                      {rule.actions.length > 0 && (
+                      {/* Ações existentes */}
                         <div className="space-y-2">
-                          <h4 className="font-medium">Ações Configuradas:</h4>
-                          {rule.actions.map((action, index) => ( 
-                            <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${action.color}`}>
-                                  <action.icon className="w-4 h-4 text-white" />
+                          <Label className="text-sm font-medium">Ações Configuradas ({rule.actions.length})</Label>
+                          {rule.actions.map((action, index) => {
+                            // Determinar nome e descrição baseado no tipo da ação
+                            const getActionInfo = (actionType: string) => {
+                              switch (actionType) {
+                                case 'send_auto_reply':
+                                case 'auto_reply':
+                                  return {
+                                    name: 'Resposta Automática',
+                                    description: 'Envia resposta pré-definida automaticamente',
+                                    icon: Reply,
+                                    color: 'text-blue-600'
+                                  };
+                                case 'send_notification':
+                                  return {
+                                    name: 'Enviar Notificação',
+                                    description: 'Notifica equipe responsável',
+                                    icon: Bell,
+                                    color: 'text-yellow-600'
+                                  };
+                                case 'create_ticket':
+                                  return {
+                                    name: 'Criar Ticket',
+                                    description: 'Cria ticket automaticamente',
+                                    icon: FileText,
+                                    color: 'text-green-600'
+                                  };
+                                case 'forward_message':
+                                  return {
+                                    name: 'Encaminhar Mensagem',
+                                    description: 'Encaminha para outro agente',
+                                    icon: Forward,
+                                    color: 'text-purple-600'
+                                  };
+                                case 'add_tags':
+                                  return {
+                                    name: 'Adicionar Tags',
+                                    description: 'Categoriza com tags',
+                                    icon: Tag,
+                                    color: 'text-indigo-600'
+                                  };
+                                case 'assign_agent':
+                                  return {
+                                    name: 'Atribuir Agente',
+                                    description: 'Designa agente específico',
+                                    icon: Users,
+                                    color: 'text-teal-600'
+                                  };
+                                case 'mark_priority':
+                                  return {
+                                    name: 'Marcar Prioridade',
+                                    description: 'Define nível de prioridade',
+                                    icon: Star,
+                                    color: 'text-red-600'
+                                  };
+                                case 'archive':
+                                  return {
+                                    name: 'Arquivar',
+                                    description: 'Move para arquivo',
+                                    icon: Archive,
+                                    color: 'text-gray-600'
+                                  };
+                                default:
+                                  return {
+                                    name: action.name || `Ação ${action.type}`,
+                                    description: action.description || `Descrição da ação ${action.type}`,
+                                    icon: Settings,
+                                    color: 'text-muted-foreground'
+                                  };
+                              }
+                            };
+
+                            const actionInfo = getActionInfo(action.type);
+                            const hasConfig = action.config && Object.keys(action.config).length > 0;
+
+                            return (
+                              <div 
+                                key={action.id || index} 
+                                className="flex items-center justify-between p-3 bg-secondary rounded-md border"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {React.createElement(actionInfo.icon, { 
+                                    size: 16, 
+                                    className: actionInfo.color
+                                  })}
+                                  <div className="flex-1">
+                                    <div className="text-sm font-medium">
+                                      {actionInfo.name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {actionInfo.description}
+                                    </div>
+                                    {hasConfig && (
+                                      <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                        <CheckCircle size={10} />
+                                        Configurada
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-medium">{action.name}</p>
-                                  <p className="text-sm text-gray-600">{action.description}</p>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => editAction(action, index)}
+                                    title="Configurar ação"
+                                  >
+                                    <Cog size={14} />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeAction(index)}
+                                    title="Remover ação"
+                                  >
+                                    <Minus size={14} />
+                                  </Button>
                                 </div>
-                                <Badge variant="outline">#{index + 1}</Badge>
                               </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => editAction(action.id)}
-                                >
-                                  <Settings className="h-3 w-3" />
-                                  Configurar
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeAction(action.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
-                      )}
 
                       <Separator />
 
@@ -964,7 +1144,7 @@ export default function AutomationRuleBuilder({
           </DialogHeader>
 
           <div className="mt-4">
-            {currentAction && renderActionConfig(currentAction, editingActionIndex)}
+            {currentAction && renderActionConfig(currentAction)}
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
