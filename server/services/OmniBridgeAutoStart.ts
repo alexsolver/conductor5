@@ -51,8 +51,46 @@ export class OmniBridgeAutoStart {
         await this.checkAndStartIntegration(tenantId, integration);
       }
 
+      // Specifically check for Gmail/IMAP Email integration
+      const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+      if (imapIntegration && imapIntegration.status === 'connected') {
+        console.log(`📧 [OMNIBRIDGE-AUTOSTART] Found IMAP Email integration for alexsolver@gmail.com`);
+        await this.startGmailMonitoring(tenantId, imapIntegration);
+      }
+
     } catch (error) {
       console.error('❌ OmniBridge: Error detecting communication channels:', error);
+    }
+  }
+
+  private async startGmailMonitoring(tenantId: string, integration: Integration): Promise<void> {
+    try {
+      console.log(`📧 [GMAIL-AUTOSTART] Starting Gmail monitoring for: ${integration.config.emailAddress}`);
+
+      const result = await this.gmailService.startEmailMonitoring(tenantId, integration.id);
+      
+      if (result.success) {
+        console.log(`✅ [GMAIL-AUTOSTART] Gmail monitoring started successfully`);
+        
+        // Ensure channel is synced and enabled
+        try {
+          const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
+          const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
+          const { storage } = await import('../storage-simple');
+          
+          const channelRepository = new DrizzleChannelRepository();
+          const syncService = new IntegrationChannelSync(channelRepository, storage);
+          await syncService.syncIntegrationsToChannels(tenantId);
+          
+          console.log(`🔗 [GMAIL-AUTOSTART] Channels synced for tenant: ${tenantId}`);
+        } catch (syncError) {
+          console.error('❌ [GMAIL-AUTOSTART] Channel sync error:', syncError);
+        }
+      } else {
+        console.error(`❌ [GMAIL-AUTOSTART] Failed to start Gmail monitoring: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('❌ [GMAIL-AUTOSTART] Error starting Gmail monitoring:', error);
     }
   }
 

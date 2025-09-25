@@ -379,45 +379,76 @@ export class GmailService {
                 date: date.toISOString(),
                 headers: headers,
                 hasAttachments: Boolean(email.attachments?.length),
-                gmailProcessed: true
+                gmailProcessed: true,
+                rawFrom: from,
+                rawTo: to
               },
               priority: priority as any,
               tenantId
             };
 
-            console.log(`🎯 [GMAIL-SERVICE] Ingesting email into OmniBridge inbox: ${subject}`);
+            console.log(`🎯 [GMAIL-SERVICE] Ingesting email for alexsolver@gmail.com into OmniBridge: ${subject}`);
+            console.log(`🎯 [GMAIL-SERVICE] Email details - From: ${fromEmail}, To: ${to}, Date: ${date.toISOString()}`);
+            
             const savedMessage = await ingestionService.ingestMessage(incomingMessage);
 
-            console.log(`✅ [GMAIL-SERVICE] Email successfully saved to OmniBridge inbox: ${savedMessage.id}`);
+            console.log(`✅ [GMAIL-SERVICE] Email successfully saved to OmniBridge inbox with ID: ${savedMessage.id}`);
+            
+            // Verify message was saved by checking directly
+            try {
+              const { schemaManager } = await import('../../../db');
+              const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+              const verifyQuery = await tenantDb.execute(sql`
+                SELECT id, subject, sender, status FROM inbox 
+                WHERE id = ${savedMessage.id} AND tenant_id = ${tenantId}
+              `);
+              
+              if (verifyQuery.rows.length > 0) {
+                console.log(`✅ [GMAIL-SERVICE] Verified email in database: ${verifyQuery.rows[0].subject}`);
+              } else {
+                console.error(`❌ [GMAIL-SERVICE] Email not found in database after save!`);
+              }
+            } catch (verifyError) {
+              console.error(`❌ [GMAIL-SERVICE] Error verifying saved email:`, verifyError);
+            }
+            
             processedCount++;
 
           } catch (ingestionError) {
             console.error(`❌ [GMAIL-SERVICE] Failed to ingest email via OmniBridge service:`, ingestionError);
 
-            // Fallback: Insert directly into inbox table
-            await tenantDb.execute(sql`
-              INSERT INTO inbox (
-                id, subject, sender, recipient, body, 
-                status, priority, channel, received_at, 
-                metadata, attachments, tenant_id, created_at, updated_at
-              ) VALUES (
-                ${messageId}, ${subject}, ${fromEmail}, ${to}, ${emailBody},
-                'unread', ${priority}, 'imap-email', ${date},
-                ${JSON.stringify({
-                  messageId,
-                  fromName,
-                  date: date.toISOString(),
-                  headers: headers,
-                  hasAttachments: Boolean(email.attachments?.length),
-                  fallbackInsert: true
-                })},
-                ${email.attachments?.length || 0},
-                ${tenantId}, NOW(), NOW()
-              ) ON CONFLICT (id) DO NOTHING
-            `);
+            // Fallback: Insert directly into inbox table using the omnibridge_messages table
+            try {
+              const { schemaManager } = await import('../../../db');
+              const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+              
+              await tenantDb.execute(sql`
+                INSERT INTO omnibridge_messages (
+                  id, channel_id, channel_type, "from", "to", subject, 
+                  content, status, priority, metadata, tenant_id, 
+                  received_at, created_at, updated_at
+                ) VALUES (
+                  ${messageId}, 'imap-email', 'email', ${fromEmail}, ${to}, ${subject},
+                  ${emailBody}, 'unread', ${priority}, 
+                  ${JSON.stringify({
+                    messageId,
+                    fromName,
+                    date: date.toISOString(),
+                    headers: headers,
+                    hasAttachments: Boolean(email.attachments?.length),
+                    fallbackInsert: true,
+                    rawFrom: from,
+                    rawTo: to
+                  })},
+                  ${tenantId}, ${date}, NOW(), NOW()
+                ) ON CONFLICT (id) DO NOTHING
+              `);
 
-            console.log(`✅ [GMAIL-SERVICE] Email saved via fallback method: ${subject}`);
-            processedCount++;
+              console.log(`✅ [GMAIL-SERVICE] Email saved via fallback method to omnibridge_messages: ${subject}`);
+              processedCount++;
+            } catch (fallbackError) {
+              console.error(`❌ [GMAIL-SERVICE] Fallback insert also failed:`, fallbackError);
+            }
           }
         } catch (error) {
           console.error('Error processing individual email:', error);

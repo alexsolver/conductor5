@@ -85,6 +85,59 @@ router.put('/messages/:messageId/star', jwtAuth, (req, res) => omniBridgeControl
 
 router.get('/inbox/stats', jwtAuth, (req, res) => omniBridgeController.getInboxStats(req, res));
 
+// Debug route for Gmail status check
+router.get('/debug/gmail/status', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Checking Gmail status for tenant: ${tenantId}`);
+
+    const { storage } = await import('../../storage-simple');
+    const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+    
+    if (!imapIntegration) {
+      return res.json({
+        success: false,
+        status: 'no_integration',
+        message: 'No IMAP integration found for tenant'
+      });
+    }
+
+    const { GmailService } = await import('../../services/integrations/gmail/GmailService');
+    const gmailService = GmailService.getInstance();
+
+    // Test connection
+    const testResult = await gmailService.testConnection({
+      user: imapIntegration.config.emailAddress,
+      password: imapIntegration.config.password,
+      host: imapIntegration.config.imapServer,
+      port: imapIntegration.config.imapPort,
+      tls: imapIntegration.config.imapSecurity === 'SSL/TLS'
+    });
+
+    res.json({
+      success: true,
+      integration: {
+        id: imapIntegration.id,
+        status: imapIntegration.status,
+        email: imapIntegration.config.emailAddress,
+        server: imapIntegration.config.imapServer
+      },
+      connection: testResult,
+      isMonitoring: false // TODO: Add monitoring status check
+    });
+  } catch (error) {
+    console.error('❌ [OMNIBRIDGE-DEBUG] Gmail status check error:', error);
+    res.status(500).json({
+      error: 'Failed to check Gmail status',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Debug route for Gmail email fetching
 router.post('/debug/gmail/fetch', jwtAuth, async (req, res) => {
   try {
@@ -115,6 +168,49 @@ router.post('/debug/gmail/fetch', jwtAuth, async (req, res) => {
     console.error('❌ [OMNIBRIDGE-DEBUG] Gmail fetch error:', error);
     res.status(500).json({
       error: 'Failed to fetch Gmail emails',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Force start Gmail monitoring
+router.post('/debug/gmail/start-monitoring', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Force starting Gmail monitoring for tenant: ${tenantId}`);
+
+    const { storage } = await import('../../storage-simple');
+    const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+    
+    if (!imapIntegration) {
+      return res.status(404).json({ 
+        error: 'No IMAP integration found for tenant' 
+      });
+    }
+
+    console.log(`📧 [OMNIBRIDGE-DEBUG] Found IMAP integration for: ${imapIntegration.config.emailAddress}`);
+
+    const { OmniBridgeAutoStart } = await import('../../services/OmniBridgeAutoStart');
+    const autoStart = new OmniBridgeAutoStart();
+    
+    await autoStart.detectAndStartCommunicationChannels(tenantId);
+
+    res.json({
+      success: true,
+      message: 'Gmail monitoring force started',
+      integration: {
+        email: imapIntegration.config.emailAddress,
+        status: imapIntegration.status
+      }
+    });
+  } catch (error) {
+    console.error('❌ [OMNIBRIDGE-DEBUG] Force start Gmail monitoring error:', error);
+    res.status(500).json({
+      error: 'Failed to force start Gmail monitoring',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
