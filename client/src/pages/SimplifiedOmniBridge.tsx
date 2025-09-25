@@ -34,7 +34,9 @@ import {
   Clock,
   Filter,
   Search,
-  Globe
+  Globe,
+  Reply, // Import Reply icon
+  FileText // Import FileText icon
 } from 'lucide-react';
 
 // Import new simplified components
@@ -48,7 +50,7 @@ import LivePreview from '@/components/omnibridge/LivePreview';
 export default function SimplifiedOmniBridge() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [activeTab, setActiveTab] = useState('inbox');
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [showRuleBuilder, setShowRuleBuilder] = useState(false);
@@ -133,7 +135,7 @@ export default function SimplifiedOmniBridge() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
@@ -297,68 +299,114 @@ export default function SimplifiedOmniBridge() {
 
             <TabsContent value="automation" className="p-6">
               <div className="space-y-6">
+                {/* Header simplificado com ação principal */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      Regras de Automação
+                      Automação Simplificada
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Configure regras para automatizar respostas e ações
+                      Configure automações em 3 passos simples
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowTemplateGallery(true)}
-                      data-testid="automation-templates"
-                    >
-                      <Star className="h-4 w-4 mr-2" />
-                      Templates
-                    </Button>
-                    <Button onClick={handleCreateRule} data-testid="create-automation">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Regra
-                    </Button>
-                  </div>
+                  <Button onClick={handleCreateRule} size="lg" data-testid="create-automation">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Automação
+                  </Button>
                 </div>
 
-                {/* Quick Start Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400">
-                    <CardContent className="p-4 text-center">
-                      <Clock className="h-8 w-8 mx-auto mb-3 text-blue-500" />
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Resposta Fora do Horário
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Responda automaticamente fora do horário comercial
-                      </p>
-                    </CardContent>
-                  </Card>
+                {/* Templates rápidos integrados */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    {
+                      title: "Resposta Automática",
+                      description: "Responde automaticamente para mensagens",
+                      icon: Reply,
+                      color: "bg-blue-500",
+                      trigger: "keyword",
+                      action: "auto_reply"
+                    },
+                    {
+                      title: "Escalação Urgente", 
+                      description: "Escala mensagens de alta prioridade",
+                      icon: AlertCircle,
+                      color: "bg-red-500",
+                      trigger: "priority",
+                      action: "escalate"
+                    },
+                    {
+                      title: "Criar Ticket",
+                      description: "Cria tickets automaticamente",
+                      icon: FileText,
+                      color: "bg-green-500", 
+                      trigger: "keyword",
+                      action: "create_ticket"
+                    },
+                    {
+                      title: "Notificar Equipe",
+                      description: "Notifica a equipe responsável",
+                      icon: Bell,
+                      color: "bg-purple-500",
+                      trigger: "channel",
+                      action: "send_notification"
+                    }
+                  ].map((template, index) => (
+                    <Card 
+                      key={index}
+                      className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
+                      onClick={() => {
+                        // Criar regra pré-configurada baseada no template
+                        const ruleData = {
+                          name: template.title,
+                          description: template.description,
+                          triggers: [{ type: template.trigger, conditions: {} }],
+                          actions: [{ type: template.action, parameters: {} }],
+                          enabled: true,
+                          priority: 1
+                        };
+                        // Potentially open the rule builder with pre-filled data, or just show a toast
+                        setShowRuleBuilder(true); // For now, just open builder
+                        toast({ title: `${template.title} selecionado`, description: 'Configure os detalhes da sua automação.'});
+                      }}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className={`${template.color} p-3 rounded-full w-fit mx-auto mb-3`}>
+                          <template.icon className="h-6 w-6 text-white" />
+                        </div>
+                        <h4 className="font-medium text-sm mb-1">{template.title}</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {template.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
 
-                  <Card className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-purple-400">
-                    <CardContent className="p-4 text-center">
-                      <AlertCircle className="h-8 w-8 mx-auto mb-3 text-red-500" />
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Escalação Urgente
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Detecte e escale situações urgentes automaticamente
-                      </p>
-                    </CardContent>
-                  </Card>
+                {/* Regras existentes com ações rápidas */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-md font-medium">Suas Automações</h3>
+                    <Button variant="outline" size="sm" onClick={() => setShowTemplateGallery(true)}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Mais Templates
+                    </Button>
+                  </div>
 
-                  <Card className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400">
-                    <CardContent className="p-4 text-center">
-                      <Users className="h-8 w-8 mx-auto mb-3 text-green-500" />
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Boas-vindas Novos Clientes
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Dê boas-vindas automáticas para novos contatos
+                  <div className="space-y-3">
+                    {/* Placeholder para regras existentes */}
+                    <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                      <Lightbulb className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Nenhuma automação configurada ainda
                       </p>
-                    </CardContent>
-                  </Card>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Use os templates acima para começar rapidamente
+                      </p>
+                      <Button variant="outline" size="sm" onClick={() => setShowTemplateGallery(true)}>
+                        Ver Exemplos
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </TabsContent>
