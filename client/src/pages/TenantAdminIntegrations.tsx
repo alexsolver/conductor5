@@ -680,16 +680,6 @@ export default function TenantAdminIntegrations() {
       features: ['Sincronização de calendário', 'Anexos do Drive', 'Emails corporativos']
     },
     {
-      id: 'chatbot-ai',
-      name: 'Chatbot IA',
-      category: 'Produtividade',
-      description: 'Chatbot inteligente para atendimento automatizado 24/7',
-      icon: Bot,
-      status: 'disconnected',
-      configured: false,
-      features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
-    },
-    {
       id: 'dropbox-personal',
       name: 'Dropbox Pessoal',
       category: 'Dados',
@@ -731,8 +721,6 @@ export default function TenantAdminIntegrations() {
         return Shield;
       case 'google-workspace':
         return Calendar;
-      case 'chatbot-ai':
-        return Bot;
       default:
         return Database;
     }

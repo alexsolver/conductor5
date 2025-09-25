@@ -63,8 +63,6 @@ export {
 // Interactive Map Module Schema - Clean Architecture
 export * from "./schema-interactive-map";
 
-// Chatbot Engine Module Schema - Complete chatbot system
-export * from "./schema-chatbot";
 
 // SaaS Admin Module Schema - Clean Architecture
 export * from "./schema-saas-admin";
@@ -298,18 +296,6 @@ export const omnibridgeMessages = pgTable('omnibridge_messages', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  configuration: jsonb('configuration').default({}),
-  isEnabled: boolean('is_enabled').default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  createdBy: varchar('created_by', { length: 36 }),
-  updatedBy: varchar('updated_by', { length: 36 })
-});
 
 export const omnibridgeAutomationRules = pgTable('omnibridge_automation_rules', {
   id: varchar('id', { length: 36 }).primaryKey(),

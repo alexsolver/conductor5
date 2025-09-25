@@ -42,7 +42,6 @@ import {
 // Import new simplified components
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import AutomationRuleBuilder from '@/components/omnibridge/AutomationRuleBuilder';
-import SimplifiedChatbotBuilder from '@/components/omnibridge/SimplifiedChatbotBuilder';
 import SetupWizard from '@/components/omnibridge/SetupWizard';
 import TemplateGallery from '@/components/omnibridge/TemplateGallery';
 import LivePreview from '@/components/omnibridge/LivePreview';
@@ -54,7 +53,6 @@ export default function SimplifiedOmniBridge() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [showRuleBuilder, setShowRuleBuilder] = useState(false);
-  const [showChatbotBuilder, setShowChatbotBuilder] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [previewConfig, setPreviewConfig] = useState<any>(null);
@@ -88,19 +86,12 @@ export default function SimplifiedOmniBridge() {
     setShowCreateRuleModal(true); // Open the modal to create a rule
   };
 
-  const handleCreateChatbot = () => {
-    setShowChatbotBuilder(true);
-  };
 
   const handlePreviewRule = (ruleConfig: any) => {
     setPreviewConfig({ automationRule: ruleConfig });
     setShowLivePreview(true);
   };
 
-  const handlePreviewChatbot = (chatbotConfig: any) => {
-    setPreviewConfig({ chatbotConfig });
-    setShowLivePreview(true);
-  };
 
   const handleTemplateSelect = (template: any) => {
     toast({
@@ -114,7 +105,6 @@ export default function SimplifiedOmniBridge() {
     totalMessages: 0,
     unreadMessages: 0,
     activeRules: 0,
-    activeChatbots: 0,
     responseTime: '0 min',
     automationRate: 0
   };
@@ -231,12 +221,6 @@ export default function SimplifiedOmniBridge() {
                   <Bot className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stats.activeChatbots}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Chatbots ativos
-                  </p>
                 </div>
               </div>
               <Badge variant="outline" className="mt-2 bg-green-50 text-green-700 border-green-200">
@@ -282,10 +266,6 @@ export default function SimplifiedOmniBridge() {
                   <Zap className="h-4 w-4" />
                   Automação
                 </TabsTrigger>
-                <TabsTrigger value="chatbots" className="flex items-center gap-2" data-testid="tab-chatbots">
-                  <Bot className="h-4 w-4" />
-                  Chatbots
-                </TabsTrigger>
                 <TabsTrigger value="analytics" className="flex items-center gap-2" data-testid="tab-analytics">
                   <BarChart3 className="h-4 w-4" />
                   Relatórios
@@ -296,7 +276,6 @@ export default function SimplifiedOmniBridge() {
             <TabsContent value="inbox" className="p-0">
               <SimplifiedInbox
                 onCreateRule={handleCreateRule}
-                onCreateChatbot={handleCreateChatbot}
               />
             </TabsContent>
 
@@ -601,10 +580,6 @@ export default function SimplifiedOmniBridge() {
         }}
       />
 
-      <SimplifiedChatbotBuilder
-        isOpen={showChatbotBuilder}
-        onClose={() => setShowChatbotBuilder(false)}
-      />
 
       <TemplateGallery
         isOpen={showTemplateGallery}

@@ -71,20 +71,6 @@ export const omnibridgeAutomationRules = pgTable('omnibridge_automation_rules', 
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-// ========================================
-// OMNIBRIDGE CHATBOTS TABLE
-// ========================================
-// OmniBridge chatbots for automated conversations
-export const omnibridgeChatbots = pgTable('omnibridge_chatbots', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  configuration: jsonb('configuration').default({}),
-  isEnabled: boolean('is_enabled').default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
 
 // ========================================
 // LEGACY COMPATIBILITY NOTE

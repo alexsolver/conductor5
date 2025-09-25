@@ -30,10 +30,9 @@ import {
 
 interface SimplifiedInboxProps {
   onCreateRule?: (messageData?: any) => void;
-  onCreateChatbot?: () => void;
 }
 
-export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: SimplifiedInboxProps) {
+export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -224,10 +223,6 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onCreateChatbot}>
-              <Bot className="h-4 w-4 mr-2" />
-              Chatbot
-            </Button>
             <Button size="sm" onClick={() => onCreateRule?.()}>
               <Zap className="h-4 w-4 mr-2" />
               Automatizar
