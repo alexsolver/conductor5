@@ -1,7 +1,9 @@
 
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Users } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface UserGroupSelectProps {
   value?: string;
@@ -26,7 +28,8 @@ export function UserGroupSelect({
   disabled = false
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; data: UserGroup[] }>({
-    queryKey: ["/api/user-management/groups"],
+    queryKey: ["user-management-groups"],
+    queryFn: () => apiRequest('GET', '/api/user-management/groups'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
@@ -56,7 +59,13 @@ export function UserGroupSelect({
     );
   }
 
-  const activeGroups = groupsData.data?.filter(group => group.isActive) || [];
+  const activeGroups = groupsData?.data?.filter(group => group.isActive) || [];
+
+  // Debug logs
+  React.useEffect(() => {
+    console.log('[UserGroupSelect] Groups data:', groupsData);
+    console.log('[UserGroupSelect] Active groups:', activeGroups);
+  }, [groupsData, activeGroups]);
 
   if (activeGroups.length === 0) {
     return (

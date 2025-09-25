@@ -48,8 +48,20 @@ export function UserMultiSelect({
     console.log('[UserMultiSelect] Current value:', value);
   }, [users, value]);
 
-  const selectedUsers = users.filter(user => value.includes(user.id));
-  const availableUsers = users.filter(user => !value.includes(user.id));
+  // Normalizar dados dos usuários
+  const normalizedUsers = React.useMemo(() => {
+    if (!users || !Array.isArray(users)) return [];
+    
+    return users.map(user => ({
+      id: user.id || user.userId,
+      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+      email: user.email,
+      role: user.role
+    }));
+  }, [users]);
+
+  const selectedUsers = normalizedUsers.filter(user => value.includes(user.id));
+  const availableUsers = normalizedUsers.filter(user => !value.includes(user.id));
 
   const handleSelect = (userId: string) => {
     const newValue = [...value, userId];
@@ -124,30 +136,36 @@ export function UserMultiSelect({
               <CommandInput placeholder="Buscar usuários..." />
               <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
               <CommandGroup className="max-h-64 overflow-y-auto">
-                {availableUsers.map((user) => (
-                  <CommandItem
-                    key={user.id}
-                    value={`${user.name} ${user.email}`}
-                    onSelect={() => {
-                      handleSelect(user.id);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value.includes(user.id) ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{user.name}</span>
-                      <span className="text-xs text-muted-foreground">{user.email}</span>
-                      {user.role && (
-                        <span className="text-xs text-blue-600">{user.role}</span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
+                {availableUsers.length > 0 ? (
+                  availableUsers.map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      value={`${user.name} ${user.email}`}
+                      onSelect={() => {
+                        handleSelect(user.id);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value.includes(user.id) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user.name}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        {user.role && (
+                          <span className="text-xs text-blue-600">{user.role}</span>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                    Nenhum usuário disponível
+                  </div>
+                )}
               </CommandGroup>
             </Command>
           </PopoverContent>

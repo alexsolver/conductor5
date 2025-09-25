@@ -446,6 +446,11 @@ export default function AutomationRuleBuilder({
     if (currentAction.type === 'send_notification' && Array.isArray(actionConfig.users)) {
       processedConfig.users = actionConfig.users.join(',');
     }
+    // Handle groups if necessary
+    if (currentAction.type === 'send_notification' && actionConfig.groups) {
+      processedConfig.groups = actionConfig.groups;
+    }
+
 
     const updatedAction = {
       ...currentAction,
@@ -572,23 +577,22 @@ export default function AutomationRuleBuilder({
               <Label htmlFor="notification-users">Usuários para notificar</Label>
               <UserMultiSelect
                 value={Array.isArray(actionConfig.users) ? actionConfig.users : (actionConfig.users ? actionConfig.users.split(',') : [])}
-                onChange={(userIds) => setActionConfig(prev => ({ ...prev, users: userIds }))}
-                users={Array.isArray(usersData?.users) ? usersData.users.map(user => ({
-                  id: user.id,
-                  name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email?.split('@')[0] || 'Usuário',
-                  email: user.email,
-                  role: user.role || 'Usuário'
-                })) : []}
-                placeholder="Selecione os usuários que receberão as notificações"
+                onChange={(selectedUsers) =>
+                  setActionConfig(prev => ({ ...prev, users: selectedUsers }))
+                }
+                users={usersData?.success ? usersData.data.users : []}
+                placeholder="Selecionar usuários para notificar..."
               />
             </div>
 
             <div>
               <Label htmlFor="notification-groups">Grupos para notificar</Label>
               <UserGroupSelect
-                value={actionConfig.groups || ''}
-                onChange={(groupId) => setActionConfig(prev => ({ ...prev, groups: groupId }))}
-                placeholder="Selecione um grupo para notificar"
+                value={actionConfig.notificationGroup || ''}
+                onChange={(selectedGroup) =>
+                  setActionConfig(prev => ({ ...prev, notificationGroup: selectedGroup }))
+                }
+                placeholder="Selecionar grupo para notificar..."
               />
             </div>
 
@@ -850,6 +854,7 @@ export default function AutomationRuleBuilder({
                                             <span>
                                               {action.config.message ? `Mensagem: "${action.config.message.substring(0, 30)}${action.config.message.length > 30 ? '...' : ''}"` :
                                                action.config.users ? `Usuários: ${action.config.users}` :
+                                               action.config.groups ? `Grupo: ${action.config.groups}` :
                                                action.config.tags ? `Tags: ${action.config.tags}` :
                                                `${Object.keys(action.config).length} configuração(ões)`}
                                             </span>
@@ -988,7 +993,7 @@ export default function AutomationRuleBuilder({
           </DialogHeader>
 
           <div className="mt-4">
-            {currentAction && renderActionConfig(currentAction)}
+            {currentAction && renderActionConfig()}
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
