@@ -22,7 +22,7 @@ export class AiAgentController {
   async createAgent(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -88,7 +88,7 @@ export class AiAgentController {
   async getAgents(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -128,7 +128,7 @@ export class AiAgentController {
   async processMessage(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -181,7 +181,7 @@ export class AiAgentController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const agentId = req.params.id;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -198,7 +198,7 @@ export class AiAgentController {
         return;
       }
 
-      const agentRepository = (this.createAiAgentUseCase as any).agentRepository as IAiAgentRepository;
+      const agentRepository = this.createAiAgentUseCase['agentRepository'] as IAiAgentRepository;
       const agent = await agentRepository.findById(agentId, tenantId);
 
       if (!agent) {
@@ -227,7 +227,7 @@ export class AiAgentController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const agentId = req.params.id;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -244,7 +244,7 @@ export class AiAgentController {
         return;
       }
 
-      const agentRepository = (this.createAiAgentUseCase as any).agentRepository as IAiAgentRepository;
+      const agentRepository = this.createAiAgentUseCase['agentRepository'] as IAiAgentRepository;
       const agent = await agentRepository.findById(agentId, tenantId);
 
       if (!agent) {
@@ -287,7 +287,7 @@ export class AiAgentController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const agentId = req.params.id;
-
+      
       if (!tenantId) {
         res.status(400).json({
           success: false,
@@ -304,7 +304,7 @@ export class AiAgentController {
         return;
       }
 
-      const agentRepository = (this.createAiAgentUseCase as any).agentRepository as IAiAgentRepository;
+      const agentRepository = this.createAiAgentUseCase['agentRepository'] as IAiAgentRepository;
       const deleted = await agentRepository.delete(agentId, tenantId);
 
       if (!deleted) {
