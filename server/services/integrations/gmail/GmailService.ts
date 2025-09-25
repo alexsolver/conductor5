@@ -461,8 +461,8 @@ export class GmailService {
 
   private async getGmailConfig(tenantId: string): Promise<GmailConfig> {
     try {
-      const { storage } = await import('../../../storage-simple');
-      const integration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+      const { storage } = await import('../../storage-simple');
+      const integration = await storage.getIntegrationByType(tenantId, 'imap');
 
       if (!integration || !integration.config) {
         console.error(`❌ [GMAIL-CONFIG] No IMAP integration found for tenant: ${tenantId}`);
