@@ -1,6 +1,4 @@
 
-#!/usr/bin/env tsx
-
 import { MessageIngestionService } from '../modules/omnibridge/infrastructure/services/MessageIngestionService';
 import { DrizzleMessageRepository } from '../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository';
 import { ProcessMessageUseCase } from '../modules/omnibridge/application/use-cases/ProcessMessageUseCase';
