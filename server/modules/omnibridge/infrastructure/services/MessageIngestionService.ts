@@ -159,11 +159,13 @@ export class MessageIngestionService {
       content: emailData.text || emailData.html || '[Conteúdo indisponível]',
       metadata: {
         messageId: emailData.messageId,
+        originalMessageId: emailData.messageId,
         date: emailData.date,
         headers: emailData.headers,
         hasAttachments: Boolean(emailData.attachments?.length),
         imapProcessed: true,
-        processedAt: new Date().toISOString()
+        processedAt: new Date().toISOString(),
+        ingestionSource: 'message-ingestion-service-imap'
       },
       priority: emailData.priority === 'high' ? 'high' : 'medium',
       tenantId
@@ -171,6 +173,28 @@ export class MessageIngestionService {
 
     const result = await this.ingestMessage(incomingMessage);
     console.log(`✅ [IMAP-INGESTION] Email processed successfully with ID: ${result.id}`);
+    
+    // 🤖 Process automation rules for IMAP emails
+    if (this.processMessageUseCase) {
+      console.log(`🤖 [IMAP-INGESTION] Triggering automation rules for message ${result.id}`);
+      try {
+        const automationResult = await this.processMessageUseCase.processDirectMessage(
+          {
+            id: result.id,
+            content: incomingMessage.content,
+            sender: incomingMessage.from,
+            subject: incomingMessage.subject,
+            channel: incomingMessage.channelType,
+            timestamp: new Date().toISOString(),
+            metadata: incomingMessage.metadata
+          }, 
+          tenantId
+        );
+        console.log(`✅ [IMAP-INGESTION] Automation result:`, automationResult);
+      } catch (automationError) {
+        console.error(`❌ [IMAP-INGESTION] Automation processing failed:`, automationError);
+      }
+    }
     
     return result;
   }

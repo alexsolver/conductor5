@@ -386,7 +386,8 @@ export class GmailService {
             priority = 'low';
           }
 
-          const emailBody = `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nThis is a real email message captured from Gmail.`;
+          // Extract actual email body content
+          const emailBody = email.text || email.html || `Email received via Gmail IMAP Integration\n\nFrom: ${from}\nTo: ${to}\nDate: ${date.toISOString()}\n\nSubject: ${subject}\n\nThis is a real email message captured from Gmail.`;
 
           // ✅ CRITICAL FIX: Use MessageIngestionService para garantir que chegue no OmniBridge inbox
           try {
@@ -407,16 +408,19 @@ export class GmailService {
               subject: subject,
               content: emailBody,
               metadata: {
-                messageId,
-                fromName,
+                messageId: messageId,
+                originalMessageId: messageId,
+                fromName: fromName,
                 date: date.toISOString(),
                 headers: headers,
                 hasAttachments: Boolean(email.attachments?.length),
                 gmailProcessed: true,
+                imapProcessed: true,
                 rawFrom: from,
                 rawTo: to,
                 emailProcessedAt: new Date().toISOString(),
-                imapServer: this.activeConnections.get(tenantId)?.config?.host || 'unknown'
+                imapServer: this.activeConnections.get(tenantId)?.config?.host || 'unknown',
+                ingestionSource: 'gmail-imap-service'
               },
               priority: priority as any,
               tenantId
@@ -431,6 +435,28 @@ export class GmailService {
             const savedMessage = await ingestionService.ingestMessage(incomingMessage);
             console.log(`✅ [GMAIL-SERVICE] Email ingested successfully with ID: ${savedMessage.id}`);
             console.log(`💾 [GMAIL-SERVICE] Message saved to tenant: ${tenantId}, table: omnibridge_messages`);
+
+            // 🤖 CRITICAL: Process automation rules after ingestion
+            if (processMessageUseCase) {
+              try {
+                console.log(`🤖 [GMAIL-SERVICE] Triggering automation rules for message ${savedMessage.id}`);
+                const automationResult = await processMessageUseCase.processDirectMessage(
+                  {
+                    id: savedMessage.id,
+                    content: emailBody,
+                    sender: fromEmail,
+                    subject: subject,
+                    channel: 'email',
+                    timestamp: date.toISOString(),
+                    metadata: incomingMessage.metadata
+                  }, 
+                  tenantId
+                );
+                console.log(`✅ [GMAIL-SERVICE] Automation result:`, automationResult);
+              } catch (automationError) {
+                console.error(`❌ [GMAIL-SERVICE] Automation processing failed:`, automationError);
+              }
+            }
 
             processedEmails++;
 

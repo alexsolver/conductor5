@@ -94,8 +94,9 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
   const getChannelIcon = (channelType: string) => {
     switch (channelType) {
       case 'email': return Mail;
+      case 'imap-email': return Mail; // IMAP emails use Mail icon
       case 'whatsapp': return MessageSquare;
-      case 'telegram': return MessageSquare; // Assuming MessageSquare for Telegram as well
+      case 'telegram': return MessageSquare;
       case 'sms': return Phone;
       default: return MessageSquare;
     }
@@ -224,7 +225,7 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium text-sm truncate">{message.from}</h4>
                             <Badge variant="outline" className="text-xs">
-                              {message.channelType}
+                              {message.channelType === 'imap-email' ? 'Email (IMAP)' : message.channelType}
                             </Badge>
                             {message.priority === 'urgent' && (
                               <Badge variant="destructive" className="text-xs">

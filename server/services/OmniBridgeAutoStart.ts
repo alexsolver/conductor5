@@ -172,10 +172,11 @@ export class OmniBridgeAutoStart {
         console.log(`✅ [OMNIBRIDGE-AUTO-START] Security: ${integration.config.imapSecurity}`);
         console.log(`✅ [OMNIBRIDGE-AUTO-START] Tenant: ${tenantId}`);
 
-        // Force an immediate check for emails
+        // Force an immediate check for emails with proper logging
         setTimeout(async () => {
           try {
             console.log(`🔄 [OMNIBRIDGE-AUTO-START] Triggering immediate email check for ${integration.config.emailAddress}`);
+            console.log(`🔄 [OMNIBRIDGE-AUTO-START] Expected emails should appear in OmniBridge inbox for tenant: ${tenantId}`);
             await this.gmailService.fetchRecentEmails(tenantId, integration.id);
           } catch (error) {
             console.error(`❌ [OMNIBRIDGE-AUTO-START] Immediate email check failed:`, error);
