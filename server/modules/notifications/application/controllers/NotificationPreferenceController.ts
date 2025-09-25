@@ -25,6 +25,8 @@ export class NotificationPreferenceController {
       }
 
       const { userId, tenantId } = { userId: user.id, tenantId: user.tenantId };
+      
+      console.log('[NOTIFICATION-PREFERENCES] Getting preferences for user:', userId, 'tenant:', tenantId);
 
       console.log('[USER-NOTIFICATION-PREFERENCES-CONTROLLER] GET request - User:', userId, 'Tenant:', tenantId);
 

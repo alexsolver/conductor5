@@ -10,9 +10,11 @@ import {
   PreferenceStats 
 } from '../../domain/repositories/INotificationPreferenceRepository';
 import { NotificationPreference, NotificationPreferenceEntity } from '../../domain/entities/NotificationPreference';
+import { v4 as uuidv4 } from 'uuid';
+
 
 export class DrizzleNotificationPreferenceRepository implements INotificationPreferenceRepository {
-  
+
   async findById(id: string, tenantId: string): Promise<NotificationPreference | null> {
     try {
       // Since we're using simplified schema, we need to work with the preferences JSON
@@ -29,7 +31,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       // Simplified implementation using the user preferences JSON structure
       const userPrefs = await this.getUserPreferences(userId, tenantId);
       const preferences: NotificationPreference[] = [];
-      
+
       for (const [type, settings] of Object.entries(userPrefs.preferences)) {
         preferences.push(new NotificationPreferenceEntity(
           `${userId}-${type}`, // Generate ID
@@ -49,7 +51,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
           userPrefs.globalSettings.webhookUrl
         ));
       }
-      
+
       return preferences;
     } catch (error) {
       console.error('Error finding preferences by user ID:', error);
@@ -61,9 +63,9 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
     try {
       const userPrefs = await this.getUserPreferences(userId, tenantId);
       const typeSettings = userPrefs.preferences[type];
-      
+
       if (!typeSettings) return null;
-      
+
       return new NotificationPreferenceEntity(
         `${userId}-${type}`,
         tenantId,
@@ -91,7 +93,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
     try {
       // Update the user preferences JSON structure
       const userPrefs = await this.getUserPreferences(preference.userId, preference.tenantId);
-      
+
       userPrefs.preferences[preference.notificationType] = {
         enabled: preference.isEnabled,
         channels: preference.channels,
@@ -101,7 +103,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       };
 
       await this.updateUserPreferences(preference.userId, preference.tenantId, userPrefs);
-      
+
       return new NotificationPreferenceEntity(
         `${preference.userId}-${preference.notificationType}`,
         preference.tenantId,
@@ -129,12 +131,12 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
     try {
       // Extract userId and type from the composite ID
       const [userId, type] = id.split('-', 2);
-      
+
       const userPrefs = await this.getUserPreferences(userId, tenantId);
       const currentSettings = userPrefs.preferences[type];
-      
+
       if (!currentSettings) return null;
-      
+
       // Update the settings
       userPrefs.preferences[type] = {
         ...currentSettings,
@@ -145,7 +147,7 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       };
 
       await this.updateUserPreferences(userId, tenantId, userPrefs);
-      
+
       return new NotificationPreferenceEntity(
         id,
         tenantId,
@@ -172,10 +174,10 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
   async delete(id: string, tenantId: string): Promise<boolean> {
     try {
       const [userId, type] = id.split('-', 2);
-      
+
       const userPrefs = await this.getUserPreferences(userId, tenantId);
       delete userPrefs.preferences[type];
-      
+
       await this.updateUserPreferences(userId, tenantId, userPrefs);
       return true;
     } catch (error) {
@@ -186,27 +188,27 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
 
   async getUserPreferences(userId: string, tenantId: string): Promise<UserNotificationPreferences> {
     try {
-      const [result] = await db
-        .select()
-        .from(userNotificationPreferences)
-        .where(and(
-          eq(userNotificationPreferences.userId, userId),
-          eq(userNotificationPreferences.tenantId, tenantId)
-        ));
+      console.log('[DRIZZLE-NOTIFICATION-PREFS] Getting preferences for user:', userId, 'tenant:', tenantId);
 
-      if (result?.preferences) {
-        return {
-          userId,
-          tenantId,
-          preferences: result.preferences.preferences || {},
-          globalSettings: result.preferences.globalSettings || {}
-        };
+      // Validate that userId is a valid UUID
+      if (!this.isValidUUID(userId)) {
+        console.error('[DRIZZLE-NOTIFICATION-PREFS] Invalid UUID format for userId:', userId);
+        throw new Error(`Invalid user ID format: ${userId}`);
       }
 
-      // Return default preferences if none exist
+      // Try to find existing preferences
+      const existing = await this.findByUserId(userId, tenantId);
+      if (existing.length > 0) {
+        console.log('[DRIZZLE-NOTIFICATION-PREFS] Found existing preferences');
+        return this.convertToUserPreferences(existing[0]);
+      }
+
+      // If no preferences found, return default preferences
+      console.log('[DRIZZLE-NOTIFICATION-PREFS] No existing preferences found, returning defaults.');
       return this.getDefaultPreferences(userId, tenantId);
     } catch (error) {
       console.error('Error getting user preferences:', error);
+      // In case of error during fetch or conversion, return default preferences
       return this.getDefaultPreferences(userId, tenantId);
     }
   }
@@ -356,5 +358,52 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
         }
       }
     };
+  }
+
+  private convertToUserPreferences(preference: NotificationPreference): UserNotificationPreferences {
+    return {
+      userId: preference.userId,
+      tenantId: preference.tenantId,
+      preferences: {
+        [preference.notificationType]: {
+          enabled: preference.isEnabled,
+          channels: preference.channels,
+          digestFrequency: preference.digestFrequency,
+          quietHours: preference.quietHours,
+          customSettings: {} // Assuming no custom settings for now
+        }
+      },
+      globalSettings: {
+        // These would ideally be fetched from a global user settings or defaults
+        // For now, we'll use placeholder values or values from the preference object
+        doNotDisturb: false, // Default or fetched globally
+        soundEnabled: true,  // Default or fetched globally
+        vibrationEnabled: true, // Default or fetched globally
+        emailDigest: preference.emailAddress ? true : false, // Infer from email presence
+        digestFrequency: preference.digestFrequency, // Use from the preference or default
+        globalChannels: {
+          email: preference.emailAddress ? true : false,
+          sms: preference.phoneNumber ? true : false,
+          push: true, // Placeholder
+          in_app: true, // Placeholder
+          webhook: preference.webhookUrl ? true : false,
+          slack: preference.slackUserId ? true : false,
+          dashboard_alert: true // Placeholder
+        },
+        globalQuietHours: {
+          start: '22:00', // Default or fetched globally
+          end: '08:00',   // Default or fetched globally
+          timezone: 'America/Sao_Paulo' // Default or fetched globally
+        },
+        emailAddress: preference.emailAddress,
+        phoneNumber: preference.phoneNumber,
+        slackUserId: preference.slackUserId,
+        webhookUrl: preference.webhookUrl
+      }
+    };
+  }
+
+  private isValidUUID(id: string): boolean {
+    return uuidv4.validate(id);
   }
 }

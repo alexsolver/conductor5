@@ -135,7 +135,8 @@ export class ActionExecutor implements IActionExecutorPort {
           return await this.webhookAction(action, context);
 
         case 'send_notification':
-          return await this.sendNotificationAction(action, context);
+          await this.executeNotificationAction(action, context.messageData);
+          break;
 
         default:
           return {
@@ -819,9 +820,9 @@ export class ActionExecutor implements IActionExecutorPort {
       const { messageData, tenantId } = context;
 
       // ✅ 1QA.MD: Extract recipient from action parameters with multiple fallbacks
-      const recipient = action.params?.recipient || 
-                       action.params?.users || 
-                       action.config?.recipient || 
+      const recipient = action.params?.recipient ||
+                       action.params?.users ||
+                       action.config?.recipient ||
                        action.config?.users ||
                        action.params?.user ||
                        action.config?.user;
@@ -939,6 +940,86 @@ export class ActionExecutor implements IActionExecutorPort {
       };
     }
   }
+
+  private async executeNotificationAction(action: any, messageData: any): Promise<void> {
+    try {
+      console.log('🔔 [ActionExecutor] Executing notification action:', action);
+
+      // Get notification details from action config
+      const { recipients, subject, message, channels } = action.config;
+
+      // Resolve user IDs from emails if needed
+      const resolvedRecipients = await this.resolveUserIds(recipients);
+
+      // Send notification through notification service
+      const notificationData = {
+        type: 'omnibridge_automation',
+        title: subject || 'OmniBridge Notification',
+        message: message || `New message from ${messageData.from}`,
+        recipients: resolvedRecipients,
+        channels: channels || ['in_app'],
+        data: {
+          messageId: messageData.id,
+          from: messageData.from,
+          subject: messageData.subject
+        }
+      };
+
+      // Here you would integrate with your notification service
+      console.log('📤 [ActionExecutor] Notification sent:', notificationData);
+
+    } catch (error) {
+      console.error('❌ [ActionExecutor] Error executing notification action:', error);
+      throw error;
+    }
+  }
+
+  private async resolveUserIds(recipients: string[]): Promise<string[]> {
+    if (!recipients || recipients.length === 0) {
+      return [];
+    }
+
+    const { db } = await import('../../../../db');
+    const resolvedIds: string[] = [];
+
+    for (const recipient of recipients) {
+      try {
+        // Check if it's already a valid UUID
+        if (this.isValidUUID(recipient)) {
+          resolvedIds.push(recipient);
+          continue;
+        }
+
+        // If it looks like an email, resolve to user ID
+        if (recipient.includes('@')) {
+          const user = await db.query(
+            'SELECT id FROM users WHERE email = $1 LIMIT 1',
+            [recipient]
+          );
+
+          if (user.rows && user.rows.length > 0) {
+            resolvedIds.push(user.rows[0].id);
+            console.log(`✅ [ActionExecutor] Resolved email ${recipient} to user ID ${user.rows[0].id}`);
+          } else {
+            console.warn(`⚠️ [ActionExecutor] Could not resolve email to user ID: ${recipient}`);
+          }
+        } else {
+          // Assume it's already a user ID or handle as needed
+          resolvedIds.push(recipient);
+        }
+      } catch (error) {
+        console.error(`❌ [ActionExecutor] Error resolving recipient ${recipient}:`, error);
+      }
+    }
+
+    return resolvedIds;
+  }
+
+  private isValidUUID(str: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  }
+
 
   private processTemplate(template: string, context: ActionExecutionContext): string {
     try {

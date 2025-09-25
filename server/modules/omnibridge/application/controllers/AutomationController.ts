@@ -516,4 +516,47 @@ export class AutomationController {
       });
     }
   }
+
+  async executeRule(req: Request, res: Response): Promise<void> {
+    try {
+      const { ruleId } = req.params;
+      const messageData = req.body;
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+      const userId = user?.id;
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required'
+        });
+        return;
+      }
+
+      if (!userId) {
+        res.status(400).json({
+          success: false,
+          error: 'User ID is required'
+        });
+        return;
+      }
+
+      console.log('[AUTOMATION-CONTROLLER] Executing rule with user:', userId, 'tenant:', tenantId);
+
+      const result = await this.executeAutomationRuleUseCase.execute(ruleId, tenantId, userId, messageData);
+
+      res.json({
+        success: true,
+        data: result,
+        message: 'Automation rule executed successfully'
+      });
+    } catch (error) {
+      console.error('❌ [AutomationController] Error executing rule:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to execute automation rule',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }

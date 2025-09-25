@@ -400,7 +400,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
     // This part assumes a different structure for `req.user` than `jwtAuth`
     // and might need to be aligned if both are used for the same purpose.
     req.user = {
-      id: decoded.id,
+      id: decoded.userId,
       tenantId: decoded.tenantId,
       email: decoded.email,
       role: decoded.role,
