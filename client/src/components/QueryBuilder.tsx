@@ -96,12 +96,12 @@ export function QueryBuilderComponent({
     
     onChange({
       ...value,
-      rules: [...value.rules, newRule]
+      rules: [...(value.rules || []), newRule]
     });
   };
 
   const removeRule = (index: number) => {
-    const newRules = value.rules.filter((_, i) => i !== index);
+    const newRules = (value.rules || []).filter((_, i) => i !== index);
     onChange({
       ...value,
       rules: newRules
@@ -109,7 +109,7 @@ export function QueryBuilderComponent({
   };
 
   const updateRule = (index: number, rule: QueryRule) => {
-    const newRules = [...value.rules];
+    const newRules = [...(value.rules || [])];
     newRules[index] = rule;
     onChange({
       ...value,
@@ -133,7 +133,7 @@ export function QueryBuilderComponent({
         </Button>
       </div>
 
-      {value.rules.length === 0 ? (
+      {(!value.rules || value.rules.length === 0) ? (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
           <Filter className="w-8 h-8 mx-auto mb-2 text-gray-400" />
           <p className="text-gray-500">Nenhuma regra configurada</p>
@@ -141,7 +141,7 @@ export function QueryBuilderComponent({
         </div>
       ) : (
         <div className="space-y-3">
-          {value.rules.map((rule, index) => (
+          {(value.rules || []).map((rule, index) => (
             <div key={index} className="border rounded-lg p-4 bg-gray-50">
               <div className="grid grid-cols-12 gap-3 items-center">
                 {/* Operador lógico (exceto primeira regra) */}
@@ -228,7 +228,7 @@ export function QueryBuilderComponent({
         </div>
       )}
 
-      {value.rules.length > 1 && (
+      {(value.rules && value.rules.length > 1) && (
         <div className="border-t pt-4">
           <div className="flex items-center space-x-4">
             <span className="text-sm font-medium">Operador lógico global:</span>
