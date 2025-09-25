@@ -477,191 +477,193 @@ export default function AutomationRuleBuilder({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          {/* Informações Básicas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações da Regra</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="rule-name">Nome da Regra</Label>
-                  <Input
-                    id="rule-name"
-                    value={rule.name}
-                    onChange={(e) => setRule({...rule, name: e.target.value})}
-                    placeholder="Ex: Resposta automática para urgente"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rule-priority">Prioridade</Label>
-                  <Select value={rule.priority.toString()} onValueChange={(value) => setRule({...rule, priority: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 - Mais alta</SelectItem>
-                      <SelectItem value="2">2 - Alta</SelectItem>
-                      <SelectItem value="3">3 - Normal</SelectItem>
-                      <SelectItem value="4">4 - Baixa</SelectItem>
-                      <SelectItem value="5">5 - Mais baixa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="rule-description">Descrição</Label>
-                <Textarea
-                  id="rule-description"
-                  value={rule.description}
-                  onChange={(e) => setRule({...rule, description: e.target.value})}
-                  placeholder="Descreva o que esta regra faz..."
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="rule-enabled"
-                  checked={rule.enabled}
-                  onCheckedChange={(enabled) => setRule({...rule, enabled})}
-                />
-                <Label htmlFor="rule-enabled">Regra ativa</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="ai-enabled"
-                  checked={rule.aiEnabled}
-                  onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
-                />
-                <Label htmlFor="ai-enabled">Usar análise de IA</Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tabs para Condições e Ações */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="conditions">Condições</TabsTrigger>
-              <TabsTrigger value="actions">Ações</TabsTrigger>
-            </TabsList>
-
-            {/* Tab de Condições */}
-            <TabsContent value="conditions">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Filter className="w-5 h-5" />
-                    Condições da Regra
-                  </CardTitle>
-                  <CardDescription>
-                    Configure quando esta regra deve ser executada usando o Query Builder avançado.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <QueryBuilderComponent
-                    value={rule.conditions}
-                    onChange={(conditions) => setRule({...rule, conditions})}
-                    fieldOptions={omnibridgeFields}
-                    operatorOptions={omnibridgeOperators}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab de Ações */}
-            <TabsContent value="actions">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    Ações da Regra
-                  </CardTitle>
-                  <CardDescription>
-                    Configure o que acontece quando as condições são atendidas.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Ações Configuradas */}
-                  {rule.actions.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Ações Configuradas:</h4>
-                      {rule.actions.map((action, index) => (
-                        <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${action.color}`}>
-                              <action.icon className="w-4 h-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium">{action.name}</p>
-                              <p className="text-sm text-gray-600">{action.description}</p>
-                            </div>
-                            <Badge variant="outline">#{index + 1}</Badge>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeAction(action.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  {/* Templates de Ações */}
+        <ScrollArea className="h-[calc(90vh-100px)] pr-2"> {/* Ajustado para acomodar o cabeçalho e rodapé */}
+          <div className="flex flex-col gap-4 px-2 pb-4">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Informações da Regra</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-medium mb-3">Adicionar Ação:</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {actionTemplates.map((template) => (
-                        <Button
-                          key={template.type}
-                          variant="outline"
-                          className="justify-start h-auto p-3"
-                          onClick={() => addAction(template)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${template.color}`}>
-                              <template.icon className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="text-left">
-                              <p className="font-medium text-sm">{template.name}</p>
-                              <p className="text-xs text-gray-600">{template.description}</p>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
+                    <Label htmlFor="rule-name">Nome da Regra</Label>
+                    <Input
+                      id="rule-name"
+                      value={rule.name}
+                      onChange={(e) => setRule({...rule, name: e.target.value})}
+                      placeholder="Ex: Resposta automática para urgente"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  <div>
+                    <Label htmlFor="rule-priority">Prioridade</Label>
+                    <Select value={rule.priority.toString()} onValueChange={(value) => setRule({...rule, priority: parseInt(value)})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 - Mais alta</SelectItem>
+                        <SelectItem value="2">2 - Alta</SelectItem>
+                        <SelectItem value="3">3 - Normal</SelectItem>
+                        <SelectItem value="4">4 - Baixa</SelectItem>
+                        <SelectItem value="5">5 - Mais baixa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-          {/* Botões de Ação */}
-          <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setActiveTab(activeTab === 'conditions' ? 'actions' : 'conditions')}>
-                {activeTab === 'conditions' ? 'Configurar Ações' : 'Voltar às Condições'}
+                <div>
+                  <Label htmlFor="rule-description">Descrição</Label>
+                  <Textarea
+                    id="rule-description"
+                    value={rule.description}
+                    onChange={(e) => setRule({...rule, description: e.target.value})}
+                    placeholder="Descreva o que esta regra faz..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="rule-enabled"
+                    checked={rule.enabled}
+                    onCheckedChange={(enabled) => setRule({...rule, enabled})}
+                  />
+                  <Label htmlFor="rule-enabled">Regra ativa</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ai-enabled"
+                    checked={rule.aiEnabled}
+                    onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
+                  />
+                  <Label htmlFor="ai-enabled">Usar análise de IA</Label>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tabs para Condições e Ações */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="conditions">Condições</TabsTrigger>
+                <TabsTrigger value="actions">Ações</TabsTrigger>
+              </TabsList>
+
+              {/* Tab de Condições */}
+              <TabsContent value="conditions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Filter className="w-5 h-5" />
+                      Condições da Regra
+                    </CardTitle>
+                    <CardDescription>
+                      Configure quando esta regra deve ser executada usando o Query Builder avançado.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <QueryBuilderComponent
+                      value={rule.conditions}
+                      onChange={(conditions) => setRule({...rule, conditions})}
+                      fieldOptions={omnibridgeFields}
+                      operatorOptions={omnibridgeOperators}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab de Ações */}
+              <TabsContent value="actions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="w-5 h-5" />
+                      Ações da Regra
+                    </CardTitle>
+                    <CardDescription>
+                      Configure o que acontece quando as condições são atendidas.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Ações Configuradas */}
+                    {rule.actions.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-medium">Ações Configuradas:</h4>
+                        {rule.actions.map((action, index) => (
+                          <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${action.color}`}>
+                                <action.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{action.name}</p>
+                                <p className="text-sm text-gray-600">{action.description}</p>
+                              </div>
+                              <Badge variant="outline">#{index + 1}</Badge>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeAction(action.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    {/* Templates de Ações */}
+                    <div>
+                      <h4 className="font-medium mb-3">Adicionar Ação:</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {actionTemplates.map((template) => (
+                          <Button
+                            key={template.type}
+                            variant="outline"
+                            className="justify-start h-auto p-3"
+                            onClick={() => addAction(template)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${template.color}`}>
+                                <template.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <p className="font-medium text-sm">{template.name}</p>
+                                <p className="text-xs text-gray-600">{template.description}</p>
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+
+            {/* Botões de Ação */}
+            <div className="flex justify-between pt-4 border-t">
+              <Button variant="outline" onClick={onClose}>
+                Cancelar
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={saveRuleMutation.isPending}
-              >
-                {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setActiveTab(activeTab === 'conditions' ? 'actions' : 'conditions')}>
+                  {activeTab === 'conditions' ? 'Configurar Ações' : 'Voltar às Condições'}
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={saveRuleMutation.isPending}
+                >
+                  {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
 
         {/* Dialog de Configuração de Ação */}
         <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
