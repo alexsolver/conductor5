@@ -8,6 +8,7 @@ import { GetMessagesUseCase } from './application/use-cases/GetMessagesUseCase';
 import { ProcessMessageUseCase } from './application/use-cases/ProcessMessageUseCase';
 import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository';
 import { DrizzleMessageRepository } from './infrastructure/repositories/DrizzleMessageRepository';
+import { createAiAgentRoutes } from './routes/aiAgentRoutes';
 
 const router = Router();
 
@@ -1126,5 +1127,8 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to test AI prompt' });
   }
 });
+
+// AI Agent routes
+router.use('/ai', jwtAuth, createAiAgentRoutes());
 
 export { router as omniBridgeRoutes };
