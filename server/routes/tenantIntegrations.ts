@@ -1265,4 +1265,784 @@ async function processTelegramCallback(tenantId: string, callbackQuery: any) {
   }
 }
 
+// ===========================
+// REAL INTEGRATION TEST FUNCTIONS
+// ===========================
+
+/**
+ * Test Gmail OAuth2 Integration
+ */
+async function testGmailOAuth2(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [GMAIL-TEST] Starting Gmail OAuth2 test`);
+    
+    if (!config.accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access Token não configurado. Configure OAuth2 primeiro.'
+      });
+    }
+
+    // Test Gmail API - Get user profile
+    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${config.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const profile = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Gmail OAuth2 realizado com sucesso!',
+        details: {
+          email: profile.emailAddress,
+          messagesTotal: profile.messagesTotal,
+          threadsTotal: profile.threadsTotal,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Gmail: ${error.error?.message || 'Token inválido'}`,
+        details: { error: error.error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [GMAIL-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao testar Gmail OAuth2',
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Outlook OAuth2 Integration
+ */
+async function testOutlookOAuth2(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [OUTLOOK-TEST] Starting Outlook OAuth2 test`);
+    
+    if (!config.accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access Token não configurado. Configure OAuth2 primeiro.'
+      });
+    }
+
+    // Test Microsoft Graph API - Get user profile
+    const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${config.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const profile = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Outlook OAuth2 realizado com sucesso!',
+        details: {
+          email: profile.mail || profile.userPrincipalName,
+          displayName: profile.displayName,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Outlook: ${error.error?.message || 'Token inválido'}`,
+        details: { error: error.error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [OUTLOOK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao testar Outlook OAuth2',
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Email SMTP Integration
+ */
+async function testEmailSMTP(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [SMTP-TEST] Starting SMTP test`);
+    
+    const { serverHost, serverPort, username, password, useSSL } = config;
+    
+    if (!serverHost || !serverPort || !username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Configuração SMTP incompleta. Configure servidor, porta, usuário e senha.'
+      });
+    }
+
+    // Import nodemailer for real SMTP testing
+    const nodemailer = require('nodemailer');
+    
+    const transporter = nodemailer.createTransporter({
+      host: serverHost,
+      port: parseInt(serverPort),
+      secure: useSSL === true,
+      auth: {
+        user: username,
+        pass: password
+      }
+    });
+
+    // Verify SMTP connection
+    await transporter.verify();
+    
+    // Send test email
+    const testEmail = {
+      from: username,
+      to: username, // Send to self for testing
+      subject: `🧪 Teste SMTP - Conductor (${new Date().toLocaleString('pt-BR')})`,
+      text: `Este é um teste de conexão SMTP.\n\nTenant: ${tenantId}\nTimestamp: ${new Date().toISOString()}\n\nSe você recebeu este email, a integração SMTP está funcionando corretamente.`
+    };
+
+    const info = await transporter.sendMail(testEmail);
+    
+    return res.json({
+      success: true,
+      message: '✅ Teste do Email SMTP realizado com sucesso! Email de teste enviado.',
+      details: {
+        messageId: info.messageId,
+        server: `${serverHost}:${serverPort}`,
+        secure: useSSL,
+        timestamp: new Date().toISOString(),
+        status: 'sent'
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [SMTP-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar SMTP: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test IMAP Email Integration
+ */
+async function testIMAPEmail(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [IMAP-TEST] Starting IMAP test`);
+    
+    const { imapServer, imapPort, emailAddress, password, imapSecurity } = config;
+    
+    if (!imapServer || !imapPort || !emailAddress || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Configuração IMAP incompleta. Configure servidor, porta, email e senha.'
+      });
+    }
+
+    // Import imap for real IMAP testing
+    const Imap = require('imap');
+    
+    const imapConfig = {
+      user: emailAddress,
+      password: password,
+      host: imapServer,
+      port: parseInt(imapPort),
+      tls: imapSecurity === 'SSL/TLS',
+      tlsOptions: { rejectUnauthorized: false }
+    };
+
+    return new Promise((resolve) => {
+      const imap = new Imap(imapConfig);
+      
+      imap.once('ready', () => {
+        imap.openBox('INBOX', true, (err: any, box: any) => {
+          if (err) {
+            resolve(res.status(400).json({
+              success: false,
+              message: `Erro ao abrir INBOX: ${err.message}`,
+              details: { error: err.message }
+            }));
+            return;
+          }
+          
+          imap.end();
+          resolve(res.json({
+            success: true,
+            message: '✅ Teste do IMAP Email realizado com sucesso! Conexão estabelecida.',
+            details: {
+              server: `${imapServer}:${imapPort}`,
+              account: emailAddress,
+              totalMessages: box.messages.total,
+              security: imapSecurity,
+              timestamp: new Date().toISOString(),
+              status: 'connected'
+            }
+          }));
+        });
+      });
+
+      imap.once('error', (err: any) => {
+        resolve(res.status(400).json({
+          success: false,
+          message: `Erro na conexão IMAP: ${err.message}`,
+          details: { error: err.message }
+        }));
+      });
+
+      imap.connect();
+    });
+  } catch (error: any) {
+    console.error(`❌ [IMAP-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar IMAP: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test WhatsApp Business Integration
+ */
+async function testWhatsAppBusiness(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [WHATSAPP-TEST] Starting WhatsApp Business test`);
+    
+    const { whatsappApiKey, whatsappPhoneNumberId } = config;
+    
+    if (!whatsappApiKey || !whatsappPhoneNumberId) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key e Phone Number ID são obrigatórios para WhatsApp Business.'
+      });
+    }
+
+    // Test WhatsApp Business API - Get phone number info
+    const response = await fetch(`https://graph.facebook.com/v18.0/${whatsappPhoneNumberId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${whatsappApiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const phoneInfo = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do WhatsApp Business realizado com sucesso!',
+        details: {
+          phoneNumber: phoneInfo.display_phone_number,
+          status: phoneInfo.verified_name,
+          phoneNumberId: whatsappPhoneNumberId,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do WhatsApp: ${error.error?.message || 'Token inválido'}`,
+        details: { error: error.error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [WHATSAPP-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar WhatsApp Business: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Slack Integration
+ */
+async function testSlack(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [SLACK-TEST] Starting Slack test`);
+    
+    const { accessToken } = config;
+    
+    if (!accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access Token não configurado para Slack.'
+      });
+    }
+
+    // Test Slack API - auth.test
+    const response = await fetch('https://slack.com/api/auth.test', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.ok) {
+      return res.json({
+        success: true,
+        message: '✅ Teste do Slack realizado com sucesso!',
+        details: {
+          team: result.team,
+          user: result.user,
+          teamId: result.team_id,
+          userId: result.user_id,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Slack: ${result.error}`,
+        details: { error: result.error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [SLACK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Slack: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Twilio SMS Integration
+ */
+async function testTwilioSMS(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [TWILIO-TEST] Starting Twilio SMS test`);
+    
+    const { accountSid, authToken, fromPhoneNumber } = config;
+    
+    if (!accountSid || !authToken || !fromPhoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Account SID, Auth Token e número de telefone são obrigatórios.'
+      });
+    }
+
+    // Test Twilio API - Get account info
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+    
+    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    if (response.ok) {
+      const account = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Twilio SMS realizado com sucesso!',
+        details: {
+          accountSid: account.sid,
+          friendlyName: account.friendly_name,
+          status: account.status,
+          fromPhoneNumber: fromPhoneNumber,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Twilio: ${error.message}`,
+        details: { error: error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [TWILIO-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Twilio SMS: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Zapier Integration
+ */
+async function testZapier(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [ZAPIER-TEST] Starting Zapier test`);
+    
+    const { webhookUrl } = config;
+    
+    if (!webhookUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Webhook URL não configurada para Zapier.'
+      });
+    }
+
+    // Test webhook by sending a test payload
+    const testPayload = {
+      test: true,
+      tenantId: tenantId,
+      timestamp: new Date().toISOString(),
+      message: 'Teste de integração Zapier do Conductor',
+      data: {
+        event: 'test',
+        source: 'conductor-integration-test'
+      }
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Conductor-Zapier-Test/1.0'
+      },
+      body: JSON.stringify(testPayload)
+    });
+
+    if (response.ok || response.status === 200 || response.status === 202) {
+      return res.json({
+        success: true,
+        message: '✅ Teste do Zapier realizado com sucesso! Webhook enviado.',
+        details: {
+          webhookUrl: webhookUrl.substring(0, 50) + '...',
+          responseStatus: response.status,
+          timestamp: new Date().toISOString(),
+          status: 'sent'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Webhook falhou com status ${response.status}`,
+        details: { status: response.status, statusText: response.statusText }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [ZAPIER-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Zapier: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Webhooks Integration
+ */
+async function testWebhooks(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [WEBHOOK-TEST] Starting Webhook test`);
+    
+    const { webhookUrl } = config;
+    
+    if (!webhookUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Webhook URL não configurada.'
+      });
+    }
+
+    // Test webhook endpoint
+    const testPayload = {
+      test: true,
+      tenantId: tenantId,
+      timestamp: new Date().toISOString(),
+      event: 'integration_test',
+      data: {
+        message: 'Teste de webhook do Conductor',
+        source: 'conductor-webhook-test'
+      }
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Conductor-Event': 'test',
+        'User-Agent': 'Conductor-Webhook/1.0'
+      },
+      body: JSON.stringify(testPayload)
+    });
+
+    if (response.ok || response.status === 200 || response.status === 202) {
+      return res.json({
+        success: true,
+        message: '✅ Teste do Webhook realizado com sucesso!',
+        details: {
+          webhookUrl: webhookUrl.substring(0, 50) + '...',
+          responseStatus: response.status,
+          timestamp: new Date().toISOString(),
+          status: 'delivered'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Webhook falhou com status ${response.status}`,
+        details: { status: response.status, statusText: response.statusText }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [WEBHOOK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Webhook: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test CRM Integration
+ */
+async function testCRMIntegration(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [CRM-TEST] Starting CRM integration test`);
+    
+    const { apiKey, apiUrl, crmType } = config;
+    
+    if (!apiKey || !apiUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key e URL são obrigatórios para integração CRM.'
+      });
+    }
+
+    // Generic CRM API test
+    const response = await fetch(`${apiUrl}/api/v1/auth/verify`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste da integração CRM realizado com sucesso!',
+        details: {
+          crmType: crmType || 'Generic',
+          apiUrl: apiUrl,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do CRM (${response.status})`,
+        details: { status: response.status, statusText: response.statusText }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [CRM-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar CRM: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Dropbox Personal Integration
+ */
+async function testDropboxPersonal(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [DROPBOX-TEST] Starting Dropbox test`);
+    
+    const { dropboxAccessToken } = config;
+    
+    if (!dropboxAccessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access Token não configurado para Dropbox.'
+      });
+    }
+
+    // Test Dropbox API - Get account info
+    const response = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${dropboxAccessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: '{}'
+    });
+
+    if (response.ok) {
+      const account = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Dropbox realizado com sucesso!',
+        details: {
+          accountId: account.account_id,
+          name: account.name?.display_name,
+          email: account.email,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Dropbox: ${error.error_summary}`,
+        details: { error: error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [DROPBOX-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Dropbox: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test SSO/SAML Integration
+ */
+async function testSSOSAML(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [SSO-TEST] Starting SSO/SAML test`);
+    
+    const { metadataUrl, entityId } = config;
+    
+    if (!metadataUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Metadata URL não configurada para SSO/SAML.'
+      });
+    }
+
+    // Test SAML metadata endpoint
+    const response = await fetch(metadataUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/xml, text/xml',
+        'User-Agent': 'Conductor-SAML-Test/1.0'
+      }
+    });
+
+    if (response.ok) {
+      const metadata = await response.text();
+      const hasEntityDescriptor = metadata.includes('EntityDescriptor');
+      const hasIDPSSODescriptor = metadata.includes('IDPSSODescriptor');
+      
+      return res.json({
+        success: true,
+        message: '✅ Teste do SSO/SAML realizado com sucesso!',
+        details: {
+          metadataUrl: metadataUrl,
+          entityId: entityId,
+          validMetadata: hasEntityDescriptor && hasIDPSSODescriptor,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Erro ao acessar metadata SAML (${response.status})`,
+        details: { status: response.status, statusText: response.statusText }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [SSO-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar SSO/SAML: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Google Workspace Integration
+ */
+async function testGoogleWorkspace(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [WORKSPACE-TEST] Starting Google Workspace test`);
+    
+    const { accessToken } = config;
+    
+    if (!accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access Token não configurado para Google Workspace.'
+      });
+    }
+
+    // Test Google Workspace API - Get user info
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const userInfo = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Google Workspace realizado com sucesso!',
+        details: {
+          email: userInfo.email,
+          name: userInfo.name,
+          verified: userInfo.verified_email,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      return res.status(400).json({
+        success: false,
+        message: `Erro na API do Google: ${error.error_description}`,
+        details: { error: error }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [WORKSPACE-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Google Workspace: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
 export default router;
