@@ -125,14 +125,14 @@ export class CreateNotificationUseCase {
       errors.push('Tenant ID is required');
     }
 
-    // Ensure userId is set - use system user for automation if not provided
-    if (!request.userId) {
-      if (request.type === 'automation_notification') {
-        // Auto-assign system automation user
-        (request as any).userId = '550e8400-e29b-41d4-a716-446655440001';
-      } else {
-        errors.push('User ID is required');
-      }
+    // For automation notifications, we can use a system user ID if no specific user is provided
+    let userId = request.userId;
+    if (!userId && request.type === 'automation_notification') {
+      userId = '550e8400-e29b-41d4-a716-446655440001'; // System automation user
+    }
+
+    if (!userId) {
+      errors.push('User ID is required');
     }
 
     if (!request.type) {
