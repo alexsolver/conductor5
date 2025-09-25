@@ -679,6 +679,34 @@ app.use((req, res, next) => {
           } else {
             console.log('⚠️ [BACKGROUND-INIT] Tenant validation disabled (TENANT_VALIDATION_MODE=off)');
           }
+
+          // Start OmniBridge monitoring after tenant detection with proper error handling
+          try {
+            const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+            console.log('🚀 [SERVER-INIT] Starting OmniBridge email monitoring...');
+
+            // Force initialization with explicit tenant ID
+            const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
+            console.log(`🎯 [SERVER-INIT] Explicitly initializing for tenant: ${tenantId}`);
+
+            await omniBridgeAutoStart.initializeOmniBridge();
+
+            // Force immediate email check after initialization
+            setTimeout(async () => {
+              try {
+                console.log('🔄 [SERVER-INIT] Forcing immediate email detection...');
+                await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
+                console.log('✅ [SERVER-INIT] Immediate email detection completed');
+              } catch (immediateError) {
+                console.error('❌ [SERVER-INIT] Immediate email detection failed:', immediateError);
+              }
+            }, 3000);
+
+            console.log('✅ [SERVER-INIT] OmniBridge email monitoring started successfully');
+          } catch (error) {
+            console.error('❌ [SERVER-INIT] Failed to start OmniBridge email monitoring:', error);
+          }
+
         } catch (error) {
           console.error('❌ [BACKGROUND-INIT] Background initialization failed:', error);
           // Don't crash the server - just log the error
