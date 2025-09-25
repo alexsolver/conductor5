@@ -65,6 +65,7 @@ import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
+import AiAgentsManager from '@/components/omnibridge/AiAgentsManager';
 
 
 
@@ -1171,45 +1172,7 @@ export default function OmniBridge() {
 
         {/* AI Agents Tab - Conversational Agents Manager */}
         <TabsContent value="ai-agents" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                Agentes Conversacionais IA
-              </CardTitle>
-              <CardDescription>
-                Configure agentes IA para automatizar respostas através de conversas naturais e menus interativos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Agentes IA em Desenvolvimento</h3>
-                <p className="text-muted-foreground mb-4">
-                  Os agentes conversacionais estão sendo implementados para automatizar
-                  respostas através de linguagem natural e menus interativos.
-                </p>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Sistema de mensagens integrado</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Motor conversacional implementado</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <Clock className="h-4 w-4 text-yellow-500" />
-                    <span>Interface de gerenciamento em desenvolvimento</span>
-                  </div>
-                </div>
-                <Button className="mt-6" variant="outline" disabled data-testid="button-create-agent">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Novo Agente
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <AiAgentsManager />
         </TabsContent>
 
         {/* Settings Tab */}
