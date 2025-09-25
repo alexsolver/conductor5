@@ -640,46 +640,53 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
       }
     }
 
-    // ✅ IMPROVED: Better handling for other integration types
+    // ✅ REAL TESTS: Implement real API tests for all integrations
+    const config = configResult.config;
+    
     switch (integrationId) {
       case 'gmail-oauth2':
-        return res.json({ 
-          success: true, 
-          message: '✅ Teste do Gmail OAuth2 realizado com sucesso!',
-          details: {
-            timestamp: new Date().toISOString(),
-            status: 'simulated'
-          }
-        });
+        return await testGmailOAuth2(config, res, tenantId);
+
+      case 'outlook-oauth2':
+        return await testOutlookOAuth2(config, res, tenantId);
 
       case 'email-smtp':
-        return res.json({
-          success: true,
-          message: '✅ Teste do Email SMTP realizado com sucesso!',
-          details: {
-            timestamp: new Date().toISOString(),
-            status: 'simulated'
-          }
-        });
+        return await testEmailSMTP(config, res, tenantId);
 
       case 'imap-email':
-        return res.json({
-          success: true,
-          message: '✅ Teste do IMAP Email realizado com sucesso!',
-          details: {
-            timestamp: new Date().toISOString(),
-            status: 'simulated'
-          }
-        });
+        return await testIMAPEmail(config, res, tenantId);
+
+      case 'whatsapp-business':
+        return await testWhatsAppBusiness(config, res, tenantId);
+
+      case 'slack':
+        return await testSlack(config, res, tenantId);
+
+      case 'twilio-sms':
+        return await testTwilioSMS(config, res, tenantId);
+
+      case 'zapier':
+        return await testZapier(config, res, tenantId);
+
+      case 'webhooks':
+        return await testWebhooks(config, res, tenantId);
+
+      case 'crm-integration':
+        return await testCRMIntegration(config, res, tenantId);
+
+      case 'dropbox-personal':
+        return await testDropboxPersonal(config, res, tenantId);
+
+      case 'sso-saml':
+        return await testSSOSAML(config, res, tenantId);
+
+      case 'google-workspace':
+        return await testGoogleWorkspace(config, res, tenantId);
 
       default:
-        return res.json({ 
-          success: true, 
-          message: `✅ Teste da integração ${integrationId} realizado com sucesso!`,
-          details: {
-            timestamp: new Date().toISOString(),
-            status: 'simulated'
-          }
+        return res.status(400).json({ 
+          success: false, 
+          message: `Integração ${integrationId} não suportada para teste real.`
         });
     }
   } catch (error: any) {
