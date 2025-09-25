@@ -77,7 +77,7 @@ const UserMultiSelect = ({ value, onChange, users, placeholder }) => {
             {value.map(user => (
               <Badge key={user.id} variant="outline" className="pr-2">
                 {user.name}
-                <button 
+                <button
                   onClick={() => onChange(value.filter(u => u.id !== user.id))}
                   className="ml-1 font-semibold text-red-500 hover:text-red-700"
                 >
@@ -439,42 +439,31 @@ export default function AutomationRuleBuilder({
 
   // Confirmar configuração da ação
   const confirmActionConfig = () => {
-    if (currentAction) {
-      let actionIndex = rule.actions.findIndex(a => a.id === currentAction.id);
+    if (!currentAction) return;
 
-      // Fallback para editingActionIndex se ID lookup falhar
-      if (actionIndex === -1 && editingActionIndex >= 0 && editingActionIndex < rule.actions.length) {
-        actionIndex = editingActionIndex;
-      }
-
-      if (actionIndex >= 0) {
-        // Editar ação existente
-        setRule(prev => {
-          const newActions = [...prev.actions];
-          newActions[actionIndex] = {
-            ...newActions[actionIndex],
-            config: actionConfig
-          };
-          return { ...prev, actions: newActions };
-        });
-      } else {
-        // Adicionar nova ação
-        const updatedAction = {
-          ...currentAction,
-          config: actionConfig
-        };
-
-        setRule(prev => ({
-          ...prev,
-          actions: [...prev.actions, updatedAction]
-        }));
-      }
-
-      setShowActionConfig(false);
-      setCurrentAction(null);
-      setActionConfig({});
-      setEditingActionIndex(-1);
+    // Process users array to string for send_notification action
+    let processedConfig = { ...actionConfig };
+    if (currentAction.type === 'send_notification' && Array.isArray(actionConfig.users)) {
+      processedConfig.users = actionConfig.users.join(',');
     }
+
+    const updatedAction = {
+      ...currentAction,
+      config: processedConfig
+    };
+
+    const newActions = [...rule.actions];
+    if (editingActionIndex >= 0) {
+      newActions[editingActionIndex] = updatedAction;
+    } else {
+      newActions.push(updatedAction);
+    }
+
+    setRule(prev => ({ ...prev, actions: newActions }));
+    setShowActionConfig(false);
+    setCurrentAction(null);
+    setActionConfig({});
+    setEditingActionIndex(-1);
   };
 
   // Remover ação
@@ -580,51 +569,38 @@ export default function AutomationRuleBuilder({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="notificationMessage">Mensagem da Notificação</Label>
-              <Textarea
-                id="notificationMessage"
-                placeholder="Digite a mensagem da notificação..."
-                value={actionConfig.message || actionConfig.notificationMessage || ''}
-                onChange={(e) => setActionConfig(prev => ({ ...prev, message: e.target.value, notificationMessage: e.target.value }))}
-                className="min-h-[100px]"
-              />
-            </div>
-
-            <div>
-              <Label>Usuários para Notificar</Label>
+              <Label htmlFor="notification-users">Usuários para notificar</Label>
               <UserMultiSelect
-                value={actionConfig.notifyUsers || []}
-                onChange={(users) => setActionConfig(prev => ({ ...prev, notifyUsers: users }))}
-                users={usersData?.data || []}
-                placeholder="Selecionar usuários..."
+                value={Array.isArray(actionConfig.users) ? actionConfig.users : (actionConfig.users ? actionConfig.users.split(',') : [])}
+                onChange={(userIds) => setActionConfig(prev => ({ ...prev, users: userIds }))}
+                users={Array.isArray(usersData?.users) ? usersData.users.map(user => ({
+                  id: user.id,
+                  name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email?.split('@')[0] || 'Usuário',
+                  email: user.email,
+                  role: user.role || 'Usuário'
+                })) : []}
+                placeholder="Selecione os usuários que receberão as notificações"
               />
             </div>
 
             <div>
-              <Label>Grupos para Notificar</Label>
+              <Label htmlFor="notification-groups">Grupos para notificar</Label>
               <UserGroupSelect
-                value={actionConfig.notifyGroup || ''}
-                onChange={(groupId) => setActionConfig(prev => ({ ...prev, notifyGroup: groupId }))}
-                placeholder="Selecionar grupo..."
+                value={actionConfig.groups || ''}
+                onChange={(groupId) => setActionConfig(prev => ({ ...prev, groups: groupId }))}
+                placeholder="Selecione um grupo para notificar"
               />
             </div>
 
             <div>
-              <Label htmlFor="notificationPriority">Prioridade</Label>
-              <Select 
-                value={actionConfig.priority || 'medium'} 
-                onValueChange={(value) => setActionConfig(prev => ({ ...prev, priority: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="notification-message">Mensagem da notificação</Label>
+              <Textarea
+                id="notification-message"
+                value={actionConfig.message || ''}
+                onChange={(e) => setActionConfig(prev => ({ ...prev, message: e.target.value }))}
+                placeholder="Digite a mensagem da notificação"
+                rows={3}
+              />
             </div>
           </div>
         );
@@ -850,8 +826,8 @@ export default function AutomationRuleBuilder({
                                     <div className="flex items-start space-x-4 flex-1 min-w-0">
                                       {/* Ícone com melhor destaque */}
                                       <div className={`flex-shrink-0 w-12 h-12 ${action.color || 'bg-gray-500'} rounded-xl flex items-center justify-center shadow-sm`}>
-                                        {React.createElement(actionInfo.icon, { 
-                                          className: "w-6 h-6 text-white" 
+                                        {React.createElement(actionInfo.icon, {
+                                          className: "w-6 h-6 text-white"
                                         })}
                                       </div>
 
@@ -872,7 +848,7 @@ export default function AutomationRuleBuilder({
                                           <div className="flex items-center space-x-1 text-xs text-gray-500">
                                             <Settings className="w-3 h-3" />
                                             <span>
-                                              {action.config.message ? `Mensagem: "${action.config.message.substring(0, 30)}${action.config.message.length > 30 ? '...' : ''}"` : 
+                                              {action.config.message ? `Mensagem: "${action.config.message.substring(0, 30)}${action.config.message.length > 30 ? '...' : ''}"` :
                                                action.config.users ? `Usuários: ${action.config.users}` :
                                                action.config.tags ? `Tags: ${action.config.tags}` :
                                                `${Object.keys(action.config).length} configuração(ões)`}
@@ -884,18 +860,18 @@ export default function AutomationRuleBuilder({
 
                                     {/* Botões de ação */}
                                     <div className="flex items-center space-x-1 ml-2">
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => editAction(action, index)}
                                         className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                         title="Editar configurações"
                                       >
                                         <Cog className="w-4 h-4" />
                                       </Button>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => removeAction(index)}
                                         className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Remover ação"
@@ -918,7 +894,7 @@ export default function AutomationRuleBuilder({
                       <div>
                         <h4 className="font-medium mb-3">Adicionar Ação:</h4>
                         <div className="grid grid-cols-2 gap-2">
-                          {actionTemplates.map((template) => ( 
+                          {actionTemplates.map((template) => (
                             <Button
                               key={template.type}
                               variant="outline"
@@ -937,8 +913,8 @@ export default function AutomationRuleBuilder({
                             >
                               <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-lg ${template.color}`}>
-                                  {React.createElement(template.icon, { 
-                                    className: "h-4 w-4 text-white" 
+                                  {React.createElement(template.icon, {
+                                    className: "h-4 w-4 text-white"
                                   })}
                                 </div>
                                 <div className="text-left">
@@ -962,7 +938,7 @@ export default function AutomationRuleBuilder({
                 <Button variant="outline" onClick={onClose}>
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSave}
                   disabled={saveRuleMutation.isPending || !rule.name.trim() || rule.actions.length === 0}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -998,8 +974,8 @@ export default function AutomationRuleBuilder({
               {currentAction && (
                 <>
                   <div className={`p-2 rounded-lg ${currentAction.color}`}>
-                    {React.createElement(currentAction.icon, { 
-                      className: "h-4 w-4 text-white" 
+                    {React.createElement(currentAction.icon, {
+                      className: "h-4 w-4 text-white"
                     })}
                   </div>
                   Configurar: {currentAction.name}
