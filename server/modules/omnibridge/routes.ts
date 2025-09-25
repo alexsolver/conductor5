@@ -270,6 +270,68 @@ router.get('/debug/messages', jwtAuth, async (req, res) => {
   }
 });
 
+// Conversational AI routes
+router.get('/conversational-flows', jwtAuth, async (req, res) => {
+  try {
+    const { ConversationalAIService } = await import('./infrastructure/services/ConversationalAIService');
+    const aiService = new ConversationalAIService(null as any, null as any);
+    
+    // Get all flows (in a real implementation, this would come from database)
+    const flows = [
+      {
+        id: 'order-status-flow',
+        name: 'Consulta Status do Pedido',
+        description: 'Fluxo para consultar status de pedidos',
+        triggerKeywords: ['status pedido', 'meu pedido', 'onde está', 'rastrear'],
+        enabled: true,
+        steps: [],
+        finalActions: []
+      },
+      {
+        id: 'tech-support-flow',
+        name: 'Suporte Técnico',
+        description: 'Fluxo para suporte técnico especializado',
+        triggerKeywords: ['suporte técnico', 'problema técnico', 'erro sistema'],
+        enabled: true,
+        steps: [],
+        finalActions: []
+      }
+    ];
+    
+    res.json({ success: true, flows });
+  } catch (error) {
+    console.error('[CONVERSATIONAL-AI] Error getting flows:', error);
+    res.status(500).json({ success: false, error: 'Failed to get flows' });
+  }
+});
+
+router.post('/conversational-ai/test', jwtAuth, async (req, res) => {
+  try {
+    const { message, tenantId } = req.body;
+    const { ConversationalAIService } = await import('./infrastructure/services/ConversationalAIService');
+    const { ActionExecutor } = await import('./infrastructure/services/ActionExecutor');
+    const { AIAnalysisService } = await import('./infrastructure/services/AIAnalysisService');
+    
+    const aiAnalysisService = new AIAnalysisService();
+    const actionExecutor = new ActionExecutor(aiAnalysisService);
+    const conversationalAI = new ConversationalAIService(actionExecutor, aiAnalysisService);
+    
+    const mockMessageData = {
+      content: message,
+      sender: 'test@exemplo.com',
+      channel: 'test',
+      timestamp: new Date().toISOString()
+    };
+    
+    const response = await conversationalAI.processMessage(mockMessageData, tenantId || 'test');
+    
+    res.json({ success: true, response });
+  } catch (error) {
+    console.error('[CONVERSATIONAL-AI] Test error:', error);
+    res.status(500).json({ success: false, error: 'Test failed' });
+  }
+});
+
 // Test notification action
 router.post('/debug/test-notification', jwtAuth, async (req, res) => {
   try {

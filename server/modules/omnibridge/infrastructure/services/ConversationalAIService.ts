@@ -15,6 +15,18 @@ export class ConversationalAIService {
   }
 
   private initializeDefaultFlows(): void {
+    // Import do builder de fluxos
+    const { ConversationalAIFlowBuilder } = require('./ConversationalAIFlowBuilder');
+    
+    // Fluxos personalizados
+    const orderStatusFlow = ConversationalAIFlowBuilder.createOrderStatusFlow('default');
+    const techSupportFlow = ConversationalAIFlowBuilder.createTechnicalSupportFlow('default');
+    const salesInfoFlow = ConversationalAIFlowBuilder.createSalesInfoFlow('default');
+    
+    this.flows.set(orderStatusFlow.id, orderStatusFlow);
+    this.flows.set(techSupportFlow.id, techSupportFlow);
+    this.flows.set(salesInfoFlow.id, salesInfoFlow);
+
     // Fluxo para criação de ticket
     const createTicketFlow: ConversationFlow = {
       id: 'create-ticket-flow',

@@ -65,6 +65,7 @@ import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
+import ConversationalAIManager from '@/components/omnibridge/ConversationalAIManager'; // Import the new manager
 
 
 
@@ -1022,27 +1023,14 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="inbox" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Inbox
-          </TabsTrigger>
-          <TabsTrigger value="automation" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Automação
-          </TabsTrigger>
-          <TabsTrigger value="channels" className="flex items-center gap-2">
-            <Phone className="h-4 w-4" />
-            Canais
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            Configurações
-          </TabsTrigger>
-          <TabsTrigger value="ai-config" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            Configuração IA
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="inbox">📥 Inbox</TabsTrigger>
+          <TabsTrigger value="automation">🤖 Automação</TabsTrigger>
+          <TabsTrigger value="conversational-ai">🗣️ IA Conversacional</TabsTrigger>
+          <TabsTrigger value="channels">📡 Canais</TabsTrigger>
+          <TabsTrigger value="templates">📝 Templates</TabsTrigger>
+          <TabsTrigger value="ai-config">🧠 Config. IA</TabsTrigger>
+          <TabsTrigger value="settings">⚙️ Configurações</TabsTrigger>
         </TabsList>
 
         {/* Inbox Tab */}
@@ -1161,192 +1149,13 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Automation Tab - Advanced Rules Builder */}
-        <TabsContent value="automation" className="h-full">
+        <TabsContent value="automation" className="mt-6">
           <AutomationRules />
         </TabsContent>
 
         {/* Conversational AI Tab */}
-        <TabsContent value="conversational-ai" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                IA Conversacional
-              </CardTitle>
-              <CardDescription>
-                Configure fluxos conversacionais para interação automatizada com clientes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Status da IA Conversacional */}
-              <div className="grid grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-2xl font-bold text-green-600">Ativo</div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-2xl font-bold">0</div>
-                    <p className="text-sm text-muted-foreground">Conversas Ativas</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-2xl font-bold">2</div>
-                    <p className="text-sm text-muted-foreground">Fluxos Disponíveis</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-2xl font-bold">0</div>
-                    <p className="text-sm text-muted-foreground">Interações Hoje</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Fluxos Conversacionais */}
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Fluxos Conversacionais</h3>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Fluxo
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">Criar Ticket</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Fluxo conversacional para criação de tickets
-                          </p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="secondary">criar ticket</Badge>
-                            <Badge variant="secondary">novo ticket</Badge>
-                            <Badge variant="secondary">problema</Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-green-600">
-                            ✅ Ativo
-                          </Badge>
-                          <Switch defaultChecked />
-                        </div>
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Play className="h-4 w-4 mr-2" />
-                          Testar
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Editar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">Agendar Atendimento</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Fluxo para agendamento de atendimento técnico
-                          </p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="secondary">agendar</Badge>
-                            <Badge variant="secondary">marcar horário</Badge>
-                            <Badge variant="secondary">visita técnica</Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-green-600">
-                            ✅ Ativo
-                          </Badge>
-                          <Switch defaultChecked />
-                        </div>
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Play className="h-4 w-4 mr-2" />
-                          Testar
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Editar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Como Funciona */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="h-5 w-5" />
-                    Como Funciona a IA Conversacional
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Detecção de Intenção</h4>
-                        <p className="text-sm text-muted-foreground">
-                          O sistema identifica palavras-chave na mensagem do cliente e ativa o fluxo correspondente
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Coleta de Informações</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Apresenta menus interativos e coleta informações necessárias passo a passo
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Execução de Ações</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Executa automaticamente as ações configuradas (criar ticket, agendar, notificar, etc.)
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-semibold">
-                        ✓
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Confirmação</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Confirma a conclusão do processo e informa o resultado ao cliente
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+        <TabsContent value="conversational-ai" className="mt-6">
+          <ConversationalAIManager />
         </TabsContent>
 
         {/* Configuração IA Tab */}
