@@ -281,16 +281,17 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
   private mapRowToEntity(row: any): AutomationRule {
     // Parse JSON fields safely
-    const parseJsonField = (field: any, defaultValue: any = {}) => {
+    const parseJsonField = (field: any, defaultValue: any = {}): any => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field);
+          const parsed = JSON.parse(field);
+          return parsed !== null ? parsed : defaultValue;
         } catch (e) {
-          console.warn(`Failed to parse JSON field: ${field}`);
+          console.warn(`Failed to parse JSON field: ${field}. Error: ${e}`);
           return defaultValue;
         }
       }
-      return field || defaultValue;
+      return field !== null && field !== undefined ? field : defaultValue;
     };
 
     // Convert backend data to frontend format
@@ -298,10 +299,10 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     const actionsFromDb = parseJsonField(row.actions, []);
 
     // Convert trigger object to triggers array with proper format for frontend
-    let triggersForFrontend = [];
+    let conditions = [];
     if (triggerFromDb && triggerFromDb.conditions && Array.isArray(triggerFromDb.conditions)) {
       // Legacy format: trigger.conditions array -> convert to triggers array
-      triggersForFrontend = triggerFromDb.conditions.map((condition: any, index: number) => ({
+      conditions = triggerFromDb.conditions.map((condition: any, index: number) => ({
         id: condition.id || `trigger_${Date.now()}_${index}`,
         type: condition.type || 'keyword',
         name: this.getDisplayNameForTriggerType(condition.type || 'keyword'),
@@ -317,7 +318,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       }));
     } else if (triggerFromDb && Object.keys(triggerFromDb).length > 0) {
       // Single trigger object -> convert to triggers array
-      triggersForFrontend = [{
+      conditions = [{
         id: triggerFromDb.id || `trigger_${Date.now()}`,
         type: triggerFromDb.type === 'keyword_match' ? 'keyword' : (triggerFromDb.type || 'keyword'),
         name: this.getDisplayNameForTriggerType(triggerFromDb.type || 'keyword'),
@@ -339,6 +340,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
       name: this.getDisplayNameForActionType(action.type),
       description: this.getDescriptionForActionType(action.type),
+      icon: this.getIconForActionType(action.type),
+      color: this.getColorForActionType(action.type),
       config: {
         message: action.params?.message || '',
         template: action.params?.template || '',
@@ -350,25 +353,25 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`);
     console.log(`   - Trigger from DB:`, triggerFromDb);
-    console.log(`   - Triggers for frontend:`, triggersForFrontend);
+    console.log(`   - Conditions for frontend:`, conditions);
     console.log(`   - Actions for frontend:`, actionsForFrontend);
 
     return new AutomationRule(
       row.id,
-      row.tenant_id || row.tenantId,
+      row.tenantId,
       row.name,
       row.description || '',
-      triggersForFrontend, // Convert to proper frontend format
-      actionsForFrontend, // Convert to proper frontend format
+      conditions, // Use converted conditions
+      actionsForFrontend, // Use converted actions
       row.enabled,
       row.priority || 1,
-      row.ai_enabled || row.aiEnabled || false,
-      row.ai_prompt_id || row.aiPromptId,
-      row.execution_count || row.executionCount || 0,
-      row.success_count || row.successCount || 0,
-      row.last_executed || row.lastExecuted,
-      row.created_at || row.createdAt,
-      row.updated_at || row.updatedAt
+      row.aiEnabled || false,
+      row.aiPromptId,
+      row.executionCount || 0,
+      row.successCount || 0,
+      row.lastExecuted ? new Date(row.lastExecuted) : undefined,
+      row.createdAt ? new Date(row.createdAt) : new Date(),
+      row.updatedAt ? new Date(row.updatedAt) : new Date()
     );
   }
 
@@ -424,33 +427,68 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     return mapping[type] || 'Gatilho personalizado';
   }
 
+  // ✅ 1QA.MD: Métodos auxiliares para mapeamento de dados
   private getDisplayNameForActionType(type: string): string {
-    const mapping: Record<string, string> = {
+    const names: { [key: string]: string } = {
       'auto_reply': 'Resposta automática',
-      'send_auto_reply': 'Resposta automática',
-      'create_ticket': 'Criar ticket',
       'send_notification': 'Enviar notificação',
+      'create_ticket': 'Criar ticket',
       'forward_message': 'Encaminhar mensagem',
       'add_tags': 'Adicionar tags',
-      'assign_agent': 'Designar agente',
+      'assign_agent': 'Atribuir agente',
       'mark_priority': 'Marcar prioridade',
+      'ai_response': 'Resposta com IA',
+      'escalate': 'Escalar',
       'archive': 'Arquivar'
     };
-    return mapping[type] || 'Ação personalizada';
+    return names[type] || type;
   }
 
   private getDescriptionForActionType(type: string): string {
-    const mapping: Record<string, string> = {
+    const descriptions: { [key: string]: string } = {
       'auto_reply': 'Envia resposta pré-definida',
-      'send_auto_reply': 'Envia resposta pré-definida',
-      'create_ticket': 'Cria um novo ticket',
-      'send_notification': 'Envia notificação',
+      'send_notification': 'Notifica equipe responsável',
+      'create_ticket': 'Cria ticket automaticamente',
       'forward_message': 'Encaminha para outro agente',
       'add_tags': 'Categoriza com tags',
       'assign_agent': 'Designa agente específico',
       'mark_priority': 'Define nível de prioridade',
+      'ai_response': 'Gera resposta usando IA',
+      'escalate': 'Escala para supervisor',
       'archive': 'Move para arquivo'
     };
-    return mapping[type] || 'Ação personalizada';
+    return descriptions[type] || type;
+  }
+
+  private getIconForActionType(type: string): string {
+    const icons: { [key: string]: string } = {
+      'auto_reply': 'Reply',
+      'send_notification': 'Bell',
+      'create_ticket': 'FileText',
+      'forward_message': 'Forward',
+      'add_tags': 'Tag',
+      'assign_agent': 'Users',
+      'mark_priority': 'Star',
+      'ai_response': 'Brain',
+      'escalate': 'ArrowRight',
+      'archive': 'Archive'
+    };
+    return icons[type] || 'Settings';
+  }
+
+  private getColorForActionType(type: string): string {
+    const colors: { [key: string]: string } = {
+      'auto_reply': 'bg-blue-500',
+      'send_notification': 'bg-yellow-500',
+      'create_ticket': 'bg-green-500',
+      'forward_message': 'bg-purple-500',
+      'add_tags': 'bg-indigo-500',
+      'assign_agent': 'bg-teal-500',
+      'mark_priority': 'bg-red-500',
+      'ai_response': 'bg-pink-500',
+      'escalate': 'bg-orange-500',
+      'archive': 'bg-gray-500'
+    };
+    return colors[type] || 'bg-gray-500';
   }
 }

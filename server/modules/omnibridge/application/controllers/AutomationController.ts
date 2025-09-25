@@ -36,9 +36,26 @@ export class AutomationController {
 
       const result = await this.getAutomationRulesUseCase.execute(tenantId, filters);
 
+      // ✅ 1QA.MD: Garantir que os dados sejam retornados no formato correto para o frontend
+      const formattedRules = result.rules.map(rule => ({
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        enabled: rule.enabled,
+        conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
+        actions: rule.actions || [],
+        priority: rule.priority || 1,
+        aiEnabled: rule.aiEnabled || false,
+        createdAt: rule.createdAt,
+        updatedAt: rule.updatedAt,
+        executionCount: rule.executionCount || 0,
+        successCount: rule.successCount || 0,
+        lastExecuted: rule.lastExecuted
+      }));
+
       res.json({
         success: true,
-        data: result.rules,
+        data: formattedRules,
         total: result.total,
         stats: result.stats
       });
@@ -162,6 +179,64 @@ export class AutomationController {
       res.status(500).json({
         success: false,
         error: 'Failed to delete automation rule',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getRule(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+      const ruleId = req.params.ruleId;
+
+      if (!tenantId) {
+        console.error('❌ [AutomationController] No tenant ID found in request');
+        res.status(400).json({ success: false, error: 'Tenant ID required' });
+        return;
+      }
+
+      console.log(`🔍 [AutomationController] Getting automation rule: ${ruleId} for tenant: ${tenantId}`);
+
+      // Buscar regra individual usando o repository
+      const { DrizzleAutomationRuleRepository } = await import('../../infrastructure/repositories/DrizzleAutomationRuleRepository');
+      const repository = new DrizzleAutomationRuleRepository();
+      const rule = await repository.findById(ruleId, tenantId);
+
+      if (!rule) {
+        res.status(404).json({
+          success: false,
+          error: 'Automation rule not found'
+        });
+        return;
+      }
+
+      // ✅ 1QA.MD: Formatar dados da regra para o frontend
+      const formattedRule = {
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        enabled: rule.enabled,
+        conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
+        actions: rule.actions || [],
+        priority: rule.priority || 1,
+        aiEnabled: rule.aiEnabled || false,
+        createdAt: rule.createdAt,
+        updatedAt: rule.updatedAt,
+        executionCount: rule.executionCount || 0,
+        successCount: rule.successCount || 0,
+        lastExecuted: rule.lastExecuted
+      };
+
+      res.json({
+        success: true,
+        data: formattedRule,
+        message: 'Automation rule retrieved successfully'
+      });
+    } catch (error) {
+      console.error('❌ [AutomationController] Error getting automation rule:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get automation rule',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

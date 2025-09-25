@@ -37,24 +37,36 @@ export class AutomationRule {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,
-    public readonly name: string,
-    public readonly description: string,
-    public readonly trigger: AutomationTrigger,
-    public readonly actions: AutomationAction[],
-    public readonly enabled: boolean = true,
-    public readonly priority: number = 1,
-    public readonly aiEnabled: boolean = false,
-    public readonly aiPromptId?: string,
-    public readonly executionCount: number = 0,
-    public readonly successCount: number = 0,
-    public readonly lastExecuted?: Date,
+    public name: string,
+    public description: string,
+    public conditions: any, // ✅ 1QA.MD: Usar 'conditions' para compatibilidade com frontend
+    public actions: any[], // Changed from AutomationAction[] to any[] for flexibility
+    public enabled: boolean,
+    public priority: number,
+    public aiEnabled: boolean = false,
+    public aiPromptId?: string,
+    public executionCount: number = 0,
+    public successCount: number = 0,
+    public lastExecuted?: Date,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    public updatedAt: Date = new Date()
+  ) {
+    // ✅ 1QA.MD: Manter compatibilidade com campo 'trigger' para operações de banco
+    this.trigger = conditions;
+  }
+
+  // ✅ 1QA.MD: Propriedade para compatibilidade com banco de dados
+  public get trigger(): any {
+    return this.conditions;
+  }
+
+  public set trigger(value: any) {
+    this.conditions = value;
+  }
 
   public async evaluate(
-    messageData: any, 
-    aiAnalysis?: MessageAnalysis, 
+    messageData: any,
+    aiAnalysis?: MessageAnalysis,
     aiService?: IAIAnalysisPort
   ): Promise<boolean> {
     if (!this.enabled) {
@@ -79,7 +91,7 @@ export class AutomationRule {
 
     // Avaliar trigger principal
     const triggerMatches = await this.evaluateTrigger(messageData, analysis);
-    
+
     if (!triggerMatches) {
       console.log(`❌ [AutomationRule] Rule "${this.name}" trigger did not match`);
       return false;
@@ -87,7 +99,7 @@ export class AutomationRule {
 
     // Avaliar todas as condições do trigger
     const conditionsMatch = await this.evaluateConditions(messageData, analysis);
-    
+
     if (conditionsMatch) {
       console.log(`✅ [AutomationRule] Rule "${this.name}" matched all conditions`);
     } else {
@@ -116,12 +128,12 @@ export class AutomationRule {
       case 'keyword_match':
         const content = (messageData.content || messageData.body || '').toLowerCase();
         console.log(`🔤 [AutomationRule] Checking keyword_match in content: "${content}"`);
-        
+
         if (!this.trigger.conditions || this.trigger.conditions.length === 0) {
           console.log(`⚠️ [AutomationRule] No keyword conditions found for keyword_match trigger`);
           return false;
         }
-        
+
         const keywordMatch = this.trigger.conditions.some(condition => {
           if (condition.type === 'keyword' && condition.value) {
             const keyword = condition.value.toString().toLowerCase();
@@ -131,7 +143,7 @@ export class AutomationRule {
           }
           return false;
         });
-        
+
         console.log(`🎯 [AutomationRule] Keyword match result: ${keywordMatch}`);
         return keywordMatch;
 
@@ -142,7 +154,7 @@ export class AutomationRule {
 
       case 'channel_specific':
         const channelMatch = this.trigger.conditions.some(condition =>
-          condition.type === 'channel' && 
+          condition.type === 'channel' &&
           (messageData.channel === condition.value || messageData.channelType === condition.value)
         );
         console.log(`📺 [AutomationRule] Channel specific trigger: ${channelMatch}`);
@@ -161,7 +173,7 @@ export class AutomationRule {
 
   private async evaluateConditions(messageData: any, aiAnalysis?: MessageAnalysis): Promise<boolean> {
     const conditions = this.trigger.conditions;
-    
+
     if (!conditions || conditions.length === 0) {
       console.log(`✅ [AutomationRule] No conditions to evaluate, rule "${this.name}" applies by default`);
       return true; // Se não há condições, a regra sempre se aplica
@@ -172,9 +184,9 @@ export class AutomationRule {
     // Todas as condições devem ser verdadeiras (AND logic)
     for (const condition of conditions) {
       const result = await this.evaluateCondition(condition, messageData, aiAnalysis);
-      
+
       console.log(`🔍 [AutomationRule] Condition ${condition.type}:${condition.operator}:"${condition.value}" = ${result}`);
-      
+
       if (!result) {
         console.log(`❌ [AutomationRule] Rule "${this.name}" failed condition: ${condition.type} ${condition.operator} "${condition.value}"`);
         return false;
@@ -186,8 +198,8 @@ export class AutomationRule {
   }
 
   private async evaluateCondition(
-    condition: AutomationCondition, 
-    messageData: any, 
+    condition: AutomationCondition,
+    messageData: any,
     aiAnalysis?: MessageAnalysis
   ): Promise<boolean> {
     let actualValue: string | number | undefined;
@@ -231,22 +243,22 @@ export class AutomationRule {
     }
 
     console.log(`🔍 [AutomationRule] Comparing "${actualValue}" ${condition.operator} "${condition.value}"`);
-    
+
     const result = this.compareValues(actualValue, condition.value, condition.operator, condition.caseSensitive);
     console.log(`🎯 [AutomationRule] Condition result: ${result}`);
-    
+
     return result;
   }
 
   private compareValues(
-    actual: string | number | undefined, 
-    expected: string | number, 
+    actual: string | number | undefined,
+    expected: string | number,
     operator: string,
     caseSensitive: boolean = false
   ): boolean {
     const actualStr = String(actual || '');
     const expectedStr = String(expected);
-    
+
     const actualCompare = caseSensitive ? actualStr : actualStr.toLowerCase();
     const expectedCompare = caseSensitive ? expectedStr : expectedStr.toLowerCase();
 
@@ -287,7 +299,7 @@ export class AutomationRule {
 
     // Implementar lógica de tempo baseada nas condições
     const timeConditions = this.trigger.conditions.filter(c => c.type === 'time');
-    
+
     if (timeConditions.length === 0) {
       return true;
     }
@@ -309,8 +321,8 @@ export class AutomationRule {
   }
 
   public async execute(
-    messageData: any, 
-    aiAnalysis?: MessageAnalysis, 
+    messageData: any,
+    aiAnalysis?: MessageAnalysis,
     actionExecutor?: IActionExecutorPort
   ): Promise<void> {
     console.log(`🚀 [AutomationRule] Executing rule "${this.name}" with ${this.actions.length} actions`);
@@ -328,7 +340,7 @@ export class AutomationRule {
       };
 
       const results = await actionExecutor.executeActions(sortedActions, context);
-      
+
       // Log resultados
       results.forEach((result, index) => {
         const action = sortedActions[index];

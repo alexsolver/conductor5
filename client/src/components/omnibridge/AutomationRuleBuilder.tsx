@@ -221,13 +221,13 @@ export default function AutomationRuleBuilder({
   onSave
 }: AutomationRuleBuilderProps) {
   const [rule, setRule] = useState<AutomationRule>({
-    name: existingRule?.name || '',
-    description: existingRule?.description || '',
-    enabled: existingRule?.enabled ?? true,
-    conditions: existingRule?.conditions || { rules: [], logicalOperator: 'AND' },
-    actions: existingRule?.actions || [],
-    priority: existingRule?.priority || 1,
-    aiEnabled: existingRule?.aiEnabled || false
+    name: '',
+    description: '',
+    enabled: true,
+    conditions: { rules: [], logicalOperator: 'AND' },
+    actions: [],
+    priority: 1,
+    aiEnabled: false
   });
 
   const [activeTab, setActiveTab] = useState('conditions');
@@ -237,6 +237,38 @@ export default function AutomationRuleBuilder({
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
+  useEffect(() => {
+    if (existingRule) {
+      console.log('🔧 [AutomationRuleBuilder] Loading existing rule:', existingRule);
+      
+      // Mapear dados da regra existente para o formato do formulário
+      const mappedRule: AutomationRule = {
+        name: existingRule.name || '',
+        description: existingRule.description || '',
+        enabled: existingRule.enabled ?? true,
+        conditions: existingRule.conditions || { rules: [], logicalOperator: 'AND' },
+        actions: existingRule.actions || [],
+        priority: existingRule.priority || 1,
+        aiEnabled: existingRule.aiEnabled || false
+      };
+
+      setRule(mappedRule);
+      console.log('✅ [AutomationRuleBuilder] Rule data loaded successfully');
+    } else {
+      // Reset para regra nova
+      setRule({
+        name: '',
+        description: '',
+        enabled: true,
+        conditions: { rules: [], logicalOperator: 'AND' },
+        actions: [],
+        priority: 1,
+        aiEnabled: false
+      });
+    }
+  }, [existingRule]);
 
   // Mutation para salvar regra
   const saveRuleMutation = useMutation({
