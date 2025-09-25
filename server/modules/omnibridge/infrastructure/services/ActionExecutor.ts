@@ -816,55 +816,34 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log(`📤 [ActionExecutor] Sending notification from automation rule: ${context.ruleName}`);
 
-      const { messageData, aiAnalysis, tenantId } = context;
+      const { messageData, tenantId } = context;
 
-      // ✅ 1QA.MD: Extract notification parameters from both params and config for backward compatibility
-      const recipient = action.params?.recipient || action.config?.recipient;
-      const message = action.params?.message || action.config?.message || 'Notificação automática do sistema';
+      // ✅ 1QA.MD: Extract recipient from action parameters with multiple fallbacks
+      const recipient = action.params?.recipient || 
+                       action.params?.users || 
+                       action.config?.recipient || 
+                       action.config?.users ||
+                       action.params?.user ||
+                       action.config?.user;
+
+      const message = action.params?.message || action.config?.message || 'Notificação de automação';
       const priority = action.params?.priority || action.config?.priority || 'medium';
-      const notificationType = action.params?.type || action.config?.type || 'automation';
-      const channel = action.params?.channel || action.config?.channel || 'in_app';
+      const type = action.params?.type || action.config?.type || 'automation_notification';
 
       if (!recipient) {
-        console.error(`❌ [ActionExecutor] No recipient specified for notification action`);
+        console.error('❌ [ActionExecutor] No recipient specified for notification action');
+        console.error('❌ [ActionExecutor] Available params:', JSON.stringify(action.params, null, 2));
+        console.error('❌ [ActionExecutor] Available config:', JSON.stringify(action.config, null, 2));
         return {
           success: false,
-          message: 'Destinatário não especificado para notificação',
-          error: 'Recipient is required for notification action'
+          message: 'Recipient is required for notification action',
+          error: 'Missing recipient parameter'
         };
       }
 
-      console.log(`📝 [ActionExecutor] Notification details: ${recipient} - ${message.substring(0, 50)}...`);
+      console.log(`📧 [ActionExecutor] Sending notification to: ${recipient}`);
 
-      // ✅ 1QA.MD: Create notification payload following domain standards
-      const notificationPayload = {
-        tenantId,
-        userId: recipient,
-        type: notificationType,
-        title: `Automação: ${context.ruleName}`,
-        message,
-        priority: priority as 'low' | 'medium' | 'high' | 'critical',
-        channels: [channel],
-        data: {
-          automationRule: {
-            ruleId: context.ruleId,
-            ruleName: context.ruleName,
-            executedAt: new Date().toISOString()
-          },
-          originalMessage: {
-            content: messageData.content,
-            sender: messageData.sender,
-            channel: messageData.channel,
-            timestamp: messageData.timestamp
-          },
-          aiAnalysis: aiAnalysis
-        },
-        sourceId: context.ruleId,
-        sourceType: 'automation_rule',
-        createdBy: 'automation_engine'
-      };
-
-      // ✅ 1QA.MD: Use proper dependency injection following Clean Architecture
+      // ✅ 1QA.MD: Import notification modules following Clean Architecture
       const { CreateNotificationUseCase } = await import('../../../notifications/application/use-cases/CreateNotificationUseCase');
       const { DrizzleNotificationRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationRepository');
       const { DrizzleNotificationPreferenceRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationPreferenceRepository');
@@ -873,36 +852,89 @@ export class ActionExecutor implements IActionExecutorPort {
       const preferenceRepository = new DrizzleNotificationPreferenceRepository();
       const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, preferenceRepository);
 
-      // ✅ 1QA.MD: Execute use case following domain patterns
-      const result = await createNotificationUseCase.execute(notificationPayload);
+      // ✅ 1QA.MD: Handle multiple recipients if provided as comma-separated string
+      const recipients = Array.isArray(recipient) ? recipient : recipient.split(',').map(r => r.trim());
 
-      if (result.success) {
-        console.log(`✅ [ActionExecutor] Notification created successfully: ${result.data?.id}`);
+      const results = [];
+      for (const singleRecipient of recipients) {
+        try {
+          // ✅ 1QA.MD: Create notification following domain patterns
+          const notificationRequest = {
+            tenantId: tenantId,
+            userId: singleRecipient,
+            type: type,
+            title: `Automação: ${context.ruleName}`,
+            message: `${message}\n\nOrigem: ${messageData.sender || 'Sistema'}\nCanal: ${messageData.channel || 'Desconhecido'}`,
+            priority: priority as 'low' | 'medium' | 'high' | 'critical',
+            channels: ['in_app'],
+            sourceId: context.ruleId,
+            sourceType: 'automation_rule',
+            data: {
+              automationRule: {
+                ruleId: context.ruleId,
+                ruleName: context.ruleName,
+                executedAt: new Date().toISOString()
+              },
+              originalMessage: {
+                content: messageData.content,
+                sender: messageData.sender,
+                channel: messageData.channel,
+                timestamp: messageData.timestamp
+              }
+            }
+          };
 
-        // ✅ 1QA.MD: Return standardized response format
+          const result = await createNotificationUseCase.execute(notificationRequest);
+          results.push({
+            recipient: singleRecipient,
+            success: result.success,
+            notificationId: result.notificationId,
+            message: result.message
+          });
+
+          if (result.success) {
+            console.log(`✅ [ActionExecutor] Notification sent successfully to ${singleRecipient}: ${result.notificationId}`);
+          } else {
+            console.error(`❌ [ActionExecutor] Failed to send notification to ${singleRecipient}: ${result.message}`);
+          }
+        } catch (recipientError) {
+          console.error(`❌ [ActionExecutor] Error sending to ${singleRecipient}:`, recipientError);
+          results.push({
+            recipient: singleRecipient,
+            success: false,
+            message: recipientError instanceof Error ? recipientError.message : 'Unknown error'
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const totalCount = results.length;
+
+      if (successCount > 0) {
         return {
           success: true,
-          message: `Notificação enviada para ${recipient}`,
-          data: { 
-            notificationId: result.data?.id,
-            recipient,
-            channel,
-            priority
+          message: `Notifications sent successfully to ${successCount}/${totalCount} recipients`,
+          data: {
+            results: results,
+            successCount: successCount,
+            totalCount: totalCount,
+            type: type
           }
         };
       } else {
-        console.error(`❌ [ActionExecutor] Failed to create notification:`, result.message);
         return {
           success: false,
-          message: `Falha ao enviar notificação: ${result.message}`,
-          error: result.message
+          message: `Failed to send notifications to all ${totalCount} recipients`,
+          error: 'All notification attempts failed',
+          data: { results: results }
         };
       }
+
     } catch (error) {
-      console.error(`❌ [ActionExecutor] Error sending notification:`, error);
+      console.error(`❌ [ActionExecutor] Error in notification action:`, error);
       return {
         success: false,
-        message: 'Erro interno ao enviar notificação',
+        message: 'Failed to execute notification action',
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
