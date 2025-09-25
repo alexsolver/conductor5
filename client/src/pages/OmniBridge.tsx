@@ -65,7 +65,6 @@ import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
-import ConversationalAIManager from '@/components/omnibridge/ConversationalAIManager'; // Import the new manager
 
 
 
@@ -250,11 +249,11 @@ export default function OmniBridge() {
 
   // Test AI Prompt mutation
   const testPromptMutation = useMutation({
-    mutationFn: ({ prompt, testMessage, promptType }: any) =>
+    mutationFn: ({ prompt, testMessage, promptType }: any) => 
       apiRequest('POST', '/api/omnibridge/ai-prompts/test', { prompt, testMessage, promptType }),
     onSuccess: (response) => {
-      toast({
-        title: 'Teste concluído',
+      toast({ 
+        title: 'Teste concluído', 
         description: `Resultado: ${JSON.stringify(response)}`,
         duration: 5000
       });
@@ -320,7 +319,7 @@ export default function OmniBridge() {
       try {
         console.log('🚀 [OmniBridge-DEBUG] Starting fetch automation rules...');
 
-        const response = await fetch('/api/omnibridge/automation-rules', {
+        const response = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
@@ -395,7 +394,7 @@ export default function OmniBridge() {
         console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
 
         // Refresh the automation rules list after toggle
-        const refreshResponse = await fetch('/api/omnibridge/automation-rules', {
+        const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
@@ -488,7 +487,7 @@ export default function OmniBridge() {
           console.log('✅ [OmniBridge] Automation rule created successfully');
 
           // Refresh the automation rules list after creation
-          const refreshResponse = await fetch('/api/omnibridge/automation-rules', {
+          const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json'
@@ -1023,20 +1022,33 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="inbox">📥 Inbox</TabsTrigger>
-          <TabsTrigger value="automation">🤖 Automação</TabsTrigger>
-          <TabsTrigger value="conversational-ai">🗣️ IA Conversacional</TabsTrigger>
-          <TabsTrigger value="channels">📡 Canais</TabsTrigger>
-          <TabsTrigger value="templates">📝 Templates</TabsTrigger>
-          <TabsTrigger value="ai-config">🧠 Config. IA</TabsTrigger>
-          <TabsTrigger value="settings">⚙️ Configurações</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="inbox" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Inbox
+          </TabsTrigger>
+          <TabsTrigger value="automation" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Automação
+          </TabsTrigger>
+          <TabsTrigger value="channels" className="flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Canais
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <SettingsIcon className="h-4 w-4" />
+            Configurações
+          </TabsTrigger>
+          <TabsTrigger value="ai-config" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            Configuração IA
+          </TabsTrigger>
         </TabsList>
 
         {/* Inbox Tab */}
         <TabsContent value="inbox" className="space-y-4">
           <div className="h-[calc(100vh-200px)]">
-            <SimplifiedInbox
+            <SimplifiedInbox 
               onCreateRule={(messageData?: any) => {
                 setSelectedMessage(messageData);
                 setShowCreateRuleModal(true);
@@ -1149,17 +1161,17 @@ export default function OmniBridge() {
         </TabsContent>
 
         {/* Automation Tab - Advanced Rules Builder */}
-        <TabsContent value="automation" className="mt-6">
+        <TabsContent value="automation" className="h-full">
           <AutomationRules />
         </TabsContent>
 
-        {/* Conversational AI Tab */}
-        <TabsContent value="conversational-ai" className="mt-6">
-          <ConversationalAIManager />
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <OmniBridgeSettings />
         </TabsContent>
 
-        {/* Configuração IA Tab */}
-        <TabsContent value="ai-config" className="space-y-6">
+        {/* AI Assistant Tab */}
+        <TabsContent value="ai-config" className="space-y-4">
           <Form {...aiForm}>
           {/* AI Dashboard */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1309,8 +1321,8 @@ export default function OmniBridge() {
                   )}
                 />
 
-                <Button
-                  className="w-full"
+                <Button 
+                  className="w-full" 
                   onClick={aiForm.handleSubmit(handleSaveAiConfig)}
                   disabled={saveAiConfigMutation.isPending}
                   data-testid="button-save-ai-config"
@@ -1377,8 +1389,8 @@ export default function OmniBridge() {
                   <Bot className="h-5 w-5" />
                   Editor de Prompts IA
                 </span>
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   onClick={() => {
                     setTempPromptContent(currentAiConfig.prompts[selectedPromptType as keyof typeof currentAiConfig.prompts]);
                     setShowAiPromptEditor(true);
@@ -1416,7 +1428,7 @@ export default function OmniBridge() {
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <Badge variant="outline" className="text-xs">
-                          {prompt.split('\n').length} linhas
+                          {prompt.split('\\n').length} linhas
                         </Badge>
                         <Button variant="ghost" size="sm" data-testid={`button-edit-prompt-${key}`}>
                           <SettingsIcon className="h-3 w-3" />
@@ -1518,11 +1530,6 @@ export default function OmniBridge() {
           </Card>
           </Form>
         </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-4">
-          <OmniBridgeSettings />
-        </TabsContent>
       </Tabs>
 
       {/* Modal de Resposta */}
@@ -1550,7 +1557,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowReplyModal(false)}>
                 Cancelar
               </Button>
-              <Button
+              <Button 
                 onClick={async () => {
                   if (selectedMessage && replyContent.trim()) {
                     await handleReplyMessage(selectedMessage.id, replyContent);
@@ -1605,7 +1612,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowForwardModal(false)}>
                 Cancelar
               </Button>
-              <Button
+              <Button 
                 onClick={async () => {
                   if (selectedMessage && forwardRecipients.trim()) {
                     const recipients = forwardRecipients.split(',').map(r => r.trim()).filter(r => r);
@@ -1657,8 +1664,8 @@ export default function OmniBridge() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="trigger-type">Quando acontecer</Label>
-                <Select
-                  value={newRuleData.triggerType}
+                <Select 
+                  value={newRuleData.triggerType} 
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
                 >
                   <SelectTrigger>
@@ -1675,8 +1682,8 @@ export default function OmniBridge() {
               </div>
               <div>
                 <Label htmlFor="action-type">Ação</Label>
-                <Select
-                  value={newRuleData.actionType}
+                <Select 
+                  value={newRuleData.actionType} 
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
                 >
                   <SelectTrigger>
@@ -1708,7 +1715,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
                 Cancelar
               </Button>
-              <Button
+              <Button 
                 onClick={handleCreateAutomationRule}
                 disabled={!newRuleData.name.trim()}
               >
@@ -1811,8 +1818,8 @@ export default function OmniBridge() {
 
             <div className="flex items-center justify-between border-t pt-4">
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
+                <Button 
+                  variant="outline" 
                   size="sm"
                   onClick={() => {
                     if (tempPromptContent.trim() && promptTestMessage.trim()) {
@@ -1838,7 +1845,7 @@ export default function OmniBridge() {
                 <Button variant="outline" onClick={() => setShowAiPromptEditor(false)}>
                   Cancelar
                 </Button>
-                <Button
+                <Button 
                   onClick={() => {
                     const currentPrompts = { ...currentAiConfig.prompts };
                     currentPrompts[selectedPromptType as keyof typeof currentPrompts] = tempPromptContent;

@@ -3,7 +3,6 @@ import { IAIAnalysisPort, MessageAnalysis } from '../../domain/ports/IAIAnalysis
 import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
 import { AIAnalysisService } from './AIAnalysisService';
 import { ActionExecutor } from './ActionExecutor';
-import { ConversationalAIService } from './ConversationalAIService';
 import { DependencyContainer, TOKENS } from '../../../shared/infrastructure/DependencyContainer';
 import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 
@@ -20,7 +19,6 @@ export class AutomationEngine {
   private rules: Map<string, AutomationRule> = new Map();
   private aiService: IAIAnalysisPort;
   private actionExecutor: IActionExecutorPort;
-  private conversationalAI: ConversationalAIService;
   private metrics: AutomationMetrics = {
     rulesExecuted: 0,
     actionsTriggered: 0,
@@ -36,7 +34,6 @@ export class AutomationEngine {
     // Usar dependências injetadas ou criar padrão
     this.aiService = aiService || new AIAnalysisService();
     this.actionExecutor = actionExecutor || new ActionExecutor(this.aiService);
-    this.conversationalAI = new ConversationalAIService(this.actionExecutor as ActionExecutor, this.aiService as AIAnalysisService);
 
     this.loadRulesFromDatabase();
   }
@@ -71,39 +68,6 @@ export class AutomationEngine {
         channel: messageData.channel || messageData.channelType,
         contentPreview: (messageData.content || messageData.body || '').substring(0, 100)
       });
-
-      // Try conversational AI first
-      try {
-        const conversationalResponse = await this.conversationalAI.processMessage(messageData, this.tenantId);
-        if (conversationalResponse && conversationalResponse !== 'No flow found') {
-          console.log(`🤖 [AUTOMATION-ENGINE] Conversational AI handled message: ${conversationalResponse.substring(0, 100)}...`);
-          
-          // Send the conversational response
-          const conversationalAction = {
-            id: 'conversational-response',
-            type: 'send_auto_reply' as const,
-            params: { message: conversationalResponse },
-            priority: 10
-          };
-          
-          const context = {
-            tenantId: this.tenantId,
-            messageData,
-            ruleId: 'conversational-ai',
-            ruleName: 'Conversational AI Response'
-          };
-          
-          await this.actionExecutor.execute(conversationalAction, context);
-          
-          // If conversational AI handled it, we can return early
-          this.updateMetrics(1, 1, Date.now() - startTime, true);
-          console.log(`📊 [AUTOMATION-ENGINE] Conversational AI processing complete: 1 conversation, 1 action in ${Date.now() - startTime}ms`);
-          return;
-        }
-      } catch (conversationalError) {
-        console.warn(`⚠️ [AUTOMATION-ENGINE] Conversational AI error:`, conversationalError);
-        // Continue with normal automation rules if conversational AI fails
-      }
 
       // Verificar se alguma regra precisa de análise de IA
       const activeRules = Array.from(this.rules.values()).filter(rule => rule.enabled);
