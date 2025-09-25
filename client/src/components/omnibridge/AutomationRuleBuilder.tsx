@@ -234,6 +234,7 @@ export default function AutomationRuleBuilder({
   const [showActionConfig, setShowActionConfig] = useState(false);
   const [currentAction, setCurrentAction] = useState<Action | null>(null);
   const [actionConfig, setActionConfig] = useState<Record<string, any>>({});
+  const [editingActionIndex, setEditingActionIndex] = useState<number>(-1);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -241,7 +242,6 @@ export default function AutomationRuleBuilder({
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
   useEffect(() => {
     if (existingRule) {
-      console.log('🔧 [AutomationRuleBuilder] Loading existing rule:', existingRule);
       
       // Mapear dados da regra existente para o formato do formulário
       const mappedRule: AutomationRule = {
@@ -249,13 +249,24 @@ export default function AutomationRuleBuilder({
         description: existingRule.description || '',
         enabled: existingRule.enabled ?? true,
         conditions: existingRule.conditions || { rules: [], logicalOperator: 'AND' },
-        actions: existingRule.actions || [],
+        actions: (existingRule.actions || []).map((action, index) => {
+          // Encontrar template correspondente para hidratar campos UI
+          const template = actionTemplates.find(t => t.type === action.type);
+          
+          // Gerar ID determinístico se não existir
+          const stableId = action.id || `${existingRule.id}_${action.type}_${index}`;
+          
+          return {
+            ...template, // Hidrata icon, color, name, description do template
+            ...action,   // Sobrescreve com dados persistidos (id, type, config)
+            id: stableId
+          };
+        }),
         priority: existingRule.priority || 1,
         aiEnabled: existingRule.aiEnabled || false
       };
 
       setRule(mappedRule);
-      console.log('✅ [AutomationRuleBuilder] Rule data loaded successfully');
     } else {
       // Reset para regra nova
       setRule({
@@ -302,20 +313,26 @@ export default function AutomationRuleBuilder({
   // Adicionar ação
   const addAction = (template: typeof actionTemplates[0]) => {
     const newAction: Action = {
-      id: `action_${Date.now()}`,
+      id: `new_${template.type}_${rule.actions.length}_${Date.now()}`,
       ...template,
       config: {}
     };
 
     setCurrentAction(newAction);
     setActionConfig({});
+    setEditingActionIndex(-1);
     setShowActionConfig(true);
   };
 
   // Confirmar configuração da ação
   const confirmActionConfig = () => {
     if (currentAction) {
-      const actionIndex = rule.actions.findIndex(a => a.id === currentAction.id);
+      let actionIndex = rule.actions.findIndex(a => a.id === currentAction.id);
+      
+      // Fallback para editingActionIndex se ID lookup falhar
+      if (actionIndex === -1 && editingActionIndex >= 0 && editingActionIndex < rule.actions.length) {
+        actionIndex = editingActionIndex;
+      }
       
       if (actionIndex >= 0) {
         // Editar ação existente
@@ -343,6 +360,7 @@ export default function AutomationRuleBuilder({
       setShowActionConfig(false);
       setCurrentAction(null);
       setActionConfig({});
+      setEditingActionIndex(-1);
     }
   };
 
@@ -383,7 +401,20 @@ export default function AutomationRuleBuilder({
       return;
     }
 
-    saveRuleMutation.mutate(rule);
+    // Sanitizar payload removendo campos UI-only
+    const sanitizedRule = {
+      ...rule,
+      actions: rule.actions.map(action => ({
+        id: action.id,
+        type: action.type,
+        name: action.name,
+        description: action.description,
+        config: action.config
+        // Removemos icon, color e outros campos UI-only
+      }))
+    };
+
+    saveRuleMutation.mutate(sanitizedRule);
   };
 
   // Helper para atualizar configuração da ação
@@ -755,7 +786,8 @@ export default function AutomationRuleBuilder({
                                 size="sm"
                                 onClick={() => {
                                   setCurrentAction(action);
-                                  setActionConfig(action.config);
+                                  setActionConfig(action.config || {});
+                                  setEditingActionIndex(index);
                                   setShowActionConfig(true);
                                 }}
                               >
@@ -841,6 +873,7 @@ export default function AutomationRuleBuilder({
             setShowActionConfig(false);
             setCurrentAction(null);
             setActionConfig({});
+            setEditingActionIndex(-1);
           }
         }}>
           <DialogContent>
