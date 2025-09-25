@@ -242,12 +242,28 @@ export default function AutomationRuleBuilder({
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
   useEffect(() => {
     if (existingRule) {
+      // Garantir que conditions sempre tenha a estrutura correta
+      let conditions = { rules: [], logicalOperator: 'AND' };
+      
+      if (existingRule.conditions && typeof existingRule.conditions === 'object') {
+        conditions = {
+          rules: existingRule.conditions.rules || [],
+          logicalOperator: existingRule.conditions.logicalOperator || 'AND'
+        };
+      } else if (existingRule.trigger && typeof existingRule.trigger === 'object') {
+        // Fallback para compatibilidade com formato trigger
+        conditions = {
+          rules: existingRule.trigger.rules || [],
+          logicalOperator: existingRule.trigger.logicalOperator || 'AND'
+        };
+      }
+
       // Mapear dados da regra existente para o formato do formulário
       const mappedRule: AutomationRule = {
         name: existingRule.name || '',
         description: existingRule.description || '',
         enabled: existingRule.enabled ?? true,
-        conditions: existingRule.conditions || { rules: [], logicalOperator: 'AND' },
+        conditions: conditions,
         actions: (existingRule.actions || []).map((action, index) => {
           // Encontrar template correspondente para hidratar campos UI
           const template = actionTemplates.find(t => t.type === action.type);
@@ -399,7 +415,7 @@ export default function AutomationRuleBuilder({
       return;
     }
 
-    if (rule.conditions.rules.length === 0) {
+    if (!rule.conditions || !rule.conditions.rules || rule.conditions.rules.length === 0) {
       toast({
         title: "Erro",
         description: "Pelo menos uma condição deve ser configurada",
