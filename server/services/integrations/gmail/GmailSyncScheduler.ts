@@ -69,12 +69,14 @@ export class GmailSyncScheduler {
       
       for (const tenantId of tenants) {
         try {
+          const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
           
-          if (imapIntegration) {
+          if (imapIntegration && imapIntegration.status === 'connected') {
             console.log(`📧 Starting Gmail sync for tenant with IMAP integration: ${tenantId}`);
             await this.startPeriodicSync(tenantId, 5); // Sync every 5 minutes
           }
         } catch (error) {
+          console.error(`Error starting sync for tenant ${tenantId}:`, error);
         }
       }
     } catch (error) {
@@ -84,10 +86,10 @@ export class GmailSyncScheduler {
 
   stopAll(): void {
     console.log('🛑 Stopping all Gmail periodic syncs');
-    for (const [tenantId, intervalId] of this.activeSchedules) {
+    this.activeSchedules.forEach((intervalId, tenantId) => {
       clearInterval(intervalId);
       console.log(`⏹️ Stopped sync for tenant: ${tenantId}`);
-    }
+    });
     this.activeSchedules.clear();
   }
 

@@ -75,17 +75,23 @@ const port = parseInt(process.env.PORT || '5000', 10);
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 
-  // Start Gmail sync scheduler for active tenants
+  // Start OmniBridge auto-start service for email monitoring
   try {
-    const scheduler = GmailSyncScheduler.getInstance();
-
-    // Wait a bit for server to be fully ready, then start syncing
+    // Wait a bit for server to be fully ready, then start monitoring
     setTimeout(async () => {
-      console.log('🚀 Starting Gmail sync scheduler...');
-      await scheduler.startForAllActiveTenants();
+      try {
+        console.log('🚀 Starting OmniBridge email monitoring...');
+        const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+        
+        // Start monitoring for the tenant with IMAP integration
+        await omniBridgeAutoStart.detectAndStartCommunicationChannels('3f99462f-3621-4b1b-bea8-782acc50d62e');
+        console.log('✅ OmniBridge monitoring initialization completed');
+      } catch (initError) {
+        console.error('❌ Error initializing OmniBridge monitoring:', initError);
+      }
     }, 5000);
   } catch (error) {
-    console.error('Failed to start Gmail sync scheduler:', error);
+    console.error('Failed to setup OmniBridge monitoring:', error);
   }
 });
 

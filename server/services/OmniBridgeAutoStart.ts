@@ -4,6 +4,7 @@
 // =====================================================
 
 import { GmailService } from './integrations/gmail/GmailService';
+import { GmailSyncScheduler } from './integrations/gmail/GmailSyncScheduler';
 
 interface IntegrationConfig {
   emailAddress: string;
@@ -26,7 +27,7 @@ export class OmniBridgeAutoStart {
   private activeMonitoring: Map<string, boolean> = new Map();
 
   constructor() {
-    this.gmailService = new GmailService();
+    this.gmailService = GmailService.getInstance();
   }
 
   async detectAndStartCommunicationChannels(tenantId: string): Promise<void> {
@@ -72,19 +73,14 @@ export class OmniBridgeAutoStart {
       if (result.success) {
         console.log(`✅ [GMAIL-AUTOSTART] Gmail monitoring started successfully`);
         
-        // Ensure channel is synced and enabled
+        // Update is_currently_monitoring flag
         try {
-          const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
-          const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
           const { storage } = await import('../storage-simple');
-          
-          const channelRepository = new DrizzleChannelRepository();
-          const syncService = new IntegrationChannelSync(channelRepository, storage);
-          await syncService.syncIntegrationsToChannels(tenantId);
-          
-          console.log(`🔗 [GMAIL-AUTOSTART] Channels synced for tenant: ${tenantId}`);
-        } catch (syncError) {
-          console.error('❌ [GMAIL-AUTOSTART] Channel sync error:', syncError);
+          await storage.updateTenantIntegrationStatus(tenantId, integration.id, 'connected');
+          // Note: is_currently_monitoring will be updated when periodic sync starts
+          console.log(`✅ [GMAIL-AUTOSTART] Integration status updated for ${integration.id}`);
+        } catch (error) {
+          console.error('❌ [GMAIL-AUTOSTART] Error updating integration:', error);
         }
       } else {
         console.error(`❌ [GMAIL-AUTOSTART] Failed to start Gmail monitoring: ${result.message}`);
@@ -170,8 +166,18 @@ export class OmniBridgeAutoStart {
         console.log(`📥 Inbox will be populated with emails from ${config.emailAddress}`);
 
         // Start periodic sync every 2 minutes for real-time updates
-        await this.gmailService.startPeriodicSync(tenantId, integration.id, 2);
+        const scheduler = GmailSyncScheduler.getInstance();
+        await scheduler.startPeriodicSync(tenantId, 2);
         console.log(`🔄 Periodic sync started: every 2 minutes`);
+
+        // Update is_currently_monitoring flag
+        try {
+          const { storage } = await import('../storage-simple');
+          await storage.updateTenantIntegrationStatus(tenantId, integration.id, 'connected');
+          console.log(`✅ Updated monitoring status for ${integration.id}`);
+        } catch (error) {
+          console.error('❌ Error updating monitoring flag:', error);
+        }
       } else {
         console.error(`❌ Failed to start IMAP monitoring: ${result.message}`);
       }
@@ -186,7 +192,8 @@ export class OmniBridgeAutoStart {
 
       // Stop Gmail service monitoring
       await this.gmailService.stopEmailMonitoring(tenantId);
-      await this.gmailService.stopPeriodicSync(tenantId);
+      const scheduler = GmailSyncScheduler.getInstance();
+      scheduler.stopPeriodicSync(tenantId);
 
       // Update integration status in database to persist state
       try {
