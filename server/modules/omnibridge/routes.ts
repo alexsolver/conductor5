@@ -115,6 +115,61 @@ router.get('/debug/messages', jwtAuth, async (req, res) => {
   }
 });
 
+// Test notification action
+router.post('/debug/test-notification', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.headers['x-tenant-id'] as string;
+    const { recipient, message } = req.body;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Testing notification: ${recipient} - ${message}`);
+
+    // Import and test notification creation
+    const { NotificationController } = await import('../notifications/application/controllers/NotificationController');
+    const notificationController = new NotificationController();
+
+    const mockReq = {
+      user: { tenantId },
+      body: {
+        tenantId,
+        userId: null,
+        type: 'test_notification',
+        title: 'Teste de Notificação - OmniBridge',
+        message: message || 'Esta é uma notificação de teste do sistema de automação',
+        data: { test: true },
+        priority: 'medium',
+        channels: ['email', 'in_app'],
+        recipientEmail: recipient,
+        createdBy: 'test-system'
+      }
+    } as any;
+
+    const mockRes = {
+      status: (code: number) => ({
+        json: (data: any) => {
+          console.log(`📧 [OMNIBRIDGE-DEBUG] Notification response (${code}):`, data);
+          return res.status(code).json(data);
+        }
+      }),
+      json: (data: any) => {
+        console.log(`📧 [OMNIBRIDGE-DEBUG] Notification created:`, data);
+        return res.json(data);
+      }
+    } as any;
+
+    await notificationController.createNotification(mockReq, mockRes);
+  } catch (error) {
+    console.error('❌ [OMNIBRIDGE-DEBUG] Notification test error:', error);
+    res.status(500).json({
+      error: 'Failed to test notification',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Debug route for Gmail status check
 router.get('/debug/gmail/status', jwtAuth, async (req, res) => {
   try {

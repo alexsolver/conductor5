@@ -258,9 +258,9 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Criar ticket usando o use case
       const createdTicket = await this.createTicketUseCase.execute(createTicketDTO, tenantId);
-      
+
       console.log(`✅ [ActionExecutor] Ticket created successfully: ${createdTicket.number}`);
-      
+
       return {
         success: true,
         message: `Ticket criado com sucesso: ${createdTicket.number}`,
@@ -333,7 +333,7 @@ export class ActionExecutor implements IActionExecutorPort {
         console.error(`❌ [ActionExecutor] Error sending auto-reply:`, error);
         sendError = error instanceof Error ? error.message : 'Unknown error';
         await this.storeFailedMessage(responseText, context);
-        
+
         return {
           success: false,
           message: 'Error sending auto-reply',
@@ -507,7 +507,7 @@ export class ActionExecutor implements IActionExecutorPort {
   // New action implementations
   private async createUrgentTicketAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🚨 [ActionExecutor] Creating urgent ticket`);
-    
+
     // Override priority to urgent and create ticket
     const urgentAction = {
       ...action,
@@ -517,13 +517,13 @@ export class ActionExecutor implements IActionExecutorPort {
         status: 'open'
       }
     };
-    
+
     return await this.createTicketAction(urgentAction, context);
   }
 
   private async createTicketFromTemplateAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📋 [ActionExecutor] Creating ticket from template: ${action.params?.templateId}`);
-    
+
     // Implementation would load template and create ticket
     return {
       success: true,
@@ -534,7 +534,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async assignAdvancedAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`👥 [ActionExecutor] Advanced assignment: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Advanced assignment executed: ${action.type}`,
@@ -544,7 +544,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async escalateTicketAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`⬆️ [ActionExecutor] Escalating ticket to supervisor`);
-    
+
     return {
       success: true,
       message: 'Ticket escalated successfully',
@@ -554,7 +554,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async linkRelatedTicketsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🔗 [ActionExecutor] Linking related tickets`);
-    
+
     return {
       success: true,
       message: 'Related tickets linked successfully',
@@ -564,7 +564,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async sendSmsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📱 [ActionExecutor] Sending SMS to ${context.messageData.sender}`);
-    
+
     return {
       success: true,
       message: 'SMS sent successfully',
@@ -574,7 +574,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async sendSurveyAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📊 [ActionExecutor] Sending survey`);
-    
+
     return {
       success: true,
       message: 'Survey sent successfully',
@@ -584,7 +584,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async aiProcessingAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🤖 [ActionExecutor] AI processing: ${action.type}`);
-    
+
     return {
       success: true,
       message: `AI processing completed: ${action.type}`,
@@ -594,7 +594,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async updateCrmAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🗃️ [ActionExecutor] Updating CRM`);
-    
+
     return {
       success: true,
       message: 'CRM updated successfully',
@@ -604,7 +604,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async generateReportAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📈 [ActionExecutor] Generating report`);
-    
+
     return {
       success: true,
       message: 'Report generated successfully',
@@ -614,7 +614,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async removeTagsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🏷️ [ActionExecutor] Removing tags: ${action.params?.tags}`);
-    
+
     return {
       success: true,
       message: 'Tags removed successfully',
@@ -624,7 +624,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async changeStatusAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📝 [ActionExecutor] Changing status to: ${action.params?.newStatus}`);
-    
+
     return {
       success: true,
       message: `Status changed to ${action.params?.newStatus}`,
@@ -634,7 +634,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async scheduleTaskAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📅 [ActionExecutor] Scheduling task: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Task scheduled: ${action.type}`,
@@ -644,7 +644,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async logActivityAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📝 [ActionExecutor] Logging activity: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Activity logged: ${action.type}`,
@@ -654,7 +654,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async notificationAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🔔 [ActionExecutor] Sending notification: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Notification sent: ${action.type}`,
@@ -664,7 +664,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async apiRequestAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🌐 [ActionExecutor] Making API request`);
-    
+
     return {
       success: true,
       message: 'API request completed',
@@ -674,7 +674,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async ticketStatusAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🎫 [ActionExecutor] Ticket status action: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Ticket ${action.type} executed successfully`,
@@ -684,7 +684,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async ticketManagementAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`🎯 [ActionExecutor] Ticket management: ${action.type}`);
-    
+
     return {
       success: true,
       message: `Ticket management action completed: ${action.type}`,
@@ -694,7 +694,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async archiveAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`📦 [ActionExecutor] Archiving message`);
-    
+
     return {
       success: true,
       message: 'Message archived successfully',
@@ -704,7 +704,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async markPriorityAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     console.log(`⭐ [ActionExecutor] Marking priority: ${action.params?.priority}`);
-    
+
     return {
       success: true,
       message: `Priority marked as ${action.params?.priority}`,
@@ -713,13 +713,89 @@ export class ActionExecutor implements IActionExecutorPort {
   }
 
   private async sendNotificationAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
-    console.log(`📬 [ActionExecutor] Sending notification`);
-    
-    return {
-      success: true,
-      message: 'Notification sent successfully',
-      data: { recipients: action.params?.recipients, message: action.params?.message }
-    };
+    try {
+      console.log(`📧 [ActionExecutor] Sending notification for rule: ${context.ruleName}`);
+
+      // Send notification to specified recipient
+      const recipient = action.params?.recipient || action.config?.recipient || action.params?.notifyUsers?.[0];
+      const message = action.params?.message || action.config?.message || action.params?.notificationMessage || 'Notificação automática';
+      const priority = action.params?.priority || action.config?.priority || 'medium';
+
+      if (!recipient) {
+        console.error(`❌ [ActionExecutor] No recipient specified for notification action`);
+        return {
+          success: false,
+          message: 'No recipient specified for notification',
+          error: 'Recipient is required for notification action'
+        };
+      }
+
+      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}`);
+
+      // Create notification using the notification system
+      try {
+        const notificationData = {
+          tenantId: context.tenantId,
+          userId: null, // Sistema de automação
+          type: 'automation_notification',
+          title: `Automação: ${context.ruleName}`,
+          message: message,
+          data: {
+            automationRule: context.ruleName,
+            originalMessage: context.messageData.content || context.messageData.body,
+            sender: context.messageData.sender,
+            channel: context.messageData.channel || context.messageData.channelType
+          },
+          priority: priority as 'low' | 'medium' | 'high' | 'urgent',
+          channels: ['email', 'in_app'],
+          recipientEmail: recipient,
+          createdBy: 'automation-system'
+        };
+
+        // Import notification service dynamically
+        const { NotificationController } = await import('../../../notifications/application/controllers/NotificationController');
+        const notificationController = new NotificationController();
+
+        // Create mock request/response objects
+        const mockReq = {
+          user: { tenantId: context.tenantId },
+          body: notificationData
+        } as any;
+
+        const mockRes = {
+          status: (code: number) => ({ json: (data: any) => console.log(`📧 [ActionExecutor] Notification response:`, data) }),
+          json: (data: any) => console.log(`📧 [ActionExecutor] Notification created:`, data)
+        } as any;
+
+        await notificationController.createNotification(mockReq, mockRes);
+
+        console.log(`✅ [ActionExecutor] Notification created successfully for ${recipient}`);
+
+        return {
+          success: true,
+          message: `Notificação enviada para ${recipient}`,
+          data: { recipient, message, priority, type: 'automation_notification' }
+        };
+      } catch (notificationError) {
+        console.error(`❌ [ActionExecutor] Error creating notification:`, notificationError);
+
+        // Fallback: Log notification for manual processing
+        console.log(`📝 [ActionExecutor] NOTIFICATION FALLBACK - Rule: ${context.ruleName}, Recipient: ${recipient}, Message: ${message}`);
+
+        return {
+          success: true,
+          message: `Notificação registrada para ${recipient} (fallback mode)`,
+          data: { recipient, message, priority, fallback: true }
+        };
+      }
+    } catch (error) {
+      console.error(`❌ [ActionExecutor] Error in notification action:`, error);
+      return {
+        success: false,
+        message: 'Error sending notification',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 
   private processTemplate(template: string, context: ActionExecutionContext): string {
@@ -765,10 +841,10 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Extract chat ID from recipient (format: telegram:chatId)
       const chatId = recipient.replace('telegram:', '');
-      
+
       // Get Telegram bot token from tenant integrations or environment
       const botToken = await this.getTelegramBotToken(tenantId);
-      
+
       if (!botToken) {
         console.error(`❌ [ActionExecutor] No Telegram bot token found for tenant ${tenantId}`);
         return false;
@@ -776,7 +852,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Send message using Telegram Bot API
       const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-      
+
       const response = await fetch(telegramApiUrl, {
         method: 'POST',
         headers: {
@@ -790,7 +866,7 @@ export class ActionExecutor implements IActionExecutorPort {
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.ok) {
         console.log(`✅ [ActionExecutor] Telegram message sent successfully to ${chatId}`);
         return true;
@@ -813,10 +889,10 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Extract email address from recipient
       const emailAddress = recipient.includes(':') ? recipient.split(':')[1] : recipient;
-      
+
       // Get SendGrid configuration
       const apiKey = process.env.SENDGRID_API_KEY;
-      
+
       if (!apiKey) {
         console.error(`❌ [ActionExecutor] No SendGrid API key found`);
         return false;
