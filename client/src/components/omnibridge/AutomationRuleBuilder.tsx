@@ -39,7 +39,7 @@ import {
   Eye,
   Copy,
   Trash2,
-  Settings,
+  Settings as SettingsIcon,
   Target,
   Brain,
   Workflow,
@@ -244,7 +244,7 @@ export default function AutomationRuleBuilder({
     if (existingRule) {
       // Garantir que conditions sempre tenha a estrutura correta
       let conditions = { rules: [], logicalOperator: 'AND' };
-      
+
       if (existingRule.conditions && typeof existingRule.conditions === 'object') {
         conditions = {
           rules: existingRule.conditions.rules || [],
@@ -818,7 +818,7 @@ export default function AutomationRuleBuilder({
                                 size="sm"
                                 onClick={() => editAction(action.id)}
                               >
-                                <Settings className="h-3 w-3" />
+                                <SettingsIcon className="h-3 w-3" />
                                 Configurar
                               </Button>
                               <Button
