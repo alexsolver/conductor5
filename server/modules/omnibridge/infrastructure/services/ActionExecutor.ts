@@ -135,8 +135,7 @@ export class ActionExecutor implements IActionExecutorPort {
           return await this.webhookAction(action, context);
 
         case 'send_notification':
-          await this.executeNotificationAction(action, context.messageData);
-          break;
+          return await this.sendNotificationAction(action, context);
 
         default:
           return {
@@ -815,95 +814,92 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async sendNotificationAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      console.log(`📤 [ActionExecutor] Sending notification from automation rule: ${context.ruleName}`);
+      console.log(`📧 [ACTION-EXECUTOR] Executing send_notification action`);
 
-      const { messageData, tenantId } = context;
-
-      // ✅ 1QA.MD: Extract recipient from action parameters with multiple fallbacks
-      const recipient = action.params?.recipient ||
-                       action.params?.users ||
-                       action.config?.recipient ||
-                       action.config?.users ||
-                       action.params?.user ||
-                       action.config?.user;
-
-      const message = action.params?.message || action.config?.message || 'Notificação de automação';
+      // Extract notification parameters
+      const notifyUsers = action.params?.notifyUsers || action.config?.notifyUsers || [];
+      const notifyGroup = action.params?.notifyGroup || action.config?.notifyGroup;
+      const recipient = action.params?.recipient || action.config?.recipient;
+      const message = action.params?.message || action.config?.message || 'Notification from automation rule';
       const priority = action.params?.priority || action.config?.priority || 'medium';
-      const type = action.params?.type || action.config?.type || 'automation_notification';
 
-      if (!recipient) {
-        console.error('❌ [ActionExecutor] No recipient specified for notification action');
-        console.error('❌ [ActionExecutor] Available params:', JSON.stringify(action.params, null, 2));
-        console.error('❌ [ActionExecutor] Available config:', JSON.stringify(action.config, null, 2));
-        return {
-          success: false,
-          message: 'Recipient is required for notification action',
-          error: 'Missing recipient parameter'
-        };
+      // Collect all target users
+      let targetUsers = [];
+
+      // Add individual users
+      if (Array.isArray(notifyUsers) && notifyUsers.length > 0) {
+        targetUsers.push(...notifyUsers);
       }
 
-      console.log(`📧 [ActionExecutor] Sending notification to: ${recipient}`);
+      // Add legacy recipient support
+      if (recipient && !targetUsers.includes(recipient)) {
+        targetUsers.push(recipient);
+      }
 
-      // ✅ 1QA.MD: Import notification modules following Clean Architecture
+      // Add users from group
+      if (notifyGroup) {
+        try {
+          // Get group members - seguindo padrão 1QA.MD
+          const { apiRequest: apiRequestInternal } = await import('../../../../lib/queryClient');
+          const groupResponse = await apiRequestInternal('GET', `/api/user-management/groups/${notifyGroup}/members`);
+
+          if (groupResponse.success && Array.isArray(groupResponse.data)) {
+            const groupUserIds = groupResponse.data.map(member => member.userId || member.id);
+            targetUsers.push(...groupUserIds);
+          }
+        } catch (error) {
+          console.warn(`⚠️ [ACTION-EXECUTOR] Failed to get group members for ${notifyGroup}:`, error);
+        }
+      }
+
+      // Remove duplicates
+      targetUsers = [...new Set(targetUsers)];
+
+      if (targetUsers.length === 0) {
+        throw new Error('At least one user or group must be specified for send_notification action');
+      }
+
+      // Create notification via notifications module
       const { CreateNotificationUseCase } = await import('../../../notifications/application/use-cases/CreateNotificationUseCase');
       const { DrizzleNotificationRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationRepository');
       const { DrizzleNotificationPreferenceRepository } = await import('../../../notifications/infrastructure/repositories/DrizzleNotificationPreferenceRepository');
 
       const notificationRepository = new DrizzleNotificationRepository();
       const preferenceRepository = new DrizzleNotificationPreferenceRepository();
-      const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, preferenceRepository);
-
-      // ✅ 1QA.MD: Handle multiple recipients if provided as comma-separated string
-      const recipients = Array.isArray(recipient) ? recipient : recipient.split(',').map(r => r.trim());
+      const createNotificationUseCase = new CreateNotificationUseCase(
+        notificationRepository,
+        preferenceRepository
+      );
 
       const results = [];
-      for (const singleRecipient of recipients) {
-        try {
-          // ✅ 1QA.MD: Create notification following domain patterns
-          const notificationRequest = {
-            tenantId: tenantId,
-            userId: singleRecipient,
-            type: type,
-            title: `Automação: ${context.ruleName}`,
-            message: `${message}\n\nOrigem: ${messageData.sender || 'Sistema'}\nCanal: ${messageData.channel || 'Desconhecido'}`,
-            priority: priority as 'low' | 'medium' | 'high' | 'critical',
-            channels: ['in_app'],
-            sourceId: context.ruleId,
-            sourceType: 'automation_rule',
-            data: {
-              automationRule: {
-                ruleId: context.ruleId,
-                ruleName: context.ruleName,
-                executedAt: new Date().toISOString()
-              },
-              originalMessage: {
-                content: messageData.content,
-                sender: messageData.sender,
-                channel: messageData.channel,
-                timestamp: messageData.timestamp
-              }
-            }
-          };
 
-          const result = await createNotificationUseCase.execute(notificationRequest);
-          results.push({
-            recipient: singleRecipient,
-            success: result.success,
-            notificationId: result.notificationId,
-            message: result.message
+      // Send notification to each user
+      for (const userId of targetUsers) {
+        try {
+          const notificationResult = await createNotificationUseCase.execute({
+            tenantId: context.tenantId,
+            userId: userId,
+            type: 'automation_notification',
+            title: `Automação: ${context.ruleName}`,
+            message: message,
+            priority: priority as any,
+            channels: ['in_app', 'email'],
+            sourceId: context.messageData?.id,
+            sourceType: 'automation_rule',
+            createdBy: 'system'
           });
 
-          if (result.success) {
-            console.log(`✅ [ActionExecutor] Notification sent successfully to ${singleRecipient}: ${result.notificationId}`);
-          } else {
-            console.error(`❌ [ActionExecutor] Failed to send notification to ${singleRecipient}: ${result.message}`);
-          }
-        } catch (recipientError) {
-          console.error(`❌ [ActionExecutor] Error sending to ${singleRecipient}:`, recipientError);
           results.push({
-            recipient: singleRecipient,
+            userId,
+            success: notificationResult.success,
+            notificationId: notificationResult.data?.id
+          });
+        } catch (error) {
+          console.error(`❌ [ACTION-EXECUTOR] Failed to send notification to user ${userId}:`, error);
+          results.push({
+            userId,
             success: false,
-            message: recipientError instanceof Error ? recipientError.message : 'Unknown error'
+            error: error.message
           });
         }
       }
@@ -911,26 +907,19 @@ export class ActionExecutor implements IActionExecutorPort {
       const successCount = results.filter(r => r.success).length;
       const totalCount = results.length;
 
-      if (successCount > 0) {
-        return {
-          success: true,
-          message: `Notifications sent successfully to ${successCount}/${totalCount} recipients`,
-          data: {
-            results: results,
-            successCount: successCount,
-            totalCount: totalCount,
-            type: type
-          }
-        };
-      } else {
-        return {
-          success: false,
-          message: `Failed to send notifications to all ${totalCount} recipients`,
-          error: 'All notification attempts failed',
-          data: { results: results }
-        };
-      }
-
+      return {
+        success: successCount > 0,
+        message: `Sent notifications to ${successCount}/${totalCount} users`,
+        details: {
+          targetUsers,
+          notifyGroup,
+          message,
+          priority,
+          results,
+          successCount,
+          totalCount
+        }
+      };
     } catch (error) {
       console.error(`❌ [ActionExecutor] Error in notification action:`, error);
       return {
@@ -941,7 +930,7 @@ export class ActionExecutor implements IActionExecutorPort {
     }
   }
 
-  private async executeNotificationAction(action: any, messageData: any): Promise<void> {
+  private async executeNotificationAction(action: any, context: ActionExecutionContext): Promise<void> {
     try {
       console.log('🔔 [ActionExecutor] Executing notification action:', action);
 
@@ -955,13 +944,13 @@ export class ActionExecutor implements IActionExecutorPort {
       const notificationData = {
         type: 'omnibridge_automation',
         title: subject || 'OmniBridge Notification',
-        message: message || `New message from ${messageData.from}`,
+        message: message || `New message from ${context.messageData.from}`,
         recipients: resolvedRecipients,
         channels: channels || ['in_app'],
         data: {
-          messageId: messageData.id,
-          from: messageData.from,
-          subject: messageData.subject
+          messageId: context.messageData.id,
+          from: context.messageData.from,
+          subject: context.messageData.subject
         }
       };
 

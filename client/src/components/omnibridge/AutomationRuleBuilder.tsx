@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import QueryBuilderComponent from '@/components/QueryBuilder';
 import {
@@ -62,6 +62,56 @@ import {
   Link,
   BarChart3
 } from 'lucide-react';
+
+// Mock de componentes de seleção de usuário e grupo
+// Em um cenário real, estes seriam importados de algum lugar
+const UserMultiSelect = ({ value, onChange, users, placeholder }) => {
+  return (
+    <div className="mt-1">
+      {/* Placeholder para o componente de seleção múltipla de usuários */}
+      <div className="border rounded-md p-2 min-h-[40px] flex items-center">
+        <span className="text-sm text-muted-foreground">{placeholder}</span>
+        {/* Aqui seria implementada a lógica de seleção */}
+        {users.length > 0 && value.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {value.map(user => (
+              <Badge key={user.id} variant="outline" className="pr-2">
+                {user.name}
+                <button 
+                  onClick={() => onChange(value.filter(u => u.id !== user.id))}
+                  className="ml-1 font-semibold text-red-500 hover:text-red-700"
+                >
+                  x
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground mt-1">
+        Funcionalidade de seleção de múltiplos usuários ainda em desenvolvimento.
+      </p>
+    </div>
+  );
+};
+
+const UserGroupSelect = ({ value, onChange, placeholder }) => {
+  return (
+    <div className="mt-1">
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="group1">Grupo 1</SelectItem>
+          <SelectItem value="group2">Grupo 2</SelectItem>
+          <SelectItem value="group3">Grupo 3</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
 
 // Campos específicos para automações do OmniBridge
 const omnibridgeFields = [
@@ -245,6 +295,13 @@ export default function AutomationRuleBuilder({
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch para obter a lista de usuários e grupos (exemplo)
+  const { data: usersData } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => apiRequest('GET', '/api/users'),
+    enabled: isOpen, // Só executa se o modal estiver aberto
+  });
 
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
   useEffect(() => {
@@ -498,54 +555,23 @@ export default function AutomationRuleBuilder({
   };
 
   // Renderizar configuração da ação
-  const renderActionConfig = (action: Action) => {
-    if (!action || !action.type) {
-      return (
-        <div className="text-sm text-muted-foreground">
-          Configurações específicas para esta ação serão implementadas em breve.
-        </div>
-      );
-    }
+  const renderActionConfig = () => {
+    if (!currentAction) return null;
 
-    switch (action.type) {
-      case 'send_auto_reply':
+    switch (currentAction.type) {
       case 'auto_reply':
+      case 'send_auto_reply':
         return (
           <div className="space-y-4">
-            <div className="bg-blue-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-blue-900 mb-2">Resposta Automática</h4>
-              <p className="text-sm text-blue-700">Configure a mensagem que será enviada automaticamente</p>
-            </div>
             <div>
               <Label htmlFor="replyMessage">Mensagem de Resposta</Label>
               <Textarea
                 id="replyMessage"
                 placeholder="Digite a mensagem de resposta automática..."
-                value={actionConfig.message || action.config?.message || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  message: e.target.value
-                }))}
-                className="mt-1"
-                rows={4}
+                value={actionConfig.replyMessage || actionConfig.message || ''}
+                onChange={(e) => setActionConfig(prev => ({ ...prev, replyMessage: e.target.value, message: e.target.value }))}
+                className="min-h-[100px]"
               />
-            </div>
-            <div>
-              <Label htmlFor="replyDelay">Atraso (segundos)</Label>
-              <Input
-                id="replyDelay"
-                type="number"
-                placeholder="0"
-                value={actionConfig.delay || action.config?.delay || 0}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  delay: parseInt(e.target.value) || 0
-                }))}
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Tempo de espera antes de enviar a resposta (0 = imediato)
-              </p>
             </div>
           </div>
         );
@@ -553,248 +579,52 @@ export default function AutomationRuleBuilder({
       case 'send_notification':
         return (
           <div className="space-y-4">
-            <div className="bg-yellow-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-yellow-900 mb-2">Enviar Notificação</h4>
-              <p className="text-sm text-yellow-700">Configure os destinatários e mensagem da notificação</p>
-            </div>
             <div>
               <Label htmlFor="notificationMessage">Mensagem da Notificação</Label>
               <Textarea
                 id="notificationMessage"
                 placeholder="Digite a mensagem da notificação..."
-                value={actionConfig.message || action.config?.message || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  message: e.target.value
-                }))}
-                className="mt-1"
-                rows={3}
+                value={actionConfig.message || actionConfig.notificationMessage || ''}
+                onChange={(e) => setActionConfig(prev => ({ ...prev, message: e.target.value, notificationMessage: e.target.value }))}
+                className="min-h-[100px]"
               />
             </div>
-            <div>
-              <Label htmlFor="notificationUsers">Usuários para Notificar</Label>
-              <Input
-                id="notificationUsers"
-                placeholder="emails@exemplo.com (separados por vírgula)"
-                value={actionConfig.users || action.config?.users || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  users: e.target.value
-                }))}
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Separe múltiplos emails por vírgula
-              </p>
-            </div>
-          </div>
-        );
 
-      case 'create_ticket':
-        return (
-          <div className="space-y-4">
-            <div className="bg-green-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-green-900 mb-2">Criar Ticket</h4>
-              <p className="text-sm text-green-700">Configure os dados do ticket que será criado automaticamente</p>
-            </div>
             <div>
-              <Label htmlFor="ticketTitle">Título do Ticket</Label>
-              <Input
-                id="ticketTitle"
-                placeholder="Título automático do ticket..."
-                value={actionConfig.title || action.config?.title || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  title: e.target.value
-                }))}
-                className="mt-1"
+              <Label>Usuários para Notificar</Label>
+              <UserMultiSelect
+                value={actionConfig.notifyUsers || []}
+                onChange={(users) => setActionConfig(prev => ({ ...prev, notifyUsers: users }))}
+                users={usersData?.data || []}
+                placeholder="Selecionar usuários..."
               />
             </div>
+
             <div>
-              <Label htmlFor="ticketDescription">Descrição do Ticket</Label>
-              <Textarea
-                id="ticketDescription"
-                placeholder="Descrição automática do ticket..."
-                value={actionConfig.description || action.config?.description || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  description: e.target.value
-                }))}
-                className="mt-1"
-                rows={3}
+              <Label>Grupos para Notificar</Label>
+              <UserGroupSelect
+                value={actionConfig.notifyGroup || ''}
+                onChange={(groupId) => setActionConfig(prev => ({ ...prev, notifyGroup: groupId }))}
+                placeholder="Selecionar grupo..."
               />
             </div>
+
             <div>
-              <Label htmlFor="ticketPriority">Prioridade</Label>
+              <Label htmlFor="notificationPriority">Prioridade</Label>
               <Select 
-                value={actionConfig.priority || action.config?.priority || 'medium'}
-                onValueChange={(value) => setActionConfig(prev => ({
-                  ...prev,
-                  priority: value
-                }))}
+                value={actionConfig.priority || 'medium'} 
+                onValueChange={(value) => setActionConfig(prev => ({ ...prev, priority: value }))}
               >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecionar prioridade" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a prioridade" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Baixa</SelectItem>
                   <SelectItem value="medium">Média</SelectItem>
                   <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-        );
-
-      case 'add_tags':
-        return (
-          <div className="space-y-4">
-            <div className="bg-indigo-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-indigo-900 mb-2">Adicionar Tags</h4>
-              <p className="text-sm text-indigo-700">Configure as tags que serão adicionadas automaticamente</p>
-            </div>
-            <div>
-              <Label htmlFor="tagsToAdd">Tags para Adicionar</Label>
-              <Input
-                id="tagsToAdd"
-                placeholder="tag1, tag2, tag3..."
-                value={actionConfig.tags || action.config?.tags || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  tags: e.target.value
-                }))}
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Separe múltiplas tags por vírgula
-              </p>
-            </div>
-          </div>
-        );
-
-      case 'assign_agent':
-        return (
-          <div className="space-y-4">
-            <div className="bg-teal-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-teal-900 mb-2">Atribuir Agente</h4>
-              <p className="text-sm text-teal-700">Configure o agente que receberá a atribuição automática</p>
-            </div>
-            <div>
-              <Label htmlFor="agentEmail">Email do Agente</Label>
-              <Input
-                id="agentEmail"
-                type="email"
-                placeholder="agente@exemplo.com"
-                value={actionConfig.agentEmail || action.config?.agentEmail || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  agentEmail: e.target.value
-                }))}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        );
-
-      case 'forward_message':
-        return (
-          <div className="space-y-4">
-            <div className="bg-purple-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-purple-900 mb-2">Encaminhar Mensagem</h4>
-              <p className="text-sm text-purple-700">Configure o destino e nota para o encaminhamento</p>
-            </div>
-            <div>
-              <Label htmlFor="forwardTo">Encaminhar Para</Label>
-              <Input
-                id="forwardTo"
-                type="email"
-                placeholder="destino@exemplo.com"
-                value={actionConfig.forwardTo || action.config?.forwardTo || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  forwardTo: e.target.value
-                }))}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="forwardNote">Nota de Encaminhamento</Label>
-              <Textarea
-                id="forwardNote"
-                placeholder="Nota adicional para o encaminhamento..."
-                value={actionConfig.note || action.config?.note || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  note: e.target.value
-                }))}
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-          </div>
-        );
-
-      case 'mark_priority':
-        return (
-          <div className="space-y-4">
-            <div className="bg-red-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-red-900 mb-2">Marcar Prioridade</h4>
-              <p className="text-sm text-red-700">Configure a nova prioridade que será atribuída</p>
-            </div>
-            <div>
-              <Label htmlFor="newPriority">Nova Prioridade</Label>
-              <Select 
-                value={actionConfig.priority || action.config?.priority || 'medium'}
-                onValueChange={(value) => setActionConfig(prev => ({
-                  ...prev,
-                  priority: value
-                }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecionar prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 'archive':
-        return (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-3 rounded-lg border">
-              <h4 className="font-medium text-gray-900 mb-2">Arquivar</h4>
-              <p className="text-sm text-gray-700">Configure o arquivamento automático da mensagem</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="autoArchive"
-                checked={actionConfig.autoArchive || action.config?.autoArchive || false}
-                onCheckedChange={(checked) => setActionConfig(prev => ({
-                  ...prev,
-                  autoArchive: checked
-                }))}
-              />
-              <Label htmlFor="autoArchive">Arquivar automaticamente</Label>
-            </div>
-            <div>
-              <Label htmlFor="archiveReason">Motivo do Arquivamento</Label>
-              <Input
-                id="archiveReason"
-                placeholder="Motivo do arquivamento automático..."
-                value={actionConfig.reason || action.config?.reason || ''}
-                onChange={(e) => setActionConfig(prev => ({
-                  ...prev,
-                  reason: e.target.value
-                }))}
-                className="mt-1"
-              />
             </div>
           </div>
         );
