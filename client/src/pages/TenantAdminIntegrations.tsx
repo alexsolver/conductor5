@@ -127,8 +127,8 @@ export default function TenantAdminIntegrations() {
   const queryClient = useQueryClient();
   const [selectedIntegration, setSelectedIntegration] = useState<TenantIntegration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-  const [isTestingIntegration, setIsTestingIntegration] = useState(false); // State for general testing
-  const [testResult, setTestResult] = useState<any>(null); // State for test results
+  const [testingIntegrations, setTestingIntegrations] = useState<Record<string, boolean>>({}); // State for testing specific integrations
+  const [testResults, setTestResults] = useState<Record<string, any>>({}); // State for test results per integration
 
   const configForm = useForm<z.infer<typeof integrationConfigSchema>>({
     resolver: zodResolver(integrationConfigSchema),
@@ -219,8 +219,8 @@ export default function TenantAdminIntegrations() {
   const handleTestIntegration = async (integrationId: string) => {
     console.log('🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para:', integrationId);
 
-    setIsTestingIntegration(true);
-    setTestResult(null);
+    setTestingIntegrations(prev => ({ ...prev, [integrationId]: true }));
+    setTestResults(prev => ({ ...prev, [integrationId]: null }));
 
     try {
       const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
@@ -250,20 +250,26 @@ export default function TenantAdminIntegrations() {
 
       if (response.ok && result.success) { // Check for HTTP OK and backend success flag
         console.log('✅ [TESTE-INTEGRAÇÃO] Sucesso:', result);
-        setTestResult({
-          success: true,
-          message: result.message || "Teste bem-sucedido!",
-          details: result.details
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [integrationId]: {
+            success: true,
+            message: result.message || "Teste bem-sucedido!",
+            details: result.details
+          }
+        }));
         // Invalidate queries to reflect any status changes
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       } else {
         console.warn('⚠️ [TESTE-INTEGRAÇÃO] Falha na integração:', result);
-        setTestResult({
-          success: false,
-          message: result.message || result.error || 'Falha no teste da integração',
-          details: result.details
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [integrationId]: {
+            success: false,
+            message: result.message || result.error || 'Falha no teste da integração',
+            details: result.details
+          }
+        }));
       }
     } catch (error: any) {
       console.error('❌ [TESTE-INTEGRAÇÃO] Erro:', error);
@@ -273,13 +279,16 @@ export default function TenantAdminIntegrations() {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      setTestResult({
-        success: false,
-        message: `Falha ao testar integração: ${errorMessage}`,
-        error: error
-      });
+      setTestResults(prev => ({
+        ...prev,
+        [integrationId]: {
+          success: false,
+          message: `Falha ao testar integração: ${errorMessage}`,
+          error: error
+        }
+      }));
     } finally {
-      setIsTestingIntegration(false);
+      setTestingIntegrations(prev => ({ ...prev, [integrationId]: false }));
     }
   };
 
@@ -288,17 +297,20 @@ export default function TenantAdminIntegrations() {
     if (!selectedIntegration) return;
 
     console.log('🔧 [WEBHOOK-SETUP] Configurando webhook para Telegram');
-    setIsTestingIntegration(true);
-    setTestResult(null); // Clear previous test results
+    setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: true }));
+    setTestResults(prev => ({ ...prev, [selectedIntegration.id]: null })); // Clear previous test results
 
     try {
       const webhookUrl = configForm.getValues('telegramWebhookUrl');
 
       if (!webhookUrl) {
-        setTestResult({
-          success: false,
-          message: 'URL do webhook é obrigatória para configurar recebimento de mensagens'
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: false,
+            message: 'URL do webhook é obrigatória para configurar recebimento de mensagens'
+          }
+        }));
         return;
       }
 
@@ -321,31 +333,40 @@ export default function TenantAdminIntegrations() {
 
       if (response.ok && result.success) { // Check for HTTP OK and backend success flag
         console.log('✅ [WEBHOOK-SETUP] Webhook configurado com sucesso:', result);
-        setTestResult({
-          success: true,
-          message: result.message || 'Webhook configurado com sucesso!',
-          details: result
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: true,
+            message: result.message || 'Webhook configurado com sucesso!',
+            details: result
+          }
+        }));
 
         // Invalidate queries to refresh integration status and potentially show updated info
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       } else {
         console.error('❌ [WEBHOOK-SETUP] Erro:', result);
-        setTestResult({
-          success: false,
-          message: result.message || result.error || 'Erro ao configurar webhook',
-          details: result
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: false,
+            message: result.message || result.error || 'Erro ao configurar webhook',
+            details: result
+          }
+        }));
       }
     } catch (error: any) {
       console.error('❌ [WEBHOOK-SETUP] Erro de rede:', error);
-      setTestResult({
-        success: false,
-        message: `Erro de conexão ao configurar webhook: ${error.message}`,
-        error: error
-      });
+      setTestResults(prev => ({
+        ...prev,
+        [selectedIntegration.id]: {
+          success: false,
+          message: `Erro de conexão ao configurar webhook: ${error.message}`,
+          error: error
+        }
+      }));
     } finally {
-      setIsTestingIntegration(false);
+      setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: false }));
     }
   };
 
@@ -354,8 +375,8 @@ export default function TenantAdminIntegrations() {
     if (!selectedIntegration) return;
 
     console.log('🚀 [DEFAULT-WEBHOOK-SETUP] Configurando webhook padrão para Telegram');
-    setIsTestingIntegration(true);
-    setTestResult(null);
+    setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: true }));
+    setTestResults(prev => ({ ...prev, [selectedIntegration.id]: null }));
 
     try {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
@@ -374,11 +395,14 @@ export default function TenantAdminIntegrations() {
 
       if (response.ok && result.success) {
         console.log('✅ [DEFAULT-WEBHOOK-SETUP] Webhook padrão configurado com sucesso:', result);
-        setTestResult({
-          success: true,
-          message: result.message || '✅ Webhook padrão configurado automaticamente!',
-          details: result
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: true,
+            message: result.message || '✅ Webhook padrão configurado automaticamente!',
+            details: result
+          }
+        }));
 
         // Invalidate queries to refresh integration status
         queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
@@ -387,21 +411,27 @@ export default function TenantAdminIntegrations() {
         queryClient.invalidateQueries({ queryKey: [`/api/tenant-admin/integrations/${selectedIntegration.id}/config`] });
       } else {
         console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro:', result);
-        setTestResult({
-          success: false,
-          message: result.message || result.error || 'Erro ao configurar webhook padrão',
-          details: result
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: false,
+            message: result.message || result.error || 'Erro ao configurar webhook padrão',
+            details: result
+          }
+        }));
       }
     } catch (error: any) {
       console.error('❌ [DEFAULT-WEBHOOK-SETUP] Erro de rede:', error);
-      setTestResult({
-        success: false,
-        message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
-        error: error
-      });
+      setTestResults(prev => ({
+        ...prev,
+        [selectedIntegration.id]: {
+          success: false,
+          message: `Erro de conexão ao configurar webhook padrão: ${error.message}`,
+          error: error
+        }
+      }));
     } finally {
-      setIsTestingIntegration(false);
+      setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: false }));
     }
   };
 
@@ -410,8 +440,8 @@ export default function TenantAdminIntegrations() {
     if (!selectedIntegration) return;
 
     console.log('📊 [WEBHOOK-STATUS] Verificando status do webhook para Telegram');
-    setIsTestingIntegration(true);
-    setTestResult(null);
+    setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: true }));
+    setTestResults(prev => ({ ...prev, [selectedIntegration.id]: null }));
 
     try {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
@@ -427,31 +457,40 @@ export default function TenantAdminIntegrations() {
 
       if (response.ok && result.success) {
         console.log('✅ [WEBHOOK-STATUS] Status obtido com sucesso:', result);
-        setTestResult({
-          success: true,
-          message: '📊 Status do webhook obtido com sucesso!',
-          details: {
-            webhookInfo: result.webhookInfo,
-            localConfig: result.localConfig
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: true,
+            message: '📊 Status do webhook obtido com sucesso!',
+            details: {
+              webhookInfo: result.webhookInfo,
+              localConfig: result.localConfig
+            }
           }
-        });
+        }));
       } else {
         console.error('❌ [WEBHOOK-STATUS] Erro:', result);
-        setTestResult({
-          success: false,
-          message: result.message || result.error || 'Erro ao obter status do webhook',
-          details: result
-        });
+        setTestResults(prev => ({
+          ...prev,
+          [selectedIntegration.id]: {
+            success: false,
+            message: result.message || result.error || 'Erro ao obter status do webhook',
+            details: result
+          }
+        }));
       }
     } catch (error: any) {
       console.error('❌ [WEBHOOK-STATUS] Erro de rede:', error);
-      setTestResult({
-        success: false,
-        message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
-        error: error
-      });
+      setTestResults(prev => ({
+        ...prev,
+        [selectedIntegration.id]: {
+          success: false,
+          message: `Erro de conexão ao verificar status do webhook: ${error.message}`,
+          error: error
+        }
+      }));
     } finally {
-      setIsTestingIntegration(false);
+      setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: false }));
     }
   };
 
@@ -768,7 +807,7 @@ export default function TenantAdminIntegrations() {
   const onConfigureIntegration = async (integration: TenantIntegration) => {
     console.log(`🔧 [CONFIG-LOAD] Configurando integração: ${integration.id}`);
     setSelectedIntegration(integration);
-    setTestResult(null); // Clear previous test results when opening dialog
+    setTestResults(prev => ({ ...prev, [integration.id]: null })); // Clear previous test results when opening dialog
 
     try {
       // ✅ CRITICAL FIX: Usar fetch direto com headers corretos
@@ -1135,8 +1174,8 @@ export default function TenantAdminIntegrations() {
       }
 
       // ✅ PREPARATION: Preparar dados baseado no tipo de integração
-      // Remove tenantId from data to avoid cross-tenant access validation issues
-      const { tenantId, ...dataWithoutTenantId } = data;
+      // Remove tenantId and enabled from data to avoid duplication and cross-tenant access validation issues
+      const { tenantId, enabled, ...dataWithoutTenantId } = data;
       
       let configData: any = {
         enabled: data.enabled === true,
@@ -1484,10 +1523,11 @@ export default function TenantAdminIntegrations() {
                               e.stopPropagation();
                               handleTestIntegration(integration.id);
                             }}
-                            disabled={isTestingIntegration}
+                            disabled={testingIntegrations[integration.id] || false}
                             className={`${(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') ? 'flex-1' : 'w-full'}`}
+                            data-testid={`button-test-${integration.id}`}
                           >
-                            {isTestingIntegration ? ( // Use the general isTestingIntegration state
+                            {testingIntegrations[integration.id] ? (
                               <>
                                 <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
                                 <span className="hidden sm:inline">Testando...</span>
@@ -1946,7 +1986,7 @@ export default function TenantAdminIntegrations() {
                                 variant="default"
                                 size="sm"
                                 onClick={handleSetWebhook}
-                                disabled={isTestingIntegration || !field.value}
+                                disabled={testingIntegrations[selectedIntegration?.id || ''] || !field.value}
                                 className="px-3 whitespace-nowrap bg-green-600 hover:bg-green-700"
                                 data-testid="button-register-webhook"
                               >
@@ -2180,10 +2220,10 @@ Acompanhe pelo sistema Conductor."
                 )}
 
                 {/* Display test results below the form if available and not for webhook section */}
-                {testResult && !['telegram'].includes(selectedIntegration.id) && (
-                  <pre className={`p-2 text-xs rounded-md ${testResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {testResult.message}
-                    {testResult.details && <code className="block mt-1">{JSON.stringify(testResult.details, null, 2)}</code>}
+                {selectedIntegration && testResults[selectedIntegration.id] && !['telegram'].includes(selectedIntegration.id) && (
+                  <pre className={`p-2 text-xs rounded-md ${testResults[selectedIntegration.id].success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {testResults[selectedIntegration.id].message}
+                    {testResults[selectedIntegration.id].details && <code className="block mt-1">{JSON.stringify(testResults[selectedIntegration.id].details, null, 2)}</code>}
                   </pre>
                 )}
 
@@ -2197,7 +2237,7 @@ Acompanhe pelo sistema Conductor."
                   </Button>
                   <Button
                     type="submit"
-                    disabled={saveConfigMutation.isPending || isTestingIntegration} // Disable if saving or testing
+                    disabled={saveConfigMutation.isPending || testingIntegrations[selectedIntegration?.id || '']} // Disable if saving or testing
                   >
                     {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
                   </Button>
