@@ -127,7 +127,9 @@ const AiAgentsManager: React.FC = () => {
   // Queries
   const { data: agentsResponse, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/ai-agents/agents'],
-    enabled: !!user?.tenantId
+    queryFn: () => apiRequest('GET', '/api/ai-agents/agents'),
+    enabled: !!user?.tenantId,
+    refetchOnWindowFocus: false
   });
 
   const { data: metricsResponse, isLoading: metricsLoading } = useQuery({
