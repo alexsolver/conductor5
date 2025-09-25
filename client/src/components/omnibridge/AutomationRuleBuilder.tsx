@@ -271,11 +271,31 @@ export default function AutomationRuleBuilder({
           // Gerar ID determinístico se não existir
           const stableId = action.id || `${existingRule.id}_${action.type}_${index}`;
 
-          // ✅ FIXED: Garante que sempre existe um template válido
+          // ✅ FIXED: Template com fallback mais robusto
           const safeTemplate = template || {
             type: action.type,
-            name: action.name || `Ação ${action.type}`,
-            description: action.description || `Ação do tipo ${action.type}`,
+            name: action.type === 'auto_reply' ? 'Resposta automática' :
+                  action.type === 'send_notification' ? 'Enviar notificação' :
+                  action.type === 'create_ticket' ? 'Criar ticket' :
+                  action.type === 'forward_message' ? 'Encaminhar mensagem' :
+                  action.type === 'add_tags' ? 'Adicionar tags' :
+                  action.type === 'assign_agent' ? 'Atribuir agente' :
+                  action.type === 'mark_priority' ? 'Marcar prioridade' :
+                  action.type === 'ai_response' ? 'Resposta com IA' :
+                  action.type === 'escalate' ? 'Escalar' :
+                  action.type === 'archive' ? 'Arquivar' :
+                  `Ação ${action.type}`,
+            description: action.type === 'auto_reply' ? 'Envia resposta pré-definida' :
+                        action.type === 'send_notification' ? 'Notifica equipe responsável' :
+                        action.type === 'create_ticket' ? 'Cria ticket automaticamente' :
+                        action.type === 'forward_message' ? 'Encaminha para outro agente' :
+                        action.type === 'add_tags' ? 'Categoriza com tags' :
+                        action.type === 'assign_agent' ? 'Designa agente específico' :
+                        action.type === 'mark_priority' ? 'Define nível de prioridade' :
+                        action.type === 'ai_response' ? 'Gera resposta usando IA' :
+                        action.type === 'escalate' ? 'Escala para supervisor' :
+                        action.type === 'archive' ? 'Move para arquivo' :
+                        `Descrição da ação ${action.type}`,
             icon: Settings, // ícone padrão para ações não reconhecidas
             color: 'bg-gray-500'
           };
@@ -283,6 +303,9 @@ export default function AutomationRuleBuilder({
           return {
             ...safeTemplate, // Hidrata icon, color, name, description do template
             ...action,       // Sobrescreve com dados persistidos (id, type, config)
+            // ✅ CRITICAL FIX: Sempre usar nome do template se disponível
+            name: template?.name || safeTemplate.name,
+            description: template?.description || safeTemplate.description,
             id: stableId
           };
         }),

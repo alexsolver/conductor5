@@ -326,23 +326,46 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     // ✅ 1QA.MD: Process actions with proper UI field hydration and error handling
     const processedActions = (row.actions || []).map((action: any, index: number) => {
-      const template = actionTemplatesMap[action.type] || {
-        name: 'Ação personalizada',
-        description: 'Ação configurada pelo usuário',
-        icon: 'Settings',
-        color: 'bg-gray-500'
-      };
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Processing action ${index}:`, {
+        id: action.id,
+        type: action.type,
+        hasName: !!action.name,
+        hasConfig: !!action.config
+      });
 
-      return {
-        id: action.id || `action-${index}-${Date.now()}`,
-        type: action.type || 'send_notification',
-        name: action.name || template.name,
-        description: action.description || template.description,
-        icon: action.icon || template.icon,
-        color: action.color || template.color,
-        config: action.config || action.params || {},
+      // Get template for UI hydration - priorizar template existente
+      const template = actionTemplatesMap[action.type as keyof typeof actionTemplatesMap];
+
+      if (!template) {
+        console.warn(`⚠️ [DrizzleAutomationRuleRepository] No template found for action type: ${action.type}`);
+      }
+
+      // Generate stable ID if missing
+      const stableId = action.id || `${row.id}_${action.type}_${index}`;
+
+      // ✅ FIXED: Priorizar dados persistidos, mas usar template como fallback seguro
+      const processedAction = {
+        id: stableId,
+        type: action.type,
+        // ✅ CRITICAL FIX: Usar sempre o nome do template se disponível, senão o persistido
+        name: template?.name || action.name || `Ação ${action.type}`,
+        // ✅ CRITICAL FIX: Usar sempre a descrição do template se disponível
+        description: template?.description || action.description || `Descrição da ação ${action.type}`,
+        icon: template?.icon || 'Settings',
+        color: template?.color || 'bg-gray-500',
+        config: action.config || {},
         priority: action.priority || 1
       };
+
+      console.log(`✅ [DrizzleAutomationRuleRepository] Processed action result:`, {
+        id: processedAction.id,
+        type: processedAction.type,
+        name: processedAction.name,
+        hasTemplate: !!template,
+        finalName: processedAction.name
+      });
+
+      return processedAction;
     });
 
     console.log(`✅ [DrizzleAutomationRuleRepository] Processed actions with UI fields:`, processedActions);
