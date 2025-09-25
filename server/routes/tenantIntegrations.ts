@@ -1393,9 +1393,9 @@ async function testEmailSMTP(config: any, res: any, tenantId: string) {
     }
 
     // Import nodemailer for real SMTP testing
-    const nodemailer = require('nodemailer');
+    const nodemailer = await import('nodemailer');
     
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.default.createTransporter({
       host: serverHost,
       port: parseInt(serverPort),
       secure: useSSL === true,
@@ -1456,7 +1456,7 @@ async function testIMAPEmail(config: any, res: any, tenantId: string) {
     }
 
     // Import imap for real IMAP testing
-    const Imap = require('imap');
+    const { default: Imap } = await import('imap');
     
     const imapConfig = {
       user: emailAddress,
@@ -1549,7 +1549,7 @@ async function testWhatsAppBusiness(config: any, res: any, tenantId: string) {
         message: '✅ Teste do WhatsApp Business realizado com sucesso!',
         details: {
           phoneNumber: phoneInfo.display_phone_number,
-          status: phoneInfo.verified_name,
+          verifiedName: phoneInfo.verified_name,
           phoneNumberId: whatsappPhoneNumberId,
           timestamp: new Date().toISOString(),
           status: 'connected'
@@ -1665,7 +1665,7 @@ async function testTwilioSMS(config: any, res: any, tenantId: string) {
         details: {
           accountSid: account.sid,
           friendlyName: account.friendly_name,
-          status: account.status,
+          accountStatus: account.status,
           fromPhoneNumber: fromPhoneNumber,
           timestamp: new Date().toISOString(),
           status: 'connected'

@@ -1,0 +1,33 @@
+main.tsx:18 Warning: React.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+Check your code at AutomationRuleBuilder.tsx:826.
+    at AutomationRuleBuilder (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/omnibridge/AutomationRuleBuilder.tsx:168:3)
+    at div
+    at div
+    at div
+    at AutomationRules (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/AutomationRules.tsx:42:20)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=9b4617e0:42:13
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=9b4617e0:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…orkspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=dc0b306b:177:13
+    at _c5 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=9b4617e0:42:13
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=9b4617e0:38:15)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=dc0b306b:55:7
+    at div
+    at OmniBridge (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/OmniBridge.tsx:94:17)
+    at Route (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=be995db7:191:16)
+    at Switch (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=be995db7:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/App.tsx?v=5zweIgzwAswxlpBIH6-Uo:115:42)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=9b4617e0:38:15)
+    at TooltipProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=bb95c404:66:5)
+    at SimpleTimerProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at SidebarProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SidebarContext.tsx:20:35)
+    at AuthProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=96db8f13:2805:3)
+    at App (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/App.tsx?v=5zweIgzwAswxlpBIH6-Uo:614:9)
