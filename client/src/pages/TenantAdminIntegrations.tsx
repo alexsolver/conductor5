@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { 
   CheckCircle, 
+  CheckCircle2,
   XCircle, 
   AlertTriangle, 
   Settings, 
