@@ -716,80 +716,99 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log(`📧 [ActionExecutor] Sending notification for rule: ${context.ruleName}`);
 
-      // Send notification to specified recipient
-      const recipient = action.params?.recipient || action.config?.recipient || action.params?.notifyUsers?.[0];
-      const message = action.params?.message || action.config?.message || action.params?.notificationMessage || 'Notificação automática';
+      const recipient = action.params?.recipient || action.config?.recipient;
+      const message = action.params?.message || action.config?.message;
       const priority = action.params?.priority || action.config?.priority || 'medium';
 
       if (!recipient) {
-        console.error(`❌ [ActionExecutor] No recipient specified for notification action`);
         return {
           success: false,
-          message: 'No recipient specified for notification',
-          error: 'Recipient is required for notification action'
+          message: 'Recipient is required for notification',
+          error: 'Missing recipient parameter'
         };
       }
 
-      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}`);
+      if (!message) {
+        return {
+          success: false,
+          message: 'Message is required for notification',
+          error: 'Missing message parameter'
+        };
+      }
 
-      // Create notification using the notification system
-      try {
-        const notificationData = {
+      console.log(`📧 [ActionExecutor] Notification details: recipient=${recipient}, message=${message}, priority=${priority}`);
+
+      // Import and create notification
+      const { NotificationController } = await import('../../../notifications/application/controllers/NotificationController');
+      const notificationController = new NotificationController();
+
+      // Create mock request object with proper userId
+      const mockReq = {
+        user: { 
           tenantId: context.tenantId,
-          userId: null, // Sistema de automação
+          id: '550e8400-e29b-41d4-a716-446655440001' // System user for automation
+        },
+        body: {
+          tenantId: context.tenantId,
+          userId: '550e8400-e29b-41d4-a716-446655440001', // Use system user ID
           type: 'automation_notification',
           title: `Automação: ${context.ruleName}`,
           message: message,
           data: {
             automationRule: context.ruleName,
+            ruleId: context.ruleId,
             originalMessage: context.messageData.content || context.messageData.body,
-            sender: context.messageData.sender,
-            channel: context.messageData.channel || context.messageData.channelType
+            recipientEmail: recipient
           },
-          priority: priority as 'low' | 'medium' | 'high' | 'urgent',
+          priority: priority as 'low' | 'medium' | 'high' | 'critical',
           channels: ['email', 'in_app'],
           recipientEmail: recipient,
           createdBy: 'automation-system'
-        };
+        }
+      } as any;
 
-        // Import notification service dynamically
-        const { NotificationController } = await import('../../../notifications/application/controllers/NotificationController');
-        const notificationController = new NotificationController();
+      let notificationResponse: any = null;
 
-        // Create mock request/response objects
-        const mockReq = {
-          user: { tenantId: context.tenantId },
-          body: notificationData
-        } as any;
+      const mockRes = {
+        status: (code: number) => ({
+          json: (data: any) => {
+            console.log(`📧 [ActionExecutor] Notification response:`, data);
+            notificationResponse = { ...data, statusCode: code };
+            return mockRes;
+          }
+        }),
+        json: (data: any) => {
+          console.log(`📧 [ActionExecutor] Notification created:`, data);
+          notificationResponse = { ...data, statusCode: 200 };
+          return mockRes;
+        }
+      } as any;
 
-        const mockRes = {
-          status: (code: number) => ({ json: (data: any) => console.log(`📧 [ActionExecutor] Notification response:`, data) }),
-          json: (data: any) => console.log(`📧 [ActionExecutor] Notification created:`, data)
-        } as any;
+      await notificationController.createNotification(mockReq, mockRes);
 
-        await notificationController.createNotification(mockReq, mockRes);
-
+      if (notificationResponse && (notificationResponse.statusCode === 200 || notificationResponse.statusCode === 201 || notificationResponse.success)) {
         console.log(`✅ [ActionExecutor] Notification created successfully for ${recipient}`);
-
         return {
           success: true,
           message: `Notificação enviada para ${recipient}`,
-          data: { recipient, message, priority, type: 'automation_notification' }
+          data: {
+            recipient,
+            message,
+            priority,
+            type: 'automation_notification'
+          }
         };
-      } catch (notificationError) {
-        console.error(`❌ [ActionExecutor] Error creating notification:`, notificationError);
-
-        // Fallback: Log notification for manual processing
-        console.log(`📝 [ActionExecutor] NOTIFICATION FALLBACK - Rule: ${context.ruleName}, Recipient: ${recipient}, Message: ${message}`);
-
+      } else {
         return {
-          success: true,
-          message: `Notificação registrada para ${recipient} (fallback mode)`,
-          data: { recipient, message, priority, fallback: true }
+          success: false,
+          message: 'Failed to create notification',
+          error: notificationResponse?.message || 'Unknown notification error',
+          data: { recipient, message, priority }
         };
       }
+
     } catch (error) {
-      console.error(`❌ [ActionExecutor] Error in notification action:`, error);
+      console.error(`❌ [ActionExecutor] Error sending notification:`, error);
       return {
         success: false,
         message: 'Error sending notification',

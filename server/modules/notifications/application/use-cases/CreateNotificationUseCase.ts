@@ -48,13 +48,13 @@ export class CreateNotificationUseCase {
 
       // Get user notification preferences
       const userPreferences = await this.preferenceRepository.getUserPreferences(
-        request.userId, 
+        request.userId,
         request.tenantId
       );
 
       // Determine channels based on user preferences and request
       const channels = this.determineChannels(request, userPreferences);
-      
+
       if (channels.length === 0) {
         return {
           success: false,
@@ -125,7 +125,13 @@ export class CreateNotificationUseCase {
       errors.push('Tenant ID is required');
     }
 
-    if (!request.userId) {
+    // For automation notifications, we can use a system user ID if no specific user is provided
+    let userId = request.userId;
+    if (!userId && request.type === 'automation_notification') {
+      userId = '550e8400-e29b-41d4-a716-446655440001'; // System automation user
+    }
+
+    if (!userId) {
       errors.push('User ID is required');
     }
 
@@ -160,7 +166,7 @@ export class CreateNotificationUseCase {
   }
 
   private determineChannels(
-    request: CreateNotificationRequest, 
+    request: CreateNotificationRequest,
     userPreferences: any
   ): NotificationChannel[] {
     // If specific channels are requested, use those
