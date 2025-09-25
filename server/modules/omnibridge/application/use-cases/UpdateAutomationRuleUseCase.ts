@@ -31,32 +31,51 @@ export class UpdateAutomationRuleUseCase {
     if (data.isEnabled !== undefined) updateData.enabled = data.isEnabled;
     if (data.priority !== undefined) updateData.priority = data.priority;
     
-    // Handle triggers and actions conversion
-    console.log(`🔍 [UpdateAutomationRuleUseCase] Received data.triggers:`, JSON.stringify(data.triggers, null, 2));
+    // Handle conditions/triggers conversion
+    console.log(`🔍 [UpdateAutomationRuleUseCase] Received data:`, JSON.stringify({
+      hasConditions: !!data.conditions,
+      hasTriggers: !!data.triggers,
+      hasActions: !!data.actions
+    }, null, 2));
     
-    if (data.triggers !== undefined) {
-      updateData.trigger = {
-        type: data.triggers[0]?.type === 'keyword' ? 'keyword_match' : 'message_received',
-        conditions: data.triggers.map(trigger => ({
-          id: trigger.id || `condition-${Date.now()}`,
-          type: trigger.type || 'keyword',
+    // ✅ 1QA.MD: Handle both conditions and triggers formats for compatibility
+    if (data.conditions !== undefined) {
+      updateData.conditions = data.conditions;
+      updateData.trigger = data.conditions; // Maintain compatibility
+      console.log(`🔧 [UpdateAutomationRuleUseCase] Using conditions format:`, JSON.stringify(data.conditions, null, 2));
+    } else if (data.triggers !== undefined) {
+      // Convert legacy triggers format to conditions format
+      const convertedConditions = {
+        rules: data.triggers.map(trigger => ({
+          field: trigger.config?.field || 'content',
           operator: trigger.config?.operator || 'contains',
           value: trigger.config?.value || trigger.config?.keywords || '',
-          field: trigger.config?.field || 'content',
-          caseSensitive: trigger.config?.caseSensitive || false,
-          channelType: trigger.config?.channelType || ''
-        }))
+          logicalOperator: 'AND'
+        })),
+        logicalOperator: 'AND'
       };
-      console.log(`🔧 [UpdateAutomationRuleUseCase] Created updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
+      updateData.conditions = convertedConditions;
+      updateData.trigger = convertedConditions;
+      console.log(`🔧 [UpdateAutomationRuleUseCase] Converted triggers to conditions:`, JSON.stringify(convertedConditions, null, 2));
     }
     
+    // ✅ 1QA.MD: Properly handle actions with UI metadata preservation
     if (data.actions !== undefined) {
-      updateData.actions = data.actions.map(action => ({
-        id: action.id || `action-${Date.now()}`,
-        type: action.type === 'auto_reply' ? 'send_auto_reply' : action.type,
-        params: action.config || {},
-        priority: 1
-      }));
+      updateData.actions = data.actions.map(action => {
+        // Preserve action structure from frontend
+        const mappedAction = {
+          id: action.id || `action-${Date.now()}`,
+          type: action.type,
+          name: action.name,
+          description: action.description,
+          icon: action.icon,
+          color: action.color,
+          config: action.config || {},
+          priority: action.priority || 1
+        };
+        console.log(`🔧 [UpdateAutomationRuleUseCase] Mapped action:`, mappedAction);
+        return mappedAction;
+      });
     }
 
     const result = await this.automationRuleRepository.update(ruleId, tenantId, updateData);

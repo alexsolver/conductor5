@@ -1106,14 +1106,28 @@ export default function AutomationRuleBuilder({
           </ScrollArea>
 
           {/* Footer com botões - sempre visível */}
-          <div className="flex justify-between items-center p-4 border-t bg-background">
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave} disabled={saveRuleMutation.isPending}>
-              {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
-            </Button>
-          </div>
+          <div className="flex justify-end space-x-2 pt-4 border-t mt-6">
+                <Button variant="outline" onClick={onClose}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleSave}
+                  disabled={saveRuleMutation.isPending || !rule.name.trim() || rule.actions.length === 0}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {saveRuleMutation.isPending ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      {existingRule ? 'Atualizar Regra' : 'Salvar Regra'}
+                    </>
+                  )}
+                </Button>
+              </div>
         </div>
       </DialogContent>
 

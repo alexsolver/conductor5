@@ -297,90 +297,20 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
           logicalOperator: row.trigger.logicalOperator || 'AND'
         };
       } else if (row.trigger.conditions && Array.isArray(row.trigger.conditions)) {
-        // Handle legacy format
+        // Convert legacy trigger conditions to new format
         conditions = {
           rules: row.trigger.conditions.map((condition: any) => ({
-            field: condition.field || condition.type,
-            operator: condition.operator || 'equals',
+            field: condition.field || 'content',
+            operator: condition.operator || 'contains',
             value: condition.value || '',
-            logicalOperator: condition.logicalOperator || 'AND'
+            logicalOperator: 'AND'
           })),
-          logicalOperator: row.trigger.logicalOperator || 'AND'
+          logicalOperator: 'AND'
         };
       }
     }
 
-    // ✅ 1QA.MD: Action templates map for UI hydration
-    const actionTemplatesMap = {
-      'auto_reply': {
-        name: 'Resposta automática',
-        description: 'Envia resposta pré-definida',
-        icon: 'Reply',
-        color: 'bg-blue-500'
-      },
-      'send_auto_reply': {
-        name: 'Resposta automática',
-        description: 'Envia resposta pré-definida automaticamente',
-        icon: 'Reply',
-        color: 'bg-blue-500'
-      },
-      'send_notification': {
-        name: 'Enviar notificação',
-        description: 'Notifica equipe responsável',
-        icon: 'Bell',
-        color: 'bg-yellow-500'
-      },
-      'create_ticket': {
-        name: 'Criar ticket',
-        description: 'Cria ticket automaticamente',
-        icon: 'FileText',
-        color: 'bg-green-500'
-      },
-      'forward_message': {
-        name: 'Encaminhar mensagem',
-        description: 'Encaminha para outro agente',
-        icon: 'Forward',
-        color: 'bg-purple-500'
-      },
-      'add_tags': {
-        name: 'Adicionar tags',
-        description: 'Categoriza com tags',
-        icon: 'Tag',
-        color: 'bg-indigo-500'
-      },
-      'assign_agent': {
-        name: 'Atribuir agente',
-        description: 'Designa agente específico',
-        icon: 'Users',
-        color: 'bg-teal-500'
-      },
-      'mark_priority': {
-        name: 'Marcar prioridade',
-        description: 'Define nível de prioridade',
-        icon: 'Star',
-        color: 'bg-red-500'
-      },
-      'ai_response': {
-        name: 'Resposta com IA',
-        description: 'Gera resposta usando IA',
-        icon: 'Brain',
-        color: 'bg-pink-500'
-      },
-      'escalate': {
-        name: 'Escalar',
-        description: 'Escala para supervisor',
-        icon: 'ArrowRight',
-        color: 'bg-orange-500'
-      },
-      'archive': {
-        name: 'Arquivar',
-        description: 'Move para arquivo',
-        icon: 'Archive',
-        color: 'bg-gray-500'
-      }
-    };
-
-    // ✅ 1QA.MD: Process actions with proper UI field hydration and error handling
+    // ✅ 1QA.MD: Process actions with UI template hydration and preserve existing data
     const processedActions = (row.actions || []).map((action: any, index: number) => {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Processing action ${index}:`, {
         id: action.id,
@@ -389,26 +319,89 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         hasConfig: !!action.config
       });
 
-      // Get template for UI hydration - priorizar template existente
+      // ✅ 1QA.MD: Action templates map for UI hydration
+      const actionTemplatesMap = {
+        'auto_reply': {
+          name: 'Resposta automática',
+          description: 'Envia resposta pré-definida',
+          icon: 'Reply',
+          color: 'bg-blue-500'
+        },
+        'send_auto_reply': {
+          name: 'Resposta automática',
+          description: 'Envia resposta pré-definida automaticamente',
+          icon: 'Reply',
+          color: 'bg-blue-500'
+        },
+        'send_notification': {
+          name: 'Enviar notificação',
+          description: 'Notifica equipe responsável',
+          icon: 'Bell',
+          color: 'bg-yellow-500'
+        },
+        'create_ticket': {
+          name: 'Criar ticket',
+          description: 'Cria ticket automaticamente',
+          icon: 'FileText',
+          color: 'bg-green-500'
+        },
+        'forward_message': {
+          name: 'Encaminhar mensagem',
+          description: 'Encaminha para outro agente',
+          icon: 'Forward',
+          color: 'bg-purple-500'
+        },
+        'add_tags': {
+          name: 'Adicionar tags',
+          description: 'Categoriza com tags',
+          icon: 'Tag',
+          color: 'bg-indigo-500'
+        },
+        'assign_agent': {
+          name: 'Atribuir agente',
+          description: 'Designa agente específico',
+          icon: 'Users',
+          color: 'bg-teal-500'
+        },
+        'mark_priority': {
+          name: 'Marcar prioridade',
+          description: 'Define nível de prioridade',
+          icon: 'Star',
+          color: 'bg-red-500'
+        },
+        'ai_response': {
+          name: 'Resposta com IA',
+          description: 'Gera resposta usando IA',
+          icon: 'Brain',
+          color: 'bg-pink-500'
+        },
+        'escalate': {
+          name: 'Escalar',
+          description: 'Escala para supervisor',
+          icon: 'ArrowRight',
+          color: 'bg-orange-500'
+        },
+        'archive': {
+          name: 'Arquivar',
+          description: 'Move para arquivo',
+          icon: 'Archive',
+          color: 'bg-gray-500'
+        }
+      };
+
+      // Get template for this action type
       const template = actionTemplatesMap[action.type as keyof typeof actionTemplatesMap];
 
-      if (!template) {
-        console.warn(`⚠️ [DrizzleAutomationRuleRepository] No template found for action type: ${action.type}`);
-      }
-
-      // Generate stable ID if missing
-      const stableId = action.id || `${row.id}_${action.type}_${index}`;
-
-      // ✅ FIXED: Priorizar dados persistidos, mas usar template como fallback seguro
+      // ✅ 1QA.MD: CRITICAL FIX - Preserve existing action data, only hydrate missing UI fields
       const processedAction = {
-        id: stableId,
+        id: action.id,
         type: action.type,
-        // ✅ CRITICAL FIX: Usar sempre o nome do template se disponível, senão o persistido
-        name: template?.name || action.name || `Ação ${action.type}`,
-        // ✅ CRITICAL FIX: Usar sempre a descrição do template se disponível
-        description: template?.description || action.description || `Descrição da ação ${action.type}`,
-        icon: template?.icon || 'Settings',
-        color: template?.color || 'bg-gray-500',
+        // Preserve existing name/description if present, otherwise use template
+        name: action.name || template?.name || `Ação ${action.type}`,
+        description: action.description || template?.description || `Descrição da ação ${action.type}`,
+        // Only use template UI fields if not already present
+        icon: action.icon || template?.icon || 'Settings',
+        color: action.color || template?.color || 'bg-gray-500',
         config: action.config || {},
         priority: action.priority || 1
       };
@@ -418,7 +411,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         type: processedAction.type,
         name: processedAction.name,
         hasTemplate: !!template,
-        finalName: processedAction.name
+        finalName: processedAction.name,
+        preservedExisting: !!(action.name || action.description || action.icon || action.color)
       });
 
       return processedAction;
@@ -428,20 +422,20 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
     return new AutomationRule(
       row.id,
-      row.tenantId || row.tenant_id,
-      row.name || 'Regra sem nome',
+      row.tenantId,
+      row.name || '',
       row.description || '',
       conditions,
       processedActions,
-      row.enabled ?? row.isEnabled ?? true,
-      row.priority || 1,
-      row.aiEnabled || false,
-      row.aiPromptId || row.ai_prompt_id,
-      row.executionCount || row.execution_count || 0,
-      row.successCount || row.success_count || 0,
-      row.lastExecuted || row.last_executed ? new Date(row.lastExecuted || row.last_executed) : undefined,
-      row.createdAt || row.created_at ? new Date(row.createdAt || row.created_at) : new Date(),
-      row.updatedAt || row.updated_at ? new Date(row.updatedAt || row.updated_at) : new Date()
+      Boolean(row.enabled),
+      Number(row.priority) || 1,
+      Boolean(row.aiEnabled),
+      row.aiPromptId,
+      Number(row.executionCount) || 0,
+      Number(row.successCount) || 0,
+      row.lastExecuted ? new Date(row.lastExecuted) : undefined,
+      row.createdAt ? new Date(row.createdAt) : new Date(),
+      row.updatedAt ? new Date(row.updatedAt) : new Date()
     );
   }
 
