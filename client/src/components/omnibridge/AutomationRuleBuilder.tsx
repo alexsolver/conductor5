@@ -339,33 +339,140 @@ export default function AutomationRuleBuilder({
     saveRuleMutation.mutate(rule);
   };
 
-  // Renderizar configuração da ação
-  const renderActionConfig = () => {
-    if (!currentAction) return null;
+  // Helper para atualizar configuração da ação
+  const updateActionConfig = (index: number, key: string, value: any) => {
+    setRule(prev => {
+      const newActions = [...prev.actions];
+      newActions[index] = {
+        ...newActions[index],
+        config: {
+          ...newActions[index].config,
+          [key]: value
+        }
+      };
+      return { ...prev, actions: newActions };
+    });
+  };
 
-    switch (currentAction.type) {
+  // Renderizar configuração da ação
+  const renderActionConfig = (action: Action, actionIndex: number) => {
+    switch (action.type) {
       case 'auto_reply':
         return (
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="reply-message">Mensagem de resposta</Label>
-              <Textarea
-                id="reply-message"
-                value={actionConfig.message || ''}
-                onChange={(e) => setActionConfig({...actionConfig, message: e.target.value})}
-                placeholder="Digite a mensagem de resposta automática..."
-                rows={4}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={`action-message-${actionIndex}`}>Mensagem de Resposta</Label>
+                <Textarea
+                  id={`action-message-${actionIndex}`}
+                  placeholder="Digite a mensagem de resposta automática..."
+                  value={action.config?.message || ''}
+                  onChange={(e) => updateActionConfig(actionIndex, 'message', e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`action-delay-${actionIndex}`}>Atraso (segundos)</Label>
+                <Input
+                  id={`action-delay-${actionIndex}`}
+                  type="number"
+                  placeholder="0"
+                  value={action.config?.delay || 0}
+                  onChange={(e) => updateActionConfig(actionIndex, 'delay', parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'ai_response':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={`action-tone-${actionIndex}`}>Tom da Resposta</Label>
+                <Select
+                  value={action.config?.tone || 'professional'}
+                  onValueChange={(value) => updateActionConfig(actionIndex, 'tone', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tom" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Profissional</SelectItem>
+                    <SelectItem value="friendly">Amigável</SelectItem>
+                    <SelectItem value="technical">Técnico</SelectItem>
+                    <SelectItem value="sales">Vendas</SelectItem>
+                    <SelectItem value="empathetic">Empático</SelectItem>
+                    <SelectItem value="formal">Formal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor={`action-language-${actionIndex}`}>Idioma</Label>
+                <Select
+                  value={action.config?.language || 'pt-BR'}
+                  onValueChange={(value) => updateActionConfig(actionIndex, 'language', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o idioma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                    <SelectItem value="en-US">English (US)</SelectItem>
+                    <SelectItem value="es-ES">Español</SelectItem>
+                    <SelectItem value="fr-FR">Français</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
-              <Label htmlFor="reply-delay">Delay (segundos)</Label>
-              <Input
-                id="reply-delay"
-                type="number"
-                value={actionConfig.delay || 0}
-                onChange={(e) => setActionConfig({...actionConfig, delay: parseInt(e.target.value)})}
-                placeholder="0"
+              <Label htmlFor={`action-instructions-${actionIndex}`}>Instruções Personalizadas</Label>
+              <Textarea
+                id={`action-instructions-${actionIndex}`}
+                placeholder="Digite instruções específicas para a IA sobre como responder..."
+                value={action.config?.customInstructions || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'customInstructions', e.target.value)}
+                rows={3}
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Exemplo: "Responda de forma empática, oferecendo soluções práticas e incluindo informações de contato."
+              </p>
+            </div>
+            <div>
+              <Label htmlFor={`action-template-${actionIndex}`}>Template de Resposta (Opcional)</Label>
+              <Textarea
+                id={`action-template-${actionIndex}`}
+                placeholder="Olá! {response} Caso precise de mais alguma coisa, estou à disposição."
+                value={action.config?.template || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'template', e.target.value)}
+                rows={2}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Use {'{response}'} onde a resposta da IA deve ser inserida. Se vazio, apenas a resposta da IA será enviada.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={`action-include-original-${actionIndex}`}
+                checked={action.config?.includeOriginalMessage || false}
+                onChange={(e) => updateActionConfig(actionIndex, 'includeOriginalMessage', e.target.checked)}
+                className="rounded"
+              />
+              <Label htmlFor={`action-include-original-${actionIndex}`}>
+                Incluir mensagem original na resposta
+              </Label>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-900">Funcionalidade de IA Ativa</span>
+              </div>
+              <p className="text-sm text-blue-700">
+                Esta ação usa inteligência artificial para gerar respostas contextuais baseadas no conteúdo da mensagem recebida.
+                A IA analisará o sentimento, intenção e contexto antes de gerar uma resposta adequada.
+              </p>
             </div>
           </div>
         );
@@ -374,20 +481,20 @@ export default function AutomationRuleBuilder({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="notification-recipient">Destinatário</Label>
+              <Label htmlFor={`action-recipient-${actionIndex}`}>Destinatário</Label>
               <Input
-                id="notification-recipient"
-                value={actionConfig.recipient || ''}
-                onChange={(e) => setActionConfig({...actionConfig, recipient: e.target.value})}
+                id={`action-recipient-${actionIndex}`}
+                value={action.config?.recipient || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'recipient', e.target.value)}
                 placeholder="email@exemplo.com"
               />
             </div>
             <div>
-              <Label htmlFor="notification-message">Mensagem</Label>
+              <Label htmlFor={`action-message-${actionIndex}`}>Mensagem</Label>
               <Textarea
-                id="notification-message"
-                value={actionConfig.message || ''}
-                onChange={(e) => setActionConfig({...actionConfig, message: e.target.value})}
+                id={`action-message-${actionIndex}`}
+                value={action.config?.message || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'message', e.target.value)}
                 placeholder="Mensagem de notificação..."
               />
             </div>
@@ -398,17 +505,17 @@ export default function AutomationRuleBuilder({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="ticket-title">Título do ticket</Label>
+              <Label htmlFor={`action-title-${actionIndex}`}>Título do ticket</Label>
               <Input
-                id="ticket-title"
-                value={actionConfig.title || ''}
-                onChange={(e) => setActionConfig({...actionConfig, title: e.target.value})}
+                id={`action-title-${actionIndex}`}
+                value={action.config?.title || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'title', e.target.value)}
                 placeholder="Título automático do ticket"
               />
             </div>
             <div>
-              <Label htmlFor="ticket-priority">Prioridade</Label>
-              <Select value={actionConfig.priority || 'medium'} onValueChange={(value) => setActionConfig({...actionConfig, priority: value})}>
+              <Label htmlFor={`action-priority-${actionIndex}`}>Prioridade</Label>
+              <Select value={action.config?.priority || 'medium'} onValueChange={(value) => updateActionConfig(actionIndex, 'priority', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -427,11 +534,11 @@ export default function AutomationRuleBuilder({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+              <Label htmlFor={`action-tags-${actionIndex}`}>Tags (separadas por vírgula)</Label>
               <Input
-                id="tags"
-                value={actionConfig.tags || ''}
-                onChange={(e) => setActionConfig({...actionConfig, tags: e.target.value})}
+                id={`action-tags-${actionIndex}`}
+                value={action.config?.tags || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'tags', e.target.value)}
                 placeholder="tag1, tag2, tag3"
               />
             </div>
@@ -442,11 +549,11 @@ export default function AutomationRuleBuilder({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="agent-id">ID do Agente</Label>
+              <Label htmlFor={`action-agentId-${actionIndex}`}>ID do Agente</Label>
               <Input
-                id="agent-id"
-                value={actionConfig.agentId || ''}
-                onChange={(e) => setActionConfig({...actionConfig, agentId: e.target.value})}
+                id={`action-agentId-${actionIndex}`}
+                value={action.config?.agentId || ''}
+                onChange={(e) => updateActionConfig(actionIndex, 'agentId', e.target.value)}
                 placeholder="ID ou email do agente"
               />
             </div>
@@ -602,13 +709,26 @@ export default function AutomationRuleBuilder({
                               </div>
                               <Badge variant="outline">#{index + 1}</Badge>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeAction(action.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentAction(action);
+                                  setActionConfig(action.config);
+                                  setShowActionConfig(true);
+                                }}
+                              >
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeAction(action.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -625,7 +745,17 @@ export default function AutomationRuleBuilder({
                             key={template.type}
                             variant="outline"
                             className="justify-start h-auto p-3"
-                            onClick={() => addAction(template)}
+                            onClick={() => {
+                              const newAction: Action = {
+                                id: `action_${Date.now()}_${template.type}`,
+                                ...template,
+                                config: {}
+                              };
+                              setRule(prev => ({
+                                ...prev,
+                                actions: [...prev.actions, newAction]
+                              }));
+                            }}
                           >
                             <div className="flex items-center gap-3">
                               <div className={`p-2 rounded-lg ${template.color}`}>
@@ -666,7 +796,13 @@ export default function AutomationRuleBuilder({
         </ScrollArea>
 
         {/* Dialog de Configuração de Ação */}
-        <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
+        <Dialog open={showActionConfig} onOpenChange={(open) => {
+          if (!open) {
+            setShowActionConfig(false);
+            setCurrentAction(null);
+            setActionConfig({});
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -679,7 +815,7 @@ export default function AutomationRuleBuilder({
             </DialogHeader>
 
             <div className="py-4">
-              {renderActionConfig()}
+              {currentAction && renderActionConfig(currentAction, rule.actions.findIndex(a => a.id === currentAction.id))}
             </div>
 
             <div className="flex justify-end gap-2">

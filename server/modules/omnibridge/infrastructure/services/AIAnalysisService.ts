@@ -183,31 +183,72 @@ Gere uma resposta profissional e empática em português.`,
     try {
       const prompt = customPrompt || this.defaultPrompts.get('response')!;
       
+      // Enhanced system prompt based on context
+      let enhancedSystemPrompt = prompt.systemPrompt;
+      
+      if (context?.customInstructions) {
+        enhancedSystemPrompt += `\n\nINSTRUÇÕES ESPECÍFICAS: ${context.customInstructions}`;
+      }
+
+      if (context?.tone) {
+        const toneInstructions = {
+          professional: 'Mantenha um tom profissional e respeitoso.',
+          friendly: 'Use um tom amigável e caloroso, mas ainda profissional.',
+          technical: 'Use linguagem técnica precisa, mas acessível.',
+          sales: 'Foque em benefícios e valor, com call-to-action quando apropriado.',
+          empathetic: 'Demonstre empatia genuína e compreensão.',
+          formal: 'Use linguagem formal e protocolar.'
+        };
+        enhancedSystemPrompt += `\n\nTOM: ${toneInstructions[context.tone as keyof typeof toneInstructions] || toneInstructions.professional}`;
+      }
+
+      if (context?.language) {
+        const languageInstructions = {
+          'pt-BR': 'Responda em português brasileiro.',
+          'en-US': 'Respond in American English.',
+          'es-ES': 'Responde en español.',
+          'fr-FR': 'Répondez en français.'
+        };
+        enhancedSystemPrompt += `\n\nIDIOMA: ${languageInstructions[context.language as keyof typeof languageInstructions] || languageInstructions['pt-BR']}`;
+      }
+
       const userPrompt = prompt.userPromptTemplate
         .replace('{analysis}', JSON.stringify(analysisData, null, 2))
         .replace('{originalMessage}', originalMessage)
         .replace('{channel}', context?.channel || 'Desconhecido')
         .replace('{context}', context ? JSON.stringify(context, null, 2) : 'Nenhum contexto adicional');
 
-      console.log(`🤖 [AI-RESPONSE] Generating response for ${analysisData.intent} message`);
+      console.log(`🤖 [AI-RESPONSE] Generating response for ${analysisData.intent} message with tone: ${context?.tone || 'default'}`);
 
       const response = await this.openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           {
             role: "system",
-            content: prompt.systemPrompt
+            content: enhancedSystemPrompt
           },
           {
             role: "user",
             content: userPrompt
           }
-        ]
+        ],
+        max_tokens: context?.maxResponseLength ? Math.min(context.maxResponseLength * 2, 2000) : 1000,
+        temperature: context?.tone === 'technical' ? 0.3 : context?.tone === 'sales' ? 0.7 : 0.5
       });
 
-      const generatedResponse = response.choices[0].message.content || 'Obrigado pelo seu contato. Nossa equipe analisará sua mensagem.';
+      let generatedResponse = response.choices[0].message.content || 'Obrigado pelo seu contato. Nossa equipe analisará sua mensagem.';
 
-      console.log(`✅ [AI-RESPONSE] Response generated successfully`);
+      // Apply length limit if specified
+      if (context?.maxResponseLength && generatedResponse.length > context.maxResponseLength) {
+        generatedResponse = generatedResponse.substring(0, context.maxResponseLength - 3) + '...';
+      }
+
+      // Include original message if requested
+      if (context?.includeOriginalMessage) {
+        generatedResponse = `Referente à sua mensagem: "${originalMessage}"\n\n${generatedResponse}`;
+      }
+
+      console.log(`✅ [AI-RESPONSE] Response generated successfully (${generatedResponse.length} chars)`);
 
       return generatedResponse;
     } catch (error) {

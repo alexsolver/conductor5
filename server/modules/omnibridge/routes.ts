@@ -63,6 +63,8 @@ router.post('/automation-rules/test', jwtAuth, async (req, res) => {
         description: action.name || action.type,
         result: action.type === 'auto_reply' ? 
           action.config?.message || 'Resposta automática enviada' :
+          action.type === 'ai_response' ?
+          'Resposta de IA gerada com sucesso' :
           `${action.name || action.type} executado com sucesso`,
         config: action.config
       })) : []
@@ -72,6 +74,118 @@ router.post('/automation-rules/test', jwtAuth, async (req, res) => {
   } catch (error) {
     console.error('[OmniBridge] Rule test error:', error);
     res.status(500).json({ success: false, error: 'Failed to test rule' });
+  }
+});
+
+// AI Response Configuration Routes
+router.get('/ai-response-configurations', jwtAuth, async (req, res) => {
+  try {
+    const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
+    const configurations = AIResponseConfigurationService.getAllConfigurations();
+    
+    res.json({
+      success: true,
+      data: configurations
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error getting AI response configurations:', error);
+    res.status(500).json({ success: false, error: 'Failed to get AI response configurations' });
+  }
+});
+
+router.get('/ai-response-configurations/:id', jwtAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
+    const configuration = AIResponseConfigurationService.getConfigurationById(id);
+    
+    if (!configuration) {
+      return res.status(404).json({ success: false, error: 'Configuration not found' });
+    }
+
+    res.json({
+      success: true,
+      data: configuration
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error getting AI response configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to get AI response configuration' });
+  }
+});
+
+router.post('/ai-response-configurations/validate', jwtAuth, async (req, res) => {
+  try {
+    const { AIResponseConfigurationService } = await import('./infrastructure/services/AIResponseConfigurationService');
+    const errors = AIResponseConfigurationService.validateConfiguration(req.body);
+    
+    res.json({
+      success: true,
+      data: {
+        valid: errors.length === 0,
+        errors
+      }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error validating AI response configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to validate configuration' });
+  }
+});
+
+router.post('/ai-response-configurations/preview', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const { configuration, testMessage } = req.body;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const { AIAnalysisService } = await import('./infrastructure/services/AIAnalysisService');
+    const aiService = new AIAnalysisService();
+    
+    // Analyze test message
+    const analysis = await aiService.analyzeMessage({
+      content: testMessage || 'Mensagem de teste para visualização',
+      sender: 'teste@exemplo.com',
+      subject: 'Teste de Configuração de IA',
+      channel: 'email',
+      timestamp: new Date().toISOString()
+    });
+
+    // Generate response with configuration
+    const response = await aiService.generateResponse(
+      analysis,
+      testMessage || 'Mensagem de teste para visualização',
+      {
+        customInstructions: configuration.customInstructions,
+        tone: configuration.tone,
+        language: configuration.language
+      }
+    );
+
+    // Apply template if provided
+    const finalResponse = configuration.template 
+      ? configuration.template.replace('{response}', response)
+      : response;
+
+    res.json({
+      success: true,
+      data: {
+        originalMessage: testMessage || 'Mensagem de teste para visualização',
+        analysis,
+        generatedResponse: response,
+        finalResponse,
+        configuration: {
+          tone: configuration.tone,
+          language: configuration.language,
+          includeOriginalMessage: configuration.includeOriginalMessage,
+          maxLength: finalResponse.length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error previewing AI response:', error);
+    res.status(500).json({ success: false, error: 'Failed to preview AI response' });
   }
 });
 

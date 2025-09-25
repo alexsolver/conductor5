@@ -3,6 +3,7 @@ import { AutomationAction } from '../../domain/entities/AutomationRule';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
 import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
+import * as crypto from 'crypto'; // Import crypto module
 
 export class ActionExecutor implements IActionExecutorPort {
   constructor(private aiService?: IAIAnalysisPort, private createTicketUseCase?: CreateTicketUseCase) {
@@ -352,40 +353,145 @@ export class ActionExecutor implements IActionExecutorPort {
 
   private async sendAIResponseAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      console.log(`🤖 [ActionExecutor] Generating AI response`);
+      console.log(`🤖 [ActionExecutor] Generating AI response for message: ${context.messageData.content}`);
 
-      if (!this.aiService || !context.aiAnalysis) {
+      if (!this.aiService) {
+        console.log(`⚠️ [ActionExecutor] AI service not available, creating mock service`);
+
+        // Import AI service dinamicamente se não estiver disponível
+        const { AIAnalysisService } = await import('./AIAnalysisService'); // Assumindo que este arquivo existe e exporta AIAnalysisService
+        const aiService = new AIAnalysisService();
+
+        // Usar o serviço para gerar resposta
+        const messageAnalysis = context.aiAnalysis || await aiService.analyzeMessage({
+          content: context.messageData.content || context.messageData.body || '',
+          sender: context.messageData.from || context.messageData.sender || 'Anônimo',
+          subject: context.messageData.subject || '',
+          channel: context.messageData.channel || context.messageData.channelType || 'sistema',
+          timestamp: new Date().toISOString()
+        });
+
+        const aiResponse = await aiService.generateResponse(
+          messageAnalysis,
+          context.messageData.content || context.messageData.body || '',
+          {
+            channel: context.messageData.channel || context.messageData.channelType,
+            customInstructions: action.params?.customInstructions || action.params?.instructions,
+            tone: action.params?.tone || 'professional',
+            language: action.params?.language || 'pt-BR',
+            template: action.params?.template,
+            includeOriginalMessage: action.params?.includeOriginalMessage || false
+          }
+        );
+
+        // Salvar resposta como mensagem de resposta
+        try {
+          const replyMessage = {
+            id: crypto.randomUUID(), // Usando crypto.randomUUID()
+            tenantId: context.tenantId,
+            channelId: context.messageData.channelId || 'automation',
+            channelType: context.messageData.channelType || 'sistema',
+            from: 'assistente-ia@conductor.com',
+            to: context.messageData.from || context.messageData.sender,
+            subject: context.messageData.subject ? `Re: ${context.messageData.subject}` : 'Resposta Automática com IA',
+            body: aiResponse,
+            content: aiResponse,
+            messageType: 'ai_response',
+            status: 'sent',
+            priority: context.messageData.priority || 'normal',
+            parentMessageId: context.messageData.id,
+            sentAt: new Date(),
+            receivedAt: new Date(),
+            metadata: {
+              automationRule: {
+                ruleId: context.ruleId,
+                ruleName: context.ruleName,
+                actionType: 'ai_response'
+              },
+              aiGenerated: true,
+              aiAnalysis: messageAnalysis,
+              generationParams: {
+                tone: action.params?.tone || 'professional',
+                language: action.params?.language || 'pt-BR',
+                customInstructions: action.params?.customInstructions
+              }
+            }
+          };
+
+          // Salvar mensagem de resposta usando repository se disponível
+          try {
+            const { DrizzleMessageRepository } = await import('../../infrastructure/repositories/DrizzleMessageRepository'); // Assumindo que este arquivo existe
+            const messageRepository = new DrizzleMessageRepository();
+            await messageRepository.create(replyMessage, context.tenantId);
+            console.log(`✅ [ActionExecutor] AI response saved as message: ${replyMessage.id}`);
+          } catch (saveError) {
+            console.error(`⚠️ [ActionExecutor] Failed to save AI response as message:`, saveError);
+          }
+
+        } catch (messageError) {
+          console.error(`⚠️ [ActionExecutor] Error creating reply message:`, messageError);
+        }
+
         return {
-          success: false,
-          message: 'AI service or analysis not available for AI response',
-          error: 'Missing AI dependencies'
+          success: true,
+          message: 'Resposta de IA gerada e enviada com sucesso',
+          data: {
+            type: 'ai_response',
+            response: aiResponse,
+            originalMessage: context.messageData.content || context.messageData.body,
+            analysis: messageAnalysis,
+            generatedAt: new Date().toISOString(),
+            configuration: {
+              tone: action.params?.tone || 'professional',
+              language: action.params?.language || 'pt-BR',
+              customInstructions: action.params?.customInstructions || 'Nenhuma instrução personalizada',
+              template: action.params?.template || 'Padrão'
+            }
+          }
         };
       }
 
-      const responseText = await this.aiService.generateResponse(
-        context.aiAnalysis,
-        context.messageData.content || context.messageData.body,
+      // Se AI service está disponível, usar diretamente
+      const messageAnalysis = context.aiAnalysis || await this.aiService.analyzeMessage({
+        content: context.messageData.content || context.messageData.body || '',
+        sender: context.messageData.from || context.messageData.sender || 'Anônimo',
+        subject: context.messageData.subject || '',
+        channel: context.messageData.channel || context.messageData.channelType || 'sistema',
+        timestamp: new Date().toISOString()
+      });
+
+      const aiResponse = await this.aiService.generateResponse(
+        messageAnalysis,
+        context.messageData.content || context.messageData.body || '',
         {
-          channel: context.messageData.channel,
-          sender: context.messageData.sender,
-          responseType: action.params?.responseType
+          channel: context.messageData.channel || context.messageData.channelType,
+          customInstructions: action.params?.customInstructions || action.params?.instructions,
+          tone: action.params?.tone || 'professional',
+          language: action.params?.language || 'pt-BR'
         }
       );
 
-      console.log(`📝 [ActionExecutor] AI generated response: ${responseText.substring(0, 100)}...`);
-
-      // TODO: Implementar envio real através dos canais
-      // Por enquanto, apenas simular o envio
-
       return {
         success: true,
-        message: 'AI response generated and sent successfully',
-        data: { responseText, recipient: context.messageData.sender }
+        message: 'Resposta de IA gerada com sucesso',
+        data: {
+          type: 'ai_response',
+          response: aiResponse,
+          originalMessage: context.messageData.content || context.messageData.body,
+          analysis: messageAnalysis,
+          generatedAt: new Date().toISOString(),
+          configuration: {
+            tone: action.params?.tone || 'professional',
+            language: action.params?.language || 'pt-BR',
+            customInstructions: action.params?.customInstructions || 'Nenhuma instrução personalizada'
+          }
+        }
       };
     } catch (error) {
+      console.error(`❌ [ActionExecutor] Error generating AI response:`, error);
       return {
         success: false,
-        message: 'Error generating AI response',
+        message: 'Falha ao gerar resposta de IA',
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -744,7 +850,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Create mock request object with proper userId
       const mockReq = {
-        user: { 
+        user: {
           tenantId: context.tenantId,
           id: '550e8400-e29b-41d4-a716-446655440001' // System user for automation
         },

@@ -332,6 +332,87 @@ export class AutomationController {
             },
             order: 3
           }]
+        },
+        {
+          id: 'ai-intelligent-response',
+          name: 'Resposta Inteligente com IA',
+          description: 'Gera respostas automáticas contextuais usando inteligência artificial',
+          category: 'AI & Automation',
+          triggers: [{
+            type: 'new_message',
+            conditions: {}
+          }],
+          actions: [{
+            type: 'ai_response',
+            parameters: {
+              tone: 'professional',
+              language: 'pt-BR',
+              customInstructions: 'Responda de forma cordial e profissional, oferecendo ajuda específica baseada no contexto da mensagem.',
+              includeOriginalMessage: false,
+              template: 'customer_service'
+            },
+            order: 1
+          }]
+        },
+        {
+          id: 'ai-technical-support',
+          name: 'Suporte Técnico com IA',
+          description: 'Respostas especializadas para questões técnicas usando IA',
+          category: 'Technical Support',
+          triggers: [{
+            type: 'keyword',
+            conditions: {
+              keywords: ['erro', 'bug', 'problema', 'falha', 'não funciona', 'ajuda técnica'],
+              operator: 'or'
+            }
+          }],
+          actions: [{
+            type: 'ai_response',
+            parameters: {
+              tone: 'technical',
+              language: 'pt-BR',
+              customInstructions: 'Forneça uma resposta técnica detalhada, incluindo possíveis soluções e próximos passos. Seja preciso e objetivo.',
+              includeOriginalMessage: true,
+              template: 'technical_support'
+            },
+            order: 1
+          }, {
+            type: 'add_tags',
+            parameters: {
+              tagsToAdd: ['technical-support', 'ai-assisted']
+            },
+            order: 2
+          }]
+        },
+        {
+          id: 'ai-sales-response',
+          name: 'Resposta de Vendas com IA',
+          description: 'Respostas orientadas para vendas e conversão usando IA',
+          category: 'Sales & Marketing',
+          triggers: [{
+            type: 'keyword',
+            conditions: {
+              keywords: ['preço', 'valor', 'custo', 'orçamento', 'comprar', 'adquirir', 'contrato'],
+              operator: 'or'
+            }
+          }],
+          actions: [{
+            type: 'ai_response',
+            parameters: {
+              tone: 'sales',
+              language: 'pt-BR',
+              customInstructions: 'Responda com foco em vendas, destacando benefícios e valor. Seja persuasivo mas não agressivo. Inclua call-to-action.',
+              includeOriginalMessage: false,
+              template: 'sales_response'
+            },
+            order: 1
+          }, {
+            type: 'add_tags',
+            parameters: {
+              tagsToAdd: ['sales-opportunity', 'ai-generated']
+            },
+            order: 2
+          }]
         }
       ];
 
