@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Check, ChevronsUpDown, X, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +16,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
 
 interface User {
   id: string;
-  name: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   role?: string;
 }
@@ -26,7 +30,6 @@ interface User {
 interface UserMultiSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
-  users: User[];
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -35,25 +38,52 @@ interface UserMultiSelectProps {
 export function UserMultiSelect({
   value = [],
   onChange,
-  users,
   placeholder = "Selecionar usuários...",
   className,
   disabled = false,
 }: UserMultiSelectProps) {
   const [open, setOpen] = useState(false);
 
+  // Fetch users from API
+  const { data: usersData, isLoading, error } = useQuery<{ success: boolean; data: User[] }>({
+    queryKey: ["users"],
+    queryFn: () => apiRequest('GET', '/api/users'),
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
   // Debug logs
   React.useEffect(() => {
-    console.log('[UserMultiSelect] Users received:', users?.length, users);
+    console.log('[UserMultiSelect] Users data:', usersData);
     console.log('[UserMultiSelect] Current value:', value);
-  }, [users, value]);
+  }, [usersData, value]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-2 border rounded">
+        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+        <span className="text-sm text-muted-foreground">Carregando usuários...</span>
+      </div>
+    );
+  }
+
+  if (error || !usersData?.success) {
+    return (
+      <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
+        <AlertCircle className="w-4 h-4 text-destructive mr-2" />
+        <span className="text-sm text-destructive">Erro ao carregar usuários</span>
+      </div>
+    );
+  }
+
+  const users = usersData?.data || [];
 
   // Normalizar dados dos usuários
   const normalizedUsers = React.useMemo(() => {
     if (!users || !Array.isArray(users)) return [];
     
     return users.map(user => ({
-      id: user.id || user.userId,
+      id: user.id,
       name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
       email: user.email,
       role: user.role

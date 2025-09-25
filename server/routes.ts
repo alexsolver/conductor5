@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { unifiedStorage } from "./storage-simple";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
@@ -98,6 +98,9 @@ import { TenantTemplateService } from "./services/TenantTemplateService";
 
 // Import internal-forms routes
 import internalFormsRoutes from './modules/internal-forms/routes';
+
+// Import user groups routes
+import userGroupsRoutes from './routes/userGroups';
 
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
@@ -3917,9 +3920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let messages = [];
         try {
           messages = await unifiedStorage.getEmailInboxMessages(tenantId);
-          console.log(
-            `📧 [EMAIL-INBOX] Successfully retrieved ${messages.length} messages from storage`,
-          );
+          console.log(`📧 [EMAIL-INBOX] Successfully retrieved ${messages.length} messages from storage`);
 
           if (messages.length > 0) {
             console.log(`📧 [EMAIL-INBOX] First message sample:`, {
@@ -4679,7 +4680,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.industry,
           c.website,
           c.phone,
-          c.email,
           c.status,
           c.subscription_tier,
           c.created_at,
@@ -4981,20 +4981,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Try simple select to check if tables exist
           const configTest = await tenantDb
-            .select()
-            .from(ticketFieldConfigurations)
-            .limit(1);
+            .delete(ticketFieldConfigurations)
+            .where(eq(ticketFieldConfigurations.tenantId, tenantId));
           const optionsTest = await tenantDb
-            .select()
-            .from(ticketFieldOptions)
-            .limit(1);
+            .delete(ticketFieldOptions)
+            .where(eq(ticketFieldOptions.tenantId, tenantId));
 
           res.json({
             success: true,
             message: "Tables accessible",
             tenantId: tenantId,
-            configRows: configTest.length,
-            optionsRows: optionsTest.length,
+            configRows: configTest.rowCount,
+            optionsRows: optionsTest.rowCount,
           });
         } catch (tableError) {
           res.json({
@@ -5975,6 +5973,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Check if user is SaaS admin
         if (!req.user || req.user.role !== "saas_admin") {
+          console.error(
+            "❌ [SAAS-ADMIN-TEST] Access denied - not SaaS admin:",
+            req.user?.role,
+          );
           return res.status(403).json({
             success: false,
             message: "Access denied. SaaS Admin role required.",
