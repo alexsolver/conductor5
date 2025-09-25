@@ -1015,49 +1015,69 @@ export default function AutomationRuleBuilder({
                             const hasConfig = action.config && Object.keys(action.config).length > 0;
 
                             return (
-                              <div 
-                                key={action.id || index} 
-                                className="flex items-center justify-between p-3 bg-secondary rounded-md border"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {React.createElement(actionInfo.icon, { 
-                                    size: 16, 
-                                    className: actionInfo.color
-                                  })}
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium">
-                                      {actionInfo.name}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {actionInfo.description}
-                                    </div>
-                                    {hasConfig && (
-                                      <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                                        <CheckCircle size={10} />
-                                        Configurada
+                              <div key={action.id || index} className="group relative overflow-hidden bg-white border-2 border-gray-100 hover:border-blue-200 rounded-xl p-4 transition-all duration-200 hover:shadow-md">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start space-x-4 flex-1 min-w-0">
+                                      {/* Ícone com melhor destaque */}
+                                      <div className={`flex-shrink-0 w-12 h-12 ${action.color || 'bg-gray-500'} rounded-xl flex items-center justify-center shadow-sm`}>
+                                        {React.createElement(actionInfo.icon, { 
+                                          className: "w-6 h-6 text-white" 
+                                        })}
                                       </div>
-                                    )}
+
+                                      {/* Conteúdo principal */}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center space-x-2 mb-1">
+                                          <h4 className="font-semibold text-gray-900 text-base truncate">{actionInfo.name}</h4>
+                                          {hasConfig && (
+                                            <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                              Configurada
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-gray-600 leading-relaxed mb-2">{actionInfo.description}</p>
+
+                                        {/* Mostrar preview das configurações se existirem */}
+                                        {action.config && Object.keys(action.config).length > 0 && (
+                                          <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                            <Settings className="w-3 h-3" />
+                                            <span>
+                                              {action.config.message ? `Mensagem: "${action.config.message.substring(0, 30)}${action.config.message.length > 30 ? '...' : ''}"` : 
+                                               action.config.users ? `Usuários: ${action.config.users}` :
+                                               action.config.tags ? `Tags: ${action.config.tags}` :
+                                               `${Object.keys(action.config).length} configuração(ões)`}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Botões de ação */}
+                                    <div className="flex items-center space-x-1 ml-2">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => editAction(action, index)}
+                                        className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                        title="Editar configurações"
+                                      >
+                                        <Cog className="w-4 h-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => removeAction(index)}
+                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Remover ação"
+                                      >
+                                        <Minus className="w-4 h-4" />
+                                      </Button>
+                                    </div>
                                   </div>
+
+                                  {/* Indicador visual sutil */}
+                                  <div className={`absolute bottom-0 left-0 right-0 h-1 ${action.color || 'bg-gray-500'} opacity-20 group-hover:opacity-40 transition-opacity`} />
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => editAction(action, index)}
-                                    title="Configurar ação"
-                                  >
-                                    <Cog size={14} />
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => removeAction(index)}
-                                    title="Remover ação"
-                                  >
-                                    <Minus size={14} />
-                                  </Button>
-                                </div>
-                              </div>
                             );
                           })}
                         </div>
