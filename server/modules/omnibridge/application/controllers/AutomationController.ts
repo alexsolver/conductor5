@@ -216,8 +216,17 @@ export class AutomationController {
         name: rule.name,
         description: rule.description,
         enabled: rule.enabled,
-        conditions: rule.conditions || rule.trigger || { rules: [], logicalOperator: 'AND' },
-        actions: rule.actions || [],
+        conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
+        actions: (rule.actions || []).map((action: any) => ({
+          id: action.id,
+          type: action.type,
+          name: action.name,
+          description: action.description,
+          icon: action.icon,
+          color: action.color,
+          config: action.config || {},
+          priority: action.priority || 1
+        })),
         priority: rule.priority || 1,
         aiEnabled: rule.aiEnabled || false,
         createdAt: rule.createdAt,
@@ -226,7 +235,7 @@ export class AutomationController {
         successCount: rule.successCount || 0,
         lastExecuted: rule.lastExecuted,
         // ✅ Incluir trigger para compatibilidade com edição
-        trigger: rule.trigger || rule.conditions || { rules: [], logicalOperator: 'AND' }
+        trigger: rule.conditions || { rules: [], logicalOperator: 'AND' }
       };
 
       res.json({

@@ -279,29 +279,86 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     }
   }
 
+  // ✅ 1QA.MD: Map database row to domain entity with proper field conversion
   private mapRowToEntity(row: any): AutomationRule {
-    console.log('🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:', {
+    console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`, {
       id: row.id,
       trigger: row.trigger,
       actions: row.actions
     });
 
-    // ✅ 1QA.MD: Garantir compatibilidade com frontend - mapear trigger para conditions
-    const conditions = row.trigger || { rules: [], logicalOperator: 'AND' };
+    // Convert database trigger to frontend conditions format
+    let conditions = { rules: [], logicalOperator: 'AND' };
+
+    if (row.trigger && typeof row.trigger === 'object') {
+      // If trigger has conditions array, use it
+      if (Array.isArray(row.trigger.conditions)) {
+        conditions = {
+          rules: row.trigger.conditions.map((condition: any, index: number) => ({
+            field: condition.field || condition.type || 'content',
+            operator: condition.operator || 'contains',
+            value: condition.value || '',
+            logicalOperator: index === 0 ? undefined : 'AND'
+          })),
+          logicalOperator: row.trigger.logicalOperator || 'AND'
+        };
+      } else if (row.trigger.type) {
+        // Convert old trigger format to new conditions format
+        conditions = {
+          rules: [{
+            field: row.trigger.type === 'keyword_match' ? 'content' : 'content',
+            operator: 'contains',
+            value: '',
+            logicalOperator: undefined
+          }],
+          logicalOperator: 'AND'
+        };
+      }
+    }
+
+    // Import action templates for proper mapping
+    const actionTemplates = [
+      { type: 'auto_reply', name: 'Resposta automática', description: 'Envia resposta pré-definida', icon: 'Reply', color: 'bg-blue-500' },
+      { type: 'send_notification', name: 'Enviar notificação', description: 'Notifica equipe responsável', icon: 'Bell', color: 'bg-yellow-500' },
+      { type: 'create_ticket', name: 'Criar ticket', description: 'Cria ticket automaticamente', icon: 'FileText', color: 'bg-green-500' },
+      { type: 'forward_message', name: 'Encaminhar mensagem', description: 'Encaminha para outro agente', icon: 'Forward', color: 'bg-purple-500' },
+      { type: 'add_tags', name: 'Adicionar tags', description: 'Categoriza com tags', icon: 'Tag', color: 'bg-indigo-500' },
+      { type: 'assign_agent', name: 'Atribuir agente', description: 'Designa agente específico', icon: 'Users', color: 'bg-teal-500' },
+      { type: 'mark_priority', name: 'Marcar prioridade', description: 'Define nível de prioridade', icon: 'Star', color: 'bg-red-500' },
+      { type: 'ai_response', name: 'Resposta com IA', description: 'Gera resposta usando IA', icon: 'Brain', color: 'bg-pink-500' },
+      { type: 'escalate', name: 'Escalar', description: 'Escala para supervisor', icon: 'ArrowRight', color: 'bg-orange-500' },
+      { type: 'archive', name: 'Arquivar', description: 'Move para arquivo', icon: 'Archive', color: 'bg-gray-500' }
+    ];
+
+    // Process actions to ensure they have proper UI fields
+    const processedActions = (row.actions || []).map((action: any, index: number) => {
+      const template = actionTemplates.find(t => t.type === action.type);
+
+      return {
+        id: action.id || `${row.id}_${action.type}_${index}`,
+        type: action.type,
+        name: template?.name || action.name || 'Ação desconhecida',
+        description: template?.description || action.description || '',
+        icon: template?.icon || 'Settings',
+        color: template?.color || 'bg-gray-500',
+        config: action.config || action.params || {},
+        priority: action.priority || 1
+      };
+    });
 
     return new AutomationRule(
       row.id,
       row.tenantId,
       row.name,
-      row.description,
-      conditions, // Usar conditions ao invés de trigger para compatibilidade
-      row.actions || [],
-      row.enabled,
-      row.priority,
-      row.aiEnabled,
+      row.description || '',
+      conditions, // Use processed conditions instead of raw trigger
+      processedActions,
+      row.enabled ?? true,
+      row.priority || 1,
+      row.aiEnabled || false,
       row.aiPromptId,
-      row.executionCount,
-      row.successCount,
+      row.executionCount || 0,
+      row.successCount || 0,
       row.lastExecuted,
       row.createdAt,
       row.updatedAt
