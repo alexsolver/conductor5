@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import QueryBuilderComponent from '@/components/QueryBuilder';
 import {
   MessageSquare,
   Mail,
@@ -62,19 +63,56 @@ import {
   BarChart3
 } from 'lucide-react';
 
-interface Trigger {
-  id: string;
-  type: 'keyword' | 'channel' | 'priority' | 'sender' | 'time' | 'ai_analysis';
-  name: string;
-  description: string;
-  icon: any;
-  color: string;
-  config: Record<string, any>;
-}
+// Campos específicos para automações do OmniBridge
+const omnibridgeFields = [
+  { value: 'channelType', label: 'Tipo de Canal' },
+  { value: 'from', label: 'Remetente' },
+  { value: 'to', label: 'Destinatário' },
+  { value: 'subject', label: 'Assunto' },
+  { value: 'content', label: 'Conteúdo da Mensagem' },
+  { value: 'priority', label: 'Prioridade' },
+  { value: 'tags', label: 'Tags' },
+  { value: 'receivedAt', label: 'Data/Hora de Recebimento' },
+  { value: 'sentAt', label: 'Data/Hora de Envio' },
+  { value: 'messageType', label: 'Tipo de Mensagem' },
+  { value: 'attachments', label: 'Possui Anexos' },
+  { value: 'isRead', label: 'Mensagem Lida' },
+  { value: 'senderType', label: 'Tipo de Remetente' },
+  { value: 'customerGroup', label: 'Grupo do Cliente' },
+  { value: 'messageLength', label: 'Tamanho da Mensagem' },
+  { value: 'businessHours', label: 'Horário Comercial' },
+  { value: 'responseTime', label: 'Tempo de Resposta' },
+  { value: 'sentiment', label: 'Sentimento (IA)' },
+  { value: 'intent', label: 'Intenção (IA)' },
+  { value: 'urgency', label: 'Urgência (IA)' },
+  { value: 'language', label: 'Idioma Detectado' },
+  { value: 'metadata', label: 'Metadados' }
+];
+
+// Operadores específicos para OmniBridge
+const omnibridgeOperators = [
+  { value: 'equals', label: 'Igual a' },
+  { value: 'not_equals', label: 'Diferente de' },
+  { value: 'contains', label: 'Contém' },
+  { value: 'not_contains', label: 'Não contém' },
+  { value: 'starts_with', label: 'Inicia com' },
+  { value: 'ends_with', label: 'Termina com' },
+  { value: 'regex', label: 'Expressão Regular' },
+  { value: 'greater_than', label: 'Maior que' },
+  { value: 'greater_than_or_equal', label: 'Maior ou igual' },
+  { value: 'less_than', label: 'Menor que' },
+  { value: 'less_than_or_equal', label: 'Menor ou igual' },
+  { value: 'between', label: 'Entre' },
+  { value: 'in', label: 'Está em' },
+  { value: 'not_in', label: 'Não está em' },
+  { value: 'is_empty', label: 'Está vazio' },
+  { value: 'is_not_empty', label: 'Não está vazio' },
+  { value: 'ai_matches', label: 'IA corresponde' }
+];
 
 interface Action {
   id: string;
-  type: 'auto_reply' | 'create_ticket' | 'send_notification' | 'forward_message' | 'add_tags' | 'assign_agent' | 'mark_priority' | 'archive';
+  type: string;
   name: string;
   description: string;
   icon: any;
@@ -87,9 +125,10 @@ interface AutomationRule {
   name: string;
   description: string;
   enabled: boolean;
-  triggers: Trigger[];
+  conditions: any; // Query Builder structure
   actions: Action[];
   priority: number;
+  aiEnabled: boolean;
 }
 
 interface AutomationRuleBuilderProps {
@@ -100,257 +139,8 @@ interface AutomationRuleBuilderProps {
   onSave?: (rule: AutomationRule) => void;
 }
 
-// Predefined trigger templates
-const triggerTemplates: Omit<Trigger, 'id' | 'config'>[] = [
-  // Gatilhos Básicos
-  {
-    type: 'keyword',
-    name: 'Palavra-chave',
-    description: 'Ativa quando detecta palavras específicas',
-    icon: Hash,
-    color: 'bg-blue-500'
-  },
-  {
-    type: 'channel',
-    name: 'Canal específico',
-    description: 'Ativa para mensagens de um canal',
-    icon: MessageSquare,
-    color: 'bg-green-500'
-  },
-  {
-    type: 'priority',
-    name: 'Prioridade alta',
-    description: 'Ativa para mensagens urgentes',
-    icon: AlertCircle,
-    color: 'bg-red-500'
-  },
-  {
-    type: 'sender',
-    name: 'Remetente específico',
-    description: 'Ativa para um remetente específico',
-    icon: Users,
-    color: 'bg-purple-500'
-  },
-  {
-    type: 'time',
-    name: 'Horário específico',
-    description: 'Ativa em horários determinados',
-    icon: Clock,
-    color: 'bg-orange-500'
-  },
-  {
-    type: 'ai_analysis',
-    name: 'Análise de IA',
-    description: 'Ativa baseado em análise inteligente',
-    icon: Brain,
-    color: 'bg-pink-500'
-  },
-
-  // Gatilhos de Atendimento ao Cliente
-  {
-    type: 'ticket_keywords',
-    name: 'Palavras de chamado',
-    description: 'Detecta termos que indicam necessidade de chamado',
-    icon: Target,
-    color: 'bg-red-600'
-  },
-  {
-    type: 'complaint_detection',
-    name: 'Detecção de reclamação',
-    description: 'Identifica mensagens de reclamação',
-    icon: AlertTriangle,
-    color: 'bg-orange-600'
-  },
-  {
-    type: 'service_request',
-    name: 'Solicitação de serviço',
-    description: 'Detecta pedidos de suporte técnico',
-    icon: Settings,
-    color: 'bg-blue-600'
-  },
-  {
-    type: 'escalation_needed',
-    name: 'Necessita escalação',
-    description: 'Identifica casos que precisam de escalação',
-    icon: ArrowRight,
-    color: 'bg-purple-600'
-  },
-  {
-    type: 'customer_frustrated',
-    name: 'Cliente frustrado',
-    description: 'Detecta sinais de frustração do cliente',
-    icon: AlertCircle,
-    color: 'bg-red-700'
-  },
-  {
-    type: 'technical_issue',
-    name: 'Problema técnico',
-    description: 'Identifica questões técnicas',
-    icon: Cog,
-    color: 'bg-gray-600'
-  },
-  {
-    type: 'billing_inquiry',
-    name: 'Dúvida financeira',
-    description: 'Detecta questões sobre cobrança',
-    icon: CreditCard,
-    color: 'bg-green-600'
-  },
-
-  // Gatilhos Temporais Avançados
-  {
-    type: 'business_hours',
-    name: 'Horário comercial',
-    description: 'Ativa apenas durante horário comercial',
-    icon: Clock,
-    color: 'bg-emerald-600'
-  },
-  {
-    type: 'after_hours',
-    name: 'Fora do horário',
-    description: 'Ativa fora do horário comercial',
-    icon: Clock,
-    color: 'bg-slate-600'
-  },
-  {
-    type: 'holiday_weekend',
-    name: 'Feriados e fins de semana',
-    description: 'Ativa em feriados e fins de semana',
-    icon: Calendar,
-    color: 'bg-yellow-600'
-  },
-  {
-    type: 'response_time_exceeded',
-    name: 'Tempo de resposta excedido',
-    description: 'Ativa quando SLA de resposta é excedido',
-    icon: AlertTriangle,
-    color: 'bg-red-800'
-  },
-
-  // Gatilhos de Comportamento do Cliente
-  {
-    type: 'repeat_customer',
-    name: 'Cliente recorrente',
-    description: 'Ativa para clientes que já entraram em contato',
-    icon: RefreshCw,
-    color: 'bg-blue-700'
-  },
-  {
-    type: 'new_customer',
-    name: 'Novo cliente',
-    description: 'Ativa para clientes que entram em contato pela primeira vez',
-    icon: Star,
-    color: 'bg-green-700'
-  },
-  {
-    type: 'vip_customer',
-    name: 'Cliente VIP',
-    description: 'Ativa para clientes marcados como VIP',
-    icon: Star,
-    color: 'bg-yellow-700'
-  },
-  {
-    type: 'multiple_contacts',
-    name: 'Múltiplos contatos',
-    description: 'Ativa quando cliente entra em contato múltiplas vezes',
-    icon: AlertCircle,
-    color: 'bg-orange-700'
-  },
-
-  // Gatilhos de Conteúdo Avançado
-  {
-    type: 'sentiment_negative',
-    name: 'Sentimento negativo',
-    description: 'Detecta mensagens com sentimento negativo',
-    icon: AlertTriangle,
-    color: 'bg-red-500'
-  },
-  {
-    type: 'sentiment_positive',
-    name: 'Sentimento positivo',
-    description: 'Detecta mensagens com sentimento positivo',
-    icon: Lightbulb,
-    color: 'bg-green-500'
-  },
-  {
-    type: 'contains_attachment',
-    name: 'Contém anexo',
-    description: 'Ativa quando mensagem contém anexos',
-    icon: Download,
-    color: 'bg-indigo-600'
-  },
-  {
-    type: 'message_length',
-    name: 'Tamanho da mensagem',
-    description: 'Ativa baseado no tamanho da mensagem',
-    icon: FileText,
-    color: 'bg-gray-500'
-  },
-  {
-    type: 'language_detection',
-    name: 'Idioma detectado',
-    description: 'Ativa baseado no idioma da mensagem',
-    icon: MessageSquare,
-    color: 'bg-violet-600'
-  },
-
-  // Gatilhos de Sistema
-  {
-    type: 'agent_availability',
-    name: 'Disponibilidade do agente',
-    description: 'Ativa baseado na disponibilidade dos agentes',
-    icon: Users,
-    color: 'bg-teal-600'
-  },
-  {
-    type: 'queue_overflow',
-    name: 'Fila sobrecarregada',
-    description: 'Ativa quando fila de atendimento está cheia',
-    icon: AlertTriangle,
-    color: 'bg-red-600'
-  },
-  {
-    type: 'department_specific',
-    name: 'Departamento específico',
-    description: 'Ativa para departamentos específicos',
-    icon: Settings,
-    color: 'bg-blue-800'
-  },
-  {
-    type: 'product_mention',
-    name: 'Menção de produto',
-    description: 'Ativa quando produto específico é mencionado',
-    icon: Tag,
-    color: 'bg-purple-700'
-  },
-
-  // Gatilhos de Integração
-  {
-    type: 'webhook_received',
-    name: 'Webhook recebido',
-    description: 'Ativa quando webhook externo é recebido',
-    icon: ExternalLink,
-    color: 'bg-cyan-600'
-  },
-  {
-    type: 'api_trigger',
-    name: 'Gatilho por API',
-    description: 'Ativa via chamada de API externa',
-    icon: Cog,
-    color: 'bg-indigo-700'
-  },
-  {
-    type: 'form_submission',
-    name: 'Formulário enviado',
-    description: 'Ativa quando formulário é submetido',
-    icon: FileText,
-    color: 'bg-emerald-700'
-  }
-];
-
-// Predefined action templates
+// Templates de ações (mantemos os mesmos do código original)
 const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
-  // Ações Básicas de Resposta
   {
     type: 'auto_reply',
     name: 'Resposta automática',
@@ -366,15 +156,6 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-yellow-500'
   },
   {
-    type: 'forward_message',
-    name: 'Encaminhar mensagem',
-    description: 'Encaminha para outro agente',
-    icon: Forward,
-    color: 'bg-purple-500'
-  },
-
-  // Ações de Gestão de Tickets
-  {
     type: 'create_ticket',
     name: 'Criar ticket',
     description: 'Cria ticket automaticamente',
@@ -382,90 +163,11 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-green-500'
   },
   {
-    type: 'create_urgent_ticket',
-    name: 'Criar ticket urgente',
-    description: 'Cria ticket com prioridade alta',
-    icon: AlertCircle,
-    color: 'bg-red-600'
-  },
-  {
-    type: 'create_ticket_from_template',
-    name: 'Ticket por template',
-    description: 'Cria ticket usando template pré-definido',
-    icon: FileText,
-    color: 'bg-emerald-600'
-  },
-  {
-    type: 'assign_ticket_by_category',
-    name: 'Atribuir por categoria',
-    description: 'Atribui ticket baseado na categoria',
-    icon: Target,
-    color: 'bg-blue-600'
-  },
-  {
-    type: 'escalate_ticket',
-    name: 'Escalar chamado',
-    description: 'Escala ticket para supervisor',
-    icon: ArrowRight,
-    color: 'bg-orange-600'
-  },
-  {
-    type: 'set_ticket_sla',
-    name: 'Definir SLA',
-    description: 'Define tempo limite para resolução',
-    icon: Clock,
-    color: 'bg-yellow-600'
-  },
-  {
-    type: 'link_related_tickets',
-    name: 'Vincular tickets',
-    description: 'Vincula a tickets relacionados',
-    icon: Link,
-    color: 'bg-purple-600'
-  },
-  {
-    type: 'close_ticket',
-    name: 'Fechar ticket',
-    description: 'Fecha o ticket automaticamente',
-    icon: CheckCircle,
-    color: 'bg-green-700'
-  },
-  {
-    type: 'reopen_ticket',
-    name: 'Reabrir ticket',
-    description: 'Reabre ticket fechado',
-    icon: RefreshCw,
-    color: 'bg-blue-700'
-  },
-
-  // Ações de Atribuição e Organização
-  {
-    type: 'assign_agent',
-    name: 'Atribuir agente',
-    description: 'Designa agente específico',
-    icon: Users,
-    color: 'bg-teal-500'
-  },
-  {
-    type: 'assign_team',
-    name: 'Atribuir equipe',
-    description: 'Designa equipe específica',
-    icon: Users,
-    color: 'bg-teal-600'
-  },
-  {
-    type: 'assign_by_skill',
-    name: 'Atribuir por habilidade',
-    description: 'Atribui baseado em habilidades técnicas',
-    icon: Target,
-    color: 'bg-indigo-600'
-  },
-  {
-    type: 'assign_round_robin',
-    name: 'Atribuição rotativa',
-    description: 'Distribui igualmente entre agentes',
-    icon: RefreshCw,
-    color: 'bg-cyan-600'
+    type: 'forward_message',
+    name: 'Encaminhar mensagem',
+    description: 'Encaminha para outro agente',
+    icon: Forward,
+    color: 'bg-purple-500'
   },
   {
     type: 'add_tags',
@@ -475,11 +177,11 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-indigo-500'
   },
   {
-    type: 'remove_tags',
-    name: 'Remover tags',
-    description: 'Remove tags específicas',
-    icon: Tag,
-    color: 'bg-gray-500'
+    type: 'assign_agent',
+    name: 'Atribuir agente',
+    description: 'Designa agente específico',
+    icon: Users,
+    color: 'bg-teal-500'
   },
   {
     type: 'mark_priority',
@@ -489,1703 +191,238 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     color: 'bg-red-500'
   },
   {
-    type: 'change_status',
-    name: 'Alterar status',
-    description: 'Muda status do ticket',
-    icon: Settings,
-    color: 'bg-blue-800'
-  },
-
-  // Ações de Acompanhamento
-  {
-    type: 'create_followup_task',
-    name: 'Criar follow-up',
-    description: 'Agenda tarefa de acompanhamento',
-    icon: Calendar,
-    color: 'bg-cyan-600'
+    type: 'ai_response',
+    name: 'Resposta com IA',
+    description: 'Gera resposta usando IA',
+    icon: Brain,
+    color: 'bg-pink-500'
   },
   {
-    type: 'schedule_reminder',
-    name: 'Agendar lembrete',
-    description: 'Agenda lembrete para agente',
-    icon: Clock,
-    color: 'bg-orange-700'
+    type: 'escalate',
+    name: 'Escalar',
+    description: 'Escala para supervisor',
+    icon: ArrowRight,
+    color: 'bg-orange-500'
   },
-  {
-    type: 'add_note',
-    name: 'Adicionar nota',
-    description: 'Adiciona nota interna ao ticket',
-    icon: FileText,
-    color: 'bg-gray-600'
-  },
-  {
-    type: 'log_activity',
-    name: 'Registrar atividade',
-    description: 'Registra atividade no histórico',
-    icon: FileText,
-    color: 'bg-slate-600'
-  },
-
-  // Ações de Comunicação
-  {
-    type: 'notify_customer',
-    name: 'Notificar cliente',
-    description: 'Envia notificação ao cliente',
-    icon: MessageSquare,
-    color: 'bg-green-600'
-  },
-  {
-    type: 'send_email',
-    name: 'Enviar email',
-    description: 'Envia email personalizado',
-    icon: Mail,
-    color: 'bg-blue-600'
-  },
-  {
-    type: 'send_sms',
-    name: 'Enviar SMS',
-    description: 'Envia SMS para cliente',
-    icon: Phone,
-    color: 'bg-green-700'
-  },
-  {
-    type: 'notify_manager',
-    name: 'Notificar gerente',
-    description: 'Notifica gerente sobre situação',
-    icon: Bell,
-    color: 'bg-red-700'
-  },
-  {
-    type: 'send_survey',
-    name: 'Enviar pesquisa',
-    description: 'Envia pesquisa de satisfação',
-    icon: Star,
-    color: 'bg-yellow-700'
-  },
-
-  // Ações de Integração
-  {
-    type: 'webhook_call',
-    name: 'Chamar webhook',
-    description: 'Executa webhook externo',
-    icon: ExternalLink,
-    color: 'bg-violet-600'
-  },
-  {
-    type: 'api_request',
-    name: 'Requisição API',
-    description: 'Faz requisição para API externa',
-    icon: Cog,
-    color: 'bg-indigo-700'
-  },
-  {
-    type: 'update_crm',
-    name: 'Atualizar CRM',
-    description: 'Atualiza dados no CRM',
-    icon: Users,
-    color: 'bg-emerald-700'
-  },
-  {
-    type: 'sync_database',
-    name: 'Sincronizar banco',
-    description: 'Sincroniza com banco externo',
-    icon: RefreshCw,
-    color: 'bg-blue-800'
-  },
-
-  // Ações de Análise e Relatórios
-  {
-    type: 'generate_report',
-    name: 'Gerar relatório',
-    description: 'Gera relatório automático',
-    icon: FileText,
-    color: 'bg-purple-700'
-  },
-  {
-    type: 'update_metrics',
-    name: 'Atualizar métricas',
-    description: 'Atualiza métricas de performance',
-    icon: BarChart3,
-    color: 'bg-green-800'
-  },
-  {
-    type: 'track_interaction',
-    name: 'Rastrear interação',
-    description: 'Registra interação para análise',
-    icon: MousePointer2,
-    color: 'bg-gray-700'
-  },
-
-  // Ações de Conhecimento
-  {
-    type: 'suggest_knowledge',
-    name: 'Sugerir artigo',
-    description: 'Sugere artigo da base de conhecimento',
-    icon: Lightbulb,
-    color: 'bg-yellow-600'
-  },
-  {
-    type: 'create_knowledge_article',
-    name: 'Criar artigo',
-    description: 'Cria artigo na base de conhecimento',
-    icon: FileText,
-    color: 'bg-emerald-800'
-  },
-  {
-    type: 'update_faq',
-    name: 'Atualizar FAQ',
-    description: 'Atualiza perguntas frequentes',
-    icon: FileText,
-    color: 'bg-blue-900'
-  },
-
-  // Ações de Arquivamento e Limpeza
   {
     type: 'archive',
     name: 'Arquivar',
     description: 'Move para arquivo',
     icon: Archive,
     color: 'bg-gray-500'
-  },
-  {
-    type: 'delete_old_data',
-    name: 'Limpar dados antigos',
-    description: 'Remove dados antigos automaticamente',
-    icon: Trash2,
-    color: 'bg-red-800'
-  },
-  {
-    type: 'backup_conversation',
-    name: 'Backup da conversa',
-    description: 'Faz backup da conversa',
-    icon: Download,
-    color: 'bg-slate-700'
-  },
-
-  // Ações de IA e Automação Avançada
-  {
-    type: 'ai_sentiment_analysis',
-    name: 'Análise de sentimento',
-    description: 'Analisa sentimento com IA',
-    icon: Brain,
-    color: 'bg-pink-600'
-  },
-  {
-    type: 'ai_categorize',
-    name: 'Categorizar com IA',
-    description: 'Categoriza automaticamente com IA',
-    icon: Sparkles,
-    color: 'bg-purple-800'
-  },
-  {
-    type: 'ai_translate',
-    name: 'Traduzir com IA',
-    description: 'Traduz mensagem automaticamente',
-    icon: MessageSquare,
-    color: 'bg-violet-700'
-  },
-  {
-    type: 'ai_summarize',
-    name: 'Resumir com IA',
-    description: 'Cria resumo da conversa',
-    icon: FileText,
-    color: 'bg-indigo-800'
-  },
-
-  // Ações Condicionais
-  {
-    type: 'conditional_action',
-    name: 'Ação condicional',
-    description: 'Executa ação baseada em condições',
-    icon: Filter,
-    color: 'bg-cyan-800'
-  },
-  {
-    type: 'wait_action',
-    name: 'Aguardar',
-    description: 'Aguarda tempo específico antes de continuar',
-    icon: Clock,
-    color: 'bg-orange-800'
-  },
-  {
-    type: 'loop_action',
-    name: 'Repetir ação',
-    description: 'Repete ação por número específico de vezes',
-    icon: RefreshCw,
-    color: 'bg-blue-900'
   }
 ];
 
-// Helper functions for mapping backend data to UI format
-const getDisplayNameForTriggerType = (type: string) => {
-  const mapping = {
-    'keyword': 'Palavra-chave',
-    'channel': 'Canal específico',
-    'priority': 'Prioridade alta',
-    'sender': 'Remetente específico',
-    'time': 'Horário específico',
-    'ai_analysis': 'Análise de IA'
-  };
-  return mapping[type as keyof typeof mapping] || 'Gatilho personalizado';
-};
-
-const getDescriptionForTriggerType = (type: string) => {
-  const mapping = {
-    'keyword': 'Ativa quando detecta palavras específicas',
-    'channel': 'Ativa para mensagens de um canal',
-    'priority': 'Ativa para mensagens urgentes',
-    'sender': 'Ativa para um remetente específico',
-    'time': 'Ativa em horários determinados',
-    'ai_analysis': 'Ativa baseado em análise inteligente'
-  };
-  return mapping[type as keyof typeof mapping] || 'Gatilho personalizado';
-};
-
-const getIconForTriggerType = (type: string) => {
-  const mapping = {
-    'keyword': Hash,
-    'channel': MessageSquare,
-    'priority': AlertCircle,
-    'sender': Users,
-    'time': Clock,
-    'ai_analysis': Brain
-  };
-  return mapping[type as keyof typeof mapping] || Target;
-};
-
-const getColorForTriggerType = (type: string) => {
-  const mapping = {
-    'keyword': 'bg-blue-500',
-    'channel': 'bg-green-500',
-    'priority': 'bg-red-500',
-    'sender': 'bg-purple-500',
-    'time': 'bg-orange-500',
-    'ai_analysis': 'bg-pink-500'
-  };
-  return mapping[type as keyof typeof mapping] || 'bg-gray-500';
-};
-
-const getDisplayNameForActionType = (type: string) => {
-  const mapping = {
-    'auto_reply': 'Resposta automática',
-    'send_auto_reply': 'Resposta automática',
-    'create_ticket': 'Criar ticket',
-    'send_notification': 'Enviar notificação',
-    'forward_message': 'Encaminhar mensagem',
-    'add_tags': 'Adicionar tags',
-    'assign_agent': 'Atribuir agente',
-    'mark_priority': 'Marcar prioridade',
-    'archive': 'Arquivar'
-  };
-  return mapping[type as keyof typeof mapping] || 'Ação personalizada';
-};
-
-const getDescriptionForActionType = (type: string) => {
-  const mapping = {
-    'auto_reply': 'Envia resposta pré-definida',
-    'send_auto_reply': 'Envia resposta pré-definida',
-    'create_ticket': 'Cria ticket automaticamente',
-    'send_notification': 'Notifica equipe responsável',
-    'forward_message': 'Encaminha para outro agente',
-    'add_tags': 'Categoriza com tags',
-    'assign_agent': 'Designa agente específico',
-    'mark_priority': 'Define nível de prioridade',
-    'archive': 'Move para arquivo'
-  };
-  return mapping[type as keyof typeof mapping] || 'Ação personalizada';
-};
-
-const getIconForActionType = (type: string) => {
-  const mapping = {
-    'auto_reply': Reply,
-    'send_auto_reply': Reply,
-    'create_ticket': FileText,
-    'send_notification': Bell,
-    'forward_message': Forward,
-    'add_tags': Tag,
-    'assign_agent': Users,
-    'mark_priority': Star,
-    'archive': Archive
-  };
-  return mapping[type as keyof typeof mapping] || Settings;
-};
-
-const getColorForActionType = (type: string) => {
-  const mapping = {
-    'auto_reply': 'bg-blue-500',
-    'send_auto_reply': 'bg-blue-500',
-    'create_ticket': 'bg-green-500',
-    'send_notification': 'bg-yellow-500',
-    'forward_message': 'bg-purple-500',
-    'add_tags': 'bg-indigo-500',
-    'assign_agent': 'bg-teal-500',
-    'mark_priority': 'bg-red-500',
-    'archive': 'bg-gray-500'
-  };
-  return mapping[type as keyof typeof mapping] || 'bg-gray-500';
-};
-
-export default function AutomationRuleBuilder({ 
-  isOpen, 
-  onClose, 
-  initialMessage, 
+export default function AutomationRuleBuilder({
+  isOpen,
+  onClose,
+  initialMessage,
   existingRule,
-  onSave 
+  onSave
 }: AutomationRuleBuilderProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const canvasRef = useRef<HTMLDivElement>(null);
-
-  const [rule, setRule] = useState<AutomationRule>(() => {
-    if (existingRule) {
-      return {
-        id: existingRule.id,
-        name: existingRule.name || '',
-        description: existingRule.description || '',
-        enabled: existingRule.enabled ?? true,
-        triggers: Array.isArray(existingRule.triggers) ? existingRule.triggers : [],
-        actions: Array.isArray(existingRule.actions) ? existingRule.actions : [],
-        priority: existingRule.priority || 1
-      };
-    }
-    return {
-      name: '',
-      description: '',
-      enabled: true,
-      triggers: [],
-      actions: [],
-      priority: 1
-    };
+  const [rule, setRule] = useState<AutomationRule>({
+    name: existingRule?.name || '',
+    description: existingRule?.description || '',
+    enabled: existingRule?.enabled ?? true,
+    conditions: existingRule?.conditions || { rules: [], logicalOperator: 'AND' },
+    actions: existingRule?.actions || [],
+    priority: existingRule?.priority || 1,
+    aiEnabled: existingRule?.aiEnabled || false
   });
 
-  const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
-  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-  const [showTriggerConfig, setShowTriggerConfig] = useState(false);
+  const [activeTab, setActiveTab] = useState('conditions');
   const [showActionConfig, setShowActionConfig] = useState(false);
-  const [isPreview, setIsPreview] = useState(false);
-  const [showTriggerModal, setShowTriggerModal] = useState(false);
-  const [showActionModal, setShowActionModal] = useState(false);
+  const [currentAction, setCurrentAction] = useState<Action | null>(null);
+  const [actionConfig, setActionConfig] = useState<Record<string, any>>({});
 
-  // Update rule state when existingRule prop changes
-  useEffect(() => {
-    if (existingRule) {
-      console.log('🔧 [AutomationRuleBuilder] Loading existing rule data:', existingRule);
-      console.log('🔍 [AutomationRuleBuilder] COMPLETE existingRule object:', JSON.stringify(existingRule, null, 2));
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-      // DEFINITIVE FIX: Complete parsing of all triggers and actions
-      let triggers = [];
-      let actions = [];
-
-      // STEP 1: Parse triggers with comprehensive fallback logic
-      console.log('🔧 [AutomationRuleBuilder] Step 1: Processing triggers...');
-
-      // Debug: Show what we're checking
-      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.triggers:', existingRule.triggers);
-      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.trigger:', existingRule.trigger);
-      console.log('🔍 [AutomationRuleBuilder] Checking existingRule.actions:', existingRule.actions);
-
-      // Priority 1: Check for triggers array (modern format)
-      if (Array.isArray(existingRule.triggers) && existingRule.triggers.length > 0) {
-        console.log('🔧 [AutomationRuleBuilder] Found triggers array with', existingRule.triggers.length, 'items');
-        triggers = existingRule.triggers.map((trigger: any, index: number) => ({
-          id: trigger.id || `trigger_array_${Date.now()}_${index}`,
-          type: trigger.type || 'keyword',
-          name: trigger.name || getDisplayNameForTriggerType(trigger.type || 'keyword'),
-          description: trigger.description || getDescriptionForTriggerType(trigger.type || 'keyword'),
-          icon: getIconForTriggerType(trigger.type || 'keyword'),
-          color: getColorForTriggerType(trigger.type || 'keyword'),
-          config: {
-            keywords: trigger.config?.keywords || trigger.config?.value || '',
-            value: trigger.config?.value || trigger.config?.keywords || '',
-            operator: trigger.config?.operator || 'contains',
-            field: trigger.config?.field || 'content',
-            caseSensitive: trigger.config?.caseSensitive || false,
-            ...trigger.config
-          }
-        }));
-      }
-
-      // CRITICAL FIX: Check for trigger array (backend format)
-      else if (Array.isArray(existingRule.trigger) && existingRule.trigger.length > 0) {
-        console.log('🔧 [AutomationRuleBuilder] Found trigger array (backend format) with', existingRule.trigger.length, 'items');
-        triggers = existingRule.trigger.map((trigger: any, index: number) => ({
-          id: trigger.id || `trigger_backend_${Date.now()}_${index}`,
-          type: trigger.type || 'keyword',
-          name: trigger.name || getDisplayNameForTriggerType(trigger.type || 'keyword'),
-          description: trigger.description || getDescriptionForTriggerType(trigger.type || 'keyword'),
-          icon: getIconForTriggerType(trigger.type || 'keyword'),
-          color: getColorForTriggerType(trigger.type || 'keyword'),
-          config: {
-            keywords: trigger.config?.keywords || trigger.config?.value || '',
-            value: trigger.config?.value || trigger.config?.keywords || '',
-            operator: trigger.config?.operator || 'contains',
-            field: trigger.config?.field || 'content',
-            caseSensitive: trigger.config?.caseSensitive || false,
-            ...trigger.config
-          }
-        }));
-      }
-
-      // Priority 3: Check for trigger.conditions (legacy format)
-      else if (existingRule.trigger?.conditions && Array.isArray(existingRule.trigger.conditions) && existingRule.trigger.conditions.length > 0) {
-        console.log('🔧 [AutomationRuleBuilder] Found trigger conditions array with', existingRule.trigger.conditions.length, 'items');
-        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type || 'keyword';
-
-        triggers = existingRule.trigger.conditions.map((condition: any, index: number) => {
-          const conditionType = condition.type || baseTriggerType;
-          return {
-            id: condition.id || `condition_${Date.now()}_${index}`,
-            type: conditionType,
-            name: getDisplayNameForTriggerType(conditionType),
-            description: getDescriptionForTriggerType(conditionType),
-            icon: getIconForTriggerType(conditionType),
-            color: getColorForTriggerType(conditionType),
-            config: {
-              keywords: condition.value || condition.keywords || '',
-              value: condition.value || condition.keywords || '',
-              operator: condition.operator || 'contains',
-              field: condition.field || 'content',
-              caseSensitive: condition.caseSensitive || false
-            }
-          };
-        });
-      }
-
-      // Priority 4: Single trigger object (minimal format)
-      else if (existingRule.trigger && existingRule.trigger.type) {
-        console.log('🔧 [AutomationRuleBuilder] Found single trigger object');
-        const baseTriggerType = existingRule.trigger.type === 'keyword_match' ? 'keyword' : existingRule.trigger.type;
-
-        triggers = [{
-          id: existingRule.trigger.id || `single_trigger_${Date.now()}`,
-          type: baseTriggerType,
-          name: getDisplayNameForTriggerType(baseTriggerType),
-          description: getDescriptionForTriggerType(baseTriggerType),
-          icon: getIconForTriggerType(baseTriggerType),
-          color: getColorForTriggerType(baseTriggerType),
-          config: {
-            keywords: existingRule.trigger.keywords || existingRule.trigger.value || '',
-            value: existingRule.trigger.value || existingRule.trigger.keywords || '',
-            operator: existingRule.trigger.operator || 'contains',
-            field: existingRule.trigger.field || 'content',
-            caseSensitive: existingRule.trigger.caseSensitive || false
-          }
-        }];
-      }
-
-      // Fallback: Create default trigger if nothing found
-      if (triggers.length === 0) {
-        console.log('🔧 [AutomationRuleBuilder] No triggers found, creating default trigger');
-        triggers = [{
-          id: `default_trigger_${Date.now()}`,
-          type: 'keyword',
-          name: getDisplayNameForTriggerType('keyword'),
-          description: getDescriptionForTriggerType('keyword'),
-          icon: getIconForTriggerType('keyword'),
-          color: getColorForTriggerType('keyword'),
-          config: {
-            keywords: '',
-            value: '',
-            operator: 'contains',
-            field: 'content',
-            caseSensitive: false
-          }
-        }];
-      }
-
-      // STEP 2: Parse actions with comprehensive support
-      console.log('🔧 [AutomationRuleBuilder] Step 2: Processing actions...');
-
-      if (Array.isArray(existingRule.actions) && existingRule.actions.length > 0) {
-        console.log('🔧 [AutomationRuleBuilder] Found actions array with', existingRule.actions.length, 'items');
-        actions = existingRule.actions.map((action: any, index: number) => {
-          // Normalize action type
-          const normalizedType = action.type === 'send_auto_reply' ? 'auto_reply' : action.type;
-
-          return {
-            id: action.id || `action_${Date.now()}_${index}`,
-            type: normalizedType,
-            name: action.name || getDisplayNameForActionType(normalizedType),
-            description: action.description || getDescriptionForActionType(normalizedType),
-            icon: getIconForActionType(normalizedType),
-            color: getColorForActionType(normalizedType),
-            config: {
-              ...action.params,
-              ...action.config,
-              // Ensure common properties are available
-              message: action.params?.message || action.config?.message || action.params?.replyTemplate || '',
-              template: action.params?.template || action.config?.template || '',
-              recipient: action.params?.recipient || action.config?.recipient || '',
-              priority: action.params?.priority || action.config?.priority || 'medium'
-            }
-          };
-        });
-      } else {
-        console.log('🔧 [AutomationRuleBuilder] No actions found, creating default action');
-        actions = [{
-          id: `default_action_${Date.now()}`,
-          type: 'auto_reply',
-          name: getDisplayNameForActionType('auto_reply'),
-          description: getDescriptionForActionType('auto_reply'),
-          icon: getIconForActionType('auto_reply'),
-          color: getColorForActionType('auto_reply'),
-          config: {
-            message: '',
-            template: '',
-            recipient: '',
-            priority: 'medium'
-          }
-        }];
-      }
-
-      console.log('🔧 [AutomationRuleBuilder] FINAL RESULT - Parsed triggers:', triggers.length, triggers);
-      console.log('🔧 [AutomationRuleBuilder] FINAL RESULT - Parsed actions:', actions.length, actions);
-
-      // Set the rule with complete data
-      setRule({
-        id: existingRule.id,
-        name: existingRule.name || '',
-        description: existingRule.description || '',
-        enabled: existingRule.enabled ?? true,
-        triggers: triggers,
-        actions: actions,
-        priority: existingRule.priority || 1
-      });
-    }
-  }, [existingRule]);
-
-  // Save rule mutation
-  const saveMutation = useMutation({
-    mutationFn: async (ruleData: any) => {
-      const url = ruleData.id 
-        ? `/api/omnibridge/automation-rules/${ruleData.id}` 
+  // Mutation para salvar regra
+  const saveRuleMutation = useMutation({
+    mutationFn: async (ruleData: AutomationRule) => {
+      const endpoint = existingRule?.id
+        ? `/api/omnibridge/automation-rules/${existingRule.id}`
         : '/api/omnibridge/automation-rules';
-      const method = ruleData.id ? 'PUT' : 'POST'; // Use PUT for updates
 
-      // Remove id from the payload for updates
-      const { id, ...payload } = ruleData;
+      const method = existingRule?.id ? 'PUT' : 'POST';
 
-      console.log(`🔄 [AutomationRuleBuilder] Sending ${method} request to ${url} with payload:`, payload);
-
-      const response = await apiRequest(method, url, payload);
-      return await response.json();
+      return apiRequest(method, endpoint, ruleData);
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+    onSuccess: () => {
       toast({
-        title: '✅ Sucesso',
-        description: `Regra ${existingRule ? 'atualizada' : 'criada'} com sucesso!`
+        title: "Sucesso",
+        description: `Regra ${existingRule?.id ? 'atualizada' : 'criada'} com sucesso!`,
       });
-      onSave?.(data);
+      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+      onSave?.(rule);
       onClose();
     },
     onError: (error: any) => {
-      console.error('❌ [AutomationRuleBuilder] Save error:', error);
       toast({
-        title: '❌ Erro',
-        description: error.message || 'Falha ao salvar regra de automação',
-        variant: 'destructive'
+        title: "Erro",
+        description: error.message || "Erro ao salvar regra",
+        variant: "destructive",
       });
     }
   });
 
-  // Helper function to add a new trigger
-  const addTrigger = (triggerTemplate: Omit<Trigger, 'id' | 'config'>) => {
-    const newTrigger: Trigger = {
-      ...triggerTemplate,
-      id: `trigger_${Date.now()}`,
+  // Adicionar ação
+  const addAction = (template: typeof actionTemplates[0]) => {
+    const newAction: Action = {
+      id: `action_${Date.now()}`,
+      ...template,
       config: {}
     };
-    setRule(prev => ({
-      ...prev,
-      triggers: [...prev.triggers, newTrigger]
-    }));
-  };
 
-  // Handle trigger selection for configuration
-  const handleTriggerSelect = (trigger: Trigger) => {
-    setSelectedTrigger(trigger);
-    setShowTriggerConfig(true);
-  };
-
-  const handleActionSelect = (template: Omit<Action, 'id' | 'config'>) => {
-    setSelectedAction({ ...template, id: `action_${Date.now()}`, config: {} });
+    setCurrentAction(newAction);
+    setActionConfig({});
     setShowActionConfig(true);
   };
 
-  const addAction = (template: Omit<Action, 'id' | 'config'>) => {
-    const newAction: Action = {
-      ...template,
-      id: `action_${Date.now()}`,
-      config: {}
-    };
-    setRule(prev => ({
-      ...prev,
-      actions: [...prev.actions, newAction]
-    }));
+  // Confirmar configuração da ação
+  const confirmActionConfig = () => {
+    if (currentAction) {
+      const updatedAction = {
+        ...currentAction,
+        config: actionConfig
+      };
+
+      setRule(prev => ({
+        ...prev,
+        actions: [...prev.actions, updatedAction]
+      }));
+
+      setShowActionConfig(false);
+      setCurrentAction(null);
+      setActionConfig({});
+    }
   };
 
-  const removeTrigger = (triggerId: string) => {
-    setRule(prev => ({
-      ...prev,
-      triggers: prev.triggers.filter(t => t.id !== triggerId)
-    }));
-  };
-
+  // Remover ação
   const removeAction = (actionId: string) => {
     setRule(prev => ({
       ...prev,
-      actions: prev.actions.filter(a => a.id !== actionId)
+      actions: prev.actions.filter(action => action.id !== actionId)
     }));
   };
 
-  const updateTriggerConfig = (triggerId: string, config: Record<string, any>) => {
-    setRule(prev => ({
-      ...prev,
-      triggers: prev.triggers.map(t => 
-        t.id === triggerId ? { ...t, config } : t
-      )
-    }));
-  };
-
-  const updateActionConfig = (actionId: string, config: Record<string, any>) => {
-    setRule(prev => ({
-      ...prev,
-      actions: prev.actions.map(a => 
-        a.id === actionId ? { ...a, config } : a
-      )
-    }));
-  };
-
-  // Save handler
-  const handleSave = async () => {
+  // Salvar regra
+  const handleSave = () => {
     if (!rule.name.trim()) {
       toast({
-        title: '❌ Erro de validação',
-        description: 'O nome da regra é obrigatório',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Nome da regra é obrigatório",
+        variant: "destructive",
       });
       return;
     }
 
-    if (rule.triggers.length === 0) {
+    if (rule.conditions.rules.length === 0) {
       toast({
-        title: '❌ Erro de validação', 
-        description: 'Pelo menos um gatilho é obrigatório',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Pelo menos uma condição deve ser configurada",
+        variant: "destructive",
       });
       return;
     }
 
     if (rule.actions.length === 0) {
       toast({
-        title: '❌ Erro de validação',
-        description: 'Pelo menos uma ação é obrigatória',
-        variant: 'destructive'
+        title: "Erro",
+        description: "Pelo menos uma ação deve ser configurada",
+        variant: "destructive",
       });
       return;
     }
 
-    try {
-      const ruleData = {
-        name: rule.name,
-        description: rule.description,
-        isEnabled: rule.enabled, // Use isEnabled instead of enabled for DTO
-        priority: rule.priority,
-        triggers: rule.triggers,
-        actions: rule.actions
-      };
-
-      console.log('🔧 [AutomationRuleBuilder] Saving rule data:', ruleData);
-
-      if (existingRule?.id) {
-        await saveMutation.mutateAsync({ 
-          ...ruleData, 
-          id: existingRule.id 
-        });
-      } else {
-        await saveMutation.mutateAsync(ruleData);
-      }
-    } catch (error) {
-      console.error('❌ [AutomationRuleBuilder] Error saving rule:', error);
-      toast({
-        title: '❌ Erro ao salvar',
-        description: 'Não foi possível salvar a regra de automação',
-        variant: 'destructive'
-      });
-    }
+    saveRuleMutation.mutate(rule);
   };
 
-  const openTriggerConfig = (trigger: Trigger) => {
-    setSelectedTrigger(trigger);
-    setShowTriggerConfig(true);
-  };
+  // Renderizar configuração da ação
+  const renderActionConfig = () => {
+    if (!currentAction) return null;
 
-  const openActionConfig = (action: Action) => {
-    setSelectedAction(action);
-    setShowActionConfig(true);
-  };
-
-  // Handler for saving trigger configuration from the modal
-  const handleTriggerSave = () => {
-    if (selectedTrigger) {
-      updateTriggerConfig(selectedTrigger.id, selectedTrigger.config);
-    }
-    setShowTriggerConfig(false);
-  };
-
-  // Handler for saving action configuration from the modal
-  const handleActionSave = () => {
-    if (selectedAction) {
-      updateActionConfig(selectedAction.id, selectedAction.config);
-    }
-    setShowActionConfig(false);
-  };
-
-  // Placeholder for NodeConfigForm if it's defined elsewhere
-  // For now, assuming it's a local component or imported
-  const NodeConfigForm = ({ nodeType, config, onChange }: any) => {
-    // This is a placeholder. The actual implementation would depend on
-    // how NodeConfigForm is defined and what types it accepts.
-    // For the purpose of this fix, we are only concerned with the structure.
-    return (
-      <div>
-        {/* Render configuration fields based on nodeType */}
-        {nodeType === 'keyword' && (
-          <Input 
-            value={config.keywords || ''}
-            onChange={(e) => onChange({ ...config, keywords: e.target.value })}
-            placeholder="Keywords"
-          />
-        )}
-        {/* Add other types as needed */}
-      </div>
-    );
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0" data-testid="automation-rule-builder">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Criador de Regras de Automação</DialogTitle>
-          <DialogDescription>Interface para criar e configurar regras de automação de mensagens</DialogDescription>
-        </DialogHeader>
-        <div className="flex h-full min-h-0">
-          {/* Left Sidebar - Templates */}
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                Criador de Regras
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Arraste e solte para criar automações
-              </p>
-            </div>
-
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full">
-                <div className="p-4 space-y-6">
-                {/* Triggers Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Gatilhos (QUANDO)
-                  </h4>
-                  <div className="space-y-2">
-                    {triggerTemplates.map((template, index) => (
-                      <Card
-                        key={index}
-                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400"
-                        onClick={() => { addTrigger(template); setShowTriggerModal(true); }}
-                        data-testid={`trigger-template-${template.type}`}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1 rounded ${template.color} text-white`}>
-                              <template.icon className="h-3 w-3" />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {template.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {template.description}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Actions Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Ações (ENTÃO)
-                  </h4>
-                  <div className="space-y-2">
-                    {actionTemplates.map((template, index) => (
-                      <Card
-                        key={index}
-                        className="cursor-pointer hover:shadow-md transition-all border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400"
-                        onClick={() => { addAction(template); setShowActionModal(true); }}
-                        data-testid={`action-template-${template.type}`}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1 rounded ${template.color} text-white`}>
-                              <template.icon className="h-3 w-3" />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {template.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {template.description}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-                </div>
-              </ScrollArea>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 max-w-md space-y-2">
-                  <Input
-                    placeholder="Nome da regra..."
-                    value={rule.name || ''}
-                    onChange={(e) => setRule(prev => ({ ...prev, name: e.target.value }))}
-                    className="font-medium"
-                    data-testid="rule-name"
-                  />
-                  <Input
-                    placeholder="Descrição (opcional)..."
-                    value={rule.description || ''}
-                    onChange={(e) => setRule(prev => ({ ...prev, description: e.target.value }))}
-                    className="text-sm"
-                    data-testid="rule-description"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="rule-enabled" className="text-sm">Ativa</Label>
-                  <Switch
-                    id="rule-enabled"
-                    checked={rule.enabled}
-                    onCheckedChange={(enabled) => setRule(prev => ({ ...prev, enabled }))}
-                    data-testid="rule-enabled"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPreview(!isPreview)}
-                    data-testid="preview-toggle"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    {isPreview ? 'Editar' : 'Visualizar'}
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    disabled={saveMutation.isPending}
-                    data-testid="save-rule"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saveMutation.isPending ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Canvas */}
-            <ScrollArea className="flex-1 h-full">
-              <div className="p-6 bg-gray-50 dark:bg-gray-900" ref={canvasRef}>
-                {isPreview ? (
-                  /* Preview Mode */
-                  <div className="max-w-4xl mx-auto">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Workflow className="h-5 w-5" />
-                        Visualização da Regra
-                      </CardTitle>
-                      <CardDescription>
-                        Como esta regra funcionará na prática
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {/* Rule Summary */}
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                            {rule.name || 'Nova Regra'}
-                          </h4>
-                          {rule.description && (
-                            <p className="text-blue-700 dark:text-blue-300 text-sm">
-                              {rule.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Flow Visualization */}
-                        <div className="flex items-center justify-center space-x-4">
-                          {/* Triggers */}
-                          <div className="text-center">
-                            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg mb-2">
-                              <Zap className="h-8 w-8 mx-auto text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              QUANDO
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              {rule.triggers.map((trigger) => (
-                                <Badge key={trigger.id} variant="outline" className="block">
-                                  {trigger.name}
-                                </Badge>
-                              ))}
-                              {rule.triggers.length === 0 && (
-                                <p className="text-xs text-gray-500">Nenhum gatilho</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <ArrowRight className="h-6 w-6 text-gray-400" />
-
-                          {/* Actions */}
-                          <div className="text-center">
-                            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-lg mb-2">
-                              <Settings className="h-8 w-8 mx-auto text-green-600 dark:text-green-400" />
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              ENTÃO
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              {rule.actions.map((action) => (
-                                <Badge key={action.id} variant="outline" className="block">
-                                  {action.name}
-                                </Badge>
-                              ))}
-                              {rule.actions.length === 0 && (
-                                <p className="text-xs text-gray-500">Nenhuma ação</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Example Scenario */}
-                        {rule.triggers.length > 0 && rule.actions.length > 0 && (
-                          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                              Exemplo de funcionamento:
-                            </h5>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              Quando uma mensagem for recebida e atender aos critérios definidos pelos gatilhos, 
-                              o sistema automaticamente executará as ações configuradas.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : (
-                /* Edit Mode */
-                <div className="max-w-4xl mx-auto space-y-6">
-                  {/* Getting Started */}
-                  {rule.triggers.length === 0 && rule.actions.length === 0 && (
-                    <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600">
-                      <CardContent className="p-8 text-center">
-                        <Lightbulb className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                          Comece criando sua automação
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
-                          1. Adicione gatilhos (QUANDO) da barra lateral esquerda<br />
-                          2. Adicione ações (ENTÃO) que devem ser executadas<br />
-                          3. Configure cada item clicando nele
-                        </p>
-                        <div className="flex justify-center gap-4">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            <Zap className="h-3 w-3 mr-1" />
-                            Gatilhos definem QUANDO
-                          </Badge>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <Settings className="h-3 w-3 mr-1" />
-                            Ações definem O QUE fazer
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Triggers Section */}
-                  {rule.triggers.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Zap className="h-5 w-5 text-blue-600" />
-                          Gatilhos (QUANDO)
-                        </CardTitle>
-                        <CardDescription>
-                          Condições que ativam esta automação
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {rule.triggers.map((trigger) => (
-                            <Card 
-                              key={trigger.id} 
-                              className="cursor-pointer hover:shadow-md transition-all border-blue-200 dark:border-blue-700"
-                              onClick={() => openTriggerConfig(trigger)}
-                              data-testid={`trigger-${trigger.id}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`p-2 rounded ${trigger.color} text-white`}>
-                                      <trigger.icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                                      {trigger.name}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeTrigger(trigger.id);
-                                    }}
-                                    data-testid={`remove-trigger-${trigger.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {trigger.description}
-                                </p>
-                                {Object.keys(trigger.config).length > 0 && (
-                                  <Badge variant="secondary" className="mt-2">
-                                    Configurado
-                                  </Badge>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Actions Section */}
-                  {rule.actions.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Settings className="h-5 w-5 text-green-600" />
-                          Ações (ENTÃO)
-                        </CardTitle>
-                        <CardDescription>
-                          O que fazer quando os gatilhos forem ativados
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {rule.actions.map((action) => (
-                            <Card 
-                              key={action.id} 
-                              className="cursor-pointer hover:shadow-md transition-all border-green-200 dark:border-green-700"
-                              onClick={() => openActionConfig(action)}
-                              data-testid={`action-${action.id}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`p-2 rounded ${action.color} text-white`}>
-                                      <action.icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                                      {action.name}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeAction(action.id);
-                                    }}
-                                    data-testid={`remove-action-${action.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {action.description}
-                                </p>
-                                {Object.keys(action.config).length > 0 && (
-                                  <Badge variant="secondary" className="mt-2">
-                                    Configurado
-                                  </Badge>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
-
-        {/* Trigger Configuration Modal */}
-        <Dialog open={showTriggerConfig} onOpenChange={setShowTriggerConfig}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle>Configurar Gatilho</DialogTitle>
-              <DialogDescription>
-                {selectedTrigger ? `Configurando: ${selectedTrigger.name}` : 'Selecione um gatilho'}
-              </DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="flex-1 max-h-[calc(90vh-8rem)]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
-                {/* Trigger Selection */}
-                <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                          <Target className="h-5 w-5" />
-                          Gatilhos Disponíveis
-                        </h3>
-                        <div className="space-y-3">
-                          {triggerTemplates.map((template) => {
-                            const IconComponent = template.icon;
-                            return (
-                              <Card
-                                key={template.type}
-                                className={`cursor-pointer transition-all hover:shadow-md ${
-                                  selectedTrigger?.type === template.type ? 'ring-2 ring-blue-500' : ''
-                                }`}
-                                onClick={() => handleTriggerSelect({
-                                  ...template,
-                                  id: `trigger_${Date.now()}`,
-                                  config: {}
-                                })}
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-md ${template.color}`}>
-                                      <IconComponent className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium">{template.name}</h4>
-                                      <p className="text-sm text-gray-500">{template.description}</p>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </ScrollArea>
-                </div>
-
-                {/* Trigger Configuration */}
-                <div className="space-y-4">
-                  {selectedTrigger ? (
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Configuração</h3>
-                      <div className="space-y-4">
-                        <TriggerConfigForm
-                          trigger={selectedTrigger}
-                          onSave={(config) => {
-                            setSelectedTrigger(prev => prev ? { ...prev, config } : null);
-                          }}
-                          onCancel={() => setShowTriggerConfig(false)}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500 py-12">
-                      <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Selecione um tipo de gatilho para configurar</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </ScrollArea>
-            <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
-              <Button variant="outline" onClick={() => setShowTriggerConfig(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleTriggerSave}
-                disabled={!selectedTrigger}
-              >
-                Salvar Gatilho
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Action Configuration Modal */}
-        <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle>Configurar Ação</DialogTitle>
-              <DialogDescription>
-                {selectedAction ? `Configurando: ${selectedAction.name}` : 'Selecione uma ação'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-1">
-                {/* Action Selection */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                          <Zap className="h-5 w-5" />
-                          Ações Disponíveis
-                        </h3>
-                        <div className="space-y-3">
-                          {actionTemplates.map((template) => {
-                            const IconComponent = template.icon;
-                            return (
-                              <Card
-                                key={template.type}
-                                className={`cursor-pointer transition-all hover:shadow-md ${
-                                  selectedAction?.type === template.type ? 'ring-2 ring-blue-500' : ''
-                                }`}
-                                onClick={() => handleActionSelect(template)}
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-md ${template.color}`}>
-                                      <IconComponent className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium">{template.name}</h4>
-                                      <p className="text-sm text-gray-500">{template.description}</p>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                </div>
-
-                {/* Action Configuration */}
-                <div className="space-y-4">
-                  {selectedAction ? (
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Configuração</h3>
-                      <div className="space-y-4">
-                        <ActionConfigForm
-                          action={selectedAction}
-                          onSave={(config) => {
-                            setSelectedAction(prev => prev ? { ...prev, config } : null);
-                          }}
-                          onCancel={() => setShowActionConfig(false)}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500 py-12">
-                      <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Selecione um tipo de ação para configurar</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0">
-              <Button variant="outline" onClick={() => setShowActionConfig(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleActionSave}
-                disabled={!selectedAction}
-              >
-                Salvar Ação
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Trigger Configuration Form Component
-function TriggerConfigForm({ 
-  trigger, 
-  onSave, 
-  onCancel 
-}: { 
-  trigger: Trigger; 
-  onSave: (config: Record<string, any>) => void; 
-  onCancel: () => void; 
-}) {
-  const [config, setConfig] = useState(trigger.config);
-
-  const renderConfigFields = () => {
-    switch (trigger.type) {
-      case 'keyword':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="keywords">Palavras-chave (separadas por vírgula)</Label>
-              <Input
-                id="keywords"
-                placeholder="ex: urgente, problema, ajuda"
-                value={config.keywords || ''}
-                onChange={(e) => setConfig({ ...config, keywords: e.target.value })}
-                data-testid="keywords-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="matchType">Tipo de correspondência</Label>
-              <Select 
-                value={config.matchType || 'contains'} 
-                onValueChange={(value) => setConfig({ ...config, matchType: value })}
-              >
-                <SelectTrigger data-testid="match-type-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contains">Contém a palavra</SelectItem>
-                  <SelectItem value="exact">Palavra exata</SelectItem>
-                  <SelectItem value="starts">Inicia com</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-      case 'channel':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="channelType">Tipo de canal</Label>
-              <Select 
-                value={config.channelType || ''} 
-                onValueChange={(value) => setConfig({ ...config, channelType: value })}
-              >
-                <SelectTrigger data-testid="channel-type-select">
-                  <SelectValue placeholder="Selecione o canal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                  <SelectItem value="telegram">Telegram</SelectItem>
-                  <SelectItem value="sms">SMS</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="channelKeywords">Palavras-chave para monitorar</Label>
-              <Input
-                id="channelKeywords"
-                placeholder="ex: ajuda, suporte, problema"
-                value={config.keywords || config.value || ''}
-                onChange={(e) => setConfig({ 
-                  ...config, 
-                  keywords: e.target.value,
-                  value: e.target.value 
-                })}
-                data-testid="channel-keywords-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="channelMatchType">Tipo de correspondência</Label>
-              <Select 
-                value={config.operator || 'contains'} 
-                onValueChange={(value) => setConfig({ ...config, operator: value })}
-              >
-                <SelectTrigger data-testid="channel-match-type-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contains">Contém a palavra</SelectItem>
-                  <SelectItem value="exact">Palavra exata</SelectItem>
-                  <SelectItem value="starts">Inicia com</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-      case 'priority':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="priorityLevel">Nível de prioridade</Label>
-              <Select 
-                value={config.priorityLevel || 'high'} 
-                onValueChange={(value) => setConfig({ ...config, priorityLevel: value })}
-              >
-                <SelectTrigger data-testid="priority-level-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-      case 'sender':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="senderPattern">Padrão do remetente</Label>
-              <Input
-                id="senderPattern"
-                placeholder="ex: cliente@empresa.com, *@empresa.com"
-                value={config.senderPattern || ''}
-                onChange={(e) => setConfig({ ...config, senderPattern: e.target.value })}
-                data-testid="sender-pattern-input"
-              />
-            </div>
-          </div>
-        );
-      case 'time':
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startTime">Horário início</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={config.startTime || '09:00'}
-                  onChange={(e) => setConfig({ ...config, startTime: e.target.value })}
-                  data-testid="start-time-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="endTime">Horário fim</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={config.endTime || '18:00'}
-                  onChange={(e) => setConfig({ ...config, endTime: e.target.value })}
-                  data-testid="end-time-input"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="weekdays">Dias da semana</Label>
-              <div className="flex gap-2 mt-2">
-                {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map((day, index) => (
-                  <Button
-                    key={day}
-                    variant={config.weekdays?.includes(index) ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      const weekdays = config.weekdays || [];
-                      const newWeekdays = weekdays.includes(index)
-                        ? weekdays.filter((d: number) => d !== index)
-                        : [...weekdays, index];
-                      setConfig({ ...config, weekdays: newWeekdays });
-                    }}
-                    data-testid={`weekday-${index}`}
-                  >
-                    {day}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      case 'ai_analysis':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="aiModel">Modelo de IA</Label>
-              <select
-                id="aiModel"
-                value={config.aiModel || 'gpt-4'}
-                onChange={(e) => setConfig({ ...config, aiModel: e.target.value })}
-                className="w-full p-2 border rounded-md"
-                data-testid="ai-model-select"
-              >
-                <option value="gpt-4">GPT-4 (Análise avançada)</option>
-                <option value="gpt-3.5">GPT-3.5 (Análise rápida)</option>
-                <option value="claude">Claude (Análise detalhada)</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="analysisType">Tipo de análise</Label>
-              <select
-                id="analysisType"
-                value={config.analysisType || 'sentiment'}
-                onChange={(e) => setConfig({ ...config, analysisType: e.target.value })}
-                className="w-full p-2 border rounded-md"
-                data-testid="analysis-type-select"
-              >
-                <option value="sentiment">Análise de sentimento</option>
-                <option value="intent">Detecção de intenção</option>
-                <option value="urgency">Nível de urgência</option>
-                <option value="category">Categorização automática</option>
-                <option value="language">Detecção de idioma</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="confidence">Confiança mínima (%)</Label>
-              <Input
-                id="confidence"
-                type="number"
-                min="50"
-                max="100"
-                value={config.confidence || '80'}
-                onChange={(e) => setConfig({ ...config, confidence: e.target.value })}
-                data-testid="confidence-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="customPrompt">Prompt personalizado (opcional)</Label>
-              <Textarea
-                id="customPrompt"
-                placeholder="Analise esta mensagem e identifique..."
-                value={config.customPrompt || ''}
-                onChange={(e) => setConfig({ ...config, customPrompt: e.target.value })}
-                rows={3}
-                data-testid="custom-prompt-input"
-              />
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="text-center py-4">
-            <p className="text-gray-500">Tipo de gatilho não reconhecido</p>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      {renderConfigFields()}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button onClick={() => onSave(config)} data-testid="save-trigger-config">
-          Salvar
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Action Configuration Form Component
-function ActionConfigForm({ 
-  action, 
-  onSave, 
-  onCancel 
-}: { 
-  action: Action; 
-  onSave: (config: Record<string, any>) => void; 
-  onCancel: () => void; 
-}) {
-  const [config, setConfig] = useState(action.config);
-
-  const renderConfigFields = () => {
-    switch (action.type) {
+    switch (currentAction.type) {
       case 'auto_reply':
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="replyMessage">Mensagem de resposta</Label>
+              <Label htmlFor="reply-message">Mensagem de resposta</Label>
               <Textarea
-                id="replyMessage"
-                placeholder="Digite a mensagem automática..."
-                value={config.message || ''}
-                onChange={(e) => setConfig({ ...config, message: e.target.value })}
+                id="reply-message"
+                value={actionConfig.message || ''}
+                onChange={(e) => setActionConfig({...actionConfig, message: e.target.value})}
+                placeholder="Digite a mensagem de resposta automática..."
                 rows={4}
-                data-testid="reply-message-input"
+              />
+            </div>
+            <div>
+              <Label htmlFor="reply-delay">Delay (segundos)</Label>
+              <Input
+                id="reply-delay"
+                type="number"
+                value={actionConfig.delay || 0}
+                onChange={(e) => setActionConfig({...actionConfig, delay: parseInt(e.target.value)})}
+                placeholder="0"
               />
             </div>
           </div>
         );
+
+      case 'send_notification':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="notification-recipient">Destinatário</Label>
+              <Input
+                id="notification-recipient"
+                value={actionConfig.recipient || ''}
+                onChange={(e) => setActionConfig({...actionConfig, recipient: e.target.value})}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="notification-message">Mensagem</Label>
+              <Textarea
+                id="notification-message"
+                value={actionConfig.message || ''}
+                onChange={(e) => setActionConfig({...actionConfig, message: e.target.value})}
+                placeholder="Mensagem de notificação..."
+              />
+            </div>
+          </div>
+        );
+
       case 'create_ticket':
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="ticketTitle">Título do ticket</Label>
+              <Label htmlFor="ticket-title">Título do ticket</Label>
               <Input
-                id="ticketTitle"
-                placeholder="ex: Ticket criado automaticamente"
-                value={config.ticketTitle || ''}
-                onChange={(e) => setConfig({ ...config, ticketTitle: e.target.value })}
-                data-testid="ticket-title-input"
+                id="ticket-title"
+                value={actionConfig.title || ''}
+                onChange={(e) => setActionConfig({...actionConfig, title: e.target.value})}
+                placeholder="Título automático do ticket"
               />
             </div>
             <div>
-              <Label htmlFor="ticketPriority">Prioridade do ticket</Label>
-              <Select 
-                value={config.priority || 'medium'} 
-                onValueChange={(value) => setConfig({ ...config, priority: value })}
-              >
-                <SelectTrigger data-testid="ticket-priority-select">
+              <Label htmlFor="ticket-priority">Prioridade</Label>
+              <Select value={actionConfig.priority || 'medium'} onValueChange={(value) => setActionConfig({...actionConfig, priority: value})}>
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
                   <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         );
-      case 'send_notification':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="notificationRecipients">Destinatários (emails separados por vírgula)</Label>
-              <Input
-                id="notificationRecipients"
-                placeholder="ex: admin@empresa.com, suporte@empresa.com"
-                value={config.recipient || ''}
-                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
-                data-testid="notification-recipients-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="notificationMessage">Mensagem da notificação</Label>
-              <Textarea
-                id="notificationMessage"
-                placeholder="Nova mensagem recebida que requer atenção..."
-                value={config.message || ''}
-                onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                rows={3}
-                data-testid="notification-message-input"
-              />
-            </div>
-          </div>
-        );
+
       case 'add_tags':
         return (
           <div className="space-y-4">
@@ -2193,166 +430,267 @@ function ActionConfigForm({
               <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
               <Input
                 id="tags"
-                placeholder="ex: urgente, suporte, cliente-vip"
-                value={config.tags || ''}
-                onChange={(e) => setConfig({ ...config, tags: e.target.value })}
-                data-testid="tags-input"
+                value={actionConfig.tags || ''}
+                onChange={(e) => setActionConfig({...actionConfig, tags: e.target.value})}
+                placeholder="tag1, tag2, tag3"
               />
             </div>
           </div>
         );
-      case 'forward_message':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="targetAgent">Agente de destino</Label>
-              <Input
-                id="targetAgent"
-                placeholder="ex: suporte@empresa.com"
-                value={config.recipient || ''}
-                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
-                data-testid="target-agent-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="forwardNote">Nota para encaminhamento (opcional)</Label>
-              <Textarea
-                id="forwardNote"
-                placeholder="Mensagem encaminhada automaticamente devido a..."
-                value={config.message || ''}
-                onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                rows={2}
-                data-testid="forward-note-input"
-              />
-            </div>
-          </div>
-        );
+
       case 'assign_agent':
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="agentEmail">Email do agente</Label>
+              <Label htmlFor="agent-id">ID do Agente</Label>
               <Input
-                id="agentEmail"
-                placeholder="ex: joao.silva@empresa.com"
-                value={config.recipient || ''}
-                onChange={(e) => setConfig({ ...config, recipient: e.target.value })}
-                data-testid="agent-email-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="assignmentReason">Motivo da atribuição</Label>
-              <select
-                id="assignmentReason"
-                value={config.assignmentReason || 'expertise'}
-                onChange={(e) => setConfig({ ...config, assignmentReason: e.target.value })}
-                className="w-full p-2 border rounded-md"
-                data-testid="assignment-reason-select"
-              >
-                <option value="expertise">Especialidade técnica</option>
-                <option value="availability">Disponibilidade</option>
-                <option value="workload">Balanceamento de carga</option>
-                <option value="language">Idioma</option>
-                <option value="client">Relacionamento com cliente</option>
-              </select>
-            </div>
-          </div>
-        );
-      case 'mark_priority':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="priorityLevel">Nível de prioridade</Label>
-              <select
-                id="priorityLevel"
-                value={config.priority || 'high'}
-                onChange={(e) => setConfig({ ...config, priority: e.target.value })}
-                className="w-full p-2 border rounded-md"
-                data-testid="priority-level-select"
-              >
-                <option value="low">Baixa</option>
-                <option value="normal">Normal</option>
-                <option value="high">Alta</option>
-                <option value="urgent">Urgente</option>
-                <option value="critical">Crítica</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="priorityReason">Motivo da prioridade</Label>
-              <Input
-                id="priorityReason"
-                placeholder="ex: Cliente VIP, problema crítico, SLA..."
-                value={config.message || ''}
-                onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                data-testid="priority-reason-input"
+                id="agent-id"
+                value={actionConfig.agentId || ''}
+                onChange={(e) => setActionConfig({...actionConfig, agentId: e.target.value})}
+                placeholder="ID ou email do agente"
               />
             </div>
           </div>
         );
-      case 'archive':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="archiveFolder">Pasta de arquivo</Label>
-              <select
-                id="archiveFolder"
-                value={config.archiveFolder || 'general'}
-                onChange={(e) => setConfig({ ...config, archiveFolder: e.target.value })}
-                className="w-full p-2 border rounded-md"
-                data-testid="archive-folder-select"
-              >
-                <option value="general">Arquivo geral</option>
-                <option value="resolved">Resolvidos</option>
-                <option value="spam">Spam</option>
-                <option value="auto-reply">Respostas automáticas</option>
-                <option value="low-priority">Baixa prioridade</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="archiveDelay">Arquivar após (dias)</Label>
-              <Input
-                id="archiveDelay"
-                type="number"
-                min="0"
-                max="365"
-                value={config.archiveDelay || '7'}
-                onChange={(e) => setConfig({ ...config, archiveDelay: e.target.value })}
-                data-testid="archive-delay-input"
-              />
-            </div>
-            <div>
-              <Label htmlFor="archiveNote">Nota de arquivamento (opcional)</Label>
-              <Textarea
-                id="archiveNote"
-                placeholder="Arquivado automaticamente por..."
-                value={config.message || ''}
-                onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                rows={2}
-                data-testid="archive-note-input"
-              />
-            </div>
-          </div>
-        );
+
       default:
         return (
-          <div className="text-center py-4">
-            <p className="text-gray-500">Tipo de ação não reconhecido</p>
+          <div>
+            <p className="text-sm text-gray-600">
+              Configurações específicas para esta ação serão implementadas em breve.
+            </p>
           </div>
         );
     }
   };
 
   return (
-    <div className="space-y-4">
-      {renderConfigFields()}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button onClick={() => onSave(config)} data-testid="save-action-config">
-          Salvar
-        </Button>
-      </div>
-    </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Workflow className="w-5 h-5" />
+            {existingRule ? 'Editar Regra de Automação' : 'Nova Regra de Automação'}
+          </DialogTitle>
+          <DialogDescription>
+            Use o Query Builder para criar condições complexas e configure ações para automatizar seu atendimento.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4">
+          {/* Informações Básicas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Informações da Regra</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="rule-name">Nome da Regra</Label>
+                  <Input
+                    id="rule-name"
+                    value={rule.name}
+                    onChange={(e) => setRule({...rule, name: e.target.value})}
+                    placeholder="Ex: Resposta automática para urgente"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rule-priority">Prioridade</Label>
+                  <Select value={rule.priority.toString()} onValueChange={(value) => setRule({...rule, priority: parseInt(value)})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 - Mais alta</SelectItem>
+                      <SelectItem value="2">2 - Alta</SelectItem>
+                      <SelectItem value="3">3 - Normal</SelectItem>
+                      <SelectItem value="4">4 - Baixa</SelectItem>
+                      <SelectItem value="5">5 - Mais baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="rule-description">Descrição</Label>
+                <Textarea
+                  id="rule-description"
+                  value={rule.description}
+                  onChange={(e) => setRule({...rule, description: e.target.value})}
+                  placeholder="Descreva o que esta regra faz..."
+                  rows={2}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="rule-enabled"
+                  checked={rule.enabled}
+                  onCheckedChange={(enabled) => setRule({...rule, enabled})}
+                />
+                <Label htmlFor="rule-enabled">Regra ativa</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="ai-enabled"
+                  checked={rule.aiEnabled}
+                  onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
+                />
+                <Label htmlFor="ai-enabled">Usar análise de IA</Label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabs para Condições e Ações */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="conditions">Condições</TabsTrigger>
+              <TabsTrigger value="actions">Ações</TabsTrigger>
+            </TabsList>
+
+            {/* Tab de Condições */}
+            <TabsContent value="conditions">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Filter className="w-5 h-5" />
+                    Condições da Regra
+                  </CardTitle>
+                  <CardDescription>
+                    Configure quando esta regra deve ser executada usando o Query Builder avançado.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <QueryBuilderComponent
+                    value={rule.conditions}
+                    onChange={(conditions) => setRule({...rule, conditions})}
+                    fieldOptions={omnibridgeFields}
+                    operatorOptions={omnibridgeOperators}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab de Ações */}
+            <TabsContent value="actions">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Ações da Regra
+                  </CardTitle>
+                  <CardDescription>
+                    Configure o que acontece quando as condições são atendidas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Ações Configuradas */}
+                  {rule.actions.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Ações Configuradas:</h4>
+                      {rule.actions.map((action, index) => (
+                        <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${action.color}`}>
+                              <action.icon className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{action.name}</p>
+                              <p className="text-sm text-gray-600">{action.description}</p>
+                            </div>
+                            <Badge variant="outline">#{index + 1}</Badge>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeAction(action.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Templates de Ações */}
+                  <div>
+                    <h4 className="font-medium mb-3">Adicionar Ação:</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {actionTemplates.map((template) => (
+                        <Button
+                          key={template.type}
+                          variant="outline"
+                          className="justify-start h-auto p-3"
+                          onClick={() => addAction(template)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${template.color}`}>
+                              <template.icon className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-medium text-sm">{template.name}</p>
+                              <p className="text-xs text-gray-600">{template.description}</p>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Botões de Ação */}
+          <div className="flex justify-between pt-4">
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setActiveTab(activeTab === 'conditions' ? 'actions' : 'conditions')}>
+                {activeTab === 'conditions' ? 'Configurar Ações' : 'Voltar às Condições'}
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saveRuleMutation.isPending}
+              >
+                {saveRuleMutation.isPending ? 'Salvando...' : 'Salvar Regra'}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Dialog de Configuração de Ação */}
+        <Dialog open={showActionConfig} onOpenChange={setShowActionConfig}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {currentAction && <currentAction.icon className="w-5 h-5" />}
+                Configurar {currentAction?.name}
+              </DialogTitle>
+              <DialogDescription>
+                {currentAction?.description}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4">
+              {renderActionConfig()}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowActionConfig(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={confirmActionConfig}>
+                Confirmar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -68,13 +68,24 @@ interface QueryBuilderProps {
   value: QueryBuilder;
   onChange: (value: QueryBuilder) => void;
   className?: string;
+  fieldOptions?: Array<{ value: string; label: string }>;
+  operatorOptions?: Array<{ value: string; label: string }>;
 }
 
 // ======================================
 // MAIN COMPONENT
 // ======================================
 
-export function QueryBuilderComponent({ value, onChange, className = '' }: QueryBuilderProps) {
+export function QueryBuilderComponent({ 
+  value, 
+  onChange, 
+  className = '',
+  fieldOptions: customFieldOptions,
+  operatorOptions: customOperatorOptions
+}: QueryBuilderProps) {
+  // Use os campos customizados se fornecidos, senão use os padrões
+  const fields = customFieldOptions || fieldOptions;
+  const operators = customOperatorOptions || operatorOptions;
   const addRule = () => {
     const newRule: QueryRule = {
       field: 'status' as TicketField,
@@ -161,7 +172,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                       <SelectValue placeholder="Selecione o campo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {fieldOptions.map(option => (
+                      {fields.map(option => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -180,7 +191,7 @@ export function QueryBuilderComponent({ value, onChange, className = '' }: Query
                       <SelectValue placeholder="Operador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {operatorOptions.map(option => (
+                      {operators.map(option => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
