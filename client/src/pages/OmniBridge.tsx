@@ -249,11 +249,11 @@ export default function OmniBridge() {
 
   // Test AI Prompt mutation
   const testPromptMutation = useMutation({
-    mutationFn: ({ prompt, testMessage, promptType }: any) => 
+    mutationFn: ({ prompt, testMessage, promptType }: any) =>
       apiRequest('POST', '/api/omnibridge/ai-prompts/test', { prompt, testMessage, promptType }),
     onSuccess: (response) => {
-      toast({ 
-        title: 'Teste concluído', 
+      toast({
+        title: 'Teste concluído',
         description: `Resultado: ${JSON.stringify(response)}`,
         duration: 5000
       });
@@ -319,7 +319,7 @@ export default function OmniBridge() {
       try {
         console.log('🚀 [OmniBridge-DEBUG] Starting fetch automation rules...');
 
-        const response = await fetch('/api/omnibridge/automation-rules', { 
+        const response = await fetch('/api/omnibridge/automation-rules', {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
@@ -394,7 +394,7 @@ export default function OmniBridge() {
         console.log(`✅ [OmniBridge] Automation rule ${enabled ? 'enabled' : 'disabled'}: ${ruleId}`);
 
         // Refresh the automation rules list after toggle
-        const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
+        const refreshResponse = await fetch('/api/omnibridge/automation-rules', {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
@@ -487,7 +487,7 @@ export default function OmniBridge() {
           console.log('✅ [OmniBridge] Automation rule created successfully');
 
           // Refresh the automation rules list after creation
-          const refreshResponse = await fetch('/api/omnibridge/automation-rules', { 
+          const refreshResponse = await fetch('/api/omnibridge/automation-rules', {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json'
@@ -1048,7 +1048,7 @@ export default function OmniBridge() {
         {/* Inbox Tab */}
         <TabsContent value="inbox" className="space-y-4">
           <div className="h-[calc(100vh-200px)]">
-            <SimplifiedInbox 
+            <SimplifiedInbox
               onCreateRule={(messageData?: any) => {
                 setSelectedMessage(messageData);
                 setShowCreateRuleModal(true);
@@ -1165,13 +1165,192 @@ export default function OmniBridge() {
           <AutomationRules />
         </TabsContent>
 
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-4">
-          <OmniBridgeSettings />
+        {/* Conversational AI Tab */}
+        <TabsContent value="conversational-ai" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                IA Conversacional
+              </CardTitle>
+              <CardDescription>
+                Configure fluxos conversacionais para interação automatizada com clientes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Status da IA Conversacional */}
+              <div className="grid grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-green-600">Ativo</div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold">0</div>
+                    <p className="text-sm text-muted-foreground">Conversas Ativas</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold">2</div>
+                    <p className="text-sm text-muted-foreground">Fluxos Disponíveis</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold">0</div>
+                    <p className="text-sm text-muted-foreground">Interações Hoje</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Fluxos Conversacionais */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Fluxos Conversacionais</h3>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Fluxo
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">Criar Ticket</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Fluxo conversacional para criação de tickets
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <Badge variant="secondary">criar ticket</Badge>
+                            <Badge variant="secondary">novo ticket</Badge>
+                            <Badge variant="secondary">problema</Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-green-600">
+                            ✅ Ativo
+                          </Badge>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Play className="h-4 w-4 mr-2" />
+                          Testar
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">Agendar Atendimento</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Fluxo para agendamento de atendimento técnico
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <Badge variant="secondary">agendar</Badge>
+                            <Badge variant="secondary">marcar horário</Badge>
+                            <Badge variant="secondary">visita técnica</Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-green-600">
+                            ✅ Ativo
+                          </Badge>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Play className="h-4 w-4 mr-2" />
+                          Testar
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Como Funciona */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5" />
+                    Como Funciona a IA Conversacional
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Detecção de Intenção</h4>
+                        <p className="text-sm text-muted-foreground">
+                          O sistema identifica palavras-chave na mensagem do cliente e ativa o fluxo correspondente
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Coleta de Informações</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Apresenta menus interativos e coleta informações necessárias passo a passo
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Execução de Ações</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Executa automaticamente as ações configuradas (criar ticket, agendar, notificar, etc.)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-semibold">
+                        ✓
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Confirmação</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Confirma a conclusão do processo e informa o resultado ao cliente
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        {/* AI Assistant Tab */}
-        <TabsContent value="ai-config" className="space-y-4">
+        {/* Configuração IA Tab */}
+        <TabsContent value="ai-config" className="space-y-6">
           <Form {...aiForm}>
           {/* AI Dashboard */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1321,8 +1500,8 @@ export default function OmniBridge() {
                   )}
                 />
 
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={aiForm.handleSubmit(handleSaveAiConfig)}
                   disabled={saveAiConfigMutation.isPending}
                   data-testid="button-save-ai-config"
@@ -1389,8 +1568,8 @@ export default function OmniBridge() {
                   <Bot className="h-5 w-5" />
                   Editor de Prompts IA
                 </span>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={() => {
                     setTempPromptContent(currentAiConfig.prompts[selectedPromptType as keyof typeof currentAiConfig.prompts]);
                     setShowAiPromptEditor(true);
@@ -1428,7 +1607,7 @@ export default function OmniBridge() {
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <Badge variant="outline" className="text-xs">
-                          {prompt.split('\\n').length} linhas
+                          {prompt.split('\n').length} linhas
                         </Badge>
                         <Button variant="ghost" size="sm" data-testid={`button-edit-prompt-${key}`}>
                           <SettingsIcon className="h-3 w-3" />
@@ -1530,6 +1709,11 @@ export default function OmniBridge() {
           </Card>
           </Form>
         </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <OmniBridgeSettings />
+        </TabsContent>
       </Tabs>
 
       {/* Modal de Resposta */}
@@ -1557,7 +1741,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowReplyModal(false)}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={async () => {
                   if (selectedMessage && replyContent.trim()) {
                     await handleReplyMessage(selectedMessage.id, replyContent);
@@ -1612,7 +1796,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowForwardModal(false)}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={async () => {
                   if (selectedMessage && forwardRecipients.trim()) {
                     const recipients = forwardRecipients.split(',').map(r => r.trim()).filter(r => r);
@@ -1664,8 +1848,8 @@ export default function OmniBridge() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="trigger-type">Quando acontecer</Label>
-                <Select 
-                  value={newRuleData.triggerType} 
+                <Select
+                  value={newRuleData.triggerType}
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, triggerType: value }))}
                 >
                   <SelectTrigger>
@@ -1682,8 +1866,8 @@ export default function OmniBridge() {
               </div>
               <div>
                 <Label htmlFor="action-type">Ação</Label>
-                <Select 
-                  value={newRuleData.actionType} 
+                <Select
+                  value={newRuleData.actionType}
                   onValueChange={(value) => setNewRuleData(prev => ({ ...prev, actionType: value }))}
                 >
                   <SelectTrigger>
@@ -1715,7 +1899,7 @@ export default function OmniBridge() {
               <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={handleCreateAutomationRule}
                 disabled={!newRuleData.name.trim()}
               >
@@ -1818,8 +2002,8 @@ export default function OmniBridge() {
 
             <div className="flex items-center justify-between border-t pt-4">
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     if (tempPromptContent.trim() && promptTestMessage.trim()) {
@@ -1845,7 +2029,7 @@ export default function OmniBridge() {
                 <Button variant="outline" onClick={() => setShowAiPromptEditor(false)}>
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     const currentPrompts = { ...currentAiConfig.prompts };
                     currentPrompts[selectedPromptType as keyof typeof currentPrompts] = tempPromptContent;

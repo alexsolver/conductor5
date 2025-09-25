@@ -1128,3 +1128,93 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
 });
 
 export { router as omniBridgeRoutes };
+// Conversational AI routes
+router.get('/conversational-ai/status', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Get automation engine for this tenant (this would need to be implemented)
+    // For now, return mock status
+    res.json({
+      success: true,
+      data: {
+        enabled: true,
+        activeSessions: 0,
+        availableFlows: 2,
+        totalInteractions: 0
+      }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error getting conversational AI status:', error);
+    res.status(500).json({ success: false, error: 'Failed to get conversational AI status' });
+  }
+});
+
+router.post('/conversational-ai/flows', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    const flowData = req.body;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Here you would save the flow to database
+    // For now, return success
+    res.json({
+      success: true,
+      data: {
+        id: `flow-${Date.now()}`,
+        ...flowData,
+        tenantId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error creating conversational AI flow:', error);
+    res.status(500).json({ success: false, error: 'Failed to create conversational AI flow' });
+  }
+});
+
+router.get('/conversational-ai/flows', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    // Return default flows for now
+    const defaultFlows = [
+      {
+        id: 'create-ticket-flow',
+        name: 'Criar Ticket',
+        description: 'Fluxo conversacional para criação de tickets',
+        triggerKeywords: ['criar ticket', 'novo ticket', 'abrir chamado', 'problema', 'suporte'],
+        enabled: true,
+        stepCount: 5
+      },
+      {
+        id: 'schedule-flow',
+        name: 'Agendar Atendimento',
+        description: 'Fluxo para agendamento de atendimento',
+        triggerKeywords: ['agendar', 'marcar horário', 'agendamento', 'visita técnica'],
+        enabled: true,
+        stepCount: 6
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: defaultFlows
+    });
+  } catch (error) {
+    console.error('[OmniBridge] Error getting conversational AI flows:', error);
+    res.status(500).json({ success: false, error: 'Failed to get conversational AI flows' });
+  }
+});
