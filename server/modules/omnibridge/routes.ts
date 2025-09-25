@@ -85,6 +85,36 @@ router.put('/messages/:messageId/star', jwtAuth, (req, res) => omniBridgeControl
 
 router.get('/inbox/stats', jwtAuth, (req, res) => omniBridgeController.getInboxStats(req, res));
 
+// Debug route for checking messages
+router.get('/debug/messages', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔧 [OMNIBRIDGE-DEBUG] Checking messages for tenant: ${tenantId}`);
+
+    const messageRepository = new (await import('./infrastructure/repositories/DrizzleMessageRepository')).DrizzleMessageRepository();
+    const messages = await messageRepository.findByTenant(tenantId, 10, 0);
+    
+    return res.json({
+      success: true,
+      count: messages.length,
+      messages: messages,
+      tenant: tenantId
+    });
+    
+  } catch (error) {
+    console.error(`❌ [OMNIBRIDGE-DEBUG] Error checking messages:`, error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to check messages',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Debug route for Gmail status check
 router.get('/debug/gmail/status', jwtAuth, async (req, res) => {
   try {

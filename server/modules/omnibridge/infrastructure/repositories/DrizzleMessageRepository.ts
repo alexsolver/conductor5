@@ -4,8 +4,7 @@ import { Pool } from 'pg';
 import * as schema from '../../../../../shared/schema';
 import { MessageEntity } from '../../domain/entities/Message';
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
-import { eq, and, desc, asc } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
+import { eq, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DrizzleMessageRepository implements IMessageRepository {
   // ✅ 1QA.MD: Get tenant-specific database instance
@@ -353,27 +352,59 @@ export class DrizzleMessageRepository implements IMessageRepository {
     }
   }
 
-  async updateStatus(messageId: string, tenantId: string, status: string): Promise<void> {
+  async updateStatus(messageId: string, tenantId: string, status: string): Promise<boolean> {
     console.log(`🔄 [DrizzleMessageRepository] Updating status for message: ${messageId}`);
 
     try {
       const tenantDb = await this.getTenantDb(tenantId);
-      await tenantDb.execute(`
-        UPDATE omnibridge_messages SET
-          status = $1, updated_at = $2
-        WHERE id = $3 AND tenant_id = $4
-      `, [
-        status,
-        new Date(),
-        messageId,
-        tenantId
-      ]);
+      await tenantDb.update(schema.omnibridgeMessages).set({
+        status: status as any,
+        updatedAt: new Date()
+      }).where(
+        and(
+          eq(schema.omnibridgeMessages.id, messageId),
+          eq(schema.omnibridgeMessages.tenantId, tenantId)
+        )
+      );
 
       console.log(`✅ [DrizzleMessageRepository] Updated status for message: ${messageId}`);
+      return true;
     } catch (error) {
-      console.error(`❌ [DrizzleMessageRepository] Error updating status: ${error.message}`);
+      console.error(`❌ [DrizzleMessageRepository] Error updating status:`, error);
       throw error;
     }
+  }
+
+  async getUnreadCount(tenantId: string): Promise<number> {
+    if (!tenantId) throw new Error('Tenant ID required');
+
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.select({ count: sql<number>`count(*)` })
+      .from(schema.omnibridgeMessages)
+      .where(and(
+        eq(schema.omnibridgeMessages.tenantId, tenantId),
+        eq(schema.omnibridgeMessages.status, 'unread')
+      ));
+
+    return result[0]?.count || 0;
+  }
+
+  async getStatsByChannel(tenantId: string): Promise<Array<{ channelId: string; count: number }>> {
+    if (!tenantId) throw new Error('Tenant ID required');
+
+    const tenantDb = await this.getTenantDb(tenantId);
+    const results = await tenantDb.select({
+      channelId: schema.omnibridgeMessages.channelId,
+      count: sql<number>`count(*)`
+    })
+      .from(schema.omnibridgeMessages)
+      .where(eq(schema.omnibridgeMessages.tenantId, tenantId))
+      .groupBy(schema.omnibridgeMessages.channelId);
+
+    return results.map(row => ({
+      channelId: row.channelId,
+      count: row.count
+    }));
   }
 
   private mapRowToMessage(row: any): Message {

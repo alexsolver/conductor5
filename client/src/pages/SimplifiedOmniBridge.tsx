@@ -59,6 +59,8 @@ export default function SimplifiedOmniBridge() {
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [previewConfig, setPreviewConfig] = useState<any>(null);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null); // State for selected message for rule builder
+  const [setShowCreateRuleModal, setsetShowCreateRuleModal] = useState(false); // State to control rule creation modal
 
   // Fetch user setup status
   const { data: setupStatus } = useQuery({
@@ -82,7 +84,8 @@ export default function SimplifiedOmniBridge() {
   }, [setupStatus]);
 
   const handleCreateRule = (messageData?: any) => {
-    setShowRuleBuilder(true);
+    setSelectedMessage(messageData); // Set the selected message for context
+    setShowCreateRuleModal(true); // Open the modal to create a rule
   };
 
   const handleCreateChatbot = () => {
@@ -100,9 +103,9 @@ export default function SimplifiedOmniBridge() {
   };
 
   const handleTemplateSelect = (template: any) => {
-    toast({ 
-      title: 'Template Selecionado', 
-      description: `Template "${template.name}" foi aplicado com sucesso!` 
+    toast({
+      title: 'Template Selecionado',
+      description: `Template "${template.name}" foi aplicado com sucesso!`
     });
     setShowTemplateGallery(false);
   };
@@ -211,8 +214,8 @@ export default function SimplifiedOmniBridge() {
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                    className="bg-purple-500 h-2 rounded-full" 
+                  <div
+                    className="bg-purple-500 h-2 rounded-full"
                     style={{ width: `${Math.min(stats.automationRate, 100)}%` }}
                   ></div>
                 </div>
@@ -327,7 +330,7 @@ export default function SimplifiedOmniBridge() {
                       action: "auto_reply"
                     },
                     {
-                      title: "Escalação Urgente", 
+                      title: "Escalação Urgente",
                       description: "Escala mensagens de alta prioridade",
                       icon: AlertCircle,
                       color: "bg-red-500",
@@ -338,7 +341,7 @@ export default function SimplifiedOmniBridge() {
                       title: "Criar Ticket",
                       description: "Cria tickets automaticamente",
                       icon: FileText,
-                      color: "bg-green-500", 
+                      color: "bg-green-500",
                       trigger: "keyword",
                       action: "create_ticket"
                     },
@@ -351,7 +354,7 @@ export default function SimplifiedOmniBridge() {
                       action: "send_notification"
                     }
                   ].map((template, index) => (
-                    <Card 
+                    <Card
                       key={index}
                       className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
                       onClick={() => {
@@ -366,7 +369,7 @@ export default function SimplifiedOmniBridge() {
                         };
                         // Potentially open the rule builder with pre-filled data, or just show a toast
                         setShowRuleBuilder(true); // For now, just open builder
-                        toast({ title: `${template.title} selecionado`, description: 'Configure os detalhes da sua automação.'});
+                        toast({ title: `${template.title} selecionado`, description: 'Configure os detalhes da sua automação.' });
                       }}
                     >
                       <CardContent className="p-4 text-center">
@@ -374,7 +377,7 @@ export default function SimplifiedOmniBridge() {
                           <template.icon className="h-6 w-6 text-white" />
                         </div>
                         <h4 className="font-medium text-sm mb-1">{template.title}</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           {template.description}
                         </p>
                       </CardContent>
@@ -540,8 +543,8 @@ export default function SimplifiedOmniBridge() {
                             <span>{stats.automationRate}%</span>
                           </div>
                           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div 
-                              className="bg-purple-500 h-2 rounded-full" 
+                            <div
+                              className="bg-purple-500 h-2 rounded-full"
                               style={{ width: `${stats.automationRate}%` }}
                             ></div>
                           </div>
@@ -591,6 +594,7 @@ export default function SimplifiedOmniBridge() {
       <AutomationRuleBuilder
         isOpen={showRuleBuilder}
         onClose={() => setShowRuleBuilder(false)}
+        initialMessage={selectedMessage} // Pass selected message to the builder
         onSave={(rule) => {
           setShowRuleBuilder(false);
           toast({ title: 'Sucesso', description: 'Regra de automação criada!' });

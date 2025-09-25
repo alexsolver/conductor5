@@ -81,24 +81,28 @@ export class OmniBridgeController {
 
   async getMessages(req: Request, res: Response): Promise<void> {
     try {
-      // ✅ TELEGRAM FIX: Múltiplas fontes para tenantId
+      // ✅ 1QA.MD: Múltiplas fontes para tenantId
       const tenantId = (req as any).user?.tenantId || req.headers['x-tenant-id'] as string;
       const { limit, offset, channelId, status, priority } = req.query;
 
       if (!tenantId) {
         console.error('❌ [OMNIBRIDGE-MESSAGES] No tenant ID found in request');
-        res.status(400).json({ error: 'Tenant ID is required' });
+        res.status(400).json({ success: false, error: 'Tenant ID is required' });
         return;
       }
 
+      console.log(`🔍 [OMNIBRIDGE-MESSAGES] Getting messages for tenant: ${tenantId}`);
+
       const messages = await this.getMessagesUseCase.execute({
         tenantId,
-        limit: limit ? parseInt(limit as string) : undefined,
-        offset: offset ? parseInt(offset as string) : undefined,
+        limit: limit ? parseInt(limit as string) : 200,
+        offset: offset ? parseInt(offset as string) : 0,
         channelId: channelId as string,
         status: status as string,
         priority: priority as string
       });
+
+      console.log(`✅ [OMNIBRIDGE-MESSAGES] Retrieved ${messages.length} messages for tenant: ${tenantId}`);
 
       res.json({
         success: true,
@@ -106,8 +110,9 @@ export class OmniBridgeController {
         count: messages.length
       });
     } catch (error) {
-      console.error('[OmniBridge] Error getting messages:', error);
+      console.error('❌ [OMNIBRIDGE-MESSAGES] Error getting messages:', error);
       res.status(500).json({
+        success: false,
         error: 'Failed to get messages',
         message: error instanceof Error ? error.message : 'Unknown error'
       });

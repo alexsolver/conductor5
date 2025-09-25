@@ -41,7 +41,26 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
 
   // Fetch messages with auto-refresh
   const { data: messagesData, isLoading, refetch } = useQuery({
-    queryKey: ['/api/omnibridge/messages'],
+    queryKey: ['omnibridge-messages', user?.tenantId],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/omnibridge/messages', {
+        method: 'GET',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+
+      return response.json();
+    },
+    enabled: !!user?.tenantId,
     refetchInterval: 5000, // Auto-refresh every 5 seconds
     staleTime: 1000
   });
@@ -161,13 +180,23 @@ export default function SimplifiedInbox({ onCreateRule, onCreateChatbot }: Simpl
             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium mb-2">Nenhuma mensagem encontrada</h3>
             <p className="text-sm text-gray-600 mb-4">
-              {searchTerm ? 'Tente uma busca diferente' : 'Aguardando novas mensagens...'}
+              {searchTerm 
+                ? 'Tente uma busca diferente' 
+                : messages.length === 0 
+                  ? 'Não há mensagens no sistema. Configure suas integrações para receber mensagens.'
+                  : 'Aguardando novas mensagens...'
+              }
             </p>
-            {!searchTerm && (
+            <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => refetch()}>
                 Atualizar
               </Button>
-            )}
+              {messages.length === 0 && (
+                <Button variant="default" onClick={() => window.location.href = '/tenant-admin/integrations'}>
+                  Configurar Integrações
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-2 p-4">
