@@ -58,7 +58,8 @@ import {
   Upload,
   AlertTriangle,
   CreditCard,
-  Link
+  Link,
+  BarChart3
 } from 'lucide-react';
 
 interface Trigger {
