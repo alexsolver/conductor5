@@ -216,7 +216,7 @@ export class AutomationController {
         name: rule.name,
         description: rule.description,
         enabled: rule.enabled,
-        conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
+        conditions: rule.conditions || rule.trigger || { rules: [], logicalOperator: 'AND' },
         actions: rule.actions || [],
         priority: rule.priority || 1,
         aiEnabled: rule.aiEnabled || false,
@@ -224,7 +224,9 @@ export class AutomationController {
         updatedAt: rule.updatedAt,
         executionCount: rule.executionCount || 0,
         successCount: rule.successCount || 0,
-        lastExecuted: rule.lastExecuted
+        lastExecuted: rule.lastExecuted,
+        // ✅ Incluir trigger para compatibilidade com edição
+        trigger: rule.trigger || rule.conditions || { rules: [], logicalOperator: 'AND' }
       };
 
       res.json({

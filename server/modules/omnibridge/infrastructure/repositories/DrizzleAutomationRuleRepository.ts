@@ -31,7 +31,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
       const tenantDb = await this.getTenantDb(rule.tenantId);
 
       // Convert triggers array to single trigger object for storage
-      const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0 
+      const triggerForStorage = Array.isArray(rule.trigger) && rule.trigger.length > 0
         ? this.convertFrontendTriggerToStorage(rule.trigger[0])
         : rule.trigger || {};
 
@@ -129,12 +129,12 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
     try {
       const tenantDb = await this.getTenantDb(tenantId); // Corrected from rule.tenantId to tenantId
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           COUNT(*) as total_rules,
           COUNT(CASE WHEN enabled = true THEN 1 END) as enabled_rules,
           COUNT(CASE WHEN enabled = false THEN 1 END) as disabled_rules,
           COALESCE(SUM(execution_count), 0) as total_executions
-        FROM omnibridge_automation_rules 
+        FROM omnibridge_automation_rules
         WHERE tenant_id = ${tenantId}
       `);
 
@@ -177,7 +177,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         console.log(`🔧 [DrizzleAutomationRuleRepository] Length:`, updateData.trigger?.length);
 
         // Convert triggers array to single trigger object for storage
-        updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0 
+        updateObject.trigger = Array.isArray(updateData.trigger) && updateData.trigger.length > 0
           ? this.convertFrontendTriggerToStorage(updateData.trigger[0])
           : updateData.trigger || {};
         console.log(`🔧 [DrizzleAutomationRuleRepository] Converting update trigger for storage:`, updateObject.trigger);
@@ -280,98 +280,31 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   }
 
   private mapRowToEntity(row: any): AutomationRule {
-    // Parse JSON fields safely
-    const parseJsonField = (field: any, defaultValue: any = {}): any => {
-      if (typeof field === 'string') {
-        try {
-          const parsed = JSON.parse(field);
-          return parsed !== null ? parsed : defaultValue;
-        } catch (e) {
-          console.warn(`Failed to parse JSON field: ${field}. Error: ${e}`);
-          return defaultValue;
-        }
-      }
-      return field !== null && field !== undefined ? field : defaultValue;
-    };
+    console.log('🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:', {
+      id: row.id,
+      trigger: row.trigger,
+      actions: row.actions
+    });
 
-    // Convert backend data to frontend format
-    const triggerFromDb = parseJsonField(row.trigger, {});
-    const actionsFromDb = parseJsonField(row.actions, []);
-
-    // Convert trigger object to triggers array with proper format for frontend
-    let conditions = [];
-    if (triggerFromDb && triggerFromDb.conditions && Array.isArray(triggerFromDb.conditions)) {
-      // Legacy format: trigger.conditions array -> convert to triggers array
-      conditions = triggerFromDb.conditions.map((condition: any, index: number) => ({
-        id: condition.id || `trigger_${Date.now()}_${index}`,
-        type: condition.type || 'keyword',
-        name: this.getDisplayNameForTriggerType(condition.type || 'keyword'),
-        description: this.getDescriptionForTriggerType(condition.type || 'keyword'),
-        config: {
-          keywords: condition.value || condition.keywords || '',
-          value: condition.value || condition.keywords || '',
-          operator: condition.operator || 'contains',
-          field: condition.field || 'content',
-          caseSensitive: condition.caseSensitive || false,
-          channelType: condition.channelType || ''
-        }
-      }));
-    } else if (triggerFromDb && Object.keys(triggerFromDb).length > 0) {
-      // Single trigger object -> convert to triggers array
-      conditions = [{
-        id: triggerFromDb.id || `trigger_${Date.now()}`,
-        type: triggerFromDb.type === 'keyword_match' ? 'keyword' : (triggerFromDb.type || 'keyword'),
-        name: this.getDisplayNameForTriggerType(triggerFromDb.type || 'keyword'),
-        description: this.getDescriptionForTriggerType(triggerFromDb.type || 'keyword'),
-        config: {
-          keywords: triggerFromDb.keywords || triggerFromDb.value || '',
-          value: triggerFromDb.value || triggerFromDb.keywords || '',
-          operator: triggerFromDb.operator || 'contains',
-          field: triggerFromDb.field || 'content',
-          caseSensitive: triggerFromDb.caseSensitive || false,
-          channelType: triggerFromDb.channelType || ''
-        }
-      }];
-    }
-
-    // Convert actions to proper frontend format
-    const actionsForFrontend = actionsFromDb.map((action: any, index: number) => ({
-      id: action.id || `action_${Date.now()}_${index}`,
-      type: action.type === 'send_auto_reply' ? 'auto_reply' : action.type,
-      name: this.getDisplayNameForActionType(action.type),
-      description: this.getDescriptionForActionType(action.type),
-      icon: this.getIconForActionType(action.type),
-      color: this.getColorForActionType(action.type),
-      config: {
-        message: action.params?.message || '',
-        template: action.params?.template || '',
-        recipient: action.params?.recipient || '',
-        priority: action.params?.priority || 'medium',
-        ...action.params
-      }
-    }));
-
-    console.log(`🔧 [DrizzleAutomationRuleRepository] Mapping row to entity:`);
-    console.log(`   - Trigger from DB:`, triggerFromDb);
-    console.log(`   - Conditions for frontend:`, conditions);
-    console.log(`   - Actions for frontend:`, actionsForFrontend);
+    // ✅ 1QA.MD: Garantir compatibilidade com frontend - mapear trigger para conditions
+    const conditions = row.trigger || { rules: [], logicalOperator: 'AND' };
 
     return new AutomationRule(
       row.id,
       row.tenantId,
       row.name,
-      row.description || '',
-      conditions, // Use converted conditions
-      actionsForFrontend, // Use converted actions
+      row.description,
+      conditions, // Usar conditions ao invés de trigger para compatibilidade
+      row.actions || [],
       row.enabled,
-      row.priority || 1,
-      row.aiEnabled || false,
+      row.priority,
+      row.aiEnabled,
       row.aiPromptId,
-      row.executionCount || 0,
-      row.successCount || 0,
-      row.lastExecuted ? new Date(row.lastExecuted) : undefined,
-      row.createdAt ? new Date(row.createdAt) : new Date(),
-      row.updatedAt ? new Date(row.updatedAt) : new Date()
+      row.executionCount,
+      row.successCount,
+      row.lastExecuted,
+      row.createdAt,
+      row.updatedAt
     );
   }
 

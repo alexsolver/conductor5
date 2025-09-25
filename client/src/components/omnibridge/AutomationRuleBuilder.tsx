@@ -251,10 +251,10 @@ export default function AutomationRuleBuilder({
         actions: (existingRule.actions || []).map((action, index) => {
           // Encontrar template correspondente para hidratar campos UI
           const template = actionTemplates.find(t => t.type === action.type);
-          
+
           // Gerar ID determinístico se não existir
           const stableId = action.id || `${existingRule.id}_${action.type}_${index}`;
-          
+
           return {
             ...template, // Hidrata icon, color, name, description do template
             ...action,   // Sobrescreve com dados persistidos (id, type, config)
@@ -327,12 +327,12 @@ export default function AutomationRuleBuilder({
   const confirmActionConfig = () => {
     if (currentAction) {
       let actionIndex = rule.actions.findIndex(a => a.id === currentAction.id);
-      
+
       // Fallback para editingActionIndex se ID lookup falhar
       if (actionIndex === -1 && editingActionIndex >= 0 && editingActionIndex < rule.actions.length) {
         actionIndex = editingActionIndex;
       }
-      
+
       if (actionIndex >= 0) {
         // Editar ação existente
         setRule(prev => {
@@ -369,6 +369,23 @@ export default function AutomationRuleBuilder({
       ...prev,
       actions: prev.actions.filter(action => action.id !== actionId)
     }));
+  };
+
+  // Editar ação
+  const editAction = (actionId: string) => {
+    console.log('🔧 [AutomationRuleBuilder] Editing action:', actionId);
+    const actionIndex = rule.actions.findIndex(a => a.id === actionId);
+    if (actionIndex >= 0) {
+      const action = rule.actions[actionIndex];
+      console.log('📋 [AutomationRuleBuilder] Found action to edit:', action);
+
+      setCurrentAction(action);
+      setActionConfig(action.config || {});
+      setEditingActionIndex(actionIndex);
+      setShowActionConfig(true);
+    } else {
+      console.warn('⚠️ [AutomationRuleBuilder] Action not found for editing:', actionId);
+    }
   };
 
   // Salvar regra
@@ -783,14 +800,10 @@ export default function AutomationRuleBuilder({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                  setCurrentAction(action);
-                                  setActionConfig(action.config || {});
-                                  setEditingActionIndex(index);
-                                  setShowActionConfig(true);
-                                }}
+                                onClick={() => editAction(action.id)}
                               >
-                                <Settings className="w-4 h-4" />
+                                <Settings className="h-3 w-3" />
+                                Configurar
                               </Button>
                               <Button
                                 variant="outline"
