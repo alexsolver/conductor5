@@ -271,9 +271,18 @@ export default function AutomationRuleBuilder({
           // Gerar ID determinístico se não existir
           const stableId = action.id || `${existingRule.id}_${action.type}_${index}`;
 
+          // ✅ FIXED: Garante que sempre existe um template válido
+          const safeTemplate = template || {
+            type: action.type,
+            name: action.name || 'Ação desconhecida',
+            description: action.description || 'Tipo de ação não reconhecido',
+            icon: Settings, // ícone padrão para ações não reconhecidas
+            color: 'bg-gray-500'
+          };
+
           return {
-            ...template, // Hidrata icon, color, name, description do template
-            ...action,   // Sobrescreve com dados persistidos (id, type, config)
+            ...safeTemplate, // Hidrata icon, color, name, description do template
+            ...action,       // Sobrescreve com dados persistidos (id, type, config)
             id: stableId
           };
         }),
