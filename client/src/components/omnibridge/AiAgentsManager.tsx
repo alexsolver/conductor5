@@ -498,6 +498,81 @@ const AiAgentsManager: React.FC = () => {
 
               <Separator />
 
+              {/* Channels and Actions */}
+              <div className="space-y-4">
+                <h4 className="font-medium">Canais e Ações Suportados</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="supportedChannels"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Canais de Comunicação</FormLabel>
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableChannels.map((channel) => (
+                          <div key={channel.value} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`channel-${channel.value}`}
+                              checked={field.value?.includes(channel.value) || false}
+                              onChange={(e) => {
+                                const currentChannels = field.value || [];
+                                if (e.target.checked) {
+                                  field.onChange([...currentChannels, channel.value]);
+                                } else {
+                                  field.onChange(currentChannels.filter(c => c !== channel.value));
+                                }
+                              }}
+                              data-testid={`checkbox-channel-${channel.value}`}
+                            />
+                            <label htmlFor={`channel-${channel.value}`} className="text-sm">
+                              {channel.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="availableActions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ações Disponíveis</FormLabel>
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableActions.map((action) => (
+                          <div key={action.value} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`action-${action.value}`}
+                              checked={field.value?.includes(action.value) || false}
+                              onChange={(e) => {
+                                const currentActions = field.value || [];
+                                if (e.target.checked) {
+                                  field.onChange([...currentActions, action.value]);
+                                } else {
+                                  field.onChange(currentActions.filter(a => a !== action.value));
+                                }
+                              }}
+                              data-testid={`checkbox-action-${action.value}`}
+                            />
+                            <label htmlFor={`action-${action.value}`} className="text-sm">
+                              {action.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator />
+
               {/* Personality */}
               <div className="space-y-4">
                 <h4 className="font-medium">Personalidade e Linguagem</h4>
@@ -578,6 +653,152 @@ const AiAgentsManager: React.FC = () => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <Separator />
+
+              {/* Escalation Configuration */}
+              <div className="space-y-4">
+                <h4 className="font-medium">Configuração de Escalação</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="escalationConfig.escalateAfterSteps"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Escalar após X tentativas</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            {...field}
+                            min={1}
+                            max={20}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            data-testid="input-escalate-steps"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="escalationConfig.escalateKeywords"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Palavras-chave para Escalação</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field}
+                          value={field.value?.join(', ') || ''}
+                          onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                          placeholder="falar com humano, atendente, reclamação"
+                          data-testid="textarea-escalate-keywords"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Menu Configuration */}
+              <div className="space-y-4">
+                <h4 className="font-medium">Configuração de Menu</h4>
+                
+                <FormField
+                  control={form.control}
+                  name="menuConfig.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Habilitar Menu Estruturado
+                        </FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Oferecer opções múltipla escolha além da conversa livre
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="switch-menu-enabled"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="menuConfig.maxOptions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Máx. Opções</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            {...field}
+                            min={2}
+                            max={10}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            data-testid="input-max-options"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="menuConfig.timeoutMinutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Timeout (min)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            {...field}
+                            min={1}
+                            max={60}
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            data-testid="input-timeout-minutes"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="menuConfig.showNumbers"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-sm">
+                            Numerar Opções
+                          </FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="switch-show-numbers"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-3">
