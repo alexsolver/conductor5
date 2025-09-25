@@ -1395,7 +1395,7 @@ async function testEmailSMTP(config: any, res: any, tenantId: string) {
     // Import nodemailer for real SMTP testing
     const nodemailer = await import('nodemailer');
     
-    const transporter = nodemailer.default.createTransporter({
+    const transporter = nodemailer.default.createTransport({
       host: serverHost,
       port: parseInt(serverPort),
       secure: useSSL === true,

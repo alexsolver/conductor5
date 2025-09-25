@@ -223,7 +223,7 @@ export default function TenantAdminIntegrations() {
     setTestResults(prev => ({ ...prev, [integrationId]: null }));
 
     try {
-      const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
+      const response = await fetch(`/api/tenant-integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
