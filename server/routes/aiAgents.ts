@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { jwtAuth } from '../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = Router();
 
@@ -51,7 +51,7 @@ const mockConversations = [
 ];
 
 // Get all AI agents
-router.get('/agents', jwtAuth, async (req, res) => {
+router.get('/agents', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     res.json({
       success: true,
@@ -67,7 +67,7 @@ router.get('/agents', jwtAuth, async (req, res) => {
 });
 
 // Get agent metrics
-router.get('/agents/metrics', jwtAuth, async (req, res) => {
+router.get('/agents/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const metrics = {
       totalConversations: 156,
@@ -93,7 +93,7 @@ router.get('/agents/metrics', jwtAuth, async (req, res) => {
 });
 
 // Get conversations
-router.get('/conversations', jwtAuth, async (req, res) => {
+router.get('/conversations', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     res.json({
       success: true,
@@ -109,7 +109,7 @@ router.get('/conversations', jwtAuth, async (req, res) => {
 });
 
 // Create new AI agent
-router.post('/agents', jwtAuth, async (req, res) => {
+router.post('/agents', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const agentData = req.body;
     
@@ -139,7 +139,7 @@ router.post('/agents', jwtAuth, async (req, res) => {
 });
 
 // Update AI agent
-router.put('/agents/:id', jwtAuth, async (req, res) => {
+router.put('/agents/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -174,7 +174,7 @@ router.put('/agents/:id', jwtAuth, async (req, res) => {
 });
 
 // Delete AI agent
-router.delete('/agents/:id', jwtAuth, async (req, res) => {
+router.delete('/agents/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
 

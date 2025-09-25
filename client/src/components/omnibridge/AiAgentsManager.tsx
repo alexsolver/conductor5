@@ -125,20 +125,25 @@ const AiAgentsManager: React.FC = () => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Queries
-  const { data: agents = [], isLoading: agentsLoading } = useQuery<AiAgent[]>({
+  const { data: agentsResponse, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/ai-agents/agents'],
     enabled: !!user?.tenantId
   });
 
-  const { data: agentMetrics = {}, isLoading: metricsLoading } = useQuery<AgentMetrics>({
+  const { data: metricsResponse, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/ai-agents/agents/metrics'],
     enabled: !!user?.tenantId
   });
 
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
+  const { data: conversationsResponse, isLoading: conversationsLoading } = useQuery({
     queryKey: ['/api/ai-agents/conversations'],
     enabled: !!user?.tenantId
   });
+
+  // Extract data from API responses
+  const agents = agentsResponse?.data || [];
+  const agentMetrics = metricsResponse?.data || {};
+  const conversations = conversationsResponse?.data || [];
 
   // Mutations
   const createAgentMutation = useMutation({
