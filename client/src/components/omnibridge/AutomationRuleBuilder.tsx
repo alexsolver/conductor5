@@ -868,7 +868,7 @@ export default function AutomationRuleBuilder({
           <DialogTitle>Criador de Regras de Automação</DialogTitle>
           <DialogDescription>Interface para criar e configurar regras de automação de mensagens</DialogDescription>
         </DialogHeader>
-        <div className="flex h-full">
+        <div className="flex h-full min-h-0">
           {/* Left Sidebar - Templates */}
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -880,8 +880,9 @@ export default function AutomationRuleBuilder({
               </p>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-6">
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-6">
                 {/* Triggers Section */}
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -947,7 +948,8 @@ export default function AutomationRuleBuilder({
                     ))}
                   </div>
                 </div>
-              </div>
+                </div>
+              </ScrollArea>
             </div>
           </div>
 
