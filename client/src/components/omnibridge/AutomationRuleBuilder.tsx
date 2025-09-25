@@ -818,7 +818,7 @@ export default function AutomationRuleBuilder({
                                 size="sm"
                                 onClick={() => editAction(action.id)}
                               >
-                                <SettingsIcon className="h-3 w-3" />
+                                <Cog className="h-3 w-3" />
                                 Configurar
                               </Button>
                               <Button
