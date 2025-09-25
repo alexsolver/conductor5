@@ -39,7 +39,7 @@ import {
   Eye,
   Copy,
   Trash2,
-  Settings as SettingsIcon,
+  Settings,
   Target,
   Brain,
   Workflow,
@@ -818,7 +818,7 @@ export default function AutomationRuleBuilder({
                                 size="sm"
                                 onClick={() => editAction(action.id)}
                               >
-                                <Cog className="h-3 w-3" />
+                                <Settings className="h-3 w-3" />
                                 Configurar
                               </Button>
                               <Button
