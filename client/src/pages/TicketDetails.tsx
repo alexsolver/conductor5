@@ -717,7 +717,7 @@ const TicketDetails = React.memo(() => {
 
   // Get current followers list for follower management
   const getCurrentFollowerIds = () => {
-    return currentFollowers.map(f => f.id || f);
+    return currentFollowers.map((f: any) => f.id || f);
   };
 
   // Handle automatic action opening from URL parameter - moved after data processing
@@ -3421,7 +3421,7 @@ const TicketDetails = React.memo(() => {
                 onChange={(value: string[]) => {
                   // Note: followers field removed from schema
                 }}
-                users={teamUsers}
+                data={teamUsers}
                 placeholder="Selecionar seguidores da equipe"
                 disabled={!isEditMode}
               />
