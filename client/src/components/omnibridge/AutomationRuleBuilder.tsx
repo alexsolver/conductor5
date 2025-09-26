@@ -64,7 +64,7 @@ import {
 } from 'lucide-react';
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
-import NotificationDiagnostic from '@/components/NotificationDiagnostic';
+import { NotificationDiagnostic } from './NotificationDiagnostic';
 
 
 // Campos específicos para automações do OmniBridge
