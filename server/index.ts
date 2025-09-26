@@ -311,6 +311,10 @@ app.use((req, res, next) => {
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
 
+  // OmniBridge Users endpoint  
+  const { default: usersOmniBridgeRouter } = await import('./routes/usersOmniBridge');
+  app.use('/api/users', usersOmniBridgeRouter);
+
   // Tenant integrations routes are now registered in registerRoutes function
 
   // ✅ Auth Clean Architecture routes eliminated
