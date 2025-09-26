@@ -34,7 +34,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       content: row.content,
       summary: summary,
       slug: null, // Campo removido do schema
-      category: row.category || row.categoryId || row.category_id,
+      category: row.category,
       tags: row.tags || [],
       keywords: [],
       status: row.status || 'draft',
