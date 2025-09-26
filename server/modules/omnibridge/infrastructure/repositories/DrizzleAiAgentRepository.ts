@@ -1,5 +1,5 @@
 import { eq, and, sql } from 'drizzle-orm';
-import { db } from '../../../../database/drizzle';
+import { db } from '../../../../db';
 import { 
   omnibridgeAiAgents, 
   omnibridgeAiConversations 
