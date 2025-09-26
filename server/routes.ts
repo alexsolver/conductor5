@@ -5466,10 +5466,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ug.created_at as "createdAt",
           COUNT(ugm.user_id) as "memberCount"
         FROM ${sql.identifier(schemaName)}.user_groups ug
-        LEFT JOIN ${sql.identifier(schemaName)}.user_group_memberships ugm ON ug.id = ugm.group_id AND ugm.tenant_id = ${tenantId}
+        LEFT JOIN ${sql.identifier(schemaName)}.user_group_memberships ugm 
+          ON ug.id = ugm.group_id 
+          AND ugm.tenant_id = ${sql.placeholder('tenantId')}
         GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
         ORDER BY ug.name
-      `);
+      `, {
+        tenantId: tenantId
+      });
 
         console.log("🏷️ [USER-GROUPS] Query result:", {
           groupCount: groups.rows.length,
