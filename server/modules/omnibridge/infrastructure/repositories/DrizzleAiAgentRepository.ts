@@ -45,6 +45,10 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async findByTenantId(tenantId: string): Promise<AiAgent[]> {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required for multitenant compliance');
+    }
+
     const result = await db.select()
       .from(omnibridgeAiAgents)
       .where(eq(omnibridgeAiAgents.tenantId, tenantId))
