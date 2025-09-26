@@ -84,7 +84,8 @@ export default function OmniBridgeSettings() {
     queryKey: ['/api/omnibridge/settings'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/omnibridge/settings');
-      return response.json();
+      const data = await response.json();
+      return data;
     }
   });
 
@@ -92,19 +93,28 @@ export default function OmniBridgeSettings() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (newSettings: any) => {
       const response = await apiRequest('PUT', '/api/omnibridge/settings', newSettings);
-      return response.json();
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Falha ao salvar configurações');
+      }
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: 'Configurações Salvas',
         description: 'As configurações do OmniBridge foram atualizadas com sucesso.'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/settings'] });
+      // Update local state with saved data
+      if (data.data) {
+        setLocalSettings(data.data);
+      }
     },
     onError: (error: any) => {
+      console.error('Settings save error:', error);
       toast({
         title: 'Erro',
-        description: 'Falha ao salvar configurações: ' + error.message,
+        description: 'Falha ao salvar configurações: ' + (error.message || 'Erro desconhecido'),
         variant: 'destructive'
       });
     }
@@ -136,12 +146,14 @@ export default function OmniBridgeSettings() {
   });
 
   useEffect(() => {
-    if (settings?.data) {
+    if (settings?.success && settings?.data) {
+      console.log('Loading settings:', settings.data);
       setLocalSettings(settings.data);
     }
   }, [settings]);
 
   const handleSave = () => {
+    console.log('Saving settings:', localSettings);
     saveSettingsMutation.mutate(localSettings);
   };
 
@@ -182,12 +194,17 @@ export default function OmniBridgeSettings() {
   };
 
   const updateChannelSetting = (channelId: string, field: string, value: any) => {
-    setLocalSettings(prev => ({
-      ...prev,
-      channels: prev.channels.map(channel =>
-        channel.id === channelId ? { ...channel, [field]: value } : channel
-      )
-    }));
+    console.log(`🔧 [SETTINGS] Updating channel ${channelId}, field ${field}, value:`, value);
+    setLocalSettings(prev => {
+      const updated = {
+        ...prev,
+        channels: prev.channels.map(channel =>
+          channel.id === channelId ? { ...channel, [field]: value } : channel
+        )
+      };
+      console.log(`📝 [SETTINGS] Updated local settings:`, updated);
+      return updated;
+    });
   };
 
   if (isLoading) {

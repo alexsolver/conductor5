@@ -46,18 +46,29 @@ export class OmniBridgeSettingsController {
       }
 
       console.log(`💾 [OMNIBRIDGE-SETTINGS] Updating settings for tenant: ${tenantId}`);
+      console.log(`📝 [OMNIBRIDGE-SETTINGS] Received settings:`, JSON.stringify(settings, null, 2));
+
+      // Validate required fields
+      if (!settings || typeof settings !== 'object') {
+        res.status(400).json({ success: false, error: 'Invalid settings data' });
+        return;
+      }
 
       const updatedSettings = await this.settingsRepository.updateSettings(tenantId, settings);
 
+      console.log(`✅ [OMNIBRIDGE-SETTINGS] Successfully updated settings for tenant: ${tenantId}`);
+
       res.json({
         success: true,
-        data: updatedSettings
+        data: updatedSettings,
+        message: 'Settings updated successfully'
       });
     } catch (error) {
       console.error('❌ [OMNIBRIDGE-SETTINGS] Error updating settings:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to update settings'
+        error: 'Failed to update settings',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
