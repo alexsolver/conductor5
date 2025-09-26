@@ -27,9 +27,9 @@ export function UserGroupSelect({
   placeholder = "Selecione um grupo",
   disabled = false
 }: UserGroupSelectProps) {
-  const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; groups: UserGroup[] }>({
+  const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; data: UserGroup[] }>({
     queryKey: ["user-groups"],
-    queryFn: () => apiRequest('GET', '/api/user-management/groups'),
+    queryFn: () => apiRequest('GET', '/api/user-groups'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
@@ -59,7 +59,7 @@ export function UserGroupSelect({
     );
   }
 
-  const activeGroups = groupsData?.groups?.filter(group => group.isActive) || [];
+  const activeGroups = groupsData?.data?.filter(group => group.isActive) || [];
 
   // Debug logs
   React.useEffect(() => {
