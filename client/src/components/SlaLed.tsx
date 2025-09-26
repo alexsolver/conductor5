@@ -320,4 +320,25 @@ export function SlaRealTimeMonitor({ ticketId, compact = false }: SlaRealTimeMon
   );
 }
 
+// ======================================
+// SIMPLE SLA LED COMPONENT EXPORT
+// ======================================
+
+export function SlaLedSimple({ ticketId, size = 'md' }: { ticketId: string; size?: 'sm' | 'md' | 'lg' }) {
+  console.log(`🔍 [SLA-LED-SIMPLE] Rendering for ticket: ${ticketId}`);
+  console.log(`🔍 [SLA-LED-SIMPLE] Using real SLA data from backend`);
+  
+  // Usar o componente principal SlaLed que já está integrado com o backend
+  return (
+    <div data-testid="sla-led-simple">
+      <SlaLed 
+        ticketId={ticketId}
+        size={size}
+        showText={false}
+        className="inline-flex"
+      />
+    </div>
+  );
+}
+
 export default SlaLed;

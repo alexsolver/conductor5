@@ -89,6 +89,9 @@ export function useSlaComplianceStats() {
 }
 
 // Hook customizado para calcular status visual do SLA
+// Export alias for backwards compatibility
+export const useSlaData = useSlaStatus;
+
 export function useSlaStatus(ticketId: string) {
   const { data: slaResponse, isLoading, error } = useSlaInstances(ticketId);
 
