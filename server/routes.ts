@@ -5430,7 +5430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       console.log("[USERS-ENDPOINT] Found", users.length, "users for tenant");
-      res.json({ success: true, users: formattedUsers });
+      res.json({ success: true, data: formattedUsers });
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
@@ -5452,8 +5452,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Tenant required" });
         }
 
+        const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
         const schemaName = schemaManager.getSchemaName(tenantId);
+        const { sql } = await import("drizzle-orm");
 
         const groups = await tenantDb.execute(sql`
         SELECT
@@ -5473,7 +5475,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupCount: groups.rows.length,
           groups: groups.rows,
         });
-        res.json({ success: true, data: groups.rows });
+        // Format response to match component expectations
+        const formattedGroups = groups.rows.map((group: any) => ({
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          isActive: group.isActive,
+          createdAt: group.createdAt,
+          memberCount: Number(group.memberCount)
+        }));
+
+        console.log("🏷️ [USER-GROUPS] Formatted groups:", formattedGroups);
+        res.json({ success: true, data: formattedGroups });
       } catch (error) {
         console.error("Error fetching user groups:", error);
         res
