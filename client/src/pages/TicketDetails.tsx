@@ -61,7 +61,7 @@ import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniS
 import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple, SlaRealTimeMonitor } from "@/components/SlaLed";
 import DynamicCustomFields from "@/components/DynamicCustomFields";
-import { useSlaStatus } from "@/hooks/useSlaData";
+import { useSlaData } from "@/hooks/useSlaData";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -77,7 +77,7 @@ const TicketDetails = React.memo(() => {
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
   // SLA status hook - must be called at component level
-  const slaStatus = useSlaStatus(id || '');
+  const slaStatus = useSlaData(id || '');
 
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -1386,6 +1386,41 @@ const TicketDetails = React.memo(() => {
       case "informacoes":
         return (
           <div className="space-y-4">
+
+            {/* SLA Status Summary */}
+            {slaStatus?.hasActiveSla && (
+              <Card className="md:col-span-2 mb-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Status SLA
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <SlaLedSimple ticketId={ticket.id} size="md" />
+                      <div>
+                        <div className="text-sm font-medium">
+                          {slaStatus.activeSla?.currentMetric?.replace('_', ' ').toUpperCase()}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Meta: {slaStatus.activeSla?.targetMinutes}min
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold">
+                        {slaStatus.getSlaPercentage()}%
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {slaStatus.getFormattedElapsedTime()} / {slaStatus.getFormattedRemainingTime()}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
@@ -3952,7 +3987,7 @@ const TicketDetails = React.memo(() => {
                 </div>
                 {/* SLA Information */}
                 <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
-                  <span className="text-blue-700">{t('tickets.fields.sla')}</span>
+                  <span className="text-blue-700">{t('tickets.fields.slaElapsed')}</span>
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"

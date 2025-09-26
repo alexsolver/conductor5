@@ -90,33 +90,60 @@ export function useSlaComplianceStats() {
 
 // Hook customizado para calcular status visual do SLA
 export function useSlaStatus(ticketId: string) {
-  const { data: slaResponse, isLoading } = useSlaInstances(ticketId);
+  const { data: slaResponse, isLoading, error } = useSlaInstances(ticketId);
 
   const slaInstances: SlaInstance[] = slaResponse?.data || [];
   const activeSla = slaInstances.find(instance => 
     instance.status === 'running' || instance.status === 'violated'
   );
 
-  // Calcular status e percentual
+  // Log for debugging
+  console.log(`🔍 [SLA-STATUS] Ticket ${ticketId}:`, {
+    hasResponse: !!slaResponse,
+    instanceCount: slaInstances.length,
+    hasActiveSla: !!activeSla,
+    activeSlaStatus: activeSla?.status,
+    error: error?.message
+  });
+
+  // Calcular status e percentual com dados reais
   let status: 'none' | 'active' | 'warning' | 'breached' = 'none';
   let elapsedPercent = 0;
   let expirationDate: Date | null = null;
 
   if (activeSla) {
+    // Calculate real-time elapsed percentage
+    const now = new Date();
+    const startDate = new Date(activeSla.startedAt);
+    const actualElapsedMinutes = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60));
+    
     elapsedPercent = activeSla.targetMinutes > 0 
-      ? (activeSla.elapsedMinutes / activeSla.targetMinutes) * 100 
+      ? Math.min(100, (actualElapsedMinutes / activeSla.targetMinutes) * 100)
       : 0;
 
-    const startDate = new Date(activeSla.startedAt);
+    // Calculate real expiration date
     expirationDate = new Date(startDate);
     expirationDate.setMinutes(expirationDate.getMinutes() + activeSla.targetMinutes);
 
-    if (activeSla.isBreached || activeSla.status === 'violated') {
+    // Determine status based on real-time data
+    const isOverdue = now > expirationDate;
+    
+    if (activeSla.isBreached || activeSla.status === 'violated' || isOverdue) {
       status = 'breached';
     } else if (elapsedPercent >= 80) {
       status = 'warning';
     } else if (elapsedPercent > 0) {
       status = 'active';
+    }
+
+    // Update activeSla with real-time calculations
+    if (activeSla.elapsedMinutes !== actualElapsedMinutes) {
+      activeSla.elapsedMinutes = actualElapsedMinutes;
+      activeSla.remainingMinutes = Math.max(0, activeSla.targetMinutes - actualElapsedMinutes);
+      if (isOverdue && !activeSla.isBreached) {
+        activeSla.isBreached = true;
+        activeSla.remainingMinutes = -(actualElapsedMinutes - activeSla.targetMinutes);
+      }
     }
   }
 
