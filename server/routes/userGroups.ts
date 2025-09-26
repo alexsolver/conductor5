@@ -137,7 +137,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
       (id, tenant_id, user_id, group_id, role, added_by_id, added_at, is_active, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     `;
-
+    
     const now = new Date();
     await db.execute(sql.raw(insertQuery, [
       membershipId,
@@ -275,14 +275,14 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Create new group
     const groupId = crypto.randomUUID();
     const now = new Date();
-
+    
     const insertQuery = `
       INSERT INTO "${schemaName}".user_groups 
       (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id, name, description, permissions, is_active, created_at
     `;
-
+    
     const result = await db.execute(sql.raw(insertQuery, [
       groupId,
       tenantId,
