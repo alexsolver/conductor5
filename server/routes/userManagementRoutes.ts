@@ -22,71 +22,6 @@ const updateUserGroupSchema = z.object({
 
 const router = Router();
 
-// Users API for notifications
-router.get('/users/notifications', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID required' });
-    }
-
-    console.log(`🔍 [USERS-NOTIFICATIONS-API] Fetching users for tenant: ${tenantId}`);
-
-    // Assuming schemaManager provides a way to get tenant-specific DB connections
-    // Replace this with your actual implementation if different
-    const { db } = await schemaManager.getTenantDb(tenantId); 
-    const users = await db.select({
-      id: schema.users.id,
-      name: schema.users.name, // Assuming 'name' is a combined field or use firstName/lastName
-      email: schema.users.email,
-      active: schema.users.isActive // Assuming 'active' maps to 'isActive' in schema
-    }).from(schema.users)
-    .where(eq(schema.users.isActive, true)); // Assuming 'active' maps to 'isActive' in schema
-
-    console.log(`✅ [USERS-NOTIFICATIONS-API] Found ${users.length} active users`);
-    res.json(users || []);
-  } catch (error) {
-    console.error('❌ [USERS-NOTIFICATIONS-API] Error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch users',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// User groups API for notifications
-router.get('/groups/notifications', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID required' });
-    }
-
-    console.log(`🔍 [GROUPS-NOTIFICATIONS-API] Fetching groups for tenant: ${tenantId}`);
-
-    // Assuming schemaManager provides a way to get tenant-specific DB connections
-    // Replace this with your actual implementation if different
-    const { db } = await schemaManager.getTenantDb(tenantId);
-    const groups = await db.select({
-      id: schema.userGroups.id,
-      name: schema.userGroups.name,
-      description: schema.userGroups.description,
-      active: schema.userGroups.isActive // Assuming 'active' maps to 'isActive' in schema
-    }).from(schema.userGroups)
-    .where(eq(schema.userGroups.isActive, true)); // Assuming 'active' maps to 'isActive' in schema
-
-    console.log(`✅ [GROUPS-NOTIFICATIONS-API] Found ${groups.length} active groups`);
-    res.json(groups || []);
-  } catch (error) {
-    console.error('❌ [GROUPS-NOTIFICATIONS-API] Error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch user groups',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-
 // ============= SIMPLIFIED USER ROUTES =============
 
 // Get all users for a tenant from public schema
@@ -260,7 +195,7 @@ router.post(
           console.log("📧 [USER-INVITATION] Starting email sending process...");
           console.log("📧 [USER-INVITATION] Environment check - SENDGRID_API_KEY exists:", !!process.env.SENDGRID_API_KEY);
           console.log("📧 [USER-INVITATION] Environment check - SENDGRID_FROM_EMAIL:", process.env.SENDGRID_FROM_EMAIL);
-
+          
           // Import sendgrid service
           const { sendInvitationEmail } = await import("../services/sendgridService");
 
@@ -271,9 +206,9 @@ router.post(
             ? `${req.user!.firstName} ${req.user!.lastName}` 
             : req.user!.email;
           console.log("📧 [USER-INVITATION] Inviter name:", inviterName);
-
+          
           console.log("📧 [USER-INVITATION] Email parameters prepared, calling sendInvitationEmail...");
-
+          
           const emailResult = await sendInvitationEmail({
             to: invitationData.email,
             invitationUrl: invitationUrl,

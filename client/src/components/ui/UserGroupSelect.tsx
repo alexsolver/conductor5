@@ -29,20 +29,9 @@ export function UserGroupSelect({
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery({
     queryKey: ["user-groups"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/user-groups');
-        console.log('[UserGroupSelect] API response:', response);
-        return response;
-      } catch (err) {
-        console.error('[UserGroupSelect] API error:', err);
-        throw err;
-      }
-    },
+    queryFn: () => apiRequest('GET', '/api/user-groups'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   }) as { data: { success: boolean; data: UserGroup[] } | undefined; isLoading: boolean; error: any };
 
   const handleSelectChange = (selectedValue: string) => {
@@ -72,16 +61,11 @@ export function UserGroupSelect({
 
   const activeGroups = groupsData?.data?.filter((group: UserGroup) => group.isActive) || [];
 
-  // Debug logs - Enhanced for OmniBridge troubleshooting
+  // Debug logs
   React.useEffect(() => {
     console.log('[UserGroupSelect] Groups data:', groupsData);
     console.log('[UserGroupSelect] Active groups:', activeGroups);
-    console.log('[UserGroupSelect] Is loading:', isLoading);
-    console.log('[UserGroupSelect] Error:', error);
-    if (groupsData && !groupsData.success) {
-      console.warn('[UserGroupSelect] API returned unsuccessful response:', groupsData);
-    }
-  }, [groupsData, activeGroups, isLoading, error]);
+  }, [groupsData, activeGroups]);
 
   if (activeGroups.length === 0) {
     return (

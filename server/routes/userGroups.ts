@@ -67,7 +67,7 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json({
       success: true,
-      data: groupsWithMemberships,
+      groups: groupsWithMemberships,
       count: groupsWithMemberships.length
     });
   } catch (error) {
@@ -97,7 +97,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     // Check if group exists and belongs to tenant
     const groupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE id::text = $1 AND tenant_id::text = $2 AND is_active = true
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
     `;
     const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
@@ -121,7 +121,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     // Check if membership already exists and is active
     const existingQuery = `
       SELECT id FROM "${schemaName}".user_group_memberships 
-      WHERE user_id::text = $1 AND group_id::text = $2 AND is_active = true
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
@@ -137,7 +137,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
       (id, tenant_id, user_id, group_id, role, added_by_id, added_at, is_active, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     `;
-
+    
     const now = new Date();
     await db.execute(sql.raw(insertQuery, [
       membershipId,
@@ -185,7 +185,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Check if group exists and belongs to tenant
     const groupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE id::text = $1 AND tenant_id::text = $2 AND is_active = true
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
     `;
     const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
@@ -197,7 +197,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Check if active membership exists
     const existingQuery = `
       SELECT id FROM "${schemaName}".user_group_memberships 
-      WHERE user_id::text = $1 AND group_id::text = $2 AND is_active = true
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
@@ -209,7 +209,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Remove user from group (only active memberships)
     const deleteQuery = `
       DELETE FROM "${schemaName}".user_group_memberships 
-      WHERE user_id::text = $1 AND group_id::text = $2 AND is_active = true
+      WHERE user_id = $1 AND group_id = $2 AND is_active = true
     `;
     const result = await db.execute(sql.raw(deleteQuery, [userId, groupId]));
 
@@ -275,14 +275,14 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Create new group
     const groupId = crypto.randomUUID();
     const now = new Date();
-
+    
     const insertQuery = `
       INSERT INTO "${schemaName}".user_groups 
       (id, tenant_id, name, description, permissions, is_active, created_by_id, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id, name, description, permissions, is_active, created_at
     `;
-
+    
     const result = await db.execute(sql.raw(insertQuery, [
       groupId,
       tenantId,
@@ -326,36 +326,6 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       success: false,
       message: 'Failed to create group',
       error: error?.message || 'Unknown error occurred' 
-    });
-  }
-});
-
-// Get user groups for notifications
-userGroupsRouter.get('/notifications/groups', jwtAuth, async (req, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID required' });
-    }
-
-    console.log(`🔍 [USER-GROUPS-API] Fetching user groups for notifications, tenant: ${tenantId}`);
-
-    const { db } = await schemaManager.getTenantDb(tenantId);
-    const groups = await db.select({
-      id: schema.userGroups.id,
-      name: schema.userGroups.name,
-      description: schema.userGroups.description,
-      active: schema.userGroups.active
-    }).from(schema.userGroups)
-    .where(eq(schema.userGroups.active, true));
-
-    console.log(`✅ [USER-GROUPS-API] Found ${groups.length} active user groups`);
-    res.json(groups);
-  } catch (error) {
-    console.error('❌ [USER-GROUPS-API] Error fetching user groups for notifications:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch user groups',
-      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
