@@ -113,6 +113,7 @@ const TicketDetails = React.memo(() => {
   const [latestInteractions, setLatestInteractions] = useState<any[]>([]);
   // Followers state removed - using direct computation with currentFollowers
   const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
