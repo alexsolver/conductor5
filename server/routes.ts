@@ -5728,10 +5728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: updatedUser.id,
           firstName: updatedUser.firstName || "",
           lastName: updatedUser.lastName || "",
-          email:
-            userRole === "tenant_admin" || userRole === "saas_admin"
-              ? email || updatedUser.email
-              : updatedUser.email,
+          email: updatedUser.email,
           phone: updatedUser.phone || "",
           role: updatedUser.role,
           tenantId: updatedUser.tenantId,
