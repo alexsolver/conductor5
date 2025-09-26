@@ -34,7 +34,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       content: row.content,
       summary: summary,
       slug: null, // Campo removido do schema
-      category: row.categoryId || row.category_id || row.category,
+      category: row.category || row.categoryId || row.category_id,
       tags: row.tags || [],
       keywords: [],
       status: row.status || 'draft',
@@ -73,7 +73,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
       const now = new Date();
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(tenantSchema)}.knowledge_base_articles (
-          tenant_id, title, content, category_id, tags, status, author_id, 
+          tenant_id, title, content, category, tags, status, author_id, 
           access_level, content_type, created_at, updated_at
         )
         VALUES (
@@ -122,7 +122,7 @@ export class DrizzleKnowledgeBaseRepository implements IKnowledgeBaseRepository 
         SET 
           title = COALESCE(${data.title}, title),
           content = COALESCE(${data.content}, content),
-          category_id = COALESCE(${data.category}, category_id),
+          category = COALESCE(${data.category}, category),
           tags = COALESCE(${JSON.stringify(data.tags)}, tags),
           status = COALESCE(${data.status}, status),
           updated_at = ${now}
