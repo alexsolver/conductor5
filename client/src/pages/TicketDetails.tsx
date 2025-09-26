@@ -3925,7 +3925,7 @@ const TicketDetails = React.memo(() => {
                         if (!ticket?.status) return 'N/A';
 
                         const statusLabel = getFieldLabel('status', ticket.status);
-                        
+
                         // Calculate time display from SLA data
                         let timeDisplay = '0d';
                         if (slaStatus?.activeSla) {

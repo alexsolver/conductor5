@@ -127,6 +127,42 @@ export function useSlaStatus(ticketId: string) {
     activeSla,
     allInstances: slaInstances,
     isLoading,
-    hasActiveSla: !!activeSla
+    hasActiveSla: !!activeSla,
+    // Additional helper methods for real-time display
+    getFormattedElapsedTime: () => {
+      if (!activeSla) return 'N/A';
+      const minutes = activeSla.elapsedMinutes;
+      if (minutes >= 1440) {
+        const days = Math.floor(minutes / 1440);
+        const hours = Math.floor((minutes % 1440) / 60);
+        return `${days}d ${hours}h`;
+      } else if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
+      } else {
+        return `${minutes}m`;
+      }
+    },
+    getFormattedRemainingTime: () => {
+      if (!activeSla) return 'N/A';
+      if (activeSla.remainingMinutes <= 0) return 'VENCIDO';
+      const minutes = activeSla.remainingMinutes;
+      if (minutes >= 1440) {
+        const days = Math.floor(minutes / 1440);
+        const hours = Math.floor((minutes % 1440) / 60);
+        return `${days}d ${hours}h`;
+      } else if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
+      } else {
+        return `${minutes}m`;
+      }
+    },
+    getSlaPercentage: () => {
+      if (!activeSla || activeSla.targetMinutes === 0) return 0;
+      return Math.min(100, (activeSla.elapsedMinutes / activeSla.targetMinutes) * 100);
+    }
   };
 }
