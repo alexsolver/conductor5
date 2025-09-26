@@ -22,7 +22,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen, 
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen,
   FormInput
 } from "lucide-react";
 
@@ -1969,12 +1969,12 @@ const TicketDetails = React.memo(() => {
                 // Use the correct field: channel
                 const isEmail = comm.channel === 'email';
                 const isWhatsApp = comm.channel === 'whatsapp';
-                const isTelegram = comm.channel === 'telegram'; 
+                const isTelegram = comm.channel === 'telegram';
                 const isSMS = comm.channel === 'sms';
 
                 return (
-                  <Card 
-                    key={comm.id} 
+                  <Card
+                    key={comm.id}
                     className={`p-4 border-l-4 ${
                       isEmail ? 'border-l-blue-500 bg-blue-50/30' :
                       isWhatsApp ? 'border-l-green-500 bg-green-50/30' :
@@ -2004,8 +2004,8 @@ const TicketDetails = React.memo(() => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs font-medium ${
                                 isEmail ? 'bg-blue-100 text-blue-800 border-blue-300' :
                                 isWhatsApp ? 'bg-green-100 text-green-800 border-green-300' :
@@ -2022,15 +2022,15 @@ const TicketDetails = React.memo(() => {
                                `📨 ${comm.channel || 'Mensagem'}`}
                             </Badge>
                             <span className="text-sm font-medium text-gray-800">
-                              {isEmail ? 
+                              {isEmail ?
                                 `${comm.from_address || comm.from} → ${comm.to_address || comm.to}` :
                                 `Para: ${comm.to_address || comm.recipient || comm.to}`
                               }
                             </span>
                           </div>
                           <span className="text-xs text-gray-500">
-                            {comm.created_at ? new Date(comm.created_at).toLocaleString('pt-BR') : 
-                             comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') : 
+                            {comm.created_at ? new Date(comm.created_at).toLocaleString('pt-BR') :
+                             comm.timestamp ? new Date(comm.timestamp).toLocaleString('pt-BR') :
                              t('tickets.fields.dateNotAvailable')}
                           </span>
                         </div>
@@ -2738,7 +2738,7 @@ const TicketDetails = React.memo(() => {
                         <p className="font-medium text-sm">#{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'T-2024-001'}</p>
                         <p className="text-sm text-gray-700 mt-1">{ticket.subject || t('tickets.fields.systemProblem')}</p>
                         <p className="text-xs text-gray-500 mt-2">
-                          {t('tickets.fields.createdOn')} {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : t('tickets.fields.today')}
+                          {t('tickets.fields.createdOn')} {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -2881,7 +2881,7 @@ const TicketDetails = React.memo(() => {
                     <h3 className="font-medium text-blue-900">Campos do Template</h3>
                   </div>
                   <p className="text-sm text-blue-700">
-                    Estes campos foram configurados no template "{ticket?.templateName || 'Template atual'}" 
+                    Estes campos foram configurados no template "{ticket?.templateName || 'Template atual'}"
                     e são específicos para este tipo de ticket.
                   </p>
                 </div>
@@ -2918,7 +2918,7 @@ const TicketDetails = React.memo(() => {
                     Nenhum Campo Customizado
                   </h3>
                   <p className="text-gray-500 text-sm mb-4">
-                    Este ticket não possui campos customizados configurados no template 
+                    Este ticket não possui campos customizados configurados no template
                     ou o template não foi definido.
                   </p>
                   <div className="bg-gray-50 border rounded-lg p-4 text-left">
@@ -3851,11 +3851,11 @@ const TicketDetails = React.memo(() => {
               </h4>
               <div className="grid grid-cols-1 gap-1 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.creation')}</span>
+                  <span className="text-blue-700">Criação:</span>
                   <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.dueDate')}</span>
+                  <span className="text-blue-700">Vencimento:</span>
                   <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
@@ -4228,8 +4228,8 @@ const TicketDetails = React.memo(() => {
                     <div className="gap-2 p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
                       <span className="text-sm text-gray-900">
-                        {typeof customer.address === 'string' 
-                          ? customer.address 
+                        {typeof customer.address === 'string'
+                          ? customer.address
                           : `${customer.address.street || ''} ${customer.address.number || ''}, ${customer.address.neighborhood || ''}, ${customer.address.city || ''} - ${customer.address.state || ''}, ${customer.address.zipCode || ''}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '').trim() || 'Endereço não informado'
                         }
                       </span>
