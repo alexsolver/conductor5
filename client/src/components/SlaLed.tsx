@@ -1,8 +1,9 @@
 // ✅ 1QA.MD COMPLIANCE: SLA LED INDICATOR COMPONENT
-// Visual LED indicator for SLA expiration tracking
+// Visual LED indicator for SLA expiration tracking with real backend integration
 
 import { Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useSlaStatus } from '@/hooks/useSlaData';
 
 // ======================================
 // TYPES AND INTERFACES
@@ -17,6 +18,21 @@ export interface SlaLedProps {
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
   className?: string;
+}
+
+interface SlaInstance {
+  id: string;
+  slaDefinitionId: string;
+  ticketId: string;
+  status: 'running' | 'paused' | 'completed' | 'violated';
+  currentMetric: 'response_time' | 'resolution_time' | 'update_time' | 'idle_time';
+  elapsedMinutes: number;
+  targetMinutes: number;
+  remainingMinutes: number;
+  isBreached: boolean;
+  breachPercentage: number;
+  startedAt: string;
+  violatedAt?: string;
 }
 
 // ======================================
@@ -107,13 +123,27 @@ function formatTimeRemaining(slaExpirationDate: string): string {
 }
 
 // ======================================
+// CUSTOM HOOKS
+// ======================================
+
+function useSlaInstances(ticketId: string) {
+  return useQuery({
+    queryKey: [`/api/sla/instances/ticket/${ticketId}`],
+    queryFn: () => apiRequest('GET', `/api/sla/instances/ticket/${ticketId}`).then(res => res.json()),
+    enabled: !!ticketId,
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refresh every minute
+  });
+}
+
+// ======================================
 // MAIN COMPONENT
 // ======================================
 
 export function SlaLed({
   ticketId,
   slaStatus,
-  slaElapsedPercent = 0,
+  slaElapsedPercent,
   slaExpirationDate,
   slaStartDate,
   size = 'md',
@@ -121,23 +151,43 @@ export function SlaLed({
   className = ''
 }: SlaLedProps) {
   console.log(`🔍 [SLA-LED] Rendering for ticket: ${ticketId}`);
-  console.log(`🔍 [SLA-LED] Component loaded and executing`);
+  console.log(`🔍 [SLA-LED] Fetching real SLA data from backend`);
   
-  // Para demonstração, vamos simular um SLA em andamento baseado no ticketId
-  const demoSlaExpiration = new Date();
-  demoSlaExpiration.setHours(demoSlaExpiration.getHours() + 2); // 2 horas a partir de agora
+  // Usar hook customizado para obter dados de SLA
+  const { 
+    status: realStatus, 
+    elapsedPercent: realElapsedPercent, 
+    expirationDate: realExpirationDate,
+    activeSla,
+    isLoading,
+    hasActiveSla
+  } = useSlaStatus(ticketId);
   
-  // Simular diferentes status baseado no ID do ticket
-  let demoElapsedPercent = 65; // Default: 65% decorrido (Warning)
-  let demoStatus: 'active' | 'warning' | 'breached' = 'warning';
+  // Usar dados reais se disponíveis, senão usar props fornecidos
+  const finalStatus = hasActiveSla ? realStatus : (slaStatus || 'none');
+  const finalElapsedPercent = hasActiveSla ? realElapsedPercent : (slaElapsedPercent || 0);
+  const finalExpirationDate = hasActiveSla ? realExpirationDate?.toISOString() : slaExpirationDate;
   
-  if (ticketId.includes('d7f0b45a')) {
-    demoElapsedPercent = 85; // 85% = Warning (amarelo)
-    demoStatus = 'warning';
+  // Mostrar loading state se necessário
+  if (isLoading && !slaStatus) {
+    return (
+      <div className={`flex items-center space-x-1 ${className}`}>
+        <div className={`${sizeClasses[size]} bg-gray-300 rounded-full animate-pulse`} />
+        <span className="text-xs text-gray-400">SLA</span>
+      </div>
+    );
   }
   
-  // Calcular status automaticamente se não fornecido
-  const finalStatus = slaStatus || demoStatus;
+  // Log para debug
+  if (activeSla) {
+    console.log(`🔍 [SLA-LED] Real SLA data:`, {
+      status: finalStatus,
+      elapsedPercent: finalElapsedPercent.toFixed(1),
+      isBreached: activeSla.isBreached,
+      targetMinutes: activeSla.targetMinutes,
+      elapsedMinutes: activeSla.elapsedMinutes
+    });
+  }
   
   const config = ledStyles[finalStatus];
   const IconComponent = config.icon;
@@ -148,7 +198,7 @@ export function SlaLed({
       <div className={`flex items-center space-x-1 ${className}`}>
         <div 
           className={`${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ${className}`}
-          title={`SLA: ${config.label} (${(slaElapsedPercent || demoElapsedPercent).toFixed(1)}% decorrido)`}
+          title={`SLA: ${config.label} (${finalElapsedPercent.toFixed(1)}% decorrido)${activeSla ? ' - Dados Reais' : ' - Demo'}`}
           data-testid={`sla-led-${finalStatus}`}
         />
         <span className="text-xs text-gray-500 font-medium">SLA</span>
@@ -169,10 +219,15 @@ export function SlaLed({
             {config.label}
           </Badge>
           
-          {slaExpirationDate && (
+          {finalExpirationDate && (
             <div className="text-xs text-gray-500 mt-1">
-              <div>Tempo restante: {formatTimeRemaining(slaExpirationDate)}</div>
-              <div>Progresso: {slaElapsedPercent.toFixed(1)}%</div>
+              <div>Tempo restante: {formatTimeRemaining(finalExpirationDate)}</div>
+              <div>Progresso: {finalElapsedPercent.toFixed(1)}%</div>
+              {activeSla && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Tipo: {activeSla.currentMetric.replace('_', ' ')}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -215,6 +270,52 @@ export function SlaProgressBar({
           style={{ width: `${Math.min(slaElapsedPercent, 100)}%` }}
         />
       </div>
+    </div>
+  );
+}
+
+// ======================================
+// SLA REAL-TIME MONITOR COMPONENT
+// ======================================
+
+interface SlaRealTimeMonitorProps {
+  ticketId: string;
+  compact?: boolean;
+}
+
+export function SlaRealTimeMonitor({ ticketId, compact = false }: SlaRealTimeMonitorProps) {
+  const { allInstances, isLoading, hasActiveSla } = useSlaStatus(ticketId);
+  
+  if (isLoading) {
+    return <div className="animate-pulse text-xs text-gray-400">Carregando SLA...</div>;
+  }
+  
+  if (!hasActiveSla || allInstances.length === 0) {
+    return compact ? null : <div className="text-xs text-gray-500">Nenhum SLA ativo</div>;
+  }
+  
+  return (
+    <div className="space-y-2">
+      {allInstances.map((instance) => (
+        <div key={instance.id} className="flex items-center space-x-2">
+          <SlaLed 
+            ticketId={ticketId} 
+            size="sm" 
+            showText={!compact}
+          />
+          {!compact && (
+            <div className="text-xs">
+              <div className="font-medium">{instance.currentMetric.replace('_', ' ')}</div>
+              <div className="text-gray-500">
+                {instance.elapsedMinutes}min / {instance.targetMinutes}min
+              </div>
+              <div className={`text-xs ${instance.isBreached ? 'text-red-600' : 'text-green-600'}`}>
+                {instance.isBreached ? 'Violado' : 'No prazo'}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

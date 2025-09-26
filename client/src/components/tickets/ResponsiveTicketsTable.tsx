@@ -29,20 +29,21 @@ import {
 } from "lucide-react";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { RelatedTicketsExpansion } from "./RelatedTicketsExpansion";
+import { SlaLed, SlaRealTimeMonitor } from '../SlaLed';
 
 // Helper function to generate a ticket display number when no ticket_number exists
 const generateTicketDisplay = (ticketId: string, createdAt?: string): string => {
   if (!createdAt) {
     return `T-${ticketId.slice(0, 8).toUpperCase()}`;
   }
-  
+
   try {
     const date = new Date(createdAt);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const shortId = ticketId.slice(0, 6).toUpperCase();
-    
+
     return `T${year}${month}${day}-${shortId}`;
   } catch (error) {
     // Fallback if date parsing fails

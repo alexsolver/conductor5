@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 import React from "react";
+import { format } from 'date-fns';
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -58,7 +59,7 @@ import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelect";
 import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniSystem";
 import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
-import { SlaLedSimple } from "@/components/SlaLedSimple";
+import { SlaLedSimple, SlaRealTimeMonitor } from "@/components/SlaLed";
 import DynamicCustomFields from "@/components/DynamicCustomFields";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
@@ -114,7 +115,6 @@ const TicketDetails = React.memo(() => {
   const [tags, setTags] = useState<string[]>([]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
-  const [newTag, setNewTag] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
@@ -122,7 +122,7 @@ const TicketDetails = React.memo(() => {
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
-  
+
   // Estados dos modais de comunicação
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
@@ -454,7 +454,7 @@ const TicketDetails = React.memo(() => {
       if (!ticket?.templateId && !ticket?.template_id) {
         return { success: true, data: [] };
       }
-      
+
       const templateId = ticket.templateId || ticket.template_id;
       const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
       const data = await response.json();
@@ -1970,7 +1970,7 @@ const TicketDetails = React.memo(() => {
                 const isWhatsApp = comm.channel === 'whatsapp';
                 const isTelegram = comm.channel === 'telegram'; 
                 const isSMS = comm.channel === 'sms';
-                
+
                 return (
                   <Card 
                     key={comm.id} 
