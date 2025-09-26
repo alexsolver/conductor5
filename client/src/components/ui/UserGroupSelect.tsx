@@ -59,7 +59,7 @@ export function UserGroupSelect({
     );
   }
 
-  const activeGroups = groupsData?.data?.filter((group: UserGroup) => group.isActive) || [];
+  const activeGroups = groupsData?.data?.filter((group: UserGroup) => group.isActive !== false) || [];
 
   // Debug logs
   React.useEffect(() => {

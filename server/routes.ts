@@ -100,7 +100,7 @@ import { TenantTemplateService } from "./services/TenantTemplateService";
 import internalFormsRoutes from './modules/internal-forms/routes';
 
 // Import user groups routes
-import userGroupsRoutes from './routes/userGroups';
+import { userGroupsRoutes } from './routes/userGroups';
 
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
@@ -1560,7 +1560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE c.tenant_id = $1
         AND c.id NOT IN (
           SELECT cr.customer_id
-          FROM "${schemaName}"."companies_relationships" cr
+          FROM "${schemaName}"."company_memberships" cr
           WHERE cr.company_id = $2 AND cr.customer_id IS NOT NULL
         )
         ORDER BY c.first_name, c.last_name
@@ -4673,8 +4673,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const companies = await tenantDb.execute(sql`
         SELECT
-          c.id AS company_id,
-          c.name AS company_name,
+          c.id,
+          c.name,
           c.display_name,
           c.cnpj,
           c.industry,
@@ -5388,7 +5388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NOTE: /api/users endpoint moved to dedicated route file
 
   // ==============================
-  // USER GROUPS ROUTES
+  // USER GROUPSROUTES
   // ==============================
   // NOTE: /api/user-groups endpoints moved to dedicated router in userGroups.ts
 
@@ -6234,6 +6234,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Register user groups routes
+  app.use('/api', userGroupsRoutes);
+
+  // Register all routes
+  app.use('/api', router);
+
+  // Register users endpoint for automation configuration
+  app.get('/api/users', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ success: false, error: 'Tenant ID required' });
+      }
+
+      // Mock users data - replace with actual database query
+      const mockUsers = [
+        {
+          id: 'user-1',
+          name: 'João Silva',
+          firstName: 'João',
+          lastName: 'Silva',
+          email: 'joao.silva@conductor.com',
+          role: 'Agente'
+        },
+        {
+          id: 'user-2',
+          name: 'Maria Santos',
+          firstName: 'Maria',
+          lastName: 'Santos',
+          email: 'maria.santos@conductor.com',
+          role: 'Supervisor'
+        },
+        {
+          id: 'user-3',
+          name: 'Pedro Costa',
+          firstName: 'Pedro',
+          lastName: 'Costa',
+          email: 'pedro.costa@conductor.com',
+          role: 'Agente'
+        }
+      ];
+
+      res.json({
+        success: true,
+        data: mockUsers
+      });
+    } catch (error) {
+      console.error('❌ [USERS] Error fetching users:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch users'
+      });
+    }
+  });
+
 
   const httpServer = createServer(app);
   return httpServer;
