@@ -126,21 +126,19 @@ const AiAgentsManager: React.FC = () => {
 
   // Queries
   const { data: agentsResponse, isLoading: agentsLoading } = useQuery({
-    queryKey: ['/api/omnibridge/ai-agents/agents'],
-    queryFn: () => apiRequest('GET', '/api/omnibridge/ai-agents/agents'),
+    queryKey: ['/api/ai-agents/agents'],
+    queryFn: () => apiRequest('GET', '/api/ai-agents/agents'),
     enabled: !!user?.tenantId,
     refetchOnWindowFocus: false
   });
 
   const { data: metricsResponse, isLoading: metricsLoading } = useQuery({
-    queryKey: ['/api/omnibridge/ai-agents/agents/metrics'],
-    queryFn: () => apiRequest('GET', '/api/omnibridge/ai-agents/agents/metrics'),
+    queryKey: ['/api/ai-agents/agents/metrics'],
     enabled: !!user?.tenantId
   });
 
   const { data: conversationsResponse, isLoading: conversationsLoading } = useQuery({
-    queryKey: ['/api/omnibridge/ai-agents/conversations'],
-    queryFn: () => apiRequest('GET', '/api/omnibridge/ai-agents/conversations'),
+    queryKey: ['/api/ai-agents/conversations'],
     enabled: !!user?.tenantId
   });
 
@@ -151,9 +149,9 @@ const AiAgentsManager: React.FC = () => {
 
   // Mutations
   const createAgentMutation = useMutation({
-    mutationFn: (data: AgentFormData) => apiRequest('POST', '/api/omnibridge/ai-agents/agents', data),
+    mutationFn: (data: AgentFormData) => apiRequest('POST', '/api/ai-agents/agents', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       setShowCreateDialog(false);
       toast({
         title: "Agente criado com sucesso",
@@ -171,9 +169,9 @@ const AiAgentsManager: React.FC = () => {
 
   const updateAgentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AgentFormData> }) => 
-      apiRequest('PUT', `/api/omnibridge/ai-agents/agents/${id}`, data),
+      apiRequest('PUT', `/api/ai-agents/agents/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       toast({
         title: "Agente atualizado",
         description: "As configurações do agente foram salvas com sucesso."
@@ -183,16 +181,16 @@ const AiAgentsManager: React.FC = () => {
 
   const toggleAgentMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
-      apiRequest('PUT', `/api/omnibridge/ai-agents/agents/${id}`, { isActive }),
+      apiRequest('PUT', `/api/ai-agents/agents/${id}`, { isActive }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
     }
   });
 
   const deleteAgentMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/omnibridge/ai-agents/agents/${id}`),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/ai-agents/agents/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       toast({
         title: "Agente removido",
         description: "O agente IA foi removido permanentemente."
