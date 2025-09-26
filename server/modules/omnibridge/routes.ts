@@ -8,10 +8,12 @@ import { GetMessagesUseCase } from './application/use-cases/GetMessagesUseCase';
 import { ProcessMessageUseCase } from './application/use-cases/ProcessMessageUseCase';
 import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository';
 import { DrizzleMessageRepository } from './infrastructure/repositories/DrizzleMessageRepository';
-// Temporarily disabled AI agent routes due to type conflicts
-// import { createAiAgentRoutes } from './routes/aiAgentRoutes';
+import { createAiAgentRoutes } from './routes/aiAgentRoutes';
 
 const router = Router();
+
+// AI Agent routes
+router.use('/ai-agents', createAiAgentRoutes());
 
 // Repositories
 const channelRepository = new DrizzleChannelRepository();
