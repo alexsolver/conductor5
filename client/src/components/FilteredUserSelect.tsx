@@ -22,10 +22,10 @@ export function FilteredUserSelect({
 }: FilteredUserSelectProps) {
   // Buscar todos os usuários
   const { data: allUsersData, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['/api/users'],
+    queryKey: ['/api/user-management/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/users');
-      return response.json();
+      const response = await apiRequest('GET', '/api/user-management/users');
+      return response;
     },
   });
 
@@ -54,7 +54,7 @@ export function FilteredUserSelect({
     });
   } else if (allUsersData?.success) {
     // Se nenhum grupo foi selecionado, mostrar todos os usuários
-    usersToShow = allUsersData.users || [];
+    usersToShow = allUsersData.data || [];
     console.log('[FilteredUserSelect] Showing all users:', {
       groupId: selectedGroupId,
       usersCount: usersToShow.length,

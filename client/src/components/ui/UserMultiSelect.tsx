@@ -47,7 +47,7 @@ export function UserMultiSelect({
   // Fetch users from API
   const { data: usersData, isLoading, error } = useQuery({
     queryKey: ["users"],
-    queryFn: () => apiRequest('GET', '/api/users'),
+    queryFn: () => apiRequest('GET', '/api/user-management/users'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   }) as { data: { success: boolean; data: User[] } | undefined; isLoading: boolean; error: any };
@@ -76,7 +76,7 @@ export function UserMultiSelect({
     );
   }
 
-  const users = usersData?.data || [];
+  const users = usersData?.data?.users || usersData?.users || usersData?.data || [];
 
   // Normalizar dados dos usuários
   const normalizedUsers = React.useMemo(() => {

@@ -3421,7 +3421,6 @@ const TicketDetails = React.memo(() => {
                 onChange={(value: string[]) => {
                   // Note: followers field removed from schema
                 }}
-                data={teamUsers}
                 placeholder="Selecionar seguidores da equipe"
                 disabled={!isEditMode}
               />
