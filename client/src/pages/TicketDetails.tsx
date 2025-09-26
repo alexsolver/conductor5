@@ -3852,11 +3852,60 @@ const TicketDetails = React.memo(() => {
               <div className="grid grid-cols-1 gap-1 text-xs">
                 <div className="flex justify-between">
                   <span className="text-blue-700">Criação:</span>
-                  <span className="text-blue-900 font-medium">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                  <div className="text-sm">
+                    {(() => {
+                      const createdDate = ticket?.createdAt || ticket?.created_at;
+                      if (!createdDate) return "N/A";
+
+                      try {
+                        const date = new Date(createdDate);
+                        if (isNaN(date.getTime())) return "N/A";
+                        return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                      } catch {
+                        return "N/A";
+                      }
+                    })()}
+                  </div>
                 </div>
+
                 <div className="flex justify-between">
                   <span className="text-blue-700">Vencimento:</span>
-                  <span className="text-blue-900 font-medium">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                  <div className="text-sm">
+                    {(() => {
+                      const dueDate = ticket?.dueDate || ticket?.due_date;
+                      if (dueDate) {
+                        try {
+                          const date = new Date(dueDate);
+                          if (!isNaN(date.getTime())) {
+                            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                          }
+                        } catch {
+                          // Fall through to calculated date
+                        }
+                      }
+
+                      // Calculate based on creation date and priority
+                      const createdDate = ticket?.createdAt || ticket?.created_at;
+                      if (!createdDate) return "N/A";
+
+                      try {
+                        const created = new Date(createdDate);
+                        if (isNaN(created.getTime())) return "N/A";
+
+                        const hoursToAdd = {
+                          'critical': 1,
+                          'high': 4,
+                          'medium': 24,
+                          'low': 72
+                        }[ticket?.priority] || 24;
+
+                        const due = new Date(created.getTime() + (hoursToAdd * 60 * 60 * 1000));
+                        return due.toLocaleDateString('pt-BR') + ' ' + due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                      } catch {
+                        return "N/A";
+                      }
+                    })()}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-blue-700">{t('tickets.fields.statusField')}</span>
