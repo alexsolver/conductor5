@@ -100,7 +100,7 @@ import { TenantTemplateService } from "./services/TenantTemplateService";
 import internalFormsRoutes from './modules/internal-forms/routes';
 
 // Import user groups routes
-import { userGroupsRoutes } from './routes/userGroups';
+import { userGroupsRouter } from './routes/userGroups'; // Corrected import name
 
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
