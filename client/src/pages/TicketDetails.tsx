@@ -3394,48 +3394,30 @@ const TicketDetails = React.memo(() => {
             <div className="mb-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">{t('tickets.fields.assignmentGroup')}</label>
-                {isEditMode ? (
-                  <GroupSelect
-                    value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
-                    onChange={(value) => {
-                      setSelectedAssignmentGroup(value);
-                      form.setValue('assignmentGroup', value);
-                      // Limpar responsável quando grupo muda
-                      form.setValue('responsibleId', '');
-                    }}
-                    placeholder="Selecione o grupo"
-                    disabled={!isEditMode}
-                  />
-                ) : (
-                  <div className="p-2 bg-gray-50 rounded text-sm">
-                    {(() => {
-                      const groupId = form.getValues('assignmentGroup') || ticket.assignment_group_id || ticket.assignment_group;
-                      if (!groupId) return <span className="text-gray-500">Não especificado</span>;
-                      const groups = userGroupsData?.data || [];
-                      const group = groups.find((g: any) => g.id === groupId);
-                      return <span>{group?.name || groupId}</span>;
-                    })()}
-                  </div>
-                )}
+                <GroupSelect
+                  value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
+                  onChange={(value) => {
+                    setSelectedAssignmentGroup(value);
+                    form.setValue('assignmentGroup', value);
+                    // Limpar responsável quando grupo muda
+                    form.setValue('responsibleId', '');
+                  }}
+                  placeholder="Selecione o grupo"
+                  disabled={!isEditMode}
+                />
               </div>
             </div>
 
             {/* Responsável */}
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">{t('tickets.fields.responsible')}</label>
-              {isEditMode ? (
-                <FilteredUserSelect
-                  value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
-                  onChange={(value) => form.setValue('responsibleId', value)}
-                  selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
-                  placeholder="Selecionar responsável"
-                  disabled={!isEditMode}
-                />
-              ) : (
-                <div className="p-2 bg-gray-50 rounded text-sm">
-                  {ticket.assigned_to_name || 'Não especificado'}
-                </div>
-              )}
+              <FilteredUserSelect
+                value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
+                onChange={(value) => form.setValue('responsibleId', value)}
+                selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
+                placeholder="Selecionar responsável"
+                disabled={!isEditMode}
+              />
             </div>
           </div>
 
