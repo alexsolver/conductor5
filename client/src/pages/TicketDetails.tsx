@@ -1924,7 +1924,7 @@ const TicketDetails = React.memo(() => {
               <div className="flex flex-col sm:flex-row gap-3 p-4 bg-gray-50 rounded-lg border">
                 <Button
                   onClick={() => setIsEmailModalOpen(true)}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                   data-testid="button-send-email"
                 >
                   <Mail className="w-4 h-4" />
@@ -1932,7 +1932,7 @@ const TicketDetails = React.memo(() => {
                 </Button>
                 <Button
                   onClick={() => setIsMessagingModalOpen(true)}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                   data-testid="button-send-message"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -3909,9 +3909,26 @@ const TicketDetails = React.memo(() => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-blue-700">{t('tickets.fields.statusField')}</span>
-                  <Badge variant="outline" className="text-xs h-4">
-                    {ticket.status} - {ticket.daysInStatus || 0}d
-                  </Badge>
+                  {/* Status field display with proper translation and SLA time */}
+                  <div className="text-sm">
+                    <DynamicBadge
+                      fieldName="status"
+                      value={ticket?.status || 'open'}
+                      colorHex={getFieldColor('status', ticket?.status || 'open')}
+                      isLoading={isFieldColorsLoading}
+                    >
+                      {(() => {
+                        if (!ticket?.status) return 'N/A';
+
+                        const statusLabel = getFieldLabel('status', ticket.status);
+                        // Assuming useSlaData is available and correctly fetches SLA data
+                        const slaData = useSlaData(ticket);
+                        const timeDisplay = slaData?.timeRemaining || '0d';
+
+                        return `${statusLabel} - ${timeDisplay}`;
+                      })()}
+                    </DynamicBadge>
+                  </div>
                 </div>
                 {/* SLA Information */}
                 <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
