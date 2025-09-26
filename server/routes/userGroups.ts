@@ -330,4 +330,34 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Get user groups for notifications
+userGroupsRouter.get('/notifications/groups', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔍 [USER-GROUPS-API] Fetching user groups for notifications, tenant: ${tenantId}`);
+
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const groups = await db.select({
+      id: schema.userGroups.id,
+      name: schema.userGroups.name,
+      description: schema.userGroups.description,
+      active: schema.userGroups.active
+    }).from(schema.userGroups)
+    .where(eq(schema.userGroups.active, true));
+
+    console.log(`✅ [USER-GROUPS-API] Found ${groups.length} active user groups`);
+    res.json(groups);
+  } catch (error) {
+    console.error('❌ [USER-GROUPS-API] Error fetching user groups for notifications:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch user groups',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { userGroupsRouter };

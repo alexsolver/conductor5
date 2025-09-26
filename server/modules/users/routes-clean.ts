@@ -15,21 +15,24 @@ import { FindUserUseCase } from './application/use-cases/FindUserUseCase';
 import { DeleteUserUseCase } from './application/use-cases/DeleteUserUseCase';
 import { UserDomainService } from './domain/entities/User';
 import { DrizzleUserRepository } from './infrastructure/repositories/DrizzleUserRepository';
+import schemaManager from '../../core/schemaManager'; // Assuming schemaManager is available here
+import schema from '../../db/schema'; // Assuming schema is imported correctly
+import { eq } from 'drizzle-orm'; // Assuming eq is imported correctly
 
 // Factory function to create initialized controller
 function createUserController(): UserController {
   // Infrastructure Layer
   const userRepository = new DrizzleUserRepository();
-  
+
   // Domain Layer
   const userDomainService = new UserDomainService();
-  
+
   // Application Layer - Use Cases
   const createUserUseCase = new CreateUserUseCase(userRepository, userDomainService);
   const updateUserUseCase = new UpdateUserUseCase(userRepository, userDomainService);
   const findUserUseCase = new FindUserUseCase(userRepository, userDomainService);
   const deleteUserUseCase = new DeleteUserUseCase(userRepository);
-  
+
   // Controller
   return new UserController(
     createUserUseCase,
@@ -134,5 +137,35 @@ router.put('/:id/password', userController.changePassword.bind(userController));
  * @access  Private (JWT required) - Admin roles only
  */
 router.delete('/:id', userController.delete.bind(userController));
+
+// Get all users for notifications
+router.get('/notifications/users', jwtAuth, async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    console.log(`🔍 [USERS-API] Fetching users for notifications, tenant: ${tenantId}`);
+
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const users = await db.select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      active: schema.users.active
+    }).from(schema.users)
+    .where(eq(schema.users.active, true));
+
+    console.log(`✅ [USERS-API] Found ${users.length} active users`);
+    res.json(users);
+  } catch (error) {
+    console.error('❌ [USERS-API] Error fetching users for notifications:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch users',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 export default router;

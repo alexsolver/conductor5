@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -7,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export function NotificationDiagnostic() {
   const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ["diagnostic-users"],
-    queryFn: () => apiRequest('GET', '/api/users'),
+    queryFn: () => apiRequest('GET', '/api/user-management/users/notifications'),
   });
 
   const { data: groupsData, isLoading: groupsLoading, error: groupsError } = useQuery({
     queryKey: ["diagnostic-groups"],
-    queryFn: () => apiRequest('GET', '/api/user-groups'),
+    queryFn: () => apiRequest('GET', '/api/user-management/groups/notifications'),
   });
 
   return (
