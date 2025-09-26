@@ -192,16 +192,48 @@ export function SlaLed({
   const config = ledStyles[finalStatus];
   const IconComponent = config.icon;
   
-  // LED simples (apenas círculo colorido)
+  // LED como régua de progresso (barra colorida)
   if (!showText) {
+    // Calcular cor baseada no percentual
+    const getProgressColor = (percent: number) => {
+      if (percent <= 50) {
+        // Verde para amarelo (0-50%)
+        const ratio = percent / 50;
+        const red = Math.round(255 * ratio);
+        const green = 255;
+        return `rgb(${red}, ${green}, 0)`;
+      } else if (percent <= 80) {
+        // Amarelo para laranja (50-80%)
+        const ratio = (percent - 50) / 30;
+        const red = 255;
+        const green = Math.round(255 * (1 - ratio * 0.5));
+        return `rgb(${red}, ${green}, 0)`;
+      } else {
+        // Laranja para vermelho (80-100%)
+        const ratio = (percent - 80) / 20;
+        const red = 255;
+        const green = Math.round(128 * (1 - ratio));
+        return `rgb(${red}, ${green}, 0)`;
+      }
+    };
+
+    const progressColor = getProgressColor(Math.min(finalElapsedPercent, 100));
+    const barHeight = size === 'sm' ? 'h-2' : size === 'md' ? 'h-3' : 'h-4';
+
     return (
-      <div className={`flex items-center space-x-1 ${className}`}>
-        <div 
-          className={`${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ${className}`}
-          title={`SLA: ${config.label} (${finalElapsedPercent.toFixed(1)}% decorrido)${activeSla ? ' - Dados Reais' : ' - Demo'}`}
-          data-testid={`sla-led-${finalStatus}`}
-        />
-        <span className="text-xs text-gray-500 font-medium">SLA</span>
+      <div className={`flex items-center space-x-2 ${className}`}>
+        <div className={`flex-1 bg-gray-200 rounded-full ${barHeight} overflow-hidden shadow-sm`}>
+          <div 
+            className={`${barHeight} transition-all duration-300 rounded-full`}
+            style={{ 
+              width: `${Math.min(finalElapsedPercent, 100)}%`,
+              backgroundColor: progressColor
+            }}
+            title={`SLA: ${config.label} (${finalElapsedPercent.toFixed(1)}% decorrido)${activeSla ? ' - Dados Reais' : ' - Demo'}`}
+            data-testid={`sla-led-${finalStatus}`}
+          />
+        </div>
+        <span className="text-xs text-gray-500 font-medium whitespace-nowrap">SLA</span>
       </div>
     );
   }
@@ -330,12 +362,12 @@ export function SlaLedSimple({ ticketId, size = 'md' }: { ticketId: string; size
   
   // Usar o componente principal SlaLed que já está integrado com o backend
   return (
-    <div data-testid="sla-led-simple">
+    <div data-testid="sla-led-simple" className="w-full">
       <SlaLed 
         ticketId={ticketId}
         size={size}
         showText={false}
-        className="inline-flex"
+        className="w-full"
       />
     </div>
   );
