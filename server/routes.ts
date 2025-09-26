@@ -5385,16 +5385,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ticketViewsController.updatePersonalSettings.bind(ticketViewsController),
   );
 
-  // NOTE: /api/users endpoint moved to dedicated route file
+  // Users endpoint for team member selection - Fixed to use public schema
+  app.get("/api/users", jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: "Tenant required" });
+      }
+
+      console.log("[USERS-ENDPOINT] Fetching users for tenant:", tenantId);
+
+      // Buscar usuários do schema da tenant usando SQL direto
+      const { schemaManager } = await import("./db");
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
+      const { sql } = await import("drizzle-orm");
+
+      const result = await tenantDb.execute(sql`
+        SELECT
+          id,
+          first_name,
+          last_name,
+          email,
+          role,
+          cargo as position,
+          is_active as "isActive"
+        FROM ${sql.identifier(schemaName)}.users
+        WHERE is_active = true
+        ORDER BY first_name ASC
+      `);
+
+      const users = result.rows;
+
+      // Format response with proper name concatenation
+      const formattedUsers = users.map((user) => ({
+        id: user.id,
+        name:
+          `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+          user.email,
+        email: user.email,
+        role: user.role,
+        position: user.position,
+        isActive: user.isActive,
+      }));
+
+      console.log("[USERS-ENDPOINT] Found", users.length, "users for tenant");
+      res.json({ success: true, data: formattedUsers });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
 
   // ==============================
-  // USER GROUPS ROUTES
+  // USER GROUPSROUTES
   // ==============================
-  // NOTE: /api/user-groups endpoints moved to dedicated router in userGroups.ts
 
-  // NOTE: /api/user-groups/:groupId/members endpoint moved to userGroups.ts
+  // Get all user groups
+  app.get(
+    "/api/user-groups",
+    jwtAuth,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.user?.tenantId;
+        if (!tenantId) {
+          return res.status(401).json({ message: "Tenant required" });
+        }
 
-  // NOTE: POST /api/user-groups endpoint moved to userGroups.ts
+        console.log("🏷️ [USER-GROUPS] Fetching groups for tenant:", tenantId);
+
+        const { schemaManager } = await import("./db");
+        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+        const { eq } = await import("drizzle-orm");
+
+        // Import the schema from the tenant-specific schema
+        const tenantSchemaModule = await import(`./db/schemas/tenant-schema`);
+        const schema = tenantSchemaModule.createTenantSchema();
+
+        // Use Drizzle ORM with proper schema
+        const groups = await tenantDb
+          .select({
+            id: schema.userGroups.id,
+            name: schema.userGroups.name,
+            description: schema.userGroups.description,
+            isActive: schema.userGroups.isActive,
+            createdAt: schema.userGroups.createdAt,
+          })
+          .from(schema.userGroups)
+          .where(eq(schema.userGroups.tenantId, tenantId))
+          .orderBy(schema.userGroups.name);
+
+        console.log("🏷️ [USER-GROUPS] Found groups:", groups.length);
+
+        // Format response to match component expectations
+        const formattedGroups = groups.map((group: any) => ({
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          isActive: group.isActive,
+          createdAt: group.createdAt,
+          memberCount: 0 // TODO: Implement member count if needed
+        }));
+
+        console.log("🏷️ [USER-GROUPS] Returning formatted groups:", formattedGroups.length);
+        res.json({ success: true, data: formattedGroups });
+      } catch (error) {
+        console.error("Error fetching user groups:", error);
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to fetch user groups" });
+      }
+    },
+  );
+
+  // Get users in a specific group
+  app.get(
+    "/api/user-groups/:groupId/members",
+    jwtAuth,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { groupId } = req.params;
+        const tenantId = req.user?.tenantId;
+        if (!tenantId) {
+          return res.status(401).json({ message: "Tenant required" });
+        }
+
+        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+        const schemaName = schemaManager.getSchemaName(tenantId);
+
+        const members = await tenantDb.execute(sql`
+        SELECT
+          u.id,
+          COALESCE(CONCAT(u.first_name, ' ', u.last_name), u.email) as name,
+          u.email,
+          u.role,
+          u.position,
+          ugm.role as "groupRole",
+          ugm.added_at as "joinedAt"
+        FROM ${sql.identifier(schemaName)}.user_group_memberships ugm
+        INNER JOIN public.users u ON ugm.user_id = u.id
+        WHERE ugm.group_id = ${groupId} AND ugm.is_active = true
+        ORDER BY name
+      `);
+
+        res.json({ success: true, data: members.rows });
+      } catch (error) {
+        console.error("Error fetching group members:", error);
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to fetch group members" });
+      }
+    },
+  );
+
+  // Create user group
+  app.post(
+    "/api/user-groups",
+    jwtAuth,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { name, description } = req.body;
+        const tenantId = req.user?.tenantId;
+        const userId = req.user?.id;
+
+        if (!tenantId || !userId) {
+          return res.status(401).json({ message: "Authentication required" });
+        }
+
+        const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+        const schemaName = schemaManager.getSchemaName(tenantId);
+
+        const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.user_groups
+        (tenant_id, name, description, is_active, created_by, created_at, updated_at)
+        VALUES (${tenantId}, ${name}, ${description}, true, ${userId}, NOW(), NOW())
+        RETURNING *
+      `);
+
+        res.status(201).json({ success: true, data: result.rows[0] });
+      } catch (error) {
+        console.error("Error creating user group:", error);
+        res
+          .status(500)
+          .json({ success: false, message: "Failed to create user group" });
+      }
+    },
+  );
 
   // ==============================
   // TEAM MANAGEMENTROUTES
