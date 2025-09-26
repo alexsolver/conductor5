@@ -195,7 +195,7 @@ router.post(
           console.log("📧 [USER-INVITATION] Starting email sending process...");
           console.log("📧 [USER-INVITATION] Environment check - SENDGRID_API_KEY exists:", !!process.env.SENDGRID_API_KEY);
           console.log("📧 [USER-INVITATION] Environment check - SENDGRID_FROM_EMAIL:", process.env.SENDGRID_FROM_EMAIL);
-          
+
           // Import sendgrid service
           const { sendInvitationEmail } = await import("../services/sendgridService");
 
@@ -206,9 +206,9 @@ router.post(
             ? `${req.user!.firstName} ${req.user!.lastName}` 
             : req.user!.email;
           console.log("📧 [USER-INVITATION] Inviter name:", inviterName);
-          
+
           console.log("📧 [USER-INVITATION] Email parameters prepared, calling sendInvitationEmail...");
-          
+
           const emailResult = await sendInvitationEmail({
             to: invitationData.email,
             invitationUrl: invitationUrl,
