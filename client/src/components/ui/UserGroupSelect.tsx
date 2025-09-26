@@ -27,12 +27,12 @@ export function UserGroupSelect({
   placeholder = "Selecione um grupo",
   disabled = false
 }: UserGroupSelectProps) {
-  const { data: groupsData, isLoading, error } = useQuery<{ success: boolean; data: UserGroup[] }>({
+  const { data: groupsData, isLoading, error } = useQuery({
     queryKey: ["user-groups"],
     queryFn: () => apiRequest('GET', '/api/user-groups'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
-  });
+  }) as { data: { success: boolean; data: UserGroup[] } | undefined; isLoading: boolean; error: any };
 
   const handleSelectChange = (selectedValue: string) => {
     const callback = onChange || onValueChange;
@@ -50,7 +50,7 @@ export function UserGroupSelect({
     );
   }
 
-  if (error || !groupsData?.success) {
+  if (error || !groupsData || !groupsData?.success) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
@@ -59,7 +59,7 @@ export function UserGroupSelect({
     );
   }
 
-  const activeGroups = groupsData?.data?.filter(group => group.isActive) || [];
+  const activeGroups = groupsData?.data?.filter((group: UserGroup) => group.isActive) || [];
 
   // Debug logs
   React.useEffect(() => {
@@ -82,7 +82,7 @@ export function UserGroupSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {activeGroups.map((group) => (
+        {activeGroups.map((group: UserGroup) => (
           <SelectItem key={group.id} value={group.id}>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />

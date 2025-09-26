@@ -5452,40 +5452,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "Tenant required" });
         }
 
+        console.log("🏷️ [USER-GROUPS] Fetching groups for tenant:", tenantId);
+
         const { schemaManager } = await import("./db");
         const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
-        const schemaName = schemaManager.getSchemaName(tenantId);
-        const { sql } = await import("drizzle-orm");
+        const { eq } = await import("drizzle-orm");
 
-        // Simplify the query without tenant_id join condition to avoid type conflicts
-        const groups = await tenantDb.execute(sql`
-        SELECT
-          ug.id,
-          ug.name,
-          ug.description,
-          ug.is_active as "isActive",
-          ug.created_at as "createdAt",
-          0 as "memberCount"
-        FROM ${sql.identifier(schemaName)}.user_groups ug
-        WHERE ug.tenant_id = ${sql.literal(`'${tenantId}'`)}
-        ORDER BY ug.name
-      `);
+        // Import the schema from the tenant-specific schema
+        const tenantSchemaModule = await import(`./db/schemas/tenant-schema`);
+        const schema = tenantSchemaModule.createTenantSchema();
 
-        console.log("🏷️ [USER-GROUPS] Query result:", {
-          groupCount: groups.rows.length,
-          groups: groups.rows,
-        });
+        // Use Drizzle ORM with proper schema
+        const groups = await tenantDb
+          .select({
+            id: schema.userGroups.id,
+            name: schema.userGroups.name,
+            description: schema.userGroups.description,
+            isActive: schema.userGroups.isActive,
+            createdAt: schema.userGroups.createdAt,
+          })
+          .from(schema.userGroups)
+          .where(eq(schema.userGroups.tenantId, tenantId))
+          .orderBy(schema.userGroups.name);
+
+        console.log("🏷️ [USER-GROUPS] Found groups:", groups.length);
+
         // Format response to match component expectations
-        const formattedGroups = groups.rows.map((group: any) => ({
+        const formattedGroups = groups.map((group: any) => ({
           id: group.id,
           name: group.name,
           description: group.description,
           isActive: group.isActive,
           createdAt: group.createdAt,
-          memberCount: Number(group.memberCount)
+          memberCount: 0 // TODO: Implement member count if needed
         }));
 
-        console.log("🏷️ [USER-GROUPS] Formatted groups:", formattedGroups);
+        console.log("🏷️ [USER-GROUPS] Returning formatted groups:", formattedGroups.length);
         res.json({ success: true, data: formattedGroups });
       } catch (error) {
         console.error("Error fetching user groups:", error);

@@ -45,12 +45,12 @@ export function UserMultiSelect({
   const [open, setOpen] = useState(false);
 
   // Fetch users from API
-  const { data: usersData, isLoading, error } = useQuery<{ success: boolean; data: User[] }>({
+  const { data: usersData, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: () => apiRequest('GET', '/api/users'),
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
-  });
+  }) as { data: { success: boolean; data: User[] } | undefined; isLoading: boolean; error: any };
 
   // Debug logs
   React.useEffect(() => {
@@ -67,7 +67,7 @@ export function UserMultiSelect({
     );
   }
 
-  if (error || !usersData?.success) {
+  if (error || !usersData || !usersData?.success) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
