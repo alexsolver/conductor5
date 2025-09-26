@@ -46,8 +46,6 @@ interface AiAgent {
   isActive: boolean;
   supportedChannels: string[];
   availableActions: string[];
-  channels?: string[]; // Added for potential new mapping
-  enabledActions?: string[]; // Added for potential new mapping
   personality: {
     tone: string;
     language: string;
@@ -121,7 +119,7 @@ const AiAgentsManager: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  
   const [selectedAgent, setSelectedAgent] = useState<AiAgent | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
@@ -399,17 +397,17 @@ const AiAgentsManager: React.FC = () => {
                         <Bot className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-medium">{agent.name}</div>
+                        <h3 className="font-medium">{agent.name}</h3>
                         <p className="text-sm text-muted-foreground">{agent.description}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant={agent.isActive ? "default" : "secondary"}>
                             {agent.isActive ? 'Ativo' : 'Inativo'}
                           </Badge>
                           <Badge variant="outline">
-                            {(agent.channels || agent.supportedChannels || []).length} canais
+                            {agent.supportedChannels.length} canais
                           </Badge>
                           <Badge variant="outline">
-                            {(agent.enabledActions || agent.availableActions || []).length} ações
+                            {agent.availableActions.length} ações
                           </Badge>
                         </div>
                       </div>
@@ -475,7 +473,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Basic Info */}
               <div className="space-y-4">
                 <h4 className="font-medium">Informações Básicas</h4>
-
+                
                 <FormField
                   control={form.control}
                   name="name"
@@ -510,7 +508,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Channels and Actions */}
               <div className="space-y-4">
                 <h4 className="font-medium">Canais e Ações Suportados</h4>
-
+                
                 <FormField
                   control={form.control}
                   name="supportedChannels"
@@ -585,7 +583,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Personality */}
               <div className="space-y-4">
                 <h4 className="font-medium">Personalidade e Linguagem</h4>
-
+                
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -669,7 +667,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Escalation Configuration */}
               <div className="space-y-4">
                 <h4 className="font-medium">Configuração de Escalação</h4>
-
+                
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -719,7 +717,7 @@ const AiAgentsManager: React.FC = () => {
               {/* Menu Configuration */}
               <div className="space-y-4">
                 <h4 className="font-medium">Configuração de Menu</h4>
-
+                
                 <FormField
                   control={form.control}
                   name="menuConfig.enabled"

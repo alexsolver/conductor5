@@ -21,8 +21,7 @@ export class AiAgentController {
 
   async createAgent(req: Request, res: Response): Promise<void> {
     try {
-      // Extrair tenant ID do usuário autenticado
-      const tenantId = (req as any).user?.tenantId;
+      const tenantId = req.headers['x-tenant-id'] as string;
       
       if (!tenantId) {
         res.status(400).json({
@@ -31,8 +30,6 @@ export class AiAgentController {
         });
         return;
       }
-
-      console.log(`🤖 [AiAgentController] Creating agent for tenant: ${tenantId}`);
 
       const createRequest: CreateAiAgentRequest = {
         tenantId,
@@ -90,8 +87,7 @@ export class AiAgentController {
 
   async getAgents(req: Request, res: Response): Promise<void> {
     try {
-      // Extrair tenant ID do usuário autenticado
-      const tenantId = (req as any).user?.tenantId;
+      const tenantId = req.headers['x-tenant-id'] as string;
       
       if (!tenantId) {
         res.status(400).json({
@@ -101,8 +97,6 @@ export class AiAgentController {
         return;
       }
 
-      console.log(`🤖 [AiAgentController] Getting agents for tenant: ${tenantId}`);
-
       const channelType = req.query.channel as string;
 
       const result = await this.getAiAgentsUseCase.execute({
@@ -110,12 +104,10 @@ export class AiAgentController {
         channelType
       });
 
-      console.log(`📋 [AiAgentController] Found ${result.agents?.length || 0} agents`);
-
       if (result.success) {
         res.json({
           success: true,
-          data: result.agents || []
+          data: result.agents
         });
       } else {
         res.status(500).json({

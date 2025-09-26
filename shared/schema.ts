@@ -4,7 +4,7 @@
 
 // Import Drizzle essentials FIRST
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { sql, check } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 
 // Re-export all schema definitions - avoiding conflicts
@@ -257,7 +257,7 @@ export {
 } from './schema-locations';
 
 // OmniBridge tables
-import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json, unique, index, check, foreignKey } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json, unique, index } from 'drizzle-orm/pg-core';
 
 export const omnibridgeChannels = pgTable('omnibridge_channels', {
   id: varchar('id', { length: 36 }).primaryKey(),
@@ -422,47 +422,27 @@ export const omnibridgeAiAgents = pgTable('omnibridge_ai_agents', {
   }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
-}, (table) => [
-  // CONSTRAINT obrigatório para tenant_id
-  check('tenant_id_uuid_format',
-    sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
-  ),
-  // UNIQUE constraints sempre com tenant_id
-  unique(['tenant_id', 'name'])
-]);
+});
 
-// AI Conversations para gerenciar conversas dos agentes
+// Conversas ativas dos agentes IA
 export const omnibridgeAiConversations = pgTable('omnibridge_ai_conversations', {
   id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar('tenant_id', { length: 36 }).notNull(),
   agentId: varchar('agent_id', { length: 36 }).notNull(),
-  userId: varchar('user_id', { length: 100 }).notNull(),
-  channelId: varchar('channel_id', { length: 100 }).notNull(),
-  channelType: varchar('channel_type', { length: 50 }).notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('active'),
-  context: jsonb('context').default({}),
-  currentStep: varchar('current_step', { length: 100 }),
-  intendedAction: varchar('intended_action', { length: 100 }),
-  actionParams: jsonb('action_params').default({}),
-  conversationHistory: jsonb('conversation_history').default([]),
-  lastMessageAt: timestamp('last_message_at').defaultNow(),
-  expiresAt: timestamp('expires_at'),
+  userId: varchar('user_id', { length: 100 }).notNull(), // Email ou identificador do usuário
+  channelId: varchar('channel_id', { length: 36 }).notNull(),
+  channelType: varchar('channel_type', { length: 50 }).notNull(), // 'email', 'whatsapp', 'telegram'
+  status: varchar('status', { length: 20 }).notNull().default('active'), // 'active', 'waiting_input', 'completed', 'escalated'
+  context: jsonb('context').notNull().default({}), // Informações coletadas na conversa
+  currentStep: varchar('current_step', { length: 100 }).notNull().default('greeting'),
+  intendedAction: varchar('intended_action', { length: 100 }), // Ação que o agente pretende executar
+  actionParams: jsonb('action_params').default({}), // Parâmetros coletados para a ação
+  conversationHistory: jsonb('conversation_history').notNull().default([]),
+  lastMessageAt: timestamp('last_message_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'), // Para limpeza automática de conversas antigas
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
-}, (table) => [
-  // CONSTRAINT obrigatório para tenant_id
-  check('tenant_id_uuid_format',
-    sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
-  ),
-  // Foreign key para agente
-  foreignKey({
-    columns: [table.agentId],
-    foreignColumns: [omnibridgeAiAgents.id],
-    name: 'fk_ai_conversations_agent_id'
-  }),
-  // UNIQUE constraints sempre com tenant_id
-  unique(['tenant_id', 'user_id', 'channel_id'])
-]);
+});
 
 // Menu templates para interação estruturada
 export const omnibridgeAiMenus = pgTable('omnibridge_ai_menus', {

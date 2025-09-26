@@ -1129,10 +1129,7 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
   }
 });
 
-// AI Agent routes
-import { createAiAgentRoutes } from './routes/aiAgentRoutes';
-const aiAgentRoutes = createAiAgentRoutes();
-router.use('/ai-agents', aiAgentRoutes); due to type conflicts
+// AI Agent routes - temporarily disabled due to type conflicts
 // router.use('/ai', jwtAuth, createAiAgentRoutes());
 
 export { router as omniBridgeRoutes };
