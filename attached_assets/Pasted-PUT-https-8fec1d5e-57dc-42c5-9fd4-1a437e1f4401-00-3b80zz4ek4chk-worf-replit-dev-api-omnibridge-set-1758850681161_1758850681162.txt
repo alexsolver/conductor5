@@ -1,0 +1,38 @@
+PUT https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/omnibridge/settings 500
+
+Request Data
+
+{"tenantId":"3f99462f-3621-4b1b-bea8-782acc50d62e","channels":[{"id":"email","type":"email","enabled":true,"syncFrequency":15,"dailyLimit":5000,"hourlyLimit":500,"workingHours":{"enabled":false,"start":"09:00","end":"18:00","timezone":"America/Sao_Paulo"},"acceptedTypes":["text","html","attachments"],"maxMessageSize":25},{"id":"telegram","type":"telegram","enabled":true,"syncFrequency":1,"dailyLimit":10000,"hourlyLimit":1000,"workingHours":{"enabled":false,"start":"09:00","end":"18:00","timezone":"America/Sao_Paulo"},"acceptedTypes":["text","media","documents"],"maxMessageSize":20},{"id":"whatsapp","type":"whatsapp","enabled":true,"syncFrequency":1,"dailyLimit":10000,"hourlyLimit":1000,"workingHours":{"enabled":false,"start":"09:00","end":"18:00","timezone":"America/Sao_Paulo"},"acceptedTypes":["text","media","documents"],"maxMessageSize":16},{"id":"sms","type":"sms","enabled":false,"syncFrequency":5,"dailyLimit":1000,"hourlyLimit":100,"workingHours":{"enabled":true,"start":"09:00","end":"18:00","timezone":"America/Sao_Paulo"},"acceptedTypes":["text"],"maxMessageSize":1}],"filters":{"blacklistSenders":[],"whitelistSenders":[],"spamFilters":{"enabled":true,"confidenceThreshold":0.7,"suspiciousKeywords":["spam","scam","phishing","casino","bitcoin","lottery"]},"contentFilters":{"maxLength":10000,"allowAttachments":true,"allowedFileTypes":["pdf","doc","docx","txt","jpg","jpeg","png","gif"],"blockSuspiciousLinks":true}},"search":{"timeRange":7,"maxResultsPerChannel":1000,"priorityChannels":["whatsapp","telegram"],"autoArchiveAfter":90},"updatedAt":"2025-09-26T01:37:39.231Z"}
+
+Request Headers
+
+Content-Type: application/json
+x-tenant-id: 3f99462f-3621-4b1b-bea8-782acc50d62e
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 266
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Fri, 26 Sep 2025 01:37:49 GMT
+etag: W/"10a-AuqmCR8FtJSAAXyRlvKQoaHw2us"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-27T01:37:49.312Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"error":"Failed to update settings","details":"Converting circular structure to JSON\n    --> starting at object with constructor 'PgVarchar'\n    |     property 'table' -> object with constructor 'PgTable'\n    --- property 'id' closes the circle"}
