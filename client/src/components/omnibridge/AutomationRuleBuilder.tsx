@@ -62,55 +62,9 @@ import {
   Link,
   BarChart3
 } from 'lucide-react';
+import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
+import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 
-// Mock de componentes de seleção de usuário e grupo
-// Em um cenário real, estes seriam importados de algum lugar
-const UserMultiSelect = ({ value, onChange, users, placeholder }) => {
-  return (
-    <div className="mt-1">
-      {/* Placeholder para o componente de seleção múltipla de usuários */}
-      <div className="border rounded-md p-2 min-h-[40px] flex items-center">
-        <span className="text-sm text-muted-foreground">{placeholder}</span>
-        {/* Aqui seria implementada a lógica de seleção */}
-        {users.length > 0 && value.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {value.map(user => (
-              <Badge key={user.id} variant="outline" className="pr-2">
-                {user.name}
-                <button
-                  onClick={() => onChange(value.filter(u => u.id !== user.id))}
-                  className="ml-1 font-semibold text-red-500 hover:text-red-700"
-                >
-                  x
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground mt-1">
-        Funcionalidade de seleção de múltiplos usuários ainda em desenvolvimento.
-      </p>
-    </div>
-  );
-};
-
-const UserGroupSelect = ({ value, onChange, placeholder }) => {
-  return (
-    <div className="mt-1">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="group1">Grupo 1</SelectItem>
-          <SelectItem value="group2">Grupo 2</SelectItem>
-          <SelectItem value="group3">Grupo 3</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-  );
-};
 
 
 // Campos específicos para automações do OmniBridge
@@ -296,12 +250,6 @@ export default function AutomationRuleBuilder({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch para obter a lista de usuários e grupos (exemplo)
-  const { data: usersData } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => apiRequest('GET', '/api/users'),
-    enabled: isOpen, // Só executa se o modal estiver aberto
-  });
 
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
   useEffect(() => {
@@ -577,10 +525,9 @@ export default function AutomationRuleBuilder({
               <Label htmlFor="notification-users">Usuários para notificar</Label>
               <UserMultiSelect
                 value={Array.isArray(actionConfig.users) ? actionConfig.users : (actionConfig.users ? actionConfig.users.split(',') : [])}
-                onChange={(selectedUsers) =>
+                onChange={(selectedUsers: string[]) =>
                   setActionConfig(prev => ({ ...prev, users: selectedUsers }))
                 }
-                users={usersData?.success ? usersData.data.users : []}
                 placeholder="Selecionar usuários para notificar..."
               />
             </div>
@@ -589,7 +536,7 @@ export default function AutomationRuleBuilder({
               <Label htmlFor="notification-groups">Grupos para notificar</Label>
               <UserGroupSelect
                 value={actionConfig.notificationGroup || ''}
-                onChange={(selectedGroup) =>
+                onChange={(selectedGroup: string) =>
                   setActionConfig(prev => ({ ...prev, notificationGroup: selectedGroup }))
                 }
                 placeholder="Selecionar grupo para notificar..."
