@@ -192,116 +192,45 @@ export function SlaLed({
   const config = ledStyles[finalStatus];
   const IconComponent = config.icon;
   
-  // LED simples (barra de progresso horizontal)
+  // LED simples (apenas círculo colorido)
   if (!showText) {
-    // Função para determinar a cor baseada no percentual
-    const getProgressColor = (percent: number) => {
-      if (percent <= 50) {
-        // Verde para verde-amarelo (0-50%)
-        const ratio = percent / 50;
-        const red = Math.floor(255 * ratio);
-        return `rgb(${red}, 255, 0)`;
-      } else if (percent <= 80) {
-        // Amarelo para laranja (50-80%)
-        const ratio = (percent - 50) / 30;
-        const green = Math.floor(255 * (1 - ratio));
-        return `rgb(255, ${green}, 0)`;
-      } else {
-        // Laranja para vermelho (80-100%)
-        const ratio = Math.min((percent - 80) / 20, 1);
-        const intensity = Math.floor(255 * (1 - ratio * 0.3)); // Vermelho mais escuro conforme aumenta
-        return `rgb(255, ${Math.floor(intensity * 0.2)}, 0)`;
-      }
-    };
-
-    const progressColor = getProgressColor(finalElapsedPercent);
-    const progressWidth = Math.min(finalElapsedPercent, 100);
-
     return (
-      <div className={`flex items-center space-x-2 ${className}`}>
+      <div className={`flex items-center space-x-1 ${className}`}>
         <div 
-          className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner"
+          className={`${sizeClasses[size]} ${config.color} rounded-full shadow-lg border-2 border-white ${className}`}
           title={`SLA: ${config.label} (${finalElapsedPercent.toFixed(1)}% decorrido)${activeSla ? ' - Dados Reais' : ' - Demo'}`}
           data-testid={`sla-led-${finalStatus}`}
-        >
-          <div 
-            className="h-full rounded-full transition-all duration-500 ease-in-out shadow-sm"
-            style={{
-              width: `${progressWidth}%`,
-              backgroundColor: progressColor,
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
-            }}
-          />
-          {/* Indicador de texto sobreposto */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white drop-shadow-sm">
-              {finalElapsedPercent.toFixed(0)}%
-            </span>
-          </div>
-        </div>
-        <span className="text-xs text-gray-500 font-medium whitespace-nowrap">SLA</span>
+        />
+        <span className="text-xs text-gray-500 font-medium">SLA</span>
       </div>
     );
   }
   
   // LED com texto e informações detalhadas
-  const getProgressColor = (percent: number) => {
-    if (percent <= 50) {
-      const ratio = percent / 50;
-      const red = Math.floor(255 * ratio);
-      return `rgb(${red}, 255, 0)`;
-    } else if (percent <= 80) {
-      const ratio = (percent - 50) / 30;
-      const green = Math.floor(255 * (1 - ratio));
-      return `rgb(255, ${green}, 0)`;
-    } else {
-      const ratio = Math.min((percent - 80) / 20, 1);
-      const intensity = Math.floor(255 * (1 - ratio * 0.3));
-      return `rgb(255, ${Math.floor(intensity * 0.2)}, 0)`;
-    }
-  };
-
-  const progressColor = getProgressColor(finalElapsedPercent);
-  const progressWidth = Math.min(finalElapsedPercent, 100);
-
   return (
-    <div className={`flex flex-col space-y-2 ${className}`} data-testid={`sla-led-detailed-${finalStatus}`}>
-      {/* Barra de progresso principal */}
-      <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
-        <div 
-          className="h-full rounded-full transition-all duration-500 ease-in-out shadow-sm"
-          style={{
-            width: `${progressWidth}%`,
-            backgroundColor: progressColor,
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
-          }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-bold text-white drop-shadow-sm">
-            {finalElapsedPercent.toFixed(0)}%
-          </span>
-        </div>
-      </div>
+    <div className={`flex items-center space-x-2 ${className}`} data-testid={`sla-led-detailed-${finalStatus}`}>
+      <div className={`${sizeClasses[size]} ${config.color} rounded-full shadow-sm`} />
       
-      {/* Informações detalhadas */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <IconComponent className={`w-4 h-4 ${config.text}`} />
+      <div className="flex items-center space-x-2">
+        <IconComponent className={`w-4 h-4 ${config.text}`} />
+        
+        <div className="text-sm">
           <Badge variant={config.badge as any} className="text-xs">
             {config.label}
           </Badge>
+          
+          {finalExpirationDate && (
+            <div className="text-xs text-gray-500 mt-1">
+              <div>Tempo restante: {formatTimeRemaining(finalExpirationDate)}</div>
+              <div>Progresso: {finalElapsedPercent.toFixed(1)}%</div>
+              {activeSla && (
+                <div className="text-xs text-blue-600 mt-1">
+                  Tipo: {activeSla.currentMetric.replace('_', ' ')}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        
-        {finalExpirationDate && (
-          <div className="text-xs text-gray-500 text-right">
-            <div>Restante: {formatTimeRemaining(finalExpirationDate)}</div>
-            {activeSla && (
-              <div className="text-xs text-blue-600">
-                {activeSla.currentMetric.replace('_', ' ')}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

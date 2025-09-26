@@ -1,5 +1,5 @@
-// ✅ 1QA.MD COMPLIANCE: SIMPLE SLA PROGRESS BAR WITH REAL BACKEND INTEGRATION
-// Simple SLA Progress Bar Indicator Component with real data and gradient colors
+// ✅ 1QA.MD COMPLIANCE: SIMPLE SLA LED WITH REAL BACKEND INTEGRATION
+// Simple SLA LED Indicator Component with real data
 
 import React from 'react';
 import { SlaLed } from './SlaLed';
