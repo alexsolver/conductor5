@@ -47,16 +47,32 @@ export function UserMultiSelect({
   // Fetch users from API
   const { data: usersData, isLoading, error } = useQuery({
     queryKey: ["users"],
-    queryFn: () => apiRequest('GET', '/api/users'),
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/users');
+        console.log('[UserMultiSelect] API response:', response);
+        return response;
+      } catch (err) {
+        console.error('[UserMultiSelect] API error:', err);
+        throw err;
+      }
+    },
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   }) as { data: { success: boolean; data: User[] } | undefined; isLoading: boolean; error: any };
 
-  // Debug logs
+  // Debug logs - Enhanced for OmniBridge troubleshooting
   React.useEffect(() => {
     console.log('[UserMultiSelect] Users data:', usersData);
     console.log('[UserMultiSelect] Current value:', value);
-  }, [usersData, value]);
+    console.log('[UserMultiSelect] Is loading:', isLoading);
+    console.log('[UserMultiSelect] Error:', error);
+    if (usersData && !usersData.success) {
+      console.warn('[UserMultiSelect] API returned unsuccessful response:', usersData);
+    }
+  }, [usersData, value, isLoading, error]);
 
   if (isLoading) {
     return (

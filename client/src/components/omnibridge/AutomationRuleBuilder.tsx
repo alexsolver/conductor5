@@ -64,7 +64,7 @@ import {
 } from 'lucide-react';
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
-
+import NotificationDiagnostic from '@/components/NotificationDiagnostic';
 
 
 // Campos específicos para automações do OmniBridge
@@ -524,35 +524,35 @@ export default function AutomationRuleBuilder({
             <div>
               <Label htmlFor="notification-users">Usuários para notificar</Label>
               <UserMultiSelect
-                value={Array.isArray(actionConfig.users) ? actionConfig.users : (actionConfig.users ? actionConfig.users.split(',') : [])}
-                onChange={(selectedUsers: string[]) =>
-                  setActionConfig(prev => ({ ...prev, users: selectedUsers }))
-                }
-                placeholder="Selecionar usuários para notificar..."
+                value={Array.isArray(actionConfig.users) ? actionConfig.users : (actionConfig.users ? actionConfig.users.split(',').filter(Boolean) : [])}
+                onChange={(users) => setActionConfig(prev => ({ ...prev, users }))}
+                placeholder="Selecionar usuários..."
+                disabled={false}
               />
             </div>
-
             <div>
               <Label htmlFor="notification-groups">Grupos para notificar</Label>
               <UserGroupSelect
-                value={actionConfig.notificationGroup || ''}
-                onChange={(selectedGroup: string) =>
-                  setActionConfig(prev => ({ ...prev, notificationGroup: selectedGroup }))
-                }
-                placeholder="Selecionar grupo para notificar..."
+                value={actionConfig.groups || ''}
+                onValueChange={(groups) => setActionConfig(prev => ({ ...prev, groups }))}
+                placeholder="Selecionar grupo..."
+                disabled={false}
               />
             </div>
-
             <div>
               <Label htmlFor="notification-message">Mensagem da notificação</Label>
               <Textarea
                 id="notification-message"
                 value={actionConfig.message || ''}
                 onChange={(e) => setActionConfig(prev => ({ ...prev, message: e.target.value }))}
-                placeholder="Digite a mensagem da notificação"
-                rows={3}
+                placeholder="Digite a mensagem da notificação..."
+                className="min-h-[100px]"
               />
             </div>
+            <div className="text-sm text-muted-foreground">
+              <p>💡 A notificação será enviada para os usuários e grupos selecionados quando esta regra de automação for executada.</p>
+            </div>
+            <NotificationDiagnostic />
           </div>
         );
 

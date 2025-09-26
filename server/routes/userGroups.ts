@@ -67,7 +67,7 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     res.json({
       success: true,
-      groups: groupsWithMemberships,
+      data: groupsWithMemberships,
       count: groupsWithMemberships.length
     });
   } catch (error) {
