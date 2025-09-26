@@ -107,11 +107,7 @@ export class DrizzleOmniBridgeSettingsRepository {
 
   private getSettingsTable(tenantId: string) {
     const schemaName = this.getSchemaName(tenantId);
-    // This is a simplified representation, in a real scenario you'd likely map this to your Drizzle schema
-    return {
-      ...schema.omnibridgeSettings,
-      fullTable: `${schemaName}.omnibridge_settings`
-    };
+    return schema.omnibridgeSettings;
   }
 
   private getDefaultSettings(tenantId: string): OmniBridgeSettings {
@@ -211,44 +207,51 @@ export class DrizzleOmniBridgeSettingsRepository {
   async getSettings(tenantId: string): Promise<OmniBridgeSettings> {
     console.log(`🔍 [OMNIBRIDGE-SETTINGS] Getting settings for tenant: ${tenantId}`);
 
-    const tenantDb = await this.getTenantDb(tenantId);
-    const settingsTable = this.getSettingsTable(tenantId);
+    await this.ensureSettingsTable(tenantId);
+    const schemaName = this.getSchemaName(tenantId);
 
     try {
-      const result = await tenantDb
-        .select()
-        .from(settingsTable)
-        .where(eq(settingsTable.tenantId, tenantId))
-        .limit(1);
+      const query = `
+        SELECT id, tenant_id, channels, filters, search, created_at, updated_at 
+        FROM ${schemaName}.omnibridge_settings 
+        WHERE tenant_id = $1 
+        LIMIT 1
+      `;
+      
+      const result = await pool.query(query, [tenantId]);
 
-      if (result.length === 0) {
+      if (result.rows.length === 0) {
         console.log(`📄 [OMNIBRIDGE-SETTINGS] No settings found for tenant: ${tenantId}, creating defaults`);
         const defaultSettings = this.getDefaultSettings(tenantId);
 
-        // Save default settings to database
-        await tenantDb
-          .insert(settingsTable)
-          .values({
-            id: randomUUID(),
-            tenantId,
-            channels: JSON.stringify(defaultSettings.channels),
-            filters: JSON.stringify(defaultSettings.filters),
-            search: JSON.stringify(defaultSettings.search),
-            createdAt: new Date(),
-            updatedAt: new Date()
-          });
+        // Save default settings to database using raw query
+        const insertQuery = `
+          INSERT INTO ${schemaName}.omnibridge_settings 
+          (id, tenant_id, channels, filters, search, created_at, updated_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `;
+        
+        await pool.query(insertQuery, [
+          randomUUID(),
+          tenantId,
+          JSON.stringify(defaultSettings.channels),
+          JSON.stringify(defaultSettings.filters),
+          JSON.stringify(defaultSettings.search),
+          new Date(),
+          new Date()
+        ]);
 
         console.log(`✅ [OMNIBRIDGE-SETTINGS] Created default settings for tenant: ${tenantId}`);
         return defaultSettings;
       }
 
-      const row = result[0];
+      const row = result.rows[0];
       const settings = {
-        tenantId: row.tenantId,
+        tenantId: row.tenant_id,
         channels: typeof row.channels === 'string' ? JSON.parse(row.channels) : row.channels,
         filters: typeof row.filters === 'string' ? JSON.parse(row.filters) : row.filters,
         search: typeof row.search === 'string' ? JSON.parse(row.search) : row.search,
-        updatedAt: row.updatedAt
+        updatedAt: row.updated_at
       };
 
       console.log(`✅ [OMNIBRIDGE-SETTINGS] Retrieved settings for tenant: ${tenantId}`);
@@ -264,16 +267,16 @@ export class DrizzleOmniBridgeSettingsRepository {
     console.log(`💾 [OMNIBRIDGE-SETTINGS] Updating settings for tenant: ${tenantId}`);
     console.log(`📝 [OMNIBRIDGE-SETTINGS] Settings data:`, JSON.stringify(settings, null, 2));
 
-    const tenantDb = await this.getTenantDb(tenantId);
-    const settingsTable = this.getSettingsTable(tenantId);
+    await this.ensureSettingsTable(tenantId);
+    const schemaName = this.getSchemaName(tenantId);
 
     try {
       // Check if settings exist
-      const existing = await tenantDb
-        .select()
-        .from(settingsTable)
-        .where(eq(settingsTable.tenantId, tenantId))
-        .limit(1);
+      const existingQuery = `
+        SELECT id FROM ${schemaName}.omnibridge_settings 
+        WHERE tenant_id = $1 LIMIT 1
+      `;
+      const existing = await pool.query(existingQuery, [tenantId]);
 
       const updatedSettings = {
         tenantId,
@@ -283,36 +286,42 @@ export class DrizzleOmniBridgeSettingsRepository {
         updatedAt: new Date()
       };
 
-      if (existing.length > 0) {
+      if (existing.rows.length > 0) {
         // Update existing
-        const result = await tenantDb
-          .update(settingsTable)
-          .set({
-            channels: JSON.stringify(updatedSettings.channels),
-            filters: JSON.stringify(updatedSettings.filters),
-            search: JSON.stringify(updatedSettings.search),
-            updatedAt: updatedSettings.updatedAt
-          })
-          .where(eq(settingsTable.tenantId, tenantId))
-          .returning();
+        const updateQuery = `
+          UPDATE ${schemaName}.omnibridge_settings 
+          SET channels = $1, filters = $2, search = $3, updated_at = $4
+          WHERE tenant_id = $5
+        `;
+        
+        await pool.query(updateQuery, [
+          JSON.stringify(updatedSettings.channels),
+          JSON.stringify(updatedSettings.filters),
+          JSON.stringify(updatedSettings.search),
+          updatedSettings.updatedAt,
+          tenantId
+        ]);
 
-        console.log(`✅ [OMNIBRIDGE-SETTINGS] Updated existing settings for tenant: ${tenantId}`, result);
+        console.log(`✅ [OMNIBRIDGE-SETTINGS] Updated existing settings for tenant: ${tenantId}`);
       } else {
         // Insert new
-        const result = await tenantDb
-          .insert(settingsTable)
-          .values({
-            id: randomUUID(),
-            tenantId,
-            channels: JSON.stringify(updatedSettings.channels),
-            filters: JSON.stringify(updatedSettings.filters),
-            search: JSON.stringify(updatedSettings.search),
-            createdAt: updatedSettings.updatedAt,
-            updatedAt: updatedSettings.updatedAt
-          })
-          .returning();
+        const insertQuery = `
+          INSERT INTO ${schemaName}.omnibridge_settings 
+          (id, tenant_id, channels, filters, search, created_at, updated_at) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `;
+        
+        await pool.query(insertQuery, [
+          randomUUID(),
+          tenantId,
+          JSON.stringify(updatedSettings.channels),
+          JSON.stringify(updatedSettings.filters),
+          JSON.stringify(updatedSettings.search),
+          updatedSettings.updatedAt,
+          updatedSettings.updatedAt
+        ]);
 
-        console.log(`✅ [OMNIBRIDGE-SETTINGS] Created new settings for tenant: ${tenantId}`, result);
+        console.log(`✅ [OMNIBRIDGE-SETTINGS] Created new settings for tenant: ${tenantId}`);
       }
 
       // Verify the save by retrieving the data
@@ -328,28 +337,26 @@ export class DrizzleOmniBridgeSettingsRepository {
 
   async createSettings(tenantId: string, settings: OmniBridgeSettings): Promise<OmniBridgeSettings> {
     try {
-      const tenantDb = await this.getTenantDb(tenantId);
-      const settingsTable = this.getSettingsTable(tenantId);
+      await this.ensureSettingsTable(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
 
-      const result = await tenantDb.insert(schema.omnibridgeSettings)
-        .values({
-          id: randomUUID(),
-          tenantId: settings.tenantId,
-          channels: JSON.stringify(settings.channels),
-          filters: JSON.stringify(settings.filters),
-          search: JSON.stringify(settings.search),
-          createdAt: new Date(),
-          updatedAt: settings.updatedAt
-        })
-        .returning();
+      const insertQuery = `
+        INSERT INTO ${schemaName}.omnibridge_settings 
+        (id, tenant_id, channels, filters, search, created_at, updated_at) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `;
+      
+      await pool.query(insertQuery, [
+        randomUUID(),
+        settings.tenantId,
+        JSON.stringify(settings.channels),
+        JSON.stringify(settings.filters),
+        JSON.stringify(settings.search),
+        new Date(),
+        settings.updatedAt
+      ]);
 
-      return {
-        tenantId: result[0].tenantId,
-        channels: typeof result[0].channels === 'string' ? JSON.parse(result[0].channels) : result[0].channels,
-        filters: typeof result[0].filters === 'string' ? JSON.parse(result[0].filters) : result[0].filters,
-        search: typeof result[0].search === 'string' ? JSON.parse(result[0].search) : result[0].search,
-        updatedAt: result[0].updatedAt
-      };
+      return settings;
     } catch (error) {
       console.error('❌ [SETTINGS-REPO] Error creating settings:', error);
       throw error;
