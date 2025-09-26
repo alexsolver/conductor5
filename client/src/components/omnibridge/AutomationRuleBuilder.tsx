@@ -21,7 +21,7 @@ import {
   Phone,
   Zap,
   Bot,
-  Bell,
+  Bell as BellIcon,
   Users,
   Calendar,
   FileText,
@@ -163,7 +163,7 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     type: 'send_notification',
     name: 'Enviar notificação',
     description: 'Notifica equipe responsável',
-    icon: Bell,
+    icon: BellIcon,
     color: 'bg-yellow-500'
   },
   {
@@ -713,7 +713,7 @@ export default function AutomationRuleBuilder({
                                   return {
                                     name: 'Enviar Notificação',
                                     description: 'Notifica equipe responsável',
-                                    icon: Bell,
+                                    icon: BellIcon,
                                     color: 'text-yellow-600'
                                   };
                                 case 'create_ticket':
