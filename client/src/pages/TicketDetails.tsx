@@ -3429,7 +3429,7 @@ const TicketDetails = React.memo(() => {
                         variant="ghost"
                         size="sm"
                         className="h-4 w-4 p-0 ml-1"
-                        onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                        onClick={() => setTags(tags.filter((_, i=> i !== index)))}
                       >
                         <X className="h-2 w-2" />
                       </Button>
