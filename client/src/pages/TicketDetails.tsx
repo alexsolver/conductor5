@@ -61,6 +61,7 @@ import { MaterialsServicesMiniSystem } from "@/components/MaterialsServicesMiniS
 import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple, SlaRealTimeMonitor } from "@/components/SlaLed";
 import DynamicCustomFields from "@/components/DynamicCustomFields";
+import { useSlaStatus } from "@/hooks/useSlaData";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -74,6 +75,9 @@ const TicketDetails = React.memo(() => {
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
+
+  // SLA status hook - must be called at component level
+  const slaStatus = useSlaStatus(id || '');
 
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -3921,9 +3925,25 @@ const TicketDetails = React.memo(() => {
                         if (!ticket?.status) return 'N/A';
 
                         const statusLabel = getFieldLabel('status', ticket.status);
-                        // Assuming useSlaData is available and correctly fetches SLA data
-                        const slaData = useSlaData(ticket);
-                        const timeDisplay = slaData?.timeRemaining || '0d';
+                        
+                        // Calculate time display from SLA data
+                        let timeDisplay = '0d';
+                        if (slaStatus?.activeSla) {
+                          const remainingMinutes = slaStatus.activeSla.remainingMinutes;
+                          if (remainingMinutes > 0) {
+                            const days = Math.floor(remainingMinutes / (24 * 60));
+                            const hours = Math.floor((remainingMinutes % (24 * 60)) / 60);
+                            if (days > 0) {
+                              timeDisplay = `${days}d`;
+                            } else if (hours > 0) {
+                              timeDisplay = `${hours}h`;
+                            } else {
+                              timeDisplay = `${remainingMinutes}m`;
+                            }
+                          } else {
+                            timeDisplay = 'Overdue';
+                          }
+                        }
 
                         return `${statusLabel} - ${timeDisplay}`;
                       })()}
