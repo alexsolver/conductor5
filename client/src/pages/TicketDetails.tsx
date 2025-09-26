@@ -449,7 +449,24 @@ const TicketDetails = React.memo(() => {
 
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ["/api/user-management/users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/user-management/users");
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch user groups for assignment groups
+  const { data: groupsData } = useQuery({
+    queryKey: ["/api/user-groups"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/user-groups");
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes cache  
+    refetchOnWindowFocus: false,
   });
 
   // Fetch custom fields from ticket template
