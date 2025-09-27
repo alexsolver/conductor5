@@ -4,7 +4,12 @@
 import { Router, Request, Response } from 'express';
 import { SlaController } from '../application/controllers/SlaController';
 import { jwtAuth, AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { slaService } from '../../../services/SlaService'; // Assuming slaService is imported here
+import { SlaService } from '../application/services/SlaService';
+import { DrizzleSlaRepository } from '../infrastructure/repositories/DrizzleSlaRepository';
+
+// Create service instance
+const slaRepository = new DrizzleSlaRepository();
+const slaService = new SlaService(slaRepository);
 
 const router = Router();
 const slaController = new SlaController();
