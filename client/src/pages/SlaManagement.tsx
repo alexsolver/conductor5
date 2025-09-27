@@ -386,10 +386,29 @@ export default function SlaManagement() {
   });
 
   const onSubmit = (values: z.infer<typeof slaDefinitionSchema>) => {
+    // Converter dados para o formato esperado pelo backend
+    const transformedValues = {
+      ...values,
+      // Converter strings de data para objetos Date
+      validFrom: new Date(values.validFrom),
+      validUntil: values.validUntil ? new Date(values.validUntil) : undefined,
+      // Garantir que applicationRules tenha pelo menos uma regra
+      applicationRules: {
+        rules: values.applicationRules?.rules?.length > 0 
+          ? values.applicationRules.rules 
+          : [{
+              field: 'status',
+              operator: 'equals',
+              value: 'open'
+            }],
+        logicalOperator: values.applicationRules?.logicalOperator || 'AND'
+      }
+    };
+
     if (selectedSla) {
-      updateSlaMutation.mutate({ id: selectedSla.id, data: values });
+      updateSlaMutation.mutate({ id: selectedSla.id, data: transformedValues });
     } else {
-      createSlaMutation.mutate(values);
+      createSlaMutation.mutate(transformedValues);
     }
   };
 
