@@ -353,6 +353,72 @@ export class SlaService {
     return await this.slaRepository.deleteSlaWorkflow(id, tenantId);
   }
 
+  // ===== PRIVATE HELPER METHODS =====
+
+  private async createSlaInstance(sla: SlaDefinition, ticketId: string, metricType: string): Promise<SlaInstance> {
+    const targetMinutes = this.getTargetMinutesForMetric(sla, metricType);
+    
+    return await this.slaRepository.createSlaInstance({
+      tenantId: sla.tenantId,
+      slaDefinitionId: sla.id,
+      ticketId,
+      metricType,
+      targetMinutes,
+      status: 'running',
+      startedAt: new Date(),
+      elapsedMinutes: 0,
+      remainingMinutes: targetMinutes,
+      pausedMinutes: 0,
+      isBreached: false
+    });
+  }
+
+  private getTargetMinutesForMetric(sla: SlaDefinition, metricType: string): number {
+    // This is a simplified version - you may want to implement proper time target parsing
+    switch (metricType) {
+      case 'response_time': return 240; // 4 hours default
+      case 'resolution_time': return 1440; // 24 hours default
+      case 'update_time': return 480; // 8 hours default
+      case 'idle_time': return 120; // 2 hours default
+      default: return 240;
+    }
+  }
+
+  private isRuleMatch(applicationRules: any, ticketData: any): boolean {
+    // Simplified rule matching - implement proper logic based on your rule structure
+    return true; // For now, all SLAs apply to all tickets
+  }
+
+  private calculateElapsedMinutes(start: Date, end: Date): number {
+    return Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
+  }
+
+  private async createSlaViolation(instance: SlaInstance, totalElapsed: number): Promise<void> {
+    await this.slaRepository.createSlaViolation({
+      tenantId: instance.tenantId,
+      slaDefinitionId: instance.slaDefinitionId,
+      slaInstanceId: instance.id,
+      ticketId: instance.ticketId,
+      metricType: instance.metricType,
+      targetMinutes: instance.targetMinutes,
+      actualMinutes: totalElapsed,
+      violationMinutes: totalElapsed - instance.targetMinutes,
+      violationPercentage: ((totalElapsed / instance.targetMinutes) - 1) * 100,
+      severity: this.calculateViolationSeverity(totalElapsed, instance.targetMinutes),
+      resolved: false,
+      violatedAt: new Date()
+    });
+  }
+
+  private calculateViolationSeverity(actualMinutes: number, targetMinutes: number): string {
+    const violationPercentage = ((actualMinutes / targetMinutes) - 1) * 100;
+    
+    if (violationPercentage > 100) return 'critical';
+    if (violationPercentage > 50) return 'high';
+    if (violationPercentage > 25) return 'medium';
+    return 'low';
+  }
+
   private validateSlaWorkflow(data: any): void {
     // Validate required fields
     if (!data.name || data.name.trim().length === 0) {

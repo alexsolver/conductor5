@@ -244,10 +244,11 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaEvent(eventData: Omit<SlaEvent, 'id' | 'createdAt'>): Promise<SlaEvent> {
     console.log('[SLA-REPOSITORY] Creating SLA event:', eventData.eventType);
 
-    const tenantDb = await this.getTenantDb(tenantId);
+    const tenantDb = await this.getTenantDb(eventData.tenantId);
     const [createdEvent] = await tenantDb.insert(slaEvents)
       .values({
         ...eventData,
+        id: crypto.randomUUID(),
         createdAt: new Date()
       })
       .returning();
@@ -384,6 +385,52 @@ export class DrizzleSlaRepository implements SlaRepository {
 
     console.log('[SLA-REPOSITORY] Found unresolved violations:', violations.length);
     return violations;
+  }
+
+  // ===== SLA WORKFLOWS =====
+
+  async createSlaWorkflow(workflowData: any): Promise<any> {
+    console.log('[SLA-REPOSITORY] Creating SLA workflow:', workflowData.name);
+
+    const workflowWithId = {
+      ...workflowData,
+      id: crypto.randomUUID(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // For now, return the workflow data as-is since we don't have a workflows table yet
+    // This will be stored in memory or you can add a proper workflows table later
+    return workflowWithId;
+  }
+
+  async getSlaWorkflowsByTenant(tenantId: string): Promise<any[]> {
+    console.log('[SLA-REPOSITORY] Getting SLA workflows for tenant:', tenantId);
+
+    // Return empty array for now since workflows table doesn't exist yet
+    // You can implement this properly when the workflows table is created
+    return [];
+  }
+
+  async getSlaWorkflowById(id: string, tenantId: string): Promise<any | null> {
+    console.log('[SLA-REPOSITORY] Getting SLA workflow by ID:', id);
+
+    // Return null for now since workflows table doesn't exist yet
+    return null;
+  }
+
+  async updateSlaWorkflow(id: string, tenantId: string, updates: any): Promise<any | null> {
+    console.log('[SLA-REPOSITORY] Updating SLA workflow:', id);
+
+    // Return null for now since workflows table doesn't exist yet
+    return null;
+  }
+
+  async deleteSlaWorkflow(id: string, tenantId: string): Promise<boolean> {
+    console.log('[SLA-REPOSITORY] Deleting SLA workflow:', id);
+
+    // Return false for now since workflows table doesn't exist yet
+    return false;
   }
 
   // ===== ANALYTICS & REPORTING =====
