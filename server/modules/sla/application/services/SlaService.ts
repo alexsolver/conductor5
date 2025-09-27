@@ -306,23 +306,29 @@ export class SlaService {
       throw new Error('Invalid SLA type. Must be SLA, OLA, or UC');
     }
 
-    // Validate time targets - this is the missing piece
-    if (!data.timeTargets || !Array.isArray(data.timeTargets) || data.timeTargets.length === 0) {
+    // Validate time targets - check both new and legacy formats
+    const hasTimeTargets = data.timeTargets && Array.isArray(data.timeTargets) && data.timeTargets.length > 0;
+    const hasLegacyTargets = data.responseTimeMinutes || data.resolutionTimeMinutes || 
+                            data.updateTimeMinutes || data.idleTimeMinutes;
+    
+    if (!hasTimeTargets && !hasLegacyTargets) {
       throw new Error('At least one time target must be specified. Example: [{"metric": "response_time", "target": 30, "unit": "minutes", "priority": "high"}]');
     }
 
-    // Validate each time target
-    data.timeTargets.forEach((target: any, index: number) => {
-      if (!target.metric || typeof target.metric !== 'string') {
-        throw new Error(`Time target ${index + 1}: metric is required and must be a string`);
-      }
-      if (!target.target || typeof target.target !== 'number' || target.target <= 0) {
-        throw new Error(`Time target ${index + 1}: target must be a positive number`);
-      }
-      if (!target.unit || !['minutes', 'hours', 'days'].includes(target.unit)) {
-        throw new Error(`Time target ${index + 1}: unit must be 'minutes', 'hours', or 'days'`);
-      }
-    });
+    // Validate each time target if timeTargets array is provided
+    if (hasTimeTargets) {
+      data.timeTargets.forEach((target: any, index: number) => {
+        if (!target.metric || typeof target.metric !== 'string') {
+          throw new Error(`Time target ${index + 1}: metric is required and must be a string`);
+        }
+        if (!target.target || typeof target.target !== 'number' || target.target <= 0) {
+          throw new Error(`Time target ${index + 1}: target must be a positive number`);
+        }
+        if (!target.unit || !['minutes', 'hours', 'days'].includes(target.unit)) {
+          throw new Error(`Time target ${index + 1}: unit must be 'minutes', 'hours', or 'days'`);
+        }
+      });
+    }
   }
 
   // ===== SLA WORKFLOWS =====

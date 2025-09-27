@@ -137,9 +137,12 @@ export class SlaController {
         Object.assign(transformedBody, timeTargetsMap);
       }
 
-      // Ensure at least one time target is specified
-      if (!transformedBody.responseTimeMinutes && !transformedBody.resolutionTimeMinutes && 
-          !transformedBody.updateTimeMinutes && !transformedBody.idleTimeMinutes) {
+      // Check if we have time targets (either in the new or legacy format)
+      const hasTimeTargets = req.body.timeTargets && Array.isArray(req.body.timeTargets) && req.body.timeTargets.length > 0;
+      const hasLegacyTargets = transformedBody.responseTimeMinutes || transformedBody.resolutionTimeMinutes || 
+                              transformedBody.updateTimeMinutes || transformedBody.idleTimeMinutes;
+      
+      if (!hasTimeTargets && !hasLegacyTargets) {
         res.status(400).json({
           success: false,
           error: 'At least one time target must be specified. Example: [{"metric": "response_time", "target": 30, "unit": "minutes", "priority": "high"}]'
