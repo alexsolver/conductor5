@@ -41,7 +41,7 @@ export interface INotificationRepository {
   create(notification: NotificationEntity, tenantId: string): Promise<NotificationEntity>;
   findById(id: string, tenantId: string): Promise<NotificationEntity | null>;
   update(notification: NotificationEntity, tenantId: string): Promise<NotificationEntity>;
-  delete(id: string, tenantId: string): Promise<void>;
+  delete(id: string, tenantId: string): Promise<boolean>;
   
   // Query operations
   findMany(filters: NotificationFilters, tenantId: string, limit?: number, offset?: number): Promise<NotificationEntity[]>;

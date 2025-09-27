@@ -83,8 +83,8 @@ export class DrizzleNotificationRepository implements INotificationRepository {
     return this.mapToEntity(updated);
   }
 
-  async delete(id: string, tenantId: string): Promise<void> {
-    await db
+  async delete(id: string, tenantId: string): Promise<boolean> {
+    const result = await db
       .update(notifications)
       .set({ 
         isActive: false, 
@@ -93,7 +93,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       .where(and(
         eq(notifications.id, id),
         eq(notifications.tenantId, tenantId)
-      ));
+      ))
+      .returning({ id: notifications.id });
+
+    return result.length > 0;
   }
 
   async findMany(
