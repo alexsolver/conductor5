@@ -816,8 +816,20 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log('📤 [ActionExecutor] Executing send_notification action:', action);
 
+      // ✅ 1QA.MD: Extrair dados dos params ou config com fallbacks seguros
+      const config = action.config || {};
+      const params = action.params || {};
+      
+      // Tentar extrair de params primeiro, depois config
+      const users = params.users || config.users || config.recipients || [];
+      const groups = params.groups || config.groups || [];
+      const subject = params.subject || config.subject || config.title || 'OmniBridge Automation Notification';
+      const message = params.message || config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
+      const channels = params.channels || config.channels || ['in_app'];
+      const priority = params.priority || config.priority || 'medium';
+
       // ✅ 1QA.MD: Validar se há usuários especificados
-      if (!action.config.users && !action.config.groups && !action.config.recipients) {
+      if (!users && !groups) {
         const errorMessage = 'At least one user or group must be specified for send_notification action';
         console.error('❌ [ActionExecutor] Error in notification action:', errorMessage);
 
@@ -827,15 +839,6 @@ export class ActionExecutor implements IActionExecutorPort {
           error: errorMessage
         };
       }
-
-      // ✅ 1QA.MD: Extrair dados da configuração com fallbacks seguros
-      const config = action.config || {};
-      const users = config.users || config.recipients || [];
-      const groups = config.groups || [];
-      const subject = config.subject || config.title || 'OmniBridge Automation Notification';
-      const message = config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
-      const channels = config.channels || ['in_app'];
-      const priority = config.priority || 'medium';
 
       console.log('🔍 [ActionExecutor] Notification config extracted:', {
         users: users.length,
