@@ -115,46 +115,46 @@ export const slaMetricTypeEnum = z.enum([
 export const slaDefinitions = pgTable("sla_definitions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Basic SLA information
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   type: varchar("type", { length: 20 }).notNull(), // SLA, OLA, UC
   status: varchar("status", { length: 20 }).default('active'),
   priority: varchar("priority", { length: 20 }).default('medium'),
-  
+
   // Validity period
   validFrom: timestamp("valid_from").notNull(),
   validUntil: timestamp("valid_until"),
-  
+
   // Application rules - Query Builder conditions
   applicationRules: jsonb("application_rules").notNull(), // Query builder rules for ticket field association
-  
+
   // Target metrics
   responseTimeMinutes: integer("response_time_minutes"),
   resolutionTimeMinutes: integer("resolution_time_minutes"),
   updateTimeMinutes: integer("update_time_minutes"),
   idleTimeMinutes: integer("idle_time_minutes"),
-  
+
   // Working calendar
   businessHoursOnly: boolean("business_hours_only").default(true),
   workingDays: jsonb("working_days").default([1,2,3,4,5]), // 0=Sunday, 1=Monday, etc.
   workingHours: jsonb("working_hours").default({start: "08:00", end: "18:00"}),
   timezone: varchar("timezone", { length: 100 }).default("America/Sao_Paulo"),
-  
+
   // Escalation settings
   escalationEnabled: boolean("escalation_enabled").default(false),
   escalationThresholdPercent: integer("escalation_threshold_percent").default(80),
   escalationActions: jsonb("escalation_actions").default([]),
-  
+
   // Pause/Resume conditions
   pauseConditions: jsonb("pause_conditions").default([]),
   resumeConditions: jsonb("resume_conditions").default([]),
   stopConditions: jsonb("stop_conditions").default([]),
-  
+
   // Automation workflows
   workflowActions: jsonb("workflow_actions").default([]),
-  
+
   // System fields
   isActive: boolean("is_active").default(true),
   createdBy: uuid("created_by"),
@@ -171,17 +171,17 @@ export const slaDefinitions = pgTable("sla_definitions", {
 export const slaWorkflows = pgTable("sla_workflows", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Basic workflow information
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   isActive: boolean("is_active").default(true),
-  
+
   // Workflow configuration
   triggers: jsonb("triggers").notNull(), // Array of trigger configurations
   actions: jsonb("actions").notNull(),   // Array of action configurations
   metadata: jsonb("metadata").default({}),
-  
+
   // System fields
   createdBy: uuid("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -197,18 +197,18 @@ export const slaWorkflowExecutions = pgTable("sla_workflow_executions", {
   id: uuid("id").primaryKey().defaultRandom(),
   workflowId: uuid("workflow_id").notNull(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Execution details
   triggeredBy: varchar("triggered_by", { length: 255 }).notNull(),
   triggeredAt: timestamp("triggered_at").notNull(),
   status: varchar("status", { length: 20 }).default('pending'),
   context: jsonb("context").notNull(),
   executedActions: jsonb("executed_actions").default([]),
-  
+
   // Result tracking
   error: text("error"),
   completedAt: timestamp("completed_at"),
-  
+
   // System fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -223,52 +223,52 @@ export const slaWorkflowExecutions = pgTable("sla_workflow_executions", {
 export const slaInstances = pgTable("sla_instances", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Reference to SLA definition and ticket
   slaDefinitionId: uuid("sla_definition_id").notNull(),
   ticketId: uuid("ticket_id").notNull(),
-  
+
   // SLA lifecycle
   startedAt: timestamp("started_at").notNull(),
   pausedAt: timestamp("paused_at"),
   resumedAt: timestamp("resumed_at"),
   completedAt: timestamp("completed_at"),
   violatedAt: timestamp("violated_at"),
-  
+
   // Current status
   status: varchar("status", { length: 20 }).notNull(), // running, paused, completed, violated
   currentMetric: varchar("current_metric", { length: 20 }).notNull(), // response_time, resolution_time, etc.
-  
+
   // Time tracking
   elapsedMinutes: integer("elapsed_minutes").default(0),
   pausedMinutes: integer("paused_minutes").default(0),
   targetMinutes: integer("target_minutes").notNull(),
   remainingMinutes: integer("remaining_minutes").notNull(),
-  
+
   // Performance metrics
   responseTimeMinutes: integer("response_time_minutes"),
   resolutionTimeMinutes: integer("resolution_time_minutes"),
   idleTimeMinutes: integer("idle_time_minutes").default(0),
-  
+
   // Breach tracking
   isBreached: boolean("is_breached").default(false),
   breachDurationMinutes: integer("breach_duration_minutes").default(0),
   breachPercentage: real("breach_percentage").default(0),
-  
+
   // Last update tracking
   lastActivityAt: timestamp("last_activity_at"),
   lastAgentActivityAt: timestamp("last_agent_activity_at"),
   lastCustomerActivityAt: timestamp("last_customer_activity_at"),
-  
+
   // Escalation tracking
   escalationLevel: integer("escalation_level").default(0),
   escalatedAt: timestamp("escalated_at"),
   escalatedTo: uuid("escalated_to"),
-  
+
   // Automation tracking
   automationTriggered: boolean("automation_triggered").default(false),
   automationActions: jsonb("automation_actions").default([]),
-  
+
   // System fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -286,29 +286,29 @@ export const slaInstances = pgTable("sla_instances", {
 export const slaEvents = pgTable("sla_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Reference to SLA instance
   slaInstanceId: uuid("sla_instance_id").notNull(),
   ticketId: uuid("ticket_id").notNull(),
-  
+
   // Event details
   eventType: varchar("event_type", { length: 50 }).notNull(), // started, paused, resumed, completed, violated, escalated
   eventReason: varchar("event_reason", { length: 100 }), // why the event happened
   previousStatus: varchar("previous_status", { length: 20 }),
   newStatus: varchar("new_status", { length: 20 }),
-  
+
   // Time tracking at event
   elapsedMinutesAtEvent: integer("elapsed_minutes_at_event").default(0),
   remainingMinutesAtEvent: integer("remaining_minutes_at_event").default(0),
-  
+
   // Trigger information
   triggeredBy: varchar("triggered_by", { length: 50 }), // system, user, automation
   triggeredByUserId: uuid("triggered_by_user_id"),
   triggerCondition: text("trigger_condition"),
-  
+
   // Event data
   eventData: jsonb("event_data").default({}),
-  
+
   // System fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
@@ -323,37 +323,37 @@ export const slaEvents = pgTable("sla_events", {
 export const slaViolations = pgTable("sla_violations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Reference to SLA instance
   slaInstanceId: uuid("sla_instance_id").notNull(),
   ticketId: uuid("ticket_id").notNull(),
   slaDefinitionId: uuid("sla_definition_id").notNull(),
-  
+
   // Violation details
   violationType: varchar("violation_type", { length: 50 }).notNull(), // response_time, resolution_time, update_time, idle_time
   targetMinutes: integer("target_minutes").notNull(),
   actualMinutes: integer("actual_minutes").notNull(),
   violationMinutes: integer("violation_minutes").notNull(),
   violationPercentage: real("violation_percentage").notNull(),
-  
+
   // Impact assessment
   severityLevel: varchar("severity_level", { length: 20 }).default('medium'),
   businessImpact: text("business_impact"),
-  
+
   // Resolution tracking
   acknowledged: boolean("acknowledged").default(false),
   acknowledgedBy: uuid("acknowledged_by"),
   acknowledgedAt: timestamp("acknowledged_at"),
-  
+
   resolved: boolean("resolved").default(false),
   resolvedBy: uuid("resolved_by"),
   resolvedAt: timestamp("resolved_at"),
   resolutionNotes: text("resolution_notes"),
-  
+
   // Root cause analysis
   rootCause: text("root_cause"),
   preventiveActions: text("preventive_actions"),
-  
+
   // System fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -370,33 +370,33 @@ export const slaViolations = pgTable("sla_violations", {
 export const slaReports = pgTable("sla_reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Report identification
   reportType: varchar("report_type", { length: 50 }).notNull(), // daily, weekly, monthly, custom
   reportPeriod: varchar("report_period", { length: 50 }).notNull(), // 2025-01, 2025-W01, 2025-01-15, etc.
   generatedAt: timestamp("generated_at").notNull(),
-  
+
   // SLA performance metrics
   totalTickets: integer("total_tickets").default(0),
   slaMetTickets: integer("sla_met_tickets").default(0),
   slaViolatedTickets: integer("sla_violated_tickets").default(0),
   slaCompliancePercentage: real("sla_compliance_percentage").default(0),
-  
+
   // Time metrics
   avgResponseTimeMinutes: real("avg_response_time_minutes").default(0),
   avgResolutionTimeMinutes: real("avg_resolution_time_minutes").default(0),
   avgIdleTimeMinutes: real("avg_idle_time_minutes").default(0),
-  
+
   // Escalation metrics
   totalEscalations: integer("total_escalations").default(0),
   escalationRate: real("escalation_rate").default(0),
-  
+
   // Detailed metrics by SLA definition
   slaMetrics: jsonb("sla_metrics").default({}),
-  
+
   // Trend analysis
   trendData: jsonb("trend_data").default({}),
-  
+
   // System fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
@@ -428,7 +428,7 @@ export const insertSlaDefinitionSchema = createInsertSchema(slaDefinitions).omit
   applicationRules: queryBuilderSchema,
   // Aceitar strings de data ISO e convertê-las automaticamente para Date
   validFrom: z.string().transform((val) => new Date(val)),
-  validUntil: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  validUntil: z.string().optional().nullable().transform((val) => val ? new Date(val) : undefined),
 });
 
 export const insertSlaInstanceSchema = createInsertSchema(slaInstances).omit({
