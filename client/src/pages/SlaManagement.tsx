@@ -187,9 +187,10 @@ const workflowSchema = z.object({
     value: z.string()
   })),
   actions: z.array(z.object({
-    type: z.enum(['send_email', 'create_ticket', 'escalate', 'notify_slack', 'webhook']),
-    config: z.record(z.any())
-  })),
+    id: z.string().optional(),
+    type: z.enum(['notify', 'escalate', 'assign', 'update_field', 'pause_sla', 'resume_sla', 'create_task']),
+    config: z.record(z.any()).optional()
+  })).default([]),
   isActive: z.boolean(),
   priority: z.number().min(1).max(10)
 });
@@ -381,7 +382,16 @@ export default function SlaManagement() {
       description: '',
       trigger: 'sla_breach',
       conditions: [],
-      actions: [],
+      actions: [
+        {
+          id: 'default-notify',
+          type: 'notify',
+          config: {
+            message: 'SLA workflow triggered',
+            recipients: ['admin']
+          }
+        }
+      ],
       isActive: true,
       priority: 5
     },
@@ -415,6 +425,17 @@ export default function SlaManagement() {
     const transformedValues = {
       ...values,
       triggers: [{ type: values.trigger }], // Converter para formato array
+      // Garantir que pelo menos uma ação seja especificada
+      actions: values.actions.length > 0 ? values.actions : [
+        {
+          id: 'default-action',
+          type: 'notify',
+          config: {
+            message: 'SLA workflow triggered',
+            recipients: ['admin']
+          }
+        }
+      ],
       // Remove o campo trigger singular
       trigger: undefined
     };
