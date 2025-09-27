@@ -44,7 +44,8 @@ import {
   Code,
   Settings2,
   Filter,
-  X
+  X,
+  Workflow // Import Workflow icon
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
