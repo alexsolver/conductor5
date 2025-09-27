@@ -186,7 +186,8 @@ export class SlaWorkflowDomainService {
    * Prepares action execution parameters
    */
   prepareActionExecution(action: SlaWorkflowAction, context: Record<string, any>): Record<string, any> {
-    const baseParams = { ...action.parameters };
+    // Get parameters from either parameters or config property
+    const baseParams = { ...(action.parameters || (action as any).config || {}) };
 
     // Inject context variables into action parameters
     return this.interpolateContextVariables(baseParams, context);

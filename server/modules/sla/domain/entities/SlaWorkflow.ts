@@ -21,9 +21,10 @@ export interface SlaWorkflowCondition {
 export interface SlaWorkflowAction {
   id: string;
   type: 'notify' | 'escalate' | 'assign' | 'update_field' | 'pause_sla' | 'resume_sla' | 'create_task';
-  parameters: Record<string, any>;
+  parameters?: Record<string, any>;
+  config?: Record<string, any>; // Alternative property name for parameters
   delay?: number; // milliseconds
-  order: number;
+  order?: number; // Make optional since frontend may not always provide it
 }
 
 export interface SlaWorkflowExecution {
@@ -165,21 +166,24 @@ export class SlaWorkflow {
   }
 
   validateActionParameters(action: SlaWorkflowAction): boolean {
+    // Get parameters from either parameters or config property
+    const params = action.parameters || (action as any).config || {};
+    
     // Validate required parameters for each action type
     switch (action.type) {
       case 'notify':
-        return !!(action.parameters.recipients && action.parameters.message);
+        return !!(params.recipients && (params.message || params.message === ''));
       case 'escalate':
-        return !!(action.parameters.targetUserId || action.parameters.targetTeamId);
+        return !!(params.targetUserId || params.targetTeamId);
       case 'assign':
-        return !!(action.parameters.userId);
+        return !!(params.userId);
       case 'update_field':
-        return !!(action.parameters.field && action.parameters.value !== undefined);
+        return !!(params.field && params.value !== undefined);
       case 'pause_sla':
       case 'resume_sla':
         return true; // No specific parameters required
       case 'create_task':
-        return !!(action.parameters.title && action.parameters.assignedTo);
+        return !!(params.title && params.assignedTo);
       default:
         return false;
     }

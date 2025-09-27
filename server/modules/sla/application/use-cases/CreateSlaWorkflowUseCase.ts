@@ -29,14 +29,30 @@ export class CreateSlaWorkflowUseCase {
       throw new Error('At least one action is required');
     }
 
+    // Normalize actions structure and add missing properties
+    const normalizedActions = data.actions.map((action, index) => ({
+      ...action,
+      id: action.id || `action_${Date.now()}_${index}`,
+      parameters: action.parameters || action.config || {},
+      order: action.order || index + 1
+    }));
+
+    // Normalize triggers structure
+    const normalizedTriggers = data.triggers.map((trigger, index) => ({
+      id: trigger.id || `trigger_${Date.now()}_${index}`,
+      type: trigger.type,
+      conditions: trigger.conditions || [],
+      schedule: trigger.schedule
+    }));
+
     // Create the workflow
     const workflow = await this.slaWorkflowRepository.create({
       tenantId: data.tenantId,
       name: data.name.trim(),
       description: data.description?.trim() || '',
       isActive: data.isActive ?? true,
-      triggers: data.triggers,
-      actions: data.actions,
+      triggers: normalizedTriggers,
+      actions: normalizedActions,
       metadata: data.metadata || {}
     });
 
