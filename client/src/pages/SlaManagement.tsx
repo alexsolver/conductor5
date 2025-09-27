@@ -547,6 +547,12 @@ export default function SlaManagement() {
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar Novo SLA</DialogTitle>
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500">*</span>
+                    <span>Campos obrigatórios</span>
+                  </div>
+                </div>
               </DialogHeader>
               <SlaForm 
                 form={form} 
@@ -989,7 +995,15 @@ export default function SlaManagement() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar SLA</DialogTitle>
+            <DialogTitle>
+              {selectedSla ? 'Editar SLA' : 'Criar Novo SLA'}
+            </DialogTitle>
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+              <div className="flex items-center gap-2">
+                <span className="text-red-500">*</span>
+                <span>Campos obrigatórios</span>
+              </div>
+            </div>
           </DialogHeader>
           <SlaForm 
             form={form} 
@@ -1004,7 +1018,13 @@ export default function SlaManagement() {
       <Dialog open={isWorkflowDialogOpen} onOpenChange={setIsWorkflowDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Workflow de Automação</DialogTitle>
+            <DialogTitle>Criar Workflow de Automação</DialogTitle>
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+              <div className="flex items-center gap-2">
+                <span className="text-red-500">*</span>
+                <span>Campos obrigatórios</span>
+              </div>
+            </div>
           </DialogHeader>
           <WorkflowForm 
             form={workflowForm} 
@@ -1040,13 +1060,20 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Nome *</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Nome do SLA 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} data-testid="input-sla-name" />
+                    <Input 
+                      placeholder="Digite o nome do SLA" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1054,13 +1081,20 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Descrição</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Descrição 
+                    <span className="text-gray-500 text-sm">(opcional)</span>
+                  </FormLabel>
                   <FormControl>
-                    <Textarea {...field} data-testid="textarea-sla-description" />
+                    <Textarea 
+                      placeholder="Descreva o SLA" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1068,12 +1102,15 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="type"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Tipo *</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Tipo 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-sla-type">
+                      <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                     </FormControl>
@@ -1083,7 +1120,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                       <SelectItem value="UC">UC - Underpinning Contract</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1091,12 +1128,15 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="priority"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Prioridade *</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Prioridade 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-sla-priority">
+                      <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
                         <SelectValue placeholder="Selecione a prioridade" />
                       </SelectTrigger>
                     </FormControl>
@@ -1107,7 +1147,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                       <SelectItem value="critical">Crítica</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1116,7 +1156,11 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           {/* Time Targets Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">Metas de Tempo</Label>
+              <Label className="text-base font-medium flex items-center gap-1">
+                Metas de Tempo 
+                <span className="text-red-500">*</span>
+                <span className="text-sm text-gray-500">(pelo menos uma meta é obrigatória)</span>
+              </Label>
               <Button
                 type="button"
                 variant="outline"
@@ -1206,6 +1250,51 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           </div>
         </div>
 
+        {/* Date Range */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="validFrom"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Data de Início 
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date" 
+                    className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="validUntil"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Data de Fim 
+                  <span className="text-gray-500 text-sm">(opcional)</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date" 
+                    className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+        </div>
+
         {/* Working Hours */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Horário de Funcionamento</h3>
@@ -1236,13 +1325,18 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="workingHours.start"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Início</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} data-testid="input-working-start" />
+                    <Input 
+                      type="time" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                      data-testid="input-working-start"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1250,13 +1344,18 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="workingHours.end"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Fim</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} data-testid="input-working-end" />
+                    <Input 
+                      type="time" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                      data-testid="input-working-end"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1293,20 +1392,24 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             <FormField
               control={form.control}
               name="escalationThresholdPercent"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Limite de Escalonamento (%)</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Limite de Escalonamento (%)
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       min="0" 
                       max="100" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
                       {...field} 
                       onChange={(e) => field.onChange(parseInt(e.target.value))}
                       data-testid="input-escalation-threshold"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1377,13 +1480,20 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Nome do Workflow *</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Nome do Workflow 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Ex: Notificar violação SLA crítica" data-testid="input-workflow-name" />
+                    <Input 
+                      placeholder="Digite o nome do workflow" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1391,13 +1501,20 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
+              render={({ field, fieldState }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel className="flex items-center gap-1">
+                    Descrição 
+                    <span className="text-gray-500 text-sm">(opcional)</span>
+                  </FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Descreva o objetivo deste workflow" data-testid="textarea-workflow-description" />
+                    <Textarea 
+                      placeholder="Descreva o workflow e sua finalidade"
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1405,24 +1522,27 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="trigger"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Evento Disparador *</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Gatilho 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-workflow-trigger">
-                        <SelectValue placeholder="Selecione o evento" />
+                      <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
+                        <SelectValue placeholder="Selecione o gatilho" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="sla_breach">SLA Violado</SelectItem>
-                      <SelectItem value="sla_warning">Aviso de SLA (75%)</SelectItem>
+                      <SelectItem value="sla_breach">Violação de SLA</SelectItem>
+                      <SelectItem value="sla_warning">Alerta de SLA</SelectItem>
                       <SelectItem value="sla_met">SLA Cumprido</SelectItem>
                       <SelectItem value="instance_created">Instância Criada</SelectItem>
                       <SelectItem value="instance_closed">Instância Fechada</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1430,20 +1550,25 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="priority"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Prioridade de Execução</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Prioridade 
+                    <span className="text-red-500">*</span>
+                    <span className="text-sm text-gray-500">(1-10)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       min="1" 
                       max="10" 
-                      {...field} 
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      data-testid="input-workflow-priority"
+                      placeholder="1-10" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1476,7 +1601,11 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             />
 
             <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-3">Ações Rápidas</h4>
+              <h4 className="font-medium mb-3 flex items-center gap-1">
+                Ações do Workflow 
+                <span className="text-red-500">*</span>
+                <span className="text-sm text-gray-500">(pelo menos uma ação é obrigatória)</span>
+              </h4>
               <div className="space-y-2">
                 <Button 
                   type="button" 
