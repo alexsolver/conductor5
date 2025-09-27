@@ -1,0 +1,33 @@
+GET https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/sla/instances/ticket/77555905-a078-4b52-b8e2-30c8e6be58c7 500
+
+Request Headers
+
+x-tenant-id: 3f99462f-3621-4b1b-bea8-782acc50d62e
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 55
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Sat, 27 Sep 2025 02:05:01 GMT
+etag: W/"37-LqgFf3K8BgxEozN9UMFmTQAHiaw"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-28T02:05:01.410Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"error":"Failed to get SLA instances"}
