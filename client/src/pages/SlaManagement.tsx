@@ -138,17 +138,14 @@ interface SlaComplianceStats {
   escalationRate: number;
 }
 
+// Form schemas
 const slaDefinitionSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   type: z.enum(['SLA', 'OLA', 'UC']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
-  validFrom: z.string(),
+  validFrom: z.string().min(1, 'Data de início é obrigatória'),
   validUntil: z.string().optional(),
-  responseTimeMinutes: z.number().min(1).optional(),
-  resolutionTimeMinutes: z.number().min(1).optional(),
-  updateTimeMinutes: z.number().min(1).optional(),
-  idleTimeMinutes: z.number().min(1).optional(),
   businessHoursOnly: z.boolean(),
   workingDays: z.array(z.number()),
   workingHours: z.object({
@@ -157,16 +154,21 @@ const slaDefinitionSchema = z.object({
   }),
   timezone: z.string(),
   escalationEnabled: z.boolean(),
-  escalationThresholdPercent: z.number().min(0).max(100),
+  escalationThresholdPercent: z.number().min(1).max(100),
+  timeTargets: z.array(z.object({
+    metric: z.string(),
+    target: z.number().min(1),
+    unit: z.enum(['minutes', 'hours', 'days']),
+    priority: z.enum(['low', 'medium', 'high', 'critical']).optional()
+  })).min(1, 'Pelo menos uma meta de tempo deve ser especificada'),
   applicationRules: z.object({
     rules: z.array(z.object({
       field: z.string(),
-      operator: z.string(),
-      value: z.union([z.string(), z.number(), z.array(z.string())]),
-      logicalOperator: z.string().optional()
+      operator: z.enum(['equals', 'not_equals', 'greater_than', 'less_than', 'contains']),
+      value: z.string()
     })),
-    logicalOperator: z.string().default('AND')
-  }).optional(),
+    logicalOperator: z.enum(['AND', 'OR'])
+  }),
   escalationActions: z.array(z.any()),
   pauseConditions: z.array(z.any()),
   resumeConditions: z.array(z.any()),
@@ -230,7 +232,7 @@ export default function SlaManagement() {
 
   // Estado para controle do workflow
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
-  
+
   // Queries para workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
@@ -353,16 +355,15 @@ export default function SlaManagement() {
       priority: 'medium',
       validFrom: new Date().toISOString().split('T')[0],
       validUntil: '',
-      responseTimeMinutes: undefined,
-      resolutionTimeMinutes: undefined,
-      updateTimeMinutes: undefined,
-      idleTimeMinutes: undefined,
       businessHoursOnly: true,
       workingDays: [1, 2, 3, 4, 5],
       workingHours: { start: '08:00', end: '18:00' },
       timezone: 'America/Sao_Paulo',
       escalationEnabled: false,
       escalationThresholdPercent: 80,
+      timeTargets: [
+        { metric: 'response_time', target: 30, unit: 'minutes', priority: 'medium' }
+      ],
       applicationRules: { rules: [], logicalOperator: 'AND' },
       escalationActions: [],
       pauseConditions: [],
@@ -417,7 +418,7 @@ export default function SlaManagement() {
       // Remove o campo trigger singular
       trigger: undefined
     };
-    
+
     createWorkflowMutation.mutate(transformedValues);
   };
 
@@ -430,16 +431,18 @@ export default function SlaManagement() {
       priority: sla.priority,
       validFrom: sla.validFrom,
       validUntil: sla.validUntil,
-      responseTimeMinutes: sla.responseTimeMinutes,
-      resolutionTimeMinutes: sla.resolutionTimeMinutes,
-      updateTimeMinutes: sla.updateTimeMinutes,
-      idleTimeMinutes: sla.idleTimeMinutes,
+      // Remove time related fields from here as they are now in timeTargets
+      // responseTimeMinutes: sla.responseTimeMinutes,
+      // resolutionTimeMinutes: sla.resolutionTimeMinutes,
+      // updateTimeMinutes: sla.updateTimeMinutes,
+      // idleTimeMinutes: sla.idleTimeMinutes,
       businessHoursOnly: sla.businessHoursOnly,
       workingDays: sla.workingDays,
       workingHours: sla.workingHours,
       timezone: sla.timezone,
       escalationEnabled: sla.escalationEnabled,
       escalationThresholdPercent: sla.escalationThresholdPercent,
+      timeTargets: sla.timeTargets || [{ metric: 'response_time', target: 30, unit: 'minutes', priority: 'medium' }],
       applicationRules: sla.applicationRules as any || { rules: [], logicalOperator: 'AND' },
       escalationActions: sla.escalationActions,
       pauseConditions: sla.pauseConditions,
@@ -655,15 +658,11 @@ export default function SlaManagement() {
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{sla.description}</p>
                       <div className="flex space-x-4 text-xs text-gray-500">
-                        {sla.responseTimeMinutes && (
-                          <span>Resposta: {sla.responseTimeMinutes}min</span>
-                        )}
-                        {sla.resolutionTimeMinutes && (
-                          <span>Resolução: {sla.resolutionTimeMinutes}min</span>
-                        )}
-                        {sla.idleTimeMinutes && (
-                          <span>Ocioso: {sla.idleTimeMinutes}min</span>
-                        )}
+                        {sla.timeTargets?.map((target) => (
+                          <span key={target.metric}>
+                            {target.metric.replace('_', ' ')}: {target.target} {target.unit} ({target.priority})
+                          </span>
+                        ))}
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -686,7 +685,7 @@ export default function SlaManagement() {
                     </div>
                   </div>
                 ))}
-                
+
                 {(!slaDefinitions?.data || slaDefinitions.data.length === 0) && (
                   <div className="text-center py-8">
                     <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -1015,7 +1014,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Informações Básicas</h3>
-            
+
             <FormField
               control={form.control}
               name="name"
@@ -1092,92 +1091,103 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
             />
           </div>
 
-          {/* Time Targets */}
+          {/* Time Targets Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Metas de Tempo</h3>
-            
-            <FormField
-              control={form.control}
-              name="responseTimeMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tempo de Resposta (minutos)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                      data-testid="input-response-time"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Metas de Tempo</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentTargets = form.getValues('timeTargets') || [];
+                  form.setValue('timeTargets', [
+                    ...currentTargets,
+                    { metric: 'response_time', target: 30, unit: 'minutes', priority: 'medium' }
+                  ]);
+                }}
+              >
+                Adicionar Meta
+              </Button>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="resolutionTimeMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tempo de Resolução (minutos)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                      data-testid="input-resolution-time"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {form.watch('timeTargets')?.map((target, index) => (
+              <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                <div className="flex-1">
+                  <Select
+                    value={target.metric}
+                    onValueChange={(value) => {
+                      const targets = form.getValues('timeTargets');
+                      targets[index].metric = value;
+                      form.setValue('timeTargets', targets);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Métrica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="response_time">Tempo de Resposta</SelectItem>
+                      <SelectItem value="resolution_time">Tempo de Resolução</SelectItem>
+                      <SelectItem value="update_time">Tempo de Atualização</SelectItem>
+                      <SelectItem value="idle_time">Tempo Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <FormField
-              control={form.control}
-              name="updateTimeMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tempo de Atualização (minutos)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                      data-testid="input-update-time"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <div className="w-20">
+                  <Input
+                    type="number"
+                    value={target.target}
+                    onChange={(e) => {
+                      const targets = form.getValues('timeTargets');
+                      targets[index].target = parseInt(e.target.value) || 0;
+                      form.setValue('timeTargets', targets);
+                    }}
+                    placeholder="Valor"
+                  />
+                </div>
 
-            <FormField
-              control={form.control}
-              name="idleTimeMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tempo Ocioso Máximo (minutos)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                      data-testid="input-idle-time"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <div className="w-24">
+                  <Select
+                    value={target.unit}
+                    onValueChange={(value) => {
+                      const targets = form.getValues('timeTargets');
+                      targets[index].unit = value as 'minutes' | 'hours' | 'days';
+                      form.setValue('timeTargets', targets);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minutes">Minutos</SelectItem>
+                      <SelectItem value="hours">Horas</SelectItem>
+                      <SelectItem value="days">Dias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const targets = form.getValues('timeTargets');
+                    targets.splice(index, 1);
+                    form.setValue('timeTargets', targets);
+                  }}
+                >
+                  Remover
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Working Hours */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Horário de Funcionamento</h3>
-          
+
           <FormField
             control={form.control}
             name="businessHoursOnly"
@@ -1234,7 +1244,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
         {/* Escalation */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Configurações de Escalonamento</h3>
-          
+
           <FormField
             control={form.control}
             name="escalationEnabled"
@@ -1341,7 +1351,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Informações Básicas</h3>
-            
+
             <FormField
               control={form.control}
               name="name"
@@ -1466,7 +1476,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                   <Plus className="w-3 h-3 mr-1" />
                   Adicionar Email
                 </Button>
-                
+
                 <Button 
                   type="button" 
                   variant="outline" 
