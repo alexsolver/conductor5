@@ -821,15 +821,22 @@ export class ActionExecutor implements IActionExecutorPort {
       const params = action.params || {};
       
       // Tentar extrair de params primeiro, depois config
-      const users = params.users || config.users || config.recipients || [];
-      const groups = params.groups || config.groups || [];
+      const rawUsers = params.users || config.users || config.recipients || [];
+      const rawGroups = params.groups || config.groups || [];
+      
+      // Garantir que users e groups sejam arrays
+      const users = Array.isArray(rawUsers) ? rawUsers : 
+                    (typeof rawUsers === 'string' && rawUsers.trim()) ? rawUsers.split(',').map(u => u.trim()) : [];
+      const groups = Array.isArray(rawGroups) ? rawGroups : 
+                     (typeof rawGroups === 'string' && rawGroups.trim()) ? rawGroups.split(',').map(g => g.trim()) : [];
+      
       const subject = params.subject || config.subject || config.title || 'OmniBridge Automation Notification';
       const message = params.message || config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
       const channels = params.channels || config.channels || ['in_app'];
       const priority = params.priority || config.priority || 'medium';
 
       // ✅ 1QA.MD: Validar se há usuários especificados
-      if (!users && !groups) {
+      if (users.length === 0 && groups.length === 0) {
         const errorMessage = 'At least one user or group must be specified for send_notification action';
         console.error('❌ [ActionExecutor] Error in notification action:', errorMessage);
 
