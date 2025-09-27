@@ -577,6 +577,44 @@ CREATE TABLE IF NOT EXISTS approval_workflows (
 -- KNOWLEDGE BASE
 -- ==============================
 
+-- Create enums for knowledge base
+CREATE TYPE IF NOT EXISTS knowledge_base_status AS ENUM (
+    'draft',
+    'pending_approval',
+    'approved',
+    'published',
+    'archived',
+    'rejected'
+);
+
+CREATE TYPE IF NOT EXISTS knowledge_base_category AS ENUM (
+    'technical_support',
+    'troubleshooting', 
+    'user_guide',
+    'faq',
+    'policy',
+    'process',
+    'training',
+    'announcement',
+    'best_practice',
+    'configuration',
+    'other'
+);
+
+CREATE TYPE IF NOT EXISTS knowledge_base_visibility AS ENUM (
+    'public',
+    'internal',
+    'restricted',
+    'private'
+);
+
+CREATE TYPE IF NOT EXISTS knowledge_base_approval_status AS ENUM (
+    'pending',
+    'approved',
+    'rejected',
+    'needs_revision'
+);
+
 CREATE TABLE IF NOT EXISTS knowledge_base_articles (
     id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,

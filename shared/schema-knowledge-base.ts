@@ -80,7 +80,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   authorId: uuid("author_id"),
 
   // Categorization - using enum as in actual DB (corrected field name)
-  category: knowledgeBaseCategoryEnum("category"),
+  category: knowledgeBaseCategoryEnum("category").default("other"),
   
   // Status & Visibility - using enums as in actual DB
   status: knowledgeBaseStatusEnum("status"),

@@ -160,11 +160,11 @@ export class KnowledgeBaseApplicationService {
       };
 
       // Prepare article for insertion with correct field mapping - matching database structure
+      // Use category field to match schema
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        // This is the fix: use categoryId instead of category
-        categoryId: categoryMapping[articleData.category] || 'other',
+        category: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
