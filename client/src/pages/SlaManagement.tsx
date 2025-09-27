@@ -925,8 +925,8 @@ export default function SlaManagement() {
                   <GitBranch className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-gray-600">0 ativos</p>
+                  <div className="text-2xl font-bold">{workflows?.total || 0}</div>
+                  <p className="text-xs text-gray-600">{workflows?.active || 0} ativos</p>
                 </CardContent>
               </Card>
 
@@ -973,22 +973,45 @@ export default function SlaManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Sistema de Workflows Implementado
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Backend completo com Clean Architecture implementado. 
-                    Frontend com interface completa para gerenciamento de workflows SLA.
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-500">
-                    <p>✅ Tabelas de banco criadas (sla_workflows, sla_workflow_executions)</p>
-                    <p>✅ Repositórios e casos de uso implementados</p>
-                    <p>✅ Controllers e rotas configuradas</p>
-                    <p>✅ Interface de usuário preparada</p>
+                {workflows && workflows.length > 0 ? (
+                  <div className="space-y-4">
+                    {workflows.map((workflow) => (
+                      <div key={workflow.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium">{workflow.name}</h3>
+                          <Badge variant={workflow.isActive ? "default" : "secondary"}>
+                            {workflow.isActive ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                        {workflow.description && (
+                          <p className="text-sm text-gray-600 mb-3">{workflow.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>Prioridade: {workflow.priority}</span>
+                          <span>Triggers: {workflow.triggers?.length || 0}</span>
+                          <span>Ações: {workflow.actions?.length || 0}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Nenhum workflow configurado
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Crie seu primeiro workflow para automatizar respostas a eventos de SLA
+                    </p>
+                    <Button 
+                      onClick={() => setIsWorkflowDialogOpen(true)}
+                      className="mt-2"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Primeiro Workflow
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
