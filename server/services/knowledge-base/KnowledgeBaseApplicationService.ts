@@ -2,14 +2,15 @@
 // Application Layer - Orquestra use cases e coordena operações de domínio
 
 import { db } from '../../db';
-import { 
+import {
   knowledgeBaseArticles,
   insertKnowledgeBaseArticleSchema,
   updateKnowledgeBaseArticleSchema,
   type KnowledgeBaseArticle,
   type InsertKnowledgeBaseArticle
 } from '../../../shared/schema-knowledge-base';
-import { eq, and, like, ilike, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, like, ilike, desc, asc, sql, or } from 'drizzle-orm';
+
 export class KnowledgeBaseApplicationService {
   private logger = console;
 
@@ -50,7 +51,8 @@ export class KnowledgeBaseApplicationService {
       }
 
       if (params.category) {
-        conditions.push(eq(knowledgeBaseArticles.category, params.category));
+        // This is the fix: use categoryId instead of category
+        conditions.push(eq(knowledgeBaseArticles.categoryId, params.category));
       }
 
       if (params.status) {
@@ -72,7 +74,7 @@ export class KnowledgeBaseApplicationService {
           content: knowledgeBaseArticles.content,
           excerpt: knowledgeBaseArticles.excerpt,
           authorId: knowledgeBaseArticles.authorId,
-          category: knowledgeBaseArticles.category,
+          category: knowledgeBaseArticles.categoryId, // Corrected to categoryId
           status: knowledgeBaseArticles.status,
           visibility: knowledgeBaseArticles.visibility,
           approvalStatus: knowledgeBaseArticles.approvalStatus,
@@ -144,7 +146,7 @@ export class KnowledgeBaseApplicationService {
       // Map category values to match enum values from knowledgeBaseCategoryEnum
       const categoryMapping: Record<string, string> = {
         'technical_support': 'technical_support',
-        'troubleshooting': 'troubleshooting', 
+        'troubleshooting': 'troubleshooting',
         'user_guide': 'user_guide',
         'faq': 'faq',
         'policy': 'policy',
@@ -161,7 +163,8 @@ export class KnowledgeBaseApplicationService {
       const newArticle = {
         title: articleData.title,
         content: articleData.content,
-        category: categoryMapping[articleData.category] || 'other',
+        // This is the fix: use categoryId instead of category
+        categoryId: categoryMapping[articleData.category] || 'other',
         tenantId: this.tenantId,
         authorId,
         status: articleData.status || 'draft',
@@ -193,7 +196,7 @@ export class KnowledgeBaseApplicationService {
       this.logger.error(`[KB-SERVICE] Error creating article:`, error);
       this.logger.error(`[KB-SERVICE] Error details:`, error.message);
       this.logger.error(`[KB-SERVICE] Error stack:`, error.stack);
-      
+
       // Return a more detailed error message
       return {
         success: false,
@@ -233,7 +236,7 @@ export class KnowledgeBaseApplicationService {
       // Increment view count
       await db
         .update(knowledgeBaseArticles)
-        .set({ 
+        .set({
           viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`
         })
         .where(eq(knowledgeBaseArticles.id, id));
