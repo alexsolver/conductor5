@@ -242,10 +242,10 @@ export default function SlaManagement() {
     queryFn: () => apiRequest('GET', '/api/sla/analytics/compliance').then(res => res.json()),
   });
 
-  // Estado para controle do workflow
+  // State for control of the workflow dialog
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
 
-  // Queries para workflows
+  // Queries for workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
     queryFn: () => apiRequest('GET', '/api/sla/workflows').then(res => res.json()),
@@ -1081,240 +1081,26 @@ export default function SlaManagement() {
         <DialogTrigger asChild>
           <Button className="hidden">Trigger Workflow Dialog</Button> {/* Hidden trigger */}
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Workflow de Automação</DialogTitle>
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+              <div className="flex items-center gap-2">
+                <span className="text-red-500">*</span>
+                <span>Campos obrigatórios</span>
+              </div>
+            </div>
           </DialogHeader>
-          <Form {...workflowForm}>
-            <form onSubmit={workflowForm.handleSubmit(onWorkflowSubmit)} className="space-y-6">
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                * Campos obrigatórios
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Informações Básicas */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Informações Básicas</h3>
-
-                  <FormField
-                    control={workflowForm.control}
-                    name="name"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Nome do Workflow 
-                          <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Digite o nome do workflow" 
-                            className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={workflowForm.control}
-                    name="description"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Descrição 
-                          <span className="text-gray-500 text-sm">(opcional)</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Descreva o workflow e sua finalidade"
-                            className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={workflowForm.control}
-                    name="trigger"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Gatilho 
-                          <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
-                              <SelectValue placeholder="Selecione o gatilho" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="sla_breach">Violação de SLA</SelectItem>
-                            <SelectItem value="sla_warning">Aviso de SLA</SelectItem>
-                            <SelectItem value="sla_met">SLA Atendido</SelectItem>
-                            <SelectItem value="instance_created">Instância Criada</SelectItem>
-                            <SelectItem value="instance_closed">Instância Fechada</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={workflowForm.control}
-                    name="priority"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Prioridade 
-                          <span className="text-red-500">*</span>
-                          <span className="text-sm text-gray-500">(1-10)</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            max="10" 
-                            placeholder="5" 
-                            className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Configuração */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Configuração</h3>
-
-                  <FormField
-                    control={workflowForm.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Workflow Ativo</FormLabel>
-                          <div className="text-sm text-muted-foreground">
-                            Habilitar execução automática deste workflow
-                          </div>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Ações do Workflow</h4>
-                      <div className="text-sm text-red-600">
-                        * (pelo menos uma ação é obrigatória)
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addWorkflowAction('notify')}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Adicionar Email
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addWorkflowAction('create_task')}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Criar Ticket
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addWorkflowAction('escalate')}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Escalonar
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ações Configuradas */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Ações Configuradas</h3>
-
-                {workflowActions.length === 0 ? (
-                  <div className="border rounded-lg p-4 min-h-32 bg-gray-50">
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center text-gray-500">
-                        <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Nenhuma ação configurada</p>
-                        <p className="text-xs">Use os botões acima para adicionar ações</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {workflowActions.map((action, index) => (
-                      <div key={action.id || index} className="flex items-center justify-between p-3 bg-white rounded border">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${action.color || 'bg-gray-400'}`}></div>
-                          <div>
-                            <span className="font-medium">{action.name}</span>
-                            {action.description && (
-                              <p className="text-sm text-gray-600">{action.description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeWorkflowAction(action.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => {
-                  setIsWorkflowDialogOpen(false);
-                  setWorkflowActions([]);
-                  workflowForm.reset();
-                }}>
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createWorkflowMutation.isPending || workflowActions.length === 0}
-                >
-                  {createWorkflowMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Criar Workflow
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <div>
+            <WorkflowForm 
+              form={workflowForm} 
+              onSubmit={onWorkflowSubmit} 
+              isSubmitting={createWorkflowMutation.isPending}
+              workflowActions={workflowActions}
+              addWorkflowAction={addWorkflowAction}
+              removeWorkflowAction={removeWorkflowAction}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -1750,27 +1536,17 @@ interface WorkflowFormProps {
   form: any;
   onSubmit: (values: any) => void;
   isSubmitting: boolean;
+  workflowActions: any[];
+  addWorkflowAction: (type: string) => void;
+  removeWorkflowAction: (id: string) => void;
 }
 
-function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
-  // NOTE: The `workflowActions` state and its handler functions (`addWorkflowAction`, `removeWorkflowAction`)
-  // are managed in the parent `SlaManagement` component because they are needed for both the form
-  // and the parent component's state.
-
-  // Accessing workflowActions from parent component's context or passing as props would be ideal.
-  // For this example, we assume `workflowActions` and its handlers are accessible or managed globally for simplicity.
-  // In a real application, consider using React Context or passing them as props.
+function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkflowAction, removeWorkflowAction }: WorkflowFormProps) {
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
-          <div className="flex items-center gap-2">
-            <span className="text-red-500">*</span>
-            <span>Campos obrigatórios</span>
-          </div>
-        </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div className="space-y-4">
@@ -1779,15 +1555,20 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>
-                    Nome do Workflow <span className="text-red-500">*</span>
+                  <FormLabel className="flex items-center gap-1">
+                    Nome do Workflow 
+                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o nome do workflow" {...field} />
+                    <Input 
+                      placeholder="Digite o nome do workflow" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1795,17 +1576,20 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="description"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Descrição (opcional)</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Descrição 
+                    <span className="text-gray-500 text-sm">(opcional)</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Descreva o workflow e sua finalidade"
-                      className="resize-none"
-                      {...field}
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1813,26 +1597,27 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="trigger"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>
-                    Gatilho <span className="text-red-500">*</span>
+                  <FormLabel className="flex items-center gap-1">
+                    Gatilho 
+                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
                         <SelectValue placeholder="Selecione o gatilho" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="sla_breach">Violação de SLA</SelectItem>
                       <SelectItem value="sla_warning">Aviso de SLA</SelectItem>
-                      <SelectItem value="sla_met">SLA Cumprido</SelectItem>
+                      <SelectItem value="sla_met">SLA Atendido</SelectItem>
                       <SelectItem value="instance_created">Instância Criada</SelectItem>
                       <SelectItem value="instance_closed">Instância Fechada</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1840,22 +1625,25 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="priority"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>
-                    Prioridade <span className="text-red-500">*</span> (1-10)
+                  <FormLabel className="flex items-center gap-1">
+                    Prioridade 
+                    <span className="text-red-500">*</span>
+                    <span className="text-sm text-gray-500">(1-10)</span>
                   </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       min="1" 
                       max="10" 
-                      placeholder="5"
+                      placeholder="5" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -1869,59 +1657,54 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Workflow Ativo
-                    </FormLabel>
+                    <FormLabel className="text-base">Workflow Ativo</FormLabel>
                     <div className="text-sm text-muted-foreground">
                       Habilitar execução automática deste workflow
                     </div>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">
-                  Ações do Workflow
-                  <span className="text-red-500 ml-1">*</span>
-                  <span className="text-sm text-muted-foreground ml-2">
-                    (pelo menos uma ação é obrigatória)
-                  </span>
-                </Label>
+                <h4 className="font-medium">Ações do Workflow</h4>
+                <div className="text-sm text-red-600">
+                  * (pelo menos uma ação é obrigatória)
+                </div>
               </div>
 
-              <div className="flex justify-center space-x-2">
+              <div className="flex space-x-2">
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => addWorkflowAction('notify')}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1" />
                   Adicionar Email
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => addWorkflowAction('create_task')}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1" />
                   Criar Ticket
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => addWorkflowAction('escalate')}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1" />
                   Escalonar
                 </Button>
               </div>
@@ -1929,56 +1712,60 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           </div>
         </div>
 
-        {/* Current Actions Display */}
+        {/* Ações Configuradas */}
         <div className="space-y-4">
-          <Label className="text-base font-medium">Ações Configuradas</Label>
+          <h3 className="text-lg font-medium">Ações Configuradas</h3>
 
-          <div className="border rounded-lg p-4">
-            {form.watch('actions')?.length > 0 ? (
-              <div className="space-y-2">
-                {form.watch('actions').map((action: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+          {workflowActions.length === 0 ? (
+            <div className="border rounded-lg p-4 min-h-32 bg-gray-50">
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-500">
+                  <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhuma ação configurada</p>
+                  <p className="text-xs">Use os botões acima para adicionar ações</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {workflowActions.map((action, index) => (
+                <div key={action.id || index} className="flex items-center justify-between p-3 bg-white rounded border">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${action.color || 'bg-gray-400'}`}></div>
                     <div>
-                      <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
-                      <div className="text-sm text-gray-600">
-                        {JSON.stringify(action.config, null, 2).substring(0, 100)}...
-                      </div>
+                      <span className="font-medium">{action.name}</span>
+                      {action.description && (
+                        <p className="text-sm text-gray-600">{action.description}</p>
+                      )}
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // This remove logic should also be handled by the parent component
-                        // or directly manipulate the state managed by the parent.
-                      }}
-                      data-testid={`button-remove-action-${index}`}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-gray-500">
-                <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p>Nenhuma ação configurada</p>
-                <p className="text-sm">Use os botões acima para adicionar ações</p>
-              </div>
-            )}
-          </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeWorkflowAction(action.id)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => setIsWorkflowDialogOpen(false)}
-          >
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={() => {
+            setIsWorkflowDialogOpen(false);
+            setWorkflowActions([]);
+            workflowForm.reset();
+          }}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting || workflowActions.length === 0}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button 
+            type="submit" 
+            disabled={createWorkflowMutation.isPending || workflowActions.length === 0}
+          >
+            {createWorkflowMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar Workflow
           </Button>
         </div>
