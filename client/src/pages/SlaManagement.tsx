@@ -44,8 +44,7 @@ import {
   Code,
   Settings2,
   Filter,
-  X,
-  Loader2
+  X
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
@@ -95,12 +94,6 @@ interface SlaDefinition {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  timeTargets?: {
-    metric: string;
-    target: number;
-    unit: 'minutes' | 'hours' | 'days';
-    priority?: 'low' | 'medium' | 'high' | 'critical';
-  }[];
 }
 
 interface SlaInstance {
@@ -213,9 +206,6 @@ export default function SlaManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // State for workflow actions
-  const [workflowActions, setWorkflowActions] = useState<any[]>([]);
-
   // Queries
   const { data: slaDefinitions, isLoading: isLoadingSlas } = useQuery({
     queryKey: ['/api/sla/definitions'],
@@ -242,10 +232,10 @@ export default function SlaManagement() {
     queryFn: () => apiRequest('GET', '/api/sla/analytics/compliance').then(res => res.json()),
   });
 
-  // State for control of the workflow dialog
+  // Estado para controle do workflow
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
 
-  // Queries for workflows
+  // Queries para workflows
   const { data: workflows, isLoading: isLoadingWorkflows } = useQuery({
     queryKey: ['/api/sla/workflows'],
     queryFn: () => apiRequest('GET', '/api/sla/workflows').then(res => res.json()),
@@ -343,7 +333,6 @@ export default function SlaManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/workflows'] });
       setIsWorkflowDialogOpen(false);
-      setWorkflowActions([]); // Reset actions when dialog is closed
       toast({
         title: "Workflow criado",
         description: "Workflow de automação foi criado com sucesso",
@@ -394,7 +383,16 @@ export default function SlaManagement() {
       description: '',
       trigger: 'sla_breach',
       conditions: [],
-      actions: [], // Start with empty actions, will be managed by workflowActions state
+      actions: [
+        {
+          id: 'default-notify',
+          type: 'notify',
+          config: {
+            message: 'SLA workflow triggered',
+            recipients: ['admin']
+          }
+        }
+      ],
       isActive: true,
       priority: 5
     },
@@ -427,53 +425,27 @@ export default function SlaManagement() {
     }
   };
 
-  // Function to add a workflow action
-  const addWorkflowAction = (type: string) => {
-    const baseAction = {
-      id: Math.random().toString(36).substring(7), // Simple unique ID
-      type: type,
-      config: {},
-      name: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
-      description: '',
-      color: ''
-    };
-
-    switch (type) {
-      case 'notify':
-        baseAction.config = { to: 'admin@example.com', subject: 'SLA Notification', body: 'A workflow action was triggered.' };
-        baseAction.description = 'Send an email notification.';
-        baseAction.color = 'bg-blue-500';
-        break;
-      case 'create_task':
-        baseAction.config = { priority: 'medium', category: 'SLA Task', title: 'Follow up on SLA' };
-        baseAction.description = 'Create a new task.';
-        baseAction.color = 'bg-green-500';
-        break;
-      case 'escalate':
-        baseAction.config = { level: 'Manager', reason: 'SLA Escalation' };
-        baseAction.description = 'Escalate to a higher level.';
-        baseAction.color = 'bg-orange-500';
-        break;
-      default:
-        break;
-    }
-    setWorkflowActions([...workflowActions, baseAction]);
-  };
-
-  // Function to remove a workflow action
-  const removeWorkflowAction = (id: string) => {
-    setWorkflowActions(workflowActions.filter(action => action.id !== id));
-  };
-
   const onWorkflowSubmit = (values: z.infer<typeof workflowSchema>) => {
-    const workflowData = {
+    // Converter trigger (string) para triggers (array) conforme esperado pelo backend
+    const transformedValues = {
       ...values,
-      triggers: [{ type: values.trigger }], // Map single trigger to triggers array
-      actions: workflowActions, // Use the state for configured actions
-      // Remove the singular trigger field as it's now in triggers
-      trigger: undefined 
+      triggers: [{ type: values.trigger }], // Converter para formato array
+      // Garantir que pelo menos uma ação seja especificada
+      actions: values.actions.length > 0 ? values.actions : [
+        {
+          id: 'default-action',
+          type: 'notify',
+          config: {
+            message: 'SLA workflow triggered',
+            recipients: ['admin']
+          }
+        }
+      ],
+      // Remove o campo trigger singular
+      trigger: undefined
     };
-    createWorkflowMutation.mutate(workflowData);
+
+    createWorkflowMutation.mutate(transformedValues);
   };
 
   const handleEdit = (sla: SlaDefinition) => {
@@ -485,6 +457,11 @@ export default function SlaManagement() {
       priority: sla.priority,
       validFrom: sla.validFrom,
       validUntil: sla.validUntil || null,
+      // Remove time related fields from here as they are now in timeTargets
+      // responseTimeMinutes: sla.responseTimeMinutes,
+      // resolutionTimeMinutes: sla.resolutionTimeMinutes,
+      // updateTimeMinutes: sla.updateTimeMinutes,
+      // idleTimeMinutes: sla.idleTimeMinutes,
       businessHoursOnly: sla.businessHoursOnly,
       workingDays: sla.workingDays,
       workingHours: sla.workingHours,
@@ -932,10 +909,7 @@ export default function SlaManagement() {
                 <p className="text-gray-600">Configure ações automáticas baseadas em eventos de SLA</p>
               </div>
               <Button 
-                onClick={() => {
-                  setIsWorkflowDialogOpen(true);
-                  setWorkflowActions([]); // Clear actions when opening new dialog
-                }}
+                onClick={() => setIsWorkflowDialogOpen(true)}
                 data-testid="button-create-workflow"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -1030,10 +1004,7 @@ export default function SlaManagement() {
                       Crie seu primeiro workflow para automatizar respostas a eventos de SLA
                     </p>
                     <Button 
-                      onClick={() => {
-                        setIsWorkflowDialogOpen(true);
-                        setWorkflowActions([]); // Clear actions when opening new dialog
-                      }}
+                      onClick={() => setIsWorkflowDialogOpen(true)}
                       className="mt-2"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -1071,16 +1042,7 @@ export default function SlaManagement() {
       </Dialog>
 
       {/* Workflow Dialog */}
-      <Dialog open={isWorkflowDialogOpen} onOpenChange={(open) => {
-          setIsWorkflowDialogOpen(open);
-          if (!open) {
-            setWorkflowActions([]); // Clear actions when dialog is closed
-            workflowForm.reset(); // Reset form when dialog is closed
-          }
-        }}>
-        <DialogTrigger asChild>
-          <Button className="hidden">Trigger Workflow Dialog</Button> {/* Hidden trigger */}
-        </DialogTrigger>
+      <Dialog open={isWorkflowDialogOpen} onOpenChange={setIsWorkflowDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Workflow de Automação</DialogTitle>
@@ -1091,16 +1053,11 @@ export default function SlaManagement() {
               </div>
             </div>
           </DialogHeader>
-          <div>
-            <WorkflowForm 
-              form={workflowForm} 
-              onSubmit={onWorkflowSubmit} 
-              isSubmitting={createWorkflowMutation.isPending}
-              workflowActions={workflowActions}
-              addWorkflowAction={addWorkflowAction}
-              removeWorkflowAction={removeWorkflowAction}
-            />
-          </div>
+          <WorkflowForm 
+            form={workflowForm} 
+            onSubmit={onWorkflowSubmit} 
+            isSubmitting={createWorkflowMutation.isPending}
+          />
         </DialogContent>
       </Dialog>
     </div>
@@ -1536,21 +1493,16 @@ interface WorkflowFormProps {
   form: any;
   onSubmit: (values: any) => void;
   isSubmitting: boolean;
-  workflowActions: any[];
-  addWorkflowAction: (type: string) => void;
-  removeWorkflowAction: (id: string) => void;
 }
 
-function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkflowAction, removeWorkflowAction }: WorkflowFormProps) {
-
+function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Informações Básicas</h3>
+            <h3 className="text-lg font-semibold">Informações Básicas</h3>
 
             <FormField
               control={form.control}
@@ -1577,7 +1529,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkfl
               control={form.control}
               name="description"
               render={({ field, fieldState }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel className="flex items-center gap-1">
                     Descrição 
                     <span className="text-gray-500 text-sm">(opcional)</span>
@@ -1611,8 +1563,8 @@ function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkfl
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="sla_breach">Violação de SLA</SelectItem>
-                      <SelectItem value="sla_warning">Aviso de SLA</SelectItem>
-                      <SelectItem value="sla_met">SLA Atendido</SelectItem>
+                      <SelectItem value="sla_warning">Alerta de SLA</SelectItem>
+                      <SelectItem value="sla_met">SLA Cumprido</SelectItem>
                       <SelectItem value="instance_created">Instância Criada</SelectItem>
                       <SelectItem value="instance_closed">Instância Fechada</SelectItem>
                     </SelectContent>
@@ -1637,7 +1589,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkfl
                       type="number" 
                       min="1" 
                       max="10" 
-                      placeholder="5" 
+                      placeholder="1-10" 
                       className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
@@ -1651,60 +1603,96 @@ function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkfl
 
           {/* Configuration */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Configuração</h3>
+            <h3 className="text-lg font-semibold">Configuração</h3>
 
             <FormField
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Workflow Ativo</FormLabel>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-gray-600">
                       Habilitar execução automática deste workflow
                     </div>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-workflow-active"
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Ações do Workflow</h4>
-                <div className="text-sm text-red-600">
-                  * (pelo menos uma ação é obrigatória)
-                </div>
-              </div>
-
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-3 flex items-center gap-1">
+                Ações do Workflow 
+                <span className="text-red-500">*</span>
+                <span className="text-sm text-gray-500">(pelo menos uma ação é obrigatória)</span>
+              </h4>
+              <div className="space-y-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
                   size="sm"
-                  onClick={() => addWorkflowAction('notify')}
+                  onClick={() => {
+                    const currentActions = form.getValues('actions') || [];
+                    form.setValue('actions', [...currentActions, {
+                      type: 'send_email',
+                      config: {
+                        to: 'admin@empresa.com',
+                        subject: 'Violação de SLA detectada',
+                        template: 'sla_breach_notification'
+                      }
+                    }]);
+                  }}
+                  data-testid="button-add-email-action"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="w-3 h-3 mr-1" />
                   Adicionar Email
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
+
+                <Button 
+                  type="button" 
+                  variant="outline" 
                   size="sm"
-                  onClick={() => addWorkflowAction('create_task')}
+                  onClick={() => {
+                    const currentActions = form.getValues('actions') || [];
+                    form.setValue('actions', [...currentActions, {
+                      type: 'create_ticket',
+                      config: {
+                        priority: 'high',
+                        category: 'incident',
+                        assignTo: 'sla-team'
+                      }
+                    }]);
+                  }}
+                  data-testid="button-add-ticket-action"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="w-3 h-3 mr-1" />
                   Criar Ticket
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
+
+                <Button 
+                  type="button" 
+                  variant="outline" 
                   size="sm"
-                  onClick={() => addWorkflowAction('escalate')}
+                  onClick={() => {
+                    const currentActions = form.getValues('actions') || [];
+                    form.setValue('actions', [...currentActions, {
+                      type: 'escalate',
+                      config: {
+                        escalateTo: 'manager',
+                        urgency: 'high'
+                      }
+                    }]);
+                  }}
+                  data-testid="button-add-escalate-action"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="w-3 h-3 mr-1" />
                   Escalonar
                 </Button>
               </div>
@@ -1712,61 +1700,60 @@ function WorkflowForm({ form, onSubmit, isSubmitting, workflowActions, addWorkfl
           </div>
         </div>
 
-        {/* Ações Configuradas */}
+        {/* Current Actions Display */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Ações Configuradas</h3>
-
-          {workflowActions.length === 0 ? (
-            <div className="border rounded-lg p-4 min-h-32 bg-gray-50">
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-gray-500">
-                  <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhuma ação configurada</p>
-                  <p className="text-xs">Use os botões acima para adicionar ações</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {workflowActions.map((action, index) => (
-                <div key={action.id || index} className="flex items-center justify-between p-3 bg-white rounded border">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${action.color || 'bg-gray-400'}`}></div>
+          <h3 className="text-lg font-semibold">Ações Configuradas</h3>
+          <div className="border rounded-lg p-4">
+            {form.watch('actions')?.length > 0 ? (
+              <div className="space-y-2">
+                {form.watch('actions').map((action: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div>
-                      <span className="font-medium">{action.name}</span>
-                      {action.description && (
-                        <p className="text-sm text-gray-600">{action.description}</p>
-                      )}
+                      <span className="font-medium capitalize">{action.type.replace('_', ' ')}</span>
+                      <div className="text-sm text-gray-600">
+                        {JSON.stringify(action.config, null, 2).substring(0, 100)}...
+                      </div>
                     </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const actions = form.getValues('actions');
+                        actions.splice(index, 1);
+                        form.setValue('actions', actions);
+                      }}
+                      data-testid={`button-remove-action-${index}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeWorkflowAction(action.id)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <Code className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p>Nenhuma ação configurada</p>
+                <p className="text-sm">Use os botões acima para adicionar ações</p>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Submit Button */}
         <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={() => {
-            setIsWorkflowDialogOpen(false);
-            setWorkflowActions([]);
-            workflowForm.reset();
-          }}>
-            Cancelar
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={createWorkflowMutation.isPending || workflowActions.length === 0}
-          >
-            {createWorkflowMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Criar Workflow
+          <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow">
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Criando Workflow...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Criar Workflow
+              </>
+            )}
           </Button>
         </div>
       </form>
