@@ -239,11 +239,12 @@ export default function SlaManagement() {
 
   // Mutations
   const createSlaMutation = useMutation({
-    mutationFn: (data: any) => fetch('/api/sla/definitions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
+    mutationFn: (data: any) => 
+      fetch('/api/sla/definitions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/sla/definitions'] });
       setIsCreateDialogOpen(false);
@@ -386,17 +387,9 @@ export default function SlaManagement() {
   });
 
   const onSubmit = (values: z.infer<typeof slaDefinitionSchema>) => {
-    // Debug: verificar o que está sendo recebido
-    console.log('🔍 [SLA-SUBMIT] Original values:', values);
-    console.log('🔍 [SLA-SUBMIT] validFrom type:', typeof values.validFrom, values.validFrom);
-    
-    // Converter dados para o formato esperado pelo backend
+    // Garantir que applicationRules tenha pelo menos uma regra
     const transformedValues = {
       ...values,
-      // Converter strings de data para objetos Date - forçar conversão adequada
-      validFrom: values.validFrom ? new Date(values.validFrom) : new Date(),
-      validUntil: values.validUntil ? new Date(values.validUntil) : undefined,
-      // Garantir que applicationRules tenha pelo menos uma regra
       applicationRules: {
         rules: (values.applicationRules?.rules && values.applicationRules.rules.length > 0) 
           ? values.applicationRules.rules 
@@ -408,10 +401,6 @@ export default function SlaManagement() {
         logicalOperator: values.applicationRules?.logicalOperator || 'AND'
       }
     };
-
-    // Debug: verificar o que está sendo enviado
-    console.log('🔍 [SLA-SUBMIT] Transformed values:', transformedValues);
-    console.log('🔍 [SLA-SUBMIT] validFrom after transform:', typeof transformedValues.validFrom, transformedValues.validFrom);
 
     if (selectedSla) {
       updateSlaMutation.mutate({ id: selectedSla.id, data: transformedValues });

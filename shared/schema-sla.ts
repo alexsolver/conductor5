@@ -425,7 +425,10 @@ export const insertSlaDefinitionSchema = createInsertSchema(slaDefinitions).omit
   createdAt: true,
   updatedAt: true,
 }).extend({
-  applicationRules: queryBuilderSchema
+  applicationRules: queryBuilderSchema,
+  // Aceitar strings de data ISO e convertê-las automaticamente para Date
+  validFrom: z.string().transform((val) => new Date(val)),
+  validUntil: z.string().optional().transform((val) => val ? new Date(val) : undefined),
 });
 
 export const insertSlaInstanceSchema = createInsertSchema(slaInstances).omit({
