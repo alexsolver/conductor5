@@ -166,7 +166,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
         )}
         {fieldOptions.map((option, index) => {
           // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
-          const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'}`}`;
+          // Ensure truly unique keys by combining multiple identifiers
+          const uniqueKey = `${fieldName}-${option.id || 'no-id'}-${index}-${option.value || 'no-value'}`;
           // Ensure option.value is not empty string
           const optionValue = option.value || `option_${index}`;
 
