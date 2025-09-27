@@ -29,10 +29,13 @@ export function UserGroupSelect({
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery({
     queryKey: ["user-groups"],
-    queryFn: () => apiRequest('GET', '/api/user-groups'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-groups');
+      return response.json();
+    },
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
-  }) as { data: { success: boolean; data: UserGroup[] } | undefined; isLoading: boolean; error: any };
+  });
 
   const handleSelectChange = (selectedValue: string) => {
     const callback = onChange || onValueChange;
@@ -50,7 +53,7 @@ export function UserGroupSelect({
     );
   }
 
-  if (error || !groupsData || !groupsData?.success) {
+  if (error || !groupsData || !groupsData?.success || !groupsData?.groups) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
@@ -59,7 +62,7 @@ export function UserGroupSelect({
     );
   }
 
-  const activeGroups = groupsData?.data?.filter((group: UserGroup) => group.isActive) || [];
+  const activeGroups = groupsData?.groups?.filter((group: UserGroup) => group.isActive) || [];
 
   // Debug logs
   React.useEffect(() => {
