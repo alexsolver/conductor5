@@ -1,0 +1,82 @@
+Warning: The tag &lt;Bell&gt; is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
+    at Bell
+    at div
+    at h2
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=0a84e4bb:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:276:13
+    at _c7 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:157:12)
+    at div
+    at DialogHeader (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:107:3)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=0a84e4bb:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=0a84e4bb:61:7
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=0a84e4bb:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=0a84e4bb:29:5
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:237:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:160:58
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=0a84e4bb:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:151:64
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=0a84e4bb:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=0a84e4bb:260:22
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=0a84e4bb:24:11)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at DialogPortal (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:113:11)
+    at _c3 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:54:5)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=0a84e4bb:54:5)
+    at AutomationRuleBuilder (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/omnibridge/AutomationRuleBuilder.tsx:180:3)
+    at div
+    at div
+    at div
+    at AutomationRules (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/AutomationRules.tsx:42:20)
+    at div
+    at…
+Warning: Encountered two children with the same key, &#x60;Implementar Mudanças&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=0a84e4bb:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5Q2FCG5G.js?v=0a84e4bb:37:20
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=2cc9f57b:1133:13
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at Popper (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-6A5JLZLV.js?v=0a84e4bb:1955:11)
+    at Select (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=2cc9f57b:90:5)
+    at DynamicSelect (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/DynamicSelect.tsx:28:5)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=0a84e4bb:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:128:9
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:76:6
+    at Controller (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-Z4Z5NBTV.js?v=0a84e4bb:345:35)
+    at FormField (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at div
+    at form
+    at FormProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-Z4Z5NBTV.js?v=0a84e4bb:101:11)
+    at div
+    at div
+    at div
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/TicketDetails.tsx:118:17
+    at Route (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=b16d809a:191:16)
+    at Switch (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=b16d809a:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/App.tsx?v=PTBRY-Jnl_p7lMxIYu8Mh:115:42)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0a84e4bb:38:15)
+    at TooltipProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d7a815f1:66:5)
+    at SimpleTimerProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at SidebarProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SidebarContext.tsx:20:35)
+    at AuthProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=9d0c6639:2805:3)
+   …
