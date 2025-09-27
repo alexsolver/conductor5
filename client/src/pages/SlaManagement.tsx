@@ -394,7 +394,7 @@ export default function SlaManagement() {
       validUntil: values.validUntil ? new Date(values.validUntil) : undefined,
       // Garantir que applicationRules tenha pelo menos uma regra
       applicationRules: {
-        rules: values.applicationRules?.rules?.length > 0 
+        rules: (values.applicationRules?.rules && values.applicationRules.rules.length > 0) 
           ? values.applicationRules.rules 
           : [{
               field: 'status',
