@@ -25,7 +25,8 @@ import {
   Settings,
   BarChart3,
   Send,
-  RefreshCw
+  RefreshCw,
+  Trash2 // Import Trash2 icon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -218,12 +219,12 @@ export default function NotificationsPage() {
       const response = await apiRequest('PATCH', '/api/schedule-notifications/bulk-read', {
         notificationIds: ids
       });
-      
+
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(`Failed to mark as read: ${response.status} - ${errorData}`);
       }
-      
+
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -255,6 +256,35 @@ export default function NotificationsPage() {
       return { timestamp: Date.now() };
     }
   });
+
+  // New mutation for deleting notifications
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/schedule-notifications/${id}`);
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to delete notification: ${response.status} - ${errorData}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data, id) => {
+      toast({
+        title: 'Success',
+        description: 'Notification deleted successfully'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
+      refetchNotifications(); // Ensure the list is updated
+    },
+    onError: (error: any) => {
+      console.error('Delete notification error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete notification',
+        variant: 'destructive'
+      });
+    },
+  });
+
 
   const onSubmit = (data: CreateNotificationForm) => {
     createMutation.mutate(data);
@@ -312,7 +342,7 @@ export default function NotificationsPage() {
                   Create a new notification to be sent through selected channels
                 </DialogDescription>
               </DialogHeader>
-              
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -512,7 +542,7 @@ export default function NotificationsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="severity-filter">Severity</Label>
                   <Select value={filters.severity} onValueChange={(value) => 
@@ -595,11 +625,11 @@ export default function NotificationsPage() {
                             {notification.status.toUpperCase()}
                           </Badge>
                         </div>
-                        
+
                         <p className="text-muted-foreground mb-3" data-testid={`notification-message-${notification.id}`}>
                           {notification.message}
                         </p>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span data-testid={`notification-type-${notification.id}`}>
                             Type: {notification.type}
@@ -616,7 +646,7 @@ export default function NotificationsPage() {
                             </span>
                           )}
                         </div>
-                        
+
                         {notification.requiresEscalation && (
                           <div className="mt-2">
                             <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
@@ -626,7 +656,7 @@ export default function NotificationsPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex flex-col gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                         {!notification.readAt && (
                           <Button
@@ -635,12 +665,12 @@ export default function NotificationsPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
-                              
+
                               if (processingNotifications.has(notification.id)) {
                                 console.log('🔔 [MARK-READ] Already processing notification:', notification.id);
                                 return;
                               }
-                              
+
                               console.log('🔔 [MARK-READ] Marking notification as read:', notification.id);
                               setProcessingNotifications(prev => new Set([...prev, notification.id]));
                               markAsReadMutation.mutate([notification.id]);
@@ -653,6 +683,22 @@ export default function NotificationsPage() {
                             {markAsReadMutation.isPending ? 'Marking...' : 'Mark Read'}
                           </Button>
                         )}
+                        {/* Delete Button */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            deleteNotificationMutation.mutate(notification.id);
+                          }}
+                          disabled={deleteNotificationMutation.isPending}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                          data-testid={`button-delete-${notification.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -685,7 +731,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-muted-foreground">All notifications</p>
                 </CardContent>
               </Card>
-              
+
               <Card data-testid="stats-pending">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">Pending</CardTitle>
@@ -695,7 +741,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-muted-foreground">Awaiting delivery</p>
                 </CardContent>
               </Card>
-              
+
               <Card data-testid="stats-delivered">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">Delivered</CardTitle>
@@ -705,7 +751,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-muted-foreground">Successfully delivered</p>
                 </CardContent>
               </Card>
-              
+
               <Card data-testid="stats-failed">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">Failed</CardTitle>

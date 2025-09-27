@@ -6,6 +6,7 @@ import { CreateNotificationUseCase } from '../use-cases/CreateNotificationUseCas
 import { GetNotificationsUseCase } from '../use-cases/GetNotificationsUseCase';
 import { GetNotificationStatsUseCase } from '../use-cases/GetNotificationStatsUseCase';
 import { ProcessNotificationUseCase } from '../use-cases/ProcessNotificationUseCase';
+import { DeleteNotificationUseCase } from '../use-cases/DeleteNotificationUseCase';
 import { z } from 'zod';
 import { 
   notificationTypeEnum, 
@@ -59,7 +60,8 @@ export class NotificationsController {
     private createNotificationUseCase: CreateNotificationUseCase,
     private getNotificationsUseCase: GetNotificationsUseCase,
     private getNotificationStatsUseCase: GetNotificationStatsUseCase,
-    private processNotificationUseCase: ProcessNotificationUseCase
+    private processNotificationUseCase: ProcessNotificationUseCase,
+    private deleteNotificationUseCase: DeleteNotificationUseCase
   ) {}
 
   async createNotification(req: Request, res: Response): Promise<void> {
@@ -223,19 +225,13 @@ export class NotificationsController {
         return;
       }
 
-      // Get batch size from query parameter (default 50, max 100)
-      const batchSize = Math.min(
-        parseInt(req.query.batchSize as string) || 50,
-        100
-      );
+      const result = await this.processNotificationUseCase.execute({ tenantId });
 
-      const result = await this.processNotificationUseCase.execute(tenantId, batchSize);
-      
-      res.status(200).json({
-        success: true,
-        data: result
-      });
-
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
     } catch (error) {
       console.error('Error processing notifications:', error);
       res.status(500).json({
@@ -359,6 +355,49 @@ export class NotificationsController {
 
     } catch (error) {
       console.error('Error bulk marking notifications as read:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  // ✅ 1QA.MD COMPLIANCE: DELETE NOTIFICATION ENDPOINT
+  async deleteNotification(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const userId = (req as any).user?.id;
+      const { id } = req.params;
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required'
+        });
+        return;
+      }
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          error: 'Notification ID is required'
+        });
+        return;
+      }
+
+      const result = await this.deleteNotificationUseCase.execute({
+        notificationId: id,
+        tenantId,
+        userId
+      });
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
       res.status(500).json({
         success: false,
         error: 'Internal server error'

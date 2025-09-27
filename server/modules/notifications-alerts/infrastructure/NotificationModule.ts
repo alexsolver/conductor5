@@ -7,6 +7,7 @@ import { CreateNotificationUseCase } from '../application/use-cases/CreateNotifi
 import { GetNotificationsUseCase } from '../application/use-cases/GetNotificationsUseCase';
 import { GetNotificationStatsUseCase } from '../application/use-cases/GetNotificationStatsUseCase';
 import { ProcessNotificationUseCase } from '../application/use-cases/ProcessNotificationUseCase';
+import { DeleteNotificationUseCase } from '../application/use-cases/DeleteNotificationUseCase';
 import { DrizzleNotificationRepository } from './repositories/DrizzleNotificationRepository';
 import { NotificationDeliveryService } from './services/NotificationDeliveryService';
 import { NotificationDomainService } from '../domain/services/NotificationDomainService';
@@ -45,7 +46,7 @@ class NotificationProcessor {
     }
 
     this.isRunning = false;
-    
+
     if (this.processInterval) {
       clearInterval(this.processInterval);
       this.processInterval = null;
@@ -67,7 +68,7 @@ class NotificationProcessor {
       for (const tenantId of tenantIds) {
         try {
           const result = await this.processUseCase.execute(tenantId, 50);
-          
+
           if (result.processed > 0) {
             console.log(`📨 [NOTIFICATIONS] Tenant ${tenantId}: processed=${result.processed}, sent=${result.sent}, failed=${result.failed}, expired=${result.expired}`);
           }
@@ -109,32 +110,20 @@ export class NotificationModule {
     // Domain layer
     const domainService = new NotificationDomainService();
 
-    // Application layer - Use Cases
-    const createNotificationUseCase = new CreateNotificationUseCase(
-      notificationRepository,
-      domainService
-    );
+    // Initialize use cases
+    const getNotificationsUseCase = new GetNotificationsUseCase(notificationRepository);
+    const createNotificationUseCase = new CreateNotificationUseCase(notificationRepository, domainService);
+    const getNotificationStatsUseCase = new GetNotificationStatsUseCase(notificationRepository);
+    const processNotificationUseCase = new ProcessNotificationUseCase(notificationRepository, domainService, deliveryService);
+    const deleteNotificationUseCase = new DeleteNotificationUseCase(notificationRepository);
 
-    const getNotificationsUseCase = new GetNotificationsUseCase(
-      notificationRepository
-    );
-
-    const getNotificationStatsUseCase = new GetNotificationStatsUseCase(
-      notificationRepository
-    );
-
-    const processNotificationUseCase = new ProcessNotificationUseCase(
-      notificationRepository,
-      domainService,
-      deliveryService
-    );
-
-    // Application layer - Controller
-    this.controller = new NotificationsController(
-      createNotificationUseCase,
+    // Initialize controller
+    const controller = new NotificationsController(
       getNotificationsUseCase,
+      createNotificationUseCase,
       getNotificationStatsUseCase,
-      processNotificationUseCase
+      processNotificationUseCase,
+      deleteNotificationUseCase
     );
 
     // Background processor
@@ -173,6 +162,11 @@ export class NotificationModule {
 
     this.router.patch('/notifications/bulk-read', (req, res) => 
       this.controller.bulkMarkAsRead(req, res)
+    );
+
+    // Notification delete operation
+    this.router.delete('/notifications/:id', (req, res) => 
+      this.controller.deleteNotification(req, res)
     );
 
     // Administrative operations
