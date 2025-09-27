@@ -399,12 +399,16 @@ export default function SlaManagement() {
   });
 
   const onSubmit = (values: z.infer<typeof slaDefinitionSchema>) => {
-    // Garantir que applicationRules tenha pelo menos uma regra
+    // Filtrar regras com valores vazios e garantir que applicationRules tenha pelo menos uma regra válida
+    const validRules = values.applicationRules?.rules?.filter(rule => 
+      rule.field && rule.operator && rule.value && rule.value.trim() !== ''
+    ) || [];
+
     const transformedValues = {
       ...values,
       applicationRules: {
-        rules: (values.applicationRules?.rules && values.applicationRules.rules.length > 0) 
-          ? values.applicationRules.rules 
+        rules: validRules.length > 0 
+          ? validRules 
           : [{
               field: 'status',
               operator: 'equals',
