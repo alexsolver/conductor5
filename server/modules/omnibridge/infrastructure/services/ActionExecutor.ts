@@ -816,25 +816,66 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log(`📧 [ACTION-EXECUTOR] Executing send_notification action`);
 
-      // Validate configuration following 1qa.md patterns
-      if (!action.config?.users && !action.config?.groups) {
-        throw new Error('At least one user or group must be specified for send_notification action');
-      }
+      const { users, groups, message } = action.params || action.config || {};
 
-      const message = action.config.message || 'Você tem uma nova notificação do sistema de automação.';
+      console.log(`🔍 [ACTION-EXECUTOR] Notification params:`, { users, groups, message });
 
-      // Process users following 1qa.md data handling patterns
-      let userIds: string[] = [];
-      if (action.config.users) {
-        if (typeof action.config.users === 'string') {
-          userIds = action.config.users.split(',').map(id => id.trim()).filter(id => id);
-        } else if (Array.isArray(action.config.users)) {
-          userIds = action.config.users;
+      // Parse users and groups if they are strings
+      let userList: string[] = [];
+      let groupList: string[] = [];
+
+      if (users) {
+        if (Array.isArray(users)) {
+          userList = users;
+        } else if (typeof users === 'string') {
+          // Handle comma-separated string or single user ID
+          userList = users.includes(',') ? users.split(',').map(u => u.trim()) : [users.trim()];
+        } else {
+          userList = [String(users)];
         }
       }
 
+      if (groups) {
+        if (Array.isArray(groups)) {
+          groupList = groups;
+        } else if (typeof groups === 'string') {
+          // Handle comma-separated string or single group ID
+          groupList = groups.includes(',') ? groups.split(',').map(g => g.trim()) : [groups.trim()];
+        } else {
+          groupList = [String(groups)];
+        }
+      }
+
+      // Validate that at least one user or group is specified
+      if (userList.length === 0 && groupList.length === 0) {
+        throw new Error('At least one user or group must be specified for send_notification action');
+      }
+
+      console.log(`📧 [ACTION-EXECUTOR] Parsed notification targets:`, { userList, groupList });
+      console.log(`📧 [ACTION-EXECUTOR] Sending notification to ${userList.length} users and ${groupList.length} groups`);
+
+      // Create notification payload
+      const notificationData = {
+        title: `Automação: ${context.ruleName}`,
+        message: message || `Regra de automação "${context.ruleName}" foi executada`,
+        type: 'automation',
+        users: userList,
+        groups: groupList,
+        metadata: {
+          ruleId: context.ruleId,
+          ruleName: context.ruleName,
+          messageData: {
+            sender: context.messageData.sender,
+            channel: context.messageData.channel,
+            timestamp: context.messageData.timestamp
+          }
+        }
+      };
+
+      console.log(`📧 [ACTION-EXECUTOR] Notification payload:`, notificationData);
+
       // Process groups - get users from groups following 1qa.md patterns
-      if (action.config.groups) {
+      if (action.config?.groups) {
         try {
           // Here we would fetch group members using the proper repository pattern
           // Following 1qa.md Clean Architecture principles
@@ -847,7 +888,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
           if (groupResponse.success && Array.isArray(groupResponse.data)) {
             const groupUserIds = groupResponse.data.map(member => member.userId || member.id);
-            userIds = [...userIds, ...groupUserIds];
+            userList = [...userList, ...groupUserIds];
           } else {
             console.warn(`⚠️ [ACTION-EXECUTOR] Could not fetch members for group ${action.config.groups}. Response:`, groupResponse);
           }
@@ -861,9 +902,9 @@ export class ActionExecutor implements IActionExecutorPort {
       const failedNotifications: string[] = [];
 
       // Remove duplicates from userIds
-      userIds = [...new Set(userIds)];
+      userList = [...new Set(userList)];
 
-      for (const userId of userIds) {
+      for (const userId of userList) {
         try {
           // TODO: Implement actual notification sending using notification service
           // Following 1qa.md service integration patterns
@@ -882,8 +923,8 @@ export class ActionExecutor implements IActionExecutorPort {
         }
       }
 
-      const success = failedNotifications.length === 0 && userIds.length > 0; // Ensure at least one user was targeted
-      const resultMessage = userIds.length === 0
+      const success = failedNotifications.length === 0 && userList.length > 0; // Ensure at least one user was targeted
+      const resultMessage = userList.length === 0
         ? 'No users found to send notifications to.'
         : success
           ? `Notifications sent successfully to ${notificationsSent} users`
@@ -893,7 +934,7 @@ export class ActionExecutor implements IActionExecutorPort {
         success,
         message: resultMessage,
         data: {
-          userIds: userIds.length > 0 ? userIds : undefined,
+          userIds: userList.length > 0 ? userList : undefined,
           message,
           notificationsSent,
           failedNotifications: failedNotifications.length > 0 ? failedNotifications : undefined
