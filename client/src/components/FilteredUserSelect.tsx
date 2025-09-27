@@ -25,7 +25,9 @@ export function FilteredUserSelect({
     queryKey: ['/api/user-management/users'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/user-management/users');
-      return response;
+      const data = await response.json();
+      console.log('[FilteredUserSelect] API response:', data);
+      return data;
     },
   });
 
@@ -50,15 +52,22 @@ export function FilteredUserSelect({
     console.log('[FilteredUserSelect] Showing group members:', {
       groupId: selectedGroupId, 
       membersCount: usersToShow.length,
-      members: usersToShow.map(u => ({ id: u.id, name: u.name, email: u.email }))
+      members: usersToShow.map(u => ({ id: u.id, name: u.name || u.firstName + ' ' + u.lastName, email: u.email }))
     });
-  } else if (allUsersData?.success) {
+  } else if (allUsersData?.success && allUsersData?.data) {
     // Se nenhum grupo foi selecionado, mostrar todos os usuários
-    usersToShow = allUsersData.data || [];
+    usersToShow = allUsersData.data;
     console.log('[FilteredUserSelect] Showing all users:', {
       groupId: selectedGroupId,
       usersCount: usersToShow.length,
-      users: usersToShow.map(u => ({ id: u.id, name: u.name, email: u.email }))
+      users: usersToShow.map(u => ({ id: u.id, name: u.name || u.firstName + ' ' + u.lastName, email: u.email }))
+    });
+  } else if (allUsersData && Array.isArray(allUsersData)) {
+    // Fallback para quando a resposta vem diretamente como array
+    usersToShow = allUsersData;
+    console.log('[FilteredUserSelect] Showing users (fallback):', {
+      usersCount: usersToShow.length,
+      users: usersToShow.map(u => ({ id: u.id, name: u.name || u.firstName + ' ' + u.lastName, email: u.email }))
     });
   }
 
@@ -83,16 +92,19 @@ export function FilteredUserSelect({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="__none__">Nenhum responsável</SelectItem>
-        {usersToShow.map((user: any) => (
-          <SelectItem key={user.id} value={user.id}>
-            <div className="flex flex-col">
-              <span>{user.name}</span>
-              <span className="text-sm text-gray-500">
-                {user.email} {user.role && `• ${user.role}`}
-              </span>
-            </div>
-          </SelectItem>
-        ))}
+        {usersToShow.map((user: any) => {
+          const displayName = user.name || user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+          return (
+            <SelectItem key={user.id} value={user.id}>
+              <div className="flex flex-col">
+                <span>{displayName}</span>
+                <span className="text-sm text-gray-500">
+                  {user.email} {user.role && `• ${user.role}`}
+                </span>
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

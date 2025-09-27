@@ -225,6 +225,7 @@ export class UserController {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        name: this.userDomainService.createFullName(user.firstName, user.lastName),
         fullName: this.userDomainService.createFullName(user.firstName, user.lastName),
         role: user.role,
         employmentType: user.employmentType,
