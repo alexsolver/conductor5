@@ -165,9 +165,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem value="all">Todos</SelectItem>
         )}
         {fieldOptions.map((option, index) => {
-          // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
-          // Ensure truly unique keys by combining multiple identifiers
-          const uniqueKey = `${fieldName}-${option.id || 'no-id'}-${index}-${option.value || 'no-value'}`;
+          // Generate truly unique key using multiple identifiers and timestamp
+          const uniqueKey = `${fieldName}-${index}-${option.id || 'no-id'}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
           // Ensure option.value is not empty string
           const optionValue = option.value || `option_${index}`;
 
