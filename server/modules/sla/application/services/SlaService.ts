@@ -353,6 +353,40 @@ export class SlaService {
     return await this.slaRepository.deleteSlaWorkflow(id, tenantId);
   }
 
+  private validateSlaWorkflow(workflowData: any): void {
+    // Validate required fields
+    if (!workflowData.name || workflowData.name.trim().length === 0) {
+      throw new Error('Workflow name is required');
+    }
+
+    // Validate triggers
+    if (!workflowData.triggers || !Array.isArray(workflowData.triggers) || workflowData.triggers.length === 0) {
+      throw new Error('At least one trigger must be specified');
+    }
+
+    // Validate actions
+    if (!workflowData.actions || !Array.isArray(workflowData.actions) || workflowData.actions.length === 0) {
+      throw new Error('At least one action must be specified');
+    }
+
+    // Validate each trigger
+    workflowData.triggers.forEach((trigger: any, index: number) => {
+      if (!trigger.type || !['time_based', 'event_based', 'condition_based'].includes(trigger.type)) {
+        throw new Error(`Invalid trigger type at index ${index}`);
+      }
+    });
+
+    // Validate each action
+    workflowData.actions.forEach((action: any, index: number) => {
+      if (!action.type || !['notify', 'escalate', 'assign', 'update_field', 'pause_sla', 'resume_sla', 'create_task'].includes(action.type)) {
+        throw new Error(`Invalid action type at index ${index}`);
+      }
+      if (!action.id || typeof action.id !== 'string') {
+        throw new Error(`Action at index ${index} must have a valid ID`);
+      }
+    });
+  }
+
   // ===== PRIVATE HELPER METHODS =====
 
   private async createSlaInstance(sla: SlaDefinition, ticketId: string, metricType: string): Promise<SlaInstance> {

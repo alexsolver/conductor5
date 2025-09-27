@@ -11,6 +11,8 @@ import {
   slaInstances, 
   slaEvents, 
   slaViolations,
+  slaWorkflows,
+  slaWorkflowExecutions,
   SlaDefinition,
   SlaInstance,
   SlaEvent,
@@ -392,45 +394,76 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaWorkflow(workflowData: any): Promise<any> {
     console.log('[SLA-REPOSITORY] Creating SLA workflow:', workflowData.name);
 
-    const workflowWithId = {
-      ...workflowData,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const tenantDb = await this.getTenantDb(workflowData.tenantId);
+    const [createdWorkflow] = await tenantDb.insert(slaWorkflows)
+      .values({
+        ...workflowData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
 
-    // For now, return the workflow data as-is since we don't have a workflows table yet
-    // This will be stored in memory or you can add a proper workflows table later
-    return workflowWithId;
+    console.log('[SLA-REPOSITORY] SLA workflow created with ID:', createdWorkflow.id);
+    return createdWorkflow;
   }
 
   async getSlaWorkflowsByTenant(tenantId: string): Promise<any[]> {
     console.log('[SLA-REPOSITORY] Getting SLA workflows for tenant:', tenantId);
 
-    // Return empty array for now since workflows table doesn't exist yet
-    // You can implement this properly when the workflows table is created
-    return [];
+    const tenantDb = await this.getTenantDb(tenantId);
+    const workflows = await tenantDb.select()
+      .from(slaWorkflows)
+      .where(eq(slaWorkflows.tenantId, tenantId))
+      .orderBy(desc(slaWorkflows.createdAt));
+
+    console.log('[SLA-REPOSITORY] Found SLA workflows:', workflows.length);
+    return workflows;
   }
 
   async getSlaWorkflowById(id: string, tenantId: string): Promise<any | null> {
     console.log('[SLA-REPOSITORY] Getting SLA workflow by ID:', id);
 
-    // Return null for now since workflows table doesn't exist yet
-    return null;
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [workflow] = await tenantDb.select()
+      .from(slaWorkflows)
+      .where(and(
+        eq(slaWorkflows.id, id),
+        eq(slaWorkflows.tenantId, tenantId)
+      ))
+      .limit(1);
+
+    return workflow || null;
   }
 
   async updateSlaWorkflow(id: string, tenantId: string, updates: any): Promise<any | null> {
     console.log('[SLA-REPOSITORY] Updating SLA workflow:', id);
 
-    // Return null for now since workflows table doesn't exist yet
-    return null;
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [updatedWorkflow] = await tenantDb.update(slaWorkflows)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(slaWorkflows.id, id),
+        eq(slaWorkflows.tenantId, tenantId)
+      ))
+      .returning();
+
+    return updatedWorkflow || null;
   }
 
   async deleteSlaWorkflow(id: string, tenantId: string): Promise<boolean> {
     console.log('[SLA-REPOSITORY] Deleting SLA workflow:', id);
 
-    // Return false for now since workflows table doesn't exist yet
-    return false;
+    const tenantDb = await this.getTenantDb(tenantId);
+    const result = await tenantDb.delete(slaWorkflows)
+      .where(and(
+        eq(slaWorkflows.id, id),
+        eq(slaWorkflows.tenantId, tenantId)
+      ));
+
+    return result.rowCount > 0;
   }
 
   // ===== ANALYTICS & REPORTING =====
