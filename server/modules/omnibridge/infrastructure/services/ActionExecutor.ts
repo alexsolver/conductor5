@@ -816,13 +816,12 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log('📤 [ActionExecutor] Executing send_notification action:', action);
 
-      // ✅ 1QA.MD: Extrair dados dos params ou config com fallbacks seguros
-      const config = action.config || {};
+      // ✅ 1QA.MD: Extrair dados dos params com fallbacks seguros
       const params = action.params || {};
       
-      // Tentar extrair de params primeiro, depois config
-      const rawUsers = params.users || config.users || config.recipients || [];
-      const rawGroups = params.groups || config.groups || [];
+      // Extrair dados dos params
+      const rawUsers = params.users || [];
+      const rawGroups = params.groups || [];
       
       // Garantir que users e groups sejam arrays
       const users = Array.isArray(rawUsers) ? rawUsers : 
@@ -830,10 +829,10 @@ export class ActionExecutor implements IActionExecutorPort {
       const groups = Array.isArray(rawGroups) ? rawGroups : 
                      (typeof rawGroups === 'string' && rawGroups.trim()) ? rawGroups.split(',').map(g => g.trim()) : [];
       
-      const subject = params.subject || config.subject || config.title || 'OmniBridge Automation Notification';
-      const message = params.message || config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
-      const channels = params.channels || config.channels || ['in_app'];
-      const priority = params.priority || config.priority || 'medium';
+      const subject = params.subject || 'OmniBridge Automation Notification';
+      const message = params.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
+      const channels = params.channels || ['in_app'];
+      const priority = params.priority || 'medium';
 
       // ✅ 1QA.MD: Validar se há usuários especificados
       if (users.length === 0 && groups.length === 0) {
@@ -900,8 +899,13 @@ export class ActionExecutor implements IActionExecutorPort {
 
             // Debug: Log the metadata to identify JSON issues
             console.log('🔍 [ActionExecutor] About to create notification with metadata:', JSON.stringify(notificationRequest.metadata, null, 2));
+            console.log('🔍 [ActionExecutor] Full notification request:', JSON.stringify(notificationRequest, null, 2));
+            console.log('🔍 [ActionExecutor] Tenant ID:', context.tenantId);
+            console.log('🔍 [ActionExecutor] Calling CreateNotificationUseCase.execute()...');
 
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);
+            
+            console.log('🔍 [ActionExecutor] CreateNotificationUseCase returned:', JSON.stringify(result, null, 2));
 
             if (result.success) {
               results.push({ userId, success: true, notificationId: result.data?.id });
