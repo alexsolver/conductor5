@@ -30,7 +30,7 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       FROM "${schemaName}".user_groups ug
       LEFT JOIN "${schemaName}".user_group_memberships ugm 
         ON ug.id = ugm.group_id AND ugm.is_active = true
-      WHERE ug.tenant_id = $1 AND ug.is_active = true
+      WHERE ug.tenant_id = $1::uuid AND ug.is_active = true
       GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
       ORDER BY ug.name
     `;
@@ -46,7 +46,7 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
             ugm.user_id,
             ugm.role
           FROM "${schemaName}".user_group_memberships ugm
-          WHERE ugm.group_id = $1 AND ugm.is_active = true
+          WHERE ugm.group_id = $1::uuid AND ugm.is_active = true
         `;
 
         const membershipsResult = await db.execute(sql.raw(membershipsQuery, [group.id]));
@@ -97,7 +97,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     // Check if group exists and belongs to tenant
     const groupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
     `;
     const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
@@ -109,7 +109,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     // Check if user exists and belongs to tenant (users are in public schema)
     const userQuery = `
       SELECT id FROM public.users 
-      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
     `;
     const userResult = await db.execute(sql.raw(userQuery, [userId, tenantId]));
 
@@ -121,7 +121,7 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     // Check if membership already exists and is active
     const existingQuery = `
       SELECT id FROM "${schemaName}".user_group_memberships 
-      WHERE user_id = $1 AND group_id = $2 AND is_active = true
+      WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
@@ -185,7 +185,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Check if group exists and belongs to tenant
     const groupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active = true
     `;
     const groupResult = await db.execute(sql.raw(groupQuery, [groupId, tenantId]));
 
@@ -197,7 +197,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Check if active membership exists
     const existingQuery = `
       SELECT id FROM "${schemaName}".user_group_memberships 
-      WHERE user_id = $1 AND group_id = $2 AND is_active = true
+      WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingQuery, [userId, groupId]));
 
@@ -209,7 +209,7 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
     // Remove user from group (only active memberships)
     const deleteQuery = `
       DELETE FROM "${schemaName}".user_group_memberships 
-      WHERE user_id = $1 AND group_id = $2 AND is_active = true
+      WHERE user_id = $1::uuid AND group_id = $2::uuid AND is_active = true
     `;
     const result = await db.execute(sql.raw(deleteQuery, [userId, groupId]));
 
@@ -261,7 +261,7 @@ userGroupsRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Check if group name already exists for this tenant
     const existingGroupQuery = `
       SELECT id FROM "${schemaName}".user_groups 
-      WHERE tenant_id = $1 AND name = $2 AND is_active = true
+      WHERE tenant_id = $1::uuid AND name = $2 AND is_active = true
     `;
     const existingResult = await db.execute(sql.raw(existingGroupQuery, [tenantId, name.trim()]));
 
