@@ -377,13 +377,34 @@ router.delete('/:id', jwtAuth, async (req, res) => {
 
     // First check if the notification exists and belongs to the user
     const checkQuery = `
-      SELECT id, status FROM ${schemaName}.schedule_notifications 
+      SELECT id, status, user_id FROM ${schemaName}.schedule_notifications 
       WHERE id = $1 AND user_id = $2 AND status != 'deleted'
     `;
 
     const checkResult = await pool.query(checkQuery, [id, userId]);
 
+    console.log('🔍 [SCHEDULE-NOTIFICATIONS] Delete check result:', {
+      notificationId: id,
+      userId: userId,
+      found: checkResult.rows.length > 0,
+      notification: checkResult.rows[0] || null
+    });
+
     if (checkResult.rows.length === 0) {
+      // Check if notification exists at all for debugging
+      const existsQuery = `
+        SELECT id, status, user_id FROM ${schemaName}.schedule_notifications 
+        WHERE id = $1
+      `;
+      const existsResult = await pool.query(existsQuery, [id]);
+
+      console.log('🔍 [SCHEDULE-NOTIFICATIONS] Notification existence check:', {
+        notificationId: id,
+        exists: existsResult.rows.length > 0,
+        notification: existsResult.rows[0] || null,
+        belongsToUser: existsResult.rows.length > 0 ? existsResult.rows[0].user_id === userId : false
+      });
+
       return res.status(404).json({
         success: false,
         error: 'Notification not found or already deleted'
@@ -409,6 +430,7 @@ router.delete('/:id', jwtAuth, async (req, res) => {
         message: 'Notification deleted successfully'
       });
     } else {
+      // This case should ideally not be reached if checkQuery passed, but as a fallback
       res.status(404).json({
         success: false,
         error: 'Notification not found'
