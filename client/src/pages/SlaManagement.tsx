@@ -350,7 +350,7 @@ export default function SlaManagement() {
       description: '',
       type: 'SLA',
       priority: 'medium',
-      validFrom: '',
+      validFrom: new Date().toISOString().split('T')[0],
       validUntil: '',
       responseTimeMinutes: undefined,
       resolutionTimeMinutes: undefined,
@@ -483,7 +483,12 @@ export default function SlaManagement() {
             <AlertTriangle className="w-4 h-4 mr-2" />
             Verificar Violações
           </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+            if (!open) {
+              form.reset();
+            }
+          }}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-sla">
                 <Plus className="w-4 h-4 mr-2" />
