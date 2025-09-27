@@ -325,6 +325,116 @@ export class SlaService {
     });
   }
 
+  // ===== SLA WORKFLOWS =====
+
+  async createSlaWorkflow(workflowData: any): Promise<any> {
+    // Validate workflow data
+    this.validateSlaWorkflow(workflowData);
+
+    return await this.slaRepository.createSlaWorkflow(workflowData);
+  }
+
+  async getSlaWorkflows(tenantId: string): Promise<any[]> {
+    return await this.slaRepository.getSlaWorkflowsByTenant(tenantId);
+  }
+
+  async updateSlaWorkflow(id: string, tenantId: string, updates: any): Promise<any | null> {
+    if (updates.triggers || updates.actions) {
+      this.validateSlaWorkflow(updates);
+    }
+
+    return await this.slaRepository.updateSlaWorkflow(id, tenantId, {
+      ...updates,
+      updatedAt: new Date()
+    });
+  }
+
+  async deleteSlaWorkflow(id: string, tenantId: string): Promise<boolean> {
+    return await this.slaRepository.deleteSlaWorkflow(id, tenantId);
+  }
+
+  private validateSlaWorkflow(data: any): void {
+    // Validate required fields
+    if (!data.name || data.name.trim().length === 0) {
+      throw new Error('Workflow name is required');
+    }
+
+    // Validate triggers
+    if (!data.triggers || !Array.isArray(data.triggers) || data.triggers.length === 0) {
+      throw new Error('At least one trigger must be specified');
+    }
+
+    const validTriggerTypes = [
+      'sla_breach', 'sla_warning', 'sla_met', 'instance_created', 
+      'instance_closed', 'escalation_triggered', 'threshold_reached'
+    ];
+
+    data.triggers.forEach((trigger: any, index: number) => {
+      if (!trigger.type || !validTriggerTypes.includes(trigger.type)) {
+        throw new Error(`Invalid trigger type at index ${index}. Valid types: ${validTriggerTypes.join(', ')}`);
+      }
+    });
+
+    // Validate actions
+    if (!data.actions || !Array.isArray(data.actions) || data.actions.length === 0) {
+      throw new Error('At least one action must be specified');
+    }
+
+    const validActionTypes = [
+      'send_email', 'send_notification', 'create_ticket', 'escalate', 
+      'update_priority', 'assign_user', 'webhook', 'log_event'
+    ];
+
+    data.actions.forEach((action: any, index: number) => {
+      if (!action.type || !validActionTypes.includes(action.type)) {
+        throw new Error(`Invalid action type at index ${index}. Valid types: ${validActionTypes.join(', ')}`);
+      }
+
+      // Validate action-specific parameters
+      switch (action.type) {
+        case 'send_email':
+          if (!action.config || !action.config.to || !action.config.subject) {
+            throw new Error(`Action at index ${index}: send_email requires 'to' and 'subject' in config`);
+          }
+          if (typeof action.config.to !== 'string' || typeof action.config.subject !== 'string') {
+            throw new Error(`Action at index ${index}: send_email 'to' and 'subject' must be strings`);
+          }
+          break;
+
+        case 'send_notification':
+          if (!action.config || (!action.config.users && !action.config.groups)) {
+            throw new Error(`Action at index ${index}: send_notification requires 'users' or 'groups' in config`);
+          }
+          break;
+
+        case 'create_ticket':
+          if (!action.config || !action.config.subject) {
+            throw new Error(`Action at index ${index}: create_ticket requires 'subject' in config`);
+          }
+          break;
+
+        case 'webhook':
+          if (!action.config || !action.config.url) {
+            throw new Error(`Action at index ${index}: webhook requires 'url' in config`);
+          }
+          break;
+
+        case 'assign_user':
+          if (!action.config || !action.config.userId) {
+            throw new Error(`Action at index ${index}: assign_user requires 'userId' in config`);
+          }
+          break;
+      }
+    });
+
+    // Validate priority
+    if (data.priority !== undefined) {
+      if (typeof data.priority !== 'number' || data.priority < 1 || data.priority > 10) {
+        throw new Error('Priority must be a number between 1 and 10');
+      }
+    }
+  }
+
   private isRuleMatch(rules: any[], ticketData: any): boolean {
     if (!rules || rules.length === 0) return true;
 

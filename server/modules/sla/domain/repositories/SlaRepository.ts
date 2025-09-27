@@ -10,7 +10,7 @@ export interface SlaRepository {
   getSlaDefinitionsByTenant(tenantId: string): Promise<SlaDefinition[]>;
   updateSlaDefinition(id: string, tenantId: string, updates: Partial<SlaDefinition>): Promise<SlaDefinition | null>;
   deleteSlaDefinition(id: string, tenantId: string): Promise<boolean>;
-  
+
   // SLA Instances
   createSlaInstance(instance: Omit<SlaInstance, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaInstance>;
   getSlaInstanceById(id: string, tenantId: string): Promise<SlaInstance | null>;
@@ -19,12 +19,12 @@ export interface SlaRepository {
   updateSlaInstance(id: string, tenantId: string, updates: Partial<SlaInstance>): Promise<SlaInstance | null>;
   getActiveSlaInstances(tenantId: string): Promise<SlaInstance[]>;
   getBreachedSlaInstances(tenantId: string): Promise<SlaInstance[]>;
-  
+
   // SLA Events
   createSlaEvent(event: Omit<SlaEvent, 'id' | 'createdAt'>): Promise<SlaEvent>;
   getSlaEventsByInstance(slaInstanceId: string, tenantId: string): Promise<SlaEvent[]>;
   getSlaEventsByTicket(ticketId: string, tenantId: string): Promise<SlaEvent[]>;
-  
+
   // SLA Violations
   createSlaViolation(violation: Omit<SlaViolation, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaViolation>;
   getSlaViolationById(id: string, tenantId: string): Promise<SlaViolation | null>;
@@ -32,11 +32,18 @@ export interface SlaRepository {
   getSlaViolationsByDefinition(slaDefinitionId: string, tenantId: string): Promise<SlaViolation[]>;
   updateSlaViolation(id: string, tenantId: string, updates: Partial<SlaViolation>): Promise<SlaViolation | null>;
   getUnresolvedViolations(tenantId: string): Promise<SlaViolation[]>;
-  
+
   // Analytics & Reporting
   getSlaComplianceStats(tenantId: string, startDate?: Date, endDate?: Date): Promise<SlaComplianceStats>;
   getSlaPerformanceMetrics(tenantId: string, slaDefinitionId?: string): Promise<SlaPerformanceMetrics>;
   getViolationTrends(tenantId: string, period: 'daily' | 'weekly' | 'monthly'): Promise<ViolationTrend[]>;
+
+  // SLA Workflows
+  createSlaWorkflow(workflowData: any): Promise<any>;
+  getSlaWorkflowsByTenant(tenantId: string): Promise<any[]>;
+  getSlaWorkflowById(id: string, tenantId: string): Promise<any | null>;
+  updateSlaWorkflow(id: string, tenantId: string, updates: any): Promise<any | null>;
+  deleteSlaWorkflow(id: string, tenantId: string): Promise<boolean>;
 }
 
 export interface SlaComplianceStats {
