@@ -225,6 +225,7 @@ export class UserController {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        name: this.userDomainService.createFullName(user.firstName, user.lastName),
         fullName: this.userDomainService.createFullName(user.firstName, user.lastName),
         role: user.role,
         employmentType: user.employmentType,
@@ -239,6 +240,9 @@ export class UserController {
         updatedAt: user.updatedAt.toISOString()
       }));
 
+      console.log('[UserController] Enviando resposta com', usersResponse.length, 'usuários');
+      console.log('[UserController] Primeiros usuários:', usersResponse.slice(0, 3));
+      
       res.json({
         success: true,
         message: 'Users retrieved successfully',
