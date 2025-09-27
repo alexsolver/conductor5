@@ -55,6 +55,21 @@ export function UserMultiSelect({
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
+  // Extract users data safely
+  const users = usersData?.users || [];
+
+  // Normalizar dados dos usuários - MOVED BEFORE CONDITIONAL RETURNS
+  const normalizedUsers = React.useMemo(() => {
+    if (!users || !Array.isArray(users)) return [];
+    
+    return users.map(user => ({
+      id: user.id,
+      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+      email: user.email,
+      role: user.role
+    }));
+  }, [users]);
+
   // Debug logs
   React.useEffect(() => {
     console.log('[UserMultiSelect] Users data:', usersData);
@@ -78,20 +93,6 @@ export function UserMultiSelect({
       </div>
     );
   }
-
-  const users = usersData?.users || [];
-
-  // Normalizar dados dos usuários
-  const normalizedUsers = React.useMemo(() => {
-    if (!users || !Array.isArray(users)) return [];
-    
-    return users.map(user => ({
-      id: user.id,
-      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-      email: user.email,
-      role: user.role
-    }));
-  }, [users]);
 
   const selectedUsers = normalizedUsers.filter(user => value.includes(user.id));
   const availableUsers = normalizedUsers.filter(user => !value.includes(user.id));
