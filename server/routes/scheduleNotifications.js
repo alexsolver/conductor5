@@ -377,8 +377,8 @@ router.delete('/:id', jwtAuth, async (req, res) => {
 
     // First check if the notification exists and belongs to the user
     const checkQuery = `
-      SELECT id FROM ${schemaName}.schedule_notifications 
-      WHERE id = $1 AND user_id = $2 AND read_at IS NULL
+      SELECT id, status FROM ${schemaName}.schedule_notifications 
+      WHERE id = $1 AND user_id = $2 AND status != 'deleted'
     `;
 
     const checkResult = await pool.query(checkQuery, [id, userId]);
@@ -386,7 +386,7 @@ router.delete('/:id', jwtAuth, async (req, res) => {
     if (checkResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        error: 'Notification not found or already processed'
+        error: 'Notification not found or already deleted'
       });
     }
 
