@@ -1,0 +1,37 @@
+POST https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/sla/workflows 400
+
+Request Data
+
+{"name":"teste","description":"","conditions":[],"actions":[{"id":"default-notify","type":"notify","config":{"message":"SLA workflow triggered","recipients":["admin"]}}],"isActive":true,"priority":5,"triggers":[{"type":"sla_breach"}]}
+
+Request Headers
+
+Content-Type: application/json
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 207
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Sat, 27 Sep 2025 15:13:27 GMT
+etag: W/"cf-71e4BFm78k3rkSHT+a5nykSfE9w"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-28T15:13:26.962Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"message":"Workflow validation failed: Invalid action type at index 0. Valid types: send_email, send_notification, create_ticket, escalate, update_priority, assign_user, webhook, log_event"}
