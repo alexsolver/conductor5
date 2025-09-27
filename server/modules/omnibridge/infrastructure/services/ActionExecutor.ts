@@ -898,6 +898,9 @@ export class ActionExecutor implements IActionExecutorPort {
               relatedEntityId: context.ruleId || 'unknown'
             };
 
+            // Debug: Log the metadata to identify JSON issues
+            console.log('🔍 [ActionExecutor] About to create notification with metadata:', JSON.stringify(notificationRequest.metadata, null, 2));
+
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);
 
             if (result.success) {
@@ -906,6 +909,7 @@ export class ActionExecutor implements IActionExecutorPort {
             } else {
               results.push({ userId, success: false, error: result.error });
               console.error(`❌ [ActionExecutor] Failed to create notification for user ${userId}:`, result.error);
+              console.error(`❌ [ActionExecutor] Notification request that failed:`, JSON.stringify(notificationRequest, null, 2));
             }
           } catch (userError) {
             results.push({ userId, success: false, error: userError.message });
