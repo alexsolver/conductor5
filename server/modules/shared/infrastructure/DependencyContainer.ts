@@ -102,6 +102,37 @@ export class DependencyContainer implements IDependencyContainer {
     this.singletons.clear();
     this.factories.clear();
   }
+
+  // Method to initialize common services
+  async initializeCommonServices(): Promise<void> {
+    try {
+      // Register CreateTicketUseCase factory
+      this.registerSingleton(TOKENS.CREATE_TICKET_USE_CASE, () => {
+        // Import and create dependencies
+        return this.createTicketUseCaseFactory();
+      });
+      
+      console.log('✅ [DependencyContainer] Common services initialized');
+    } catch (error) {
+      console.error('❌ [DependencyContainer] Failed to initialize common services:', error);
+    }
+  }
+
+  private async createTicketUseCaseFactory() {
+    try {
+      const { CreateTicketUseCase } = await import('../../tickets/application/use-cases/CreateTicketUseCase');
+      const { DrizzleTicketRepository } = await import('../../tickets/infrastructure/repositories/DrizzleTicketRepository');
+      const { TicketDomainService } = await import('../../tickets/domain/services/TicketDomainService');
+      
+      const ticketRepository = new DrizzleTicketRepository();
+      const ticketDomainService = new TicketDomainService();
+      
+      return new CreateTicketUseCase(ticketRepository, ticketDomainService);
+    } catch (error) {
+      console.error('❌ [DependencyContainer] Failed to create CreateTicketUseCase:', error);
+      throw error;
+    }
+  }
 }
 
 // Service tokens for type safety
@@ -125,6 +156,7 @@ export const TOKENS = {
   UPDATE_COMPANY_USE_CASE: Symbol('UpdateCompanyUseCase'),
   MANAGE_COMPANY_MEMBERSHIP_USE_CASE: Symbol('ManageCompanyMembershipUseCase'),
   
+  // Ticket Use Cases
   CREATE_TICKET_USE_CASE: Symbol('CreateTicketUseCase'),
   GET_TICKETS_USE_CASE: Symbol('GetTicketsUseCase'),
   ASSIGN_TICKET_USE_CASE: Symbol('AssignTicketUseCase'),

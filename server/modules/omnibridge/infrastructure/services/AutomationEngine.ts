@@ -661,15 +661,18 @@ export class GlobalAutomationManager {
     return GlobalAutomationManager.instance;
   }
 
-  public getEngine(tenantId: string): AutomationEngine {
-    // Força recriação se não existe ou se existe um engine sem CreateTicketUseCase configurado
+  public async getEngine(tenantId: string): Promise<AutomationEngine> {
+    // Check if engine exists and has proper dependencies
     const existingEngine = this.engines.get(tenantId);
     const needsRecreation = !existingEngine || !this.hasProperDependencies(existingEngine);
     
     if (needsRecreation) {
       try {
-        // Resolver dependências do container
+        // Initialize container services if not done
         const container = DependencyContainer.getInstance();
+        await container.initializeCommonServices();
+        
+        // Resolve dependencies from container
         const createTicketUseCase = container.resolve<CreateTicketUseCase>(TOKENS.CREATE_TICKET_USE_CASE);
         const aiService = new AIAnalysisService();
         const actionExecutor = new ActionExecutor(aiService, createTicketUseCase);
@@ -679,7 +682,10 @@ export class GlobalAutomationManager {
         this.engines.set(tenantId, engine);
       } catch (error) {
         console.error('❌ [GlobalAutomationManager] Failed to resolve dependencies, creating default engine:', error);
-        const engine = new AutomationEngine(tenantId);
+        // Create engine without ticket creation capability
+        const aiService = new AIAnalysisService();
+        const actionExecutor = new ActionExecutor(aiService);
+        const engine = new AutomationEngine(tenantId, aiService, actionExecutor);
         this.engines.set(tenantId, engine);
       }
     }

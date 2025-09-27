@@ -95,7 +95,7 @@ export class ProcessMessageUseCase {
       // Executar processamento através do AutomationEngine
       const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');
       const automationManager = GlobalAutomationManager.getInstance();
-      const automationEngine = automationManager.getEngine(tenantId);
+      const automationEngine = await automationManager.getEngine(tenantId);
 
       console.log(`⚙️ [ProcessMessageUseCase] Delegating to AutomationEngine for tenant ${tenantId}`);
 
@@ -159,7 +159,7 @@ export class ProcessMessageUseCase {
       // Initialize automation engine for tenant using GlobalAutomationManager
       const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');
       const automationManager = GlobalAutomationManager.getInstance();
-      const automationEngine = automationManager.getEngine(tenantId);
+      const automationEngine = await automationManager.getEngine(tenantId);
 
       // Wait for rules to be loaded from database
       await automationEngine.loadRulesFromDatabase();
@@ -210,7 +210,7 @@ export class ProcessMessageUseCase {
       console.log(`🧪 [ProcessMessageUseCase] Testing automation rule ${ruleId} for tenant ${tenantId}`);
 
       const automationManager = GlobalAutomationManager.getInstance();
-      const automationEngine = automationManager.getEngine(tenantId);
+      const automationEngine = await automationManager.getEngine(tenantId);
 
       const testResult = await automationEngine.testRule(ruleId, testMessage);
 
