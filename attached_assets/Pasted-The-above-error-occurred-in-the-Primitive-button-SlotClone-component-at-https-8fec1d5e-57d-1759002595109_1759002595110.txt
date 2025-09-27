@@ -1,0 +1,38 @@
+The above error occurred in the <Primitive.button.SlotClone> component:
+
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=2b47c836:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=2b47c836:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=2b47c836:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MASQVQQT.js?v=2b47c836:89:13
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=2b47c836:38:15)
+    at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MASQVQQT.js?v=2b47c836:54:5)
+    at div
+    at SlaManagement (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/SlaManagement.tsx:112:41)
+    at Route (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d2936d56:191:16)
+    at Switch (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d2936d56:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/App.tsx?v=8-GnCynz28cOncG-LcL4U:115:42)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=2b47c836:38:15)
+    at TooltipProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=6e559920:66:5)
+    at SimpleTimerProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at SidebarProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/contexts/SidebarContext.tsx:20:35)
+    at AuthProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=30624647:2805:3)
+    at App (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/App.tsx?v=8-GnCynz28cOncG-LcL4U:614:9)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+React.Children.only expected to receive a single React element child.
+at Object.onlyChild [as only] (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-QCHXOAYK.js?v=2b47c836:760:19)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=2b47c836:52:64
+at renderWithHooks (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:11596:26)
+at updateForwardRef (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:14373:28)
+at beginWork (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:15994:22)
+at beginWork$1 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:19806:22)
+at performUnitOfWork (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:19251:20)
+at workLoopSync (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:19190:13)
+at renderRootSync (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:19169:15)
+at recoverFromConcurrentError (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-SXRIVT2P.js?v=2b47c836:18786:28)
