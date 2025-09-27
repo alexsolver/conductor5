@@ -55,7 +55,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.error('❌ DynamicSelect: fieldName é obrigatório!', { fieldName, customerId, dependsOn });
         throw new Error('fieldName é obrigatório para buscar opções');
       }
-      
+
       const params: any = { fieldName };
       if (customerId) params.companyId = customerId; // API expects companyId, not customerId
       if (dependsOn) params.dependsOn = dependsOn;
@@ -80,14 +80,14 @@ export function DynamicSelect(props: DynamicSelectProps) {
     if (fieldOptionsData && Array.isArray(fieldOptionsData.data)) {
       // Filtrar pelos dados específicos do campo se não for hierárquico
       let filteredOptions = fieldOptionsData.data;
-      
+
       // Para campos não-hierárquicos (status, priority, impact, urgency), filtrar pelo field_name
       if (!['category', 'subcategory', 'action'].includes(fieldName) && fieldName) {
         filteredOptions = fieldOptionsData.data.filter((option: any) => 
           option.field_name === fieldName
         );
       }
-      
+
       console.log(`🔍 DynamicSelect ${fieldName}:`, {
         fieldName,
         dependsOn,
@@ -102,7 +102,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
           color: opt.color
         }))
       });
-      
+
       setFieldOptions(filteredOptions);
     } else if (fieldOptionsData && !fieldOptionsData.success) {
       console.error('API returned an error:', fieldOptionsData.message);
@@ -169,7 +169,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
           const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'}`}`;
           // Ensure option.value is not empty string
           const optionValue = option.value || `option_${index}`;
-          
+
           return (
             <SelectItem key={uniqueKey} value={optionValue}>
               <div className="flex items-center gap-2">
