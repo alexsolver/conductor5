@@ -44,9 +44,7 @@ import {
   Code,
   Settings2,
   Filter,
-  X,
-  Bell,
-  ArrowRight
+  X
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { QueryBuilderComponent } from '@/components/QueryBuilder';
@@ -96,12 +94,6 @@ interface SlaDefinition {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  timeTargets?: Array<{
-    metric: string;
-    target: number;
-    unit: 'minutes' | 'hours' | 'days';
-    priority?: 'low' | 'medium' | 'high' | 'critical';
-  }>;
 }
 
 interface SlaInstance {
