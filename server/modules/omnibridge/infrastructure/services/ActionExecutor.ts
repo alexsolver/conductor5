@@ -868,26 +868,34 @@ export class ActionExecutor implements IActionExecutorPort {
       if (users && users.length > 0) {
         for (const userId of users) {
           try {
+            // Sanitizar messageData para garantir JSON válido
+            const safeMessageData = {
+              from: typeof context.messageData?.from === 'string' ? context.messageData.from : 'unknown',
+              subject: typeof context.messageData?.subject === 'string' ? context.messageData.subject : undefined,
+              channel: typeof context.messageData?.channel === 'string' ? context.messageData.channel : 'unknown'
+            };
+
+            // Remover propriedades undefined
+            const cleanMessageData = Object.fromEntries(
+              Object.entries(safeMessageData).filter(([_, value]) => value !== undefined)
+            );
+
             const notificationRequest = {
               type: 'automation_notification' as any,
               severity: priority as any,
               title: subject,
               message: message,
               metadata: {
-                ruleId: context.ruleId,
-                ruleName: context.ruleName,
-                messageData: {
-                  from: context.messageData.from,
-                  subject: context.messageData.subject,
-                  channel: context.messageData.channel
-                },
+                ruleId: context.ruleId || 'unknown',
+                ruleName: context.ruleName || 'unknown', 
+                messageData: cleanMessageData,
                 automationContext: true
               },
               channels: channels as any[],
               userId: typeof userId === 'string' ? userId : String(userId),
               scheduledAt: new Date(),
               relatedEntityType: 'automation_rule',
-              relatedEntityId: context.ruleId
+              relatedEntityId: context.ruleId || 'unknown'
             };
 
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);
