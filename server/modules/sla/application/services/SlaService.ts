@@ -488,7 +488,7 @@ export class SlaService {
 
     const validActionTypes = [
       'send_email', 'send_notification', 'create_ticket', 'escalate', 
-      'update_priority', 'assign_user', 'webhook', 'log_event'
+      'update_priority', 'assign_user', 'webhook', 'log_event', 'notify'
     ];
 
     data.actions.forEach((action: any, index: number) => {
@@ -508,8 +508,9 @@ export class SlaService {
           break;
 
         case 'send_notification':
-          if (!action.config || (!action.config.users && !action.config.groups)) {
-            throw new Error(`Action at index ${index}: send_notification requires 'users' or 'groups' in config`);
+        case 'notify':
+          if (!action.config || (!action.config.users && !action.config.groups && !action.config.recipients)) {
+            throw new Error(`Action at index ${index}: ${action.type} requires 'users', 'groups', or 'recipients' in config`);
           }
           break;
 
