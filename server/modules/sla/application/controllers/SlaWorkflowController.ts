@@ -46,10 +46,21 @@ export class SlaWorkflowController {
         data: workflow
       });
     } catch (error) {
-      console.error('[SLA-WORKFLOW-CONTROLLER] Create workflow error:', error);
+      console.error('❌ [SlaWorkflowController] Error creating workflow:', error);
+
+      // Handle specific constraint violations
+      if (error instanceof Error && error.message.includes('duplicate key value violates unique constraint')) {
+        return res.status(400).json({
+          success: false,
+          message: 'A workflow with this name already exists. Please choose a different name.',
+          error: 'Duplicate workflow name'
+        });
+      }
+
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to create workflow'
+        message: error instanceof Error ? error.message : 'Failed to create SLA workflow',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

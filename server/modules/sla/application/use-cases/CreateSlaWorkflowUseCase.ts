@@ -17,8 +17,15 @@ export class CreateSlaWorkflowUseCase {
       throw new Error('Tenant ID is required');
     }
 
+    // Validate required fields
     if (!data.name?.trim()) {
       throw new Error('Workflow name is required');
+    }
+
+    // Check for duplicate name
+    const existingWorkflow = await this.slaWorkflowRepository.findByName(data.name.trim(), data.tenantId);
+    if (existingWorkflow) {
+      throw new Error(`A workflow with the name "${data.name.trim()}" already exists. Please choose a different name.`);
     }
 
     if (!data.triggers || data.triggers.length === 0) {

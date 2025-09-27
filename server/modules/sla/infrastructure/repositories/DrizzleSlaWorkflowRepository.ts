@@ -25,6 +25,12 @@ export class DrizzleSlaWorkflowRepository implements ISlaWorkflowRepository {
       throw new Error('Tenant ID is required');
     }
 
+    // Check if a workflow with the same name already exists for this tenant
+    const existingWorkflow = await this.findByName(data.name, data.tenantId);
+    if (existingWorkflow) {
+      throw new Error(`SLA workflow with name "${data.name}" already exists for this tenant.`);
+    }
+
     const [workflow] = await db
       .insert(slaWorkflows)
       .values({
@@ -56,6 +62,21 @@ export class DrizzleSlaWorkflowRepository implements ISlaWorkflowRepository {
 
     return workflow ? this.mapToEntity(workflow) : null;
   }
+
+  async findByName(name: string, tenantId: string): Promise<SlaWorkflow | null> {
+    if (!tenantId) throw new Error('Tenant ID is required');
+
+    const [workflow] = await db
+      .select()
+      .from(slaWorkflows)
+      .where(and(
+        eq(slaWorkflows.name, name),
+        eq(slaWorkflows.tenantId, tenantId)
+      ));
+
+    return workflow ? this.mapToEntity(workflow) : null;
+  }
+
 
   async findByTenant(tenantId: string): Promise<SlaWorkflow[]> {
     if (!tenantId) throw new Error('Tenant ID is required');
@@ -91,6 +112,14 @@ export class DrizzleSlaWorkflowRepository implements ISlaWorkflowRepository {
 
   async update(id: string, tenantId: string, data: UpdateSlaWorkflowDTO): Promise<SlaWorkflow> {
     if (!tenantId) throw new Error('Tenant ID is required');
+
+    // If the name is being updated, check for conflicts
+    if (data.name !== undefined) {
+      const existingWorkflow = await this.findByName(data.name, tenantId);
+      if (existingWorkflow && existingWorkflow.id !== id) {
+        throw new Error(`SLA workflow with name "${data.name}" already exists for this tenant.`);
+      }
+    }
 
     const [workflow] = await db
       .update(slaWorkflows)
