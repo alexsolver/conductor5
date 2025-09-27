@@ -112,8 +112,43 @@ export class SlaController {
       console.log('[SLA-CONTROLLER] validFrom type:', typeof req.body.validFrom, req.body.validFrom);
       console.log('[SLA-CONTROLLER] validUntil type:', typeof req.body.validUntil, req.body.validUntil);
 
+      // Transform timeTargets to the expected legacy format for backend compatibility
+      const transformedBody = { ...req.body };
+      if (transformedBody.timeTargets && Array.isArray(transformedBody.timeTargets)) {
+        // Map timeTargets array to individual time fields for backend compatibility
+        const timeTargetsMap = transformedBody.timeTargets.reduce((acc: any, target: any) => {
+          if (target.metric === 'response_time') {
+            acc.responseTimeMinutes = target.unit === 'hours' ? target.target * 60 : 
+                                     target.unit === 'days' ? target.target * 1440 : target.target;
+          } else if (target.metric === 'resolution_time') {
+            acc.resolutionTimeMinutes = target.unit === 'hours' ? target.target * 60 : 
+                                       target.unit === 'days' ? target.target * 1440 : target.target;
+          } else if (target.metric === 'update_time') {
+            acc.updateTimeMinutes = target.unit === 'hours' ? target.target * 60 : 
+                                   target.unit === 'days' ? target.target * 1440 : target.target;
+          } else if (target.metric === 'idle_time') {
+            acc.idleTimeMinutes = target.unit === 'hours' ? target.target * 60 : 
+                                 target.unit === 'days' ? target.target * 1440 : target.target;
+          }
+          return acc;
+        }, {});
+        
+        // Add the individual time fields to the body
+        Object.assign(transformedBody, timeTargetsMap);
+      }
+
+      // Ensure at least one time target is specified
+      if (!transformedBody.responseTimeMinutes && !transformedBody.resolutionTimeMinutes && 
+          !transformedBody.updateTimeMinutes && !transformedBody.idleTimeMinutes) {
+        res.status(400).json({
+          success: false,
+          error: 'At least one time target must be specified. Example: [{"metric": "response_time", "target": 30, "unit": "minutes", "priority": "high"}]'
+        });
+        return;
+      }
+
       // Validate request body
-      const validationResult = insertSlaDefinitionSchema.safeParse(req.body);
+      const validationResult = insertSlaDefinitionSchema.safeParse(transformedBody);
       if (!validationResult.success) {
         res.status(400).json({
           success: false,
