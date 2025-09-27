@@ -413,7 +413,15 @@ export default function SlaManagement() {
   };
 
   const onWorkflowSubmit = (values: z.infer<typeof workflowSchema>) => {
-    createWorkflowMutation.mutate(values);
+    // Converter trigger (string) para triggers (array) conforme esperado pelo backend
+    const transformedValues = {
+      ...values,
+      triggers: [{ type: values.trigger }], // Converter para formato array
+      // Remove o campo trigger singular
+      trigger: undefined
+    };
+    
+    createWorkflowMutation.mutate(transformedValues);
   };
 
   const handleEdit = (sla: SlaDefinition) => {
@@ -435,7 +443,7 @@ export default function SlaManagement() {
       timezone: sla.timezone,
       escalationEnabled: sla.escalationEnabled,
       escalationThresholdPercent: sla.escalationThresholdPercent,
-      applicationRules: sla.applicationRules,
+      applicationRules: sla.applicationRules as any || { rules: [], logicalOperator: 'AND' },
       escalationActions: sla.escalationActions,
       pauseConditions: sla.pauseConditions,
       resumeConditions: sla.resumeConditions,
