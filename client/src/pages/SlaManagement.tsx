@@ -146,7 +146,7 @@ const slaDefinitionSchema = z.object({
   type: z.enum(['SLA', 'OLA', 'UC']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   validFrom: z.string().min(1, 'Data de início é obrigatória'),
-  validUntil: z.string().optional(),
+  validUntil: z.string().optional().nullable(),
   businessHoursOnly: z.boolean(),
   workingDays: z.array(z.number()),
   workingHours: z.object({
@@ -356,7 +356,7 @@ export default function SlaManagement() {
       type: 'SLA',
       priority: 'medium',
       validFrom: new Date().toISOString().split('T')[0],
-      validUntil: '',
+      validUntil: null,
       businessHoursOnly: true,
       workingDays: [1, 2, 3, 4, 5],
       workingHours: { start: '08:00', end: '18:00' },
@@ -456,7 +456,7 @@ export default function SlaManagement() {
       type: sla.type,
       priority: sla.priority,
       validFrom: sla.validFrom,
-      validUntil: sla.validUntil,
+      validUntil: sla.validUntil || null,
       // Remove time related fields from here as they are now in timeTargets
       // responseTimeMinutes: sla.responseTimeMinutes,
       // resolutionTimeMinutes: sla.resolutionTimeMinutes,
