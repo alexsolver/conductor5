@@ -1,0 +1,70 @@
+[vite] connecting...
+[vite] connected.
+🔍 [AUTH] No access token found in cookies
+🔐 [LOGIN] Starting login process...
+🔍 [LOGIN] Response status: 200
+🔍 [LOGIN] Response data structure: 
+(3) ["success", "message", "data"]
+✅ [LOGIN] Login successful - tokens stored in HTTP-only cookies
+✅ [LOGIN-SUCCESS] User authenticated via HTTP-only cookies
+📦 [LOGIN-SUCCESS] Tenant ID stored for compatibility
+✅ [LOGIN-SUCCESS] Login completed successfully
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", position: undefined}
+[EMPLOYMENT-DETECTION] Using employmentType field: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", detectedType: "clt"}
+🌐 [API-REQUEST] GET /api/tenants/3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "GET", url: "/api/tenants/3f99462f-3621-4b1b-bea8-782acc50d62e", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+🌐 [API-REQUEST] GET /api/user/profile
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "GET", url: "/api/user/profile", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+🌐 [API-REQUEST] GET /api/timecard/current-status
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "GET", url: "/api/timecard/current-status", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+🌐 [API-REQUEST] GET /api/schedule-notifications/count
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "GET", url: "/api/schedule-notifications/count", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", position: undefined}
+[EMPLOYMENT-DETECTION] Using employmentType field: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", position: undefined}
+[EMPLOYMENT-DETECTION] Using employmentType field: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", detectedType: "clt"}
+[EMPLOYMENT-DETECTION] Input user: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", position: undefined}
+[EMPLOYMENT-DETECTION] Using employmentType field: clt
+[EMPLOYMENT-DEBUG] User data: 
+Object {email: "alex@lansolver.com", role: "saas_admin", employmentType: "clt", detectedType: "clt"}
+🌐 [API-REQUEST] GET /api/schedule-notifications/list
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "GET", url: "/api/schedule-notifications/list", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+🔔 [NOTIFICATIONS-PAGE] API response: 
+Object {success: true, data: {…}}
+🌐 [API-REQUEST] DELETE /api/schedule-notifications/ee515a2f-b1a8-4666-8d94-37a8ceebc70b
+🔍 [API-REQUEST-DEBUG] Request details: 
+Object {method: "DELETE", url: "/api/schedule-notifications/ee515a2f-b1a8-4666-8d94-37a8ceebc70b", hasData: false, credentials: "include", dataType: undefined}
+🔧 [API-REQUEST] Including tenant ID header: 3f99462f-3621-4b1b-bea8-782acc50d62e
+🔍 [API-REQUEST-FINAL] Making request with credentials: include
+Delete notification error: 
+SyntaxError {message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"}
+message: "Failed to execute 'json' on 'Response': Unexpected token '<', "<!DOCTYPE "... is not valid JSON"
+stack: "SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON↵ at Object.mutationFn (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/NotificationsPage.tsx:219:23)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
