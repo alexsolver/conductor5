@@ -1223,13 +1223,12 @@ export default function SlaManagement() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => addWorkflowAction('notify')}
-                        className="justify-start"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Adicionar Email
@@ -1239,7 +1238,6 @@ export default function SlaManagement() {
                         variant="outline"
                         size="sm"
                         onClick={() => addWorkflowAction('create_task')}
-                        className="justify-start"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Criar Ticket
@@ -1249,7 +1247,6 @@ export default function SlaManagement() {
                         variant="outline"
                         size="sm"
                         onClick={() => addWorkflowAction('escalate')}
-                        className="justify-start"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Escalonar
@@ -1264,49 +1261,36 @@ export default function SlaManagement() {
                 <h3 className="text-lg font-medium">Ações Configuradas</h3>
 
                 {workflowActions.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                    <div className="flex justify-center mb-2">
-                      <Code className="h-8 w-8 text-gray-400" />
+                  <div className="border rounded-lg p-4 min-h-32 bg-gray-50">
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center text-gray-500">
+                        <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Nenhuma ação configurada</p>
+                        <p className="text-xs">Use os botões acima para adicionar ações</p>
+                      </div>
                     </div>
-                    <p className="text-gray-500">Nenhuma ação configurada</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Use os botões acima para adicionar ações
-                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {workflowActions.map((action) => (
-                      <div key={action.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    {workflowActions.map((action, index) => (
+                      <div key={action.id || index} className="flex items-center justify-between p-3 bg-white rounded border">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded ${action.color} flex items-center justify-center text-white text-sm font-medium`}>
-                            {action.type === 'notify' ? '📧' : action.type === 'escalate' ? '⬆️' : action.type === 'create_task' ? '➕' : '⚙️'}
-                          </div>
+                          <div className={`w-3 h-3 rounded-full ${action.color || 'bg-gray-400'}`}></div>
                           <div>
-                            <p className="font-medium">{action.name}</p>
-                            <p className="text-sm text-gray-500">{action.description}</p>
+                            <span className="font-medium">{action.name}</span>
+                            {action.description && (
+                              <p className="text-sm text-gray-600">{action.description}</p>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              // TODO: Implement modal to configure action details
-                              console.log("Configure action:", action);
-                            }}
-                          >
-                            <Settings2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeWorkflowAction(action.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeWorkflowAction(action.id)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -1772,7 +1756,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   // NOTE: The `workflowActions` state and its handler functions (`addWorkflowAction`, `removeWorkflowAction`)
   // are managed in the parent `SlaManagement` component because they are needed for both the form
   // and the parent component's state.
-  
+
   // Accessing workflowActions from parent component's context or passing as props would be ideal.
   // For this example, we assume `workflowActions` and its handlers are accessible or managed globally for simplicity.
   // In a real application, consider using React Context or passing them as props.
@@ -1893,7 +1877,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Workflow Ativo</FormLabel>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                       Habilitar execução automática deste workflow
                     </div>
                   </div>
@@ -1914,7 +1898,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                 <span className="text-red-500">*</span>
                 <span className="text-sm text-gray-500">(pelo menos uma ação é obrigatória)</span>
               </h4>
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 <Button 
                   type="button" 
                   variant="outline" 
