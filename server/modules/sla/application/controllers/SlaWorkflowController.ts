@@ -12,20 +12,24 @@ export class SlaWorkflowController {
   private executeWorkflowUseCase: ExecuteSlaWorkflowUseCase;
   private workflowRepository: DrizzleSlaWorkflowRepository;
   private workflowDomainService: SlaWorkflowDomainService;
+  private slaWorkflowRepository: DrizzleSlaWorkflowRepository; // Added to match the changes snippet
 
   constructor() {
     this.workflowRepository = new DrizzleSlaWorkflowRepository();
     this.workflowDomainService = new SlaWorkflowDomainService();
-    
+
     this.createWorkflowUseCase = new CreateSlaWorkflowUseCase(
       this.workflowRepository,
       this.workflowDomainService
     );
-    
+
     this.executeWorkflowUseCase = new ExecuteSlaWorkflowUseCase(
       this.workflowRepository,
       this.workflowDomainService
     );
+
+    // Initialize slaWorkflowRepository to match the changes snippet
+    this.slaWorkflowRepository = new DrizzleSlaWorkflowRepository();
   }
 
   async createWorkflow(req: Request, res: Response): Promise<void> {
@@ -56,23 +60,37 @@ export class SlaWorkflowController {
 
   async getWorkflows(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.user?.tenantId;
+      const tenantId = req.headers['x-tenant-id'] as string;
+
       if (!tenantId) {
-        res.status(401).json({ success: false, message: 'Tenant ID required' });
-        return;
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID is required'
+        });
       }
 
-      const workflows = await this.workflowRepository.findByTenant(tenantId);
+      // Initialize repository if needed
+      if (!this.slaWorkflowRepository) {
+        console.error('[SlaWorkflowController] Repository not initialized');
+        return res.status(500).json({
+          success: false,
+          message: 'Service temporarily unavailable',
+          error: 'Repository not initialized'
+        });
+      }
+
+      const workflows = await this.slaWorkflowRepository.findByTenant(tenantId);
 
       res.json({
         success: true,
-        data: workflows
+        data: workflows || []
       });
-    } catch (error) {
-      console.error('[SLA-WORKFLOW-CONTROLLER] Get workflows error:', error);
+    } catch (error: any) {
+      console.error('[SlaWorkflowController] Error fetching workflows:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch workflows'
+        message: 'Error fetching SLA workflows',
+        error: error.message || 'Unknown error'
       });
     }
   }

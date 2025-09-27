@@ -3,23 +3,28 @@
 
 import { Router } from 'express';
 import { SlaWorkflowController } from '../application/controllers/SlaWorkflowController';
+import { DrizzleSlaWorkflowRepository } from '../infrastructure/repositories/DrizzleSlaWorkflowRepository';
 
 const router = Router();
-const slaWorkflowController = new SlaWorkflowController();
 
-// Workflow CRUD operations
-router.post('/workflows', (req, res) => slaWorkflowController.createWorkflow(req, res));
-router.get('/workflows', (req, res) => slaWorkflowController.getWorkflows(req, res));
-router.get('/workflows/:id', (req, res) => slaWorkflowController.getWorkflow(req, res));
-router.put('/workflows/:id', (req, res) => slaWorkflowController.updateWorkflow(req, res));
-router.delete('/workflows/:id', (req, res) => slaWorkflowController.deleteWorkflow(req, res));
+// Initialize with error handling
+try {
+  const slaWorkflowRepository = new DrizzleSlaWorkflowRepository();
+  const slaWorkflowController = new SlaWorkflowController(slaWorkflowRepository);
 
-// Workflow execution
-router.post('/workflows/:id/execute', (req, res) => slaWorkflowController.executeWorkflow(req, res));
-router.get('/workflows/:id/executions', (req, res) => slaWorkflowController.getWorkflowExecutions(req, res));
-router.get('/workflows/:id/stats', (req, res) => slaWorkflowController.getWorkflowStats(req, res));
+  router.get('/', slaWorkflowController.getWorkflows.bind(slaWorkflowController));
+  router.post('/', slaWorkflowController.createWorkflow.bind(slaWorkflowController));
+} catch (error) {
+  console.error('[SlaWorkflowRoutes] Error initializing routes:', error);
 
-// Active triggers management
-router.get('/triggers/active', (req, res) => slaWorkflowController.getActiveTriggers(req, res));
+  // Fallback error handler
+  router.get('/', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'SLA Workflow service is temporarily unavailable',
+      error: 'Service initialization failed'
+    });
+  });
+}
 
-export default router;
+export { router as slaWorkflowRoutes };

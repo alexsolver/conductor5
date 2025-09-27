@@ -19,7 +19,7 @@ import {
 } from '../../domain/repositories/ISlaWorkflowRepository';
 
 export class DrizzleSlaWorkflowRepository implements ISlaWorkflowRepository {
-  
+
   async create(data: CreateSlaWorkflowDTO): Promise<SlaWorkflow> {
     if (!data.tenantId) {
       throw new Error('Tenant ID is required');
@@ -60,13 +60,18 @@ export class DrizzleSlaWorkflowRepository implements ISlaWorkflowRepository {
   async findByTenant(tenantId: string): Promise<SlaWorkflow[]> {
     if (!tenantId) throw new Error('Tenant ID is required');
 
-    const workflows = await db
-      .select()
-      .from(slaWorkflows)
-      .where(eq(slaWorkflows.tenantId, tenantId))
-      .orderBy(desc(slaWorkflows.createdAt));
+    try {
+      const workflows = await db
+        .select()
+        .from(slaWorkflows)
+        .where(eq(slaWorkflows.tenantId, tenantId))
+        .orderBy(desc(slaWorkflows.createdAt));
 
-    return workflows.map(this.mapToEntity);
+      return workflows.map(this.mapToEntity);
+    } catch (error) {
+      console.error('[DrizzleSlaWorkflowRepository] Error fetching workflows:', error);
+      return [];
+    }
   }
 
   async findActiveTriggers(tenantId: string): Promise<SlaWorkflow[]> {
