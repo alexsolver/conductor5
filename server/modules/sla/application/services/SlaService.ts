@@ -309,10 +309,13 @@ export class SlaService {
       throw new Error('Valid from date must be before valid until date');
     }
 
-    const hasTargets = sla.responseTimeMinutes || sla.resolutionTimeMinutes || 
-                      sla.updateTimeMinutes || sla.idleTimeMinutes;
-    if (hasTargets === undefined) {
-      throw new Error('At least one time target must be specified');
+    // Set default values for time targets if none are provided
+    if (!sla.responseTimeMinutes && !sla.resolutionTimeMinutes && 
+        !sla.updateTimeMinutes && !sla.idleTimeMinutes) {
+      // Set default response time target based on priority
+      const defaultResponseTime = sla.priority === 'high' ? 30 : 
+                                 sla.priority === 'medium' ? 60 : 120;
+      sla.responseTimeMinutes = defaultResponseTime;
     }
   }
 
