@@ -289,6 +289,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async createSlaViolation(violationData: Omit<SlaViolation, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaViolation> {
     console.log('[SLA-REPOSITORY] Creating SLA violation for ticket:', violationData.ticketId);
     
+    const tenantDb = await this.getTenantDb(violationData.tenantId);
     const [createdViolation] = await tenantDb.insert(slaViolations)
       .values({
         ...violationData,
@@ -304,6 +305,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationById(id: string, tenantId: string): Promise<SlaViolation | null> {
     console.log('[SLA-REPOSITORY] Getting SLA violation by ID:', id);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const [violation] = await tenantDb.select()
       .from(slaViolations)
       .where(and(
@@ -318,6 +320,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationsByTicket(ticketId: string, tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting SLA violations for ticket:', ticketId);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
@@ -332,6 +335,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getSlaViolationsByDefinition(slaDefinitionId: string, tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting SLA violations for definition:', slaDefinitionId);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
@@ -350,6 +354,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<SlaViolation | null> {
     console.log('[SLA-REPOSITORY] Updating SLA violation:', id);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const [updatedViolation] = await tenantDb.update(slaViolations)
       .set({
         ...updates,
@@ -367,6 +372,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   async getUnresolvedViolations(tenantId: string): Promise<SlaViolation[]> {
     console.log('[SLA-REPOSITORY] Getting unresolved violations for tenant:', tenantId);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const violations = await tenantDb.select()
       .from(slaViolations)
       .where(and(
@@ -388,6 +394,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<SlaComplianceStats> {
     console.log('[SLA-REPOSITORY] Getting compliance stats for tenant:', tenantId);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     const baseClause = eq(slaInstances.tenantId, tenantId);
     const whereClause = startDate && endDate ? and(
       baseClause,
@@ -519,6 +526,7 @@ export class DrizzleSlaRepository implements SlaRepository {
   ): Promise<ViolationTrend[]> {
     console.log('[SLA-REPOSITORY] Getting violation trends for period:', period);
     
+    const tenantDb = await this.getTenantDb(tenantId);
     // This is a simplified implementation
     // In a real system, you would use more sophisticated date grouping
     const violations = await tenantDb.select()
