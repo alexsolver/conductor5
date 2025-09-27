@@ -334,6 +334,94 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/schedule-notifications/:id - Delete specific notification
+router.delete('/:id', jwtAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
 
+    console.log('🗑️ [SCHEDULE-NOTIFICATIONS] Delete endpoint called for notification:', id, 'by user:', user.id);
+
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🗑️ [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
+      return res.status(400).json({
+        success: false,
+        error: 'User information required'
+      });
+    }
+
+    const { tenantId } = user;
+    const userId = user.id || user.userId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const { pool } = await import('../db.ts');
+
+    // Check if table exists
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+
+    if (!tableExists.rows[0].exists) {
+      console.log('🗑️ [SCHEDULE-NOTIFICATIONS] Table does not exist');
+      return res.status(404).json({
+        success: false,
+        error: 'Notification not found'
+      });
+    }
+
+    // First check if the notification exists and belongs to the user
+    const checkQuery = `
+      SELECT id FROM ${schemaName}.schedule_notifications 
+      WHERE id = $1 AND user_id = $2 AND read_at IS NULL
+    `;
+
+    const checkResult = await pool.query(checkQuery, [id, userId]);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Notification not found or already processed'
+      });
+    }
+
+    // Soft delete by marking as read with a deletion timestamp
+    const deleteQuery = `
+      UPDATE ${schemaName}.schedule_notifications 
+      SET read_at = NOW(), 
+          status = 'deleted',
+          updated_at = NOW()
+      WHERE id = $1 AND user_id = $2
+      RETURNING id
+    `;
+
+    const deleteResult = await pool.query(deleteQuery, [id, userId]);
+
+    if (deleteResult.rows.length > 0) {
+      console.log('✅ [SCHEDULE-NOTIFICATIONS] Successfully deleted notification:', id);
+      res.status(200).json({
+        success: true,
+        message: 'Notification deleted successfully'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Notification not found'
+      });
+    }
+
+  } catch (error) {
+    console.error('🗑️ [SCHEDULE-NOTIFICATIONS] Error deleting notification:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
 
 export default router;
