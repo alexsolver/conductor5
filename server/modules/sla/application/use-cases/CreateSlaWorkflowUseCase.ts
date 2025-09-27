@@ -52,8 +52,8 @@ export class CreateSlaWorkflowUseCase {
       schedule: trigger.schedule
     }));
 
-    // Create the workflow
-    const workflow = await this.slaWorkflowRepository.create({
+    // Create workflow object for validation (without saving to DB yet)
+    const workflowToValidate = {
       tenantId: data.tenantId,
       name: data.name.trim(),
       description: data.description?.trim() || '',
@@ -61,15 +61,16 @@ export class CreateSlaWorkflowUseCase {
       triggers: normalizedTriggers,
       actions: normalizedActions,
       metadata: data.metadata || {}
-    });
+    };
 
-    // Validate workflow configuration using domain service
-    const validation = this.slaWorkflowDomainService.validateWorkflowConfiguration(workflow);
+    // Validate workflow configuration BEFORE creating in database
+    const validation = this.slaWorkflowDomainService.validateWorkflowConfiguration(workflowToValidate);
     if (!validation.isValid) {
-      // If validation fails, we should delete the created workflow and throw error
-      await this.slaWorkflowRepository.delete(workflow.id, workflow.tenantId);
       throw new Error(`Workflow validation failed: ${validation.errors.join(', ')}`);
     }
+
+    // Only create in database after validation passes
+    const workflow = await this.slaWorkflowRepository.create(workflowToValidate);
 
     return workflow;
   }
