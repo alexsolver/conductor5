@@ -6,12 +6,16 @@ import { SlaController } from '../application/controllers/SlaController';
 import { jwtAuth, AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { SlaService } from '../application/services/SlaService';
 import { DrizzleSlaRepository } from '../infrastructure/repositories/DrizzleSlaRepository';
+import { slaWorkflowRoutes } from './slaWorkflowRoutes';
 
 // Create service instance
 const slaRepository = new DrizzleSlaRepository();
 const slaService = new SlaService(slaRepository);
 
 const router = Router();
+
+// Register SLA workflow routes
+router.use('/workflows', slaWorkflowRoutes);
 const slaController = new SlaController();
 
 // Apply JWT authentication to all routes

@@ -12,7 +12,6 @@ export class SlaWorkflowController {
   private executeWorkflowUseCase: ExecuteSlaWorkflowUseCase;
   private workflowRepository: DrizzleSlaWorkflowRepository;
   private workflowDomainService: SlaWorkflowDomainService;
-  private slaWorkflowRepository: DrizzleSlaWorkflowRepository; // Added to match the changes snippet
 
   constructor() {
     this.workflowRepository = new DrizzleSlaWorkflowRepository();
@@ -27,9 +26,6 @@ export class SlaWorkflowController {
       this.workflowRepository,
       this.workflowDomainService
     );
-
-    // Initialize slaWorkflowRepository to match the changes snippet
-    this.slaWorkflowRepository = new DrizzleSlaWorkflowRepository();
   }
 
   async createWorkflow(req: Request, res: Response): Promise<void> {
@@ -69,17 +65,7 @@ export class SlaWorkflowController {
         });
       }
 
-      // Initialize repository if needed
-      if (!this.slaWorkflowRepository) {
-        console.error('[SlaWorkflowController] Repository not initialized');
-        return res.status(500).json({
-          success: false,
-          message: 'Service temporarily unavailable',
-          error: 'Repository not initialized'
-        });
-      }
-
-      const workflows = await this.slaWorkflowRepository.findByTenant(tenantId);
+      const workflows = await this.workflowRepository.findByTenant(tenantId);
 
       res.json({
         success: true,

@@ -3,28 +3,19 @@
 
 import { Router } from 'express';
 import { SlaWorkflowController } from '../application/controllers/SlaWorkflowController';
-import { DrizzleSlaWorkflowRepository } from '../infrastructure/repositories/DrizzleSlaWorkflowRepository';
 
 const router = Router();
+const slaWorkflowController = new SlaWorkflowController();
 
-// Initialize with error handling
-try {
-  const slaWorkflowRepository = new DrizzleSlaWorkflowRepository();
-  const slaWorkflowController = new SlaWorkflowController(slaWorkflowRepository);
-
-  router.get('/', slaWorkflowController.getWorkflows.bind(slaWorkflowController));
-  router.post('/', slaWorkflowController.createWorkflow.bind(slaWorkflowController));
-} catch (error) {
-  console.error('[SlaWorkflowRoutes] Error initializing routes:', error);
-
-  // Fallback error handler
-  router.get('/', (req, res) => {
-    res.status(500).json({
-      success: false,
-      message: 'SLA Workflow service is temporarily unavailable',
-      error: 'Service initialization failed'
-    });
-  });
-}
+// SLA Workflow routes
+router.get('/', slaWorkflowController.getWorkflows.bind(slaWorkflowController));
+router.post('/', slaWorkflowController.createWorkflow.bind(slaWorkflowController));
+router.get('/:id', slaWorkflowController.getWorkflow.bind(slaWorkflowController));
+router.put('/:id', slaWorkflowController.updateWorkflow.bind(slaWorkflowController));
+router.delete('/:id', slaWorkflowController.deleteWorkflow.bind(slaWorkflowController));
+router.post('/:id/execute', slaWorkflowController.executeWorkflow.bind(slaWorkflowController));
+router.get('/:id/executions', slaWorkflowController.getWorkflowExecutions.bind(slaWorkflowController));
+router.get('/:id/stats', slaWorkflowController.getWorkflowStats.bind(slaWorkflowController));
+router.get('/triggers/active', slaWorkflowController.getActiveTriggers.bind(slaWorkflowController));
 
 export { router as slaWorkflowRoutes };
