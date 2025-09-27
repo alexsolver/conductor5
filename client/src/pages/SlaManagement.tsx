@@ -1764,28 +1764,30 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+          <div className="flex items-center gap-2">
+            <span className="text-red-500">*</span>
+            <span>Campos obrigatórios</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Informações Básicas</h3>
+            <h3 className="text-lg font-medium">Informações Básicas</h3>
 
             <FormField
               control={form.control}
               name="name"
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1">
-                    Nome do Workflow 
-                    <span className="text-red-500">*</span>
+                  <FormLabel>
+                    Nome do Workflow <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Digite o nome do workflow" 
-                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                      {...field} 
-                    />
+                    <Input placeholder="Digite o nome do workflow" {...field} />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -1793,20 +1795,17 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="description"
-              render={({ field, fieldState }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel className="flex items-center gap-1">
-                    Descrição 
-                    <span className="text-gray-500 text-sm">(opcional)</span>
-                  </FormLabel>
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição (opcional)</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Descreva o workflow e sua finalidade"
-                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                      {...field} 
+                      className="resize-none"
+                      {...field}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -1814,27 +1813,26 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="trigger"
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1">
-                    Gatilho 
-                    <span className="text-red-500">*</span>
+                  <FormLabel>
+                    Gatilho <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}>
+                      <SelectTrigger>
                         <SelectValue placeholder="Selecione o gatilho" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="sla_breach">Violação de SLA</SelectItem>
                       <SelectItem value="sla_warning">Aviso de SLA</SelectItem>
-                      <SelectItem value="sla_met">SLA Atendido</SelectItem>
+                      <SelectItem value="sla_met">SLA Cumprido</SelectItem>
                       <SelectItem value="instance_created">Instância Criada</SelectItem>
                       <SelectItem value="instance_closed">Instância Fechada</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -1842,25 +1840,22 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
             <FormField
               control={form.control}
               name="priority"
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1">
-                    Prioridade 
-                    <span className="text-red-500">*</span>
-                    <span className="text-sm text-gray-500">(1-10)</span>
+                  <FormLabel>
+                    Prioridade <span className="text-red-500">*</span> (1-10)
                   </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       min="1" 
                       max="10" 
-                      placeholder="1-10" 
-                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      placeholder="5"
                       {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => field.onChange(parseInt(e.target.value))}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -1868,7 +1863,7 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
 
           {/* Configuration */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Configuração</h3>
+            <h3 className="text-lg font-medium">Configuração</h3>
 
             <FormField
               control={form.control}
@@ -1876,7 +1871,9 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Workflow Ativo</FormLabel>
+                    <FormLabel className="text-base">
+                      Workflow Ativo
+                    </FormLabel>
                     <div className="text-sm text-muted-foreground">
                       Habilitar execução automática deste workflow
                     </div>
@@ -1885,58 +1882,46 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      data-testid="switch-workflow-active"
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-3 flex items-center gap-1">
-                Ações do Workflow 
-                <span className="text-red-500">*</span>
-                <span className="text-sm text-gray-500">(pelo menos uma ação é obrigatória)</span>
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    // This part is now handled in the parent component's addWorkflowAction
-                    // We are just providing the button click event here.
-                    // The actual logic for adding the action needs to be in SlaManagement.
-                  }}
-                  data-testid="button-add-email-action"
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">
+                  Ações do Workflow
+                  <span className="text-red-500 ml-1">*</span>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    (pelo menos uma ação é obrigatória)
+                  </span>
+                </Label>
+              </div>
+
+              <div className="flex justify-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addWorkflowAction('notify')}
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Adicionar Email
                 </Button>
-
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    // Similar to above, logic handled in parent.
-                  }}
-                  data-testid="button-add-ticket-action"
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addWorkflowAction('create_task')}
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Criar Ticket
                 </Button>
-
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    // Similar to above, logic handled in parent.
-                  }}
-                  data-testid="button-add-escalate-action"
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addWorkflowAction('escalate')}
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Escalonar
                 </Button>
               </div>
@@ -1946,7 +1931,8 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
 
         {/* Current Actions Display */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Ações Configuradas</h3>
+          <Label className="text-base font-medium">Ações Configuradas</Label>
+
           <div className="border rounded-lg p-4">
             {form.watch('actions')?.length > 0 ? (
               <div className="space-y-2">
@@ -1983,20 +1969,17 @@ function WorkflowForm({ form, onSubmit, isSubmitting }: WorkflowFormProps) {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end space-x-2">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-save-workflow">
-            {isSubmitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Criando Workflow...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Criar Workflow
-              </>
-            )}
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => setIsWorkflowDialogOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting || workflowActions.length === 0}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Criar Workflow
           </Button>
         </div>
       </form>
