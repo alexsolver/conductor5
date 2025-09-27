@@ -8,11 +8,11 @@ export class SlaService {
   constructor(private slaRepository: SlaRepository) {}
 
   // ===== SLA DEFINITIONS =====
-  
+
   async createSlaDefinition(slaData: Omit<SlaDefinition, 'id' | 'createdAt' | 'updatedAt'>): Promise<SlaDefinition> {
     // Validate business rules
     this.validateSlaDefinition(slaData);
-    
+
     return await this.slaRepository.createSlaDefinition(slaData);
   }
 
@@ -32,7 +32,7 @@ export class SlaService {
     if (updates.name || updates.applicationRules) {
       this.validateSlaDefinition(updates as any);
     }
-    
+
     return await this.slaRepository.updateSlaDefinition(id, tenantId, {
       ...updates,
       updatedAt: new Date()
@@ -43,11 +43,11 @@ export class SlaService {
     // Check if SLA has active instances
     const instances = await this.slaRepository.getSlaInstancesByDefinition(id, tenantId);
     const activeInstances = instances.filter(i => i.status === 'running' || i.status === 'paused');
-    
+
     if (activeInstances.length > 0) {
       throw new Error('Cannot delete SLA definition with active instances');
     }
-    
+
     return await this.slaRepository.deleteSlaDefinition(id, tenantId);
   }
 
@@ -64,24 +64,24 @@ export class SlaService {
     );
 
     const instances: SlaInstance[] = [];
-    
+
     for (const sla of applicableSlas) {
       // Create instance for each applicable metric
       if (sla.responseTimeMinutes) {
         const instance = await this.createSlaInstance(sla, ticketId, 'response_time');
         instances.push(instance);
       }
-      
+
       if (sla.resolutionTimeMinutes) {
         const instance = await this.createSlaInstance(sla, ticketId, 'resolution_time');
         instances.push(instance);
       }
-      
+
       if (sla.updateTimeMinutes) {
         const instance = await this.createSlaInstance(sla, ticketId, 'update_time');
         instances.push(instance);
       }
-      
+
       if (sla.idleTimeMinutes) {
         const instance = await this.createSlaInstance(sla, ticketId, 'idle_time');
         instances.push(instance);
@@ -215,7 +215,7 @@ export class SlaService {
       if (instance.status === 'running') {
         const totalElapsed = this.calculateElapsedMinutes(instance.startedAt, now) - instance.pausedMinutes;
         const remainingMinutes = Math.max(0, instance.targetMinutes - totalElapsed);
-        
+
         if (totalElapsed > instance.targetMinutes && !instance.isBreached) {
           // Mark as breached
           const violationMinutes = totalElapsed - instance.targetMinutes;
@@ -232,7 +232,7 @@ export class SlaService {
 
           if (updatedInstance) {
             breachedInstances.push(updatedInstance);
-            
+
             // Log violation event
             await this.slaRepository.createSlaEvent({
               tenantId,
@@ -282,50 +282,56 @@ export class SlaService {
       const metrics = await this.slaRepository.getSlaPerformanceMetrics(tenantId, slaDefinitionId);
       return [metrics];
     }
-    
+
     const slaDefinitions = await this.slaRepository.getSlaDefinitionsByTenant(tenantId);
     const allMetrics: SlaPerformanceMetrics[] = [];
-    
+
     for (const sla of slaDefinitions) {
       const metrics = await this.slaRepository.getSlaPerformanceMetrics(tenantId, sla.id);
       allMetrics.push(metrics);
     }
-    
+
     return allMetrics;
   }
 
   // ===== PRIVATE METHODS =====
 
-  private validateSlaDefinition(sla: Partial<SlaDefinition>): void {
-    if (sla.name && sla.name.trim().length === 0) {
+  private validateSlaDefinition(data: any): void {
+    // Validate required fields
+    if (!data.name || data.name.trim().length === 0) {
       throw new Error('SLA name is required');
     }
 
-    if (sla.applicationRules && sla.applicationRules.length === 0) {
-      throw new Error('At least one application rule is required');
+    if (!data.type || !['SLA', 'OLA', 'UC'].includes(data.type)) {
+      throw new Error('Invalid SLA type. Must be SLA, OLA, or UC');
     }
 
-    if (sla.validFrom && sla.validUntil && sla.validFrom >= sla.validUntil) {
-      throw new Error('Valid from date must be before valid until date');
+    // Validate time targets - this is the missing piece
+    if (!data.timeTargets || !Array.isArray(data.timeTargets) || data.timeTargets.length === 0) {
+      throw new Error('At least one time target must be specified. Example: [{"metric": "response_time", "target": 30, "unit": "minutes", "priority": "high"}]');
     }
 
-    // Set default values for time targets if none are provided
-    if (!sla.responseTimeMinutes && !sla.resolutionTimeMinutes && 
-        !sla.updateTimeMinutes && !sla.idleTimeMinutes) {
-      // Set default response time target based on priority
-      const defaultResponseTime = sla.priority === 'high' ? 30 : 
-                                 sla.priority === 'medium' ? 60 : 120;
-      sla.responseTimeMinutes = defaultResponseTime;
-    }
+    // Validate each time target
+    data.timeTargets.forEach((target: any, index: number) => {
+      if (!target.metric || typeof target.metric !== 'string') {
+        throw new Error(`Time target ${index + 1}: metric is required and must be a string`);
+      }
+      if (!target.target || typeof target.target !== 'number' || target.target <= 0) {
+        throw new Error(`Time target ${index + 1}: target must be a positive number`);
+      }
+      if (!target.unit || !['minutes', 'hours', 'days'].includes(target.unit)) {
+        throw new Error(`Time target ${index + 1}: unit must be 'minutes', 'hours', or 'days'`);
+      }
+    });
   }
 
   private isRuleMatch(rules: any[], ticketData: any): boolean {
     if (!rules || rules.length === 0) return true;
-    
+
     // Simple rule evaluation - can be expanded
     return rules.every(rule => {
       const fieldValue = ticketData[rule.field];
-      
+
       switch (rule.operator) {
         case 'equals':
           return fieldValue === rule.value;
