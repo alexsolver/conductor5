@@ -108,6 +108,9 @@ export class SlaController {
       }
 
       console.log('[SLA-CONTROLLER] Creating SLA definition for tenant:', tenantId);
+      console.log('[SLA-CONTROLLER] Request body received:', JSON.stringify(req.body, null, 2));
+      console.log('[SLA-CONTROLLER] validFrom type:', typeof req.body.validFrom, req.body.validFrom);
+      console.log('[SLA-CONTROLLER] validUntil type:', typeof req.body.validUntil, req.body.validUntil);
 
       // Validate request body
       const validationResult = insertSlaDefinitionSchema.safeParse(req.body);
