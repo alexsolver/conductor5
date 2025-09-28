@@ -1,0 +1,71 @@
+❌ [CreateNotificationUseCase] Repository error: error: invalid input syntax for type json
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at <anonymous> (/home/runner/workspace/node_modules/src/node-postgres/session.ts:104:19)
+    at DrizzleNotificationRepository.create (/home/runner/workspace/server/modules/notifications-alerts/infrastructure/repositories/DrizzleNotificationRepository.ts:32:23)
+    at CreateNotificationUseCase.execute (/home/runner/workspace/server/modules/notifications-alerts/application/use-cases/CreateNotificationUseCase.ts:149:27)
+    at ActionExecutor.sendNotificationAction (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/ActionExecutor.ts:908:28)
+    at ActionExecutor.execute (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/ActionExecutor.ts:138:18)
+    at ActionExecutor.executeActions (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/ActionExecutor.ts:17:22)
+    at AutomationRule.execute (/home/runner/workspace/server/modules/omnibridge/domain/entities/AutomationRule.ts:342:23)
+    at AutomationEngine.processMessage (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/AutomationEngine.ts:107:15)
+    at ProcessMessageUseCase.processDirectMessage (/home/runner/workspace/server/modules/omnibridge/application/use-cases/ProcessMessageUseCase.ts:183:7)
+    at MessageIngestionService.processImapEmail (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/MessageIngestionService.ts:197:34)
+    at GmailService.processEmails (/home/runner/workspace/server/services/integrations/gmail/GmailService.ts:440:28)
+    at EventEmitter.<anonymous> (/home/runner/workspace/server/services/integrations/gmail/GmailService.ts:342:13) {
+  length: 197,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: `JSON data, line 1: {"in_app"}\nunnamed portal parameter $9 = '...'`,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+❌ [CreateNotificationUseCase] Failed notification metadata: {
+  "ruleId": "3d3042e2-3add-4392-8bbb-9fde1298994a",
+  "ruleName": "2222",
+  "messageData": {
+    "from": "unknown",
+    "channel": "email"
+  },
+  "automationContext": true
+}
+🔍 [ActionExecutor] CreateNotificationUseCase returned: {
+  "success": false,
+  "error": "invalid input syntax for type json"
+}
+❌ [ActionExecutor] Failed to create notification for user 550e8400-e29b-41d4-a716-446655440001: invalid input syntax for type json
+❌ [ActionExecutor] Notification request that failed: {
+  "type": "automation_notification",
+  "severity": "medium",
+  "title": "OmniBridge Automation Notification",
+  "message": "teste 123",
+  "metadata": {
+    "ruleId": "3d3042e2-3add-4392-8bbb-9fde1298994a",
+    "ruleName": "2222",
+    "messageData": {
+      "from": "unknown",
+      "channel": "email"
+    },
+    "automationContext": true
+  },
+  "channels": [
+    "in_app"
+  ],
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "scheduledAt": "2025-09-28T01:14:08.284Z",
+  "relatedEntityType": "automation_rule",
+  "relatedEntityId": "3d3042e2-3add-4392-8bbb-9fde1298994a"
+}
+❌ [AutomationRule] Action send_auto_reply failed: Send operation failed
+❌ [AutomationRule] Action send_notification failed: All notification attempts failed
