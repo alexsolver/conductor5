@@ -243,24 +243,25 @@ const TicketsTable = React.memo(() => {
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
 
-  // Query para buscar todos os favorecidos quando o modal de criação for aberto
+  // Query para buscar todos os favorecidos - sempre ativo para garantir lista atualizada
   const { data: beneficiariesData, refetch: refetchBeneficiaries } = useQuery({
     queryKey: ['/api/beneficiaries'],
     queryFn: async () => {
-      console.log('[TicketsTable] 🔄 Fetching beneficiaries for modal');
+      console.log('[TicketsTable] 🔄 Fetching beneficiaries for ticket creation');
       const response = await apiRequest('GET', '/api/beneficiaries');
       const data = await response.json();
-      console.log('[TicketsTable] 📊 Beneficiaries data for modal:', data);
+      console.log('[TicketsTable] 📊 Beneficiaries data for ticket creation:', data);
       return data;
     },
-    enabled: isCreateDialogOpen, // Só busca quando o modal estiver aberto
+    enabled: true, // Sempre ativo para garantir lista atualizada
     refetchOnWindowFocus: false,
+    staleTime: 30000, // Cache por 30 segundos
   });
 
-  // Refetch beneficiaries when modal opens
+  // Refetch beneficiaries when modal opens to ensure fresh data
   React.useEffect(() => {
     if (isCreateDialogOpen) {
-      console.log('[TicketsTable] 🔓 Modal opened, refetching beneficiaries');
+      console.log('[TicketsTable] 🔓 Modal opened, ensuring fresh beneficiaries data');
       refetchBeneficiaries();
     }
   }, [isCreateDialogOpen, refetchBeneficiaries]);
