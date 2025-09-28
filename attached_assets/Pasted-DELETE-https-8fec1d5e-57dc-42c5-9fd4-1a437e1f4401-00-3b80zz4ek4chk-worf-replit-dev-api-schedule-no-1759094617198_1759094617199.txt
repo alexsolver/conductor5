@@ -1,0 +1,38 @@
+DELETE https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/schedule-notifications/bulk-delete 500
+
+Request Data
+
+{"notificationIds":["40dbe96a-5292-4387-9c3e-787de5950741","eaf5ac0f-e939-483d-909a-2d33e62e60ee","ddcc3fe4-99e4-4a61-8062-d10b32743e6a","bb324be7-0a48-433f-b96e-043e22254b02","1a285546-4f00-461c-b9ea-ce64e6f02117","1935bc15-d82a-465d-a929-6bbcb9d350e8","03e990fe-65ba-4b68-aedf-377d02184906","b92c8e6a-9cfd-4522-9fe9-f0e3d09924c2","1ad3d95d-3ea2-4b1a-bd6c-c01ae865c666","da364a1f-9aef-4478-8e91-c9d59d0a1810","36fe94f4-2426-4973-9778-0545a4ce8caf","de607ef2-035b-4014-97f8-a7dae419996b","76dfedae-e2f7-4aca-b4d6-5da358cb2c23","71b6036d-b13e-4282-a9d7-13a0ad011bff","78290ebe-5451-40f6-98ef-e7bd6e48bd3d","49dc2515-9bf4-4e18-9f57-152ba36aba8f","4bf2be7f-0d4d-42d9-bb66-3e5aabbabe84","19a56420-7be7-4a43-ab98-836799e0f1ef","a23ac216-aff6-45f9-8ec3-b922a6770f95","8bba3603-6ef9-457d-81c8-a1924b5a9bd8","023e75bd-48c0-4171-83b3-154bd8d0e1f7","d4eadf8b-7f01-43d8-b54a-011c06d6d14b","cea096fd-935e-4ea4-9023-185c5937b0c8","70277299-cb46-47e6-b4db-3fe604e75f3a","74c68b52-cdcc-47fd-8a22-71a624927ee5","7b872f72-005f-4e99-96c5-01386097298f","835ea617-4ae4-4bb7-be2d-bd807bc68721","3dff5614-1975-4b79-b613-f0dcaec8fd38","9d7a4448-0056-4e50-95d6-81a8a6c9c3ec","c630dd9f-21ad-437a-87bc-90ae3cf465d4","0f1e7458-39ed-4779-b1d1-f45a275e5551","fcba69d3-c373-4aad-8943-907a384a0435","e10b1bf4-94b9-473f-b440-55766997bbea","f63a766d-baaa-45a2-93ed-23a5afb87e19","5c75722c-7dd3-4519-9967-fecdf33cb6b8","5035c0f6-c89a-4c42-a319-ea1b3a84a73d","83b301e1-60e3-4c04-973e-d67de3d6f8dd","005d26b9-a5bf-4cd9-8b64-87dafa085020","e207c39f-31cd-43d7-b811-2ed796f2da12","f63f9ba6-d800-4de0-8bd8-c9e32c662abd","d4764889-27bd-43a1-a88f-1c1f211a98a4","69e89b24-7a14-4080-9839-40495e183d43","af556580-4ba0-4afa-a540-28793a30cfff","c8740a0d-092b-423e-992a-86a15513c108","e1ce370e-4c29-4b3b-976e-35320b61ebbc","e4cc9e9f-c153-4649-a684-a7baa5262c1e","3abb3594-eced-4bde-b3f4-bd13b83e81fe","b67e98b2-34f9-4572-8931-35c98170325b"]}
+
+Request Headers
+
+Content-Type: application/json
+x-tenant-id: 3f99462f-3621-4b1b-bea8-782acc50d62e
+
+Response Headers
+
+cache-control: no-cache, no-store, must-revalidate
+content-length: 57
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data: 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://replit.com https://*.replit.com https://*.replit.dev blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https: http:; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; connect-src 'self' ws: wss: https: http:; media-src 'self' data: blob:; object-src 'none'; frame-src 'self' https://www.youtube.com https://player.vimeo.com; worker-src 'self' blob:; child-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'; report-uri /api/csp-report
+content-type: application/json; charset=utf-8
+date: Sun, 28 Sep 2025 21:23:08 GMT
+etag: W/"39-1vs3Pzfb/uZxw0ICyMPm2ItvrsA"
+expires: 0
+permissions-policy: camera=(), microphone=(), geolocation=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+replit-cluster: worf
+x-api-route: true
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Express
+x-ratelimit-limit: 999999
+x-ratelimit-remaining: 999999
+x-ratelimit-reset: 2025-09-29T21:23:08.537Z
+x-ratelimit-window: 86400000
+x-robots-tag: none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex, none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+x-server-stability: enhanced
+x-websocket-config: optimized
+x-xss-protection: 1; mode=block
+
+{"success":false,"error":"Failed to delete notification"}
