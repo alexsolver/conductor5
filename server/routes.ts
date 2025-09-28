@@ -47,7 +47,9 @@ import saasGroupRoutes from "./routes/saasGroupRoutes";
 import { integrityRouter as integrityRoutes } from "./routes/integrityRoutes";
 import systemScanRoutes from "./routes/systemScanRoutes";
 // ✅ LEGACY technical-skills routes eliminated per 1qa.md
+// Import beneficiaries routes
 import beneficiariesRoutes from "./modules/beneficiaries/routes";
+console.log("[ROUTES] Loading beneficiaries routes...");
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 // ✅ LEGACY LOCATIONSROUTES REMOVED - Clean Architecture only per 1qa.md
@@ -692,7 +694,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log(
     "🏗️ [BENEFICIARIES-CLEAN-ARCH] Initializing Beneficiaries Clean Architecture routes...",
   );
-  app.use("/api/beneficiaries", beneficiariesRoutes);
+  // Register beneficiaries routes
+  try {
+    app.use("/api/beneficiaries", beneficiariesRoutes);
+    console.log("[ROUTES] ✅ Beneficiaries routes registered successfully");
+  } catch (error) {
+    console.error("[ROUTES] ❌ Error registering beneficiaries routes:", error);
+  }
   console.log(
     "✅ [BENEFICIARIES-CLEAN-ARCH] Beneficiaries Clean Architecture routes configured successfully",
   );
@@ -5246,7 +5254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  // ✅ LEGACY MODULEROUTES ELIMINATED - Clean Architecture only per 1qa.md
   // ✅ LEGACY technical-skills routes eliminated per 1qa.md
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
@@ -5388,7 +5396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NOTE: /api/users endpoint moved to dedicated route file
 
   // ==============================
-  // USER GROUPS ROUTES
+  // USER GROUPSROUTES
   // ==============================
   // NOTE: /api/user-groups endpoints moved to dedicated router in userGroups.ts
 

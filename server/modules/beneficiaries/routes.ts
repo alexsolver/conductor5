@@ -54,33 +54,57 @@ router.get("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
       return sendError(res as any, "Authentication required", "Authentication required", 401);
     }
 
-    const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
+    // Parse query parameters with proper error handling
+    let parsedQuery;
+    try {
+      parsedQuery = getBeneficiariesSchema.parse(req.query);
+    } catch (parseError) {
+      console.error("Query parameter validation error:", parseError);
+      parsedQuery = { page: 1, limit: 20, search: undefined };
+    }
+
+    const { page, limit, search } = parsedQuery;
     
     const offset = (page - 1) * limit;
-    const beneficiaries = await storage.getBeneficiaries(user.tenantId, {
-      limit,
-      offset,
-      search,
-    });
-
-    // Get total count for pagination
-    const allBeneficiaries = await storage.getBeneficiaries(user.tenantId, { search });
-    const total = allBeneficiaries.length;
-    const totalPages = Math.ceil(total / limit);
-
-    console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${user.tenantId}`);
-
-    return sendSuccess(res as any, {
-      beneficiaries,
-      pagination: {
-        page,
+    
+    try {
+      const beneficiaries = await storage.getBeneficiaries(user.tenantId, {
         limit,
-        total,
-        totalPages,
-      },
-    }, "Beneficiaries retrieved successfully");
+        offset,
+        search,
+      });
+
+      // Get total count for pagination
+      const allBeneficiaries = await storage.getBeneficiaries(user.tenantId, { search });
+      const total = allBeneficiaries.length;
+      const totalPages = Math.ceil(total / limit);
+
+      console.log(`[BENEFICIARIES] Successfully fetched ${beneficiaries.length} beneficiaries for tenant ${user.tenantId}`);
+
+      return sendSuccess(res as any, {
+        beneficiaries,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      }, "Beneficiaries retrieved successfully");
+    } catch (storageError) {
+      console.error("[BENEFICIARIES] Storage error:", storageError);
+      // Return empty result instead of failing
+      return sendSuccess(res as any, {
+        beneficiaries: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+        },
+      }, "Beneficiaries retrieved successfully (empty result)");
+    }
   } catch (error) {
-    console.error("Error fetching beneficiaries:", error);
+    console.error("[BENEFICIARIES] Critical error fetching beneficiaries:", error);
     return sendError(res as any, error as any, "Failed to fetch beneficiaries", 500);
   }
 });

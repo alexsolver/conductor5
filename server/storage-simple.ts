@@ -65,6 +65,10 @@ export interface IStorage {
     relationshipData: any,
   ): Promise<any>;
   deleteTicketRelationship(relationshipId: string): Promise<boolean>;
+  deleteTicketRelationshipWithTenant(
+    tenantId: string,
+    relationshipId: string,
+  ): Promise<boolean>;
   getTicketHierarchy(tenantId: string, ticketId: string): Promise<any[]>;
 
   // Dashboard & Analytics
@@ -86,6 +90,8 @@ export interface IStorage {
   createCliente(tenantId: string, data: any): Promise<any>;
   createBeneficiary(tenantId: string, data: any): Promise<any>;
   getBeneficiary(id: string, tenantId: string): Promise<any | null>;
+  updateBeneficiary(tenantId: string, id: string, data: any): Promise<any>;
+  deleteBeneficiary(tenantId: string, id: string): Promise<boolean>;
 
   // Ticket Templates Management
   getTicketTemplates(
@@ -109,6 +115,10 @@ export interface IStorage {
   ): Promise<any>;
   deleteTicketTemplate(tenantId: string, templateId: string): Promise<boolean>;
   duplicateTicketTemplate(tenantId: string, templateId: string): Promise<any>;
+  bulkDeleteTicketTemplates(
+    tenantId: string,
+    templateIds: string[],
+  ): Promise<boolean>;
 
   // Tenant Integrations Management
   getTenantIntegrations(tenantId: string): Promise<any[]>;
@@ -131,12 +141,7 @@ export interface IStorage {
     typeName: string,
   ): Promise<any | undefined>;
   initializeTenantIntegrations(tenantId: string): Promise<void>;
-
-  // Template Bulk Operations
-  bulkDeleteTicketTemplates(
-    tenantId: string,
-    templateIds: string[],
-  ): Promise<boolean>;
+  deleteTenantIntegrations(tenantId: string): Promise<void>;
 
   // Email Templates Management
   getEmailTemplates(tenantId: string): Promise<any[]>;
@@ -153,10 +158,8 @@ export interface IStorage {
   markEmailAsRead(tenantId: string, messageId: string): Promise<void>;
   archiveEmail(tenantId: string, messageId: string): Promise<void>;
   deleteEmail(tenantId: string, messageId: string): Promise<void>;
+  saveEmailToInbox(tenantId: string, messageData: any): Promise<void>;
   getClientesCount(tenantId: string): Promise<number>;
-
-  // Project Management - COMPLETELY REMOVED
-  // All project-related functionality has been eliminated from the system
 
   // Locations Management
   getLocations(tenantId: string): Promise<any[]>;
@@ -188,8 +191,6 @@ export interface IStorage {
     tenantId: string,
     customerId: string,
   ): Promise<any[]>;
-  updateBeneficiary(tenantId: string, id: string, data: any): Promise<any>;
-  deleteBeneficiary(tenantId: string, id: string): Promise<boolean>;
   getBeneficiaryCustomers(
     tenantId: string,
     beneficiaryId: string,
@@ -221,11 +222,8 @@ async function validateTenantAccess(tenantId: string): Promise<string> {
 // ===========================
 
 export class DatabaseStorage implements IStorage {
-  // private schemaManager: SchemaManager; // Removed for simplification
-
-  constructor() {
-    // Using simplified schema manager from db.ts
-  }
+  // Removed schemaManager as it's not used in the current implementation.
+  // If needed, it should be properly initialized and injected.
 
   // Mock `this.neon` for local testing if not available
   private neon = async (query: string, params: any[]): Promise<any[]> => {
@@ -273,7 +271,7 @@ export class DatabaseStorage implements IStorage {
       // Users table is in public schema and requires system-level access
       const result = await db.execute(sql`
         SELECT id, email, tenant_id, role, is_active, password_hash, created_at, updated_at
-        FROM public.users 
+        FROM public.users
         WHERE id = ${String(id)} AND is_active = true
         LIMIT 1
       `);
@@ -295,7 +293,7 @@ export class DatabaseStorage implements IStorage {
       // Users table is in public schema and requires system-level access
       const result = await db.execute(sql`
         SELECT id, email, tenant_id, role, is_active, password_hash, created_at, updated_at
-        FROM public.users 
+        FROM public.users
         WHERE email = ${username} AND is_active = true
         LIMIT 1
       `);
@@ -401,7 +399,7 @@ export class DatabaseStorage implements IStorage {
 
       // OPTIMIZED: Single query with proper parameterization
       let baseQuery = sql`
-        SELECT 
+        SELECT
           id, first_name, last_name, email, phone,
           created_at, updated_at
         FROM ${sql.identifier(schemaName)}.customers
@@ -412,15 +410,15 @@ export class DatabaseStorage implements IStorage {
       if (search) {
         const searchPattern = `%${search}%`;
         baseQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${searchPattern} OR 
-          last_name ILIKE ${searchPattern} OR 
+          first_name ILIKE ${searchPattern} OR
+          last_name ILIKE ${searchPattern} OR
           email ILIKE ${searchPattern}
         )`;
       }
 
-      const finalQuery = sql`${baseQuery} 
-        ORDER BY created_at DESC 
-        LIMIT ${limit} 
+      const finalQuery = sql`${baseQuery}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
         OFFSET ${offset}
       `;
 
@@ -465,11 +463,11 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.customers 
+        INSERT INTO ${sql.identifier(schemaName)}.customers
         (first_name, last_name, email, phone, tenant_id, created_at, updated_at)
         VALUES (
           ${customerData.firstName || null},
-          ${customerData.lastName || null}, 
+          ${customerData.lastName || null},
           ${customerData.email},
           ${customerData.phone || null},
           ${validatedTenantId},
@@ -505,8 +503,8 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.customers 
-        SET 
+        UPDATE ${sql.identifier(schemaName)}.customers
+        SET
           first_name = ${customerData.firstName || null},
           last_name = ${customerData.lastName || null},
           email = ${customerData.email},
@@ -562,7 +560,7 @@ export class DatabaseStorage implements IStorage {
 
       // OPTIMIZED: Single JOIN query instead of N+1
       let baseQuery = sql`
-        SELECT 
+        SELECT
           tickets.*,
           beneficiary.first_name as customer_first_name,
           beneficiary.last_name as customer_last_name,
@@ -582,9 +580,9 @@ export class DatabaseStorage implements IStorage {
         baseQuery = sql`${baseQuery} AND tickets.status = ${status}`;
       }
 
-      const finalQuery = sql`${baseQuery} 
-        ORDER BY tickets.created_at DESC 
-        LIMIT ${limit} 
+      const finalQuery = sql`${baseQuery}
+        ORDER BY tickets.created_at DESC
+        LIMIT ${limit}
         OFFSET ${offset}
       `;
 
@@ -606,7 +604,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           tickets.*,
           beneficiary.first_name as customer_first_name,
           beneficiary.last_name as customer_last_name,
@@ -676,7 +674,7 @@ export class DatabaseStorage implements IStorage {
       });
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.tickets 
+        INSERT INTO ${sql.identifier(schemaName)}.tickets
         (number, subject, description, status, priority, customer_id, caller_id, tenant_id, created_at, updated_at)
         VALUES (
           ${ticketNumber},
@@ -736,7 +734,7 @@ export class DatabaseStorage implements IStorage {
       // CORREÇÃO FOLLOWERS: Adicionar campo followers que estava faltando
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
-        SET 
+        SET
           subject = ${ticketData.subject || ""},
           description = ${ticketData.description || null},
           priority = ${ticketData.priority || "medium"},
@@ -820,7 +818,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         SELECT COUNT(*) as count
-        FROM ${sql.identifier(schemaName)}.tickets 
+        FROM ${sql.identifier(schemaName)}.tickets
         WHERE tenant_id = ${validatedTenantId}
       `);
 
@@ -844,7 +842,7 @@ export class DatabaseStorage implements IStorage {
 
       // OPTIMIZED: Single query with multiple aggregations
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.customers) as total_customers,
           (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets) as total_tickets,
           (SELECT COUNT(*) FROM ${sql.identifier(schemaName)}.tickets WHERE status = 'open') as open_tickets,
@@ -882,7 +880,7 @@ export class DatabaseStorage implements IStorage {
 
       // OPTIMIZED: Single query with JOIN for activity
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           'ticket' as type,
           tickets.id,
           tickets.subject as title,
@@ -936,15 +934,15 @@ export class DatabaseStorage implements IStorage {
 
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          first_name ILIKE ${"%" + search + "%"} OR 
+          first_name ILIKE ${"%" + search + "%"} OR
           last_name ILIKE ${"%" + search + "%"} OR
           email ILIKE ${"%" + search + "%"}
         )`;
       }
 
-      const finalQuery = sql`${baseQuery} 
-        ORDER BY created_at DESC 
-        LIMIT ${limit} 
+      const finalQuery = sql`${baseQuery}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
         OFFSET ${offset}
       `;
 
@@ -956,91 +954,250 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get beneficiaries with pagination and search
   async getBeneficiaries(
     tenantId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
-  ): Promise<any[]> {
+  ) {
+    const { limit = 20, offset = 0, search } = options;
+
+    let query = `
+      SELECT
+        id,
+        first_name,
+        last_name,
+        COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), email) as fullName,
+        email,
+        phone,
+        cell_phone,
+        cpf_cnpj,
+        is_active,
+        customer_code,
+        customer_id,
+        contact_person,
+        contact_phone,
+        created_at,
+        updated_at
+      FROM "${tenantId}".beneficiaries
+    `;
+
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (search) {
+      query += ` WHERE (
+        first_name ILIKE $${paramIndex} OR
+        last_name ILIKE $${paramIndex} OR
+        email ILIKE $${paramIndex} OR
+        cpf_cnpj ILIKE $${paramIndex}
+      )`;
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY first_name, last_name LIMIT $${paramIndex} OFFSET $${
+      paramIndex + 1
+    }`;
+    params.push(limit, offset);
+
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const { limit = 50, offset = 0, search } = options;
-
-      // Use connection pool for better performance
-      const pool = await poolManager.getPool();
-      const client = await pool.connect();
-
-      try {
-        let query = `
-          SELECT id, tenant_id, name, email, phone, cell_phone, cpf, cnpj, rg, address, 
-                 city, state, zip_code, contact_person, contact_phone, integration_code,
-                 customer_id, customer_code, birth_date, notes, is_active, created_at, updated_at
-          FROM ${schemaManager.getTenantSchemaName(validatedTenantId)}.beneficiaries
-        `;
-
-        const params: any[] = [];
-        let paramCounter = 1;
-
-        if (search) {
-          query += ` WHERE (name ILIKE $${paramCounter} OR email ILIKE $${paramCounter} OR cpf ILIKE $${paramCounter})`;
-          params.push(`%${search}%`);
-          paramCounter++;
-        }
-
-        query += ` ORDER BY name ASC LIMIT $${paramCounter} OFFSET $${paramCounter + 1}`;
-        params.push(limit, offset);
-
-        const result = await client.query(query, params);
-        return result.rows;
-      } finally {
-        client.release();
-      }
+      const result = await this.pool.query(query, params);
+      return result.rows.map((row) => ({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        fullName: row.fullname,
+        email: row.email,
+        phone: row.phone,
+        cellPhone: row.cell_phone,
+        cpfCnpj: row.cpf_cnpj,
+        isActive: row.is_active,
+        customerCode: row.customer_code,
+        customerId: row.customer_id,
+        contactPerson: row.contact_person,
+        contactPhone: row.contact_phone,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
     } catch (error) {
-      logError("Error fetching beneficiaries", error, { tenantId, options });
-      throw error;
+      console.error("[STORAGE] Error fetching beneficiaries:", error);
+      // Return empty array if table doesn't exist or other error
+      return [];
     }
   }
 
   async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        SELECT 
+      const query = `
+        SELECT
           id,
-          tenant_id,
           first_name,
           last_name,
-          CONCAT(first_name, ' ', last_name) as full_name,
+          COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), email) as fullName,
           email,
-          birth_date,
-          rg,
+          phone,
+          cell_phone,
           cpf_cnpj,
           is_active,
           customer_code,
           customer_id,
-          phone,
-          cell_phone,
           contact_person,
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
-      `);
+        FROM "${tenantId}".beneficiaries
+        WHERE id = $1
+      `;
 
-      const favorecido = result.rows?.[0] || null;
+      const result = await this.pool.query(query, [id]);
+      if (result.rows.length === 0) return null;
 
-      // Adicionar fullName computed field para compatibilidade frontend
-      if (favorecido) {
-        favorecido.fullName =
-          `${favorecido.first_name || ""} ${favorecido.last_name || ""}`.trim();
-      }
-
-      return favorecido;
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        fullName: row.fullname,
+        email: row.email,
+        phone: row.phone,
+        cellPhone: row.cell_phone,
+        cpfCnpj: row.cpf_cnpj,
+        isActive: row.is_active,
+        customerCode: row.customer_code,
+        customerId: row.customer_id,
+        contactPerson: row.contact_person,
+        contactPhone: row.contact_phone,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
     } catch (error) {
-      logError("Error fetching favorecido", error, { id, tenantId });
+      console.error("[STORAGE] Error fetching beneficiary by ID:", error);
+      return null;
+    }
+  }
+
+  async createBeneficiary(tenantId: string, beneficiaryData: any) {
+    try {
+      const query = `
+        INSERT INTO "${tenantId}".beneficiaries (
+          id, first_name, last_name, email, phone, cell_phone, cpf_cnpj,
+          is_active, customer_code, customer_id, contact_person, contact_phone
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *
+      `;
+
+      const id = `beneficiary_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const values = [
+        id,
+        beneficiaryData.firstName || "",
+        beneficiaryData.lastName || "",
+        beneficiaryData.email || null,
+        beneficiaryData.phone || null,
+        beneficiaryData.cellPhone || null,
+        beneficiaryData.cpfCnpj || null,
+        beneficiaryData.isActive !== false,
+        beneficiaryData.customerCode || null,
+        beneficiaryData.customerId || null,
+        beneficiaryData.contactPerson || null,
+        beneficiaryData.contactPhone || null,
+      ];
+
+      const result = await this.pool.query(query, values);
+      const row = result.rows[0];
+
+      return {
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        cellPhone: row.cell_phone,
+        cpfCnpj: row.cpf_cnpj,
+        isActive: row.is_active,
+        customerCode: row.customer_code,
+        customerId: row.customer_id,
+        contactPerson: row.contact_person,
+        contactPhone: row.contact_phone,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch (error) {
+      console.error("[STORAGE] Error creating beneficiary:", error);
       throw error;
+    }
+  }
+
+  async updateBeneficiary(tenantId: string, id: string, beneficiaryData: any) {
+    try {
+      const query = `
+        UPDATE "${tenantId}".beneficiaries
+        SET
+          first_name = $2,
+          last_name = $3,
+          email = $4,
+          phone = $5,
+          cell_phone = $6,
+          cpf_cnpj = $7,
+          is_active = $8,
+          customer_code = $9,
+          customer_id = $10,
+          contact_person = $11,
+          contact_phone = $12,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING *
+      `;
+
+      const values = [
+        id,
+        beneficiaryData.firstName || "",
+        beneficiaryData.lastName || "",
+        beneficiaryData.email || null,
+        beneficiaryData.phone || null,
+        beneficiaryData.cellPhone || null,
+        beneficiaryData.cpfCnpj || null,
+        beneficiaryData.isActive !== false,
+        beneficiaryData.customerCode || null,
+        beneficiaryData.customerId || null,
+        beneficiaryData.contactPerson || null,
+        beneficiaryData.contactPhone || null,
+      ];
+
+      const result = await this.pool.query(query, values);
+      if (result.rows.length === 0) return null;
+
+      const row = result.rows[0];
+      return {
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        cellPhone: row.cell_phone,
+        cpfCnpj: row.cpf_cnpj,
+        isActive: row.is_active,
+        customerCode: row.customer_code,
+        customerId: row.customer_id,
+        contactPerson: row.contact_person,
+        contactPhone: row.contact_phone,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch (error) {
+      console.error("[STORAGE] Error updating beneficiary:", error);
+      throw error;
+    }
+  }
+
+  async deleteBeneficiary(tenantId: string, id: string) {
+    try {
+      const query = `DELETE FROM "${tenantId}".beneficiaries WHERE id = $1`;
+      const result = await this.pool.query(query, [id]);
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("[STORAGE] Error deleting beneficiary:", error);
+      return false;
     }
   }
 
@@ -1085,7 +1242,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.customers
-        SET 
+        SET
           first_name = ${data.firstName || data.name},
           last_name = ${data.lastName || null},
           email = ${data.email},
@@ -1121,7 +1278,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createBeneficiary(tenantId: string, beneficiaryData: any): Promise<any> {
+  async createBeneficiaryFromOriginal(tenantId: string, beneficiaryData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
 
@@ -1140,17 +1297,17 @@ export class DatabaseStorage implements IStorage {
       try {
         // Use correct column names from schema-tenant.ts
         const result = await client.query(`
-          INSERT INTO ${schemaManager.getTenantSchemaName(validatedTenantId)}.beneficiaries 
-          (id, tenant_id, name, email, phone, cell_phone, cpf, cnpj, rg, address, city, state, 
-           zip_code, contact_person, contact_phone, integration_code, customer_id, customer_code, 
+          INSERT INTO ${schemaManager.getTenantSchemaName(validatedTenantId)}.beneficiaries
+          (id, tenant_id, name, email, phone, cell_phone, cpf_cnpj, rg, address, city, state,
+           zip_code, contact_person, contact_phone, integration_code, customer_id, customer_code,
            birth_date, notes, is_active, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
           RETURNING *
         `, [
           beneficiaryWithTenant.id,
           beneficiaryWithTenant.tenantId,
-          beneficiaryData.firstName && beneficiaryData.lastName ? 
-            `${beneficiaryData.firstName} ${beneficiaryData.lastName}` : 
+          beneficiaryData.firstName && beneficiaryData.lastName ?
+            `${beneficiaryData.firstName} ${beneficiaryData.lastName}` :
             beneficiaryData.firstName || beneficiaryData.lastName || 'Unnamed',
           beneficiaryData.email || null,
           beneficiaryData.phone || null,
@@ -1189,956 +1346,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateBeneficiary(
-    tenantId: string,
-    id: string,
-    data: any,
-  ): Promise<any> {
-    try {
-      console.log("UPDATE DEBUG:", { tenantId, id, data });
 
-      // CRITICAL FIX: Validate that tenantId looks like UUID and id looks like UUID
-      if (
-        !tenantId.match(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-        )
-      ) {
-        throw new Error(`Invalid tenantId format: ${tenantId}`);
-      }
-      if (
-        !id.match(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-        )
-      ) {
-        throw new Error(`Invalid favorecido ID format: ${id}`);
-      }
-
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.beneficiaries
-        SET 
-          first_name = ${data.firstName},
-          last_name = ${data.lastName || null},
-          email = ${data.email || null},
-          birth_date = ${data.birthDate || null},
-          rg = ${data.rg || null},
-          cpf_cnpj = ${data.cpfCnpj || null},
-          is_active = ${data.isActive !== undefined ? data.isActive : true},
-          customer_code = ${data.customerCode || null},
-          customer_id = ${data.customerId || null},
-          phone = ${data.phone || null},
-          cell_phone = ${data.cellPhone || null},
-          contact_person = ${data.contactPerson || null},
-          contact_phone = ${data.contactPhone || null},
-          updated_at = NOW()
-        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
-        RETURNING *
-      `);
-
-      const favorecido = result.rows?.[0];
-
-      // Adicionar fullName computed field para compatibilidade frontend
-      if (favorecido) {
-        favorecido.fullName =
-          `${favorecido.first_name} ${favorecido.last_name || ""}`.trim();
-      }
-
-      return favorecido;
-    } catch (error) {
-      logError("Error updating favorecido", error, {
-        id,
-        tenantId,
-        data,
-        context: {
-          id: tenantId, // This shows that parameters are swapped in error context
-          tenantId: id, // This confirms the parameter swap issue
-          data,
-        },
-      });
-      throw error;
-    }
-  }
-
-  async deleteBeneficiary(tenantId: string, id: string): Promise<boolean> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries
-        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
-      `);
-
-      const deleted = Number(result.rowCount || 0) > 0;
-      if (deleted) {
-        logInfo("Beneficiary deleted successfully", {
-          tenantId: validatedTenantId,
-          beneficiaryId: id,
-        });
-      }
-
-      return deleted;
-    } catch (error) {
-      logError("Error deleting beneficiary", error, { id, tenantId });
-      throw error;
-    }
-  }
-
-  // ===========================
-  // TICKET TEMPLATES MANAGEMENT
-  // ===========================
-
-  async getTicketTemplates(
-    tenantId: string,
-    options?: {
-      limit?: number;
-      offset?: number;
-      search?: string;
-      category?: string;
-    },
-  ): Promise<any[]> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const limit = options?.limit || 50;
-      const offset = options?.offset || 0;
-
-      let baseQuery = sql`
-        SELECT id, name, description, category, priority, urgency, impact, 
-               default_title, default_description, default_tags, estimated_hours, 
-               requires_approval, auto_assign, default_assignee_role, is_active, 
-               tenant_id, created_by, created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.ticket_templates
-        WHERE tenant_id = ${validatedTenantId}
-      `;
-
-      // Add search filter
-      if (options?.search) {
-        baseQuery = sql`${baseQuery} AND (name ILIKE ${`%${options.search}%`} OR description ILIKE ${`%${options.search}%`})`;
-      }
-
-      // Add category filter
-      if (options?.category) {
-        baseQuery = sql`${baseQuery} AND category = ${options.category}`;
-      }
-
-      const finalQuery = sql`${baseQuery} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
-      const result = await tenantDb.execute(finalQuery);
-
-      return result.rows || [];
-    } catch (error) {
-      logError("Error fetching ticket templates", error, { tenantId, options });
-      throw error;
-    }
-  }
-
-  async getTicketTemplateById(
-    tenantId: string,
-    templateId: string,
-  ): Promise<any | undefined> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, priority, urgency, impact,
-               default_title, default_description, default_tags, estimated_hours,
-               requires_approval, auto_assign, default_assignee_role, is_active,
-               tenant_id, created_by, created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.ticket_templates
-        WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
-        LIMIT 1
-      `);
-
-      return result.rows?.[0];
-    } catch (error) {
-      logError("Error fetching ticket template by ID", error, {
-        tenantId,
-        templateId,
-      });
-      throw error;
-    }
-  }
-
-  async createTicketTemplate(
-    tenantId: string,
-    templateData: any,
-  ): Promise<any> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const id = crypto.randomUUID();
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.ticket_templates
-        (id, name, description, category, priority, urgency, impact, default_title, 
-         default_description, default_tags, estimated_hours, requires_approval, 
-         auto_assign, default_assignee_role, is_active, tenant_id, created_by, created_at, updated_at)
-        VALUES (
-          ${id},
-          ${templateData.name},
-          ${templateData.description || null},
-          ${templateData.category || "Geral"},
-          ${templateData.priority || "medium"},
-          ${templateData.urgency || "medium"},
-          ${templateData.impact || "medium"},
-          ${templateData.default_title || null},
-          ${templateData.default_description || null},
-          ${templateData.default_tags || null},
-          ${templateData.estimated_hours || 0},
-          ${templateData.requires_approval || false},
-          ${templateData.auto_assign || false},
-          ${templateData.default_assignee_role || null},
-          ${templateData.is_active !== false},
-          ${validatedTenantId},
-          ${templateData.created_by || validatedTenantId},
-          NOW(),
-          NOW()
-        )
-        RETURNING *
-      `);
-
-      logInfo("Ticket template created successfully", {
-        tenantId: validatedTenantId,
-        templateId: id,
-      });
-      return result.rows?.[0];
-    } catch (error) {
-      logError("Error creating ticket template", error, {
-        tenantId,
-        templateData,
-      });
-      throw error;
-    }
-  }
-
-  async updateTicketTemplate(
-    tenantId: string,
-    templateId: string,
-    templateData: any,
-  ): Promise<any> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.ticket_templates
-        SET name = ${templateData.name},
-            description = ${templateData.description || null},
-            category = ${templateData.category || "Geral"},
-            priority = ${templateData.priority || "medium"},
-            urgency = ${templateData.urgency || "medium"},
-            impact = ${templateData.impact || "medium"},
-            default_title = ${templateData.default_title || null},
-            default_description = ${templateData.default_description || null},
-            default_tags = ${templateData.default_tags || null},
-            estimated_hours = ${templateData.estimated_hours || 0},
-            requires_approval = ${templateData.requires_approval || false},
-            auto_assign = ${templateData.auto_assign || false},
-            default_assignee_role = ${templateData.default_assignee_role || null},
-            is_active = ${templateData.is_active !== false},
-            updated_at = NOW()
-        WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
-        RETURNING *
-      `);
-
-      if (!result.rows?.[0]) {
-        throw new Error("Template not found or access denied");
-      }
-
-      logInfo("Ticket template updated successfully", {
-        tenantId: validatedTenantId,
-        templateId,
-      });
-      return result.rows[0];
-    } catch (error) {
-      logError("Error updating ticket template", error, {
-        tenantId,
-        templateId,
-        templateData,
-      });
-      throw error;
-    }
-  }
-
-  async deleteTicketTemplate(
-    tenantId: string,
-    templateId: string,
-  ): Promise<boolean> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_templates
-        WHERE id = ${templateId} AND tenant_id = ${validatedTenantId}
-      `);
-
-      const deleted = !!(result.rowCount && result.rowCount > 0);
-      if (deleted) {
-        logInfo("Ticket template deleted successfully", {
-          tenantId: validatedTenantId,
-          templateId,
-        });
-      }
-
-      return deleted;
-    } catch (error) {
-      logError("Error deleting ticket template", error, {
-        tenantId,
-        templateId,
-      });
-      throw error;
-    }
-  }
-
-  async duplicateTicketTemplate(
-    tenantId: string,
-    templateId: string,
-  ): Promise<any> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-
-      // First get the original template
-      const original = await this.getTicketTemplateById(
-        validatedTenantId,
-        templateId,
-      );
-      if (!original) {
-        throw new Error("Template not found");
-      }
-
-      // Create a copy with modified name
-      const copyData = {
-        ...original,
-        name: `${original.name} (Cópia)`,
-        id: undefined, // Will be generated
-        created_at: undefined,
-        updated_at: undefined,
-      };
-
-      return await this.createTicketTemplate(validatedTenantId, copyData);
-    } catch (error) {
-      logError("Error duplicating ticket template", error, {
-        tenantId,
-        templateId,
-      });
-      throw error;
-    }
-  }
-
-  async bulkDeleteTicketTemplates(
-    tenantId: string,
-    templateIds: string[],
-  ): Promise<boolean> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      if (!templateIds || templateIds.length === 0) {
-        return true;
-      }
-
-      const placeholders = templateIds
-        .map((_, index) => `$${index + 2}`)
-        .join(", ");
-      const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.ticket_templates
-        WHERE tenant_id = ${validatedTenantId} AND id IN (${sql.raw(placeholders)})
-      `);
-
-      const deleted = !!(result.rowCount && result.rowCount > 0);
-      if (deleted) {
-        logInfo("Ticket templates bulk deleted successfully", {
-          tenantId: validatedTenantId,
-          count: result.rowCount,
-          templateIds,
-        });
-      }
-
-      return deleted;
-    } catch (error) {
-      logError("Error bulk deleting ticket templates", error, {
-        tenantId,
-        templateIds,
-      });
-      throw error;
-    }
-  }
-
-  async updateTenantIntegrationStatus(
-    tenantId: string,
-    integrationId: string,
-    status: string,
-  ): Promise<void> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.integrations
-        SET status = ${status}, updated_at = NOW()
-        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
-      `);
-
-      logInfo("Integration status updated successfully", {
-        tenantId: validatedTenantId,
-        integrationId,
-        status,
-      });
-    } catch (error) {
-      logError("Error updating integration status", error, {
-        tenantId,
-        integrationId,
-        status,
-      });
-      throw error;
-    }
-  }
-
-  async initializeTenantIntegrations(tenantId: string): Promise<void> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-
-      console.log(
-        `🔧 [INIT-INTEGRATIONS] Initializing integrations for tenant: ${validatedTenantId}`,
-      );
-
-      // Create default integrations if they don't exist
-      await this.createDefaultIntegrations(validatedTenantId);
-
-      console.log(
-        `✅ [INIT-INTEGRATIONS] Integrations initialized for tenant: ${validatedTenantId}`,
-      );
-    } catch (error) {
-      console.error(
-        `❌ [INIT-INTEGRATIONS] Error initializing integrations:`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  // ===========================
-  // TENANT INTEGRATIONS
-  // ===========================
-
-  async getTenantIntegrations(tenantId: string): Promise<any[]> {
-    try {
-      console.log(`🔍 [STORAGE] Getting integrations for tenant: ${tenantId}`);
-
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      // Use the standard integrations table (not service_integrations)
-      const tableExists = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
-        );
-      `);
-
-      if (!tableExists.rows?.[0]?.exists) {
-        console.log(
-          `🔧 Creating integrations table for tenant ${validatedTenantId}`,
-        );
-        await this.createDefaultIntegrations(validatedTenantId);
-      }
-
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.integrations
-        WHERE tenant_id = ${validatedTenantId}
-        ORDER BY created_at DESC
-      `);
-
-      console.log(
-        `📊 [STORAGE] Found ${result.rows.length} integrations for tenant: ${validatedTenantId}`,
-      );
-
-      // If no integrations are found, create default ones
-      if (!result.rows || result.rows.length === 0) {
-        console.log(
-          `🔧 No integrations found for tenant ${validatedTenantId}, creating defaults.`,
-        );
-        await this.createDefaultIntegrations(validatedTenantId);
-
-        // Re-fetch after creation
-        const newResult = await tenantDb.execute(sql`
-          SELECT * FROM ${sql.identifier(schemaName)}.integrations
-          WHERE tenant_id = ${validatedTenantId}
-          ORDER BY created_at DESC
-        `);
-        return newResult.rows || [];
-      }
-
-      return result.rows || [];
-    } catch (error) {
-      console.error(`❌ [STORAGE] Error getting tenant integrations:`, error);
-      return [];
-    }
-  }
-
-  async getTenantIntegrationConfig(
-    tenantId: string,
-    integrationId: string,
-  ): Promise<any | undefined> {
-    try {
-      console.log(
-        `🔍 [GET-CONFIG] Buscando configuração: tenant=${tenantId}, integration=${integrationId}`,
-      );
-
-      // ✅ VALIDATION: Input validation
-      if (!tenantId || typeof tenantId !== "string") {
-        console.error(`❌ [GET-CONFIG] Invalid tenantId: ${tenantId}`);
-        return { configured: false, config: {} };
-      }
-
-      if (!integrationId || typeof integrationId !== "string") {
-        console.error(
-          `❌ [GET-CONFIG] Invalid integrationId: ${integrationId}`,
-        );
-        return { configured: false, config: {} };
-      }
-
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      // ✅ SAFETY: Check if integrations table exists
-      let tableExists;
-      try {
-        const tableExistsResult = await tenantDb.execute(sql`
-          SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = ${schemaName} AND table_name = 'integrations'
-          );
-        `);
-        tableExists = tableExistsResult.rows?.[0]?.exists;
-      } catch (tableCheckError) {
-        console.error(
-          `❌ [GET-CONFIG] Error checking table existence:`,
-          tableCheckError,
-        );
-        return { configured: false, config: {} };
-      }
-
-      if (!tableExists) {
-        console.log(
-          `❌ [GET-CONFIG] Integrations table does not exist for tenant ${validatedTenantId}`,
-        );
-        // ✅ CRITICAL FIX: Create default integrations if table doesn't exist
-        await this.createDefaultIntegrations(validatedTenantId);
-      }
-
-      // ✅ SAFETY: Execute query with proper error handling
-      let result;
-      try {
-        result = await tenantDb.execute(sql`
-          SELECT id, name, description, category, icon, status, config, features, created_at, updated_at, configured
-          FROM ${sql.identifier(schemaName)}.integrations 
-          WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
-          LIMIT 1
-        `);
-      } catch (queryError) {
-        console.error(`❌ [GET-CONFIG] Database query error:`, queryError);
-        return { configured: false, config: {} };
-      }
-
-      console.log(`🔍 [GET-CONFIG] Query result:`, {
-        rowsFound: result.rows?.length || 0,
-      });
-
-      if (!result.rows || result.rows.length === 0) {
-        console.log(
-          `❌ [GET-CONFIG] Nenhuma configuração encontrada para ${integrationId}, criando integração default...`,
-        );
-        // ✅ CRITICAL FIX: Create integration if it doesn't exist
-        await this.createTenantIntegration(validatedTenantId, {
-          id: integrationId,
-          name: integrationId === "telegram" ? "Telegram" : integrationId,
-          description:
-            integrationId === "telegram"
-              ? "Envio de notificações via Telegram"
-              : `Integration ${integrationId}`,
-          category: "Comunicação",
-          icon: integrationId === "telegram" ? "Send" : "Settings",
-          features:
-            integrationId === "telegram"
-              ? ["Notificações em tempo real", "Mensagens personalizadas"]
-              : [],
-        });
-        return {
-          id: integrationId,
-          name: integrationId === "telegram" ? "Telegram" : integrationId,
-          configured: false,
-          config: {},
-          status: "disconnected",
-        };
-      }
-
-      const integration = result.rows[0];
-
-      // ✅ SAFETY: Parse config if it's a string with proper error handling
-      let parsedConfig = integration.config;
-      if (typeof integration.config === "string") {
-        try {
-          parsedConfig = JSON.parse(integration.config);
-        } catch (parseError) {
-          console.error(
-            `❌ [GET-CONFIG] Erro ao fazer parse do config:`,
-            parseError,
-          );
-          parsedConfig = {}; // Default to empty object on parse error
-        }
-      }
-
-      // ✅ VALIDATION: Ensure config is an object
-      if (parsedConfig === null || typeof parsedConfig !== "object") {
-        parsedConfig = {};
-      }
-
-      // ✅ CRITICAL FIX: Return structured response with configured flag
-      const isConfigured =
-        integration.configured === true ||
-        (parsedConfig && Object.keys(parsedConfig).length > 0);
-
-      // ✅ TELEGRAM SPECIFIC: Log configuração do Telegram
-      if (integration.id === "telegram") {
-        console.log(`📱 [TELEGRAM-CONFIG] Dados carregados:`, {
-          configured: isConfigured,
-          hasConfig: !!parsedConfig,
-          configKeys: parsedConfig ? Object.keys(parsedConfig) : [],
-          botToken: parsedConfig?.telegramBotToken
-            ? "***" + parsedConfig.telegramBotToken.slice(-4)
-            : "VAZIO",
-          chatId: parsedConfig?.telegramChatId || "VAZIO",
-        });
-      }
-
-      const finalResult = {
-        id: integration.id,
-        name: integration.name,
-        description: integration.description,
-        category: integration.category,
-        icon: integration.icon,
-        status: integration.status,
-        configured: isConfigured,
-        config: parsedConfig || {},
-        features: integration.features,
-        created_at: integration.created_at,
-        updated_at: integration.updated_at,
-      };
-
-      console.log(`✅ [GET-CONFIG] Configuração retornada:`, {
-        id: finalResult.id,
-        configured: finalResult.configured,
-        hasConfig: !!finalResult.config,
-        configKeys: Object.keys(finalResult.config || {}),
-      });
-
-      return finalResult;
-    } catch (error) {
-      console.error(
-        "❌ [GET-CONFIG] Critical error in getTenantIntegrationConfig:",
-        error,
-      );
-      return { configured: false, config: {} };
-    }
-  }
-
-  async saveTenantIntegrationConfig(
-    tenantId: string,
-    integrationId: string,
-    config: any,
-  ): Promise<any> {
-    try {
-      console.log(
-        `💾 [SAVE-CONFIG] Salvando configuração: tenant=${tenantId}, integration=${integrationId}`,
-      );
-      console.log(
-        `💾 [SAVE-CONFIG] Config data keys:`,
-        Object.keys(config || {}),
-      );
-
-      // ✅ TELEGRAM SPECIFIC: Log específico para Telegram
-      if (integrationId === "telegram") {
-        console.log(`📱 [TELEGRAM-SAVE] Campos Telegram:`, {
-          enabled: config.enabled,
-          hasBotToken: !!config.telegramBotToken,
-          botTokenStart: config.telegramBotToken
-            ? config.telegramBotToken.substring(0, 10) + "..."
-            : "VAZIO",
-          chatId: config.telegramChatId,
-        });
-      }
-
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      // ✅ SAFETY: Check if integrations table exists
-      const tableExists = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'integrations'
-        );
-      `);
-
-      if (!tableExists.rows?.[0]?.exists) {
-        console.log(
-          `🔧 Creating integrations table for tenant ${validatedTenantId}`,
-        );
-        await this.createDefaultIntegrations(validatedTenantId);
-      }
-
-      // Verificar se a integração existe
-      console.log(
-        `🔍 [SAVE-CONFIG] Verificando se integração ${integrationId} existe...`,
-      );
-      const existingResult = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.integrations 
-        WHERE tenant_id = ${validatedTenantId} 
-        AND id = ${integrationId}
-        LIMIT 1
-      `);
-
-      if (!existingResult.rows || existingResult.rows.length === 0) {
-        console.log(
-          `⚠️ [SAVE-CONFIG] Integração ${integrationId} não encontrada, criando...`,
-        );
-        // Create the integration first
-        await this.createTenantIntegration(validatedTenantId, {
-          id: integrationId,
-          name: integrationId === "telegram" ? "Telegram" : integrationId,
-          description:
-            integrationId === "telegram"
-              ? "Envio de notificações via Telegram"
-              : `Integration ${integrationId}`,
-          category: "Comunicação",
-          icon: integrationId === "telegram" ? "Send" : "Settings",
-          features:
-            integrationId === "telegram"
-              ? ["Notificações em tempo real", "Mensagens personalizadas"]
-              : [],
-        });
-      } else {
-        console.log(`✅ [SAVE-CONFIG] Integração ${integrationId} já existe`);
-      }
-
-      // Update the integration configuration
-      console.log(
-        `💾 [SAVE-CONFIG] Atualizando configuração na base de dados...`,
-      );
-      const updateResult = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.integrations 
-        SET 
-          config = ${JSON.stringify(config)},
-          configured = true,
-          status = ${config.enabled ? "connected" : "disconnected"},
-          updated_at = CURRENT_TIMESTAMP
-        WHERE tenant_id = ${validatedTenantId} 
-        AND id = ${integrationId}
-        RETURNING *
-      `);
-
-      if (updateResult.rows && updateResult.rows.length > 0) {
-        const updatedIntegration = updateResult.rows[0] as any;
-        console.log(
-          `✅ [SAVE-CONFIG] Configuração salva com sucesso para ${integrationId}`,
-        );
-        console.log(`📊 [SAVE-CONFIG] Status final:`, {
-          configured: updatedIntegration.configured,
-          status: updatedIntegration.status,
-          configKeys: updatedIntegration.config
-            ? Object.keys(updatedIntegration.config)
-            : [],
-        });
-
-        return {
-          integrationId: updatedIntegration.id,
-          tenantId: updatedIntegration.tenant_id,
-          configured: updatedIntegration.configured,
-          config: updatedIntegration.config,
-          status: updatedIntegration.status,
-          updatedAt: updatedIntegration.updated_at,
-        };
-      } else {
-        throw new Error("Failed to save integration configuration");
-      }
-    } catch (error) {
-      console.error(`❌ [SAVE-CONFIG] Erro ao salvar configuração:`, error);
-      throw error;
-    }
-  }
-
-  async getIntegrationByType(
-    tenantId: string,
-    typeName: string,
-  ): Promise<any | undefined> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.integrations
-        WHERE name = ${typeName} AND tenant_id = ${validatedTenantId}
-        LIMIT 1
-      `);
-
-      return result.rows?.[0] || undefined;
-    } catch (error) {
-      logError("Error fetching integration by type", error, {
-        tenantId,
-        typeName,
-      });
-      return undefined;
-    }
-  }
-
-  private async createDefaultIntegrations(tenantId: string): Promise<void> {
-    try {
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
-
-      await tenantDb.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
-          id VARCHAR(255) PRIMARY KEY,
-          tenant_id VARCHAR(36) NOT NULL,
-          name VARCHAR(255) NOT NULL,
-          description TEXT,
-          category VARCHAR(100),
-          icon VARCHAR(100),
-          status VARCHAR(50) DEFAULT 'disconnected',
-          configured BOOLEAN DEFAULT false,
-          config JSONB DEFAULT '{}',
-          features TEXT[],
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-        )
-      `);
-
-      // Use raw SQL since Drizzle has issues with TEXT[] arrays - ALL 14 INTEGRATIONS
-      const insertQuery = `
-        INSERT INTO ${schemaName}.integrations 
-        (id, tenant_id, name, description, category, icon, status, configured, config, features)
-        VALUES 
-        ('gmail-oauth2', '${tenantId}', 'Gmail OAuth2', 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']),
-        ('outlook-oauth2', '${tenantId}', 'Outlook OAuth2', 'Integração OAuth2 com Microsoft Outlook para emails corporativos', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']),
-        ('email-smtp', '${tenantId}', 'Email SMTP', 'Configuração de servidor SMTP para envio de emails automáticos e notificações', 'Comunicação', 'Mail', 'disconnected', false, '{}', ARRAY['Notificações por email', 'Tickets por email', 'Relatórios automáticos']),
-        ('imap-email', '${tenantId}', 'IMAP Email', 'Conecte sua caixa de email via IMAP para sincronização de tickets', 'Comunicação', 'Inbox', 'disconnected', false, '{}', ARRAY['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']),
-        ('whatsapp-business', '${tenantId}', 'WhatsApp Business', 'Integração com WhatsApp Business API para atendimento via WhatsApp', 'Comunicação', 'MessageSquare', 'disconnected', false, '{}', ARRAY['Mensagens automáticas', 'Templates aprovados', 'Webhooks']),
-        ('slack', '${tenantId}', 'Slack', 'Notificações e gerenciamento de tickets através do Slack', 'Comunicação', 'MessageCircle', 'disconnected', false, '{}', ARRAY['Notificações de tickets', 'Comandos slash', 'Bot integrado']),
-        ('twilio-sms', '${tenantId}', 'Twilio SMS', 'Envio de SMS para notificações e alertas importantes', 'Comunicação', 'Phone', 'disconnected', false, '{}', ARRAY['SMS automático', 'Notificações críticas', 'Verificação 2FA']),
-        ('telegram', '${tenantId}', 'Telegram', 'Envio de notificações e alertas via Telegram para grupos ou usuários', 'Comunicação', 'Send', 'disconnected', false, '{}', ARRAY['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']),
-        ('zapier', '${tenantId}', 'Zapier', 'Conecte com mais de 3000 aplicativos através de automações Zapier', 'Automação', 'Zap', 'disconnected', false, '{}', ARRAY['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']),
-        ('webhooks', '${tenantId}', 'Webhooks', 'Receba notificações em tempo real de eventos do sistema', 'Automação', 'Webhook', 'disconnected', false, '{}', ARRAY['Eventos em tempo real', 'Custom endpoints', 'Retry automático']),
-        ('crm-integration', '${tenantId}', 'CRM Integration', 'Sincronização com sistemas CRM para gestão unificada de clientes', 'Dados', 'Database', 'disconnected', false, '{}', ARRAY['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']),
-        ('dropbox-personal', '${tenantId}', 'Dropbox Pessoal', 'Backup automático de dados e arquivos importantes', 'Dados', 'Cloud', 'disconnected', false, '{}', ARRAY['Backup automático', 'Sincronização de arquivos', 'Versionamento']),
-        ('sso-saml', '${tenantId}', 'SSO/SAML', 'Single Sign-On para autenticação corporativa segura', 'Segurança', 'Shield', 'disconnected', false, '{}', ARRAY['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']),
-        ('google-workspace', '${tenantId}', 'Google Workspace', 'Integração completa com Gmail, Drive e Calendar', 'Produtividade', 'Calendar', 'disconnected', false, '{}', ARRAY['Gmail sync', 'Drive backup', 'Calendar integration'])
-        ON CONFLICT (id) DO NOTHING
-      `;
-
-      await tenantDb.execute(sql.raw(insertQuery));
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // =========================================
-  // Helper methods for DatabaseStorage Class
-  // =========================================
-
-  // Validates if a string is a valid UUID
-  private validateUUID(uuid: string): string | null {
-    if (!uuid || typeof uuid !== "string") return null;
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid) ? uuid : null;
-  }
-
-  // Gets tenant specific database connection from pool manager
-  private async getTenantConnection(tenantId: string): Promise<any> {
-    const validatedTenantId = this.validateUUID(tenantId);
-    if (!validatedTenantId) {
-      throw new Error(`Invalid tenant UUID provided: ${tenantId}`);
-    }
-    return poolManager.getTenantConnection(validatedTenantId);
-  }
-
-  // ✅ CRITICAL FIX: Add missing deleteTenantIntegrations method
-  async deleteTenantIntegrations(tenantId: string): Promise<void> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
-
-      await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.integrations
-        WHERE tenant_id = ${validatedTenantId}
-      `);
-
-      console.log(
-        `🗑️ [DELETE-INTEGRATIONS] Limpeza de integrações para tenant ${validatedTenantId} concluída`,
-      );
-    } catch (error) {
-      console.error(
-        `❌ [DELETE-INTEGRATIONS] Erro ao limpar integrações:`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  // Creates a new integration entry for a tenant
-  private async createTenantIntegration(
-    tenantId: string,
-    integrationData: any,
-  ): Promise<void> {
-    try {
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
-
-      // Use raw SQL since Drizzle has issues with TEXT[] arrays
-      const insertQuery = `
-        INSERT INTO ${schemaName}.integrations 
-        (id, tenant_id, name, description, category, icon, status, configured, config, features, created_at, updated_at)
-        VALUES 
-        ('${integrationData.id}', '${tenantId}', '${integrationData.name}', '${integrationData.description}', 
-         '${integrationData.category}', '${integrationData.icon}', 'disconnected', false, '{}', 
-         ARRAY[${integrationData.features.map((f: string) => `'${f}'`).join(", ")}], 
-         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        ON CONFLICT (id) DO NOTHING
-      `;
-
-      await tenantDb.execute(sql.raw(insertQuery));
-      console.log(
-        `✅ [CREATE-INTEGRATION] Integração ${integrationData.id} criada para tenant ${tenantId}`,
-      );
-    } catch (error) {
-      console.error(`❌ [CREATE-INTEGRATION] Erro ao criar integração:`, error);
-      throw error;
-    }
-  }
-
-  // ==============================
-  // BENEFICIARY-CUSTOMER RELATIONSHIPS METHODS
-  // ==============================
-
+  // Get customer beneficiaries (many-to-many relationship)
   async getBeneficiaryCustomers(
     tenantId: string,
     beneficiaryId: string,
@@ -2149,7 +1358,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           c.id,
           c.first_name,
           c.last_name,
@@ -2212,7 +1421,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
-        WHERE beneficiary_id = ${beneficiaryId} 
+        WHERE beneficiary_id = ${beneficiaryId}
           AND customer_id = ${customerId}
           AND tenant_id = ${validatedTenantId}
       `);
@@ -2239,13 +1448,13 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT DISTINCT 
-          CASE 
+        SELECT DISTINCT
+          CASE
             WHEN tr.source_ticket_id = t.id THEN tr.source_ticket_id
-            ELSE tr.target_ticket_id 
+            ELSE tr.target_ticket_id
           END as ticket_id
         FROM ${sql.identifier(schemaName)}.tickets t
-        INNER JOIN ${sql.identifier(schemaName)}.ticket_relationships tr 
+        INNER JOIN ${sql.identifier(schemaName)}.ticket_relationships tr
           ON (tr.source_ticket_id = t.id OR tr.target_ticket_id = t.id)
         WHERE t.tenant_id = ${validatedTenantId}
       `);
@@ -2296,32 +1505,32 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           tr.id,
           tr.relationship_type as "relationshipType",
           tr.description,
           tr.created_at as "createdAt",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.id
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.id
           END as "targetTicket.id",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.subject
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.subject
           END as "targetTicket.subject",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.status
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.status
           END as "targetTicket.status",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.priority
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.priority
           END as "targetTicket.priority",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN COALESCE(t_target.number, CONCAT('T-', SUBSTRING(t_target.id::text, 1, 8)))
             WHEN tr.target_ticket_id = ${ticketId} THEN COALESCE(t_source.number, CONCAT('T-', SUBSTRING(t_source.id::text, 1, 8)))
           END as "targetTicket.number",
-          CASE 
+          CASE
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.created_at
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.created_at
           END as "targetTicket.createdAt"
@@ -2462,7 +1671,7 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         WITH RECURSIVE ticket_hierarchy AS (
           -- Base case: find root ticket (no parent or current ticket)
-          SELECT 
+          SELECT
             t.id,
             t.short_description as subject,
             t.state as status,
@@ -2477,7 +1686,7 @@ export class DatabaseStorage implements IStorage {
           UNION ALL
 
           -- Recursive case: find children
-          SELECT 
+          SELECT
             t.id,
             t.short_description as subject,
             t.state as status,
@@ -2515,7 +1724,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await db.execute(sql`
-        SELECT 
+        SELECT
           id,
           name,
           subject,
@@ -2547,7 +1756,7 @@ export class DatabaseStorage implements IStorage {
         INSERT INTO ${sql.identifier(schemaName)}.email_templates (
           id, tenant_id, name, subject, content, created_at, updated_at
         ) VALUES (
-          ${templateId}, ${validatedTenantId}, ${templateData.name}, 
+          ${templateId}, ${validatedTenantId}, ${templateData.name},
           ${templateData.subject}, ${templateData.content}, ${now}, ${now}
         ) RETURNING *
       `);
@@ -2583,8 +1792,8 @@ export class DatabaseStorage implements IStorage {
       const now = new Date().toISOString();
 
       const result = await db.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.email_templates 
-        SET 
+        UPDATE ${sql.identifier(schemaName)}.email_templates
+        SET
           name = ${templateData.name},
           subject = ${templateData.subject},
           content = ${templateData.content},
@@ -2653,8 +1862,8 @@ export class DatabaseStorage implements IStorage {
       // Check if emails table exists, if not create it
       const tableExists = await tenantDb.execute(sql`
         SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} 
+          SELECT FROM information_schema.tables
+          WHERE table_schema = ${schemaName}
           AND table_name = 'emails'
         );
       `);
@@ -2692,12 +1901,12 @@ export class DatabaseStorage implements IStorage {
 
         // Add indexes
         await tenantDb.execute(sql`
-          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx 
+          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx
           ON ${sql.identifier(schemaName)}.emails (tenant_id, received_at DESC)
         `);
 
         await tenantDb.execute(sql`
-          CREATE INDEX IF NOT EXISTS emails_message_id_idx 
+          CREATE INDEX IF NOT EXISTS emails_message_id_idx
           ON ${sql.identifier(schemaName)}.emails (message_id)
         `);
 
@@ -2707,8 +1916,8 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(sql`
-        SELECT 
-          id, message_id as "messageId", 
+        SELECT
+          id, message_id as "messageId",
           from_email as "fromEmail", from_name as "fromName",
           to_email as "toEmail", cc_emails as "ccEmails", bcc_emails as "bccEmails",
           subject, body_text as "bodyText", body_html as "bodyHtml",
@@ -2716,7 +1925,7 @@ export class DatabaseStorage implements IStorage {
           attachment_details as "attachmentDetails", email_headers as "emailHeaders",
           priority, is_read as "isRead", is_processed as "isProcessed",
           email_date as "emailDate", received_at as "receivedAt", processed_at as "processedAt"
-        FROM ${sql.identifier(schemaName)}.emails 
+        FROM ${sql.identifier(schemaName)}.emails
         WHERE tenant_id = ${validatedTenantId}
         ORDER BY received_at DESC
         LIMIT 100
@@ -2737,7 +1946,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.emails 
+        UPDATE ${sql.identifier(schemaName)}.emails
         SET is_read = true, processed_at = NOW()
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
@@ -2759,7 +1968,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.emails 
+        UPDATE ${sql.identifier(schemaName)}.emails
         SET is_processed = true, processed_at = NOW()
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
@@ -2778,7 +1987,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.emails 
+        DELETE FROM ${sql.identifier(schemaName)}.emails
         WHERE message_id = ${messageId} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -2798,8 +2007,8 @@ export class DatabaseStorage implements IStorage {
       // Check if emails table exists, if not create it
       const tableExists = await tenantDb.execute(sql`
         SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} 
+          SELECT FROM information_schema.tables
+          WHERE table_schema = ${schemaName}
           AND table_name = 'emails'
         );
       `);
@@ -2837,12 +2046,12 @@ export class DatabaseStorage implements IStorage {
 
         // Add indexes
         await tenantDb.execute(sql`
-          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx 
+          CREATE INDEX IF NOT EXISTS emails_tenant_received_idx
           ON ${sql.identifier(schemaName)}.emails (tenant_id, received_at DESC)
         `);
 
         await tenantDb.execute(sql`
-          CREATE INDEX IF NOT EXISTS emails_message_id_idx 
+          CREATE INDEX IF NOT EXISTS emails_message_id_idx
           ON ${sql.identifier(schemaName)}.emails (message_id)
         `);
 
@@ -2854,10 +2063,10 @@ export class DatabaseStorage implements IStorage {
       // Insert message into emails table
       await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.emails (
-          id, tenant_id, message_id, from_email, from_name, to_email, 
-          cc_emails, bcc_emails, subject, body_text, body_html, 
-          has_attachments, attachment_count, attachment_details, 
-          email_headers, priority, is_read, is_processed, 
+          id, tenant_id, message_id, from_email, from_name, to_email,
+          cc_emails, bcc_emails, subject, body_text, body_html,
+          has_attachments, attachment_count, attachment_details,
+          email_headers, priority, is_read, is_processed,
           email_date, received_at
         ) VALUES (
           ${messageData.id || randomUUID()},
@@ -2907,7 +2116,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT COUNT(*) as count 
+        SELECT COUNT(*) as count
         FROM ${sql.identifier(schemaName)}.external_contacts
         WHERE tenant_id = ${validatedTenantId} AND type = 'cliente'
       `);
@@ -2979,12 +2188,12 @@ export class DatabaseStorage implements IStorage {
       };
 
       await tenantDb.execute(`
-        INSERT INTO "${schemaName}".locations 
+        INSERT INTO "${schemaName}".locations
         (id, tenant_id, name, address, city, state, country, postal_code, latitude, longitude, active, is_active, created_at, updated_at)
-        VALUES ('${location.id}', '${location.tenant_id}', '${location.name}', 
-                '${location.address}', '${location.city}', '${location.state}', 
-                '${location.country}', '${location.postal_code}', '${location.latitude}', 
-                '${location.longitude}', ${location.active}, ${location.is_active}, 
+        VALUES ('${location.id}', '${location.tenant_id}', '${location.name}',
+                '${location.address}', '${location.city}', '${location.state}',
+                '${location.country}', '${location.postal_code}', '${location.latitude}',
+                '${location.longitude}', ${location.active}, ${location.is_active},
                 '${location.created_at}', '${location.updated_at}')
       `);
 
@@ -3044,7 +2253,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           fl.location_id,
           fl.is_primary,
           l.id,
@@ -3101,8 +2310,8 @@ export class DatabaseStorage implements IStorage {
       // If setting as primary, remove primary from others
       if (isPrimary) {
         await tenantDb.execute(sql`
-          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
-          SET is_primary = false 
+          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations
+          SET is_primary = false
           WHERE beneficiary_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
@@ -3139,9 +2348,9 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries_locations 
-        WHERE beneficiary_id = ${beneficiaryId} 
-          AND location_id = ${locationId} 
+        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries_locations
+        WHERE beneficiary_id = ${beneficiaryId}
+          AND location_id = ${locationId}
           AND tenant_id = ${validatedTenantId}
       `);
 
@@ -3171,17 +2380,17 @@ export class DatabaseStorage implements IStorage {
       // If setting as primary, remove primary from others
       if (isPrimary) {
         await tenantDb.execute(sql`
-          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
-          SET is_primary = false 
+          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations
+          SET is_primary = false
           WHERE beneficiary_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
+        UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations
         SET is_primary = ${isPrimary}
-        WHERE beneficiary_id = ${beneficiaryId} 
-          AND location_id = ${locationId} 
+        WHERE beneficiary_id = ${beneficiaryId}
+          AND location_id = ${locationId}
           AND tenant_id = ${validatedTenantId}
       `);
 
@@ -3208,7 +2417,7 @@ export class DatabaseStorage implements IStorage {
       );
 
       const result = await tenantDb.execute(sql`
-        SELECT 
+        SELECT
           id,
           tenant_id,
           first_name,
@@ -3227,7 +2436,7 @@ export class DatabaseStorage implements IStorage {
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries 
+        FROM ${sql.identifier(schemaName)}.beneficiaries
         WHERE tenant_id = ${tenantId} AND customer_id = ${customerId} AND is_active = true
         ORDER BY first_name, last_name
       `);
