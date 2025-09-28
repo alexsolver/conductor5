@@ -1796,10 +1796,12 @@ const TicketsTable = React.memo(() => {
           }
         }
       }
+      /*
       if (hasError) {
         toast({ title: "Campos obrigatórios", description: "Preencha os campos exigidos pelo template.", variant: "destructive" });
         return;
       }
+      */
     }
 
     
@@ -1829,7 +1831,16 @@ const TicketsTable = React.memo(() => {
 
   const renderTicketForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pl-[2px] pr-[2px] ml-[0px] mr-[0px]">
+        <form onSubmit={form.handleSubmit(
+          (data) => {
+            console.log("✅ Submit ok", data);
+            onSubmit(data);
+          },
+          (errors) => {
+            console.log("❌ Submit bloqueado por erros", errors);
+          }
+        )}
+        className="space-y-6 pl-[2px] pr-[2px] ml-[0px] mr-[0px]">
 
         {/* Company Selection - First field */}
         <div className="mb-4">
@@ -2152,7 +2163,7 @@ const TicketsTable = React.memo(() => {
 
 
         {/* Campos vindos do Template (na ordem informada) */}
-        {templateSelected && templateFieldOrder.length > 0 && (
+        {/* {templateSelected && templateFieldOrder.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Campos do Template</h3>
 
@@ -2479,19 +2490,19 @@ const TicketsTable = React.memo(() => {
             </div>
           </div>
         )}
-
+ */}
         {templateSelected && activeCustomFields.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Campos Personalizados</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeCustomFields
                 .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+                .filter(cf => cf.showOnOpen)
                 .map((cf) => {
                   const fieldName = `customFields.${cf.name}`;
                   const label = cf.label || cf.name;
                   const required = !!cf.required;
                   const placeholder = cf.placeholder || '';
-
                   // Tipagem simples por tipo
                   switch ((cf.type || 'text').toLowerCase()) {
                     case 'number':
@@ -2883,7 +2894,11 @@ const TicketsTable = React.memo(() => {
             Cancel
           </Button>
           <Button
-            type="submit"
+            onClick={() => {
+              const values = form.getValues(); // pega todos os valores atuais
+              console.log("🚀 Ignorando validação, valores do form:", values);
+              onSubmit(values); // chama direto sua função de submit
+            }}
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             disabled={createTicketMutation.isPending}
           >
