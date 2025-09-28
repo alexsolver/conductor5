@@ -874,20 +874,21 @@ export class ActionExecutor implements IActionExecutorPort {
               title: subject,
               message: message,
               metadata: {
-                ruleId: context.ruleId,
-                ruleName: context.ruleName,
+                ruleId: String(context.ruleId || ''),
+                ruleName: String(context.ruleName || ''),
                 messageData: {
-                  from: context.messageData.from,
-                  subject: context.messageData.subject,
-                  channel: context.messageData.channel
+                  from: String(context.messageData?.from || ''),
+                  subject: String(context.messageData?.subject || ''),
+                  channel: String(context.messageData?.channel || '')
                 },
-                automationContext: true
+                automationContext: true,
+                timestamp: new Date().toISOString()
               },
               channels: channels as any[],
               userId: typeof userId === 'string' ? userId : String(userId),
               scheduledAt: new Date(),
               relatedEntityType: 'automation_rule',
-              relatedEntityId: context.ruleId
+              relatedEntityId: String(context.ruleId || '')
             };
 
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);

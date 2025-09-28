@@ -56,7 +56,8 @@ export const notificationTypeEnum = z.enum([
   'security_access_denied_multiple',
   
   // Genérico
-  'custom'
+  'custom',
+  'automation_notification'
 ]);
 
 export const notificationSeverityEnum = z.enum([
