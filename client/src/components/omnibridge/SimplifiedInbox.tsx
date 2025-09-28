@@ -218,9 +218,6 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
       case 'archive':
         await handleArchiveMessage(message.id);
         break;
-      case 'process':
-        await handleProcessMessage(message.id);
-        break;
       default:
         break;
     }
@@ -311,57 +308,6 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
       toast({
         title: 'Erro',
         description: `Falha ao arquivar mensagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleProcessMessage = async (messageId: string) => {
-    try {
-      const token = localStorage.getItem('token');
-
-      toast({
-        title: 'Processando...',
-        description: 'Executando regras de automação na mensagem'
-      });
-
-      const response = await fetch(`/api/omnibridge/messages/${messageId}/process`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          'x-tenant-id': user?.tenantId || ''
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          action: 'analyze_and_automate'
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          const automationResults = result.data?.automationResults;
-          const actionCount = automationResults?.actionsTriggered || 0;
-          const rulesCount = automationResults?.rulesExecuted || 0;
-          
-          toast({
-            title: 'Processamento concluído',
-            description: `${rulesCount} regras executadas, ${actionCount} ações disparadas`,
-            duration: 5000
-          });
-          refetch();
-        } else {
-          throw new Error(result.message || 'Falha ao processar mensagem');
-        }
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('❌ [SIMPLIFIED-INBOX] Error processing message:', error);
-      toast({
-        title: 'Erro',
-        description: `Falha ao processar mensagem: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: 'destructive'
       });
     }
@@ -571,17 +517,6 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
                             }}
                           >
                             <Archive className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProcessMessage(message.id);
-                            }}
-                            title="Processar com regras de automação"
-                          >
-                            <Play className="h-3 w-3" />
                           </Button>
                           <Button
                             size="sm"

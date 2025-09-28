@@ -137,23 +137,8 @@ export class CreateNotificationUseCase {
       // Persist notifications
       const createdNotifications: NotificationEntity[] = [];
       for (const notification of notifications) {
-        console.log('🔍 [CreateNotificationUseCase] About to create notification with metadata:', JSON.stringify(notification.getMetadata(), null, 2));
-        console.log('🔍 [CreateNotificationUseCase] Full notification data:', {
-          id: notification.getId(),
-          type: notification.getType(),
-          title: notification.getTitle(),
-          metadata: notification.getMetadata()
-        });
-        
-        try {
-          const created = await this.notificationRepository.create(notification, tenantId);
-          createdNotifications.push(created);
-          console.log('✅ [CreateNotificationUseCase] Notification created successfully');
-        } catch (repositoryError) {
-          console.error('❌ [CreateNotificationUseCase] Repository error:', repositoryError);
-          console.error('❌ [CreateNotificationUseCase] Failed notification metadata:', JSON.stringify(notification.getMetadata(), null, 2));
-          throw repositoryError;
-        }
+        const created = await this.notificationRepository.create(notification, tenantId);
+        createdNotifications.push(created);
       }
 
       // Return response for the primary notification

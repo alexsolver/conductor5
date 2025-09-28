@@ -233,13 +233,13 @@ export class ActionExecutor implements IActionExecutorPort {
       const createTicketDTO: CreateTicketDTO = {
         subject,
         description,
-        status: action.params?.status || 'new',
+        status: action.config?.status || 'new',
         priority: priority as 'low' | 'medium' | 'high' | 'critical',
         urgency: aiAnalysis?.urgency as 'low' | 'medium' | 'high' | 'critical' || 'medium',
         impact: 'medium',
-        category: aiAnalysis?.category || action.params?.category || 'Atendimento ao Cliente',
-        subcategory: action.params?.subcategory || 'Automação',
-        assignedToId: action.params?.assignedToId || null,
+        category: aiAnalysis?.category || action.config?.category || 'Atendimento ao Cliente',
+        subcategory: action.config?.subcategory || 'Automação',
+        assignedToId: action.config?.assignedToId || null,
         customFields: {
           automationRule: {
             ruleId: context.ruleId,
@@ -816,12 +816,13 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log('📤 [ActionExecutor] Executing send_notification action:', action);
 
-      // ✅ 1QA.MD: Extrair dados dos params com fallbacks seguros
+      // ✅ 1QA.MD: Extrair dados dos params ou config com fallbacks seguros
+      const config = action.config || {};
       const params = action.params || {};
       
-      // Extrair dados dos params
-      const rawUsers = params.users || [];
-      const rawGroups = params.groups || [];
+      // Tentar extrair de params primeiro, depois config
+      const rawUsers = params.users || config.users || config.recipients || [];
+      const rawGroups = params.groups || config.groups || [];
       
       // Garantir que users e groups sejam arrays
       const users = Array.isArray(rawUsers) ? rawUsers : 
@@ -829,10 +830,10 @@ export class ActionExecutor implements IActionExecutorPort {
       const groups = Array.isArray(rawGroups) ? rawGroups : 
                      (typeof rawGroups === 'string' && rawGroups.trim()) ? rawGroups.split(',').map(g => g.trim()) : [];
       
-      const subject = params.subject || 'OmniBridge Automation Notification';
-      const message = params.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
-      const channels = params.channels || ['in_app'];
-      const priority = params.priority || 'medium';
+      const subject = params.subject || config.subject || config.title || 'OmniBridge Automation Notification';
+      const message = params.message || config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
+      const channels = params.channels || config.channels || ['in_app'];
+      const priority = params.priority || config.priority || 'medium';
 
       // ✅ 1QA.MD: Validar se há usuários especificados
       if (users.length === 0 && groups.length === 0) {
@@ -867,47 +868,29 @@ export class ActionExecutor implements IActionExecutorPort {
       if (users && users.length > 0) {
         for (const userId of users) {
           try {
-            // Sanitizar messageData para garantir JSON válido
-            const safeMessageData = {
-              from: typeof context.messageData?.from === 'string' ? context.messageData.from : 'unknown',
-              subject: typeof context.messageData?.subject === 'string' ? context.messageData.subject : undefined,
-              channel: typeof context.messageData?.channel === 'string' ? context.messageData.channel : 'unknown'
-            };
-
-            // Remover propriedades undefined
-            const cleanMessageData = Object.fromEntries(
-              Object.entries(safeMessageData).filter(([_, value]) => value !== undefined)
-            );
-
             const notificationRequest = {
               type: 'automation_notification' as any,
               severity: priority as any,
               title: subject,
               message: message,
               metadata: {
-                ruleId: context.ruleId || 'unknown',
-                ruleName: context.ruleName || 'unknown', 
-                messageData: cleanMessageData,
+                ruleId: context.ruleId,
+                ruleName: context.ruleName,
+                messageData: {
+                  from: context.messageData.from,
+                  subject: context.messageData.subject,
+                  channel: context.messageData.channel
+                },
                 automationContext: true
               },
-              channels: Array.isArray(channels) ? 
-                channels.filter(c => ['in_app', 'email', 'sms', 'push', 'webhook', 'dashboard_alert'].includes(c)) as ('in_app' | 'email' | 'sms' | 'push' | 'webhook' | 'dashboard_alert')[] : 
-                ['in_app'] as ('in_app' | 'email' | 'sms' | 'push' | 'webhook' | 'dashboard_alert')[],
+              channels: channels as any[],
               userId: typeof userId === 'string' ? userId : String(userId),
               scheduledAt: new Date(),
               relatedEntityType: 'automation_rule',
-              relatedEntityId: context.ruleId || 'unknown'
+              relatedEntityId: context.ruleId
             };
 
-            // Debug: Log the metadata to identify JSON issues
-            console.log('🔍 [ActionExecutor] About to create notification with metadata:', JSON.stringify(notificationRequest.metadata, null, 2));
-            console.log('🔍 [ActionExecutor] Full notification request:', JSON.stringify(notificationRequest, null, 2));
-            console.log('🔍 [ActionExecutor] Tenant ID:', context.tenantId);
-            console.log('🔍 [ActionExecutor] Calling CreateNotificationUseCase.execute()...');
-
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);
-            
-            console.log('🔍 [ActionExecutor] CreateNotificationUseCase returned:', JSON.stringify(result, null, 2));
 
             if (result.success) {
               results.push({ userId, success: true, notificationId: result.data?.id });
@@ -915,7 +898,6 @@ export class ActionExecutor implements IActionExecutorPort {
             } else {
               results.push({ userId, success: false, error: result.error });
               console.error(`❌ [ActionExecutor] Failed to create notification for user ${userId}:`, result.error);
-              console.error(`❌ [ActionExecutor] Notification request that failed:`, JSON.stringify(notificationRequest, null, 2));
             }
           } catch (userError) {
             results.push({ userId, success: false, error: userError.message });
@@ -976,8 +958,8 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log('🔔 [ActionExecutor] Executing notification action:', action);
 
-      // Get notification details from action params
-      const { recipients, subject, message, channels } = action.params;
+      // Get notification details from action config
+      const { recipients, subject, message, channels } = action.config;
 
       // Resolve user IDs from emails if needed
       const resolvedRecipients = await this.resolveUserIds(recipients);

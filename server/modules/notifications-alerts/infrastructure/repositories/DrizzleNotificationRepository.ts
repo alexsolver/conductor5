@@ -20,15 +20,6 @@ import {
 export class DrizzleNotificationRepository implements INotificationRepository {
   
   async create(notification: NotificationEntity, tenantId: string): Promise<NotificationEntity> {
-    // Ensure channels is a proper string array for PostgreSQL
-    const channels = notification.getChannels();
-    const safeChannels = Array.isArray(channels) 
-      ? channels.filter(c => typeof c === 'string' && c.length > 0)
-      : ['in_app'];
-
-    // Ensure we have at least one channel
-    const finalChannels = safeChannels.length > 0 ? safeChannels : ['in_app'];
-
     const [created] = await db
       .insert(notifications)
       .values({
@@ -39,7 +30,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         title: notification.getTitle(),
         message: notification.getMessage(),
         metadata: notification.getMetadata(),
-        channels: finalChannels,
+        channels: notification.getChannels(),
         status: notification.getStatus(),
         scheduledAt: notification.getScheduledAt(),
         expiresAt: notification.getExpiresAt(),
