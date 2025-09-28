@@ -3,7 +3,8 @@
 // CRITICAL: Este arquivo é a fonte única para imports em todo o sistema
 
 // Import Drizzle essentials FIRST
-import { drizzle, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 
 // Re-export all schema definitions - avoiding conflicts
@@ -184,21 +185,6 @@ export type {
 
 // Export all tables and schemas
 export * from './schema-field-layout';
-
-// Add beneficiaries table definition
-export const beneficiaries = pgTable('beneficiaries', {
-  id: varchar('id', { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  cpf: varchar('cpf', { length: 14 }),
-  cnpj: varchar('cnpj', { length: 18 }),
-  email: varchar('email', { length: 255 }).notNull(),
-  phone: varchar('phone', { length: 20 }),
-  isActive: boolean('is_active').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  metadata: jsonb('metadata').default({})
-});
 
 // ✅ 1QA.MD: Approval Rules Export - Critical for Approval Management Module
 // Export approval-related tables and enums from schema-master

@@ -21,24 +21,16 @@ export function FilteredBeneficiarySelect({
   className = ""
 }: FilteredBeneficiarySelectProps) {
   // Buscar todos os favorecidos - sempre ativo para listar todos
-  const { data: allBeneficiariesData, isLoading: isLoadingBeneficiaries, error: beneficiariesError } = useQuery({
+  const { data: allBeneficiariesData, isLoading: isLoadingBeneficiaries } = useQuery({
     queryKey: ['/api/beneficiaries'],
     queryFn: async () => {
       console.log('[FilteredBeneficiarySelect] 🔄 Fetching all beneficiaries for listing');
-      try {
-        const response = await apiRequest('GET', '/api/beneficiaries');
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const data = await response.json();
-        console.log('[FilteredBeneficiarySelect] 📊 All beneficiaries data for listing:', data);
-        return data;
-      } catch (error) {
-        console.error('[FilteredBeneficiarySelect] ❌ Error fetching beneficiaries:', error);
-        throw error;
-      }
+      const response = await apiRequest('GET', '/api/beneficiaries');
+      const data = await response.json();
+      console.log('[FilteredBeneficiarySelect] 📊 All beneficiaries data for listing:', data);
+      return data;
     },
-    retry: 2,
+    retry: 3,
     refetchOnWindowFocus: false,
   });
 
@@ -47,21 +39,8 @@ export function FilteredBeneficiarySelect({
   // Sempre mostrar todos os favorecidos em formato de lista
   let beneficiariesToShow = [];
   
-  if (beneficiariesError) {
-    console.error('[FilteredBeneficiarySelect] ❌ Error loading beneficiaries:', beneficiariesError);
-  }
-  
-  // Handle different response structures
-  if (allBeneficiariesData) {
-    if (allBeneficiariesData.success && allBeneficiariesData.data) {
-      // Check if data has beneficiaries array or is the array itself
-      beneficiariesToShow = allBeneficiariesData.data.beneficiaries || allBeneficiariesData.data || [];
-    } else if (allBeneficiariesData.beneficiaries) {
-      beneficiariesToShow = allBeneficiariesData.beneficiaries;
-    } else if (Array.isArray(allBeneficiariesData)) {
-      beneficiariesToShow = allBeneficiariesData;
-    }
-  }
+  const allBeneficiaries = allBeneficiariesData?.success ? (allBeneficiariesData.beneficiaries || []) : [];
+  beneficiariesToShow = allBeneficiaries;
   
   console.log('[FilteredBeneficiarySelect] 📋 Listing ALL beneficiaries:', {
     beneficiariesCount: beneficiariesToShow.length,
@@ -79,16 +58,6 @@ export function FilteredBeneficiarySelect({
       <Select disabled>
         <SelectTrigger className={className}>
           <SelectValue placeholder="Carregando favorecidos..." />
-        </SelectTrigger>
-      </Select>
-    );
-  }
-
-  if (beneficiariesError) {
-    return (
-      <Select disabled>
-        <SelectTrigger className={className}>
-          <SelectValue placeholder="Erro ao carregar favorecidos" />
         </SelectTrigger>
       </Select>
     );
