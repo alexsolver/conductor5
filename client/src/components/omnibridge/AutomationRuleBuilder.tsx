@@ -60,7 +60,9 @@ import {
   AlertTriangle,
   CreditCard,
   Link,
-  BarChart3
+  BarChart3,
+  ArrowUp,
+  Webhook
 } from 'lucide-react';
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
@@ -249,6 +251,36 @@ export default function AutomationRuleBuilder({
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+
+  // Helper para obter ícone de ação com base no nome ou componente
+  const getActionIcon = (iconName: string | React.ComponentType<any>) => {
+    if (typeof iconName === 'function') {
+      const IconComponent = iconName;
+      return <IconComponent className="h-4 w-4" />;
+    }
+
+    const iconMap: { [key: string]: React.ComponentType<any> } = {
+      MessageSquare,
+      Bot,
+      Zap,
+      Mail,
+      Phone,
+      Users,
+      Tag,
+      ArrowRight,
+      Archive,
+      Reply,
+      Forward,
+      Star,
+      Bell,
+      FileText,
+      Brain
+    };
+
+    const IconComponent = iconMap[iconName as string];
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />;
+  };
 
 
   // ✅ 1QA.MD: Carregar dados da regra existente quando disponível
@@ -865,9 +897,7 @@ export default function AutomationRuleBuilder({
                             >
                               <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-lg ${template.color}`}>
-                                  {React.createElement(template.icon, {
-                                    className: "h-4 w-4 text-white"
-                                  })}
+                                  {getActionIcon(template.icon)}
                                 </div>
                                 <div className="text-left">
                                   <p className="font-medium text-sm">{template.name}</p>
@@ -926,9 +956,7 @@ export default function AutomationRuleBuilder({
               {currentAction && (
                 <>
                   <div className={`p-2 rounded-lg ${currentAction.color}`}>
-                    {React.createElement(currentAction.icon, {
-                      className: "h-4 w-4 text-white"
-                    })}
+                    {getActionIcon(currentAction.icon)}
                   </div>
                   Configurar: {currentAction.name}
                 </>
