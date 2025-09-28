@@ -34,6 +34,7 @@ import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTa
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
+import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelect";
 
 // ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -2049,14 +2050,17 @@ const TicketsTable = React.memo(() => {
                 <FormItem>
                   <FormLabel>Favorecido (Beneficiary)</FormLabel>
                   <FormControl>
-                    <PersonSelector
+                    <FilteredBeneficiarySelect
                       value={field.value || ""}
-                      onValueChange={(personId, personType) => {
-                        field.onChange(personId);
-                        form.setValue('beneficiaryType', personType);
+                      onChange={(value) => {
+                        field.onChange(value);
+                        // Set beneficiaryType to 'customer' by default when selecting from beneficiaries
+                        if (value) {
+                          form.setValue('beneficiaryType', 'customer');
+                        }
                       }}
-                      placeholder="Buscar favorecido (opcional)..."
-                      allowedTypes={['user', 'customer']}
+                      placeholder="Selecionar favorecido"
+                      className="w-full"
                     />
                   </FormControl>
                   <FormMessage />
