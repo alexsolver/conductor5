@@ -5,6 +5,8 @@ import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
 import { TenantValidator } from "./database/TenantValidator";
 import { randomUUID } from "crypto";
+import { beneficiaries } from "@shared/schema";
+import { v4 as uuidv4 } from "uuid";
 
 // ===========================
 // INTERFACES & TYPES
@@ -959,45 +961,36 @@ export class DatabaseStorage implements IStorage {
     tenantId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
   ): Promise<any[]> {
+    const { limit = 20, offset = 0, search } = options;
+
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const { limit = 50, offset = 0, search } = options;
+      console.log(`[STORAGE] Getting beneficiaries for tenant: ${tenantId}, options:`, options);
 
-      // Use connection pool for better performance
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+      let whereConditions = [eq(beneficiaries.tenantId, tenantId)];
 
-      // OPTIMIZED: Single query with proper parameterization
-      let baseQuery = sql`
-        SELECT
-          id, tenant_id, name, cpf, cnpj, email, phone, is_active,
-          created_at, updated_at, metadata
-        FROM ${sql.identifier(schemaName)}.beneficiaries
-        WHERE 1=1
-      `;
-
-      // SECURE: Parameterized search
       if (search) {
-        const searchPattern = `%${search}%`;
-        baseQuery = sql`${baseQuery} AND (
-          name ILIKE ${searchPattern} OR
-          email ILIKE ${searchPattern} OR
-          cpf ILIKE ${searchPattern} OR
-          cnpj ILIKE ${searchPattern}
-        )`;
+        whereConditions.push(
+          or(
+            ilike(beneficiaries.firstName, `%${search}%`),
+            ilike(beneficiaries.lastName, `%${search}%`),
+            ilike(beneficiaries.email, `%${search}%`),
+            ilike(beneficiaries.name, `%${search}%`)
+          )
+        );
       }
 
-      const finalQuery = sql`${baseQuery}
-        ORDER BY created_at DESC
-        LIMIT ${limit}
-        OFFSET ${offset}
-      `;
+      const result = await this.db
+        .select()
+        .from(beneficiaries)
+        .where(and(...whereConditions))
+        .limit(limit)
+        .offset(offset);
 
-      const result = await tenantDb.execute(finalQuery);
-      return result.rows || [];
+      console.log(`[STORAGE] Found ${result.length} beneficiaries for tenant ${tenantId}:`, result.map(b => ({ id: b.id, name: b.name, email: b.email })));
+      return result;
     } catch (error) {
-      logError("Error fetching beneficiaries", error, { tenantId, options });
-      throw error;
+      console.error('[STORAGE] Error getting beneficiaries:', error);
+      return [];
     }
   }
 
@@ -1022,47 +1015,47 @@ export class DatabaseStorage implements IStorage {
 
   async createBeneficiary(tenantId: string, beneficiaryData: any): Promise<any> {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+      console.log('[STORAGE] Creating beneficiary with data:', beneficiaryData);
 
-      // Construct the name based on first_name and last_name if available, otherwise use provided name
-      const name = beneficiaryData.firstName && beneficiaryData.lastName
-        ? `${beneficiaryData.firstName} ${beneficiaryData.lastName}`
-        : beneficiaryData.name || 'Unnamed Beneficiary';
+      // Ensure name field is properly set
+      const displayName = beneficiaryData.name ||
+                         `${beneficiaryData.firstName || ''} ${beneficiaryData.lastName || ''}`.trim() ||
+                         beneficiaryData.email ||
+                         'Favorecido sem nome';
 
+      const newBeneficiary = {
+        id: uuidv4(),
+        tenantId,
+        firstName: beneficiaryData.firstName || null,
+        lastName: beneficiaryData.lastName || null,
+        name: displayName,
+        email: beneficiaryData.email || null,
+        phone: beneficiaryData.phone || null,
+        cellPhone: beneficiaryData.cellPhone || null,
+        cpf: beneficiaryData.cpf || null,
+        cnpj: beneficiaryData.cnpj || null,
+        rg: beneficiaryData.rg || null,
+        address: beneficiaryData.address || null,
+        city: beneficiaryData.city || null,
+        state: beneficiaryData.state || null,
+        zipCode: beneficiaryData.zipCode || null,
+        contactPerson: beneficiaryData.contactPerson || null,
+        contactPhone: beneficiaryData.contactPhone || null,
+        integrationCode: beneficiaryData.integrationCode || null,
+        customerId: beneficiaryData.customerId || null,
+        customerCode: beneficiaryData.customerCode || null,
+        birthDate: beneficiaryData.birthDate ? new Date(beneficiaryData.birthDate) : null,
+        notes: beneficiaryData.notes || null,
+        isActive: beneficiaryData.isActive !== false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      const beneficiaryId = crypto.randomUUID();
-      
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
-        (id, name, email, phone, cpf, cnpj, tenant_id, is_active, created_at, updated_at)
-        VALUES (
-          ${beneficiaryId},
-          ${name},
-          ${beneficiaryData.email || null},
-          ${beneficiaryData.phone || beneficiaryData.cellPhone || null},
-          ${beneficiaryData.cpfCnpj || beneficiaryData.cpf || null},
-          ${beneficiaryData.cpfCnpj || beneficiaryData.cnpj || null},
-          ${validatedTenantId},
-          ${beneficiaryData.isActive !== undefined ? beneficiaryData.isActive : true},
-          NOW(),
-          NOW()
-        )
-        RETURNING *
-      `);
-
-      const beneficiary = result.rows?.[0];
-      if (beneficiary) {
-        logInfo("Beneficiary created successfully", {
-          tenantId,
-          beneficiaryId: beneficiary.id,
-        });
-      }
-
-      return beneficiary;
+      const [result] = await this.db.insert(beneficiaries).values(newBeneficiary).returning();
+      console.log('[STORAGE] Beneficiary created successfully:', result.id, 'Name:', result.name);
+      return result;
     } catch (error) {
-      logError("Error creating beneficiary", error, { tenantId, beneficiaryData });
+      console.error('[STORAGE] Error creating beneficiary:', error);
       throw error;
     }
   }

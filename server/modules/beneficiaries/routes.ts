@@ -79,7 +79,8 @@ router.get("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
       const total = allBeneficiaries.length;
       const totalPages = Math.ceil(total / limit);
 
-      console.log(`[BENEFICIARIES] Successfully fetched ${beneficiaries.length} beneficiaries for tenant ${user.tenantId}`);
+      console.log(`[BENEFICIARIES] Successfully fetched ${beneficiaries.length} beneficiaries for tenant ${user.tenantId}:`, 
+        beneficiaries.map(b => ({ id: b.id, name: b.name, email: b.email })));
 
       return sendSuccess(res as any, {
         beneficiaries,
