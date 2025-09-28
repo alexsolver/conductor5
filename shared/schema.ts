@@ -3,8 +3,7 @@
 // CRITICAL: Este arquivo é a fonte única para imports em todo o sistema
 
 // Import Drizzle essentials FIRST
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { sql } from 'drizzle-orm';
+import { drizzle, sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 
 // Re-export all schema definitions - avoiding conflicts
@@ -272,7 +271,7 @@ export {
 } from './schema-locations';
 
 // OmniBridge tables
-import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json, unique, index, sql } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, timestamp, jsonb, text, integer, boolean, uuid, json, unique, index } from 'drizzle-orm/pg-core';
 
 export const omnibridgeChannels = pgTable('omnibridge_channels', {
   id: varchar('id', { length: 36 }).primaryKey(),
