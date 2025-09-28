@@ -56,23 +56,47 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         metadataStringified: JSON.stringify(insertValues.metadata)
       });
 
-      // Use Drizzle ORM to insert with correct schema (matching tenant table structure)
-      const [result] = await db.insert(notifications).values({
-        id: insertValues.id,
-        tenantId: insertValues.tenant_id,
-        userId: insertValues.user_id,
-        title: insertValues.title,
-        message: insertValues.message,
-        type: insertValues.type as any,
-        severity: insertValues.severity as any,
-        channels: JSON.stringify(insertValues.channels),
-        status: insertValues.status as any,
-        scheduledFor: insertValues.scheduled_at,
-        metadata: JSON.stringify(insertValues.metadata),
-        createdAt: insertValues.created_at
-      }).returning();
+      // Use raw SQL to bypass Drizzle schema conflicts
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier('tenant_' + tenantId.replace(/-/g, '_'))}.notifications 
+        (id, tenant_id, user_id, title, message, type, severity, channels, status, scheduled_for, metadata, created_at)
+        VALUES (
+          ${insertValues.id},
+          ${insertValues.tenant_id},
+          ${insertValues.user_id || null},
+          ${insertValues.title},
+          ${insertValues.message || null},
+          ${insertValues.type},
+          ${insertValues.severity},
+          ${JSON.stringify(insertValues.channels)},
+          ${insertValues.status},
+          ${insertValues.scheduled_at || null},
+          ${JSON.stringify(insertValues.metadata)},
+          ${insertValues.created_at || sql`NOW()`}
+        )
+        RETURNING *
+      `);
 
-      return this.mapToEntity(result);
+      console.log('✅ [DrizzleNotificationRepository] SQL insert successful:', { 
+        resultType: typeof result,
+        hasRows: !!result.rows,
+        rowCount: result.rows?.length 
+      });
+
+      // Return mock entity since the insert was successful
+      return new NotificationEntity(
+        insertValues.id,
+        insertValues.type,
+        insertValues.severity,
+        insertValues.title,
+        insertValues.message || '',
+        insertValues.channels,
+        insertValues.status,
+        insertValues.user_id,
+        insertValues.metadata,
+        insertValues.scheduled_at,
+        insertValues.created_at
+      );
     } catch (error) {
       console.error('❌ [DrizzleNotificationRepository] Database insert error:', {
         error: error instanceof Error ? error.message : String(error),
