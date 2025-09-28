@@ -627,7 +627,7 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
       WHERE id = ANY($1::uuid[]) 
         AND user_id = $2 
         AND read_at IS NULL
-        AND (is_active IS NULL OR is_active = TRUE)
+        AND is_active = TRUE
       RETURNING id, title
     `;
 

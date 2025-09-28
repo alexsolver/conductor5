@@ -2491,10 +2491,7 @@ const TicketsTable = React.memo(() => {
                   const label = cf.label || cf.name;
                   const required = !!cf.required;
                   const placeholder = cf.placeholder || '';
-                  const showOnOpen = !!cf.showOnOpen;
-                  if(!showOnOpen) {
-                    continue;
-                  }
+
                   // Tipagem simples por tipo
                   switch ((cf.type || 'text').toLowerCase()) {
                     case 'number':
