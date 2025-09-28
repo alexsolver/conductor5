@@ -1032,10 +1032,13 @@ export class DatabaseStorage implements IStorage {
         : beneficiaryData.name || 'Unnamed Beneficiary';
 
 
+      const beneficiaryId = crypto.randomUUID();
+      
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
-        (name, email, phone, cpf, cnpj, tenant_id, is_active, created_at, updated_at)
+        (id, name, email, phone, cpf, cnpj, tenant_id, is_active, created_at, updated_at)
         VALUES (
+          ${beneficiaryId},
           ${name},
           ${beneficiaryData.email || null},
           ${beneficiaryData.phone || beneficiaryData.cellPhone || null},
