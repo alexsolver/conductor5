@@ -959,101 +959,43 @@ export class DatabaseStorage implements IStorage {
   async getBeneficiaries(
     tenantId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
-  ) {
-    const { limit = 20, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
-
+  ): Promise<any[]> {
     try {
-      // First check if table exists
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const tableCheck = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
-        )
-      `);
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, search } = options;
 
-      if (!tableCheck.rows[0].exists) {
-        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
-        return [];
-      }
+      // Use connection pool for better performance
+      const pool = await poolManager.getPool();
+      const client = await pool.connect();
 
-      let query = sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          CONCAT(first_name, ' ', last_name) as full_name,
-          email,
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          phone,
-          cell_phone,
-          contact_person,
-          contact_phone,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE tenant_id = ${tenantId}
-      `;
+      try {
+        let query = `
+          SELECT id, tenant_id, name, email, phone, cell_phone, cpf, cnpj, rg, address, 
+                 city, state, zip_code, contact_person, contact_phone, integration_code,
+                 customer_id, customer_code, birth_date, notes, is_active, created_at, updated_at
+          FROM ${schemaManager.getTenantSchemaName(validatedTenantId)}.beneficiaries
+        `;
 
-      if (search) {
-        query = sql`${query} AND (
-          first_name ILIKE ${`%${search}%`} OR 
-          last_name ILIKE ${`%${search}%`} OR 
-          email ILIKE ${`%${search}%`} OR
-          customer_code ILIKE ${`%${search}%`}
-        )`;
-      }
+        const params: any[] = [];
+        let paramCounter = 1;
 
-      query = sql`${query} ORDER BY created_at DESC`;
-
-      if (limit > 0) {
-        query = sql`${query} LIMIT ${limit}`;
-
-        if (offset > 0) {
-          query = sql`${query} OFFSET ${offset}`;
+        if (search) {
+          query += ` WHERE (name ILIKE $${paramCounter} OR email ILIKE $${paramCounter} OR cpf ILIKE $${paramCounter})`;
+          params.push(`%${search}%`);
+          paramCounter++;
         }
+
+        query += ` ORDER BY name ASC LIMIT $${paramCounter} OFFSET $${paramCounter + 1}`;
+        params.push(limit, offset);
+
+        const result = await client.query(query, params);
+        return result.rows;
+      } finally {
+        client.release();
       }
-
-      const result = await tenantDb.execute(query);
-      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
-
-      // Padronizar mapeamento de dados para interfaceconsistente
-      const beneficiaries = (result.rows || []).map((favorecido) => ({
-        id: favorecido.id,
-        tenantId: favorecido.tenant_id,
-        firstName: favorecido.first_name,
-        lastName: favorecido.last_name,
-        fullName:
-          `${favorecido.first_name || ""} ${favorecido.last_name || ""}`.trim(),
-        email: favorecido.email,
-        birthDate: favorecido.birth_date,
-        rg: favorecido.rg,
-        cpfCnpj: favorecido.cpf_cnpj,
-        isActive: favorecido.is_active,
-        customerCode: favorecido.customer_code,
-        customerId: favorecido.customer_id,
-        phone: favorecido.phone,
-        cellPhone: favorecido.cell_phone,
-        contactPerson: favorecido.contact_person,
-        contactPhone: favorecido.contact_phone,
-        createdAt: favorecido.created_at,
-        updatedAt: favorecido.updated_at,
-      }));
-
-      console.log(
-        `Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`,
-      );
-      return beneficiaries;
     } catch (error) {
-      console.error("Error fetching beneficiaries:", error);
-      return []; // Return empty array instead of throwing
+      logError("Error fetching beneficiaries", error, { tenantId, options });
+      throw error;
     }
   }
 
@@ -1179,67 +1121,70 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createBeneficiary(tenantId: string, data: any): Promise<any> {
+  async createBeneficiary(tenantId: string, beneficiaryData: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
-      // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (beneficiaries)
-      const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
-        (
-          id,
-          tenant_id,
-          first_name, 
-          last_name, 
-          email, 
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          phone, 
-          cell_phone,
-          contact_person,
-          contact_phone,
-          created_at, 
-          updated_at
-        )
-        VALUES (
-          gen_random_uuid(),
-          ${validatedTenantId},
-          ${data.firstName},
-          ${data.lastName || null},
-          ${data.email || null},
-          ${data.birthDate || null},
-          ${data.rg || null},
-          ${data.cpfCnpj || null},
-          ${data.isActive !== undefined ? data.isActive : true},
-          ${data.customerCode || null},
-          ${data.customerId || null},
-          ${data.phone || null},
-          ${data.cellPhone || null},
-          ${data.contactPerson || null},
-          ${data.contactPhone || null},
-          NOW(),
-          NOW()
-        )
-        RETURNING *
-      `);
+      const beneficiaryWithTenant = {
+        ...beneficiaryData,
+        tenantId: validatedTenantId,
+        id: randomUUID(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const favorecido = result.rows?.[0];
+      // Use connection pool for better performance
+      const pool = await poolManager.getPool();
+      const client = await pool.connect();
 
-      // Adicionar fullName computed field para compatibilidade frontend
-      if (favorecido) {
-        favorecido.fullName =
-          `${favorecido.first_name} ${favorecido.last_name || ""}`.trim();
+      try {
+        // Use correct column names from schema-tenant.ts
+        const result = await client.query(`
+          INSERT INTO ${schemaManager.getTenantSchemaName(validatedTenantId)}.beneficiaries 
+          (id, tenant_id, name, email, phone, cell_phone, cpf, cnpj, rg, address, city, state, 
+           zip_code, contact_person, contact_phone, integration_code, customer_id, customer_code, 
+           birth_date, notes, is_active, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+          RETURNING *
+        `, [
+          beneficiaryWithTenant.id,
+          beneficiaryWithTenant.tenantId,
+          beneficiaryData.firstName && beneficiaryData.lastName ? 
+            `${beneficiaryData.firstName} ${beneficiaryData.lastName}` : 
+            beneficiaryData.firstName || beneficiaryData.lastName || 'Unnamed',
+          beneficiaryData.email || null,
+          beneficiaryData.phone || null,
+          beneficiaryData.cellPhone || null,
+          beneficiaryData.cpfCnpj || null,
+          null, // cnpj - separate from cpfCnpj
+          beneficiaryData.rg || null,
+          null, // address
+          null, // city
+          null, // state
+          null, // zip_code
+          beneficiaryData.contactPerson || null,
+          beneficiaryData.contactPhone || null,
+          null, // integration_code
+          beneficiaryData.customerId || null,
+          beneficiaryData.customerCode || null,
+          beneficiaryData.birthDate || null,
+          null, // notes
+          beneficiaryData.isActive !== undefined ? beneficiaryData.isActive : true,
+          beneficiaryWithTenant.createdAt,
+          beneficiaryWithTenant.updatedAt
+        ]);
+
+        logInfo("Beneficiary created successfully", {
+          beneficiaryId: result.rows[0].id,
+          tenantId: validatedTenantId,
+        });
+
+        return result.rows[0];
+      } finally {
+        client.release();
       }
-
-      return favorecido;
     } catch (error) {
-      logError("Error creating favorecido", error, { tenantId, data });
+      logError("Error creating beneficiary", error, { tenantId, data: beneficiaryData });
       throw error;
     }
   }
