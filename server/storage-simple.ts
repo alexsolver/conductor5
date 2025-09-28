@@ -1026,28 +1026,25 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
-      if (!beneficiaryData.name) {
-        throw new Error("Beneficiary name is required");
-      }
+      // Construct the name based on first_name and last_name if available, otherwise use provided name
+      const name = beneficiaryData.firstName && beneficiaryData.lastName
+        ? `${beneficiaryData.firstName} ${beneficiaryData.lastName}`
+        : beneficiaryData.name || 'Unnamed Beneficiary';
 
-      const beneficiaryId = crypto.randomUUID();
-      const now = new Date().toISOString();
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
-        (id, tenant_id, name, cpf, cnpj, email, phone, is_active, created_at, updated_at, metadata)
+        (name, email, phone, cpf, cnpj, tenant_id, is_active, created_at, updated_at)
         VALUES (
-          ${beneficiaryId},
-          ${validatedTenantId},
-          ${beneficiaryData.name},
-          ${beneficiaryData.cpf || null},
-          ${beneficiaryData.cnpj || null},
+          ${name},
           ${beneficiaryData.email || null},
-          ${beneficiaryData.phone || null},
-          ${beneficiaryData.isActive !== false},
-          ${now},
-          ${now},
-          ${JSON.stringify(beneficiaryData.metadata || {})}
+          ${beneficiaryData.phone || beneficiaryData.cellPhone || null},
+          ${beneficiaryData.cpfCnpj || beneficiaryData.cpf || null},
+          ${beneficiaryData.cpfCnpj || beneficiaryData.cnpj || null},
+          ${validatedTenantId},
+          ${beneficiaryData.isActive !== undefined ? beneficiaryData.isActive : true},
+          NOW(),
+          NOW()
         )
         RETURNING *
       `);
@@ -1077,7 +1074,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.beneficiaries
-        SET 
+        SET
           name = COALESCE(${beneficiaryData.name}, name),
           cpf = COALESCE(${beneficiaryData.cpf}, cpf),
           cnpj = COALESCE(${beneficiaryData.cnpj}, cnpj),
