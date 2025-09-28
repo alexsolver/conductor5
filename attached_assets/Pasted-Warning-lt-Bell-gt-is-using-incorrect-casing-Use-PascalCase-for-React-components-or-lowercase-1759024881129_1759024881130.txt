@@ -1,0 +1,81 @@
+Warning: &lt;Bell /&gt; is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
+    at Bell
+    at div
+    at h2
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:276:13
+    at _c7 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:157:12)
+    at div
+    at DialogHeader (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:107:3)
+    at div
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=209df18e:61:7
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=209df18e:29:5
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:237:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:160:58
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=209df18e:24:11)
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:151:64
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:43:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:20:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+    at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=209df18e:260:22
+    at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=209df18e:24:11)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+    at DialogPortal (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:113:11)
+    at _c3 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+    at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:54:5)
+    at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+    at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:54:5)
+    at AutomationRuleBuilder (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/omnibridge/AutomationRuleBuilder.tsx:180:3)
+    at div
+    at div
+    at div
+    at AutomationRules (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/AutomationRules.tsx:42:20)
+    at div
+    at…
+at Bell
+at div
+at h2
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:276:13
+at _c7 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:157:12)
+at div
+at DialogHeader (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:107:3)
+at div
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=209df18e:61:7
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:43:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:20:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OEHJDU3Z.js?v=209df18e:29:5
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:237:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:160:58
+at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=209df18e:24:11)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:151:64
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:43:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=209df18e:20:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-UMVQ4TNK.js?v=209df18e:42:13
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JQEPM5MX.js?v=209df18e:260:22
+at Presence (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7GLZXUXQ.js?v=209df18e:24:11)
+at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+at DialogPortal (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:113:11)
+at _c3 (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/ui/dialog.tsx:52:12)
+at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:54:5)
+at Provider (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=209df18e:38:15)
+at Dialog (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FL56OOFG.js?v=209df18e:54:5)
+at AutomationRuleBuilder (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/components/omnibridge/AutomationRuleBuilder.tsx:180:3)
+at div
+at div
+at div
+at AutomationRules (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/src/pages/AutomationRules.tsx:42:20)
+at div
+at…
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

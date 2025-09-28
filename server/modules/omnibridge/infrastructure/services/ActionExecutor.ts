@@ -891,7 +891,16 @@ export class ActionExecutor implements IActionExecutorPort {
               relatedEntityId: String(context.ruleId || '')
             };
 
+            console.log('🔍 [ActionExecutor] About to call createNotificationUseCase.execute with request:', {
+              notificationRequest,
+              tenantId: context.tenantId,
+              requestMetadata: notificationRequest.metadata,
+              requestChannels: notificationRequest.channels
+            });
+
             const result = await createNotificationUseCase.execute(notificationRequest, context.tenantId);
+
+            console.log('🔍 [ActionExecutor] createNotificationUseCase.execute returned:', result);
 
             if (result.success) {
               results.push({ userId, success: true, notificationId: result.data?.id });

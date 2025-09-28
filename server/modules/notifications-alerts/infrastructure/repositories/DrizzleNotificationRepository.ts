@@ -20,32 +20,70 @@ import {
 export class DrizzleNotificationRepository implements INotificationRepository {
   
   async create(notification: NotificationEntity, tenantId: string): Promise<NotificationEntity> {
-    const [created] = await db
-      .insert(notifications)
-      .values({
+    try {
+      // Map to the correct structure for the existing table
+      const primaryChannel = notification.getChannels()[0] || 'in_app'; // Use first channel or default
+      const notificationType = notification.getType() === 'automation_notification' ? 'info' : notification.getType();
+      const priority = notification.getSeverity() === 'medium' ? 'normal' : notification.getSeverity();
+
+      const insertValues = {
         id: notification.getId(),
-        tenantId,
-        type: notification.getType(),
-        severity: notification.getSeverity(),
+        tenant_id: tenantId,
+        user_id: notification.getUserId() || '', // Make sure it's not null
         title: notification.getTitle(),
         message: notification.getMessage(),
-        metadata: notification.getMetadata(),
-        channels: notification.getChannels(),
+        type: notificationType, // Use enum value
+        priority: priority, // Map to correct enum value  
+        channel: primaryChannel, // Single channel, not array
         status: notification.getStatus(),
-        scheduledAt: notification.getScheduledAt(),
-        expiresAt: notification.getExpiresAt(),
-        relatedEntityType: notification.getRelatedEntityType(),
-        relatedEntityId: notification.getRelatedEntityId(),
-        userId: notification.getUserId(),
-        retryCount: notification.getRetryCount(),
-        maxRetries: notification.getMaxRetries(),
-        isActive: true,
-        createdAt: notification.getCreatedAt(),
-        updatedAt: notification.getUpdatedAt()
-      })
-      .returning();
+        scheduled_for: notification.getScheduledAt(),
+        metadata: notification.getMetadata(),
+        created_at: notification.getCreatedAt()
+      };
 
-    return this.mapToEntity(created);
+      console.log('🔍 [DrizzleNotificationRepository] Creating notification with mapped values:', {
+        id: insertValues.id,
+        type: insertValues.type,
+        priority: insertValues.priority,
+        channel: insertValues.channel,
+        user_id: insertValues.user_id,
+        metadata: insertValues.metadata,
+        metadataStringified: JSON.stringify(insertValues.metadata)
+      });
+
+      // Use raw SQL to insert into the actual table structure
+      const [created] = await db.execute(sql`
+        INSERT INTO ${sql.identifier('notifications')} (
+          id, tenant_id, user_id, title, message, type, priority, channel, status, scheduled_for, metadata, created_at
+        ) VALUES (
+          ${insertValues.id},
+          ${insertValues.tenant_id},
+          ${insertValues.user_id},
+          ${insertValues.title},
+          ${insertValues.message},
+          ${insertValues.type}::notification_type_enum,
+          ${insertValues.priority}::notification_priority_enum,
+          ${insertValues.channel}::notification_channel_enum,
+          ${insertValues.status}::notification_status_enum,
+          ${insertValues.scheduled_for},
+          ${JSON.stringify(insertValues.metadata)}::jsonb,
+          ${insertValues.created_at}
+        )
+        RETURNING *
+      `);
+
+      return this.mapToEntity(created.rows[0]);
+    } catch (error) {
+      console.error('❌ [DrizzleNotificationRepository] Database insert error:', {
+        error: error.message,
+        errorCode: error.code,
+        errorDetail: error.detail,
+        errorHint: error.hint,
+        position: error.position,
+        stack: error.stack
+      });
+      throw error;
+    }
   }
 
   async findById(id: string, tenantId: string): Promise<NotificationEntity | null> {

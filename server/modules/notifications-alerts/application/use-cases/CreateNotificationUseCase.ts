@@ -137,6 +137,15 @@ export class CreateNotificationUseCase {
       // Persist notifications
       const createdNotifications: NotificationEntity[] = [];
       for (const notification of notifications) {
+        // Debug: Log metadata before creating notification
+        console.log('🔍 [CreateNotificationUseCase] Creating notification with metadata:', {
+          notificationId: notification.getId(),
+          metadata: notification.getMetadata(),
+          metadataType: typeof notification.getMetadata(),
+          metadataKeys: Object.keys(notification.getMetadata()),
+          metadataStringified: JSON.stringify(notification.getMetadata())
+        });
+        
         const created = await this.notificationRepository.create(notification, tenantId);
         createdNotifications.push(created);
       }
