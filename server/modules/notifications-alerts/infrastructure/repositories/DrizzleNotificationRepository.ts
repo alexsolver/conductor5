@@ -65,10 +65,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         message: insertValues.message,
         type: insertValues.type as any,
         severity: insertValues.severity as any,
-        channels: insertValues.channels,
+        channels: JSON.stringify(insertValues.channels),
         status: insertValues.status as any,
         scheduledFor: insertValues.scheduled_at,
-        metadata: insertValues.metadata,
+        metadata: JSON.stringify(insertValues.metadata),
         createdAt: insertValues.created_at
       }).returning();
 

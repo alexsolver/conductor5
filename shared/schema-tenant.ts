@@ -287,7 +287,7 @@ export const notifications = pgTable("notifications", {
   message: text("message"),
   type: notificationTypeEnum("type").default("info"),
   severity: notificationPriorityEnum("severity").default("normal"),
-  channels: notificationChannelEnum("channels").array().default([]),
+  channels: jsonb("channels").default([]),
   status: notificationStatusEnum("status").default("pending"),
   scheduledAt: timestamp("scheduled_at"),
   sentAt: timestamp("sent_at"),
