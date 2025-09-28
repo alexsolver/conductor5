@@ -958,245 +958,176 @@ export class DatabaseStorage implements IStorage {
   async getBeneficiaries(
     tenantId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
-  ) {
-    const { limit = 20, offset = 0, search } = options;
-
-    let query = `
-      SELECT
-        id,
-        first_name,
-        last_name,
-        COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), email) as fullName,
-        email,
-        phone,
-        cell_phone,
-        cpf_cnpj,
-        is_active,
-        customer_code,
-        customer_id,
-        contact_person,
-        contact_phone,
-        created_at,
-        updated_at
-      FROM "${tenantId}".beneficiaries
-    `;
-
-    const params: any[] = [];
-    let paramIndex = 1;
-
-    if (search) {
-      query += ` WHERE (
-        first_name ILIKE $${paramIndex} OR
-        last_name ILIKE $${paramIndex} OR
-        email ILIKE $${paramIndex} OR
-        cpf_cnpj ILIKE $${paramIndex}
-      )`;
-      params.push(`%${search}%`);
-      paramIndex++;
-    }
-
-    query += ` ORDER BY first_name, last_name LIMIT $${paramIndex} OFFSET $${
-      paramIndex + 1
-    }`;
-    params.push(limit, offset);
-
+  ): Promise<any[]> {
     try {
-      const result = await this.pool.query(query, params);
-      return result.rows.map((row) => ({
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        fullName: row.fullname,
-        email: row.email,
-        phone: row.phone,
-        cellPhone: row.cell_phone,
-        cpfCnpj: row.cpf_cnpj,
-        isActive: row.is_active,
-        customerCode: row.customer_code,
-        customerId: row.customer_id,
-        contactPerson: row.contact_person,
-        contactPhone: row.contact_phone,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, search } = options;
+
+      // Use connection pool for better performance
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      // OPTIMIZED: Single query with proper parameterization
+      let baseQuery = sql`
+        SELECT
+          id, tenant_id, name, cpf, cnpj, email, phone, is_active,
+          created_at, updated_at, metadata
+        FROM ${sql.identifier(schemaName)}.beneficiaries
+        WHERE 1=1
+      `;
+
+      // SECURE: Parameterized search
+      if (search) {
+        const searchPattern = `%${search}%`;
+        baseQuery = sql`${baseQuery} AND (
+          name ILIKE ${searchPattern} OR
+          email ILIKE ${searchPattern} OR
+          cpf ILIKE ${searchPattern} OR
+          cnpj ILIKE ${searchPattern}
+        )`;
+      }
+
+      const finalQuery = sql`${baseQuery}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+
+      const result = await tenantDb.execute(finalQuery);
+      return result.rows || [];
     } catch (error) {
-      console.error("[STORAGE] Error fetching beneficiaries:", error);
-      // Return empty array if table doesn't exist or other error
-      return [];
+      logError("Error fetching beneficiaries", error, { tenantId, options });
+      throw error;
     }
   }
 
   async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
     try {
-      const query = `
-        SELECT
-          id,
-          first_name,
-          last_name,
-          COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), email) as fullName,
-          email,
-          phone,
-          cell_phone,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          contact_person,
-          contact_phone,
-          created_at,
-          updated_at
-        FROM "${tenantId}".beneficiaries
-        WHERE id = $1
-      `;
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
-      const result = await this.pool.query(query, [id]);
-      if (result.rows.length === 0) return null;
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.beneficiaries
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
+        LIMIT 1
+      `);
 
-      const row = result.rows[0];
-      return {
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        fullName: row.fullname,
-        email: row.email,
-        phone: row.phone,
-        cellPhone: row.cell_phone,
-        cpfCnpj: row.cpf_cnpj,
-        isActive: row.is_active,
-        customerCode: row.customer_code,
-        customerId: row.customer_id,
-        contactPerson: row.contact_person,
-        contactPhone: row.contact_phone,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+      return result.rows?.[0] || null;
     } catch (error) {
-      console.error("[STORAGE] Error fetching beneficiary by ID:", error);
+      logError("Error fetching beneficiary", error, { tenantId, beneficiaryId: id });
       return null;
     }
   }
 
-  async createBeneficiary(tenantId: string, beneficiaryData: any) {
+  async createBeneficiary(tenantId: string, beneficiaryData: any): Promise<any> {
     try {
-      const query = `
-        INSERT INTO "${tenantId}".beneficiaries (
-          id, first_name, last_name, email, phone, cell_phone, cpf_cnpj,
-          is_active, customer_code, customer_id, contact_person, contact_phone
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      if (!beneficiaryData.name) {
+        throw new Error("Beneficiary name is required");
+      }
+
+      const beneficiaryId = crypto.randomUUID();
+      const now = new Date().toISOString();
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
+        (id, tenant_id, name, cpf, cnpj, email, phone, is_active, created_at, updated_at, metadata)
+        VALUES (
+          ${beneficiaryId},
+          ${validatedTenantId},
+          ${beneficiaryData.name},
+          ${beneficiaryData.cpf || null},
+          ${beneficiaryData.cnpj || null},
+          ${beneficiaryData.email || null},
+          ${beneficiaryData.phone || null},
+          ${beneficiaryData.isActive !== false},
+          ${now},
+          ${now},
+          ${JSON.stringify(beneficiaryData.metadata || {})}
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
-      `;
+      `);
 
-      const id = `beneficiary_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const values = [
-        id,
-        beneficiaryData.firstName || "",
-        beneficiaryData.lastName || "",
-        beneficiaryData.email || null,
-        beneficiaryData.phone || null,
-        beneficiaryData.cellPhone || null,
-        beneficiaryData.cpfCnpj || null,
-        beneficiaryData.isActive !== false,
-        beneficiaryData.customerCode || null,
-        beneficiaryData.customerId || null,
-        beneficiaryData.contactPerson || null,
-        beneficiaryData.contactPhone || null,
-      ];
+      const beneficiary = result.rows?.[0];
+      if (beneficiary) {
+        logInfo("Beneficiary created successfully", {
+          tenantId,
+          beneficiaryId: beneficiary.id,
+        });
+      }
 
-      const result = await this.pool.query(query, values);
-      const row = result.rows[0];
-
-      return {
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.email,
-        phone: row.phone,
-        cellPhone: row.cell_phone,
-        cpfCnpj: row.cpf_cnpj,
-        isActive: row.is_active,
-        customerCode: row.customer_code,
-        customerId: row.customer_id,
-        contactPerson: row.contact_person,
-        contactPhone: row.contact_phone,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+      return beneficiary;
     } catch (error) {
-      console.error("[STORAGE] Error creating beneficiary:", error);
+      logError("Error creating beneficiary", error, { tenantId, beneficiaryData });
       throw error;
     }
   }
 
-  async updateBeneficiary(tenantId: string, id: string, beneficiaryData: any) {
+  async updateBeneficiary(tenantId: string, id: string, beneficiaryData: any): Promise<any> {
     try {
-      const query = `
-        UPDATE "${tenantId}".beneficiaries
-        SET
-          first_name = $2,
-          last_name = $3,
-          email = $4,
-          phone = $5,
-          cell_phone = $6,
-          cpf_cnpj = $7,
-          is_active = $8,
-          customer_code = $9,
-          customer_id = $10,
-          contact_person = $11,
-          contact_phone = $12,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const now = new Date().toISOString();
+
+      const result = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.beneficiaries
+        SET 
+          name = COALESCE(${beneficiaryData.name}, name),
+          cpf = COALESCE(${beneficiaryData.cpf}, cpf),
+          cnpj = COALESCE(${beneficiaryData.cnpj}, cnpj),
+          email = COALESCE(${beneficiaryData.email}, email),
+          phone = COALESCE(${beneficiaryData.phone}, phone),
+          is_active = COALESCE(${beneficiaryData.isActive}, is_active),
+          updated_at = ${now},
+          metadata = COALESCE(${beneficiaryData.metadata ? JSON.stringify(beneficiaryData.metadata) : null}, metadata)
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
         RETURNING *
-      `;
+      `);
 
-      const values = [
-        id,
-        beneficiaryData.firstName || "",
-        beneficiaryData.lastName || "",
-        beneficiaryData.email || null,
-        beneficiaryData.phone || null,
-        beneficiaryData.cellPhone || null,
-        beneficiaryData.cpfCnpj || null,
-        beneficiaryData.isActive !== false,
-        beneficiaryData.customerCode || null,
-        beneficiaryData.customerId || null,
-        beneficiaryData.contactPerson || null,
-        beneficiaryData.contactPhone || null,
-      ];
+      const beneficiary = result.rows?.[0];
+      if (beneficiary) {
+        logInfo("Beneficiary updated successfully", {
+          tenantId,
+          beneficiaryId: beneficiary.id,
+        });
+      }
 
-      const result = await this.pool.query(query, values);
-      if (result.rows.length === 0) return null;
-
-      const row = result.rows[0];
-      return {
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.email,
-        phone: row.phone,
-        cellPhone: row.cell_phone,
-        cpfCnpj: row.cpf_cnpj,
-        isActive: row.is_active,
-        customerCode: row.customer_code,
-        customerId: row.customer_id,
-        contactPerson: row.contact_person,
-        contactPhone: row.contact_phone,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+      return beneficiary;
     } catch (error) {
-      console.error("[STORAGE] Error updating beneficiary:", error);
+      logError("Error updating beneficiary", error, { tenantId, beneficiaryId: id, beneficiaryData });
       throw error;
     }
   }
 
-  async deleteBeneficiary(tenantId: string, id: string) {
+  async deleteBeneficiary(tenantId: string, id: string): Promise<boolean> {
     try {
-      const query = `DELETE FROM "${tenantId}".beneficiaries WHERE id = $1`;
-      const result = await this.pool.query(query, [id]);
-      return result.rowCount > 0;
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const result = await tenantDb.execute(sql`
+        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
+        RETURNING id
+      `);
+
+      const deleted = (result.rows?.length || 0) > 0;
+      if (deleted) {
+        logInfo("Beneficiary deleted successfully", {
+          tenantId,
+          beneficiaryId: id,
+        });
+      }
+
+      return deleted;
     } catch (error) {
-      console.error("[STORAGE] Error deleting beneficiary:", error);
+      logError("Error deleting beneficiary", error, { tenantId, beneficiaryId: id });
       return false;
     }
   }
