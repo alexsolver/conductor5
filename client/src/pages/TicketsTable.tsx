@@ -244,15 +244,26 @@ const TicketsTable = React.memo(() => {
   const { getCompanyName } = useCompanyNameResolver();
 
   // Query para buscar todos os favorecidos quando o modal de criação for aberto
-  const { data: beneficiariesData } = useQuery({
+  const { data: beneficiariesData, refetch: refetchBeneficiaries } = useQuery({
     queryKey: ['/api/beneficiaries'],
     queryFn: async () => {
+      console.log('[TicketsTable] 🔄 Fetching beneficiaries for modal');
       const response = await apiRequest('GET', '/api/beneficiaries');
-      return response.json();
+      const data = await response.json();
+      console.log('[TicketsTable] 📊 Beneficiaries data for modal:', data);
+      return data;
     },
     enabled: isCreateDialogOpen, // Só busca quando o modal estiver aberto
     refetchOnWindowFocus: false,
   });
+
+  // Refetch beneficiaries when modal opens
+  React.useEffect(() => {
+    if (isCreateDialogOpen) {
+      console.log('[TicketsTable] 🔓 Modal opened, refetching beneficiaries');
+      refetchBeneficiaries();
+    }
+  }, [isCreateDialogOpen, refetchBeneficiaries]);
 
   // Debug das cores dos campos
   React.useEffect(() => {

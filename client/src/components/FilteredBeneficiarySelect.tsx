@@ -20,13 +20,18 @@ export function FilteredBeneficiarySelect({
   disabled = false,
   className = ""
 }: FilteredBeneficiarySelectProps) {
-  // Buscar todos os favorecidos
+  // Buscar todos os favorecidos - sempre ativo
   const { data: allBeneficiariesData, isLoading: isLoadingBeneficiaries } = useQuery({
     queryKey: ['/api/beneficiaries'],
     queryFn: async () => {
+      console.log('[FilteredBeneficiarySelect] 🔄 Fetching all beneficiaries');
       const response = await apiRequest('GET', '/api/beneficiaries');
-      return response.json();
+      const data = await response.json();
+      console.log('[FilteredBeneficiarySelect] 📊 All beneficiaries data:', data);
+      return data;
     },
+    retry: 3,
+    refetchOnWindowFocus: false,
   });
 
   // Buscar favorecidos do cliente se um cliente foi selecionado
@@ -77,7 +82,6 @@ export function FilteredBeneficiarySelect({
           email: b.email 
         }))
       });
-      console.log('[FilteredBeneficiarySelect] 🎯 RAW API DATA:', customerBeneficiariesData);
     } else if (isLoadingCustomerBeneficiaries) {
       beneficiariesToShow = [];
       console.log('[FilteredBeneficiarySelect] ⏳ Loading beneficiaries for customer:', selectedCustomerId);
@@ -95,11 +99,13 @@ export function FilteredBeneficiarySelect({
       });
     }
   } else {
-    // Nenhum cliente selecionado - mostrar todos os favorecidos
-    beneficiariesToShow = allBeneficiariesData?.success ? (allBeneficiariesData.beneficiaries || []) : [];
+    // Nenhum cliente selecionado - mostrar todos os favorecidos disponíveis
+    const allBeneficiaries = allBeneficiariesData?.success ? (allBeneficiariesData.beneficiaries || []) : [];
+    beneficiariesToShow = allBeneficiaries;
     console.log('[FilteredBeneficiarySelect] 🌐 Showing ALL beneficiaries (no customer filter):', {
       customerId: selectedCustomerId,
-      beneficiariesCount: beneficiariesToShow.length
+      beneficiariesCount: beneficiariesToShow.length,
+      allBeneficiariesData: allBeneficiariesData
     });
   }
 
@@ -123,30 +129,30 @@ export function FilteredBeneficiarySelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {beneficiariesToShow.length === 0 && selectedCustomerId && selectedCustomerId !== 'unspecified' ? (
+        <SelectItem value="__none__">Nenhum favorecido</SelectItem>
+        <SelectItem value="unspecified">Não especificado</SelectItem>
+        {beneficiariesToShow.length === 0 ? (
           <SelectItem value="__no_beneficiaries__" disabled>
-            Nenhum favorecido encontrado para este cliente
+            {selectedCustomerId && selectedCustomerId !== 'unspecified' 
+              ? "Nenhum favorecido encontrado para este cliente" 
+              : "Nenhum favorecido cadastrado"}
           </SelectItem>
         ) : (
-          <>
-            <SelectItem value="__none__">Nenhum favorecido</SelectItem>
-            <SelectItem value="unspecified">Não especificado</SelectItem>
-            {beneficiariesToShow.map((beneficiary: any) => {
-              const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                                     beneficiary.fullName || beneficiary.name || 
-                                     beneficiary.email || 'Favorecido sem nome';
-              return (
-                <SelectItem key={beneficiary.id} value={beneficiary.id}>
-                  <div className="flex flex-col">
-                    <span>{beneficiaryName}</span>
-                    <span className="text-sm text-gray-500">
-                      {beneficiary.email} {beneficiary.cpfCnpj && `• CPF/CNPJ: ${beneficiary.cpfCnpj}`}
-                    </span>
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </>
+          beneficiariesToShow.map((beneficiary: any) => {
+            const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                                   beneficiary.fullName || beneficiary.name || 
+                                   beneficiary.email || 'Favorecido sem nome';
+            return (
+              <SelectItem key={beneficiary.id} value={beneficiary.id}>
+                <div className="flex flex-col">
+                  <span>{beneficiaryName}</span>
+                  <span className="text-sm text-gray-500">
+                    {beneficiary.email} {beneficiary.cpfCnpj && `• CPF/CNPJ: ${beneficiary.cpfCnpj}`}
+                  </span>
+                </div>
+              </SelectItem>
+            );
+          })
         )}
       </SelectContent>
     </Select>
