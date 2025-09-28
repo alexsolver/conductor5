@@ -20,6 +20,15 @@ import {
 export class DrizzleNotificationRepository implements INotificationRepository {
   
   async create(notification: NotificationEntity, tenantId: string): Promise<NotificationEntity> {
+    // Debug: Log channels before insert
+    const channels = notification.getChannels();
+    console.log('🔍 [DrizzleNotificationRepository] Channels before insert:', {
+      channels,
+      type: typeof channels,
+      isArray: Array.isArray(channels),
+      stringified: JSON.stringify(channels)
+    });
+
     const [created] = await db
       .insert(notifications)
       .values({
@@ -30,7 +39,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         title: notification.getTitle(),
         message: notification.getMessage(),
         metadata: notification.getMetadata(),
-        channels: notification.getChannels(),
+        channels: Array.isArray(channels) ? channels.filter(c => typeof c === 'string' && c.length > 0) : ['in_app'],
         status: notification.getStatus(),
         scheduledAt: notification.getScheduledAt(),
         expiresAt: notification.getExpiresAt(),

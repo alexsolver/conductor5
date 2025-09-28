@@ -890,7 +890,7 @@ export class ActionExecutor implements IActionExecutorPort {
                 messageData: cleanMessageData,
                 automationContext: true
               },
-              channels: channels as any[],
+              channels: Array.isArray(channels) ? channels.filter(c => typeof c === 'string') : ['in_app'],
               userId: typeof userId === 'string' ? userId : String(userId),
               scheduledAt: new Date(),
               relatedEntityType: 'automation_rule',
