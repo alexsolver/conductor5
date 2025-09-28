@@ -479,14 +479,40 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
 
     const { pool } = await import('../db.ts');
 
-    // Update notifications to mark as read for the specific user
-    const query = `
-      UPDATE ${schemaName}.schedule_notifications 
-      SET read_at = NOW(), updated_at = NOW()
-      WHERE user_id = $1 AND id = ANY($2::uuid[]) AND read_at IS NULL
+    // Ensure is_active column exists
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
     `;
 
-    const result = await pool.query(query, [userId, notificationIds]);
+    await pool.query(ensureIsActiveColumn);
+
+    // Update the notifications to mark them as read (only if they belong to the user and are active)
+    const updateQuery = `
+      UPDATE ${schemaName}.schedule_notifications 
+      SET read_at = NOW(), updated_at = NOW()
+      WHERE id = ANY($1::uuid[]) 
+        AND user_id = $2 
+        AND read_at IS NULL
+        AND (is_active IS NULL OR is_active = TRUE)
+      RETURNING id, title
+    `;
+
+    const result = await pool.query(updateQuery, [notificationIds, userId]);
 
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Bulk mark as read result:', {
       rowCount: result.rowCount
