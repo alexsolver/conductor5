@@ -233,13 +233,13 @@ export class ActionExecutor implements IActionExecutorPort {
       const createTicketDTO: CreateTicketDTO = {
         subject,
         description,
-        status: action.config?.status || 'new',
+        status: action.params?.status || 'new',
         priority: priority as 'low' | 'medium' | 'high' | 'critical',
         urgency: aiAnalysis?.urgency as 'low' | 'medium' | 'high' | 'critical' || 'medium',
         impact: 'medium',
-        category: aiAnalysis?.category || action.config?.category || 'Atendimento ao Cliente',
-        subcategory: action.config?.subcategory || 'Automação',
-        assignedToId: action.config?.assignedToId || null,
+        category: aiAnalysis?.category || action.params?.category || 'Atendimento ao Cliente',
+        subcategory: action.params?.subcategory || 'Automação',
+        assignedToId: action.params?.assignedToId || null,
         customFields: {
           automationRule: {
             ruleId: context.ruleId,
@@ -890,7 +890,9 @@ export class ActionExecutor implements IActionExecutorPort {
                 messageData: cleanMessageData,
                 automationContext: true
               },
-              channels: Array.isArray(channels) ? channels.filter(c => typeof c === 'string') : ['in_app'],
+              channels: Array.isArray(channels) ? 
+                channels.filter(c => ['in_app', 'email', 'sms', 'push', 'webhook', 'dashboard_alert'].includes(c)) as ('in_app' | 'email' | 'sms' | 'push' | 'webhook' | 'dashboard_alert')[] : 
+                ['in_app'] as ('in_app' | 'email' | 'sms' | 'push' | 'webhook' | 'dashboard_alert')[],
               userId: typeof userId === 'string' ? userId : String(userId),
               scheduledAt: new Date(),
               relatedEntityType: 'automation_rule',
@@ -974,8 +976,8 @@ export class ActionExecutor implements IActionExecutorPort {
     try {
       console.log('🔔 [ActionExecutor] Executing notification action:', action);
 
-      // Get notification details from action config
-      const { recipients, subject, message, channels } = action.config;
+      // Get notification details from action params
+      const { recipients, subject, message, channels } = action.params;
 
       // Resolve user IDs from emails if needed
       const resolvedRecipients = await this.resolveUserIds(recipients);
