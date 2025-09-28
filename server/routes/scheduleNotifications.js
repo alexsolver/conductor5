@@ -270,6 +270,91 @@ router.get('/count', jwtAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/schedule-notifications/bulk - Delete multiple notifications
+router.delete('/bulk', jwtAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { notificationIds } = req.body;
+
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Bulk delete request:', {
+      userId: user?.id,
+      tenantId: user?.tenantId,
+      notificationIds: notificationIds?.length || 0
+    });
+
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
+      return res.status(400).json({
+        success: false,
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
+      });
+    }
+
+    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Notification IDs array is required'
+      });
+    }
+
+    const { tenantId } = user;
+    const userId = user.id || user.userId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const { pool } = await import('../db.ts');
+
+    // Check if table exists
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+
+    if (!tableExists.rows[0].exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Notifications table not found'
+      });
+    }
+
+    // Delete the notifications (only if they belong to the user)
+    const deleteQuery = `
+      DELETE FROM ${schemaName}.schedule_notifications 
+      WHERE id = ANY($1::uuid[]) AND user_id = $2
+      RETURNING id
+    `;
+
+    const result = await pool.query(deleteQuery, [notificationIds, userId]);
+
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Bulk delete completed:', {
+      requestedCount: notificationIds.length,
+      deletedCount: result.rowCount,
+      userId: userId
+    });
+
+    res.json({
+      success: true,
+      message: `${result.rowCount} notifications deleted successfully`,
+      data: {
+        deletedCount: result.rowCount,
+        requestedCount: notificationIds.length
+      }
+    });
+
+  } catch (error) {
+    console.error('🔔 [SCHEDULE-NOTIFICATIONS] Bulk delete error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete notifications'
+    });
+  }
+});
+
 // DELETE /api/schedule-notifications/:id - Delete a specific notification
 router.delete('/:id', jwtAuth, async (req, res) => {
   try {

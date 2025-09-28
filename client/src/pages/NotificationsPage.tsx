@@ -118,6 +118,8 @@ export default function NotificationsPage() {
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [processingNotifications, setProcessingNotifications] = useState<Set<string>>(new Set());
+  const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
+  const [selectAllChecked, setSelectAllChecked] = useState(false);
 
   // Form
   const form = useForm<CreateNotificationForm>({
@@ -136,6 +138,9 @@ export default function NotificationsPage() {
       const response = await apiRequest('GET', '/api/schedule-notifications/list');
       const result = await response.json();
       console.log('🔔 [NOTIFICATIONS-PAGE] API response:', result);
+      // Reset selection when new data is fetched
+      setSelectedNotifications(new Set());
+      setSelectAllChecked(false);
       return result;
     },
   });
@@ -257,60 +262,38 @@ export default function NotificationsPage() {
     }
   });
 
-  // New mutation for deleting notifications
+  // Mutation for deleting notifications
   const deleteNotificationMutation = useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        const response = await apiRequest('DELETE', `/api/schedule-notifications/${id}`);
-        
-        // Check if response is ok
-        if (!response.ok) {
-          // Try to get error details
-          let errorMessage = `HTTP ${response.status}`;
-          try {
-            const errorData = await response.text();
-            if (errorData) {
-              // Check if it's JSON
-              try {
-                const errorJson = JSON.parse(errorData);
-                errorMessage = errorJson.error || errorJson.message || errorMessage;
-              } catch {
-                // If not JSON, use the text as is (but truncate if too long)
-                errorMessage = errorData.length > 100 ? errorData.substring(0, 100) + '...' : errorData;
-              }
-            }
-          } catch {
-            // Ignore errors when reading response body
-          }
-          throw new Error(`Failed to delete notification: ${errorMessage}`);
-        }
-        
-        // Parse JSON response
-        const result = await response.json();
-        return result;
-      } catch (error) {
-        console.error('Delete notification error details:', error);
-        throw error;
+    mutationFn: async (ids: string[]) => {
+      // Assumes API endpoint supports deleting multiple IDs
+      const response = await apiRequest('DELETE', '/api/schedule-notifications/bulk-delete', {
+        notificationIds: ids
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to delete notifications: ${response.status} - ${errorData}`);
       }
+      return response.json();
     },
-    onSuccess: (data, id) => {
+    onSuccess: (data, variables) => {
       toast({
         title: 'Success',
-        description: 'Notification deleted successfully'
+        description: `${variables.length} notification${variables.length > 1 ? 's' : ''} deleted successfully`
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
-      refetchNotifications(); // Ensure the list is updated
+      setSelectedNotifications(new Set()); // Clear selection
+      setSelectAllChecked(false); // Reset select all
+      refetchNotifications(); // Refresh the list
     },
     onError: (error: any) => {
       console.error('Delete notification error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete notification',
+        description: error.message || 'Failed to delete notifications',
         variant: 'destructive'
       });
     },
   });
-
 
   const onSubmit = (data: CreateNotificationForm) => {
     createMutation.mutate(data);
@@ -321,7 +304,13 @@ export default function NotificationsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", dateString, error);
+      return dateString; // Return original string if parsing fails
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -334,6 +323,45 @@ export default function NotificationsPage() {
       default: return <Bell className="w-4 h-4" />;
     }
   };
+
+  const handleSelectNotification = (id: string, isSelected: boolean) => {
+    setSelectedNotifications(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(id);
+      } else {
+        newSet.delete(id);
+      }
+      // Update selectAllChecked based on the current state
+      if (notifications?.data?.notifications) {
+        setSelectAllChecked(newSet.size === notifications.data.notifications.length);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = (isSelected: boolean) => {
+    setSelectAllChecked(isSelected);
+    if (notifications?.data?.notifications) {
+      const ids = notifications.data.notifications.map((n: Notification) => n.id);
+      setSelectedNotifications(new Set(isSelected ? ids : []));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedNotifications.size === 0) {
+      toast({
+        title: 'No notifications selected',
+        description: 'Please select at least one notification to delete.',
+        variant: 'warning'
+      });
+      return;
+    }
+    // Add a confirmation dialog here if desired
+    deleteNotificationMutation.mutate(Array.from(selectedNotifications));
+  };
+
+  const bulkActionsVisible = selectedNotifications.size > 0;
 
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="notifications-page">
@@ -628,10 +656,56 @@ export default function NotificationsPage() {
                 </CardContent>
               </Card>
             ) : notifications?.success && notifications.data?.notifications?.length > 0 ? (
-              (notifications.data.notifications as Notification[]).map((notification: Notification) => (
-                <Card key={notification.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
+              <>
+                {/* Bulk Actions Header */}
+                {bulkActionsVisible && (
+                  <Card className="p-4 bg-muted/50 sticky top-0 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectAllChecked}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          className="rounded"
+                          data-testid="select-all-checkbox"
+                        />
+                        <span className="text-sm font-medium">
+                          Select All ({notifications.data.notifications.length})
+                        </span>
+                        {selectedNotifications.size > 0 && (
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {selectedNotifications.size} selected
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={handleDeleteSelected}
+                          disabled={deleteNotificationMutation.isPending}
+                          data-testid="button-bulk-delete"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Selected ({selectedNotifications.size})
+                        </Button>
+                        {/* Add other bulk actions here if needed, e.g., Mark as Read */}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Individual Notifications */}
+                {(notifications.data.notifications as Notification[]).map((notification: Notification) => (
+                  <Card key={notification.id} className="hover:shadow-md transition-shadow p-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedNotifications.has(notification.id)}
+                        onChange={(e) => handleSelectNotification(notification.id, e.target.checked)}
+                        className="rounded mt-1"
+                        data-testid={`checkbox-notification-${notification.id}`}
+                      />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {getStatusIcon(notification.status)}
@@ -716,7 +790,8 @@ export default function NotificationsPage() {
                           onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            deleteNotificationMutation.mutate(notification.id);
+                            // For single delete, call the mutation with an array containing the single ID
+                            deleteNotificationMutation.mutate([notification.id]);
                           }}
                           disabled={deleteNotificationMutation.isPending}
                           className="text-red-600 border-red-200 hover:bg-red-50"
@@ -727,9 +802,9 @@ export default function NotificationsPage() {
                         </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
+                  </Card>
+                ))}
+              </>
             ) : (
               <Card>
                 <CardContent className="p-6">
