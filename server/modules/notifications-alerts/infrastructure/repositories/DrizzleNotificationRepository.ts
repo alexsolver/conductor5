@@ -3,12 +3,12 @@
 
 import { db } from '../../../../db';
 import { 
-  notifications, 
-  notificationDeliveryLog,
-  type Notification,
-  type NotificationStatus,
-  type NotificationSeverity
-} from '@shared/schema-notifications';
+  notifications,
+  type NotificationTypeEnum,
+  type NotificationPriorityEnum,
+  type NotificationChannelEnum,
+  type NotificationStatusEnum
+} from '@shared/schema-tenant';
 import { eq, and, inArray, desc, asc, gte, lte, count, sql } from 'drizzle-orm';
 import { NotificationEntity } from '../../domain/entities/Notification';
 import { 
@@ -51,36 +51,31 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         metadataStringified: JSON.stringify(insertValues.metadata)
       });
 
-      // Use raw SQL to insert into the actual table structure
-      const [created] = await db.execute(sql`
-        INSERT INTO ${sql.identifier('notifications')} (
-          id, tenant_id, user_id, title, message, type, priority, channel, status, scheduled_for, metadata, created_at
-        ) VALUES (
-          ${insertValues.id},
-          ${insertValues.tenant_id},
-          ${insertValues.user_id},
-          ${insertValues.title},
-          ${insertValues.message},
-          ${insertValues.type}::notification_type_enum,
-          ${insertValues.priority}::notification_priority_enum,
-          ${insertValues.channel}::notification_channel_enum,
-          ${insertValues.status}::notification_status_enum,
-          ${insertValues.scheduled_for},
-          ${JSON.stringify(insertValues.metadata)}::jsonb,
-          ${insertValues.created_at}
-        )
-        RETURNING *
-      `);
+      // Use Drizzle ORM to insert with correct schema
+      const [result] = await db.insert(notifications).values({
+        id: insertValues.id,
+        tenantId: insertValues.tenant_id,
+        userId: insertValues.user_id,
+        title: insertValues.title,
+        message: insertValues.message,
+        type: insertValues.type as any,
+        priority: insertValues.priority as any,
+        channel: insertValues.channel as any,
+        status: insertValues.status as any,
+        scheduledFor: insertValues.scheduled_for,
+        metadata: insertValues.metadata,
+        createdAt: insertValues.created_at
+      }).returning();
 
-      return this.mapToEntity(created.rows[0]);
+      return this.mapToEntity(result);
     } catch (error) {
       console.error('❌ [DrizzleNotificationRepository] Database insert error:', {
-        error: error.message,
-        errorCode: error.code,
-        errorDetail: error.detail,
-        errorHint: error.hint,
-        position: error.position,
-        stack: error.stack
+        error: error instanceof Error ? error.message : String(error),
+        errorCode: (error as any)?.code,
+        errorDetail: (error as any)?.detail,
+        errorHint: (error as any)?.hint,
+        position: (error as any)?.position,
+        stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     }
