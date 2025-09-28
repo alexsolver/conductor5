@@ -270,8 +270,8 @@ router.get('/count', jwtAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/schedule-notifications/bulk - Delete multiple notifications
-router.delete('/bulk', jwtAuth, async (req, res) => {
+// DELETE /api/schedule-notifications/bulk-delete - Delete multiple notifications
+router.delete('/bulk-delete', jwtAuth, async (req, res) => {
   try {
     const user = req.user;
     const { notificationIds } = req.body;

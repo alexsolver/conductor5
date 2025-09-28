@@ -265,16 +265,38 @@ export default function NotificationsPage() {
   // Mutation for deleting notifications
   const deleteNotificationMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      // Assumes API endpoint supports deleting multiple IDs
-      const response = await apiRequest('DELETE', '/api/schedule-notifications/bulk-delete', {
-        notificationIds: ids
-      });
+      try {
+        console.log('🗑️ [DELETE-MUTATION] Starting bulk delete for IDs:', ids);
+        
+        const response = await apiRequest('DELETE', '/api/schedule-notifications/bulk-delete', {
+          notificationIds: ids
+        });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to delete notifications: ${response.status} - ${errorData}`);
+        if (!response.ok) {
+          let errorMessage = `HTTP ${response.status}`;
+          try {
+            const errorData = await response.text();
+            if (errorData) {
+              try {
+                const errorJson = JSON.parse(errorData);
+                errorMessage = errorJson.error || errorJson.message || errorMessage;
+              } catch {
+                errorMessage = errorData.length > 100 ? errorData.substring(0, 100) + '...' : errorData;
+              }
+            }
+          } catch {
+            // Ignore errors when reading response body
+          }
+          throw new Error(`Failed to delete notifications: ${errorMessage}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ [DELETE-MUTATION] Bulk delete successful:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ [DELETE-MUTATION] Error:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (data, variables) => {
       toast({
