@@ -243,6 +243,17 @@ const TicketsTable = React.memo(() => {
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
 
+  // Query para buscar todos os favorecidos quando o modal de criação for aberto
+  const { data: beneficiariesData } = useQuery({
+    queryKey: ['/api/beneficiaries'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/beneficiaries');
+      return response.json();
+    },
+    enabled: isCreateDialogOpen, // Só busca quando o modal estiver aberto
+    refetchOnWindowFocus: false,
+  });
+
   // Debug das cores dos campos
   React.useEffect(() => {
     if (!isFieldColorsLoading) {
