@@ -260,12 +260,38 @@ export default function NotificationsPage() {
   // New mutation for deleting notifications
   const deleteNotificationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/schedule-notifications/${id}`);
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to delete notification: ${response.status} - ${errorData}`);
+      try {
+        const response = await apiRequest('DELETE', `/api/schedule-notifications/${id}`);
+        
+        // Check if response is ok
+        if (!response.ok) {
+          // Try to get error details
+          let errorMessage = `HTTP ${response.status}`;
+          try {
+            const errorData = await response.text();
+            if (errorData) {
+              // Check if it's JSON
+              try {
+                const errorJson = JSON.parse(errorData);
+                errorMessage = errorJson.error || errorJson.message || errorMessage;
+              } catch {
+                // If not JSON, use the text as is (but truncate if too long)
+                errorMessage = errorData.length > 100 ? errorData.substring(0, 100) + '...' : errorData;
+              }
+            }
+          } catch {
+            // Ignore errors when reading response body
+          }
+          throw new Error(`Failed to delete notification: ${errorMessage}`);
+        }
+        
+        // Parse JSON response
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error('Delete notification error details:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (data, id) => {
       toast({

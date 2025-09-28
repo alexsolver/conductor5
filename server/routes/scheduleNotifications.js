@@ -270,6 +270,96 @@ router.get('/count', jwtAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/schedule-notifications/:id - Delete a specific notification
+router.delete('/:id', jwtAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Delete notification request:', {
+      userId: user?.id,
+      tenantId: user?.tenantId,
+      notificationId: id
+    });
+
+    if (!user || !user.tenantId || (!user.id && !user.userId)) {
+      console.error('🔔 [SCHEDULE-NOTIFICATIONS] Missing user information:', { user });
+      return res.status(400).json({
+        success: false,
+        error: 'User information required',
+        details: 'Missing user, tenantId, or userId'
+      });
+    }
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Notification ID is required'
+      });
+    }
+
+    const { tenantId } = user;
+    const userId = user.id || user.userId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const { pool } = await import('../db.ts');
+
+    // Check if table exists
+    const checkTableQuery = `
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'schedule_notifications'
+      );
+    `;
+
+    const tableExists = await pool.query(checkTableQuery);
+
+    if (!tableExists.rows[0].exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Notifications table not found'
+      });
+    }
+
+    // Delete the notification (only if it belongs to the user)
+    const deleteQuery = `
+      DELETE FROM ${schemaName}.schedule_notifications 
+      WHERE id = $1 AND user_id = $2
+      RETURNING id
+    `;
+
+    const result = await pool.query(deleteQuery, [id, userId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Notification not found or access denied'
+      });
+    }
+
+    console.log('🔔 [SCHEDULE-NOTIFICATIONS] Notification deleted successfully:', {
+      notificationId: id,
+      userId: userId
+    });
+
+    res.json({
+      success: true,
+      message: 'Notification deleted successfully',
+      data: {
+        deletedId: id
+      }
+    });
+
+  } catch (error) {
+    console.error('🔔 [SCHEDULE-NOTIFICATIONS] Delete notification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete notification'
+    });
+  }
+});
+
 // PATCH /api/schedule-notifications/bulk-read - Mark multiple notifications as read
 router.patch('/bulk-read', jwtAuth, async (req, res) => {
   try {
