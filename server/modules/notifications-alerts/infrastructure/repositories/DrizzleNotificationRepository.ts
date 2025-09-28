@@ -24,7 +24,12 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       // Map to the correct structure for the existing table
       const primaryChannel = notification.getChannels()[0] || 'in_app'; // Use first channel or default
       const notificationType = notification.getType() === 'automation_notification' ? 'info' : notification.getType();
-      const priority = notification.getSeverity() === 'medium' ? 'normal' : notification.getSeverity();
+      
+      // Map severity to valid enum values
+      let priority = notification.getSeverity();
+      if (priority === 'medium' || priority === 'critical' || priority === 'emergency') {
+        priority = 'normal'; // Map unsupported values to 'normal'
+      }
 
       const insertValues = {
         id: notification.getId(),
@@ -33,10 +38,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         title: notification.getTitle(),
         message: notification.getMessage(),
         type: notificationType, // Use enum value
-        priority: priority, // Map to correct enum value  
-        channel: primaryChannel, // Single channel, not array
+        severity: priority, // Use severity instead of priority (matches public table structure)
+        channels: [primaryChannel], // Use array format for channels
         status: notification.getStatus(),
-        scheduled_for: notification.getScheduledAt(),
+        scheduled_at: notification.getScheduledAt(),
         metadata: notification.getMetadata(),
         created_at: notification.getCreatedAt()
       };
@@ -44,14 +49,14 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       console.log('🔍 [DrizzleNotificationRepository] Creating notification with mapped values:', {
         id: insertValues.id,
         type: insertValues.type,
-        priority: insertValues.priority,
-        channel: insertValues.channel,
+        severity: insertValues.severity,
+        channels: insertValues.channels,
         user_id: insertValues.user_id,
         metadata: insertValues.metadata,
         metadataStringified: JSON.stringify(insertValues.metadata)
       });
 
-      // Use Drizzle ORM to insert with correct schema
+      // Use Drizzle ORM to insert with correct schema (matching tenant table structure)
       const [result] = await db.insert(notifications).values({
         id: insertValues.id,
         tenantId: insertValues.tenant_id,
@@ -59,10 +64,10 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         title: insertValues.title,
         message: insertValues.message,
         type: insertValues.type as any,
-        priority: insertValues.priority as any,
-        channel: insertValues.channel as any,
+        severity: insertValues.severity as any,
+        channels: insertValues.channels,
         status: insertValues.status as any,
-        scheduledFor: insertValues.scheduled_for,
+        scheduledFor: insertValues.scheduled_at,
         metadata: insertValues.metadata,
         createdAt: insertValues.created_at
       }).returning();
