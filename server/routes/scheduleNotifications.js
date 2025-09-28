@@ -47,6 +47,28 @@ router.get('/list', jwtAuth, async (req, res) => {
       });
     }
 
+    // Ensure is_active column exists
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
+    `;
+
+    await pool.query(ensureIsActiveColumn);
+
     const query = `
       SELECT 
         id,
@@ -64,6 +86,7 @@ router.get('/list', jwtAuth, async (req, res) => {
         related_entity_id as "relatedEntityId"
       FROM ${schemaName}.schedule_notifications 
       WHERE user_id = $1 
+        AND is_active = TRUE
       ORDER BY created_at DESC
       LIMIT 50
     `;
@@ -142,6 +165,28 @@ router.get('/unread', jwtAuth, async (req, res) => {
       });
     }
 
+    // Ensure is_active column exists first
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
+    `;
+
+    await pool.query(ensureIsActiveColumn);
+
     const query = `
       SELECT 
         id,
@@ -155,6 +200,7 @@ router.get('/unread', jwtAuth, async (req, res) => {
       WHERE user_id = $1 
         AND read_at IS NULL
         AND status = 'sent'
+        AND is_active = TRUE
       ORDER BY created_at DESC
       LIMIT 10
     `;
@@ -240,12 +286,35 @@ router.get('/count', jwtAuth, async (req, res) => {
       console.log('🔔 [SCHEDULE-NOTIFICATIONS] Table created successfully');
     }
 
+    // Ensure is_active column exists first
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
+    `;
+
+    await pool.query(ensureIsActiveColumn);
+
     const query = `
       SELECT COUNT(*) as count
       FROM ${schemaName}.schedule_notifications 
       WHERE user_id = $1 
         AND read_at IS NULL
         AND status = 'sent'
+        AND is_active = TRUE
     `;
 
     console.log('🔔 [SCHEDULE-NOTIFICATIONS] Executing query:', query);
@@ -322,10 +391,35 @@ router.delete('/bulk-delete', jwtAuth, async (req, res) => {
       });
     }
 
-    // Delete the notifications (only if they belong to the user)
+    // Ensure is_active column exists first
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
+    `;
+
+    await pool.query(ensureIsActiveColumn);
+
+    // Soft delete the notifications (only if they belong to the user and are currently active)
     const deleteQuery = `
-      DELETE FROM ${schemaName}.schedule_notifications 
-      WHERE id = ANY($1::uuid[]) AND user_id = $2
+      UPDATE ${schemaName}.schedule_notifications 
+      SET is_active = FALSE, updated_at = NOW()
+      WHERE id = ANY($1::uuid[]) 
+        AND user_id = $2 
+        AND is_active = TRUE
       RETURNING id
     `;
 
@@ -407,10 +501,35 @@ router.delete('/:id', jwtAuth, async (req, res) => {
       });
     }
 
-    // Delete the notification (only if it belongs to the user)
+    // Ensure is_active column exists first
+    const ensureIsActiveColumn = `
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'schedule_notifications' 
+          AND column_name = 'is_active'
+        ) THEN
+          ALTER TABLE ${schemaName}.schedule_notifications 
+          ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+          UPDATE ${schemaName}.schedule_notifications 
+          SET is_active = TRUE 
+          WHERE is_active IS NULL;
+        END IF;
+      END $$;
+    `;
+
+    await pool.query(ensureIsActiveColumn);
+
+    // Soft delete the notification (only if it belongs to the user and is currently active)
     const deleteQuery = `
-      DELETE FROM ${schemaName}.schedule_notifications 
-      WHERE id = $1 AND user_id = $2
+      UPDATE ${schemaName}.schedule_notifications 
+      SET is_active = FALSE, updated_at = NOW()
+      WHERE id = $1 
+        AND user_id = $2 
+        AND is_active = TRUE
       RETURNING id
     `;
 
@@ -508,7 +627,7 @@ router.patch('/bulk-read', jwtAuth, async (req, res) => {
       WHERE id = ANY($1::uuid[]) 
         AND user_id = $2 
         AND read_at IS NULL
-        AND (is_active IS NULL OR is_active = TRUE)
+        AND is_active = TRUE
       RETURNING id, title
     `;
 
