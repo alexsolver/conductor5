@@ -56,23 +56,24 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         metadataStringified: JSON.stringify(insertValues.metadata)
       });
 
-      // Use raw SQL to bypass Drizzle schema conflicts
+      // Use raw SQL to insert into schedule_notifications table (where frontend expects)
       const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier('tenant_' + tenantId.replace(/-/g, '_'))}.notifications 
-        (id, tenant_id, user_id, title, message, type, severity, channels, status, scheduled_for, metadata, created_at)
+        INSERT INTO ${sql.identifier('tenant_' + tenantId.replace(/-/g, '_'))}.schedule_notifications 
+        (id, tenant_id, user_id, notification_type, title, message, priority, delivery_method, status, scheduled_for, created_at, updated_at, type)
         VALUES (
           ${insertValues.id},
           ${insertValues.tenant_id},
           ${insertValues.user_id || null},
+          ${insertValues.type},
           ${insertValues.title},
           ${insertValues.message || null},
-          ${insertValues.type},
           ${insertValues.severity},
-          ${JSON.stringify(insertValues.channels)},
-          ${insertValues.status},
-          ${insertValues.scheduled_at || null},
-          ${JSON.stringify(insertValues.metadata)},
-          ${insertValues.created_at || sql`NOW()`}
+          ${insertValues.channels[0] || 'in_app'},
+          'sent',
+          ${insertValues.scheduled_at || sql`NOW()`},
+          ${insertValues.created_at || sql`NOW()`},
+          ${sql`NOW()`},
+          ${insertValues.type}
         )
         RETURNING *
       `);
@@ -83,19 +84,45 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         rowCount: result.rows?.length 
       });
 
+      // Add debug logging for the constructor parameters
+      console.log('🔍 [DrizzleNotificationRepository] Constructor parameters:', {
+        id: insertValues.id,
+        tenantId: insertValues.tenant_id,
+        type: insertValues.type,
+        severity: insertValues.severity,
+        title: insertValues.title,
+        message: insertValues.message,
+        messageType: typeof insertValues.message,
+        metadata: insertValues.metadata,
+        channels: insertValues.channels
+      });
+
+      // Ensure message is a string
+      const messageString = String(insertValues.message || '');
+      
       // Return mock entity since the insert was successful
       return new NotificationEntity(
-        insertValues.id,
-        insertValues.type,
-        insertValues.severity,
-        insertValues.title,
-        insertValues.message || '',
-        insertValues.channels,
-        insertValues.status,
-        insertValues.user_id,
-        insertValues.metadata,
-        insertValues.scheduled_at,
-        insertValues.created_at
+        insertValues.id,                     // id
+        insertValues.tenant_id,              // tenantId
+        insertValues.type,                   // type
+        insertValues.severity,               // severity
+        insertValues.title,                  // title
+        messageString,                       // message - ensure it's a string
+        insertValues.metadata,               // metadata
+        insertValues.channels,               // channels
+        'sent',                              // status
+        insertValues.scheduled_at || new Date(), // scheduledAt
+        null,                                // expiresAt
+        new Date(),                          // sentAt
+        null,                                // deliveredAt
+        null,                                // failedAt
+        'automation_rule',                   // relatedEntityType
+        null,                                // relatedEntityId
+        insertValues.user_id,                // userId
+        0,                                   // retryCount
+        3,                                   // maxRetries
+        insertValues.created_at || new Date(), // createdAt
+        new Date()                           // updatedAt
       );
     } catch (error) {
       console.error('❌ [DrizzleNotificationRepository] Database insert error:', {
