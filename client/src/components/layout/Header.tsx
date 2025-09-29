@@ -49,7 +49,8 @@ export function Header() {
       return data;
     },
     enabled: !!user,
-    refetchInterval: 60000, // Atualizar a cada 60 segundos
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
+    staleTime: 2000, // Considerar stale após 2 segundos
   });
 
   // Determinar se usuário está trabalhando

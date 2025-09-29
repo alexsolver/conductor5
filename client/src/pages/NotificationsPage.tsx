@@ -185,6 +185,7 @@ export default function NotificationsPage() {
       setIsCreateOpen(false);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/count'] });
     },
     onError: (error: any) => {
       toast({
@@ -213,6 +214,7 @@ export default function NotificationsPage() {
         description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/count'] });
     },
     onError: (error: any) => {
       toast({
@@ -247,6 +249,7 @@ export default function NotificationsPage() {
         return newSet;
       });
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/count'] });
     },
     onError: (error: any) => {
       console.error('Mark as read error:', error);
@@ -310,6 +313,7 @@ export default function NotificationsPage() {
       setSelectedNotifications(new Set()); // Clear selection
       setSelectAllChecked(false); // Reset select all
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] }); // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/count'] }); // Invalidate count
     },
     onError: (error: any) => {
       console.error('Delete notification error:', error);
