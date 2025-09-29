@@ -375,7 +375,7 @@ export default function NotificationsPage() {
       toast({
         title: 'No notifications selected',
         description: 'Please select at least one notification to delete.',
-        variant: 'warning'
+        variant: 'destructive'
       });
       return;
     }
@@ -794,7 +794,11 @@ export default function NotificationsPage() {
                               }
 
                               console.log('🔔 [MARK-READ] Marking notification as read:', notification.id);
-                              setProcessingNotifications(prev => new Set([...prev, notification.id]));
+                              setProcessingNotifications(prev => {
+                                const newSet = new Set(prev);
+                                newSet.add(notification.id);
+                                return newSet;
+                              });
                               markAsReadMutation.mutate([notification.id]);
                             }}
                             disabled={markAsReadMutation.isPending || processingNotifications.has(notification.id)}
