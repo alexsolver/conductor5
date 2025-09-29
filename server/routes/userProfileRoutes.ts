@@ -172,7 +172,7 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
 
     res.json({ 
       success: true,
-      uploadURL,
+      uploadURL: uploadURL,
       message: 'Upload URL generated successfully'
     });
   } catch (error) {

@@ -301,12 +301,22 @@ export default function UserProfile() {
   const handlePhotoUpload = async () => {
     try {
       const response = await apiRequest('POST', '/api/user/profile/photo/upload');
+      if (!response.ok) {
+        throw new Error(`Upload URL request failed: ${response.status}`);
+      }
       const data = await response.json();
+      
+      // Validate that we have a proper upload URL
+      if (!data.success || !data.uploadURL) {
+        throw new Error('Invalid upload URL response');
+      }
+      
       return {
         method: 'PUT' as const,
         url: data.uploadURL,
       };
     } catch (error) {
+      console.error('[PHOTO-UPLOAD] Error getting upload URL:', error);
       toast({
         title: "Erro no upload",
         description: "Não foi possível obter URL de upload.",
@@ -317,11 +327,31 @@ export default function UserProfile() {
   };
 
   const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    console.log('[PHOTO-UPLOAD] Upload complete:', result);
+    
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
-      if (uploadedFile.uploadURL) {
-        uploadPhotoMutation.mutate(uploadedFile.uploadURL as string);
+      
+      // For mock environment, use the upload URL as the final avatar URL
+      const avatarURL = uploadedFile.uploadURL || uploadedFile.source;
+      
+      if (avatarURL) {
+        uploadPhotoMutation.mutate(avatarURL as string);
+      } else {
+        console.error('[PHOTO-UPLOAD] No valid URL found in upload result');
+        toast({
+          title: "Erro no upload",
+          description: "Não foi possível processar o upload da foto.",
+          variant: "destructive",
+        });
       }
+    } else {
+      console.error('[PHOTO-UPLOAD] Upload failed or no successful uploads');
+      toast({
+        title: "Erro no upload",
+        description: "O upload da foto falhou.",
+        variant: "destructive",
+      });
     }
   };
 
