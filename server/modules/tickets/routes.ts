@@ -395,84 +395,36 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
 
     const tenantId = req.user.tenantId;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const { pool } = await import('../../db'); // Import pool here for consistency
-    const tenantDb = pool; // Alias for clarity
 
-    // Check if beneficiary_id column exists first
-    const columnCheckQuery = `
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_schema = $1 AND table_name = 'tickets' AND column_name = 'beneficiary_id'
-    `;
-
-    const columnExists = await tenantDb.query(columnCheckQuery, [schemaName]);
-    const hasBeneficiaryColumn = columnExists.rows.length > 0;
-
-    // ✅ CORREÇÃO: Query melhorada com verificação de colunas existentes
+    // CORREÇÃO: Query aprimorada para incluir dados do cliente e empresa
     const query = `
       SELECT 
-        t.id,
-        t.tenant_id,
-        t.number,
-        t.subject,
-        t.description,
-        t.status,
-        t.priority,
-        t.urgency,
-        t.impact,
-        t.category,
-        t.subcategory,
-        t.caller_id,
-        ${hasBeneficiaryColumn ? 't.beneficiary_id,' : 'NULL as beneficiary_id,'}
-        t.assigned_to_id,
-        t.company_id,
-        t.created_at,
-        t.updated_at,
-        t.is_active,
-
-        -- Company information
+        t.*,
+        -- Customer/Caller data
+        COALESCE(c.first_name || ' ' || c.last_name, c.email, caller_c.first_name || ' ' || caller_c.last_name, caller_c.email) as caller_name,
+        COALESCE(c.email, caller_c.email) as caller_email,
+        c.first_name as customer_first_name,
+        c.last_name as customer_last_name,
+        c.email as customer_email,
+        caller_c.first_name as caller_first_name,
+        caller_c.last_name as caller_last_name,
+        caller_c.email as caller_email,
+        -- Company data
+        COALESCE(comp.name, comp.display_name) as company_name,
         comp.name as company_name,
-        comp.display_name as company_display_name,
-
-        -- Caller information 
-        caller.first_name as caller_first_name,
-        caller.last_name as caller_last_name,
-        caller.email as caller_email,
-        COALESCE(
-          NULLIF(TRIM(CONCAT(caller.first_name, ' ', caller.last_name)), ''),
-          caller.email
-        ) as caller_name,
-
-        -- Beneficiary information (only if column exists)
-        ${hasBeneficiaryColumn ? `
-        benef.name as beneficiary_name,
-        benef.first_name as beneficiary_first_name,
-        benef.last_name as beneficiary_last_name,
-        benef.email as beneficiary_email,
-        ` : `
-        NULL as beneficiary_name,
-        NULL as beneficiary_first_name,
-        NULL as beneficiary_last_name,
-        NULL as beneficiary_email,
-        `}
-
-        -- Assigned user information
-        assigned_user.first_name as assigned_first_name,
-        assigned_user.last_name as assigned_last_name,
-        assigned_user.email as assigned_email,
-        COALESCE(
-          NULLIF(TRIM(CONCAT(assigned_user.first_name, ' ', assigned_user.last_name)), ''),
-          assigned_user.email
-        ) as assigned_name
-
-      FROM "${schemaName}".tickets t
-      LEFT JOIN "${schemaName}".companies comp ON t.company_id = comp.id
-      LEFT JOIN "${schemaName}".customers caller ON t.caller_id = caller.id  
-      ${hasBeneficiaryColumn ? `LEFT JOIN "${schemaName}".beneficiaries benef ON t.beneficiary_id = benef.id` : ''}
-      LEFT JOIN public.users assigned_user ON t.assigned_to_id = assigned_user.id
-      WHERE t.id = $1 AND t.tenant_id = $2 AND t.is_active = true
+        -- Assigned user data
+        u.first_name as assigned_first_name,
+        u.last_name as assigned_last_name,
+        u.email as assigned_email
+      FROM ${schemaName}.tickets t
+      LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
+      LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
+      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
+      LEFT JOIN public.users u ON t.assigned_to_id = u.id
+      WHERE t.tenant_id = $1 AND t.id = $2
     `;
 
+    const { pool } = await import('../../db');
     const ticketResult = await pool.query(query, [req.user.tenantId, req.params.id]);
     const ticket = ticketResult.rows[0];
     if (!ticket) {
@@ -2045,7 +1997,7 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
     // For now, we'll just save the message without actually sending it
     // In a real implementation, you would integrate with WhatsApp Business API, Telegram API, or SMS provider
     console.log(`📱 [MESSAGE] Simulating ${channel} message to ${recipient}: ${message}`);
-
+    
     // Save communication record
     try {
       const communicationId = crypto.randomUUID();
@@ -2320,7 +2272,7 @@ ticketsRouter.put('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReques
     const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Get current note for audit trail
     const currentNoteQuery = `
@@ -3127,6 +3079,867 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
       WHERE tr.id = $1 AND tr.tenant_id = $2
     `;
     const relationshipResult = await pool.query(relationshipQuery, [relationshipId, tenantId]);
+    const relationshipInfo = relationshipResult.rows[0];
+
+    // Delete the relationship (hard delete since no is_active column)
+    const result = await pool.query(
+      `DELETE FROM "${schemaName}".ticket_relationships 
+      WHERE id = $1 AND tenant_id = $2`,
+      [relationshipId, tenantId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Relationship not found" });
+    }
+
+    // Create audit trail for relationship deletion
+    if (relationshipInfo) {
+      try {
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, relationshipInfo.source_ticket_id, req,
+          'relationship_deleted',
+          `Relacionamento removido com ticket ${relationshipInfo.target_number || relationshipInfo.target_ticket_id}: ${relationshipInfo.relationship_type}`,
+          {
+            relationship_id: relationshipId,
+            source_ticket_id: relationshipInfo.source_ticket_id,
+            target_ticket_id: relationshipInfo.target_ticket_id,
+            target_ticket_number: relationshipInfo.target_number,
+            relationship_type: relationshipInfo.relationship_type,
+            description: relationshipInfo.description,
+            deletion_time: new Date().toISOString()
+          }
+        );
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Relationship removed successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting ticket relationship:", error);
+    res.status(500).json({ message: "Failed to delete ticket relationship" });
+  }
+});
+
+// Get internal actions for scheduling (by date range)
+ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  const startDateParam = `${req.params.startDate} 00:00:00`;
+  const endDateParam = `${req.params.endDate} 23:59:59`;
+
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { startDate, endDate } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Debug logs
+    console.log('🔍 INTERNAL ACTIONS QUERY DEBUG:', {
+      startDate,
+      endDate,
+      startDateParam,
+      endDateParam,
+      tenantId,
+      schemaName
+    });
+
+    const query = `
+      SELECT 
+        tia.id,
+        tia.action_number,
+        tia.title,
+        tia.description,
+        tia.action_type,
+        tia.start_time as "startDateTime",
+        tia.end_time as "endDateTime",
+        tia.status,
+        tia.priority,
+        tia.agent_id as "agentId",
+        tia.ticket_id as "ticketId",
+        tia.estimated_hours,
+        t.number as "ticketNumber",
+        t.subject as "ticketSubject",
+        u.first_name || ' ' || u.last_name as "agentName",
+        u.email as "agentEmail"
+      FROM "${schemaName}".ticket_internal_actions tia
+      LEFT JOIN "${schemaName}".tickets t ON tia.ticket_id = t.id
+      LEFT JOIN public.users u ON tia.agent_id = u.id
+      WHERE tia.tenant_id = $1::uuid 
+        AND tia.start_time >= $2::timestamp
+        AND tia.start_time <= $3::timestamp
+      ORDER BY tia.start_time ASC
+    `;
+
+    const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
+
+    console.log('🔍 INTERNAL ACTIONS RESULT:', {
+      rowCount: result.rows.length,
+      queryParams: [tenantId, startDateParam, endDateParam],
+      firstRow: result.rows[0] || null
+    });
+
+    const internalActions = result.rows.map(row => ({
+      id: row.id,
+      actionNumber: row.action_number, // Include the unique action number
+      title: `${row.action_type}: ${row.title}`,
+      description: row.description,
+      startDateTime: row.startDateTime,
+      endDateTime: row.endDateTime || row.startDateTime, // Use start time if no end time
+      status: row.status,
+      priority: row.priority,
+      agentId: row.agentId,
+      ticketId: row.ticketId,
+      ticketNumber: row.ticketNumber,
+      ticketSubject: row.ticketSubject,
+      agentName: row.agentName,
+      agentEmail: row.agentEmail,
+      type: 'internal_action', // Distinguish from regular schedules
+      actionType: row.actionType,
+      estimatedHours: row.estimated_hours,
+      actualHours: 0 // Default value since column doesn't exist
+    }));
+
+    res.json({
+      success: true,
+      data: internalActions,
+      count: internalActions.length
+    });
+  } catch (error) {
+    console.error("Error fetching internal actions for schedule:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch internal actions for schedule",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ✅ MIDDLEWARE AUDITORIA ULTRA-AUTOMÁTICA - interceptar e registrar TODAS as mudanças
+ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) => {
+  // Capturar estado original antes de qualquer modificação
+  if (['PUT', 'PATCH', 'DELETE', 'POST'].includes(req.method)) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (tenantId && id) {
+        const originalTicket = await storageSimple.getTicketById(tenantId, id);
+        req.originalTicketState = originalTicket; // Armazenar estado original
+
+        // ✅ REGISTRAR TENTATIVA DE ACESSO/MODIFICAÇÃO
+        const { pool } = await import('../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, id, req,
+          `ticket_${req.method.toLowerCase()}_attempt`,
+          `Tentativa de ${req.method} no ticket`,
+          {
+            http_method: req.method,
+            access_timestamp: new Date().toISOString(),
+            original_url: req.originalUrl,
+            user_agent: req.headers['user-agent'],
+            has_original_state: !!originalTicket
+          }
+        );
+      }
+    } catch (error) {
+      console.warn('⚠️ [AUDIT-MIDDLEWARE] Não foi possível capturar estado original:', error);
+    }
+  }
+  next();
+});
+
+// ✅ MIDDLEWARE AUDITORIA PÓS-OPERAÇÃO - registrar resultado final
+ticketsRouter.use('/:id', jwtAuth, async (req: AuthenticatedRequest, res, next) => {
+  // Interceptar resposta para auditoria pós-operação
+  if (['PUT', 'PATCH', 'DELETE', 'POST'].includes(req.method)) {
+    const originalSend = res.send;
+    res.send = function(data) {
+      // Registrar resultado da operação
+      setTimeout(async () => {
+        try {
+          const { id } = req.params;
+          const tenantId = req.user?.tenantId;
+
+          if (tenantId && id) {
+            const { pool } = await import('../../db');
+            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+            let responseData;
+            try {
+              responseData = typeof data === 'string' ? JSON.parse(data) : data;
+            } catch {
+              responseData = { raw_response: data };
+            }
+
+            await createCompleteAuditEntry(
+              pool, schemaName, tenantId, id, req,
+              `ticket_${req.method.toLowerCase()}_completed`,
+              `Operação ${req.method} concluída com status ${res.statusCode}`,
+              {
+                http_method: req.method,
+                response_status: res.statusCode,
+                operation_timestamp: new Date().toISOString(),
+                response_success: res.statusCode >= 200 && res.statusCode < 300,
+                response_data_preview: JSON.stringify(responseData).substring(0, 500)
+              }
+            );
+          }
+        } catch (error) {
+          console.warn('⚠️ [AUDIT-POST-MIDDLEWARE] Erro na auditoria pós-operação:', error);
+        }
+      }, 100); // Delay pequeno para garantir que a operação foi concluída
+
+      return originalSend.call(this, data);
+    };
+  }
+  next();
+});
+
+// Update internal action
+ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log('🔧 PATCH Update - Received data:', {
+      ticketId,
+      actionId,
+      body: req.body
+    });
+
+    // Extract fields from request body with proper mapping
+    const {
+      action_type,
+      agent_id,
+      title,
+      description,
+      planned_start_time,
+      planned_end_time,
+      start_time,
+      end_time,
+      estimated_hours,
+      actual_minutes,
+      status = 'pending',
+      priority = 'medium',
+      is_public = false
+    } = req.body;
+
+    // Validate required fields
+    if (!action_type) {
+      return res.status(400).json({
+        success: false,
+        message: "Action type is required"
+      });
+    }
+
+    // Check if action exists
+    const checkQuery = `
+      SELECT * FROM "${schemaName}".ticket_internal_actions 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+
+    const existingAction = await pool.query(checkQuery, [actionId, tenantId, ticketId]);
+
+    if (existingAction.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Internal action not found"
+      });
+    }
+
+    // Build dynamic update query
+    const updateFields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (action_type !== undefined) {
+      updateFields.push(`action_type = $${paramIndex++}`);
+      values.push(action_type);
+    }
+    if (agent_id !== undefined) {
+      updateFields.push(`agent_id = $${paramIndex++}`);
+      values.push(agent_id);
+    }
+    if (title !== undefined) {
+      updateFields.push(`title = $${paramIndex++}`);
+      values.push(title || null);
+    }
+    if (description !== undefined) {
+      updateFields.push(`description = $${paramIndex++}`);
+      values.push(description || null);
+    }
+    if (planned_start_time !== undefined) {
+      updateFields.push(`planned_start_time = $${paramIndex++}`);
+      values.push(planned_start_time ? new Date(planned_start_time).toISOString() : null);
+    }
+    if (planned_end_time !== undefined) {
+      updateFields.push(`planned_end_time = $${paramIndex++}`);
+      values.push(planned_end_time ? new Date(planned_end_time).toISOString() : null);
+    }
+    if (start_time !== undefined) {
+      updateFields.push(`start_time = $${paramIndex++}`);
+      values.push(start_time ? new Date(start_time).toISOString() : null);
+    }
+    if (end_time !== undefined) {
+      updateFields.push(`end_time = $${paramIndex++}`);
+      values.push(end_time ? new Date(end_time).toISOString() : null);
+    }
+    if (estimated_hours !== undefined) {
+      updateFields.push(`estimated_hours = $${paramIndex++}`);
+      values.push(parseFloat(estimated_hours) || 0);
+    }
+    if (actual_minutes !== undefined) {
+      updateFields.push(`actual_minutes = $${paramIndex++}`);
+      values.push(parseInt(actual_minutes) || 0);
+    }
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
+    if (priority !== undefined) {
+      updateFields.push(`priority = $${paramIndex++}`);
+      values.push(priority);
+    }
+
+    // Always update updated_at
+    updateFields.push(`updated_at = $${paramIndex++}`);
+    values.push(new Date().toISOString());
+
+    // Add WHERE clause parameters
+    values.push(actionId, tenantId, ticketId);
+
+    if (updateFields.length === 1) { // Only 'updated_at' would be present if no other fields changed
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update"
+      });
+    }
+
+    const updateQuery = `
+      UPDATE "${schemaName}".ticket_internal_actions 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex++} AND tenant_id = $${paramIndex++} AND ticket_id = $${paramIndex++}
+      RETURNING *
+    `;
+
+    console.log('🔧 Update Query:', { updateQuery, values });
+
+    const result = await pool.query(updateQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to update internal action"
+      });
+    }
+
+    const updatedAction = result.rows[0];
+
+    console.log('✅ Internal Action Updated:', updatedAction);
+
+    return res.json({
+      success: true,
+      message: "Internal action updated successfully",
+      data: updatedAction
+    });
+
+  } catch (error: any) {
+    console.error('❌ Error updating internal action:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update internal action",
+      error: error.message
+    });
+  }
+});
+
+// Delete internal action
+ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Capturar dados da ação interna antes de excluir
+    const getActionQuery = `
+      SELECT * FROM "${schemaName}".ticket_internal_actions 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+
+    const actionResult = await pool.query(getActionQuery, [actionId, tenantId, ticketId]);
+
+    if (actionResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Internal action not found" 
+      });
+    }
+
+    const deletedAction = actionResult.rows[0];
+
+    // Criar entrada de auditoria no histórico
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
+      console.log('✅ [AUDIT-ACTION-DELETE] Dados de sessão para auditoria:', {
+        ip_address: ipAddress,
+        user_agent: userAgent?.substring(0, 50),
+        session_id: sessionId,
+        action_id: deletedAction.id
+      });
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+      `, [
+        tenantId,
+        ticketId,
+        'internal_action_deleted',
+        `Ação interna excluída: ${deletedAction.action_type || deletedAction.title}`,
+        userId,
+        req.user.name || 'Sistema',
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          action_id: deletedAction.id,
+          action_number: deletedAction.action_number,
+          action_type: deletedAction.action_type,
+          title: deletedAction.title,
+          description: deletedAction.description,
+          deleted_time: new Date().toISOString(),
+          // ✅ DADOS DE SESSÃO GARANTIDOS NO METADATA TAMBÉM
+          client_info: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId,
+            action_context: 'internal_action_deletion',
+            timestamp: new Date().toISOString()
+          },
+          session_backup: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId
+          }
+        })
+      ]);
+
+      console.log('✅ [AUDIT-ACTION-DELETE] Entrada de auditoria criada com dados de sessão completos');
+
+    } catch (auditError) {
+      console.error('❌ [AUDIT-ACTION-DELETE] Erro ao criar entrada de auditoria:', auditError);
+    }
+
+    // Excluir a ação interna
+    const deleteQuery = `
+      DELETE FROM "${schemaName}".ticket_internal_actions 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+
+    await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
+
+    res.json({
+      success: true,
+      message: "Internal action deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting internal action:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to delete internal action" 
+    });
+  }
+});
+
+// Update internal action (from ticket_internal_actions table only)
+ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const {
+      action_type,
+      title,
+      description,
+      assigned_to_id,
+      start_time,
+      end_time,
+      estimated_hours,
+      actual_hours,
+      status,
+      priority
+    } = req.body;
+
+    // Capturar dados antigos para auditoria
+    const getOldActionQuery = `
+      SELECT * FROM "${schemaName}".ticket_internal_actions 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+
+    const oldActionResult = await pool.query(getOldActionQuery, [actionId, tenantId, ticketId]);
+
+    if (oldActionResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Internal action not found" 
+      });
+    }
+
+    const oldAction = oldActionResult.rows[0];
+
+    // Update the action
+    const updateQuery = `
+      UPDATE "${schemaName}".ticket_internal_actions 
+      SET 
+        action_type = COALESCE($1, action_type),
+        title = COALESCE($2, title),
+        description = COALESCE($3, description),
+        agent_id = COALESCE($4::uuid, agent_id), -- corrected: assigned_to_id maps to agent_id
+        start_time = COALESCE($5::timestamp, start_time),
+        end_time = COALESCE($6::timestamp, end_time),
+        estimated_hours = COALESCE($7::numeric, estimated_hours),
+        actual_hours = COALESCE($8::numeric, actual_hours),
+        status = COALESCE($9, status),
+        priority = COALESCE($10, priority),
+        updated_at = NOW()
+      WHERE id = $11 AND tenant_id = $12 AND ticket_id = $13
+      RETURNING *
+    `;
+
+    const updateResult = await pool.query(updateQuery, [
+      action_type,
+      title,
+      description,
+      assigned_to_id, // This should map to agent_id
+      start_time,
+      end_time,
+      estimated_hours,
+      actual_hours,
+      status,
+      priority,
+      actionId,
+      tenantId,
+      ticketId
+    ]);
+
+    const updatedAction = updateResult.rows[0];
+
+    // Criar entrada de auditoria no histórico
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
+      // Detectar mudanças
+      const changes = [];
+      const fieldsToCheck = ['action_type', 'title', 'description', 'status', 'priority', 'agent_id', 'start_time', 'end_time', 'estimated_hours', 'actual_hours'];
+
+      for (const field of fieldsToCheck) {
+        if (oldAction[field] !== updatedAction[field]) {
+          changes.push({
+            field,
+            old_value: oldAction[field],
+            new_value: updatedAction[field]
+          });
+        }
+      }
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+      `, [
+        tenantId,
+        ticketId,
+        'internal_action_updated',
+        `Ação interna atualizada: ${updatedAction.action_type || updatedAction.title}`,
+        userId,
+        req.user.name || 'Sistema',
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          action_id: updatedAction.id,
+          action_number: updatedAction.action_number,
+          action_type: updatedAction.action_type,
+          title: updatedAction.title,
+          changes: changes,
+          updated_time: new Date().toISOString(),
+          // ✅ DADOS DE SESSÃO GARANTIDOS NO METADATA TAMBÉM
+          client_info: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId,
+            action_context: 'internal_action_update',
+            timestamp: new Date().toISOString()
+          },
+          session_backup: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId
+          }
+        })
+      ]);
+
+      console.log('✅ [AUDIT-ACTION-UPDATE] Entrada de auditoria criada com dados de sessão completos');
+
+    } catch (auditError) {
+      console.error('❌ [AUDIT-ACTION-UPDATE] Erro ao criar entrada de auditoria:', auditError);
+    }
+
+    res.json({
+      success: true,
+      data: updatedAction
+    });
+
+  } catch (error) {
+    console.error("Error updating internal action:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to update internal action" 
+    });
+  }
+});
+
+// ===== END INTERNAL ACTIONS CRUD =====
+
+// ===== TICKET RELATIONSHIPS =====
+
+// Get ticket relationships
+ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tr.id,
+        tr.source_ticket_id,
+        tr.target_ticket_id,
+        tr.relationship_type,
+        tr.description as relationship_description,
+        tr.created_at as relationship_created_at,
+        t.id as target_id,
+        t.number as target_number,
+        t.subject as target_subject,
+        t.status as target_status,
+        t.priority as target_priority,
+        t.created_at as target_created_at,
+        t.description as target_description
+      FROM "${schemaName}".ticket_relationships tr
+      LEFT JOIN "${schemaName}".tickets t ON tr.target_ticket_id = t.id
+      WHERE tr.tenant_id = $1::uuid 
+        AND (tr.source_ticket_id = $2::uuid OR tr.target_ticket_id = $2::uuid)
+      ORDER BY tr.created_at DESC
+    `;
+
+    const result = await pool.query(query, [tenantId, id]);
+
+    // Process relationships to ensure proper structure
+    const relationships = result.rows.map(row => ({
+      id: row.id,
+      relationshipType: row.relationship_type,
+      description: row.relationship_description,
+      createdAt: row.relationship_created_at,
+      targetTicket: {
+        id: row.target_id,
+        number: row.target_number,
+        subject: row.target_subject,
+        status: row.target_status,
+        priority: row.target_priority,
+        description: row.target_description,
+        createdAt: row.target_created_at
+      }
+    }));
+
+    res.json({
+      success: true,
+      data: relationships,
+      count: relationships.length
+    });
+
+  } catch (error) {
+    console.error("Error fetching ticket relationships:", error);
+    res.status(500).json({ message: "Failed to fetch ticket relationships" });
+  }
+});
+
+// Create ticket relationship
+ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id: sourceTicketId } = req.params;
+    const { targetTicketId, relationshipType, description } = req.body;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Verify both tickets exist
+    const ticketCheckQuery = `
+      SELECT id, number FROM "${schemaName}".tickets 
+      WHERE id IN ($1::uuid, $2::uuid) AND tenant_id = $3::uuid
+    `;
+
+    const ticketCheckResult = await pool.query(ticketCheckQuery, [sourceTicketId, targetTicketId, tenantId]);
+
+    if (ticketCheckResult.rows.length !== 2) {
+      return res.status(400).json({ message: "One or both tickets not found" });
+    }
+
+    // Create the relationship
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_relationships 
+      (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by)
+      VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3::uuid, $4, $5, $6::uuid)
+      RETURNING *
+    `;
+
+    const insertResult = await pool.query(insertQuery, [
+      tenantId,
+      sourceTicketId,
+      targetTicketId,
+      relationshipType,
+      description || '',
+      userId
+    ]);
+
+    const newRelationship = insertResult.rows[0];
+
+    // Create audit entry in ticket history
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
+      const targetTicket = ticketCheckResult.rows.find(t => t.id === targetTicketId);
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6, $7, $8, $9, NOW(), $10::jsonb)
+      `, [
+        tenantId,
+        sourceTicketId,
+        'relationship_created',
+        `Vínculo criado com ticket ${targetTicket?.number}: ${relationshipType}`,
+        userId,
+        req.user.name || 'Sistema',
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          relationship_id: newRelationship.id,
+          target_ticket_id: targetTicketId,
+          target_ticket_number: targetTicket?.number,
+          relationship_type: relationshipType,
+          description: description,
+          created_time: new Date().toISOString(),
+          // ✅ DADOS DE SESSÃO GARANTIDOS NO METADATA TAMBÉM
+          client_info: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId,
+            action_context: 'relationship_creation',
+            timestamp: new Date().toISOString()
+          },
+          session_backup: {
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            session_id: sessionId
+          }
+        })
+      ]);
+
+      console.log('✅ [AUDIT-RELATIONSHIP-CREATE] Entrada de auditoria criada com dados de sessão completos');
+
+    } catch (historyError) {
+      console.error('❌ Erro ao criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({
+      success: true,
+      data: newRelationship,
+      message: "Relationship created successfully"
+    });
+
+  } catch (error) {
+    console.error("Error creating ticket relationship:", error);
+    res.status(500).json({ message: "Failed to create ticket relationship" });
+  }
+});
+
+// Delete ticket relationship
+ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { relationshipId } = req.params;
+    const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Get relationship details before deletion for audit
+    const getRelationshipQuery = `
+      SELECT tr.source_ticket_id, tr.target_ticket_id, tr.relationship_type, tr.description,
+             source_ticket.number as source_number,
+             target_ticket.number as target_number
+      FROM "${schemaName}".ticket_relationships tr
+      LEFT JOIN "${schemaName}".tickets source_ticket ON tr.source_ticket_id = source_ticket.id
+      LEFT JOIN "${schemaName}".tickets target_ticket ON tr.target_ticket_id = target_ticket.id
+      WHERE tr.id = $1 AND tr.tenant_id = $2
+    `;
+    const relationshipResult = await pool.query(getRelationshipQuery, [relationshipId, tenantId]);
     const relationshipInfo = relationshipResult.rows[0];
 
     // Delete the relationship (hard delete since no is_active column)
