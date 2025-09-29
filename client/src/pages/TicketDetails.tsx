@@ -512,13 +512,13 @@ const TicketDetails = React.memo(() => {
 
       const templateId = ticket.templateId || ticket.template_id;
       const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
-      const data = await response.json();
-      return data;
+      return response.json();
     },
-    enabled: !!id && !!ticket && (!!ticket?.templateId || !!ticket?.template_id),
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-    gcTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    cacheTime: 0,      // não guarda cache em memória
+    staleTime: 0,      // nunca considera "fresco"
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
@@ -545,105 +545,126 @@ const TicketDetails = React.memo(() => {
   }, [usersData, teamUsers]);
 
   // 🔧 [1QA-COMPLIANCE] Dados processados diretamente das queries - Clean Architecture
-  const communicationsData = useMemo(() => {
-    if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
-      return ticketCommunications.data;
-    } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
-      return ticketCommunications.data;
-    } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
-      return ticketRelationships.communications;
-    }
-    return [];
-  }, [ticketCommunications, ticketRelationships]);
 
-  const attachmentsData = useMemo(() => {
-    if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
-      return ticketAttachments.data;
-    } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
-      return ticketAttachments.data;
-    } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
-      return ticketRelationships.attachments;
-    }
-    return [];
-  }, [ticketAttachments, ticketRelationships]);
+  const communicationsData =
+    ticketCommunications?.success && Array.isArray(ticketCommunications.data)
+      ? ticketCommunications.data
+      : ticketCommunications?.data && Array.isArray(ticketCommunications.data)
+      ? ticketCommunications.data
+      : ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)
+      ? ticketRelationships.communications
+      : [];
 
-  const notesData = useMemo(() => {
-    if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
-      return ticketNotes.data.map((note: any) => ({
-        ...note,
-        id: note.id || `note-${Date.now()}-${Math.random()}`,
-        createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
-        createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
-        createdAt: note.created_at || note.createdAt || new Date().toISOString(),
-        content: note.content || note.description || note.text || 'Sem conteúdo'
-      }));
-    } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
-      return ticketNotes.data.map((note: any) => ({
-        ...note,
-        id: note.id || `note-${Date.now()}-${Math.random()}`,
-        createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
-        createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
-        createdAt: note.created_at || note.createdAt || new Date().toISOString(),
-        content: note.content || note.description || note.text || 'Sem conteúdo'
-      }));
-    } else if (ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)) {
-      return ticketRelationships.notes;
-    }
-    return [];
-  }, [ticketNotes, ticketRelationships]);
+  const attachmentsData =
+    ticketAttachments?.success && Array.isArray(ticketAttachments.data)
+      ? ticketAttachments.data
+      : ticketAttachments?.data && Array.isArray(ticketAttachments.data)
+      ? ticketAttachments.data
+      : ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)
+      ? ticketRelationships.attachments
+      : [];
 
-  const internalActionsData = useMemo(() => {
-    if (ticketActions?.success && Array.isArray(ticketActions.data)) {
-      return ticketActions.data.map((action: any) => ({
-        ...action,
-        id: action.id || `action-${Date.now()}-${Math.random()}`,
-        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
-        actionType: action.action_type || action.actionType || action.type || 'Ação',
-        content: action.content || action.description || action.summary || 'Sem descrição',
-        is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
-        created_at: action.created_at || action.createdAt || new Date().toISOString(),
-        time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
-      }));
-    } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
-      return ticketActions.data.map((action: any) => ({
-        ...action,
-        id: action.id || `action-${Date.now()}-${Math.random()}`,
-        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
-        actionType: action.action_type || action.actionType || action.type || 'Ação',
-        content: action.content || action.description || action.summary || 'Sem descrição',
-        is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
-        created_at: action.created_at || action.createdAt || new Date().toISOString(),
-        time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
-      }));
-    }
-    return [];
-  }, [ticketActions]);
+  const notesData =
+    ticketNotes?.success && Array.isArray(ticketNotes.data)
+      ? ticketNotes.data.map((note: any) => ({
+          ...note,
+          id: note.id || `note-${Date.now()}-${Math.random()}`,
+          createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
+          createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
+          createdAt: note.created_at || note.createdAt || new Date().toISOString(),
+          content: note.content || note.description || note.text || 'Sem conteúdo',
+        }))
+      : ticketNotes?.data && Array.isArray(ticketNotes.data)
+      ? ticketNotes.data.map((note: any) => ({
+          ...note,
+          id: note.id || `note-${Date.now()}-${Math.random()}`,
+          createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
+          createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
+          createdAt: note.created_at || note.createdAt || new Date().toISOString(),
+          content: note.content || note.description || note.text || 'Sem conteúdo',
+        }))
+      : ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)
+      ? ticketRelationships.notes
+      : [];
 
-  const templateCustomFieldsData = useMemo(() => {
-    if (ticketTemplateCustomFields?.success && Array.isArray(ticketTemplateCustomFields.data)) {
-      return ticketTemplateCustomFields.data;
-    } else if (ticketTemplateCustomFields?.data && Array.isArray(ticketTemplateCustomFields.data)) {
-      return ticketTemplateCustomFields.data;
-    }
-    return [];
-  }, [ticketTemplateCustomFields]);
+  const internalActionsData =
+    ticketActions?.success && Array.isArray(ticketActions.data)
+      ? ticketActions.data.map((action: any) => ({
+          ...action,
+          id: action.id || `action-${Date.now()}-${Math.random()}`,
+          createdByName:
+            action.agent_name ||
+            action.created_by_name ||
+            action.createdByName ||
+            action.performed_by_name ||
+            'Sistema',
+          actionType: action.action_type || action.actionType || action.type || 'Ação',
+          content: action.content || action.description || action.summary || 'Sem descrição',
+          is_public:
+            action.is_public !== undefined
+              ? action.is_public
+              : action.isPublic !== undefined
+              ? action.isPublic
+              : false,
+          created_at: action.created_at || action.createdAt || new Date().toISOString(),
+          time_spent: action.time_spent || action.timeSpent || '0:00:00:00',
+        }))
+      : ticketActions?.data && Array.isArray(ticketActions.data)
+      ? ticketActions.data.map((action: any) => ({
+          ...action,
+          id: action.id || `action-${Date.now()}-${Math.random()}`,
+          createdByName:
+            action.agent_name ||
+            action.created_by_name ||
+            action.createdByName ||
+            action.performed_by_name ||
+            'Sistema',
+          actionType: action.action_type || action.actionType || action.type || 'Ação',
+          content: action.content || action.description || action.summary || 'Sem descrição',
+          is_public:
+            action.is_public !== undefined
+              ? action.is_public
+              : action.isPublic !== undefined
+              ? action.isPublic
+              : false,
+          created_at: action.created_at || action.createdAt || new Date().toISOString(),
+          time_spent: action.time_spent || action.timeSpent || '0:00:00:00',
+        }))
+      : [];
 
-  const relatedTicketsData = useMemo(() => {
-    if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
-      return ticketRelationships.data.map((relationship: any) => ({
-        id: relationship.relatedTicketId || relationship.targetTicketId || relationship.targetTicket?.id || relationship.id,
-        number: relationship.relatedTicketNumber || relationship.targetTicket?.number || relationship.number || 'N/A',
-        subject: relationship.relatedTicketSubject || relationship.targetTicket?.subject || relationship.subject || 'Ticket relacionado',
-        status: relationship.relatedTicketStatus || relationship.targetTicket?.status || relationship.status || 'unknown',
-        priority: relationship.targetTicket?.priority || relationship.priority || 'medium',
-        relationshipType: relationship.relationshipType || relationship.relationship_type || 'related',
-        description: relationship.description || '',
-        createdAt: relationship.createdAt || relationship.created_at || new Date().toISOString(),
-        targetTicket: relationship.targetTicket || {}
-      }));
-    }
-    return [];
-  }, [ticketRelationships]);
+  const templateCustomFieldsData = ticketTemplateCustomFields?.data?.customFields ?? [];
+
+  const relatedTicketsData =
+    ticketRelationships?.success && Array.isArray(ticketRelationships.data)
+      ? ticketRelationships.data.map((relationship: any) => ({
+          id:
+            relationship.relatedTicketId ||
+            relationship.targetTicketId ||
+            relationship.targetTicket?.id ||
+            relationship.id,
+          number:
+            relationship.relatedTicketNumber ||
+            relationship.targetTicket?.number ||
+            relationship.number ||
+            'N/A',
+          subject:
+            relationship.relatedTicketSubject ||
+            relationship.targetTicket?.subject ||
+            relationship.subject ||
+            'Ticket relacionado',
+          status:
+            relationship.relatedTicketStatus ||
+            relationship.targetTicket?.status ||
+            relationship.status ||
+            'unknown',
+          priority: relationship.targetTicket?.priority || relationship.priority || 'medium',
+          relationshipType: relationship.relationshipType || relationship.relationship_type || 'related',
+          description: relationship.description || '',
+          createdAt: relationship.createdAt || relationship.created_at || new Date().toISOString(),
+          targetTicket: relationship.targetTicket || {},
+        }))
+      : [];
+
 
   // ✅ [1QA-COMPLIANCE] Estado para história processada com dados de sessão
   const [processedHistoryData, setProcessedHistoryData] = useState<any[]>([]);
@@ -2951,7 +2972,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">🔧 Campos Customizados do Template</h2>
               <Badge variant="outline" className="text-xs">
-                {templateCustomFieldsData?.length || 0} campos configurados
+                {templateCustomFieldsData.length ?? 0} campos configurados
               </Badge>
             </div>
 
@@ -2962,7 +2983,7 @@ const TicketDetails = React.memo(() => {
                   <p className="text-sm text-gray-500">Carregando campos customizados...</p>
                 </div>
               </div>
-            ) : ticket?.templateId && templateCustomFieldsData.length > 0 ? (
+            ) : ticket?.template_id && templateCustomFieldsData.length > 0 ? (
               <div className="space-y-4">
                 {ticket?.templateId && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
