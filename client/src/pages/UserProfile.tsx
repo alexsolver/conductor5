@@ -42,7 +42,9 @@ import {
   AlertTriangle
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import type { UploadResult } from "@uppy/core";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -196,18 +198,18 @@ export default function UserProfile() {
     onSuccess: (data) => {
       console.log('[PHOTO-UPLOAD] Success:', data);
       const newAvatarUrl = data.data?.avatarURL || data.data?.avatar_url;
-
+      
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-
+      
       // ✅ CRITICAL FIX: Update both profile and header queries - seguindo 1qa.md
       queryClient.invalidateQueries({ 
         queryKey: ['/api/user/profile'],
         exact: true
       });
-
+      
       // ✅ Use setQueryData for immediate update without triggering auth refetch
       queryClient.setQueryData(['/api/user/profile'], (oldData: any) => {
         if (oldData) {
@@ -220,7 +222,7 @@ export default function UserProfile() {
         }
         return oldData;
       });
-
+      
       // ✅ Force header to refetch profile data for avatar update
       queryClient.refetchQueries({ 
         queryKey: ['/api/user/profile'],
@@ -295,30 +297,33 @@ export default function UserProfile() {
     },
   });
 
-  // Handle photo upload - simplified for development
+  // Handle photo upload
   const handlePhotoUpload = async () => {
-    console.log('[PHOTO-UPLOAD] Generating new avatar...');
-    const response = await apiRequest('POST', '/api/user/profile/photo/upload');
-    if (!response.ok) {
-      throw new Error(`Failed to generate avatar: ${response.status}`);
+    try {
+      const response = await apiRequest('POST', '/api/user/profile/photo/upload');
+      const data = await response.json();
+      return {
+        method: 'PUT' as const,
+        url: data.uploadURL,
+      };
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível obter URL de upload.",
+        variant: "destructive",
+      });
+      throw error;
     }
-    const data = await response.json();
-    console.log('[PHOTO-UPLOAD] Avatar generated:', data);
-
-    // Immediately update the avatar since no actual upload is needed
-    if (data.success && data.avatarURL) {
-      uploadPhotoMutation.mutate(data.avatarURL);
-    }
-
-    return data;
   };
 
-  const handlePhotoComplete = (result: any) => {
-    console.log('[PHOTO-UPLOAD] Avatar generation complete:', result);
-    // This is now handled in handlePhotoUpload
+  const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      if (uploadedFile.uploadURL) {
+        uploadPhotoMutation.mutate(uploadedFile.uploadURL as string);
+      }
+    }
   };
-
-
 
   // Handle password submit
   const onPasswordSubmit = (data: PasswordFormData) => {
@@ -366,13 +371,15 @@ export default function UserProfile() {
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <Button
-                onClick={handlePhotoUpload}
-                size="sm"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+              <ObjectUploader
+                maxNumberOfFiles={1}
+                maxFileSize={5242880} // 5MB
+                onGetUploadParameters={handlePhotoUpload}
+                onComplete={handlePhotoComplete}
+                buttonClassName="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
               >
                 <Camera className="h-4 w-4" />
-              </Button>
+              </ObjectUploader>
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
@@ -533,7 +540,7 @@ export default function UserProfile() {
                       )}
                     />
                   </div>
-
+                  
                   <FormField
                     control={form.control}
                     name="bio"
@@ -738,7 +745,7 @@ export default function UserProfile() {
                     </DialogContent>
                   </Dialog>
                 </div>
-
+                
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">Sessões Ativas</h4>
@@ -923,7 +930,7 @@ function PrivacyGdprTab() {
     enabled: true,
   });
 
-  // ✅ Fetch current privacy policy
+  // ✅ Fetch current privacy policy version
   const { data: privacyPolicy } = useQuery({
     queryKey: ['/api/gdpr-compliance/current-privacy-policy'],
     enabled: true,
@@ -974,7 +981,7 @@ function PrivacyGdprTab() {
 
   const preferences = (gdprPreferences as any)?.data || {};
   const policyData = (privacyPolicy as any)?.data || {};
-
+  
   // ✅ Buscar política ativa do admin - Seguindo 1qa.md
   const activePolicyFromAdmin = (adminPolicies as any)?.data?.find((policy: any) => policy.isActive) || 
                                 (adminPolicies as any)?.data?.[0] || {};
@@ -991,7 +998,7 @@ function PrivacyGdprTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-
+        
         {/* ✅ Política de Privacidade Atual */}
         <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
           <div className="flex items-center justify-between">
@@ -1021,7 +1028,7 @@ function PrivacyGdprTab() {
         {/* ✅ Gerenciar Consentimento */}
         <div className="space-y-4">
           <h4 className="font-medium">Gerenciar Consentimento</h4>
-
+          
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
@@ -1178,7 +1185,7 @@ function PrivacyGdprTab() {
         <Separator />
         <div className="space-y-4">
           <h4 className="font-medium">Histórico de Solicitações</h4>
-
+          
           {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
             <div className="space-y-2">
               {(dataRequests as any).data.map((request: any) => (
