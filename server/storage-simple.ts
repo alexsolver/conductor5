@@ -673,20 +673,19 @@ export class DatabaseStorage implements IStorage {
         tenantId: validatedTenantId,
       });
 
+      const now = new Date().toISOString();
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.tickets
-        (number, subject, description, status, priority, customer_id, caller_id, tenant_id, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.tickets (
+          tenant_id, ticket_number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id, assigned_to_id, company_id, beneficiary_id,
+          is_active, created_at, updated_at
+        )
         VALUES (
-          ${ticketNumber},
-          ${ticketData.subject},
-          ${ticketData.description || null},
-          ${ticketData.status || "new"},
-          ${ticketData.priority || "medium"},
-          ${customerId},
-          ${customerId},
-          ${validatedTenantId},
-          NOW(),
-          NOW()
+          ${tenantId}, ${ticketNumber}, ${ticketData.subject}, ${ticketData.description},
+          ${ticketData.status || "new"}, ${ticketData.priority || "medium"}, ${ticketData.urgency || null}, ${ticketData.impact || null},
+          ${ticketData.category || null}, ${ticketData.subcategory || null}, ${ticketData.caller_id || customerId},
+          ${ticketData.assigned_to_id || null}, ${ticketData.company_id || companyId}, ${ticketData.beneficiary_id || customerId},
+          ${ticketData.isActive !== false}, ${now}, ${now}
         )
         RETURNING *
       `);
