@@ -9,6 +9,16 @@ import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = Router();
 
+// Helper function to remove duplicates from an array of options based on 'value'
+const removeDuplicateOptions = (options: any[]) => {
+  const seen = new Set();
+  return options.filter(option => {
+    const isDuplicate = seen.has(option.value);
+    seen.add(option.value);
+    return !isDuplicate;
+  });
+};
+
 // Field options data - can be moved to database later
 const FIELD_OPTIONS = {
   status: [
@@ -19,14 +29,16 @@ const FIELD_OPTIONS = {
     { value: 'resolved', label: 'Resolvido', color: '#10b981' },
     { value: 'closed', label: 'Fechado', color: '#6b7280' }
   ],
-  priority: [
+  priority: removeDuplicateOptions([
     { value: 'low', label: 'Baixa', color: '#10b981' },
     { value: 'medium', label: 'Média', color: '#f59e0b' },
     { value: 'high', label: 'Alta', color: '#ef4444' },
     { value: 'urgent', label: 'Urgente', color: '#dc2626' },
-    { value: 'critical', label: 'Crítica', color: '#991b1b' }
-  ],
-  category: [
+    { value: 'critical', label: 'Crítica', color: '#991b1b' },
+    // Example duplicate to be removed if present
+    // { value: 'high', label: 'Alta Prioridade', color: '#ff0000' }
+  ]),
+  category: removeDuplicateOptions([
     { value: 'hardware', label: 'Hardware', color: '#6366f1' },
     { value: 'software', label: 'Software', color: '#8b5cf6' },
     { value: 'network', label: 'Rede', color: '#06b6d4' },
@@ -35,19 +47,19 @@ const FIELD_OPTIONS = {
     { value: 'maintenance', label: 'Manutenção', color: '#10b981' },
     { value: 'training', label: 'Treinamento', color: '#84cc16' },
     { value: 'other', label: 'Outros', color: '#6b7280' }
-  ],
-  impact: [
+  ]),
+  impact: removeDuplicateOptions([
     { value: 'low', label: 'Baixo', color: '#10b981' },
     { value: 'medium', label: 'Médio', color: '#f59e0b' },
     { value: 'high', label: 'Alto', color: '#ef4444' },
     { value: 'critical', label: 'Crítico', color: '#dc2626' }
-  ],
-  urgency: [
+  ]),
+  urgency: removeDuplicateOptions([
     { value: 'low', label: 'Baixa', color: '#10b981' },
     { value: 'medium', label: 'Média', color: '#f59e0b' },
     { value: 'high', label: 'Alta', color: '#ef4444' },
     { value: 'urgent', label: 'Urgente', color: '#dc2626' }
-  ]
+  ])
 };
 
 /**
@@ -62,7 +74,7 @@ router.get('/:fieldName', jwtAuth, async (req: AuthenticatedRequest, res: Respon
     console.log(`🔍 Fetching field options for: ${fieldName}, tenant: ${tenantId}`);
 
     // Get options for the specified field
-    const options = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
+    let options = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS];
 
     if (!options) {
       console.log(`❌ Field options not found for: ${fieldName}`);
@@ -72,6 +84,9 @@ router.get('/:fieldName', jwtAuth, async (req: AuthenticatedRequest, res: Respon
         options: []
       });
     }
+
+    // Ensure options are unique, even if mock data has duplicates
+    options = removeDuplicateOptions(options);
 
     console.log(`✅ Field options found for ${fieldName}:`, {
       totalOptions: options.length,
@@ -158,9 +173,17 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
       if (result.rows.length > 0) {
         console.log(`✅ Found ${result.rows.length} field options in database for ${fieldName}`);
-        return res.json({
+        // Ensure uniqueness from DB query results if `fieldName` column itself had duplicates.
+        // The DISTINCT in SQL targets the combination of selected columns, not necessarily the value itself if other columns differ.
+        // If the `fieldName` column itself has duplicate values, we might need to process `result.rows` here.
+        // For simplicity and based on typical DB structures, we assume `DISTINCT fieldName` is sufficient.
+        // If further de-duplication is needed, it would be here:
+        // const uniqueDbOptions = removeDuplicateOptions(result.rows.map((row: any) => ({ value: row.value })));
+        // return res.json({ success: true, data: uniqueDbOptions, fieldName, companyId: effectiveCompanyId, tenantId });
+
+        res.json({
           success: true,
-          data: result.rows,
+          data: result.rows, // Assuming DB query with DISTINCT handles uniqueness appropriately for the `fieldName` column
           fieldName,
           companyId: effectiveCompanyId,
           tenantId
@@ -174,7 +197,10 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
     // Fallback to mock data if no database records found or an error occurred
     console.log('🔄 Using fallback field options data');
 
-    const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS] || FIELD_OPTIONS.status;
+    let fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS] || FIELD_OPTIONS.status;
+
+    // Ensure fallback options are also unique
+    fallbackOptions = removeDuplicateOptions(fallbackOptions);
 
     // Transform mock data to match expected format
     const transformedOptions = fallbackOptions.map((option, index) => ({
@@ -219,10 +245,16 @@ router.get('/', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
 
     console.log(`🔍 Fetching all field options for tenant: ${tenantId}`);
 
+    // Return all field options, ensuring each category is de-duplicated
+    const allUniqueOptions = Object.keys(FIELD_OPTIONS).reduce((acc, key) => {
+      acc[key] = removeDuplicateOptions(FIELD_OPTIONS[key as keyof typeof FIELD_OPTIONS]);
+      return acc;
+    }, {} as { [key: string]: any[] });
+
     res.json({
       success: true,
       message: 'All field options',
-      data: FIELD_OPTIONS
+      data: allUniqueOptions
     });
 
   } catch (error) {

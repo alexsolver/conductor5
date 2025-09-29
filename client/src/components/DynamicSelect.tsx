@@ -165,21 +165,22 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem value="all">Todos</SelectItem>
         )}
         {fieldOptions.map((option, index) => {
-          // Generate truly unique key using multiple identifiers and timestamp
-          const uniqueKey = `${fieldName}-${index}-${option.id || 'no-id'}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          // Ensure option.value is not empty string
-          const optionValue = option.value || `option_${index}`;
+          // Generate truly unique key using field name, index, and option identifiers
+          const uniqueKey = `${fieldName}-${index}-${option.id || option.value || option.label || 'unknown'}-${index}`;
+          // Ensure option.value is not empty string and handle duplicates
+          const optionValue = option.value || option.option_value || option.display_label || `option_${index}`;
+          const optionLabel = option.label || option.display_label || option.name || optionValue;
 
           return (
             <SelectItem key={uniqueKey} value={optionValue}>
               <div className="flex items-center gap-2">
-                {option.color && (
+                {(option.color || option.color_hex) && (
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: option.color }}
+                    style={{ backgroundColor: option.color || option.color_hex }}
                   />
                 )}
-                <span className="truncate">{option.label}</span>
+                <span className="truncate">{optionLabel}</span>
               </div>
             </SelectItem>
           );
