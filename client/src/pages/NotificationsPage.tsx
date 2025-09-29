@@ -122,7 +122,7 @@ export default function NotificationsPage() {
   const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
   const [selectAllChecked, setSelectAllChecked] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
+  const previousNotificationIds = useState<Set<string>>(new Set())[0];
 
   // Form
   const form = useForm<CreateNotificationForm>({
@@ -377,6 +377,8 @@ export default function NotificationsPage() {
   // Play notification sound
   const playNotificationSound = () => {
     try {
+      console.log('🔊 [NOTIFICATION-SOUND] Attempting to play sound...');
+      
       // Create a simple beep sound using Web Audio API
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
@@ -393,21 +395,40 @@ export default function NotificationsPage() {
       
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
+      
+      console.log('✅ [NOTIFICATION-SOUND] Sound played successfully');
+      
+      // Also try browser notification if permission granted
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Nova notificação recebida', {
+          body: 'Você tem uma nova notificação',
+          icon: '/favicon.ico'
+        });
+      }
     } catch (error) {
-      console.error('Failed to play notification sound:', error);
+      console.error('❌ [NOTIFICATION-SOUND] Failed to play notification sound:', error);
     }
   };
 
   // Monitor for new notifications and play sound
   useEffect(() => {
-    if (notifications?.data?.total) {
-      const currentCount = notifications.data.total;
-      if (previousNotificationCount > 0 && currentCount > previousNotificationCount) {
+    if (notifications?.data?.notifications && Array.isArray(notifications.data.notifications)) {
+      const currentNotifications = notifications.data.notifications as Notification[];
+      const currentIds = new Set(currentNotifications.map(n => n.id));
+      
+      // Check for new notifications
+      const hasNewNotifications = currentNotifications.some(n => !previousNotificationIds.has(n.id));
+      
+      if (hasNewNotifications && previousNotificationIds.size > 0) {
+        console.log('🆕 [NOTIFICATION-SOUND] New notification detected, playing sound...');
         playNotificationSound();
       }
-      setPreviousNotificationCount(currentCount);
+      
+      // Update previous IDs
+      previousNotificationIds.clear();
+      currentIds.forEach(id => previousNotificationIds.add(id));
     }
-  }, [notifications?.data?.total]);
+  }, [notifications?.data?.notifications]);
 
   const handleDeleteSelected = () => {
     if (selectedNotifications.size === 0) {
