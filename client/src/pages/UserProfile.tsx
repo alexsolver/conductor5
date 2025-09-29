@@ -42,7 +42,10 @@ import {
   AlertTriangle,
   Trophy,
   Star,
-  BookOpen
+  BookOpen,
+  LogIn,
+  LogOut,
+  Plus
 } from "lucide-react";
 import NotificationPreferencesTab from '@/components/NotificationPreferencesTab';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -89,7 +92,7 @@ export default function UserProfile() {
   });
 
   // Fetch user activity
-  const { data: activity } = useQuery({
+  const { data: activity, isLoading: activityLoading } = useQuery({
     queryKey: ['/api/user/activity'],
     enabled: !!user,
   });
@@ -1042,37 +1045,168 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Activity Tab */}
-        <TabsContent value="activity">
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividade Recente</CardTitle>
-              <CardDescription>
-                Histórico das suas atividades no sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Array.isArray(activity) && activity.length > 0 ? (
-                  activity.map((item: any, index: number) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <div className="flex-shrink-0">
-                        <Activity className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{item.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(item.timestamp).toLocaleString('pt-BR')}
-                        </p>
-                      </div>
+        <TabsContent value="activity" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Atividade Recente</CardTitle>
+                  <CardDescription>Histórico de ações realizadas no sistema</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {activityLoading ? (
+                    <div className="space-y-4">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center space-x-3 p-3 rounded-lg border animate-pulse">
+                          <div className="h-4 w-4 bg-gray-200 rounded"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-8">Nenhuma atividade recente</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  ) : (
+                    <div className="space-y-4">
+                      {activity?.data?.length > 0 || activity?.length > 0 ? (
+                        (activity?.data || activity || []).map((item: any, index: number) => (
+                          <div key={item.id || index} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <div className="flex-shrink-0">
+                              {item.action?.includes('login') ? (
+                                <LogIn className="h-4 w-4 text-green-600" />
+                              ) : item.action?.includes('logout') ? (
+                                <LogOut className="h-4 w-4 text-red-600" />
+                              ) : item.action?.includes('update') || item.action?.includes('edit') ? (
+                                <Edit className="h-4 w-4 text-blue-600" />
+                              ) : item.action?.includes('create') ? (
+                                <Plus className="h-4 w-4 text-green-600" />
+                              ) : item.action?.includes('delete') ? (
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              ) : (
+                                <Activity className="h-4 w-4 text-blue-600" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {item.action || item.description || 'Ação realizada no sistema'}
+                              </p>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                                <Calendar className="h-3 w-3" />
+                                <span>
+                                  {item.timestamp ? 
+                                    new Date(item.timestamp).toLocaleString('pt-BR', {
+                                      day: '2-digit',
+                                      month: '2-digit', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    }) :
+                                    item.createdAt ? 
+                                      new Date(item.createdAt).toLocaleString('pt-BR', {
+                                        day: '2-digit',
+                                        month: '2-digit', 
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      }) :
+                                      item.performedAt ?
+                                        new Date(item.performedAt).toLocaleString('pt-BR', {
+                                          day: '2-digit',
+                                          month: '2-digit', 
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        }) :
+                                        'Data não disponível'
+                                  }
+                                </span>
+                                {item.ipAddress && (
+                                  <>
+                                    <span>•</span>
+                                    <span>IP: {item.ipAddress}</span>
+                                  </>
+                                )}
+                                {item.resource && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{item.resource}</span>
+                                  </>
+                                )}
+                              </div>
+                              {item.details && typeof item.details === 'object' && (
+                                <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                  {Object.entries(item.details).slice(0, 2).map(([key, value]) => (
+                                    <span key={key} className="inline-block mr-2">
+                                      {key}: {String(value)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {item.success !== undefined && (
+                              <div className="flex-shrink-0">
+                                <Badge variant={item.success ? "default" : "destructive"} className="text-xs">
+                                  {item.success ? "Sucesso" : "Falha"}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <Activity className="h-12 w-12 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                            Nenhuma atividade registrada
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                            Suas atividades recentes no sistema aparecerão aqui quando você realizar ações como login, edição de perfil, etc.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Activity Statistics - following 1qa.md patterns */}
+              {activity?.data?.length > 0 || activity?.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {activity?.data?.length || activity?.length || 0}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Total de Atividades
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-green-600">
+                        {activity?.data?.filter((a: any) => a.success !== false).length || 
+                         activity?.filter((a: any) => a.success !== false).length || 
+                         activity?.data?.length || activity?.length || 0}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Ações Bem-sucedidas
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {activity?.data?.filter((a: any) => a.action?.includes('login')).length || 
+                         activity?.filter((a: any) => a.action?.includes('login')).length || 0}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Total de Logins
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+            </TabsContent>
 
         {/* Privacy & GDPR/LGPD Tab - Seguindo 1qa.md */}
         <TabsContent value="privacy-gdpr">
