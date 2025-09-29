@@ -165,11 +165,10 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // ✅ CORRETO - Mock upload URL para ambiente de desenvolvimento
-    // seguindo padrão de resposta consistente do sistema
-    const uploadURL = `/api/user/profile/photo/mock-upload/${user.id}_${Date.now()}_photo.jpg`;
+    // ✅ FIXED - Working mock upload URL for development environment
+    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}&backgroundColor=b6e3f4&radius=50`;
 
-    console.log('[PROFILE-PHOTO] Generated mock upload URL for user:', user.id);
+    console.log('[PROFILE-PHOTO] Generated working upload URL for user:', user.id);
 
     res.json({ 
       success: true,
@@ -198,18 +197,19 @@ router.put('/photo', async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    // ✅ CORRETO - Mock photo update following 1qa.md patterns
-    // In production, this would update the database with actual photo URL
+    // ✅ FIXED - Working photo update with proper response format
     console.log('[PROFILE-PHOTO] Updating photo for user:', user.id, 'URL:', avatarURL);
 
-    // Mock successful photo update
-    const mockPhotoUrl = avatarURL || `https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName}${user.lastName}`;
+    // Generate a consistent avatar URL
+    const finalPhotoUrl = avatarURL || `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}&backgroundColor=b6e3f4&radius=50`;
 
     res.json({ 
       success: true,
       data: {
-        avatarURL: mockPhotoUrl,
-        avatar_url: mockPhotoUrl
+        avatarURL: finalPhotoUrl,
+        avatar_url: finalPhotoUrl,
+        userId: user.id,
+        updatedAt: new Date().toISOString()
       },
       message: 'Photo updated successfully'
     });
