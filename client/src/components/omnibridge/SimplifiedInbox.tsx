@@ -89,32 +89,93 @@ const MessageDetailsModal = ({ message, isOpen, onClose, onReply, onArchive }: a
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
               <ChannelIcon channelType={message.channelType} />
             </div>
             <div className={`w-3 h-3 rounded-full ${getStatusColor(message.status)}`}></div>
-            <DialogTitle>{message.subject || 'Sem Assunto'}</DialogTitle>
+            <DialogTitle className="flex-1">{message.subject || 'Sem Assunto'}</DialogTitle>
+            <Badge variant="outline" className="ml-auto">
+              {message.channelType}
+            </Badge>
           </div>
-          <DialogDescription className="mt-2">
-            De: {message.from} | Para: {message.to}
-          </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[calc(80vh_-_150px)] pr-2">
-          <div className={`p-4 border-l-4 ${getPriorityColor(message.priority)} rounded-md mb-4`}>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{message.content}</p>
+        <ScrollArea className="h-[calc(85vh_-_180px)] pr-4">
+          {/* Informações do remetente/destinatário */}
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 mb-4 space-y-2">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">De:</span>
+                <p className="text-gray-600 dark:text-gray-400">{message.from}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Para:</span>
+                <p className="text-gray-600 dark:text-gray-400">{message.to}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Status:</span>
+                <p className="text-gray-600 dark:text-gray-400 capitalize">{message.status}</p>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Prioridade:</span>
+                <p className="text-gray-600 dark:text-gray-400 capitalize">{message.priority || 'normal'}</p>
+              </div>
+            </div>
           </div>
-          <div className="text-xs text-gray-500 flex flex-col gap-1">
-            <span>Recebido em: {new Date(message.receivedAt).toLocaleString('pt-BR')}</span>
+
+          {/* Conteúdo da mensagem */}
+          <div className={`p-4 border-l-4 ${getPriorityColor(message.priority)} rounded-md mb-4 bg-white dark:bg-gray-800`}>
+            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{message.content}</p>
+          </div>
+
+          {/* Informações adicionais */}
+          <div className="space-y-3">
+            <div className="text-sm">
+              <span className="font-semibold text-gray-700 dark:text-gray-300">Recebido em:</span>
+              <p className="text-gray-600 dark:text-gray-400">{new Date(message.receivedAt).toLocaleString('pt-BR')}</p>
+            </div>
+
+            {message.sentAt && (
+              <div className="text-sm">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Enviado em:</span>
+                <p className="text-gray-600 dark:text-gray-400">{new Date(message.sentAt).toLocaleString('pt-BR')}</p>
+              </div>
+            )}
+
             {message.tags && message.tags.length > 0 && (
-              <div className="flex gap-1">
-                Tags: {message.tags.map((tag: string) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+              <div className="text-sm">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Tags:</span>
+                <div className="flex gap-1 mt-1 flex-wrap">
+                  {message.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {message.messageType && (
+              <div className="text-sm">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Tipo de Mensagem:</span>
+                <p className="text-gray-600 dark:text-gray-400 capitalize">{message.messageType}</p>
+              </div>
+            )}
+
+            {message.metadata && Object.keys(message.metadata).length > 0 && (
+              <div className="text-sm">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Metadados:</span>
+                <pre className="mt-1 p-2 bg-gray-100 dark:bg-gray-900 rounded text-xs overflow-x-auto">
+                  {JSON.stringify(message.metadata, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {message.id && (
+              <div className="text-xs text-gray-500">
+                <span className="font-semibold">ID:</span> {message.id}
               </div>
             )}
           </div>

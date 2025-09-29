@@ -374,6 +374,24 @@ export default function AutomationRuleBuilder({
     }
   }, [existingRule]);
 
+  // Pré-preencher mensagem da notificação com dados da mensagem recebida
+  useEffect(() => {
+    if (currentAction?.type === 'send_notification' && initialMessage && !actionConfig.message) {
+      const messageContent = `Nova mensagem recebida via ${initialMessage.channelType}
+
+De: ${initialMessage.from}
+${initialMessage.subject ? `Assunto: ${initialMessage.subject}` : ''}
+
+Mensagem:
+${initialMessage.content}
+
+---
+Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
+      
+      setActionConfig(prev => ({ ...prev, message: messageContent }));
+    }
+  }, [currentAction, initialMessage]);
+
   // Mutation para salvar regra
   const saveRuleMutation = useMutation({
     mutationFn: async (ruleData: AutomationRule) => {
