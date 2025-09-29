@@ -1493,41 +1493,43 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res: R
       });
     }
 
-    console.log('🔄 [COPY-HIERARCHY] Processing hierarchy copy request:', {
+    // Validate tenant ID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tenantId)) {
+      console.error(`❌ [COPY-HIERARCHY] Invalid tenant ID format: ${tenantId}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid tenant ID format',
+        details: `Received: ${tenantId}`
+      });
+    }
+
+    console.log(`🔄 [COPY-HIERARCHY] Starting copy process:`, {
       tenantId,
       sourceCompanyId,
       targetCompanyId,
-      userEmail,
-      schemaWillUse: `tenant_${tenantId.replace(/-/g, '_')}`
+      userFromToken: req.user?.id,
+      expectedSchema: `tenant_${tenantId.replace(/-/g, "_")}`
     });
 
-    try {
-      // Use TenantTemplateService to copy hierarchy within the same tenant
-      const result = await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
+    // Use the TenantTemplateService to copy hierarchy within the same tenant
+    const result = await TenantTemplateService.copyHierarchy(tenantId, sourceCompanyId, targetCompanyId);
 
-      console.log('✅ [COPY-HIERARCHY] Hierarchy copied successfully:', result);
+    console.log('✅ [COPY-HIERARCHY] Hierarchy copied successfully:', result);
 
-      res.json({
-        success: true,
-        message: 'Hierarchy copied successfully',
-        summary: result.summary || `Hierarquia copiada de ${sourceCompanyId} para ${targetCompanyId}`,
-        details: result.details
-      });
+    res.json({
+      success: true,
+      message: 'Hierarchy copied successfully',
+      summary: result.summary || `Hierarquia copiada de ${sourceCompanyId} para ${targetCompanyId}`,
+      details: result.details
+    });
 
-    } catch (error) {
-      console.error('❌ [COPY-HIERARCHY] Error copying hierarchy:', error);
-
-      res.status(500).json({
-        success: false,
-        message: 'Failed to copy hierarchy',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
   } catch (error) {
-    console.error('❌ Error copying hierarchy:', error);
+    console.error('❌ [COPY-HIERARCHY] Error copying hierarchy:', error);
+
     res.status(500).json({
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to copy hierarchy',
+      message: 'Failed to copy hierarchy',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }

@@ -554,7 +554,7 @@ export class TenantTemplateService {
   }
 
   /**
-   * Copia hierarquia de uma empresa para outra
+   * Copia hierarquia de uma empresa para outra.
    */
   static async copyHierarchy(
     tenantId: string,
@@ -2520,7 +2520,24 @@ export class TenantTemplateService {
   private static async ensureTicketConfigTables(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
-    console.log("🔧 [TENANT-TEMPLATE] Ensuring ticket config tables exist...");
+    console.log(`🔧 [TENANT-TEMPLATE] Ensuring ticket config tables exist in schema: ${schemaName} for tenant: ${tenantId}`);
+
+    // Validate that we're using the correct tenant ID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tenantId)) {
+      throw new Error(`Invalid tenant ID format: ${tenantId}. Expected UUID format.`);
+    }
+
+    // First, ensure the schema exists
+    try {
+      await db.execute(
+        sql`CREATE SCHEMA IF NOT EXISTS "${sql.raw(schemaName)}"`,
+      );
+      console.log(`✅ [TENANT-TEMPLATE] Schema ${schemaName} ensured for tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`❌ [TENANT-TEMPLATE] Error creating schema ${schemaName} for tenant ${tenantId}:`, error);
+      throw error;
+    }
 
     try {
       // Ensure ticket config tables exist
