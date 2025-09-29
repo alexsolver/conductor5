@@ -241,7 +241,7 @@ export default function NotificationPreferencesTab() {
 
   const handleTypeToggle = (typeId: string) => {
     if (!preferences) return;
-    
+
     const updatedPreferences = {
       ...preferences,
       preferences: {
@@ -255,19 +255,19 @@ export default function NotificationPreferencesTab() {
         }
       }
     };
-    
+
     setPreferences(updatedPreferences);
     setIsModified(true);
   };
 
   const handleChannelToggle = (typeId: string, channelId: string) => {
     if (!preferences) return;
-    
+
     const currentChannels = preferences.preferences.types[typeId]?.channels || [];
     const updatedChannels = currentChannels.includes(channelId)
       ? currentChannels.filter(ch => ch !== channelId)
       : [...currentChannels, channelId];
-    
+
     const updatedPreferences = {
       ...preferences,
       preferences: {
@@ -281,14 +281,14 @@ export default function NotificationPreferencesTab() {
         }
       }
     };
-    
+
     setPreferences(updatedPreferences);
     setIsModified(true);
   };
 
   const handleGlobalSettingToggle = (setting: string) => {
     if (!preferences?.preferences?.globalSettings) return;
-    
+
     const updatedPreferences = {
       ...preferences,
       preferences: {
@@ -299,7 +299,7 @@ export default function NotificationPreferencesTab() {
         }
       }
     };
-    
+
     setPreferences(updatedPreferences);
     setIsModified(true);
   };
@@ -307,7 +307,7 @@ export default function NotificationPreferencesTab() {
   // Handle global channel toggle - following 1qa.md patterns
   const handleGlobalChannelToggle = (channelId: string) => {
     if (!preferences?.preferences?.globalSettings?.globalChannels) return;
-    
+
     const updatedPreferences = {
       ...preferences,
       preferences: {
@@ -321,7 +321,7 @@ export default function NotificationPreferencesTab() {
         }
       }
     };
-    
+
     setPreferences(updatedPreferences);
     setIsModified(true);
   };
@@ -333,7 +333,7 @@ export default function NotificationPreferencesTab() {
 
   const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
     if (!preferences) return;
-    
+
     const updatedPreferences = {
       ...preferences,
       preferences: {
@@ -348,7 +348,7 @@ export default function NotificationPreferencesTab() {
         }
       }
     };
-    
+
     setPreferences(updatedPreferences);
     setIsModified(true);
   };
@@ -433,7 +433,7 @@ export default function NotificationPreferencesTab() {
             {NOTIFICATION_CHANNELS.map((channel) => {
               const IconComponent = channel.icon;
               const isEnabled = preferences?.preferences?.globalSettings?.globalChannels?.[channel.id] ?? true;
-              
+
               return (
                 <div
                   key={channel.id}
@@ -612,7 +612,7 @@ export default function NotificationPreferencesTab() {
       {/* Notification Types */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Tipos de Notificação</h3>
-        
+
         {NOTIFICATION_TYPES.map((type) => {
           const typePrefs = preferences?.preferences?.types?.[type.id];
           const isEnabled = typePrefs?.enabled || false;
@@ -652,7 +652,7 @@ export default function NotificationPreferencesTab() {
                         {NOTIFICATION_CHANNELS.map((channel) => {
                           const isSelected = selectedChannels.includes(channel.id);
                           const IconComponent = channel.icon;
-                          
+
                           return (
                             <div
                               key={channel.id}
@@ -712,3 +712,5 @@ export default function NotificationPreferencesTab() {
     </div>
   );
 }
+
+export default NotificationPreferencesTab;

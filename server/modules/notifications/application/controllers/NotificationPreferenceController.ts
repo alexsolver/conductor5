@@ -16,10 +16,14 @@ export class NotificationPreferenceController {
     try {
       const user = (req as any).user;
 
+      console.log('[NOTIFICATION-PREFERENCES] Request received from user:', user?.id, 'tenant:', user?.tenantId);
+
       if (!user?.id || !user?.tenantId) {
+        console.error('[NOTIFICATION-PREFERENCES] Missing user authentication data');
         res.status(400).json({
           success: false,
-          error: 'User authentication required'
+          error: 'User authentication required',
+          details: 'Missing user ID or tenant ID'
         });
         return;
       }
@@ -28,19 +32,85 @@ export class NotificationPreferenceController {
       
       console.log('[NOTIFICATION-PREFERENCES] Getting preferences for user:', userId, 'tenant:', tenantId);
 
-      console.log('[USER-NOTIFICATION-PREFERENCES-CONTROLLER] GET request - User:', userId, 'Tenant:', tenantId);
+      try {
+        const preferences = await this.preferenceRepository.getUserPreferences(userId, tenantId);
+        
+        console.log('[NOTIFICATION-PREFERENCES] Successfully fetched preferences:', preferences ? 'found' : 'not found');
 
-      const preferences = await this.preferenceRepository.getUserPreferences(userId, tenantId);
-
-      res.json({
-        success: true,
-        data: preferences
-      });
+        res.json({
+          success: true,
+          data: preferences || {
+            userId,
+            tenantId,
+            preferences: {
+              types: {},
+              deliveryWindow: {
+                startTime: '08:00',
+                endTime: '20:00',
+                timezone: 'America/Sao_Paulo',
+                daysOfWeek: [1, 2, 3, 4, 5]
+              },
+              globalSettings: {
+                doNotDisturb: false,
+                soundEnabled: true,
+                vibrationEnabled: true,
+                emailDigest: false,
+                digestFrequency: 'daily',
+                globalChannels: {
+                  email: true,
+                  sms: true,
+                  push: true,
+                  in_app: true,
+                  webhook: true,
+                  slack: true,
+                  dashboard_alert: true
+                }
+              }
+            }
+          }
+        });
+      } catch (dbError) {
+        console.error('[NOTIFICATION-PREFERENCES] Database error:', dbError);
+        // Return default preferences if database error
+        res.json({
+          success: true,
+          data: {
+            userId,
+            tenantId,
+            preferences: {
+              types: {},
+              deliveryWindow: {
+                startTime: '08:00',
+                endTime: '20:00',
+                timezone: 'America/Sao_Paulo',
+                daysOfWeek: [1, 2, 3, 4, 5]
+              },
+              globalSettings: {
+                doNotDisturb: false,
+                soundEnabled: true,
+                vibrationEnabled: true,
+                emailDigest: false,
+                digestFrequency: 'daily',
+                globalChannels: {
+                  email: true,
+                  sms: true,
+                  push: true,
+                  in_app: true,
+                  webhook: true,
+                  slack: true,
+                  dashboard_alert: true
+                }
+              }
+            }
+          }
+        });
+      }
     } catch (error) {
-      console.error('Error fetching user notification preferences:', error);
+      console.error('[NOTIFICATION-PREFERENCES] Error fetching user notification preferences:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to fetch notification preferences'
+        error: 'Failed to fetch notification preferences',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

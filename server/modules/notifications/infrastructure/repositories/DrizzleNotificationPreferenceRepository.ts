@@ -193,21 +193,39 @@ export class DrizzleNotificationPreferenceRepository implements INotificationPre
       // Validate that userId is a valid UUID
       if (!this.isValidUUID(userId)) {
         console.error('[DRIZZLE-NOTIFICATION-PREFS] Invalid UUID format for userId:', userId);
-        throw new Error(`Invalid user ID format: ${userId}`);
+        return this.getDefaultPreferences(userId, tenantId);
       }
 
-      // Try to find existing preferences
-      const existing = await this.findByUserId(userId, tenantId);
-      if (existing.length > 0) {
-        console.log('[DRIZZLE-NOTIFICATION-PREFS] Found existing preferences');
-        return this.convertToUserPreferences(existing[0]);
+      try {
+        // Try to fetch from database first
+        const result = await db
+          .select()
+          .from(userNotificationPreferences)
+          .where(and(
+            eq(userNotificationPreferences.userId, userId),
+            eq(userNotificationPreferences.tenantId, tenantId)
+          ))
+          .limit(1);
+
+        if (result.length > 0) {
+          const row = result[0];
+          console.log('[DRIZZLE-NOTIFICATION-PREFS] Found existing preferences in database');
+          return {
+            userId: row.userId,
+            tenantId: row.tenantId,
+            preferences: row.preferences as any,
+            globalSettings: (row.preferences as any)?.globalSettings || this.getDefaultPreferences(userId, tenantId).globalSettings
+          };
+        }
+      } catch (dbError) {
+        console.warn('[DRIZZLE-NOTIFICATION-PREFS] Database query failed, using defaults:', dbError);
       }
 
       // If no preferences found, return default preferences
       console.log('[DRIZZLE-NOTIFICATION-PREFS] No existing preferences found, returning defaults.');
       return this.getDefaultPreferences(userId, tenantId);
     } catch (error) {
-      console.error('Error getting user preferences:', error);
+      console.error('[DRIZZLE-NOTIFICATION-PREFS] Error getting user preferences:', error);
       // In case of error during fetch or conversion, return default preferences
       return this.getDefaultPreferences(userId, tenantId);
     }

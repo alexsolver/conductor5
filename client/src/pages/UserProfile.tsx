@@ -44,7 +44,7 @@ import {
   Star,
   BookOpen
 } from "lucide-react";
-import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
+import NotificationPreferencesTab from '@/components/NotificationPreferencesTab';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const profileSchema = z.object({
@@ -821,9 +821,15 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* Notifications Tab */}
-        <TabsContent value="notifications">
-          <NotificationPreferencesTab />
-        </TabsContent>
+        <TabsContent value="notifications" className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">Configurações de Notificação</h3>
+                <Badge variant="outline">Beta</Badge>
+              </div>
+              <NotificationPreferencesTab />
+            </div>
+          </TabsContent>
 
         {/* Security Tab */}
         <TabsContent value="security">
