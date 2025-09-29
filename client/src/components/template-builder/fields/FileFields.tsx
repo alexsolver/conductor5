@@ -9,7 +9,7 @@ import { Badge } from '../../ui/badge'
 import { Button } from '../../ui/button'
 import { Progress } from '../../ui/progress'
 import { Alert, AlertDescription } from '../../ui/alert'
-import { Upload, X, File, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, X, File, Image as ImageIcon, CheckCircle, AlertCircle, FileText } from 'lucide-react'
 import { FieldComponent } from '../DragDropCanvas'
 
 interface FileFieldProps {
