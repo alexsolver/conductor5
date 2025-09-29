@@ -83,8 +83,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const tenantDb = await this.getTenantDb(data.tenantId);
       
-      // ✅ 1QA.MD: Generate unique ID for autonomous workers
-      const entryId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // ✅ 1QA.MD: Generate proper UUID for database compatibility
+      const entryId = crypto.randomUUID();
       
       const entryData = {
         id: entryId,
