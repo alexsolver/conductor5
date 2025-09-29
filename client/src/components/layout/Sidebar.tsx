@@ -342,18 +342,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           <div className={`flex items-center transition-all duration-300 ${
             collapsed ? 'justify-center w-full' : ''
           }`}>
-            <div className={`bg-white rounded-lg flex items-center justify-center transition-all duration-300 ${
-              collapsed ? 'w-10 h-10' : 'w-8 h-8 mr-3'
-            }`}>
-              <Zap className={`text-purple-600 transition-all duration-300 ${
-                collapsed ? 'w-6 h-6' : 'w-5 h-5'
-              }`} />
-            </div>
-            {!collapsed && (
-              <h1 className="text-xl font-bold text-white transition-opacity duration-300">
-                {t('common.appName', 'Conductor')}
-              </h1>
-            )}
+            <img
+              src="/conductor-logo.svg"
+              alt="Conductor"
+              className={`object-contain transition-all duration-300 ${
+                collapsed ? 'h-10' : 'h-8'
+              }`}
+            />
           </div>
 
           {/* Toggle Button - Always visible and properly positioned */}
