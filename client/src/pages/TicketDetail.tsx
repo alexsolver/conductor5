@@ -152,6 +152,26 @@ export default function TicketDetail() {
     retry: false,
   });
 
+  // 🎯 [1QA-COMPLIANCE] Fetch hierarchical categories for proper first-level display
+  const { data: categoriesData } = useQuery({
+    queryKey: ["/api/ticket-hierarchy/categories"],
+    retry: false,
+  });
+
+  // Helper function to get first-level category display name
+  const getFirstLevelCategoryName = (categoryValue: string): string => {
+    if (!categoryValue || !categoriesData?.data) return categoryValue;
+    
+    // Find the category in the hierarchical data
+    const categories = categoriesData.data || [];
+    const foundCategory = categories.find((cat: any) => 
+      cat.code === categoryValue || cat.name === categoryValue || cat.id === categoryValue
+    );
+    
+    // Return the name of the first-level category
+    return foundCategory?.name || categoryValue;
+  };
+
   // 🎯 [1QA-COMPLIANCE] Debug company loading
   useEffect(() => {
     console.log('🎫 [TICKET-DEBUG] Current ticket data:', {
@@ -294,7 +314,7 @@ export default function TicketDetail() {
                   showIcon={false}
                   size="sm"
                 >
-                  {getFieldLabel('category', ticket.category)}
+                  {getFirstLevelCategoryName(ticket.category)}
                 </DynamicBadge>
               )}
               <SlaLedSimple ticketId={ticket.id} size="lg" />

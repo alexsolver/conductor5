@@ -105,7 +105,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       };
 
       const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(tenantSchema)}.tickets (
+        INSERT INTO ${sql.identifier(schemaName)}.tickets (
           tenant_id, number, subject, description, status, priority, urgency, impact,
           category, subcategory, caller_id, assigned_to_id, company_id, beneficiary_id,
           is_active, created_at, updated_at
@@ -321,32 +321,31 @@ export class DrizzleTicketRepository implements ITicketRepository {
         dataConditions.push(sql`(subject ILIKE ${`%${filters.search}%`} OR description ILIKE ${`%${filters.search}%`})`);
       }
 
-      const finalDataQuery = sql`
-        SELECT 
+      const sortBy = pagination.sortBy || 'createdAt';
+      const sortOrder = pagination.sortOrder || 'desc';
+
+      // Execute main query with JOINs for company, customer, and category data
+      const mainQuery = `
+        SELECT DISTINCT
           t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
           t.category, t.subcategory, t.caller_id as "callerId", t.assigned_to_id as "assignedToId",
           t.tenant_id as "tenantId", t.created_at as "createdAt", t.updated_at as "updatedAt",
           t.company_id as "companyId", t.beneficiary_id as "beneficiaryId", t.is_active as "isActive",
-
-          -- Company data for display
-          c.name as "company_name",
-          c.display_name as "company_display_name",
-
-          -- Customer/Caller data for display  
-          caller.first_name as "caller_first_name",
-          caller.last_name as "caller_last_name",
-          caller.email as "caller_email",
-          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name"
-
-        FROM ${sql.identifier(schemaName)}.tickets t
-        LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
+          c.name as "company_name", c.display_name as "company_display_name",
+          cust.first_name as "caller_first_name", cust.last_name as "caller_last_name", 
+          cust.email as "caller_email",
+          COALESCE(cust.first_name || ' ' || cust.last_name, cust.email, cust.name) as "caller_name",
+          tc.name as "categoryName"
+        FROM ${schemaName}.tickets t
+        LEFT JOIN ${schemaName}.companies c ON t.company_id = c.id
+        LEFT JOIN ${schemaName}.customers cust ON t.caller_id = cust.id
+        LEFT JOIN ${schemaName}.ticket_categories tc ON t.category = tc.code
         WHERE ${sql.join(dataConditions, sql` AND `)}
-        ORDER BY t.created_at DESC
+        ORDER BY t.${sortBy} ${sortOrder}
         LIMIT ${pagination.limit} OFFSET ${offset}
       `;
 
-      const results = await db.execute(finalDataQuery);
+      const results = await db.execute(sql.raw(mainQuery));
 
       console.log('✅ [DrizzleTicketRepository] Query successful:', {
         total,
@@ -563,26 +562,37 @@ export class DrizzleTicketRepository implements ITicketRepository {
   // ✅ CLEAN ARCHITECTURE - Private mapping method
   private mapToTicket(row: any): Ticket {
     return {
-      id: row.id || null,
-      number: row.number || null,
-      subject: row.subject || '',
-      description: row.description || '',
-      status: row.status || 'new',
-      priority: row.priority || 'medium',
+      id: row.id,
+      tenantId: row.tenantId,
+      number: row.number,
+      subject: row.subject,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
       urgency: row.urgency || 'medium',
       impact: row.impact || 'medium',
-      category: row.category || null,
-      subcategory: row.subcategory || null,
-      action: row.action || null,
-      callerId: row.callerId || null,
-      assignedToId: row.assignedToId || null,
-      tenantId: row.tenantId,
-      createdAt: row.createdAt || new Date(),
-      updatedAt: row.updatedAt || new Date(),
-      createdById: row.createdById || null,
-      updatedById: row.updatedById || null,
-      companyId: row.companyId || null,
-      isActive: row.isActive !== false
-    } as Ticket;
+      customerId: row.callerId,
+      beneficiaryId: row.beneficiaryId,
+      assignedToId: row.assignedToId,
+      companyId: row.companyId,
+      // 🎯 [1QA-COMPLIANCE] Use category name from hierarchy for first-level display
+      category: row.categoryName || row.category,
+      subcategory: row.subcategory,
+      action: row.action,
+      tags: row.tags ? (typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags) : [],
+      customFields: row.customFields ? (typeof row.customFields === 'string' ? JSON.parse(row.customFields) : row.customFields) : {},
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+      createdById: row.createdById,
+      updatedById: row.updatedById,
+      isActive: row.isActive !== false,
+      // 🎯 [1QA-COMPLIANCE] Include joined data from related tables
+      company_name: row.company_name,
+      company_display_name: row.company_display_name,
+      caller_name: row.caller_name,
+      caller_first_name: row.caller_first_name,
+      caller_last_name: row.caller_last_name,
+      caller_email: row.caller_email
+    };
   }
 }
