@@ -30,12 +30,17 @@ export function UserGroupSelect({
   const { data: groupsData, isLoading, error } = useQuery({
     queryKey: ["user-groups"],
     queryFn: async () => {
+      console.log('[UserGroupSelect] Fetching user groups...');
       const response = await apiRequest('GET', '/api/user-groups');
-      return response.json();
+      const data = await response.json();
+      console.log('[UserGroupSelect] Response:', data);
+      return data;
     },
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
+
+  console.log('[UserGroupSelect] Render state:', { isLoading, error: error?.message, groupsData });
 
   const handleSelectChange = (selectedValue: string) => {
     const callback = onChange || onValueChange;
@@ -53,22 +58,29 @@ export function UserGroupSelect({
     );
   }
 
-  if (error || !groupsData || !groupsData?.success || !groupsData?.groups) {
+  if (error) {
+    console.error('[UserGroupSelect] Error loading groups:', error);
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-sm text-destructive">Erro ao carregar grupos</span>
+        <span className="text-sm text-destructive">Erro ao carregar grupos: {error.message}</span>
+      </div>
+    );
+  }
+
+  if (!groupsData || !groupsData?.success || !groupsData?.groups) {
+    console.warn('[UserGroupSelect] Invalid data structure:', groupsData);
+    return (
+      <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
+        <AlertCircle className="w-4 h-4 text-destructive mr-2" />
+        <span className="text-sm text-destructive">Dados inválidos</span>
       </div>
     );
   }
 
   const activeGroups = groupsData?.groups?.filter((group: UserGroup) => group.isActive) || [];
 
-  // Debug logs
-  React.useEffect(() => {
-    console.log('[UserGroupSelect] Groups data:', groupsData);
-    console.log('[UserGroupSelect] Active groups:', activeGroups);
-  }, [groupsData, activeGroups]);
+  console.log('[UserGroupSelect] Active groups count:', activeGroups.length);
 
   if (activeGroups.length === 0) {
     return (

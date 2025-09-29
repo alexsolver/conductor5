@@ -9,7 +9,10 @@ const userGroupsRouter = Router();
 // Get user groups for assignment dropdown
 userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
+    console.log('🔍 [USER-GROUPS] GET / called. User:', req.user);
+    
     if (!req.user?.tenantId) {
+      console.log('❌ [USER-GROUPS] No tenant ID in request');
       return res.status(400).json({ error: 'Tenant ID required' });
     }
 
