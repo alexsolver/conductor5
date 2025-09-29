@@ -392,6 +392,11 @@ export default function NotificationsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Notifications & Alerts</h1>
           <p className="text-muted-foreground">
             Manage system notifications and alerts delivery
+            {notifications?.data?.total && (
+              <span className="ml-2 font-semibold text-primary">
+                ({notifications.data.total} total notifications)
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -403,6 +408,20 @@ export default function NotificationsPage() {
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             {processMutation.isPending ? 'Processing...' : 'Process Now'}
+          </Button>
+          <Button
+            onClick={() => {
+              if (notifications?.data?.notifications) {
+                const ids = notifications.data.notifications.map((n: Notification) => n.id);
+                deleteNotificationMutation.mutate(ids);
+              }
+            }}
+            disabled={deleteNotificationMutation.isPending || !notifications?.data?.notifications?.length}
+            variant="destructive"
+            data-testid="button-clear-page"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear This Page ({notifications?.data?.notifications?.length || 0})
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
