@@ -168,11 +168,11 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
 
     console.log('[PROFILE-PHOTO] Generating new avatar for user:', user.id);
 
-    // Generate a unique avatar URL using DiceBear API (completely bypasses Object Storage)
+    // Generate a unique avatar URL using DiceBear API (no Object Storage needed)
     const timestamp = Date.now();
-    const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs', 'micah', 'pixel-art'];
+    const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs'];
     const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-    const backgroundColors = ['b6e3f4', 'c084fc', 'fb7185', 'fbbf24', '34d399', 'f472b6', 'a78bfa', 'f59e0b'];
+    const backgroundColors = ['b6e3f4', 'c084fc', 'fb7185', 'fbbf24', '34d399', 'f472b6'];
     const randomColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
     
     const avatarURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=${randomColor}&radius=50&size=128`;

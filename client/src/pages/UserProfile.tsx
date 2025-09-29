@@ -196,18 +196,18 @@ export default function UserProfile() {
     onSuccess: (data) => {
       console.log('[PHOTO-UPLOAD] Success:', data);
       const newAvatarUrl = data.data?.avatarURL || data.data?.avatar_url;
-      
+
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      
+
       // ✅ CRITICAL FIX: Update both profile and header queries - seguindo 1qa.md
       queryClient.invalidateQueries({ 
         queryKey: ['/api/user/profile'],
         exact: true
       });
-      
+
       // ✅ Use setQueryData for immediate update without triggering auth refetch
       queryClient.setQueryData(['/api/user/profile'], (oldData: any) => {
         if (oldData) {
@@ -220,7 +220,7 @@ export default function UserProfile() {
         }
         return oldData;
       });
-      
+
       // ✅ Force header to refetch profile data for avatar update
       queryClient.refetchQueries({ 
         queryKey: ['/api/user/profile'],
@@ -297,36 +297,28 @@ export default function UserProfile() {
 
   // Handle photo upload - simplified for development
   const handlePhotoUpload = async () => {
-    try {
-      console.log('[PHOTO-UPLOAD] Starting photo upload request');
-      const response = await apiRequest('POST', '/api/user/profile/photo/upload');
-      if (!response.ok) {
-        console.error('[PHOTO-UPLOAD] Response not ok:', response.status);
-        throw new Error(`Upload URL request failed: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('[PHOTO-UPLOAD] Response data:', data);
-      
-      // Validate that we have a proper avatar URL
-      if (!data.success || !data.uploadURL) {
-        throw new Error('Invalid avatar URL response');
-      }
-      
-      // For development: directly use the generated avatar URL
-      console.log('[PHOTO-UPLOAD] Using avatar URL:', data.uploadURL);
-      uploadPhotoMutation.mutate(data.uploadURL);
-      
-    } catch (error) {
-      console.error('[PHOTO-UPLOAD] Error details:', error);
-      toast({
-        title: "Erro ao gerar avatar",
-        description: "Não foi possível gerar novo avatar.",
-        variant: "destructive",
-      });
+    console.log('[PHOTO-UPLOAD] Generating new avatar...');
+    const response = await apiRequest('POST', '/api/user/profile/photo/upload');
+    if (!response.ok) {
+      throw new Error(`Failed to generate avatar: ${response.status}`);
     }
+    const data = await response.json();
+    console.log('[PHOTO-UPLOAD] Avatar generated:', data);
+
+    // Immediately update the avatar since no actual upload is needed
+    if (data.success && data.avatarURL) {
+      uploadPhotoMutation.mutate(data.avatarURL);
+    }
+
+    return data;
   };
 
-  
+  const handlePhotoComplete = (result: any) => {
+    console.log('[PHOTO-UPLOAD] Avatar generation complete:', result);
+    // This is now handled in handlePhotoUpload
+  };
+
+
 
   // Handle password submit
   const onPasswordSubmit = (data: PasswordFormData) => {
@@ -541,7 +533,7 @@ export default function UserProfile() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="bio"
@@ -746,7 +738,7 @@ export default function UserProfile() {
                     </DialogContent>
                   </Dialog>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">Sessões Ativas</h4>
@@ -931,7 +923,7 @@ function PrivacyGdprTab() {
     enabled: true,
   });
 
-  // ✅ Fetch current privacy policy version
+  // ✅ Fetch current privacy policy
   const { data: privacyPolicy } = useQuery({
     queryKey: ['/api/gdpr-compliance/current-privacy-policy'],
     enabled: true,
@@ -982,7 +974,7 @@ function PrivacyGdprTab() {
 
   const preferences = (gdprPreferences as any)?.data || {};
   const policyData = (privacyPolicy as any)?.data || {};
-  
+
   // ✅ Buscar política ativa do admin - Seguindo 1qa.md
   const activePolicyFromAdmin = (adminPolicies as any)?.data?.find((policy: any) => policy.isActive) || 
                                 (adminPolicies as any)?.data?.[0] || {};
@@ -999,7 +991,7 @@ function PrivacyGdprTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        
+
         {/* ✅ Política de Privacidade Atual */}
         <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
           <div className="flex items-center justify-between">
@@ -1029,7 +1021,7 @@ function PrivacyGdprTab() {
         {/* ✅ Gerenciar Consentimento */}
         <div className="space-y-4">
           <h4 className="font-medium">Gerenciar Consentimento</h4>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
@@ -1186,7 +1178,7 @@ function PrivacyGdprTab() {
         <Separator />
         <div className="space-y-4">
           <h4 className="font-medium">Histórico de Solicitações</h4>
-          
+
           {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
             <div className="space-y-2">
               {(dataRequests as any).data.map((request: any) => (
