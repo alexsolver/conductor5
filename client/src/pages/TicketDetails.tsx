@@ -2978,8 +2978,12 @@ const TicketDetails = React.memo(() => {
                 <DynamicCustomFields
                   moduleType="tickets"
                   entityId={ticket?.id}
+                  values={ticket?.custom_fields || ticket?.customFields || {}}
+                  onChange={(fieldKey, value) => {
+                    // Handle custom field changes
+                    form.setValue(`customFields.${fieldKey}`, value);
+                  }}
                   readOnly={!isEditMode}
-                  className="bg-white border rounded-lg p-4"
                 />
 
                 {!isEditMode && (
