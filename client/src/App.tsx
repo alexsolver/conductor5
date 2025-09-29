@@ -22,7 +22,6 @@ import Beneficiaries from "./pages/Beneficiaries";
 
 import Analytics from "./pages/Analytics";
 import AutomationRules from "./pages/AutomationRules";
-import Compliance from "./pages/Compliance";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
 
@@ -179,7 +178,6 @@ function AppRouter() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/automation-rules" component={AutomationRules} />
         <Route path="/notifications" component={NotificationsPage} />
-        <Route path="/compliance" component={Compliance} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         {/* Unified Tenants Management Page */}
         <Route path="/tenants" component={Tenants} />
