@@ -13,7 +13,7 @@
 import { Router } from 'express';
 import { db } from '../../db.js';
 import { skills, userSkills, insertSkillSchema, sql } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, asc } from 'drizzle-orm';
 import { jwtAuth } from '../../middleware/jwtAuth.js';
 import { z } from 'zod';
 import type { Request, Response } from 'express';
@@ -310,6 +310,103 @@ router.delete('/skills/:id', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Erro ao desativar habilidade',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * ✅ 1QA.MD: Get user skills by user ID with proper tenant isolation
+ * GET /api/technical-skills/user-skills/user/:userId
+ */
+router.get('/user-skills/user/:userId', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const tenantId = user?.tenantId;
+    const { userId } = req.params;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID é obrigatório'
+      });
+    }
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID é obrigatório'
+      });
+    }
+
+    console.log(`[TECHNICAL-SKILLS] Getting user skills for user: ${userId} in tenant: ${tenantId}`);
+
+    // ✅ 1QA.MD: Query user skills with proper tenant isolation
+    const userSkillsData = await db.select({
+      id: userSkills.id,
+      userId: userSkills.userId,
+      skillId: userSkills.skillId,
+      proficiencyLevel: userSkills.proficiencyLevel,
+      yearsOfExperience: userSkills.yearsOfExperience,
+      certifications: userSkills.certifications,
+      notes: userSkills.notes,
+      createdAt: userSkills.createdAt,
+      updatedAt: userSkills.updatedAt,
+      skillName: skills.name,
+      skillCategory: skills.category,
+      skillLevel: skills.level,
+      skillDescription: skills.description
+    })
+    .from(userSkills)
+    .innerJoin(skills, eq(userSkills.skillId, skills.id))
+    .where(
+      and(
+        eq(userSkills.tenantId, tenantId),
+        eq(userSkills.userId, userId),
+        eq(userSkills.isActive, true),
+        eq(skills.isActive, true)
+      )
+    )
+    .orderBy(asc(skills.category), asc(skills.name));
+
+    console.log(`[TECHNICAL-SKILLS] Found ${userSkillsData.length} skills for user: ${userId}`);
+
+    // ✅ 1QA.MD: Format response following established patterns
+    const formattedSkills = userSkillsData.map(us => ({
+      id: us.id,
+      userId: us.userId,
+      skillId: us.skillId,
+      proficiencyLevel: us.proficiencyLevel,
+      yearsOfExperience: us.yearsOfExperience,
+      certifications: us.certifications,
+      notes: us.notes,
+      createdAt: us.createdAt,
+      updatedAt: us.updatedAt,
+      skill: {
+        id: us.skillId,
+        name: us.skillName,
+        category: us.skillCategory,
+        level: us.skillLevel,
+        description: us.skillDescription
+      },
+      // Backward compatibility fields
+      skillName: us.skillName,
+      skillCategory: us.skillCategory,
+      level: us.proficiencyLevel
+    }));
+
+    res.json({
+      success: true,
+      data: formattedSkills,
+      count: formattedSkills.length,
+      message: 'User skills retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[TECHNICAL-SKILLS] Error fetching user skills:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao buscar habilidades do usuário',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }

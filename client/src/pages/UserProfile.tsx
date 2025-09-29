@@ -39,7 +39,10 @@ import {
   Download,
   Trash2,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Trophy,
+  Star,
+  BookOpen
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -92,7 +95,7 @@ export default function UserProfile() {
   });
 
   // Fetch user skills
-  const { data: skills } = useQuery({
+  const { data: skills, isLoading: skillsLoading } = useQuery({
     queryKey: ['/api/user/skills'],
     enabled: !!user,
   });
@@ -196,18 +199,18 @@ export default function UserProfile() {
     onSuccess: (data) => {
       console.log('[PHOTO-UPLOAD] Success:', data);
       const newAvatarUrl = data.data?.avatarURL || data.data?.avatar_url;
-      
+
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
-      
+
       // ✅ CRITICAL FIX: Update both profile and header queries - seguindo 1qa.md
       queryClient.invalidateQueries({ 
         queryKey: ['/api/user/profile'],
         exact: true
       });
-      
+
       // ✅ Use setQueryData for immediate update without triggering auth refetch
       queryClient.setQueryData(['/api/user/profile'], (oldData: any) => {
         if (oldData) {
@@ -220,7 +223,7 @@ export default function UserProfile() {
         }
         return oldData;
       });
-      
+
       // ✅ Force header to refetch profile data for avatar update
       queryClient.refetchQueries({ 
         queryKey: ['/api/user/profile'],
@@ -339,7 +342,7 @@ export default function UserProfile() {
       }
 
       const data = await response.json();
-      
+
       // Update profile with the object path
       if (data.objectPath) {
         uploadPhotoMutation.mutate(data.objectPath);
@@ -377,6 +380,8 @@ export default function UserProfile() {
       </div>
     );
   }
+
+  const userSkills = (skills as any)?.data || [];
 
   return (
     <div className="p-4 space-y-6">
@@ -446,34 +451,36 @@ export default function UserProfile() {
 
       {/* Tabs Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="personal" className="flex items-center space-x-2">
-            <User className="h-4 w-4" />
-            <span>Pessoal</span>
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsTrigger value="personal" className="text-xs md:text-sm">
+            <User className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Pessoal</span>
+            <span className="sm:hidden">Info</span>
           </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center space-x-2">
-            <Award className="h-4 w-4" />
-            <span>Habilidades</span>
+          <TabsTrigger value="skills" className="text-xs md:text-sm">
+            <Award className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Habilidades</span>
+            <span className="sm:hidden">Skills</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center space-x-2">
-            <Bell className="h-4 w-4" />
-            <span>Notificações</span>
+          <TabsTrigger value="security" className="text-xs md:text-sm">
+            <Shield className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Segurança</span>
+            <span className="sm:hidden">Sec</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <span>Segurança</span>
+          <TabsTrigger value="preferences" className="text-xs md:text-sm">
+            <Settings className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Preferências</span>
+            <span className="sm:hidden">Pref</span>
           </TabsTrigger>
-          <TabsTrigger value="privacy-gdpr" className="flex items-center space-x-2">
-            <Lock className="h-4 w-4" />
-            <span>Privacidade & GDPR/LGPD</span>
+          <TabsTrigger value="activity" className="text-xs md:text-sm">
+            <Activity className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Atividade</span>
+            <span className="sm:hidden">Ativ</span>
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center space-x-2">
-            <Settings className="h-4 w-4" />
-            <span>Preferências</span>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center space-x-2">
-            <Activity className="h-4 w-4" />
-            <span>Atividade</span>
+          <TabsTrigger value="notifications" className="text-xs md:text-sm">
+            <Bell className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Notificações</span>
+            <span className="sm:hidden">Not</span>
           </TabsTrigger>
         </TabsList>
 
@@ -574,7 +581,7 @@ export default function UserProfile() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="bio"
@@ -658,34 +665,157 @@ export default function UserProfile() {
         <TabsContent value="skills">
           <Card>
             <CardHeader>
-              <CardTitle>Habilidades Técnicas</CardTitle>
+              <CardTitle className="flex items-center">
+                <Award className="h-5 w-5 mr-2" />
+                Minhas Habilidades Técnicas
+              </CardTitle>
               <CardDescription>
-                Visualize e gerencie suas habilidades e competências
+                Visualize suas habilidades técnicas configuradas e níveis de proficiência
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Suas habilidades técnicas serão exibidas aqui. Integração com o módulo de habilidades em desenvolvimento.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.isArray(skills) && skills.length > 0 ? (
-                    skills.map((skill: any) => (
-                      <div key={skill.id} className="p-4 border rounded-lg">
-                        <h4 className="font-medium">{skill.name}</h4>
-                        <p className="text-sm text-gray-600">{skill.category}</p>
-                        <div className="mt-2">
-                          <Badge variant={skill.level === 'expert' ? 'default' : 'secondary'}>
-                            {skill.level}
-                          </Badge>
+              {skillsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Carregando habilidades...</span>
+                </div>
+              ) : userSkills.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Skills Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                      <div className="flex items-center">
+                        <Trophy className="h-6 w-6 text-blue-600 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Total de Habilidades</p>
+                          <p className="text-2xl font-bold text-blue-600">{userSkills.length}</p>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">Nenhuma habilidade cadastrada</p>
-                  )}
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                      <div className="flex items-center">
+                        <Star className="h-6 w-6 text-green-600 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Nível Médio</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {userSkills.length > 0 
+                              ? (userSkills.reduce((sum, skill) => sum + (skill.level || skill.proficiencyLevel || 1), 0) / userSkills.length).toFixed(1)
+                              : '0'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                      <div className="flex items-center">
+                        <BookOpen className="h-6 w-6 text-purple-600 mr-2" />
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Categorias</p>
+                          <p className="text-2xl font-bold text-purple-600">
+                            {new Set(userSkills.map(skill => skill.skill?.category || skill.skillCategory)).size}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skills List */}
+                  <div className="space-y-3">
+                    {userSkills.map((userSkill) => {
+                      const skill = userSkill.skill || {};
+                      const skillName = skill.name || userSkill.skillName || 'Habilidade sem nome';
+                      const skillCategory = skill.category || userSkill.skillCategory || 'Categoria não definida';
+                      const proficiencyLevel = userSkill.level || userSkill.proficiencyLevel || 1;
+                      const yearsOfExperience = userSkill.yearsOfExperience || 0;
+
+                      // ✅ 1QA.MD: Proficiency level mapping following established patterns
+                      const getProficiencyInfo = (level) => {
+                        const levels = {
+                          1: { name: 'Básico', color: 'bg-gray-500', description: 'Conhecimento introdutório' },
+                          2: { name: 'Intermediário', color: 'bg-blue-500', description: 'Alguma autonomia' },
+                          3: { name: 'Avançado', color: 'bg-green-500', description: 'Executa com autonomia' },
+                          4: { name: 'Especialista', color: 'bg-yellow-500', description: 'Referência técnica' },
+                          5: { name: 'Excelência', color: 'bg-purple-500', description: 'Comprovada por resultados' },
+                          'beginner': { name: 'Iniciante', color: 'bg-gray-500', description: 'Conhecimento básico' },
+                          'intermediate': { name: 'Intermediário', color: 'bg-blue-500', description: 'Conhecimento moderado' },
+                          'advanced': { name: 'Avançado', color: 'bg-green-500', description: 'Conhecimento avançado' },
+                          'expert': { name: 'Especialista', color: 'bg-purple-500', description: 'Conhecimento especializado' }
+                        };
+                        return levels[level] || levels[1];
+                      };
+
+                      const proficiencyInfo = getProficiencyInfo(proficiencyLevel);
+
+                      return (
+                        <div key={userSkill.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <h3 className="font-semibold text-gray-900 dark:text-white">{skillName}</h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {skillCategory}
+                                </Badge>
+                              </div>
+
+                              <div className="mt-2 flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Nível:</span>
+                                  <Badge className={`text-xs text-white ${proficiencyInfo.color}`}>
+                                    {proficiencyInfo.name}
+                                  </Badge>
+                                </div>
+
+                                {yearsOfExperience > 0 && (
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Experiência:</span>
+                                    <span className="text-sm font-medium">{yearsOfExperience} anos</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {proficiencyInfo.description}
+                              </p>
+
+                              {userSkill.notes && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic">
+                                  "{userSkill.notes}"
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center space-x-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-4 w-4 ${
+                                    star <= (typeof proficiencyLevel === 'number' ? proficiencyLevel : 1)
+                                      ? 'text-yellow-400 fill-current'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    Nenhuma habilidade configurada
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Você ainda não possui habilidades técnicas configuradas no sistema.
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Entre em contato com seu administrador para configurar suas habilidades.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -779,7 +909,7 @@ export default function UserProfile() {
                     </DialogContent>
                   </Dialog>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">Sessões Ativas</h4>
@@ -1015,7 +1145,7 @@ function PrivacyGdprTab() {
 
   const preferences = (gdprPreferences as any)?.data || {};
   const policyData = (privacyPolicy as any)?.data || {};
-  
+
   // ✅ Buscar política ativa do admin - Seguindo 1qa.md
   const activePolicyFromAdmin = (adminPolicies as any)?.data?.find((policy: any) => policy.isActive) || 
                                 (adminPolicies as any)?.data?.[0] || {};
@@ -1032,7 +1162,7 @@ function PrivacyGdprTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        
+
         {/* ✅ Política de Privacidade Atual */}
         <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
           <div className="flex items-center justify-between">
@@ -1062,7 +1192,7 @@ function PrivacyGdprTab() {
         {/* ✅ Gerenciar Consentimento */}
         <div className="space-y-4">
           <h4 className="font-medium">Gerenciar Consentimento</h4>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
@@ -1219,7 +1349,7 @@ function PrivacyGdprTab() {
         <Separator />
         <div className="space-y-4">
           <h4 className="font-medium">Histórico de Solicitações</h4>
-          
+
           {(dataRequests as any)?.data && (dataRequests as any).data.length > 0 ? (
             <div className="space-y-2">
               {(dataRequests as any).data.map((request: any) => (
