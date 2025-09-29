@@ -166,26 +166,29 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // For development: Generate a unique avatar URL that works immediately
+    // Generate a unique avatar URL using DiceBear API (works without Object Storage)
     const timestamp = Date.now();
     const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs'];
     const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-    const uploadURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=random`;
+    const backgroundColors = ['b6e3f4', 'c084fc', 'fb7185', 'fbbf24', '34d399', 'f472b6'];
+    const randomColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
+    
+    const uploadURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=${randomColor}&radius=50`;
 
-    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id, 'URL:', uploadURL);
+    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id);
 
     res.json({ 
       success: true,
       uploadURL: uploadURL,
-      method: 'GET', // Since we're using a direct URL, not uploading
+      method: 'GET',
       message: 'Avatar URL generated successfully'
     });
   } catch (error) {
-    console.error('[PROFILE-PHOTO] Error getting upload URL:', error);
+    console.error('[PROFILE-PHOTO] Error generating avatar URL:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Failed to get upload URL',
-      error: error.message 
+      message: 'Failed to generate avatar URL',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
