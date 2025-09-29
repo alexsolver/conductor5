@@ -1,6 +1,5 @@
 
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,19 +26,43 @@ export function UserGroupSelect({
   placeholder = "Selecione um grupo",
   disabled = false
 }: UserGroupSelectProps) {
-  const { data: groupsData, isLoading, error } = useQuery({
-    queryKey: ["user-groups", Date.now()], // Unique key with timestamp to force fresh fetch
-    queryFn: async () => {
-      console.log('[UserGroupSelect] Fetching user groups...');
-      const response = await apiRequest('GET', '/api/user-groups');
-      const data = await response.json();
-      console.log('[UserGroupSelect] Response:', data);
-      return data;
-    },
-    retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 0, // No cache
-  });
+  const [groupsData, setGroupsData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchGroups() {
+      try {
+        console.log('[UserGroupSelect] Fetching user groups...');
+        setIsLoading(true);
+        const response = await apiRequest('GET', '/api/user-groups');
+        const data = await response.json();
+        console.log('[UserGroupSelect] Response:', data);
+        
+        if (isMounted) {
+          setGroupsData(data);
+          setError(null);
+        }
+      } catch (err) {
+        console.error('[UserGroupSelect] Error:', err);
+        if (isMounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchGroups();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   console.log('[UserGroupSelect] Render state:', { isLoading, error: error?.message, groupsData });
 
