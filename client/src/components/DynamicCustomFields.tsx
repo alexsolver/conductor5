@@ -84,10 +84,10 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   });
 
   useEffect(() => {
-    if (entityValues) {
-      setFieldValues(prev => ({ ...prev, ...entityValues }));
-    }
-  }, [entityValues]);
+    // Merge values from props and entityValues
+    const mergedValues = { ...values, ...entityValues };
+    setFieldValues(mergedValues);
+  }, [entityValues, values]);
 
   const handleFieldChange = (fieldId: string, value: any) => {
     const newValues = { ...fieldValues, [fieldId]: value };
@@ -99,7 +99,8 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   };
 
   const renderField = (field: CustomFieldMetadata) => {
-    const value = fieldValues[field.id];
+    // Try to get value by field.id first, then by field.fieldName
+    const value = fieldValues[field.id] || fieldValues[field.fieldName] || '';
     const fieldProps = {
       disabled: readOnly,
       required: field.isRequired
