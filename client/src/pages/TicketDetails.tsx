@@ -7,6 +7,9 @@ import { z } from "zod";
 import React from "react";
 import { format } from 'date-fns';
 
+// Import TemplateIcon for template-related fields
+import { FileTemplate as TemplateIcon } from "lucide-react";
+
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
@@ -465,8 +468,38 @@ const TicketDetails = React.memo(() => {
       const response = await apiRequest("GET", "/api/user-groups");
       return response;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes cache  
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
     refetchOnWindowFocus: false,
+  });
+
+  // ✅ Buscar template do ticket se ele tiver template_id
+  const { data: ticketTemplate, isLoading: isTemplateLoading } = useQuery({
+    queryKey: ['/api/ticket-templates', ticket?.templateId],
+    queryFn: async () => {
+      if (!ticket?.templateId) return null;
+      try {
+        const response = await apiRequest('GET', `/api/ticket-templates/${ticket.templateId}`);
+        return response.data || response;
+      } catch (error) {
+        console.error('Erro ao buscar template:', error);
+        return null;
+      }
+    },
+    enabled: !!ticket?.templateId
+  });
+
+
+  // ✅ 1QA.MD: Buscar campos customizados do módulo /custom-fields-admin
+  const { data: availableCustomFieldsResponse } = useQuery({
+    queryKey: ['/api/custom-fields/fields/tickets'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/custom-fields/fields/tickets');
+        return { success: true, data: response.data }; // 👈 pega só o array
+      } catch (error) {
+        return { success: false, data: [] };
+      }
+    }
   });
 
   // Fetch custom fields from ticket template
@@ -2922,25 +2955,25 @@ const TicketDetails = React.memo(() => {
               </Badge>
             </div>
 
-            {customFieldsLoading ? (
+            {customFieldsLoading || isTemplateLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
                   <p className="text-sm text-gray-500">Carregando campos customizados...</p>
                 </div>
               </div>
-            ) : templateCustomFieldsData && templateCustomFieldsData.length > 0 ? (
+            ) : ticket?.templateId && templateCustomFieldsData.length > 0 ? (
               <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FormInput className="h-4 w-4 text-blue-600" />
-                    <h3 className="font-medium text-blue-900">Campos do Template</h3>
+                {ticket?.templateId && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <TemplateIcon className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">
+                        Campos do Template: {ticketTemplate?.name || 'Carregando...'}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-sm text-blue-700">
-                    Estes campos foram configurados no template "{ticket?.templateName || 'Template atual'}"
-                    e são específicos para este tipo de ticket.
-                  </p>
-                </div>
+                )}
 
                 <DynamicCustomFields
                   moduleType="tickets"

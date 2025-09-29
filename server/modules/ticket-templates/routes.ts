@@ -71,6 +71,70 @@ router.put('/:id', async (req, res) => {
   await ticketTemplateController.updateTemplate(req as any, res);
 });
 
+// GET /api/ticket-templates/:id - Get specific template
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    if (!user?.tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const { schemaManager } = await import('../../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(user.tenantId);
+
+    const query = `
+      SELECT * FROM "${schemaName}".ticket_templates 
+      WHERE id = $1 AND tenant_id = $2 AND is_active = true
+    `;
+
+    const result = await pool.query(query, [id, user.tenantId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    const template = result.rows[0];
+
+    // Parse JSON fields
+    if (template.custom_fields) {
+      try {
+        template.customFields = JSON.parse(template.custom_fields);
+      } catch (e) {
+        template.customFields = [];
+      }
+    }
+
+    if (template.required_fields) {
+      try {
+        template.requiredFields = JSON.parse(template.required_fields);
+      } catch (e) {
+        template.requiredFields = [];
+      }
+    }
+
+    res.json({
+      success: true,
+      data: template
+    });
+
+  } catch (error: any) {
+    console.error('❌ [TEMPLATE-ROUTES] Error fetching template:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 // GET /api/ticket-templates/categories - Categorias disponíveis
 router.get('/categories', async (req, res) => {
   console.log('🎯 [ROUTES] GET /categories called');
