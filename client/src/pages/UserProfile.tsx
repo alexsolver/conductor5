@@ -398,18 +398,18 @@ export default function UserProfile() {
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-40 w-40">
                 <AvatarImage src={(profile as any)?.avatar || (profile as any)?.avatar_url || ""} />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-2xl">
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <label 
                 htmlFor="photo-upload" 
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center cursor-pointer"
+                className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full p-0 bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center cursor-pointer"
                 data-testid="button-upload-photo"
               >
-                <Camera className="h-4 w-4" />
+                <Camera className="h-3 w-3" />
                 <input
                   id="photo-upload"
                   type="file"
