@@ -10,6 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Helper function to safely format dates
+const safeFormatDate = (timestamp: any, formatStr: string = 'HH:mm:ss'): string => {
+  if (!timestamp) return '--:--:--';
+  
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '--:--:--';
+  
+  return format(date, formatStr);
+};
+
 /**
  * Timecard page specifically designed for Autonomous workers
  * Uses different terminology but same backend functionality as CLT timecard
@@ -140,7 +150,7 @@ export default function TimecardAutonomous() {
               </Badge>
               <span className="text-sm text-gray-600">
                 {timecardStatus?.lastAction && 
-                  `Última ação: ${format(new Date(timecardStatus.lastAction), 'HH:mm')}`
+                  `Última ação: ${safeFormatDate(timecardStatus.lastAction, 'HH:mm')}`
                 }
               </span>
             </div>
@@ -232,7 +242,7 @@ export default function TimecardAutonomous() {
                     </span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format(new Date(record.timestamp), 'HH:mm:ss')}
+                    {safeFormatDate(record.timestamp, 'HH:mm:ss')}
                   </div>
                 </div>
               ))}
