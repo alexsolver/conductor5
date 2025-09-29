@@ -234,6 +234,10 @@ const TicketConfiguration: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Estado para controlar o diálogo de copiar estrutura
+  const [copyStructureDialogOpen, setCopyStructureDialogOpen] = useState(false);
+  const [sourceCompanyForCopy, setSourceCompanyForCopy] = useState<string>("");
+
   // Forms
   const categoryForm = useForm({
     resolver: zodResolver(categorySchema),
@@ -720,66 +724,22 @@ const TicketConfiguration: React.FC = () => {
 
   // Mutation para copiar estrutura hierárquica
   const copyHierarchyMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest(
-        "POST",
-        "/api/ticket-config/copy-hierarchy",
-        {
-          sourceCompanyId: "00000000-0000-0000-0000-000000000001", // Default company
-          targetCompanyId: selectedCompany,
-        },
-      );
+    mutationFn: async (data: { sourceCompanyId: string; targetCompanyId: string }) => {
+      const response = await apiRequest('POST', '/api/ticket-config/copy-hierarchy', data);
       return response.json();
     },
-    onSuccess: async (result) => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ["categories", selectedCompany],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["subcategories", selectedCompany],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["actions", selectedCompany],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["field-options", selectedCompany],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["/api/ticket-config/numbering", selectedCompany],
-        }),
-      ]);
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: ["categories", selectedCompany],
-        }),
-        queryClient.refetchQueries({
-          queryKey: ["subcategories", selectedCompany],
-        }),
-        queryClient.refetchQueries({ queryKey: ["actions", selectedCompany] }),
-        queryClient.refetchQueries({
-          queryKey: ["field-options", selectedCompany],
-        }),
-        queryClient.refetchQueries({
-          queryKey: ["/api/ticket-config/numbering", selectedCompany],
-        }),
-      ]);
-
-      toast({
-        title: "Estrutura copiada com sucesso",
-        description: `${result.summary || "Toda a estrutura hierárquica foi copiada da empresa Default."}`,
-      });
-    },
-    onError: (error: any) => {
-      console.error("❌ Error copying hierarchy:", error);
-      toast({
-        title: "Erro ao copiar estrutura",
-        description:
-          error.message || "Não foi possível copiar a estrutura hierárquica.",
-        variant: "destructive",
-      });
-    },
+    onSuccess: () => {
+      // Revalida todas as queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ["categories", selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ["subcategories", selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ["actions", selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ["field-options", selectedCompany] });
+      setCopyStructureDialogOpen(false);
+      setSourceCompanyForCopy("");
+      toast({ title: "Estrutura copiada com sucesso" });
+    }
   });
+
 
   // ========================= HELPERS =========================
 
@@ -921,26 +881,17 @@ const TicketConfiguration: React.FC = () => {
                   </h4>
                   <p className="text-sm text-blue-700 mt-1">
                     Copie toda a estrutura hierárquica (categorias,
-                    subcategorias, ações e opções de campos) da empresa Default
+                    subcategorias, ações e opções de campos) de outra empresa
                     para esta empresa como ponto de partida.
                   </p>
                 </div>
                 <Button
-                  onClick={() => handleCopyHierarchy()}
-                  disabled={copyHierarchyMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setCopyStructureDialogOpen(true)}
+                  disabled={!selectedCompany}
+                  className="flex items-center gap-2"
                 >
-                  {copyHierarchyMutation.isPending ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Copiando...
-                    </>
-                  ) : (
-                    <>
-                      <FolderTree className="w-4 h-4 mr-2" />
-                      Copiar Estrutura
-                    </>
-                  )}
+                  <FolderTree className="h-4 w-4" />
+                  Copiar Estrutura
                 </Button>
               </div>
             )}
@@ -2032,21 +1983,67 @@ const TicketConfiguration: React.FC = () => {
         </Tabs>
       )}
 
-      {/* Dialog para criação/edição */}
+      {/* Diálogo de seleção de empresa para copiar estrutura */}
+      <Dialog open={copyStructureDialogOpen} onOpenChange={setCopyStructureDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Copiar Estrutura de Outra Empresa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Selecione a empresa de origem:</Label>
+              <Select value={sourceCompanyForCopy} onValueChange={setSourceCompanyForCopy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha uma empresa..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies
+                    .filter(company => company.id !== selectedCompany)
+                    .map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setCopyStructureDialogOpen(false);
+                  setSourceCompanyForCopy("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (sourceCompanyForCopy && selectedCompany) {
+                    copyHierarchyMutation.mutate({
+                      sourceCompanyId: sourceCompanyForCopy,
+                      targetCompanyId: selectedCompany
+                    });
+                  }
+                }}
+                disabled={!sourceCompanyForCopy || copyHierarchyMutation.isPending}
+              >
+                {copyHierarchyMutation.isPending ? "Copiando..." : "Copiar Estrutura"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de criação/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingItem?.type === "category" &&
-                (editingItem.id ? "Editar Categoria" : "Nova Categoria")}
-              {editingItem?.type === "subcategory" &&
-                (editingItem.id ? "Editar Subcategoria" : "Nova Subcategoria")}
-              {editingItem?.type === "action" &&
-                (editingItem.id ? "Editar Ação" : "Nova Ação")}
-              {editingItem?.type === "field-option" &&
-                (editingItem.id
-                  ? "Editar Opção de Campo"
-                  : "Nova Opção de Campo")}
+              {editingItem 
+                ? `Editar ${activeTab === 'hierarchy' ? 'Categoria' : activeTab === 'subcategories' ? 'Subcategoria' : activeTab === 'actions' ? 'Ação' : activeTab === 'classification' ? 'Opção de Campo' : 'Configuração'}`
+                : `Nova ${activeTab === 'hierarchy' ? 'Categoria' : activeTab === 'subcategories' ? 'Subcategoria' : activeTab === 'actions' ? 'Ação' : activeTab === 'classification' ? 'Opção de Campo' : 'Configuração'}`
+              }
             </DialogTitle>
           </DialogHeader>
 
