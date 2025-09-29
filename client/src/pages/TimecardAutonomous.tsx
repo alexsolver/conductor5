@@ -14,10 +14,34 @@ import { ptBR } from 'date-fns/locale';
 const safeFormatDate = (timestamp: any, formatStr: string = 'HH:mm:ss'): string => {
   if (!timestamp) return '--:--:--';
   
-  const date = new Date(timestamp);
-  if (isNaN(date.getTime())) return '--:--:--';
+  // ✅ 1QA.MD: Handle different timestamp formats from database
+  let date: Date;
   
-  return format(date, formatStr);
+  if (typeof timestamp === 'string') {
+    // Handle ISO string or other string formats
+    date = new Date(timestamp);
+  } else if (typeof timestamp === 'number') {
+    // Handle Unix timestamp
+    date = new Date(timestamp);
+  } else if (timestamp instanceof Date) {
+    // Already a Date object
+    date = timestamp;
+  } else {
+    return '--:--:--';
+  }
+  
+  // Validate the date
+  if (isNaN(date.getTime())) {
+    console.warn('[TIMECARD-AUTONOMOUS] Invalid timestamp:', timestamp);
+    return '--:--:--';
+  }
+  
+  try {
+    return format(date, formatStr);
+  } catch (error) {
+    console.warn('[TIMECARD-AUTONOMOUS] Date formatting error:', error);
+    return '--:--:--';
+  }
 };
 
 /**
@@ -225,27 +249,40 @@ export default function TimecardAutonomous() {
         <CardContent>
           {todayRecords?.records?.length > 0 ? (
             <div className="space-y-2">
-              {todayRecords.records.map((record: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      record.type === 'clock_in' ? 'bg-green-500' :
-                      record.type === 'clock_out' ? 'bg-red-500' :
-                      record.type === 'break_start' ? 'bg-yellow-500' :
-                      'bg-blue-500'
-                    }`} />
-                    <span className="font-medium">
-                      {record.type === 'clock_in' ? terminology.actionLabels.clockIn :
-                       record.type === 'clock_out' ? terminology.actionLabels.clockOut :
-                       record.type === 'break_start' ? terminology.actionLabels.break :
-                       terminology.actionLabels.return}
-                    </span>
+              {todayRecords.records.map((record: any, index: number) => {
+                // ✅ 1QA.MD: Map database fields to display format
+                const displayRecord = {
+                  type: record.check_in && !record.check_out ? 'clock_in' :
+                        record.check_out ? 'clock_out' :
+                        record.break_start ? 'break_start' :
+                        record.break_end ? 'break_end' : 'unknown',
+                  timestamp: record.check_out || record.check_in || record.break_start || record.break_end || record.created_at
+                };
+
+                return (
+                  <div key={record.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        displayRecord.type === 'clock_in' ? 'bg-green-500' :
+                        displayRecord.type === 'clock_out' ? 'bg-red-500' :
+                        displayRecord.type === 'break_start' ? 'bg-yellow-500' :
+                        displayRecord.type === 'break_end' ? 'bg-blue-500' :
+                        'bg-gray-500'
+                      }`} />
+                      <span className="font-medium">
+                        {displayRecord.type === 'clock_in' ? terminology.actionLabels.clockIn :
+                         displayRecord.type === 'clock_out' ? terminology.actionLabels.clockOut :
+                         displayRecord.type === 'break_start' ? terminology.actionLabels.break :
+                         displayRecord.type === 'break_end' ? terminology.actionLabels.return :
+                         'Registro'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {safeFormatDate(displayRecord.timestamp, 'HH:mm:ss')}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {safeFormatDate(record.timestamp, 'HH:mm:ss')}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">

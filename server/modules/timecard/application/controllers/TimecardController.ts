@@ -81,9 +81,21 @@ export class TimecardController {
         }
       }
 
+      // ✅ 1QA.MD: Ensure timestamps are properly formatted for frontend
+      const processedTodayRecords = todayRecords.map(record => ({
+        ...record,
+        // Ensure consistent timestamp fields
+        display_timestamp: record.check_out || record.check_in || record.break_start || record.break_end || record.created_at,
+        // Add type information for frontend display
+        entry_type: record.check_in && !record.check_out ? 'active_entry' :
+                   record.check_out ? 'complete_entry' :
+                   record.break_start && !record.break_end ? 'active_break' :
+                   'other'
+      }));
+
       const response = {
         status,
-        todayRecords,
+        todayRecords: processedTodayRecords,
         lastRecord,
         timesheet: {
           totalHours: this.calculateTotalHoursFromRecords(todayRecords)
