@@ -2996,23 +2996,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const { ObjectStorageService } = await import("./objectStorage");
-        const objectStorageService = new ObjectStorageService();
-
-        // Set ACL policy for uploaded photo
-        const objectPath =
-          await objectStorageService.trySetObjectEntityAclPolicy(avatarURL, {
-            owner: userId,
-            visibility: "public", // Profile photos should be public
-          });
-
         // Update user avatar in database following 1qa.md patterns
         const { schemaManager } = await import("./db");
         const pool = schemaManager.getPool();
-        const schemaName = schemaManager.getSchemaName(tenantId);
 
-        console.log("[PROFILE-PHOTO] Avatar upload completed:", {
-          objectPath,
+        console.log("[PROFILE-PHOTO] Avatar update requested:", {
+          avatarURL,
           userId,
           tenantId,
         });
@@ -3026,14 +3015,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SET avatar_url = $1, updated_at = NOW()
         WHERE id = $2 AND tenant_id = $3
       `,
-          [objectPath, userId, tenantId],
+          [avatarURL, userId, tenantId],
         );
 
         res.json({
           success: true,
           data: {
-            avatarURL: objectPath,
-            avatar_url: objectPath,
+            avatarURL: avatarURL,
+            avatar_url: avatarURL,
           },
           message: "Profile photo updated successfully",
         });
