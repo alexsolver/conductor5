@@ -42,9 +42,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
-import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { UploadResult } from "@uppy/core";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -297,31 +295,61 @@ export default function UserProfile() {
     },
   });
 
-  // Handle photo upload
-  const handlePhotoUpload = async () => {
+  // Handle direct photo upload
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "A foto deve ter no máximo 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo inválido",
+        description: "Por favor, selecione uma imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const response = await apiRequest('POST', '/api/user/profile/photo/upload');
+      // Upload file directly to backend
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/user/profile/photo/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+        headers: {
+          'x-tenant-id': user?.tenantId || '',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
       const data = await response.json();
-      return {
-        method: 'PUT' as const,
-        url: data.uploadURL,
-      };
+      
+      // Update profile with the object path
+      if (data.objectPath) {
+        uploadPhotoMutation.mutate(data.objectPath);
+      }
     } catch (error) {
       toast({
         title: "Erro no upload",
-        description: "Não foi possível obter URL de upload.",
+        description: "Não foi possível fazer upload da foto.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
-
-  const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      if (uploadedFile.uploadURL) {
-        uploadPhotoMutation.mutate(uploadedFile.uploadURL as string);
-      }
     }
   };
 
@@ -371,15 +399,21 @@ export default function UserProfile() {
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <ObjectUploader
-                maxNumberOfFiles={1}
-                maxFileSize={5242880} // 5MB
-                onGetUploadParameters={handlePhotoUpload}
-                onComplete={handlePhotoComplete}
-                buttonClassName="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+              <label 
+                htmlFor="photo-upload" 
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center cursor-pointer"
+                data-testid="button-upload-photo"
               >
                 <Camera className="h-4 w-4" />
-              </ObjectUploader>
+                <input
+                  id="photo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                  data-testid="input-photo-file"
+                />
+              </label>
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>

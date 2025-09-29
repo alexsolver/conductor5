@@ -2910,11 +2910,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // 📷 PROFILE PHOTO UPLOAD ROUTES - Following Object Storage + 1qa.md patterns
+  // 📷 PROFILE PHOTO UPLOAD ROUTES - Direct upload to bypass signed URL issues
+  const photoUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  });
+
   app.post(
     "/api/user/profile/photo/upload",
     jwtAuth,
-    async (req: AuthenticatedRequest, res) => {
+    photoUpload.single('file'),
+    async (req: any, res) => {
       try {
         const userId = req.user?.id;
         const tenantId = req.user?.tenantId;
@@ -2926,21 +2932,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const { ObjectStorageService } = await import("./objectStorage");
-        const objectStorageService = new ObjectStorageService();
-        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        if (!req.file) {
+          return res.status(400).json({
+            success: false,
+            message: "No file uploaded",
+          });
+        }
+
+        const { randomUUID } = await import("crypto");
+        const { objectStorageClient } = await import("./objectStorage");
+        
+        // Generate unique filename
+        const fileExt = req.file.originalname.split('.').pop() || 'jpg';
+        const objectId = randomUUID();
+        const objectName = `.private/uploads/${objectId}.${fileExt}`;
+        const bucketName = process.env.PRIVATE_OBJECT_DIR?.split('/')[1] || 'replit-objstore-80dfe158-e936-4dbc-af9b-c3cef85783b4';
+
+        // Upload directly to object storage
+        const bucket = objectStorageClient.bucket(bucketName);
+        const file = bucket.file(objectName);
+        
+        await file.save(req.file.buffer, {
+          metadata: {
+            contentType: req.file.mimetype,
+          },
+        });
+
+        // Set ACL to public
+        await file.setMetadata({
+          metadata: {
+            'acl-policy': JSON.stringify({
+              owner: userId,
+              visibility: 'public'
+            })
+          }
+        });
+
+        const objectPath = `/objects/uploads/${objectId}.${fileExt}`;
 
         res.json({
           success: true,
-          uploadURL,
+          objectPath,
         });
       } catch (error: any) {
-        console.error("[PROFILE-PHOTO] Error getting upload URL:", error);
-        console.error("[PROFILE-PHOTO] Error message:", error?.message);
-        console.error("[PROFILE-PHOTO] Error stack:", error?.stack);
+        console.error("[PROFILE-PHOTO] Error uploading photo:", error);
         res.status(500).json({
           success: false,
-          message: "Failed to get upload URL",
+          message: "Failed to upload photo",
           error: error?.message || "Unknown error",
         });
       }
