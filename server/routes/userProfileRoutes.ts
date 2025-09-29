@@ -166,20 +166,23 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // Generate a unique avatar URL using DiceBear API (works without Object Storage)
+    console.log('[PROFILE-PHOTO] Generating new avatar for user:', user.id);
+
+    // Generate a unique avatar URL using DiceBear API (completely bypasses Object Storage)
     const timestamp = Date.now();
-    const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs'];
+    const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs', 'micah', 'pixel-art'];
     const randomStyle = styles[Math.floor(Math.random() * styles.length)];
-    const backgroundColors = ['b6e3f4', 'c084fc', 'fb7185', 'fbbf24', '34d399', 'f472b6'];
+    const backgroundColors = ['b6e3f4', 'c084fc', 'fb7185', 'fbbf24', '34d399', 'f472b6', 'a78bfa', 'f59e0b'];
     const randomColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
     
-    const uploadURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=${randomColor}&radius=50`;
+    const avatarURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=${randomColor}&radius=50&size=128`;
 
-    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id);
+    console.log('[PROFILE-PHOTO] Successfully generated avatar URL:', avatarURL);
 
     res.json({ 
       success: true,
-      uploadURL: uploadURL,
+      uploadURL: avatarURL,
+      avatarURL: avatarURL,
       method: 'GET',
       message: 'Avatar URL generated successfully'
     });
