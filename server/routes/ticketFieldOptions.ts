@@ -102,13 +102,12 @@ router.get('/:fieldName', jwtAuth, async (req: AuthenticatedRequest, res: Respon
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { tenantId } = req.user!;
-    const { fieldName, companyId, customerId } = req.query;
+    const { fieldName, companyId } = req.query;
 
     console.log(`🔍 Fetching field options for ${fieldName}:`, {
       tenantId,
       companyId,
-      fieldName,
-      customerId
+      fieldName
     });
 
     // Import db connection
@@ -123,41 +122,27 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     // Try to get from ticket_field_options table first
     try {
-      // 🎯 [1QA-COMPLIANCE] Buscar field options do banco
-      let query = `
-      SELECT DISTINCT 
-        ${fieldName} as value,
-        ${fieldName} as label,
-        ${fieldName} as display_value
-      FROM "${schemaName}".ticket_field_options
-      WHERE tenant_id = $1 
-        AND field_name = $2
-        AND is_active = true
-        ${customerId ? 'AND (customer_id = $3 OR customer_id IS NULL)' : 'AND customer_id IS NULL'}
-    `;
-
-      // 🎯 [1QA-COMPLIANCE] Para categoria, filtrar apenas primeiro nível
-      if (fieldName === 'category') {
-        query += `
-        AND (${fieldName} NOT LIKE '%>%' 
-        AND ${fieldName} NOT LIKE '%-%' 
-        AND ${fieldName} NOT LIKE '%|%'
-        AND ${fieldName} NOT LIKE '%→%')
-      `;
-      }
-
-      query += ` ORDER BY ${fieldName}`;
-
-
-      const queryParams: (string | undefined | null)[] = [tenantId, fieldName];
-      if (customerId) {
-        queryParams.push(customerId as string);
-      }
-
-      const result = await db.execute(sql.raw(query), queryParams);
+      const result = await db.execute(sql`
+        SELECT 
+          id,
+          field_name,
+          value as option_value,
+          label as display_label,
+          color as color_hex,
+          sort_order,
+          active as is_active,
+          company_id,
+          created_at
+        FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+        WHERE tenant_id = ${tenantId} 
+        AND company_id = ${effectiveCompanyId} 
+        AND field_name = ${fieldName || 'status'}
+        AND active = true
+        ORDER BY sort_order ASC, label ASC
+      `);
 
       if (result.rows.length > 0) {
-        console.log(`✅ Found ${result.rows.length} field options in database for ${fieldName}`);
+        console.log(`✅ Found ${result.rows.length} field options in database`);
         return res.json({
           success: true,
           data: result.rows,
@@ -167,15 +152,14 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
         });
       }
     } catch (dbError) {
-      console.log('⚠️ ticket_field_options table not found or error querying, using fallback');
-      console.error('Database query error:', dbError);
+      console.log('⚠️ ticket_field_options table not found, using fallback');
     }
 
-    // Fallback to mock data if no database records found or an error occurred
+    // Fallback to mock data if no database records found
     console.log('🔄 Using fallback field options data');
-
+    
     const fallbackOptions = FIELD_OPTIONS[fieldName as keyof typeof FIELD_OPTIONS] || FIELD_OPTIONS.status;
-
+    
     // Transform mock data to match expected format
     const transformedOptions = fallbackOptions.map((option, index) => ({
       id: `mock_${index}`,

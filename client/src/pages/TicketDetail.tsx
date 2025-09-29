@@ -293,7 +293,6 @@ export default function TicketDetail() {
                   value={ticket.category}
                   showIcon={false}
                   size="sm"
-                  hierarchyLevel="category"
                 >
                   {getFieldLabel('category', ticket.category)}
                 </DynamicBadge>
