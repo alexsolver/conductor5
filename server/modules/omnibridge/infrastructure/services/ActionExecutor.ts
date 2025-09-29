@@ -831,7 +831,24 @@ export class ActionExecutor implements IActionExecutorPort {
                      (typeof rawGroups === 'string' && rawGroups.trim()) ? rawGroups.split(',').map(g => g.trim()) : [];
       
       const subject = params.subject || config.subject || config.title || 'OmniBridge Automation Notification';
-      const message = params.message || config.message || `Automation rule "${context.ruleName}" was triggered by a message from ${context.messageData.from || 'unknown sender'}`;
+      
+      // Combinar mensagem configurada com a mensagem original recebida
+      const configuredMessage = params.message || config.message || '';
+      const originalMessage = context.messageData.content || context.messageData.body || '';
+      const messageFrom = context.messageData.from || context.messageData.sender || 'remetente desconhecido';
+      const messageChannel = context.messageData.channelType || context.messageData.channel || 'canal desconhecido';
+      
+      let message = configuredMessage;
+      if (originalMessage) {
+        // Se houver mensagem configurada, adicionar a original como contexto
+        if (configuredMessage) {
+          message = `${configuredMessage}\n\n---\nMensagem Original (${messageChannel}):\nDe: ${messageFrom}\n\n${originalMessage}`;
+        } else {
+          // Se não houver mensagem configurada, usar apenas a original
+          message = `Nova mensagem recebida via ${messageChannel}\n\nDe: ${messageFrom}\n\n${originalMessage}`;
+        }
+      }
+      
       const channels = params.channels || config.channels || ['in_app'];
       const priority = params.priority || config.priority || 'medium';
 

@@ -90,8 +90,9 @@ const createNotificationSchema = z.object({
 type CreateNotificationForm = z.infer<typeof createNotificationSchema>;
 
 // Severity color mapping
-const severityColors = {
+const severityColors: Record<string, string> = {
   low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  normal: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
   medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
   high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
   critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
@@ -1001,10 +1002,10 @@ export default function NotificationsPage() {
             <div className="space-y-4">
               {/* Badges */}
               <div className="flex gap-2">
-                <Badge className={severityColors[selectedNotification.severity]}>
+                <Badge className={severityColors[selectedNotification.severity] || severityColors.normal}>
                   {selectedNotification.severity.toUpperCase()}
                 </Badge>
-                <Badge className={statusColors[selectedNotification.status]}>
+                <Badge className={statusColors[selectedNotification.status] || statusColors.pending}>
                   {selectedNotification.status.toUpperCase()}
                 </Badge>
                 {selectedNotification.requiresEscalation && (
