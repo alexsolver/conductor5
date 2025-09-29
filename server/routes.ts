@@ -2910,7 +2910,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // 📷 PROFILE PHOTO UPLOAD ROUTES - Direct upload to bypass signed URL issues
+  // 📷 PROFILE PHOTO UPLOAD ROUTES - Local filesystem fallback
+  const fs = await import("fs/promises");
+  const path = await import("path");
+  
+  // Ensure uploads directory exists
+  const uploadsDir = path.join(process.cwd(), 'uploads', 'avatars');
+  await fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
+
   const photoUpload = multer({ 
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
@@ -2940,35 +2947,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const { randomUUID } = await import("crypto");
-        const { objectStorageClient } = await import("./objectStorage");
         
         // Generate unique filename
         const fileExt = req.file.originalname.split('.').pop() || 'jpg';
         const objectId = randomUUID();
-        const objectName = `.private/uploads/${objectId}.${fileExt}`;
-        const bucketName = process.env.PRIVATE_OBJECT_DIR?.split('/')[1] || 'replit-objstore-80dfe158-e936-4dbc-af9b-c3cef85783b4';
+        const filename = `${objectId}.${fileExt}`;
+        const filePath = path.join(uploadsDir, filename);
 
-        // Upload directly to object storage
-        const bucket = objectStorageClient.bucket(bucketName);
-        const file = bucket.file(objectName);
-        
-        await file.save(req.file.buffer, {
-          metadata: {
-            contentType: req.file.mimetype,
-          },
-        });
+        // Save file to local filesystem
+        await fs.writeFile(filePath, req.file.buffer);
 
-        // Set ACL to public
-        await file.setMetadata({
-          metadata: {
-            'acl-policy': JSON.stringify({
-              owner: userId,
-              visibility: 'public'
-            })
-          }
-        });
+        const objectPath = `/uploads/avatars/${filename}`;
 
-        const objectPath = `/objects/uploads/${objectId}.${fileExt}`;
+        console.log('[PROFILE-PHOTO] Photo saved to local filesystem:', objectPath);
 
         res.json({
           success: true,
@@ -2984,6 +2975,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // Serve uploaded avatar files
+  const express = await import("express");
+  app.use('/uploads', express.default.static(path.join(process.cwd(), 'uploads')));
 
   app.put(
     "/api/user/profile/photo",
