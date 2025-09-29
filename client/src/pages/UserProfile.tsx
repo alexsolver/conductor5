@@ -42,9 +42,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import NotificationPreferencesTab from "@/components/NotificationPreferencesTab";
-import { ObjectUploader } from "@/components/ObjectUploader";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { UploadResult } from "@uppy/core";
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -300,11 +298,14 @@ export default function UserProfile() {
   // Handle photo upload - simplified for development
   const handlePhotoUpload = async () => {
     try {
+      console.log('[PHOTO-UPLOAD] Starting photo upload request');
       const response = await apiRequest('POST', '/api/user/profile/photo/upload');
       if (!response.ok) {
+        console.error('[PHOTO-UPLOAD] Response not ok:', response.status);
         throw new Error(`Upload URL request failed: ${response.status}`);
       }
       const data = await response.json();
+      console.log('[PHOTO-UPLOAD] Response data:', data);
       
       // Validate that we have a proper avatar URL
       if (!data.success || !data.uploadURL) {
@@ -312,48 +313,20 @@ export default function UserProfile() {
       }
       
       // For development: directly use the generated avatar URL
+      console.log('[PHOTO-UPLOAD] Using avatar URL:', data.uploadURL);
       uploadPhotoMutation.mutate(data.uploadURL);
       
-      return null; // Don't proceed with actual file upload
     } catch (error) {
-      console.error('[PHOTO-UPLOAD] Error getting avatar URL:', error);
+      console.error('[PHOTO-UPLOAD] Error details:', error);
       toast({
         title: "Erro ao gerar avatar",
         description: "Não foi possível gerar novo avatar.",
         variant: "destructive",
       });
-      throw error;
     }
   };
 
-  const handlePhotoComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    console.log('[PHOTO-UPLOAD] Upload complete:', result);
-    
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      
-      // For mock environment, use the upload URL as the final avatar URL
-      const avatarURL = uploadedFile.uploadURL || uploadedFile.source;
-      
-      if (avatarURL) {
-        uploadPhotoMutation.mutate(avatarURL as string);
-      } else {
-        console.error('[PHOTO-UPLOAD] No valid URL found in upload result');
-        toast({
-          title: "Erro no upload",
-          description: "Não foi possível processar o upload da foto.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      console.error('[PHOTO-UPLOAD] Upload failed or no successful uploads');
-      toast({
-        title: "Erro no upload",
-        description: "O upload da foto falhou.",
-        variant: "destructive",
-      });
-    }
-  };
+  
 
   // Handle password submit
   const onPasswordSubmit = (data: PasswordFormData) => {

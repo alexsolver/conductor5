@@ -159,6 +159,7 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
     const user = req.user;
     
     if (!user) {
+      console.log('[PROFILE-PHOTO] User not authenticated');
       return res.status(401).json({ 
         success: false,
         message: 'User not authenticated' 
@@ -167,9 +168,11 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
 
     // For development: Generate a unique avatar URL that works immediately
     const timestamp = Date.now();
-    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}-${timestamp}&backgroundColor=random&radius=50`;
+    const styles = ['avataaars', 'personas', 'initials', 'shapes', 'thumbs'];
+    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+    const uploadURL = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${user.id}-${timestamp}&backgroundColor=random`;
 
-    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id);
+    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id, 'URL:', uploadURL);
 
     res.json({ 
       success: true,
@@ -181,7 +184,8 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
     console.error('[PROFILE-PHOTO] Error getting upload URL:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Failed to get upload URL' 
+      message: 'Failed to get upload URL',
+      error: error.message 
     });
   }
 });
