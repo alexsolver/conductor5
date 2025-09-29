@@ -8,7 +8,7 @@ import React from "react";
 import { format } from 'date-fns';
 
 // Import TemplateIcon for template-related fields
-import { FileTemplate as TemplateIcon } from "lucide-react";
+import { FileText as TemplateIcon } from "lucide-react";
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
