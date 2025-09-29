@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
 import { useState } from "react";
+import logoConductor from "/attached_assets/logoconductor.png";
 import {
   BarChart3,
   Users,
@@ -343,7 +344,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             collapsed ? 'justify-center w-full' : ''
           }`}>
             <img
-              src="/conductor-logo.svg"
+              src={logoConductor}
               alt="Conductor"
               className={`object-contain transition-all duration-300 ${
                 collapsed ? 'h-10' : 'h-8'
