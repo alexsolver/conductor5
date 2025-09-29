@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     ticket_number VARCHAR(50),
     title VARCHAR(255),
     description TEXT,
-    status ticket_status_enum,
+    status VARCHAR(100),
     priority ticket_priority_enum,
     category VARCHAR(100),
     subcategory VARCHAR(100),
