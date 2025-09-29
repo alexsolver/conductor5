@@ -2934,11 +2934,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           uploadURL,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("[PROFILE-PHOTO] Error getting upload URL:", error);
+        console.error("[PROFILE-PHOTO] Error message:", error?.message);
+        console.error("[PROFILE-PHOTO] Error stack:", error?.stack);
         res.status(500).json({
           success: false,
           message: "Failed to get upload URL",
+          error: error?.message || "Unknown error",
         });
       }
     },
