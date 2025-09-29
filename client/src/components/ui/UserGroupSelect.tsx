@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -26,45 +27,25 @@ export function UserGroupSelect({
   placeholder = "Selecione um grupo",
   disabled = false
 }: UserGroupSelectProps) {
-  const [groupsData, setGroupsData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  // Fetch groups from API - SAME LOGIC AS UserMultiSelect
+  const { data: groupsData, isLoading, error } = useQuery({
+    queryKey: ["user-groups-fresh"],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-groups');
+      return response.json();
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
 
-  useEffect(() => {
-    let isMounted = true;
+  // Extract groups data safely - SAME PATTERN AS UserMultiSelect
+  const groups = groupsData?.groups || [];
 
-    async function fetchGroups() {
-      try {
-        console.log('[UserGroupSelect] Fetching user groups...');
-        setIsLoading(true);
-        const response = await apiRequest('GET', '/api/user-groups');
-        const data = await response.json();
-        console.log('[UserGroupSelect] Response:', data);
-        
-        if (isMounted) {
-          setGroupsData(data);
-          setError(null);
-        }
-      } catch (err) {
-        console.error('[UserGroupSelect] Error:', err);
-        if (isMounted) {
-          setError(err as Error);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    fetchGroups();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  console.log('[UserGroupSelect] Render state:', { isLoading, error: error?.message, groupsData });
+  // Debug logs - SAME AS UserMultiSelect
+  React.useEffect(() => {
+    console.log('[UserGroupSelect] Groups data:', groupsData);
+    console.log('[UserGroupSelect] Current value:', value);
+  }, [groupsData, value]);
 
   const handleSelectChange = (selectedValue: string) => {
     const callback = onChange || onValueChange;
@@ -82,27 +63,16 @@ export function UserGroupSelect({
     );
   }
 
-  if (error) {
-    console.error('[UserGroupSelect] Error loading groups:', error);
+  if (error || !groupsData || !groupsData?.groups) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-sm text-destructive">Erro ao carregar grupos: {error.message}</span>
+        <span className="text-sm text-destructive">Erro ao carregar grupos</span>
       </div>
     );
   }
 
-  if (!groupsData || !groupsData?.success || !groupsData?.groups) {
-    console.warn('[UserGroupSelect] Invalid data structure:', groupsData);
-    return (
-      <div className="flex items-center justify-center p-2 border rounded border-destructive/20">
-        <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-sm text-destructive">Dados inválidos</span>
-      </div>
-    );
-  }
-
-  const activeGroups = groupsData?.groups?.filter((group: UserGroup) => group.isActive) || [];
+  const activeGroups = groups.filter((group: UserGroup) => group.isActive);
 
   console.log('[UserGroupSelect] Active groups count:', activeGroups.length);
 
