@@ -28,7 +28,7 @@ export function UserGroupSelect({
   disabled = false
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery({
-    queryKey: ["user-groups"],
+    queryKey: ["user-groups-v2"], // Changed key to bust cache
     queryFn: async () => {
       console.log('[UserGroupSelect] Fetching user groups...');
       const response = await apiRequest('GET', '/api/user-groups');
@@ -36,6 +36,7 @@ export function UserGroupSelect({
       console.log('[UserGroupSelect] Response:', data);
       return data;
     },
+    retry: 1,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
