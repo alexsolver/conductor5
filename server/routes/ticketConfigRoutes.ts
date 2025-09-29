@@ -468,14 +468,17 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     await db.execute(sql`BEGIN`);
 
     try {
-      // 1. Copy categories
+      // 1. Copy categories - check if already exists before inserting
       await db.execute(sql`
         INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
         (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
         SELECT gen_random_uuid(), ${tenantId}, ${targetCompanyId}, name, description, color, icon, active, sort_order, NOW(), NOW()
-        FROM "${sql.raw(schemaName)}"."ticket_categories"
-        WHERE company_id = ${sourceCompanyId} AND tenant_id = ${tenantId}
-        ON CONFLICT (tenant_id, company_id, name) DO NOTHING
+        FROM "${sql.raw(schemaName)}"."ticket_categories" source
+        WHERE source.company_id = ${sourceCompanyId} AND source.tenant_id = ${tenantId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" target 
+          WHERE target.company_id = ${targetCompanyId} AND target.tenant_id = ${tenantId} AND target.name = source.name
+        )
       `);
 
       // 2. Copy subcategories with category mapping
@@ -500,7 +503,10 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         JOIN "${sql.raw(schemaName)}"."ticket_categories" tc_target ON tc_source.name = tc_target.name 
           AND tc_target.company_id = ${targetCompanyId} AND tc_target.tenant_id = ${tenantId}
         WHERE tc_source.company_id = ${sourceCompanyId} AND tc_source.tenant_id = ${tenantId}
-        ON CONFLICT (tenant_id, company_id, category_id, name) DO NOTHING
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_subcategories" target 
+          WHERE target.category_id = tc_target.id AND target.name = ts.name AND target.tenant_id = ${tenantId}
+        )
       `);
 
       // 3. Copy actions with subcategory mapping
@@ -528,7 +534,10 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ts_target ON ts_source.name = ts_target.name 
           AND ts_target.category_id = tc_target.id AND ts_target.tenant_id = ${tenantId}
         WHERE tc_source.company_id = ${sourceCompanyId} AND tc_source.tenant_id = ${tenantId}
-        ON CONFLICT (tenant_id, company_id, subcategory_id, name) DO NOTHING
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_actions" target 
+          WHERE target.subcategory_id = ts_target.id AND target.name = ta.name AND target.tenant_id = ${tenantId}
+        )
       `);
 
       // 4. Copy field options
@@ -550,9 +559,13 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           status_type, 
           NOW(), 
           NOW()
-        FROM "${sql.raw(schemaName)}"."ticket_field_options"
-        WHERE company_id = ${sourceCompanyId} AND tenant_id = ${tenantId}
-        ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
+        FROM "${sql.raw(schemaName)}"."ticket_field_options" source
+        WHERE source.company_id = ${sourceCompanyId} AND source.tenant_id = ${tenantId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" target 
+          WHERE target.company_id = ${targetCompanyId} AND target.tenant_id = ${tenantId} 
+          AND target.field_name = source.field_name AND target.value = source.value
+        )
       `);
 
       // Commit transaction
