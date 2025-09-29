@@ -712,5 +712,3 @@ export default function NotificationPreferencesTab() {
     </div>
   );
 }
-
-export default NotificationPreferencesTab;
