@@ -270,38 +270,75 @@ CREATE TABLE IF NOT EXISTS tickets (
     template_id UUID,
 );
 
+
 CREATE TABLE IF NOT EXISTS ticket_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id TEXT NOT NULL,
-    name TEXT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255),
     description TEXT,
-    category TEXT NOT NULL,
-    subcategory TEXT,
+    category VARCHAR(100),
+    subcategory VARCHAR(100),
     company_id UUID,
-    department_id UUID,
-    priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
-    template_type TEXT NOT NULL CHECK (template_type IN ('creation', 'edit')),
+    department_id UUID,               -- exclusivo do novo
+    priority VARCHAR(100),
 
-    -- colunas novas no lugar de "fields"
-    required_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
-    custom_fields   JSONB NOT NULL DEFAULT '[]'::jsonb,
-    fields JSONB,
+    urgency VARCHAR(100),
+    impact VARCHAR(100),
 
-    automation JSONB DEFAULT '{}'::jsonb,
-    workflow JSONB DEFAULT '{}'::jsonb,
-    tags TEXT[],
-    is_default BOOLEAN DEFAULT FALSE,
-    is_system  BOOLEAN DEFAULT FALSE,
-    status TEXT DEFAULT 'draft',
-    permissions JSONB DEFAULT '[]'::jsonb,
+    default_title VARCHAR(255),
+    default_description TEXT,
+    default_tags JSONB,
+    estimated_hours DECIMAL(5,2),
+
+    requires_approval BOOLEAN,
+    auto_assign BOOLEAN,
+    default_assignee_role VARCHAR(100),
+    default_assignee_id UUID,
+    default_assignment_group VARCHAR(255),
+    default_department VARCHAR(255),
+
+    default_urgency VARCHAR(100),
+    default_impact VARCHAR(100),
+    default_priority VARCHAR(100),
+    default_status VARCHAR(100),
+    default_category VARCHAR(100),
+    default_type VARCHAR(100),
+
+    optional_fields JSONB,
+    hidden_fields JSONB,
+    auto_assignment_rules JSONB,
+    sla_override JSONB,
+    fields JSONB,                     -- exclusivo do novo
+
+    sort_order INT,
+    usage_count INT,
+    last_used_at TIMESTAMP,
+    last_used TIMESTAMP,
+
+    template_type VARCHAR(100),
+    status VARCHAR(100),
+
+    is_active BOOLEAN DEFAULT true,
+    is_default BOOLEAN DEFAULT false,
+    is_system BOOLEAN DEFAULT false,
+
+    tags JSONB DEFAULT '[]'::jsonb,
+    permissions JSONB DEFAULT '{}'::jsonb,
+
+    automation JSONB,
+    workflow JSONB,
+
+    required_fields JSONB,
+    custom_fields JSONB,
 
     created_by UUID,
     updated_by UUID,
-    user_role UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
 
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    customer_company_id UUID
 );
+
 
 
 
