@@ -165,16 +165,17 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // Generate a unique avatar URL for development (simulates upload URL)
+    // For development: Generate a unique avatar URL that works immediately
     const timestamp = Date.now();
-    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}-${timestamp}&backgroundColor=b6e3f4&radius=50`;
+    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}-${timestamp}&backgroundColor=random&radius=50`;
 
-    console.log('[PROFILE-PHOTO] Generated mock upload URL for user:', user.id);
+    console.log('[PROFILE-PHOTO] Generated avatar URL for user:', user.id);
 
     res.json({ 
       success: true,
       uploadURL: uploadURL,
-      message: 'Upload URL generated successfully'
+      method: 'GET', // Since we're using a direct URL, not uploading
+      message: 'Avatar URL generated successfully'
     });
   } catch (error) {
     console.error('[PROFILE-PHOTO] Error getting upload URL:', error);

@@ -297,7 +297,7 @@ export default function UserProfile() {
     },
   });
 
-  // Handle photo upload
+  // Handle photo upload - simplified for development
   const handlePhotoUpload = async () => {
     try {
       const response = await apiRequest('POST', '/api/user/profile/photo/upload');
@@ -306,20 +306,20 @@ export default function UserProfile() {
       }
       const data = await response.json();
       
-      // Validate that we have a proper upload URL
+      // Validate that we have a proper avatar URL
       if (!data.success || !data.uploadURL) {
-        throw new Error('Invalid upload URL response');
+        throw new Error('Invalid avatar URL response');
       }
       
-      return {
-        method: 'PUT' as const,
-        url: data.uploadURL,
-      };
+      // For development: directly use the generated avatar URL
+      uploadPhotoMutation.mutate(data.uploadURL);
+      
+      return null; // Don't proceed with actual file upload
     } catch (error) {
-      console.error('[PHOTO-UPLOAD] Error getting upload URL:', error);
+      console.error('[PHOTO-UPLOAD] Error getting avatar URL:', error);
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível obter URL de upload.",
+        title: "Erro ao gerar avatar",
+        description: "Não foi possível gerar novo avatar.",
         variant: "destructive",
       });
       throw error;
@@ -401,15 +401,13 @@ export default function UserProfile() {
                   {((profile as any)?.firstName || user?.firstName)?.charAt(0)}{((profile as any)?.lastName || user?.lastName)?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <ObjectUploader
-                maxNumberOfFiles={1}
-                maxFileSize={5242880} // 5MB
-                onGetUploadParameters={handlePhotoUpload}
-                onComplete={handlePhotoComplete}
-                buttonClassName="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+              <Button
+                onClick={handlePhotoUpload}
+                size="sm"
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
               >
                 <Camera className="h-4 w-4" />
-              </ObjectUploader>
+              </Button>
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{(profile as any)?.firstName || user?.firstName} {(profile as any)?.lastName || user?.lastName}</h2>
