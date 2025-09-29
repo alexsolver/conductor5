@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     tags JSONB DEFAULT '[]'::jsonb,
     custom_fields JSONB DEFAULT '{}'::jsonb,
     metadata JSONB DEFAULT '{}'::jsonb,
-    template_id UUID,
+    template_id UUID
 );
 
 
@@ -334,9 +334,7 @@ CREATE TABLE IF NOT EXISTS ticket_templates (
     created_by UUID,
     updated_by UUID,
     created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now(),
-
-    customer_company_id UUID
+    updated_at TIMESTAMP DEFAULT now()
 );
 
 
@@ -679,7 +677,7 @@ CREATE TYPE IF NOT EXISTS knowledge_base_status AS ENUM (
 
 CREATE TYPE IF NOT EXISTS knowledge_base_category AS ENUM (
     'technical_support',
-    'troubleshooting', 
+    'troubleshooting',
     'user_guide',
     'faq',
     'policy',
@@ -853,7 +851,7 @@ CREATE TABLE IF NOT EXISTS schedule_notifications (
     type VARCHAR(50),
     status VARCHAR(20) DEFAULT 'pending',
     metadata JSONB DEFAULT '{}'::jsonb,
-    read_at TIMESTAMP, 
+    read_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
@@ -1577,3 +1575,54 @@ CREATE TRIGGER trg_omni_chatbots_updated
     BEFORE UPDATE ON omnibridge_chatbots
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at();
+
+-- Create timecard entries table
+CREATE TABLE IF NOT EXISTS timecard_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  nsr INTEGER,
+  check_in TIMESTAMP,
+  check_out TIMESTAMP,
+  break_start TIMESTAMP,
+  break_end TIMESTAMP,
+  total_hours DECIMAL(5,2),
+  notes TEXT,
+  location VARCHAR(255),
+  is_manual_entry BOOLEAN DEFAULT FALSE,
+  status VARCHAR(50) DEFAULT 'pending',
+  approved_by UUID,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create work schedules table
+CREATE TABLE IF NOT EXISTS work_schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  schedule_type VARCHAR(50) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  work_days JSONB DEFAULT '[]'::jsonb,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  break_duration_minutes INTEGER DEFAULT 60,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create user activity logs table
+CREATE TABLE IF NOT EXISTS user_activity_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL,
+  user_id UUID,
+  action VARCHAR(255) NOT NULL,
+  resource_type VARCHAR(100),
+  resource_id VARCHAR(255),
+  ip_address INET,
+  user_agent TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
