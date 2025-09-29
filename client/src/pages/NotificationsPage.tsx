@@ -180,7 +180,7 @@ export default function NotificationsPage() {
       });
       setIsCreateOpen(false);
       form.reset();
-      refetchNotifications();
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
     },
     onError: (error: any) => {
       toast({
@@ -208,7 +208,7 @@ export default function NotificationsPage() {
         title: 'Processing Complete',
         description: `Processed ${data.data?.processed || 0} notifications. Sent: ${data.data?.sent || 0}, Failed: ${data.data?.failed || 0}`
       });
-      refetchNotifications();
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
     },
     onError: (error: any) => {
       toast({
@@ -242,7 +242,7 @@ export default function NotificationsPage() {
         variables.forEach(id => newSet.delete(id));
         return newSet;
       });
-      refetchNotifications();
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] });
     },
     onError: (error: any) => {
       console.error('Mark as read error:', error);
@@ -305,7 +305,7 @@ export default function NotificationsPage() {
       });
       setSelectedNotifications(new Set()); // Clear selection
       setSelectAllChecked(false); // Reset select all
-      refetchNotifications(); // Refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-notifications/list'] }); // Invalidate and refetch
     },
     onError: (error: any) => {
       console.error('Delete notification error:', error);
