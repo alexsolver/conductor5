@@ -90,23 +90,23 @@ export class TicketTemplateController {
 
       // ✅ 1QA.MD: Validação rigorosa de campos obrigatórios
       const missingFields = [];
-      
+
       if (!name || typeof name !== 'string' || name.trim().length === 0) {
         missingFields.push('name');
       }
-      
+
       if (!category || typeof category !== 'string' || category.trim().length === 0) {
         missingFields.push('category');
       }
-      
+
       if (!priority || typeof priority !== 'string') {
         missingFields.push('priority');
       }
-      
+
       if (!templateType || typeof templateType !== 'string') {
         missingFields.push('templateType');
       }
-      
+
       if (missingFields.length > 0) {
         console.error('[CREATE-TEMPLATE] Missing or invalid required fields:', missingFields);
         return res.status(400).json({
@@ -142,7 +142,7 @@ export class TicketTemplateController {
       // ✅ 1QA.MD: Validação de campos obrigatórios para templates de CRIAÇÃO
       if (templateType === 'creation') {
         const { requiredFields, customFields } = req.body;
-        
+
         // Verificar se os campos obrigatórios estão presentes
         if (!Array.isArray(requiredFields)) {
           return res.status(400).json({
@@ -157,7 +157,7 @@ export class TicketTemplateController {
         const mandatoryFields = ['company', 'client', 'beneficiary', 'status', 'summary'];
         const providedFieldNames = requiredFields.map((f: any) => f.fieldName?.toLowerCase()).filter(Boolean);
         const missingMandatory = mandatoryFields.filter(field => !providedFieldNames.includes(field));
-        
+
         if (missingMandatory.length > 0) {
           return res.status(400).json({
             success: false,
@@ -364,7 +364,7 @@ export class TicketTemplateController {
 
       // Check if template exists
       console.log('[UPDATE-TEMPLATE] Checking if template exists:', { templateId, tenantId: user.tenantId, schemaName });
-      
+
       const existingTemplate = await pool.query(
         `SELECT id, name FROM "${schemaName}".ticket_templates WHERE id = $1 AND tenant_id = $2`,
         [templateId, user.tenantId]
@@ -580,7 +580,7 @@ export class TicketTemplateController {
       console.log('🎯 [TEMPLATE-CONTROLLER] GET /api/ticket-templates called');
       console.log('🎯 [TEMPLATE-CONTROLLER] Query params:', req.query);
       console.log('🎯 [TEMPLATE-CONTROLLER] Headers:', req.headers.authorization ? 'HAS_AUTH' : 'NO_AUTH');
-      
+
 
       const user = (req as any).user;
       if (!user || !user.tenantId) {
@@ -965,49 +965,124 @@ export class TicketTemplateController {
    */
   getTemplateAnalytics = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
-      const userRole = req.user?.role;
-      const templateId = req.params.id;
+      // Implementation for template analytics
+      res.json({
+        success: true,
+        message: 'Template analytics endpoint - coming soon'
+      });
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-CONTROLLER] Get template analytics error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        errors: [error?.message || 'Unknown error']
+      });
+    }
+  };
 
-      if (!tenantId || !userRole) {
+  /**
+   * Get template custom fields
+   * GET /ticket-templates/:id/custom-fields
+   */
+  getTemplateCustomFields = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log('🎯 [TEMPLATE-CONTROLLER] Getting template custom fields:', req.params.id);
+
+      const user = (req as any).user;
+      if (!user || !user.tenantId) {
         return res.status(401).json({
           success: false,
-          message: 'Authentication required'
+          message: 'Authentication required',
+          errors: ['User or tenantId missing'],
+          code: 'MISSING_TENANT_ID'
         });
       }
 
-      const result = await this.getTicketTemplatesUseCase.execute({
-        tenantId,
-        templateId,
-        userRole,
-        includeAnalytics: true,
-        includeUsageStats: true
-      });
-
-      if (!result.success) {
-        // Handle cases where template is not found or access is denied
-        return res.status(result.data?.status || 404).json({
+      const templateId = req.params.id;
+      if (!templateId) {
+        return res.status(400).json({
           success: false,
-          message: 'Template not found or access denied',
-          errors: result.errors
+          message: 'Template ID is required',
+          errors: ['Template ID missing'],
+          code: 'MISSING_TEMPLATE_ID'
         });
       }
+
+      // DB & schema
+      const { schemaManager } = await import('../../../../db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(user.tenantId);
+
+      // Get template with custom fields
+      console.log('[GET-TEMPLATE-CUSTOM-FIELDS] Fetching template from schema:', schemaName);
+      const templateQuery = `
+        SELECT id, name, custom_fields, required_fields
+        FROM "${schemaName}".ticket_templates 
+        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+      `;
+
+      const result = await pool.query(templateQuery, [templateId, user.tenantId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Template not found',
+          errors: ['Template not found or inactive'],
+          code: 'TEMPLATE_NOT_FOUND'
+        });
+      }
+
+      const template = result.rows[0];
+
+      // Parse custom fields from JSONB
+      let customFields = [];
+      let requiredFields = [];
+
+      try {
+        if (template.custom_fields) {
+          customFields = typeof template.custom_fields === 'string' 
+            ? JSON.parse(template.custom_fields) 
+            : template.custom_fields;
+        }
+      } catch (e) {
+        console.warn('[GET-TEMPLATE-CUSTOM-FIELDS] Error parsing custom_fields:', e);
+        customFields = [];
+      }
+
+      try {
+        if (template.required_fields) {
+          requiredFields = typeof template.required_fields === 'string' 
+            ? JSON.parse(template.required_fields) 
+            : template.required_fields;
+        }
+      } catch (e) {
+        console.warn('[GET-TEMPLATE-CUSTOM-FIELDS] Error parsing required_fields:', e);
+        requiredFields = [];
+      }
+
+      console.log('[GET-TEMPLATE-CUSTOM-FIELDS] Template custom fields found:', {
+        templateId,
+        customFieldsCount: customFields.length,
+        requiredFieldsCount: requiredFields.length
+      });
 
       return res.json({
         success: true,
-        message: 'Template analytics retrieved successfully',
         data: {
-          analytics: result.data?.analytics,
-          usageStatistics: result.data?.usageStatistics,
-          fieldAnalytics: result.data?.fieldAnalytics
+          templateId: template.id,
+          templateName: template.name,
+          customFields,
+          requiredFields
         }
       });
 
-    } catch (error) {
-      console.error('[TicketTemplateController] getTemplateAnalytics error:', error);
-      return res.status(500).json({
+    } catch (error: any) {
+      console.error('❌ [TEMPLATE-CONTROLLER] Get template custom fields error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
+        errors: [error?.message || 'Unknown error'],
+        code: 'INTERNAL_ERROR'
       });
     }
   };

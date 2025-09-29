@@ -153,6 +153,12 @@ router.get('/popular', async (req, res) => {
   await ticketTemplateController.getPopularTemplates(req as any, res);
 });
 
+// GET /api/ticket-templates/:id/custom-fields - Custom fields do template
+router.get('/:id/custom-fields', async (req, res) => {
+  console.log('🎯 [ROUTES] GET /:id/custom-fields called');
+  await ticketTemplateController.getTemplateCustomFields(req as any, res);
+});
+
 // GET /api/ticket-templates/:id/analytics - Analytics do template
 router.get('/:id/analytics', async (req, res) => {
   console.log('🎯 [ROUTES] GET /:id/analytics called');
