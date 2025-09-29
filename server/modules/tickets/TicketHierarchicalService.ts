@@ -22,10 +22,12 @@ export class TicketHierarchicalService {
   async getCategories(tenantId: string, customerId?: string): Promise<TicketCategory[]> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
+    // 🎯 [1QA-COMPLIANCE] Selecionar apenas categorias de primeiro nível (sem parent)
     let query = `
       SELECT * FROM "${schemaName}".ticket_categories 
       WHERE tenant_id = $1 
       AND is_active = true
+      AND (parent_category_id IS NULL OR parent_category_id = '')
     `;
     const params = [tenantId];
 

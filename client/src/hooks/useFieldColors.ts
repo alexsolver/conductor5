@@ -108,23 +108,29 @@ export const useFieldColors = (companyId?: string) => {
         fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}(${opt.label}):${opt.color}`).slice(0, 5)
       );
     }
-    
+
     return undefined;
   };
 
   // Função para buscar label de um campo específico
   const getFieldLabel = (fieldName: string, value: string): string => {
-    if (!fieldOptions?.data) return value;
+    if (!fieldOptions?.data || !value) return value;
 
-    if (!value || value === '') {
-      return value;
-    }
-
-    const option = fieldOptions.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
+    const option = fieldOptions.data.find(opt => 
+      (opt.value === value || opt.id === value || opt.name === value)
     );
 
-    const label = option?.label || value;
+    let label = option?.label || option?.display_value || option?.name || value;
+
+    // 🎯 [1QA-COMPLIANCE] Para categoria, garantir que apenas o primeiro nível seja exibido
+    if (fieldName === 'category' && label) {
+      // Remover indicadores de hierarquia
+      label = label.split(' > ')[0];
+      label = label.split(' - ')[0];
+      label = label.split(' | ')[0];
+      label = label.split('→')[0];
+    }
+
     console.log(`🏷️ Label for ${fieldName}:${value} = ${label}`);
     return label;
   };
