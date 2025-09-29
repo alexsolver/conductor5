@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import conductorLogo from "@/../../attached_assets/logoconductormini.png";
 
 
 export default function AuthPage() {
@@ -254,7 +255,7 @@ export default function AuthPage() {
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
               <img
-                src="/conductor-logo.svg"
+                src={conductorLogo}
                 alt="Conductor Logo"
                 className="w-28 h-28 object-contain"
               />
