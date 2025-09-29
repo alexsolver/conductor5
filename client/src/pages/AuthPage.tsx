@@ -15,7 +15,7 @@ import conductorLogo from "@/../../attached_assets/logoconductormini.png";
 
 
 export default function AuthPage() {
-  const { loginMutation, registerMutation, isAuthenticated, isLoading, setUser } = useAuth();
+  const { loginMutation, registerMutation, isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const { t } = useTranslation();
   const navigate = useLocation()[1]; // Renamed from setLocation to navigate for clarity
