@@ -147,10 +147,27 @@ export default function NotificationPreferencesTab() {
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [isModified, setIsModified] = useState(false);
 
-  // Fetch user notification preferences
-  const { data: userPreferences, isLoading, refetch } = useQuery({
+  // Fetch user notification preferences - seguindo padrões 1qa.md
+  const { data: userPreferences, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/user/notification-preferences'],
-    enabled: !!user
+    queryFn: async () => {
+      try {
+        console.log('[NOTIFICATION-PREFERENCES-TAB] Fetching user preferences...');
+        const response = await apiRequest('GET', '/api/user/notification-preferences');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const result = await response.json();
+        console.log('[NOTIFICATION-PREFERENCES-TAB] Preferences loaded:', result);
+        return result;
+      } catch (error) {
+        console.error('[NOTIFICATION-PREFERENCES-TAB] Error fetching preferences:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.id,
+    retry: 3,
+    staleTime: 30000
   });
 
   // Update preferences mutation
@@ -370,15 +387,36 @@ export default function NotificationPreferencesTab() {
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">Erro ao carregar preferências de notificação</p>
+            <p className="text-sm text-gray-500 mb-4">
+              {error instanceof Error ? error.message : 'Erro desconhecido'}
+            </p>
+            <Button onClick={() => refetch()} className="mt-4">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Tentar Novamente
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!preferences) {
     return (
       <Card>
         <CardContent className="pt-6">
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Erro ao carregar preferências de notificação</p>
+            <p className="text-gray-600">Nenhuma preferência encontrada</p>
             <Button onClick={() => refetch()} className="mt-4">
-              Tentar Novamente
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Carregar Preferências
             </Button>
           </div>
         </CardContent>

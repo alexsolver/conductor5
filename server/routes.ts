@@ -104,6 +104,9 @@ import internalFormsRoutes from './modules/internal-forms/routes';
 // Import user groups routes
 import userGroupsRoutes from './routes/userGroups';
 
+// Import user notification preferences routes
+import { userNotificationPreferencesRoutes } from './modules/user-notifications/routes';
+
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
 );
@@ -2913,12 +2916,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 📷 PROFILE PHOTO UPLOAD ROUTES - Local filesystem fallback
   const fs = await import("fs/promises");
   const path = await import("path");
-  
+
   // Ensure uploads directory exists
   const uploadsDir = path.join(process.cwd(), 'uploads', 'avatars');
   await fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
 
-  const photoUpload = multer({ 
+  const photoUpload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
@@ -2947,7 +2950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const { randomUUID } = await import("crypto");
-        
+
         // Generate unique filename
         const fileExt = req.file.originalname.split('.').pop() || 'jpg';
         const objectId = randomUUID();
@@ -5279,7 +5282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // ✅ LEGACY MODULEROUTES ELIMINATED - Clean Architecture only per 1qa.md
+  // ✅ LEGACY MODULE ROUTES ELIMINATED - Clean Architecture only per 1qa.md
   // ✅ LEGACY technical-skills routes eliminated per 1qa.md
   // ✅ LEGACY scheduleRoutes eliminated per 1qa.md
   // ✅ LEGACY ticketMetadataRoutes eliminated per 1qa.md
@@ -5446,11 +5449,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
 
         const member = await db.execute(sql`
-      SELECT 
+      SELECT
         id,
         tenant_id as "tenantId",
         email,
-        first_name as "firstName", 
+        first_name as "firstName",
         last_name as "lastName",
         role,
         department,
@@ -5459,7 +5462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         is_active as "isActive",
         created_at as "createdAt",
         updated_at as "updatedAt"
-      FROM ${sql.identifier(tenantSchema)}.users 
+      FROM ${sql.identifier(tenantSchema)}.users
       WHERE id = ${memberId} AND tenant_id = ${tenantId}
       LIMIT 1
     `);

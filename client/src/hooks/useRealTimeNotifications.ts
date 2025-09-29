@@ -58,6 +58,25 @@ export function useRealTimeNotifications() {
     refetchInterval: 30000,
   });
 
+  // Query para buscar preferências de notificação - seguindo padrões 1qa.md
+  const { data: preferencesData } = useQuery({
+    queryKey: ['/api/user/notification-preferences', user?.id],
+    queryFn: async () => {
+      try {
+        console.log('🔔 [useRealTimeNotifications] Fetching notification preferences...');
+        const response = await apiRequest('GET', '/api/user/notification-preferences');
+        const result = await response.json();
+        console.log('🔔 [useRealTimeNotifications] Preferences Response:', result);
+        return result;
+      } catch (error) {
+        console.error('🔔 [useRealTimeNotifications] Preferences error:', error);
+        return { success: false, data: null };
+      }
+    },
+    enabled: !!user?.id,
+    staleTime: 60000, // Cache preferences for 1 minute
+  });
+
   useEffect(() => {
     if (user?.id) {
       setIsConnected(true);
@@ -73,11 +92,13 @@ export function useRealTimeNotifications() {
   }, [countData]);
 
   const notifications = notificationsData?.success ? (notificationsData.data?.notifications || []) : [];
+  const preferences = preferencesData?.success ? preferencesData.data : null;
 
   return {
     isConnected,
     notifications,
     unreadCount,
+    preferences,
     isLoading,
     error,
     refetch
