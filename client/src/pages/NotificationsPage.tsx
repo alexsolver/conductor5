@@ -120,6 +120,8 @@ export default function NotificationsPage() {
   const [processingNotifications, setProcessingNotifications] = useState<Set<string>>(new Set());
   const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
   const [selectAllChecked, setSelectAllChecked] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
 
   // Form
   const form = useForm<CreateNotificationForm>({
@@ -143,6 +145,7 @@ export default function NotificationsPage() {
       setSelectAllChecked(false);
       return result;
     },
+    refetchInterval: 10000, // Refetch every 10 seconds
   });
 
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -369,6 +372,41 @@ export default function NotificationsPage() {
       setSelectedNotifications(new Set(isSelected ? ids : []));
     }
   };
+
+  // Play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Create a simple beep sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800; // Frequency in Hz
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+      console.error('Failed to play notification sound:', error);
+    }
+  };
+
+  // Monitor for new notifications and play sound
+  useEffect(() => {
+    if (notifications?.data?.total) {
+      const currentCount = notifications.data.total;
+      if (previousNotificationCount > 0 && currentCount > previousNotificationCount) {
+        playNotificationSound();
+      }
+      setPreviousNotificationCount(currentCount);
+    }
+  }, [notifications?.data?.total]);
 
   const handleDeleteSelected = () => {
     if (selectedNotifications.size === 0) {
@@ -724,7 +762,12 @@ export default function NotificationsPage() {
 
                 {/* Individual Notifications */}
                 {(notifications.data.notifications as Notification[]).map((notification: Notification) => (
-                  <Card key={notification.id} className="hover:shadow-md transition-shadow p-4">
+                  <Card 
+                    key={notification.id} 
+                    className="hover:shadow-md transition-shadow p-4 cursor-pointer"
+                    onClick={() => setSelectedNotification(notification)}
+                    data-testid={`card-notification-${notification.id}`}
+                  >
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
@@ -941,6 +984,133 @@ export default function NotificationsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Notification Details Modal */}
+      <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedNotification && getStatusIcon(selectedNotification.status)}
+              {selectedNotification?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Detalhes completos da notificação
+            </DialogDescription>
+          </DialogHeader>
+          {selectedNotification && (
+            <div className="space-y-4">
+              {/* Badges */}
+              <div className="flex gap-2">
+                <Badge className={severityColors[selectedNotification.severity]}>
+                  {selectedNotification.severity.toUpperCase()}
+                </Badge>
+                <Badge className={statusColors[selectedNotification.status]}>
+                  {selectedNotification.status.toUpperCase()}
+                </Badge>
+                {selectedNotification.requiresEscalation && (
+                  <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    ESCALATION REQUIRED
+                  </Badge>
+                )}
+              </div>
+
+              {/* Message */}
+              <div>
+                <Label className="text-sm font-semibold">Mensagem</Label>
+                <div className="mt-1 p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
+                  <p className="text-sm whitespace-pre-wrap">{selectedNotification.message}</p>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold">Tipo</Label>
+                  <p className="text-sm text-muted-foreground capitalize">{selectedNotification.type.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold">Canais</Label>
+                  <p className="text-sm text-muted-foreground">{selectedNotification.channels.join(', ')}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold">Criado em</Label>
+                  <p className="text-sm text-muted-foreground">{formatDate(selectedNotification.createdAt)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold">Agendado para</Label>
+                  <p className="text-sm text-muted-foreground">{formatDate(selectedNotification.scheduledAt)}</p>
+                </div>
+                {selectedNotification.sentAt && (
+                  <div>
+                    <Label className="text-sm font-semibold">Enviado em</Label>
+                    <p className="text-sm text-muted-foreground">{formatDate(selectedNotification.sentAt)}</p>
+                  </div>
+                )}
+                {selectedNotification.deliveredAt && (
+                  <div>
+                    <Label className="text-sm font-semibold">Entregue em</Label>
+                    <p className="text-sm text-muted-foreground">{formatDate(selectedNotification.deliveredAt)}</p>
+                  </div>
+                )}
+                {selectedNotification.readAt && (
+                  <div>
+                    <Label className="text-sm font-semibold">Lido em</Label>
+                    <p className="text-sm text-muted-foreground">{formatDate(selectedNotification.readAt)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Entity Information */}
+              {(selectedNotification.relatedEntityType || selectedNotification.relatedEntityId) && (
+                <div>
+                  <Label className="text-sm font-semibold">Informações da Entidade</Label>
+                  <div className="mt-1 space-y-1">
+                    {selectedNotification.relatedEntityType && (
+                      <p className="text-sm text-muted-foreground">
+                        Tipo: {selectedNotification.relatedEntityType}
+                      </p>
+                    )}
+                    {selectedNotification.relatedEntityId && (
+                      <p className="text-sm text-muted-foreground">
+                        ID: {selectedNotification.relatedEntityId}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* User Information */}
+              {selectedNotification.userId && (
+                <div>
+                  <Label className="text-sm font-semibold">ID do Usuário</Label>
+                  <p className="text-sm text-muted-foreground">{selectedNotification.userId}</p>
+                </div>
+              )}
+
+              {/* Status Information */}
+              <div className="flex gap-2 text-sm">
+                {selectedNotification.isExpired && (
+                  <Badge variant="outline" className="bg-gray-100 text-gray-800">
+                    Expirado
+                  </Badge>
+                )}
+                {selectedNotification.canBeSent && (
+                  <Badge variant="outline" className="bg-green-100 text-green-800">
+                    Pode ser enviado
+                  </Badge>
+                )}
+              </div>
+
+              {/* ID */}
+              <div className="pt-2 border-t">
+                <Label className="text-xs text-muted-foreground">ID da Notificação</Label>
+                <p className="text-xs font-mono text-muted-foreground">{selectedNotification.id}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
