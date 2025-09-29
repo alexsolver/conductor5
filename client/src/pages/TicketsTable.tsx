@@ -1785,8 +1785,8 @@ const TicketsTable = React.memo(() => {
 
       // Additional fields
       tags: data.tags || [],
-      custom_fields_values: customFieldsValues, // 👈 envia os personalizados
-
+      custom_fields_values: customFieldsValues,
+      template_id: selectedTemplateId || null,
     };
 
     console.log('Submitting ticket data:', submitData);

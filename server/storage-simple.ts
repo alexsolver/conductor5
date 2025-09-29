@@ -673,23 +673,45 @@ export class DatabaseStorage implements IStorage {
         tenantId: validatedTenantId,
       });
 
+      function normalizeUUID(value?: string | null) {
+        if (!value || value === "" || value === "unspecified") return null;
+        return value;
+      }
+
+      function isJsonString(str) {
+        try {
+          const parsed = JSON.parse(str);
+          return typeof parsed === "object" && parsed !== null;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      
+      
       const now = new Date().toISOString();
-      const idGenerate = randomUUID();
+      const generatedId = crypto.randomUUID();
+      let camposCustom = isJsonString(ticketData.custom_fields_values) ? ticketData.custom_fields_values : JSON.stringify(ticketData.custom_fields_values)
+      
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets (
-          id, tenant_id, ticket_number, title, description, status, priority,
-          category, subcategory, caller_id, assigned_to, company_id, customer_id,
-          is_active, created_at, updated_at
+          id,
+          tenant_id, ticket_number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id, assigned_to_id, company_id, beneficiary_id,
+          is_active, created_at, updated_at, template_id, custom_fields
         )
         VALUES (
-          ${idGenerate},
+          ${generatedId},
           ${tenantId}, ${ticketNumber}, ${ticketData.subject}, ${ticketData.description},
-          ${ticketData.status || "new"}, ${ticketData.priority || "medium"},
+          ${ticketData.status || "open"}, ${ticketData.priority || "medium"},
+          ${ticketData.urgency || null}, ${ticketData.impact || null},
           ${ticketData.category || null}, ${ticketData.subcategory || null},
-          ${ticketData.caller_id || customerId},
-          ${ticketData.assigned_to || null}, ${ticketData.company_id || companyId},
-          ${ticketData.customer_id || customerId},
-          ${ticketData.isActive !== false}, ${now}, ${now}
+          ${normalizeUUID(ticketData.caller_id) || customerId},
+          ${normalizeUUID(ticketData.assigned_to_id)},
+          ${normalizeUUID(ticketData.company_id) || companyId},
+          ${normalizeUUID(ticketData.beneficiary_id) || customerId},
+          ${ticketData.isActive !== false}, ${now}, ${now}, ${ticketData.template_id || null},
+          ${camposCustom}
         )
         RETURNING *
       `);
