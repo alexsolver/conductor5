@@ -114,7 +114,6 @@ const baseNavigation: Array<{
   },
   { name: "analytics", href: "/analytics", icon: BarChart3 },
   { name: "notifications", href: "/notifications", icon: Bell },
-  { name: "compliance", href: "/compliance", icon: Shield },
   { name: "gdprCompliance", href: "/gdpr-compliance", icon: Shield },
   {
     name: "reports",
