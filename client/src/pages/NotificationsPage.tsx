@@ -409,20 +409,6 @@ export default function NotificationsPage() {
             <RefreshCw className="w-4 h-4 mr-2" />
             {processMutation.isPending ? 'Processing...' : 'Process Now'}
           </Button>
-          <Button
-            onClick={() => {
-              if (notifications?.data?.notifications) {
-                const ids = notifications.data.notifications.map((n: Notification) => n.id);
-                deleteNotificationMutation.mutate(ids);
-              }
-            }}
-            disabled={deleteNotificationMutation.isPending || !notifications?.data?.notifications?.length}
-            variant="destructive"
-            data-testid="button-clear-page"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Clear This Page ({notifications?.data?.notifications?.length || 0})
-          </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-notification">
