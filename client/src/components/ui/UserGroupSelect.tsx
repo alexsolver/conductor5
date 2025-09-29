@@ -28,7 +28,7 @@ export function UserGroupSelect({
   disabled = false
 }: UserGroupSelectProps) {
   const { data: groupsData, isLoading, error } = useQuery({
-    queryKey: ["user-groups-v2"], // Changed key to bust cache
+    queryKey: ["user-groups", Date.now()], // Unique key with timestamp to force fresh fetch
     queryFn: async () => {
       console.log('[UserGroupSelect] Fetching user groups...');
       const response = await apiRequest('GET', '/api/user-groups');
@@ -38,7 +38,7 @@ export function UserGroupSelect({
     },
     retry: 1,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 0, // No cache
   });
 
   console.log('[UserGroupSelect] Render state:', { isLoading, error: error?.message, groupsData });
