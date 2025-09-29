@@ -442,6 +442,144 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
 // COPY STRUCTURE - Copiar estrutura padrão para empresa
 // ============================================================================
 
+// POST /api/ticket-config/copy-hierarchy
+router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { sourceCompanyId, targetCompanyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!sourceCompanyId || !targetCompanyId) {
+      return res.status(400).json({ message: 'Source and target company IDs are required' });
+    }
+
+    if (sourceCompanyId === targetCompanyId) {
+      return res.status(400).json({ message: 'Source and target companies cannot be the same' });
+    }
+
+    console.log(`🔄 Copying hierarchy from company ${sourceCompanyId} to ${targetCompanyId} in tenant ${tenantId}`);
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Start transaction
+    await db.execute(sql`BEGIN`);
+
+    try {
+      // 1. Copy categories
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+        (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        SELECT gen_random_uuid(), ${tenantId}, ${targetCompanyId}, name, description, color, icon, active, sort_order, NOW(), NOW()
+        FROM "${sql.raw(schemaName)}"."ticket_categories"
+        WHERE company_id = ${sourceCompanyId} AND tenant_id = ${tenantId}
+        ON CONFLICT (tenant_id, company_id, name) DO NOTHING
+      `);
+
+      // 2. Copy subcategories with category mapping
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+        (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        SELECT 
+          gen_random_uuid(), 
+          ${tenantId}, 
+          ${targetCompanyId}, 
+          tc_target.id,
+          ts.name, 
+          ts.description, 
+          ts.color, 
+          ts.icon, 
+          ts.active, 
+          ts.sort_order, 
+          NOW(), 
+          NOW()
+        FROM "${sql.raw(schemaName)}"."ticket_subcategories" ts
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc_source ON ts.category_id = tc_source.id
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc_target ON tc_source.name = tc_target.name 
+          AND tc_target.company_id = ${targetCompanyId} AND tc_target.tenant_id = ${tenantId}
+        WHERE tc_source.company_id = ${sourceCompanyId} AND tc_source.tenant_id = ${tenantId}
+        ON CONFLICT (tenant_id, company_id, category_id, name) DO NOTHING
+      `);
+
+      // 3. Copy actions with subcategory mapping
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+        (id, tenant_id, company_id, subcategory_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        SELECT 
+          gen_random_uuid(), 
+          ${tenantId}, 
+          ${targetCompanyId}, 
+          ts_target.id,
+          ta.name, 
+          ta.description, 
+          ta.color, 
+          ta.icon, 
+          ta.active, 
+          ta.sort_order, 
+          NOW(), 
+          NOW()
+        FROM "${sql.raw(schemaName)}"."ticket_actions" ta
+        JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ts_source ON ta.subcategory_id = ts_source.id
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc_source ON ts_source.category_id = tc_source.id
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc_target ON tc_source.name = tc_target.name 
+          AND tc_target.company_id = ${targetCompanyId} AND tc_target.tenant_id = ${tenantId}
+        JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ts_target ON ts_source.name = ts_target.name 
+          AND ts_target.category_id = tc_target.id AND ts_target.tenant_id = ${tenantId}
+        WHERE tc_source.company_id = ${sourceCompanyId} AND tc_source.tenant_id = ${tenantId}
+        ON CONFLICT (tenant_id, company_id, subcategory_id, name) DO NOTHING
+      `);
+
+      // 4. Copy field options
+      await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+        (id, tenant_id, company_id, field_name, value, display_label, color, icon, is_default, active, sort_order, status_type, created_at, updated_at)
+        SELECT 
+          gen_random_uuid(), 
+          ${tenantId}, 
+          ${targetCompanyId}, 
+          field_name, 
+          value, 
+          display_label, 
+          color, 
+          icon, 
+          is_default, 
+          active, 
+          sort_order, 
+          status_type, 
+          NOW(), 
+          NOW()
+        FROM "${sql.raw(schemaName)}"."ticket_field_options"
+        WHERE company_id = ${sourceCompanyId} AND tenant_id = ${tenantId}
+        ON CONFLICT (tenant_id, company_id, field_name, value) DO NOTHING
+      `);
+
+      // Commit transaction
+      await db.execute(sql`COMMIT`);
+
+      console.log(`✅ Successfully copied hierarchy from ${sourceCompanyId} to ${targetCompanyId}`);
+
+      res.json({
+        success: true,
+        message: 'Estrutura hierárquica copiada com sucesso'
+      });
+
+    } catch (innerError) {
+      await db.execute(sql`ROLLBACK`);
+      throw innerError;
+    }
+
+  } catch (error) {
+    console.error('Error copying hierarchy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to copy hierarchy',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // POST /api/ticket-config/copy-structure
 router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
