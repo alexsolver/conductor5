@@ -1033,7 +1033,7 @@ export class DatabaseStorage implements IStorage {
 
 
       const beneficiaryId = crypto.randomUUID();
-      
+
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
         (id, name, email, phone, cpf, cnpj, tenant_id, is_active, created_at, updated_at)
