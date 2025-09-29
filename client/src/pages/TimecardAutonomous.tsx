@@ -26,30 +26,31 @@ export default function TimecardAutonomous() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch current timecard status - reuses CLT backend
+  // Fetch current timecard status - ✅ 1QA.MD: Use correct endpoint
   const { data: timecardStatus, isLoading: statusLoading } = useQuery({
-    queryKey: ['/api/timecard/status'],
+    queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/status');
+      const response = await apiRequest('GET', '/api/timecard/current-status');
       return response.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch today's records - reuses CLT backend
+  // Fetch today's records - ✅ 1QA.MD: Use available endpoint
   const { data: todayRecords } = useQuery({
-    queryKey: ['/api/timecard/today'],
+    queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/today');
-      return response.json();
+      const response = await apiRequest('GET', '/api/timecard/current-status');
+      const data = await response.json();
+      return { records: data.todayRecords || [] };
     },
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Clock action mutation - reuses CLT backend
+  // Clock action mutation - ✅ 1QA.MD: Fix autonomous worker API endpoint
   const clockActionMutation = useMutation({
     mutationFn: async (actionType: string) => {
-      const response = await apiRequest('POST', '/api/timecard/clock', {
+      const response = await apiRequest('POST', '/api/timecard/timecard-entries', {
         action: actionType,
         timestamp: new Date().toISOString(),
         source: 'autonomous_interface'
@@ -57,15 +58,16 @@ export default function TimecardAutonomous() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/today'] });
       
       toast({
         title: "✅ Registro realizado",
-        description: `${terminology.recordLabel} registrado com sucesso`,
+        description: `Atividade registrada com sucesso`,
       });
     },
     onError: (error) => {
+      console.error('[TIMECARD-AUTONOMOUS] Clock action error:', error);
       toast({
         title: "❌ Erro no registro",
         description: "Não foi possível registrar a atividade",

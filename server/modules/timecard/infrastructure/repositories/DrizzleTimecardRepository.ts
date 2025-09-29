@@ -83,7 +83,11 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const tenantDb = await this.getTenantDb(data.tenantId);
       
+      // ✅ 1QA.MD: Generate unique ID for autonomous workers
+      const entryId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       const entryData = {
+        id: entryId,
         tenantId: data.tenantId,
         userId: data.userId,
         nsr: Math.floor(Date.now() / 1000), // NSR sequential number
@@ -104,10 +108,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const result = await tenantDb.execute(sql`
         INSERT INTO timecard_entries (
-          tenant_id, user_id, nsr, check_in, check_out, break_start, break_end,
+          id, tenant_id, user_id, nsr, check_in, check_out, break_start, break_end,
           total_hours, notes, location, is_manual_entry, status, created_at, updated_at
         ) VALUES (
-          ${entryData.tenantId}, ${entryData.userId}, ${entryData.nsr}, ${entryData.checkIn},
+          ${entryData.id}, ${entryData.tenantId}, ${entryData.userId}, ${entryData.nsr}, ${entryData.checkIn},
           ${entryData.checkOut}, ${entryData.breakStart}, ${entryData.breakEnd},
           ${entryData.totalHours}, ${entryData.notes}, ${entryData.location},
           ${entryData.isManualEntry}, ${entryData.status}, ${entryData.createdAt}, ${entryData.updatedAt}
