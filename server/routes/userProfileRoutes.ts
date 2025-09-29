@@ -165,10 +165,11 @@ router.post('/photo/upload', async (req: AuthenticatedRequest, res: Response) =>
       });
     }
 
-    // ✅ FIXED - Working mock upload URL for development environment
-    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}&backgroundColor=b6e3f4&radius=50`;
+    // Generate a unique avatar URL for development (simulates upload URL)
+    const timestamp = Date.now();
+    const uploadURL = `https://api.dicebear.com/7.x/avatars/svg?seed=${user.id}-${timestamp}&backgroundColor=b6e3f4&radius=50`;
 
-    console.log('[PROFILE-PHOTO] Generated working upload URL for user:', user.id);
+    console.log('[PROFILE-PHOTO] Generated mock upload URL for user:', user.id);
 
     res.json({ 
       success: true,
