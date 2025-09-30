@@ -3,12 +3,12 @@ import { UserSkill } from '../entities/UserSkill';
 export interface IUserSkillRepository {
   // CRUD básico
   create(userSkill: UserSkill): Promise<UserSkill>;
-  findById(id: string): Promise<UserSkill | null>;
-  findByUserId(userId: string): Promise<UserSkill[]>;
+  findById(id: string, tenantId: string): Promise<UserSkill | null>;
+  findByUserId(userId: string, tenantId: string): Promise<UserSkill[]>;
   findBySkillId(skillId: string): Promise<UserSkill[]>;
   findByUserAndSkill(userId: string, skillId: string): Promise<UserSkill | null>;
   update(userSkill: UserSkill): Promise<UserSkill>;
-  delete(id: string): Promise<void>;
+  delete(id: string, tenantId: string): Promise<void>;
   
   // Operações de busca avançada
   findUsersWithSkill(skillId: string, filters?: {

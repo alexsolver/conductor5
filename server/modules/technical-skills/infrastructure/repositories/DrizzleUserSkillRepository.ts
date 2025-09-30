@@ -71,7 +71,7 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     .orderBy(desc(userSkills.createdAt));
   }
 
-  async findByUserId(userId: string) {
+  async findByUserId(userId: string, tenantId: string) {
     const tenantDb = await this.getTenantDb(tenantId);
     return await tenantDb.select({
       id: userSkills.id,
@@ -98,8 +98,9 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
   async update(id: string, data: {
     level?: number;
     notes?: string;
+    tenantId: string;
   }) {
-    const tenantDb = await this.getTenantDb(data.tenantId || '');
+    const tenantDb = await this.getTenantDb(data.tenantId);
     const [result] = await tenantDb.update(userSkills)
       .set({
         ...data,
@@ -111,8 +112,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     return result;
   }
 
-  async delete(id: string) {
-    const tenantDb = await this.getTenantDb(tenantId || '');
+  async delete(id: string, tenantId: string) {
+    const tenantDb = await this.getTenantDb(tenantId);
     await tenantDb.update(userSkills)
       .set({ 
         isActive: false,
@@ -121,8 +122,8 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
       .where(eq(userSkills.id, id));
   }
 
-  async findById(id: string) {
-    const tenantDb = await this.getTenantDb(tenantId || '');
+  async findById(id: string, tenantId: string) {
+    const tenantDb = await this.getTenantDb(tenantId);
     const [result] = await tenantDb.select()
       .from(userSkills)
       .where(eq(userSkills.id, id))

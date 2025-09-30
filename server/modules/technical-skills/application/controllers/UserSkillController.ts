@@ -33,7 +33,7 @@ export class UserSkillController {
       if (userId) {
         if (skillId) {
           const userSkill = await this.userSkillRepository.findByUserAndSkill(
-            userId as string, 
+            userId as string,
             skillId as string
           );
           userSkills = userSkill ? [userSkill] : [];
@@ -172,7 +172,7 @@ export class UserSkillController {
       const { id } = req.params;
       const updateData = req.body;
 
-      const existingUserSkill = await this.userSkillRepository.findById(id);
+      const existingUserSkill = await this.userSkillRepository.findById(id, req.user?.tenantId || '');
       if (!existingUserSkill) {
         return res.status(404).json({
           success: false,
@@ -483,7 +483,7 @@ export class UserSkillController {
       );
 
       // Filtrar por certificação válida se necessário
-      const filteredTechnicians = requireValidCertification 
+      const filteredTechnicians = requireValidCertification
         ? technicians.filter(tech => tech.isCertificationValid())
         : technicians;
 
