@@ -1054,17 +1054,38 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
 -- ==============================
 CREATE TABLE IF NOT EXISTS skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    category VARCHAR(100) NOT NULL,
+    tenant_id VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    category VARCHAR NOT NULL,
     description TEXT,
-    level_min INTEGER DEFAULT 1,
-    level_max INTEGER DEFAULT 5,
-    active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now(),
-    CONSTRAINT skills_tenant_name_unique UNIQUE (tenant_id, name)
+    observations TEXT,
+    suggested_certification VARCHAR,
+    certification_suggested VARCHAR,
+    certification_validity_months INTEGER,
+    validity_months INTEGER,
+    scale_options JSONB DEFAULT '[]'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    updated_by UUID
 );
+
+CREATE TABLE IF NOT EXISTS user_skills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    skill_id UUID NOT NULL,
+    level INTEGER NOT NULL,
+    assessed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    assessed_by VARCHAR,
+    expires_at TIMESTAMP WITHOUT TIME ZONE,
+    notes TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
+    is_active boolean default TRUE
+);
+
+
 
 -- ==============================
 -- TICKET FIELD CONFIGURATIONS
@@ -1241,6 +1262,8 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 
   CONSTRAINT user_sessions_tenant_token_unique UNIQUE (tenant_id, session_token)
 );
+
+
 
 CREATE TABLE IF NOT EXISTS roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
