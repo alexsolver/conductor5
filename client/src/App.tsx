@@ -102,9 +102,7 @@ import Customers from "./pages/Customers";
 
 // OmniBridge Module - Full Interface
 import OmniBridge from "./pages/OmniBridge";
-import ConversationLogsPage from "./pages/ConversationLogsPage";
 import ConversationDetailPage from "./pages/ConversationDetailPage";
-import ConversationAnalyticsPage from "./pages/ConversationAnalyticsPage";
 
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -242,9 +240,7 @@ function AppRouter() {
         <Route path="/agenda-manager" component={AgendaManager} />
         {/* OmniBridge Route - Full Interface */}
         <Route path="/omnibridge" component={OmniBridge} />
-        <Route path="/omnibridge/conversation-logs" component={ConversationLogsPage} />
         <Route path="/omnibridge/conversations/:id" component={ConversationDetailPage} />
-        <Route path="/omnibridge/conversation-analytics" component={ConversationAnalyticsPage} />
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />

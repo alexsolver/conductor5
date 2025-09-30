@@ -170,8 +170,6 @@ const adminNavigation = [
       { name: "beneficiaries", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "internalForms", href: "/internal-forms", icon: FileText },
       { name: "omniBridge", href: "/omnibridge", icon: MessageSquare },
-      { name: "conversationLogs", href: "/omnibridge/conversation-logs", icon: MessageCircle },
-      { name: "conversationAnalytics", href: "/omnibridge/conversation-analytics", icon: BarChart3 },
       { name: "companies", href: "/companies", icon: Building2 },
       { name: "branding", href: "/tenant-admin/branding", icon: Palette },
       { name: "reportsAndDashboards", href: "/reports", icon: BarChart3 },

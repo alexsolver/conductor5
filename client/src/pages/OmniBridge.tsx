@@ -22,6 +22,10 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { ptBR, enUS, es } from 'date-fns/locale';
+import { Link } from 'wouter';
 import {
   MessageSquare,
   Mail,
@@ -59,7 +63,10 @@ import {
   Upload,
   Play,
   Trash2,
-  Globe // Added Globe icon
+  Globe,
+  Download,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
@@ -1022,10 +1029,18 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
+          </TabsTrigger>
+          <TabsTrigger value="conversation-logs" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Histórico
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Analytics
           </TabsTrigger>
           <TabsTrigger value="channels" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
@@ -1036,6 +1051,16 @@ export default function OmniBridge() {
             Automação
           </TabsTrigger>
         </TabsList>
+
+        {/* Conversation Logs Tab */}
+        <TabsContent value="conversation-logs" className="space-y-4">
+          <ConversationLogsContent />
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4">
+          <ConversationAnalyticsContent />
+        </TabsContent>
 
         {/* Channels Tab */}
         <TabsContent value="channels" className="space-y-4">
@@ -1516,6 +1541,506 @@ export default function OmniBridge() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Conversation Logs Content Component
+function ConversationLogsContent() {
+  const { t, i18n } = useTranslation();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [agentFilter, setAgentFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(0);
+  const limit = 20;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(page * limit),
+      });
+      if (agentFilter !== 'all') {
+        params.append('agentId', agentFilter);
+      }
+      const response = await fetch(`/api/omnibridge/conversation-logs?${params}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch conversations');
+      return response.json();
+    },
+  });
+
+  const getDateLocale = () => {
+    switch (i18n.language) {
+      case 'pt-BR': return ptBR;
+      case 'es': return es;
+      default: return enUS;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
+  };
+
+  const filteredConversations = data?.data?.filter((conv: any) => {
+    const matchesSearch = !searchTerm || 
+      conv.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.channel.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'escalated' && conv.escalatedToHuman) ||
+      (statusFilter === 'completed' && !conv.escalatedToHuman && conv.endedAt);
+    
+    return matchesSearch && matchesStatus;
+  }) || [];
+
+  const exportData = () => {
+    const dataStr = JSON.stringify(filteredConversations, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `conversations-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">{t('omnibridge.conversationLogs.title', 'Histórico de Conversas IA')}</h2>
+          <p className="text-muted-foreground mt-1">
+            {t('omnibridge.conversationLogs.description', 'Visualize e analise todas as conversas dos agentes IA')}
+          </p>
+        </div>
+        <Button variant="outline" onClick={exportData} data-testid="button-export-conversations">
+          <Download className="h-4 w-4 mr-2" />
+          {t('common.export', 'Exportar')}
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            {t('common.filters', 'Filtros')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">{t('common.search', 'Pesquisar')}</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t('omnibridge.conversationLogs.searchPlaceholder', 'Agente, usuário, canal...')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                  data-testid="input-search-conversations"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">{t('omnibridge.conversationLogs.status', 'Status')}</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger data-testid="select-status-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                  <SelectItem value="completed">{t('omnibridge.conversationLogs.completed', 'Concluídas')}</SelectItem>
+                  <SelectItem value="escalated">{t('omnibridge.conversationLogs.escalated', 'Escaladas')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">{t('omnibridge.conversationLogs.agent', 'Agente')}</label>
+              <Select value={agentFilter} onValueChange={setAgentFilter}>
+                <SelectTrigger data-testid="select-agent-filter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-3">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredConversations.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">
+                {t('omnibridge.conversationLogs.noConversations', 'Nenhuma conversa encontrada')}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredConversations.map((conv: any) => (
+            <Link key={conv.id} href={`/omnibridge/conversations/${conv.id}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" data-testid={`card-conversation-${conv.id}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Bot className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-lg">{conv.agentName}</h3>
+                        {conv.escalatedToHuman && (
+                          <Badge variant="destructive" className="gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.escalated', 'Escalada')}
+                          </Badge>
+                        )}
+                        {conv.endedAt && !conv.escalatedToHuman && (
+                          <Badge variant="default" className="gap-1 bg-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.completed', 'Concluída')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
+                          <p className="font-medium capitalize">{conv.channel}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
+                          <p className="font-medium">{conv.totalMessages}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
+                          <p className="font-medium">{conv.totalActions}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+                          <p className="font-medium flex items-center gap-1 text-sm">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(conv.startedAt)}
+                          </p>
+                        </div>
+                      </div>
+                      {conv.escalationReason && (
+                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                          <p className="text-sm text-red-800 dark:text-red-200">
+                            <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {data?.total > limit && (
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={page === 0}
+            data-testid="button-previous-page"
+          >
+            {t('common.previous', 'Anterior')}
+          </Button>
+          <span className="flex items-center px-4">
+            {t('common.page', 'Página')} {page + 1} {t('common.of', 'de')} {Math.ceil(data.total / limit)}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setPage(p => p + 1)}
+            disabled={(page + 1) * limit >= data.total}
+            data-testid="button-next-page"
+          >
+            {t('common.next', 'Próximo')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Conversation Analytics Content Component
+function ConversationAnalyticsContent() {
+  const { t } = useTranslation();
+  const [agentId, setAgentId] = useState<string>('1');
+
+  const { data, isLoading } = useQuery<{ success: boolean; data: any }>({
+    queryKey: ['/api/omnibridge/conversation-logs/analytics', agentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/omnibridge/conversation-logs/analytics/${agentId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      return response.json();
+    },
+  });
+
+  const analytics = data?.data;
+
+  const getRatingColor = (rating: string) => {
+    switch (rating) {
+      case 'excellent': return 'bg-green-500';
+      case 'good': return 'bg-blue-500';
+      case 'neutral': return 'bg-gray-500';
+      case 'poor': return 'bg-orange-500';
+      case 'terrible': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getRatingPercentage = (count: number, total: number) => {
+    return total > 0 ? (count / total) * 100 : 0;
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">{t('omnibridge.analytics.title', 'Analytics de Conversas IA')}</h2>
+          <p className="text-muted-foreground mt-1">
+            {t('omnibridge.analytics.description', 'Métricas de performance e aprendizado dos agentes')}
+          </p>
+        </div>
+        <Select value={agentId} onValueChange={setAgentId}>
+          <SelectTrigger className="w-48" data-testid="select-agent">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">Agente Suporte Técnico</SelectItem>
+            <SelectItem value="2">Agente Vendas</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : analytics ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  {t('omnibridge.analytics.totalConversations', 'Total de Conversas')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold" data-testid="text-total-conversations">{analytics.conversations.total}</p>
+                <p className="text-xs opacity-90 mt-1">
+                  {analytics.conversations.totalMessages} {t('omnibridge.analytics.messages', 'mensagens')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  {t('omnibridge.analytics.totalActions', 'Total de Ações')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold" data-testid="text-total-actions">{analytics.conversations.totalActions}</p>
+                <p className="text-xs opacity-90 mt-1">
+                  {analytics.conversations.avgActionsPerConversation.toFixed(1)} {t('omnibridge.analytics.perConversation', 'por conversa')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {t('omnibridge.analytics.escalationRate', 'Taxa de Escalação')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold" data-testid="text-escalation-rate">
+                  {analytics.conversations.escalationRate.toFixed(1)}%
+                </p>
+                <p className="text-xs opacity-90 mt-1">
+                  {t('omnibridge.analytics.escalatedToHuman', 'escaladas para humano')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  {t('omnibridge.analytics.avgMessages', 'Média de Mensagens')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold" data-testid="text-avg-messages">
+                  {analytics.conversations.avgMessagesPerConversation.toFixed(1)}
+                </p>
+                <p className="text-xs opacity-90 mt-1">
+                  {t('omnibridge.analytics.messagesPerConversation', 'mensagens por conversa')}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  {t('omnibridge.analytics.actionPerformance', 'Performance das Ações')}
+                </CardTitle>
+                <CardDescription>
+                  {t('omnibridge.analytics.actionDescription', 'Taxa de sucesso e tempo médio de execução')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics.actions.map((action: any) => (
+                    <div key={action.actionName} className="space-y-2" data-testid={`action-stats-${action.actionName}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{action.actionName}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {action.avgExecutionTime.toFixed(0)}ms
+                          </span>
+                          <Badge 
+                            variant={action.successRate >= 90 ? 'default' : action.successRate >= 70 ? 'secondary' : 'destructive'}
+                            className="gap-1"
+                          >
+                            {action.successRate >= 90 ? <CheckCircle className="h-3 w-3" /> : <Target className="h-3 w-3" />}
+                            {action.successRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 h-2 rounded-full overflow-hidden bg-muted">
+                        <div 
+                          className="bg-green-500" 
+                          style={{ width: `${action.successRate}%` }}
+                        />
+                        <div 
+                          className="bg-red-500" 
+                          style={{ width: `${100 - action.successRate}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{action.success} {t('omnibridge.analytics.successful', 'sucesso')}</span>
+                        <span>{action.failed} {t('omnibridge.analytics.failed', 'falha')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  {t('omnibridge.analytics.feedbackDistribution', 'Distribuição de Feedback')}
+                </CardTitle>
+                <CardDescription>
+                  {t('omnibridge.analytics.feedbackDescription', 'Avaliações dos usuários sobre o agente')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center pb-4">
+                    <p className="text-4xl font-bold" data-testid="text-total-feedback">{analytics.feedback.total}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('omnibridge.analytics.totalFeedbacks', 'avaliações totais')}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    {Object.entries(analytics.feedback.byRating).map(([rating, count]: [string, any]) => (
+                      <div key={rating} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="capitalize">{t(`omnibridge.feedback.${rating}`, rating)}</span>
+                          <span className="font-medium">{count}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div 
+                            className={`h-full ${getRatingColor(rating)}`}
+                            style={{ width: `${getRatingPercentage(count, analytics.feedback.total)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{t('omnibridge.analytics.resolved', 'Resolvidos')}</span>
+                      <span className="font-semibold text-green-600">{analytics.feedback.resolved} / {analytics.feedback.total}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-sm text-muted-foreground">{t('omnibridge.analytics.unresolved', 'Pendentes')}</span>
+                      <span className="font-semibold text-orange-600">{analytics.feedback.unresolved}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('omnibridge.analytics.insights', 'Insights e Recomendações')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {analytics.conversations.escalationRate > 20 && (
+                  <div className="flex gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-orange-900 dark:text-orange-200">
+                        {t('omnibridge.analytics.highEscalation', 'Taxa de escalação elevada')}
+                      </p>
+                      <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">
+                        {t('omnibridge.analytics.highEscalationText', 'Considere revisar o contexto do agente e adicionar mais exemplos de resolução.')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground">
+              {t('omnibridge.analytics.noData', 'Nenhum dado disponível para este agente')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
