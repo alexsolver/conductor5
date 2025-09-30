@@ -1554,11 +1554,287 @@ export default function OmniBridge() {
   );
 }
 
+// Feedback Modal Component
+function FeedbackModal({ 
+  messageId, 
+  messageContent,
+  conversationId,
+  isOpen, 
+  onClose 
+}: { 
+  messageId: number; 
+  messageContent: string;
+  conversationId: string;
+  isOpen: boolean; 
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const feedbackSchema = z.object({
+    rating: z.enum(['excellent', 'good', 'neutral', 'poor', 'terrible']),
+    category: z.string().min(1, 'Categoria é obrigatória'),
+    notes: z.string().optional(),
+    correctiveAction: z.string().optional(),
+    expectedBehavior: z.string().optional(),
+    actualBehavior: z.string().optional(),
+    severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  });
+
+  const form = useForm({
+    resolver: zodResolver(feedbackSchema),
+    defaultValues: {
+      rating: 'neutral' as const,
+      category: 'response_quality',
+      notes: '',
+      correctiveAction: '',
+      expectedBehavior: '',
+      actualBehavior: '',
+      severity: 'medium' as const,
+    },
+  });
+
+  const submitFeedbackMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof feedbackSchema>) => {
+      const response = await fetch(`/api/omnibridge/conversation-logs/${conversationId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          messageId,
+          ...data,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit feedback');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('omnibridge.feedback.success', 'Feedback enviado'),
+        description: t('omnibridge.feedback.thankYou', 'Obrigado por ajudar a melhorar o agente!'),
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/conversation-logs', conversationId] });
+      form.reset();
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: t('omnibridge.feedback.error', 'Erro ao enviar feedback'),
+        description: t('omnibridge.feedback.tryAgain', 'Tente novamente mais tarde'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof feedbackSchema>) => {
+    submitFeedbackMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            {t('omnibridge.feedback.title', 'Avaliar Resposta da IA')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('omnibridge.feedback.description', 'Ajude a melhorar o agente fornecendo feedback detalhado sobre esta resposta')}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg mb-4">
+          <p className="text-sm text-muted-foreground mb-1">
+            {t('omnibridge.feedback.originalMessage', 'Resposta original:')}
+          </p>
+          <p className="text-sm">{messageContent}</p>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="rating"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.ratingLabel', 'Avaliação Geral')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-rating">
+                        <SelectValue placeholder={t('omnibridge.feedback.selectRating', 'Selecione uma avaliação')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="excellent">{t('omnibridge.feedback.excellent', 'Excelente')}</SelectItem>
+                      <SelectItem value="good">{t('omnibridge.feedback.good', 'Bom')}</SelectItem>
+                      <SelectItem value="neutral">{t('omnibridge.feedback.neutral', 'Neutro')}</SelectItem>
+                      <SelectItem value="poor">{t('omnibridge.feedback.poor', 'Ruim')}</SelectItem>
+                      <SelectItem value="terrible">{t('omnibridge.feedback.terrible', 'Péssimo')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.categoryLabel', 'Categoria')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-category">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="response_quality">{t('omnibridge.feedback.responseQuality', 'Qualidade da Resposta')}</SelectItem>
+                      <SelectItem value="action_accuracy">{t('omnibridge.feedback.actionAccuracy', 'Precisão da Ação')}</SelectItem>
+                      <SelectItem value="tone">{t('omnibridge.feedback.tone', 'Tom/Linguagem')}</SelectItem>
+                      <SelectItem value="speed">{t('omnibridge.feedback.speed', 'Velocidade')}</SelectItem>
+                      <SelectItem value="understanding">{t('omnibridge.feedback.understanding', 'Compreensão')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="severity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.severityLabel', 'Severidade')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-severity">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">{t('omnibridge.feedback.severityLow', 'Baixa')}</SelectItem>
+                      <SelectItem value="medium">{t('omnibridge.feedback.severityMedium', 'Média')}</SelectItem>
+                      <SelectItem value="high">{t('omnibridge.feedback.severityHigh', 'Alta')}</SelectItem>
+                      <SelectItem value="critical">{t('omnibridge.feedback.severityCritical', 'Crítica')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="actualBehavior"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.actualBehavior', 'O que aconteceu?')}</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder={t('omnibridge.feedback.actualBehaviorPlaceholder', 'Descreva o comportamento atual da IA')}
+                      className="min-h-[80px]"
+                      data-testid="textarea-actual-behavior"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="expectedBehavior"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.expectedBehavior', 'O que era esperado?')}</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder={t('omnibridge.feedback.expectedBehaviorPlaceholder', 'Descreva o comportamento esperado')}
+                      className="min-h-[80px]"
+                      data-testid="textarea-expected-behavior"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="correctiveAction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.correctiveAction', 'Ação Corretiva Sugerida')}</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder={t('omnibridge.feedback.correctiveActionPlaceholder', 'Como a IA deveria responder neste caso?')}
+                      className="min-h-[80px]"
+                      data-testid="textarea-corrective-action"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('omnibridge.feedback.notes', 'Observações Adicionais')}</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder={t('omnibridge.feedback.notesPlaceholder', 'Informações adicionais que possam ajudar...')}
+                      className="min-h-[80px]"
+                      data-testid="textarea-notes"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-2 justify-end pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                data-testid="button-cancel-feedback"
+              >
+                {t('common.cancel', 'Cancelar')}
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={submitFeedbackMutation.isPending}
+                data-testid="button-submit-feedback"
+              >
+                {submitFeedbackMutation.isPending ? t('common.saving', 'Salvando...') : t('common.submit', 'Enviar')}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Conversation Detail Component
 function ConversationDetail({ conversationId }: { conversationId: string }) {
   const { t, i18n } = useTranslation();
-  const { toast } = useToast();
-  const [feedbackStates, setFeedbackStates] = useState<Record<number, 'positive' | 'negative' | null>>({});
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<{ id: number; content: string } | null>(null);
   
   const { data: conversation, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', conversationId],
@@ -1572,50 +1848,14 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
     },
   });
 
-  const submitFeedback = async (messageId: number, rating: 'excellent' | 'good' | 'poor', notes?: string) => {
-    try {
-      const response = await fetch(`/api/omnibridge/conversation-logs/${conversationId}/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          messageId,
-          rating,
-          category: 'response_quality',
-          notes: notes || '',
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to submit feedback');
-      
-      toast({
-        title: t('omnibridge.feedback.success', 'Feedback enviado'),
-        description: t('omnibridge.feedback.thankYou', 'Obrigado por ajudar a melhorar o agente!'),
-      });
-    } catch (error) {
-      toast({
-        title: t('omnibridge.feedback.error', 'Erro ao enviar feedback'),
-        description: t('omnibridge.feedback.tryAgain', 'Tente novamente mais tarde'),
-        variant: 'destructive',
-      });
-    }
+  const openFeedbackModal = (messageId: number, messageContent: string) => {
+    setSelectedMessage({ id: messageId, content: messageContent });
+    setFeedbackModalOpen(true);
   };
 
-  const handleFeedback = (messageIdx: number, messageId: number, type: 'positive' | 'negative') => {
-    const currentFeedback = feedbackStates[messageIdx];
-    const newFeedback = currentFeedback === type ? null : type;
-    
-    setFeedbackStates(prev => ({
-      ...prev,
-      [messageIdx]: newFeedback,
-    }));
-
-    if (newFeedback) {
-      const rating = newFeedback === 'positive' ? 'excellent' : 'poor';
-      submitFeedback(messageId, rating);
-    }
+  const closeFeedbackModal = () => {
+    setFeedbackModalOpen(false);
+    setSelectedMessage(null);
   };
 
   const getDateLocale = () => {
@@ -1763,34 +2003,15 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
                   
                   {msg.sender === 'assistant' && msg.id && (
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <span className="text-xs text-muted-foreground mr-2">
-                        {t('omnibridge.feedback.helpful', 'Esta resposta foi útil?')}
-                      </span>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className={`h-7 px-2 ${
-                          feedbackStates[idx] === 'positive' 
-                            ? 'text-green-600 bg-green-50 dark:bg-green-900/20' 
-                            : 'text-gray-400 hover:text-green-600'
-                        }`}
-                        onClick={() => handleFeedback(idx, msg.id, 'positive')}
-                        data-testid={`button-feedback-positive-${idx}`}
+                        className="h-8"
+                        onClick={() => openFeedbackModal(msg.id, msg.content)}
+                        data-testid={`button-provide-feedback-${idx}`}
                       >
-                        <ThumbsUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`h-7 px-2 ${
-                          feedbackStates[idx] === 'negative' 
-                            ? 'text-red-600 bg-red-50 dark:bg-red-900/20' 
-                            : 'text-gray-400 hover:text-red-600'
-                        }`}
-                        onClick={() => handleFeedback(idx, msg.id, 'negative')}
-                        data-testid={`button-feedback-negative-${idx}`}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        {t('omnibridge.feedback.provideFeedback', 'Avaliar Resposta')}
                       </Button>
                     </div>
                   )}
@@ -1834,6 +2055,17 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Feedback Modal */}
+      {selectedMessage && (
+        <FeedbackModal
+          messageId={selectedMessage.id}
+          messageContent={selectedMessage.content}
+          conversationId={conversationId}
+          isOpen={feedbackModalOpen}
+          onClose={closeFeedbackModal}
+        />
       )}
     </div>
   );
