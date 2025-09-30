@@ -24,6 +24,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { ActionCatalogData } from './ActionCatalog';
 
 export interface FieldMapping {
   fieldId: string;
@@ -63,6 +64,24 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
   const [selectedTemplate, setSelectedTemplate] = useState<string>(config.templateId || '');
   const [availableFields, setAvailableFields] = useState<any[]>([]);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+
+  // Agrupar ações por categoria
+  const actionsByCategory = ActionCatalogData.reduce((acc, action) => {
+    const categoryKey = action.category;
+    if (!acc[categoryKey]) {
+      acc[categoryKey] = [];
+    }
+    acc[categoryKey].push(action);
+    return acc;
+  }, {} as Record<string, typeof ActionCatalogData>);
+
+  const categoryLabels: Record<string, string> = {
+    entity: '🏢 Criar Entidades',
+    communication: '📧 Comunicação',
+    integration: '🔗 Integrações',
+    knowledge: '📖 Base de Conhecimento',
+    workflow: '⚙️ Fluxo de Trabalho'
+  };
 
   // Buscar templates de ticket disponíveis
   const { data: templates } = useQuery<any>({
@@ -245,12 +264,34 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
                 </div>
                 <div>
                   <Label className="text-xs">Ação</Label>
-                  <Input
+                  <Select
                     value={option.action || ''}
-                    onChange={(e) => updateMenuOption(option.id, { action: e.target.value })}
-                    placeholder="Ex: create_ticket"
-                    className="h-8 text-sm"
-                  />
+                    onValueChange={(value) => updateMenuOption(option.id, { action: value })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder="Selecione uma ação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">
+                        <span className="text-muted-foreground">Nenhuma ação</span>
+                      </SelectItem>
+                      {Object.entries(actionsByCategory).map(([categoryKey, actions]) => (
+                        <div key={categoryKey}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            {categoryLabels[categoryKey] || categoryKey}
+                          </div>
+                          {actions.map(action => (
+                            <SelectItem key={action.name} value={action.name}>
+                              <div className="flex items-center gap-2">
+                                <action.icon className="w-3 h-3" />
+                                <span>{action.label}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex gap-1">
