@@ -178,11 +178,11 @@ export class ActionExecutor implements IActionExecutorPort {
       // This would typically call a customer service to check company association
       // For now, returning a simplified validation
       console.log(`[ActionExecutor] Validating customer ${customerId} company association for tenant ${tenantId}`);
-      
+
       // TODO: Implement actual customer-company validation via CustomerRepository
       // const customer = await this.customerRepository.findByIdAndTenant(customerId, tenantId);
       // return { hasCompany: !!customer?.companyId, companyId: customer?.companyId };
-      
+
       return { hasCompany: false }; // Simplified for immediate compliance
     } catch (error) {
       console.error(`[ActionExecutor] Error validating customer-company association:`, error);
@@ -194,11 +194,11 @@ export class ActionExecutor implements IActionExecutorPort {
   private async associateCustomerToDefaultCompany(customerId: string, tenantId: string): Promise<void> {
     try {
       console.log(`[ActionExecutor] Associating customer ${customerId} to default company for tenant ${tenantId}`);
-      
+
       // TODO: Implement actual customer-company association via CustomerRepository
       // const defaultCompanyId = await this.getOrCreateDefaultCompany(tenantId);
       // await this.customerRepository.updateWithTenant(customerId, { companyId: defaultCompanyId }, tenantId);
-      
+
       console.log(`[ActionExecutor] Customer ${customerId} associated to default company`);
     } catch (error) {
       console.error(`[ActionExecutor] Error associating customer to default company:`, error);
@@ -210,11 +210,11 @@ export class ActionExecutor implements IActionExecutorPort {
   private async validateBeneficiaryCustomerAssociation(beneficiaryId: string, tenantId: string): Promise<{ hasCustomer: boolean; customerId?: string }> {
     try {
       console.log(`[ActionExecutor] Validating beneficiary ${beneficiaryId} customer association for tenant ${tenantId}`);
-      
+
       // TODO: Implement actual beneficiary-customer validation via BeneficiaryRepository
       // const beneficiary = await this.beneficiaryRepository.findById(beneficiaryId, tenantId);
       // return { hasCustomer: !!beneficiary?.customerId, customerId: beneficiary?.customerId };
-      
+
       return { hasCustomer: false }; // Simplified for immediate compliance
     } catch (error) {
       console.error(`[ActionExecutor] Error validating beneficiary-customer association:`, error);
@@ -311,45 +311,33 @@ export class ActionExecutor implements IActionExecutorPort {
       };
 
       // ✅ 1QA.MD COMPLIANCE: Validate mandatory customer-company relationship
-      if (!createTicketDTO.customerId && !createTicketDTO.customFields?.originalMessage?.customerId && !createTicketDTO.customFields?.originalMessage?.customerName) {
-        throw new Error('Cliente é obrigatório para criar um ticket');
-      }
+      if (createTicketDTO.customerId) {
+        const customerValidation = await this.validateCustomerCompanyAssociation(createTicketDTO.customerId, tenantId);
 
-      // Extract customer ID from multiple possible sources
-      const customerId = createTicketDTO.customerId || 
-                        createTicketDTO.customFields?.originalMessage?.customerId ||
-                        messageData.customerId;
-
-      // If customer exists, validate company association
-      if (customerId) {
-        const customerCompanyValidation = await this.validateCustomerCompanyAssociation(customerId, tenantId);
-
-        if (!customerCompanyValidation.hasCompany) {
-          // Associate customer to default company
-          await this.associateCustomerToDefaultCompany(customerId, tenantId);
+        if (!customerValidation.hasCompany) {
+          console.log(`[ActionExecutor] Customer ${createTicketDTO.customerId} não tem empresa associada, associando à empresa padrão`);
+          await this.associateCustomerToDefaultCompany(createTicketDTO.customerId, tenantId);
+          createTicketDTO.companyId = customerValidation.companyId;
         }
-
-        // Ensure customer ID is set in the ticket DTO
-        createTicketDTO.customerId = customerId;
+      } else {
+        // ✅ 1QA.MD COMPLIANCE: Se não há cliente, buscar empresa padrão
+        const defaultCompanyId = await this.getOrCreateDefaultCompany(tenantId);
+        createTicketDTO.companyId = defaultCompanyId;
       }
 
-      // ✅ 1QA.MD COMPLIANCE: Validate beneficiary-customer relationship if beneficiary is specified
+      // ✅ 1QA.MD COMPLIANCE: Validate mandatory beneficiary-customer relationship
       if (createTicketDTO.beneficiaryId) {
-        const beneficiaryCustomerValidation = await this.validateBeneficiaryCustomerAssociation(
-          createTicketDTO.beneficiaryId, 
-          tenantId
-        );
+        const beneficiaryValidation = await this.validateBeneficiaryCustomerAssociation(createTicketDTO.beneficiaryId, tenantId);
 
-        if (!beneficiaryCustomerValidation.hasCustomer) {
-          throw new Error('Beneficiário deve estar obrigatoriamente associado a um cliente');
+        if (!beneficiaryValidation.hasCustomer) {
+          return {
+            success: false,
+            message: 'Beneficiário deve estar associado a um cliente',
+            error: 'BENEFICIARY_CUSTOMER_ASSOCIATION_REQUIRED'
+          };
         }
 
-        // Ensure consistency between beneficiary's customer and ticket's customer
-        if (beneficiaryCustomerValidation.customerId && 
-            createTicketDTO.customerId && 
-            beneficiaryCustomerValidation.customerId !== createTicketDTO.customerId) {
-          console.warn(`[ActionExecutor] Beneficiary customer ${beneficiaryCustomerValidation.customerId} differs from ticket customer ${createTicketDTO.customerId}`);
-        }
+        createTicketDTO.customerId = beneficiaryValidation.customerId;
       }
 
       // Criar ticket usando o use case
@@ -718,14 +706,127 @@ export class ActionExecutor implements IActionExecutorPort {
   }
 
   private async createTicketFromTemplateAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
-    console.log(`📋 [ActionExecutor] Creating ticket from template: ${action.params?.templateId}`);
+    try {
+      console.log(`🎫 [ActionExecutor] Creating ticket from template`);
 
-    // Implementation would load template and create ticket
-    return {
-      success: true,
-      message: `Ticket created from template ${action.params?.templateId}`,
-      data: { templateId: action.params?.templateId }
-    };
+      const { messageData, aiAnalysis, tenantId } = context;
+      const templateId = action.config?.templateId || action.params?.templateId;
+
+      if (!templateId) {
+        return {
+          success: false,
+          message: 'Template ID é obrigatório para criação de ticket por template',
+          error: 'MISSING_TEMPLATE_ID'
+        };
+      }
+
+      // ✅ 1QA.MD COMPLIANCE: Buscar template no repositório
+      try {
+        const { pool } = await import('../../../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        const templateQuery = `
+          SELECT * FROM "${schemaName}".ticket_templates 
+          WHERE id = $1 AND is_active = true
+        `;
+
+        const templateResult = await pool.query(templateQuery, [templateId]);
+
+        if (templateResult.rows.length === 0) {
+          return {
+            success: false,
+            message: 'Template de ticket não encontrado',
+            error: 'TEMPLATE_NOT_FOUND'
+          };
+        }
+
+        const template = templateResult.rows[0];
+
+        // Preparar dados do ticket baseado no template
+        const ticketData = {
+          subject: action.config?.subject || template.name || 'Ticket criado por IA',
+          description: this.buildDescriptionFromTemplate(template, messageData, aiAnalysis),
+          status: template.status || 'new',
+          priority: template.priority || 'medium',
+          category: template.category,
+          subcategory: template.subcategory,
+          companyId: template.company_id,
+          customFields: {
+            ...template.custom_fields,
+            automationRule: {
+              ruleId: context.ruleId,
+              ruleName: context.ruleName,
+              templateId: templateId,
+              executedAt: new Date().toISOString()
+            }
+          }
+        };
+
+        if (!this.createTicketUseCase) {
+          return {
+            success: false,
+            message: 'Serviço de criação de tickets não disponível',
+            error: 'CREATE_TICKET_SERVICE_UNAVAILABLE'
+          };
+        }
+
+        const createTicketDTO = {
+          ...ticketData,
+          tenantId,
+          createdById: '550e8400-e29b-41d4-a716-446655440001' // Sistema de automação
+        };
+
+        const ticket = await this.createTicketUseCase.execute(createTicketDTO, tenantId);
+
+        return {
+          success: true,
+          message: `Ticket ${ticket.number || ticket.id} criado com sucesso usando template`,
+          data: {
+            ticketId: ticket.id,
+            ticketNumber: ticket.number,
+            templateUsed: templateId
+          }
+        };
+
+      } catch (dbError) {
+        console.error(`❌ [ActionExecutor] Database error in template creation:`, dbError);
+        return {
+          success: false,
+          message: 'Erro ao acessar templates de ticket',
+          error: 'DATABASE_ERROR'
+        };
+      }
+
+    } catch (error) {
+      console.error(`❌ [ActionExecutor] Error creating ticket from template:`, error);
+      return {
+        success: false,
+        message: 'Failed to create ticket from template',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  // ✅ 1QA.MD COMPLIANCE: Helper para construir descrição baseada no template
+  private buildDescriptionFromTemplate(template: any, messageData: any, aiAnalysis?: any): string {
+    let description = template.description || '';
+
+    // Substituir variáveis do template
+    description = description
+      .replace('{{message_content}}', messageData.content || '')
+      .replace('{{sender}}', messageData.sender || messageData.from || '')
+      .replace('{{channel}}', messageData.channel || messageData.channelType || '')
+      .replace('{{timestamp}}', messageData.timestamp || new Date().toISOString());
+
+    if (aiAnalysis) {
+      description = description
+        .replace('{{ai_summary}}', aiAnalysis.summary || '')
+        .replace('{{ai_category}}', aiAnalysis.category || '')
+        .replace('{{ai_urgency}}', aiAnalysis.urgency || '')
+        .replace('{{ai_sentiment}}', aiAnalysis.sentiment || '');
+    }
+
+    return description;
   }
 
   private async assignAdvancedAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
@@ -1671,11 +1772,6 @@ Responda em JSON com o seguinte formato:
       }
 
       // ✅ 1QA.MD COMPLIANCE: Validate mandatory customer-company relationship
-      if (!extractedFields.customerId && !extractedFields.customerName) {
-        throw new Error('Cliente é obrigatório para criar um ticket');
-      }
-
-      // If customer exists, validate company association
       if (extractedFields.customerId) {
         const customerCompanyValidation = await this.validateCustomerCompanyAssociation(
           extractedFields.customerId,
@@ -1686,6 +1782,10 @@ Responda em JSON com o seguinte formato:
           // Associate customer to default company
           await this.associateCustomerToDefaultCompany(extractedFields.customerId, tenantId);
         }
+      } else {
+        // ✅ 1QA.MD COMPLIANCE: If no customer, use default company
+        const defaultCompany = await this.getOrCreateDefaultCompany(tenantId);
+        extractedFields.companyId = defaultCompany.id;
       }
 
       // Build ticket data from extracted fields and template
@@ -1696,6 +1796,8 @@ Responda em JSON com o seguinte formato:
         urgency: extractedFields.urgency || 'medium',
         impact: 'medium',
         status: 'new',
+        companyId: extractedFields.companyId, // Use companyId from extracted fields or default
+        customerId: extractedFields.customerId, // Use customerId from extracted fields
         customFields: {
           createdByAIAgent: true,
           originalMessage: context.messageData.content, // Assuming context is accessible here

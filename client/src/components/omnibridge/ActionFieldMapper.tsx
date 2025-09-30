@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { ActionCatalogData } from './ActionCatalog';
+import { apiRequest } from '@/lib/queryClient';
 
 export interface FieldMapping {
   fieldId: string;
@@ -52,6 +53,10 @@ export interface ActionFieldConfig {
   menuTree?: MenuOption[];
   feedbackMessage: string;
   showResultDetails: boolean;
+  subject?: string;
+  description?: string;
+  priority?: string;
+  category?: string;
 }
 
 interface ActionFieldMapperProps {
@@ -64,6 +69,17 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
   const [selectedTemplate, setSelectedTemplate] = useState<string>(config.templateId || '');
   const [availableFields, setAvailableFields] = useState<any[]>([]);
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+
+  // ✅ 1QA.MD COMPLIANCE: Buscar templates de ticket
+  const { data: ticketTemplates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ['ticket-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/ticket-templates');
+      return response.data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
 
   // Agrupar ações por categoria
   const actionsByCategory = ActionCatalogData.reduce((acc, action) => {
@@ -103,6 +119,13 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
 
   const updateConfig = (updates: Partial<ActionFieldConfig>) => {
     onChange({ ...config, ...updates });
+  };
+
+  const updateField = (key: string, value: any) => {
+    onChange({
+      ...config,
+      [key]: value
+    });
   };
 
   const toggleFieldMapping = (field: any, checked: boolean) => {
@@ -518,6 +541,100 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
           </CardContent>
         </Card>
       )}
+
+      {/* Seção 2: Configuração específica para criar ticket */}
+      {actionType === 'createTicket' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Configuração de Criação de Ticket
+            </CardTitle>
+            <CardDescription>
+              Defina os detalhes e o template para a criação de tickets
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="templateId">Template de Ticket</Label>
+              <Select value={config.templateId || ''} onValueChange={(value) => updateField('templateId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sem template</SelectItem>
+                  {ticketTemplates?.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name} - {template.category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="subject">Assunto do Ticket</Label>
+              <Input
+                id="subject"
+                value={config.subject || ''}
+                onChange={(e) => updateField('subject', e.target.value)}
+                placeholder="Assunto do ticket... (use {{message_content}}, {{sender}}, etc.)"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={config.description || ''}
+                onChange={(e) => updateField('description', e.target.value)}
+                placeholder="Descrição do ticket... (use {{ai_summary}}, {{ai_category}}, etc.)"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="priority">Prioridade</Label>
+              <Select value={config.priority || 'medium'} onValueChange={(value) => updateField('priority', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="category">Categoria</Label>
+              <Input
+                id="category"
+                value={config.category || ''}
+                onChange={(e) => updateField('category', e.target.value)}
+                placeholder="Categoria do ticket..."
+              />
+            </div>
+
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium mb-2">Variáveis disponíveis:</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>• {{message_content}}</div>
+                <div>• {{sender}}</div>
+                <div>• {{channel}}</div>
+                <div>• {{timestamp}}</div>
+                <div>• {{ai_summary}}</div>
+                <div>• {{ai_category}}</div>
+                <div>• {{ai_urgency}}</div>
+                <div>• {{ai_sentiment}}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
 
       {/* Seção 3: Feedback ao Usuário */}
       <Card>
