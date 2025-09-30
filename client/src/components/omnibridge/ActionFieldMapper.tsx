@@ -621,7 +621,7 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
             <div className="text-sm text-muted-foreground">
               <p className="font-medium mb-2">Variáveis disponíveis:</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>• {{message_content}}</div>
+                <div>• {`{{message_content}}`}</div>
                 <div>• {{sender}}</div>
                 <div>• {{channel}}</div>
                 <div>• {{timestamp}}</div>
