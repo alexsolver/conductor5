@@ -266,59 +266,13 @@ export class AutomationController {
         return;
       }
 
-      // ✅ 1QA.MD: Validação rigorosa do campo enabled
-      if (typeof isEnabled !== 'boolean') {
-        console.error('❌ [AutomationController] Invalid isEnabled value:', isEnabled);
-        res.status(400).json({ success: false, error: 'isEnabled must be a boolean value' });
-        return;
-      }
-
       console.log(`🔄 [AutomationController] Toggling automation rule: ${ruleId} to ${isEnabled}`);
 
-      // ✅ 1QA.MD: Usar repository diretamente para garantir persistência
-      const { DrizzleAutomationRuleRepository } = await import('../../infrastructure/repositories/DrizzleAutomationRuleRepository');
-      const repository = new DrizzleAutomationRuleRepository();
-      
-      const updatedRule = await repository.update(ruleId, tenantId, { enabled: isEnabled });
-
-      if (!updatedRule) {
-        res.status(404).json({ success: false, error: 'Automation rule not found' });
-        return;
-      }
-
-      // ✅ 1QA.MD: Sincronizar com automation engine
-      try {
-        const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');
-        const automationManager = GlobalAutomationManager.getInstance();
-        const engine = automationManager.getEngine(tenantId);
-        
-        if (isEnabled) {
-          engine.addRule(updatedRule);
-        } else {
-          engine.removeRule(ruleId);
-        }
-        console.log(`✅ [AutomationController] Rule synced to engine: ${updatedRule.name}`);
-      } catch (syncError) {
-        console.error(`⚠️ [AutomationController] Failed to sync rule to engine:`, syncError);
-      }
+      const rule = await this.updateAutomationRuleUseCase.execute(ruleId, tenantId, userId, { isEnabled });
 
       res.json({
         success: true,
-        data: {
-          id: updatedRule.id,
-          name: updatedRule.name,
-          description: updatedRule.description,
-          enabled: updatedRule.enabled,
-          conditions: updatedRule.conditions || { rules: [], logicalOperator: 'AND' },
-          actions: updatedRule.actions || [],
-          priority: updatedRule.priority || 1,
-          aiEnabled: updatedRule.aiEnabled || false,
-          createdAt: updatedRule.createdAt,
-          updatedAt: updatedRule.updatedAt,
-          executionCount: updatedRule.executionCount || 0,
-          successCount: updatedRule.successCount || 0,
-          lastExecuted: updatedRule.lastExecuted
-        },
+        data: rule,
         message: `Automation rule ${isEnabled ? 'enabled' : 'disabled'} successfully`
       });
     } catch (error) {

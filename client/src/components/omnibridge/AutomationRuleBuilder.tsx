@@ -310,11 +310,11 @@ export default function AutomationRuleBuilder({
         };
       }
 
-      // ✅ 1QA.MD: Mapear dados da regra existente garantindo enabled correto
+      // Mapear dados da regra existente para o formato do formulário
       const mappedRule: AutomationRule = {
         name: existingRule.name || '',
         description: existingRule.description || '',
-        enabled: Boolean(existingRule.enabled), // Garantir conversão correta para boolean
+        enabled: existingRule.enabled ?? true,
         conditions: conditions,
         actions: (existingRule.actions || []).map((action, index) => {
           // Encontrar template correspondente para hidratar campos UI
