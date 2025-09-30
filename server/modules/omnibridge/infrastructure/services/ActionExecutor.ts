@@ -1332,7 +1332,7 @@ export class ActionExecutor implements IActionExecutorPort {
   }
 
   /**
-   * Execute AI Agent action with full conversational capabilities
+   * Execute AI Agent action with full conversational capabilities and field extraction
    */
   private async aiAgentAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
@@ -1348,26 +1348,264 @@ export class ActionExecutor implements IActionExecutorPort {
       }
 
       // Extract configuration
-      const { goal, prompts, knowledgeBase, fieldsToCollect, availableActions } = aiAgentConfig;
-      
-      // Build the system prompt
-      const systemPrompt = `${prompts?.system || 'Você é um assistente virtual profissional.'}
-
-${prompts?.context ? `Contexto: ${prompts.context}` : ''}
-
-${prompts?.goalPrompt ? `Objetivo: ${prompts.goalPrompt}` : `Objetivo: ${goal}`}`;
-
-      // Get user message
+      const { goal, prompts, knowledgeBase, fieldsToCollect, availableActions, actionConfigs } = aiAgentConfig;
       const userMessage = context.messageData.content || context.messageData.body || '';
       
-      console.log(`🤖 [AI-AGENT] System prompt: ${systemPrompt.substring(0, 100)}...`);
-      console.log(`🤖 [AI-AGENT] User message: ${userMessage}`);
+      console.log(`🤖 [AI-AGENT] Available actions:`, availableActions);
+      console.log(`🤖 [AI-AGENT] Action configs:`, actionConfigs);
 
-      // Use OpenAI to generate response
+      // Check if we need to execute an action (e.g., create ticket)
+      let shouldExecuteAction = false;
+      let actionToExecute: string | null = null;
+      let actionResult: any = null;
+
+      // Determine if AI should execute an action based on available actions and conversation
+      if (availableActions?.createTicket && actionConfigs?.createTicket) {
+        const createTicketConfig = actionConfigs.createTicket;
+        
+        // Check conversation mode
+        if (createTicketConfig.conversationMode === 'menu' && createTicketConfig.menuTree) {
+          // Menu mode: Check if user selected create ticket option
+          shouldExecuteAction = this.checkMenuSelection(userMessage, createTicketConfig.menuTree, 'create_ticket');
+          actionToExecute = 'createTicket';
+        } else {
+          // Natural or hybrid mode: Use AI to decide and extract fields
+          const extractionResult = await this.extractFieldsWithAI(
+            userMessage,
+            createTicketConfig.fieldsToMap,
+            prompts
+          );
+          
+          console.log(`🤖 [AI-AGENT] Field extraction result:`, extractionResult);
+          
+          if (extractionResult.shouldCreateTicket && extractionResult.extractedFields) {
+            shouldExecuteAction = true;
+            actionToExecute = 'createTicket';
+            actionResult = extractionResult;
+          }
+        }
+
+        // Execute the action if conditions are met
+        if (shouldExecuteAction && actionToExecute === 'createTicket') {
+          const ticketResult = await this.executeCreateTicketAction(
+            createTicketConfig,
+            actionResult?.extractedFields || {},
+            context
+          );
+          
+          if (ticketResult.success) {
+            // Build feedback message with variables replaced
+            const feedbackMessage = this.buildFeedbackMessage(
+              createTicketConfig.feedbackMessage,
+              ticketResult.data,
+              createTicketConfig.showResultDetails
+            );
+            
+            // Send feedback to user
+            await this.sendResponseToUser(feedbackMessage, context);
+            
+            return {
+              success: true,
+              message: 'AI Agent executed action successfully',
+              data: {
+                type: 'ai_agent_action',
+                action: 'createTicket',
+                result: ticketResult.data,
+                feedback: feedbackMessage
+              }
+            };
+          }
+        }
+      }
+
+      // If no action executed, generate conversational response
+      const conversationResponse = await this.generateConversationalResponse(
+        userMessage,
+        prompts,
+        goal,
+        fieldsToCollect,
+        actionConfigs
+      );
+
+      // Send response to user
+      await this.sendResponseToUser(conversationResponse, context);
+
+      return {
+        success: true,
+        message: 'AI Agent responded successfully',
+        data: {
+          type: 'ai_agent',
+          response: conversationResponse
+        }
+      };
+
+    } catch (error) {
+      console.error(`❌ [AI-AGENT] Error executing AI agent action:`, error);
+      return {
+        success: false,
+        message: 'Failed to execute AI agent action',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Extract fields from user message using AI
+   */
+  private async extractFieldsWithAI(
+    userMessage: string,
+    fieldsToMap: any[],
+    prompts: any
+  ): Promise<{ shouldCreateTicket: boolean; extractedFields?: any; missingFields?: string[] }> {
+    try {
       const OpenAI = (await import('openai')).default;
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY || ''
       });
+
+      // Build extraction prompt
+      const fieldDescriptions = fieldsToMap
+        .map(f => `- ${f.fieldName} (${f.fieldType}): ${f.aiQuestion}. Dica de extração: ${f.extractionHint}`)
+        .join('\n');
+
+      const extractionPrompt = `Você é um assistente que extrai informações de mensagens de usuários.
+
+Campos a extrair:
+${fieldDescriptions}
+
+Analise a mensagem do usuário e:
+1. Determine se há informações suficientes para criar um ticket
+2. Extraia os valores dos campos quando disponíveis
+3. Identifique campos obrigatórios que estão faltando
+
+Mensagem do usuário: "${userMessage}"
+
+Responda em JSON com o seguinte formato:
+{
+  "shouldCreateTicket": boolean,
+  "extractedFields": { "fieldName": "value" },
+  "missingFields": ["fieldName"]
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'Você é um assistente de extração de dados. Sempre responda em JSON válido.' },
+          { role: 'user', content: extractionPrompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.3,
+        max_tokens: 500
+      });
+
+      const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+      console.log(`🤖 [AI-AGENT] Extraction result:`, result);
+      
+      return result;
+    } catch (error) {
+      console.error(`❌ [AI-AGENT] Error extracting fields:`, error);
+      return { shouldCreateTicket: false };
+    }
+  }
+
+  /**
+   * Execute create ticket action with extracted fields
+   */
+  private async executeCreateTicketAction(
+    config: any,
+    extractedFields: any,
+    context: ActionExecutionContext
+  ): Promise<any> {
+    try {
+      console.log(`🎫 [AI-AGENT] Creating ticket with fields:`, extractedFields);
+
+      if (!this.createTicketUseCase) {
+        console.error(`❌ [AI-AGENT] CreateTicketUseCase not available`);
+        return { success: false, error: 'Ticket creation not configured' };
+      }
+
+      // Build ticket data from extracted fields and template
+      const ticketData: any = {
+        title: extractedFields.title || extractedFields.subject || 'Ticket criado por AI Agent',
+        description: extractedFields.description || extractedFields.body || '',
+        priority: extractedFields.priority || 'medium',
+        status: 'open',
+        tenantId: context.tenantId,
+        createdBy: 'ai-agent',
+        metadata: {
+          createdByAIAgent: true,
+          originalMessage: context.messageData.content,
+          extractedFields
+        }
+      };
+
+      // Add template ID if configured
+      if (config.templateId) {
+        ticketData.templateId = config.templateId;
+      }
+
+      // Map additional fields
+      for (const fieldMapping of config.fieldsToMap) {
+        if (extractedFields[fieldMapping.fieldName]) {
+          ticketData[fieldMapping.fieldId] = extractedFields[fieldMapping.fieldName];
+        }
+      }
+
+      // Create the ticket
+      const ticket = await this.createTicketUseCase.execute(ticketData as CreateTicketDTO);
+
+      console.log(`✅ [AI-AGENT] Ticket created successfully:`, ticket.id);
+
+      return {
+        success: true,
+        data: {
+          ticketId: ticket.id,
+          ticketNumber: ticket.ticketNumber || ticket.id,
+          ticketTitle: ticket.title,
+          assignedTo: ticket.assignedTo,
+          status: ticket.status,
+          priority: ticket.priority
+        }
+      };
+    } catch (error) {
+      console.error(`❌ [AI-AGENT] Error creating ticket:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Generate conversational response when no action is executed
+   */
+  private async generateConversationalResponse(
+    userMessage: string,
+    prompts: any,
+    goal: string,
+    fieldsToCollect: any[],
+    actionConfigs: any
+  ): Promise<string> {
+    try {
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || ''
+      });
+
+      // Build system prompt
+      const systemPrompt = `${prompts?.system || 'Você é um assistente virtual profissional.'}
+
+${prompts?.context ? `Contexto: ${prompts.context}` : ''}
+
+${prompts?.goalPrompt ? `Objetivo: ${prompts.goalPrompt}` : `Objetivo: ${goal}`}
+
+Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.name).join(', ')}`;
+
+      // Check if menu mode is configured
+      if (actionConfigs?.createTicket?.conversationMode === 'menu' && actionConfigs.createTicket.menuTree) {
+        // Generate menu response
+        return this.generateMenuResponse(actionConfigs.createTicket.menuTree);
+      }
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -1378,53 +1616,83 @@ ${prompts?.goalPrompt ? `Objetivo: ${prompts.goalPrompt}` : `Objetivo: ${goal}`}
         temperature: 0.7,
         max_tokens: 1000
       });
-      
-      const aiResponse = completion.choices[0]?.message?.content || 'Desculpe, não consegui gerar uma resposta.';
-      console.log(`🤖 [AI-AGENT] Generated response: ${aiResponse.substring(0, 100)}...`);
 
-      // Send response back to user
-      const channelType = context.messageData.channelType || context.messageData.channel;
-      const recipient = context.messageData.from || context.messageData.sender;
-      
-      let sendSuccess = false;
-      
-      if (channelType === 'telegram') {
-        sendSuccess = await this.sendTelegramMessage(aiResponse, recipient, context.tenantId);
-      } else if (channelType === 'email' || channelType === 'imap') {
-        sendSuccess = await this.sendEmailMessage(aiResponse, recipient, context.tenantId, context.messageData);
-      } else {
-        console.log(`📝 [AI-AGENT] Channel ${channelType} not supported, storing as outbound message`);
-        sendSuccess = await this.storeOutboundMessage(aiResponse, recipient, channelType, context.tenantId);
-      }
-
-      if (sendSuccess) {
-        return {
-          success: true,
-          message: 'AI Agent responded successfully',
-          data: {
-            type: 'ai_agent',
-            response: aiResponse,
-            config: { goal, prompts },
-            channel: channelType,
-            recipient
-          }
-        };
-      } else {
-        return {
-          success: false,
-          message: 'Failed to send AI Agent response',
-          error: 'Send operation failed',
-          data: { response: aiResponse }
-        };
-      }
-
+      return completion.choices[0]?.message?.content || 'Desculpe, não consegui gerar uma resposta.';
     } catch (error) {
-      console.error(`❌ [AI-AGENT] Error executing AI agent action:`, error);
-      return {
-        success: false,
-        message: 'Failed to execute AI agent action',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      console.error(`❌ [AI-AGENT] Error generating response:`, error);
+      return 'Desculpe, ocorreu um erro ao processar sua mensagem.';
+    }
+  }
+
+  /**
+   * Generate menu response from menu tree
+   */
+  private generateMenuResponse(menuTree: any[]): string {
+    let response = '📋 Por favor, selecione uma opção:\n\n';
+    menuTree.forEach((option, index) => {
+      response += `${index + 1}. ${option.label}\n`;
+    });
+    response += '\nDigite o número da opção desejada.';
+    return response;
+  }
+
+  /**
+   * Check if user selected a menu option
+   */
+  private checkMenuSelection(userMessage: string, menuTree: any[], targetAction: string): boolean {
+    // Check if user typed a number
+    const num = parseInt(userMessage.trim());
+    if (!isNaN(num) && num > 0 && num <= menuTree.length) {
+      const selected = menuTree[num - 1];
+      return selected.action === targetAction;
+    }
+
+    // Check if user typed the action value
+    return menuTree.some(opt => 
+      opt.value.toLowerCase() === userMessage.toLowerCase() ||
+      opt.action === targetAction
+    );
+  }
+
+  /**
+   * Build feedback message with variable replacement
+   */
+  private buildFeedbackMessage(template: string, data: any, includeDetails: boolean): string {
+    let message = template;
+
+    // Replace variables
+    message = message.replace(/\{\{ticketNumber\}\}/g, data.ticketNumber || '');
+    message = message.replace(/\{\{ticketId\}\}/g, data.ticketId || '');
+    message = message.replace(/\{\{ticketTitle\}\}/g, data.ticketTitle || '');
+    message = message.replace(/\{\{assignedTo\}\}/g, data.assignedTo || 'Não atribuído');
+    message = message.replace(/\{\{status\}\}/g, data.status || '');
+    message = message.replace(/\{\{priority\}\}/g, data.priority || '');
+
+    // Add details if configured
+    if (includeDetails) {
+      message += `\n\n📝 Detalhes:\n`;
+      message += `• ID: ${data.ticketId}\n`;
+      message += `• Status: ${data.status}\n`;
+      message += `• Prioridade: ${data.priority}`;
+    }
+
+    return message;
+  }
+
+  /**
+   * Send response to user through appropriate channel
+   */
+  private async sendResponseToUser(message: string, context: ActionExecutionContext): Promise<boolean> {
+    const channelType = context.messageData.channelType || context.messageData.channel;
+    const recipient = context.messageData.from || context.messageData.sender;
+
+    if (channelType === 'telegram') {
+      return await this.sendTelegramMessage(message, recipient, context.tenantId);
+    } else if (channelType === 'email' || channelType === 'imap') {
+      return await this.sendEmailMessage(message, recipient, context.tenantId, context.messageData);
+    } else {
+      console.log(`📝 [AI-AGENT] Channel ${channelType} not supported, storing as outbound message`);
+      return await this.storeOutboundMessage(message, recipient, channelType, context.tenantId);
     }
   }
 }
