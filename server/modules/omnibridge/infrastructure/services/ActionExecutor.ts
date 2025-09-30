@@ -1531,7 +1531,7 @@ Responda em JSON com o seguinte formato:
         priority: extractedFields.priority || 'medium',
         status: 'open',
         tenantId: context.tenantId,
-        createdBy: 'ai-agent',
+        requesterId: context.userId || 'ai-agent',
         metadata: {
           createdByAIAgent: true,
           originalMessage: context.messageData.content,
@@ -1560,9 +1560,9 @@ Responda em JSON com o seguinte formato:
         success: true,
         data: {
           ticketId: ticket.id,
-          ticketNumber: ticket.ticketNumber || ticket.id,
-          ticketTitle: ticket.title,
-          assignedTo: ticket.assignedTo,
+          ticketNumber: ticket.id,
+          ticketTitle: extractedFields.title || 'Ticket',
+          assignedTo: ticket.assignedToId || 'Não atribuído',
           status: ticket.status,
           priority: ticket.priority
         }
