@@ -538,7 +538,7 @@ export class GmailService {
     console.log(`🔍 [GMAIL-CONFIG] Getting Gmail configuration for tenant: ${tenantId}`);
 
     // Get integration from storage
-    const { storage } = await import('../../../storage-simple');
+    const { storage } = await import('../../../storage-master');
     const integration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
 
     console.log(`📧 [GMAIL-CONFIG] Integration found:`, {

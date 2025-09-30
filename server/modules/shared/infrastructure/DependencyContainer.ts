@@ -122,7 +122,7 @@ export class DependencyContainer implements IDependencyContainer {
     try {
       const { CreateTicketUseCase } = await import('../../tickets/application/use-cases/CreateTicketUseCase');
       const { DrizzleTicketRepository } = await import('../../tickets/infrastructure/repositories/DrizzleTicketRepository');
-      const { TicketDomainService } = await import('../../tickets/domain/services/TicketDomainService');
+      const { TicketDomainService } = await import('../../tickets/domain/entities/Ticket');
       
       const ticketRepository = new DrizzleTicketRepository();
       const ticketDomainService = new TicketDomainService();
