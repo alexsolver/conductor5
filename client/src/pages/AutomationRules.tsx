@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { 
   Bot, 
   Settings, 
@@ -119,6 +120,31 @@ export default function AutomationRules() {
       toast({
         title: '✅ Regra deletada',
         description: 'Regra de automação deletada com sucesso!'
+      });
+    }
+  });
+
+  // Mutation para ativar/desativar regra
+  const toggleRuleMutation = useMutation({
+    mutationFn: async ({ ruleId, enabled }: { ruleId: string; enabled: boolean }) => {
+      const response = await apiRequest('POST', `/api/omnibridge/automation-rules/${ruleId}/toggle`, {
+        isEnabled: enabled
+      });
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
+      queryClient.invalidateQueries({ queryKey: ['automation-metrics'] });
+      toast({
+        title: variables.enabled ? '✅ Regra ativada' : '⏸️ Regra desativada',
+        description: `Regra ${variables.enabled ? 'ativada' : 'desativada'} com sucesso!`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: '❌ Erro ao alterar status',
+        description: error?.message || 'Não foi possível alterar o status da regra',
+        variant: 'destructive'
       });
     }
   });
@@ -447,6 +473,12 @@ export default function AutomationRules() {
                   return (
                     <div key={displayRule.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
+                        <Switch
+                          checked={displayRule.enabled}
+                          onCheckedChange={(enabled) => toggleRuleMutation.mutate({ ruleId: displayRule.id, enabled })}
+                          disabled={toggleRuleMutation.isPending}
+                          data-testid={`switch-rule-${displayRule.id}`}
+                        />
                         <div className="flex items-center space-x-2">
                           {displayRule.enabled ? (
                             <Play className="h-4 w-4 text-green-600" />
