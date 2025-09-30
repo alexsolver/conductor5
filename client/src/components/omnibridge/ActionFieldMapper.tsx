@@ -75,7 +75,7 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
     queryKey: ['ticket-templates'],
     queryFn: async () => {
       // Fixed API call - ensure proper method is specified
-      const response = await apiRequest('/api/ticket-templates');
+      const response = await apiRequest('GET', '/api/ticket-templates');
       return response.data || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
