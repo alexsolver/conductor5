@@ -66,7 +66,8 @@ import {
   Globe,
   Download,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
@@ -186,6 +187,7 @@ export default function OmniBridge() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterChannel, setFilterChannel] = useState('all');
@@ -1054,7 +1056,10 @@ export default function OmniBridge() {
 
         {/* Conversation Logs Tab */}
         <TabsContent value="conversation-logs" className="space-y-4">
-          <ConversationLogsContent />
+          <ConversationLogsContent 
+            selectedConversationId={selectedConversationId}
+            setSelectedConversationId={setSelectedConversationId}
+          />
         </TabsContent>
 
         {/* Analytics Tab */}
@@ -1545,14 +1550,206 @@ export default function OmniBridge() {
   );
 }
 
+// Conversation Detail Component
+function ConversationDetail({ conversationId }: { conversationId: string }) {
+  const { t, i18n } = useTranslation();
+  
+  const { data: conversation, isLoading } = useQuery({
+    queryKey: ['/api/omnibridge/conversation-logs', conversationId],
+  });
+
+  const getDateLocale = () => {
+    switch (i18n.language) {
+      case 'pt-BR': return ptBR;
+      case 'es': return es;
+      default: return enUS;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!conversation) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground">
+            {t('omnibridge.conversationLogs.notFound', 'Conversa não encontrada')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const conv = conversation;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Bot className="h-6 w-6 text-purple-600" />
+                <CardTitle className="text-2xl">{conv.agentName}</CardTitle>
+                {conv.escalatedToHuman && (
+                  <Badge variant="destructive" className="gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {t('omnibridge.conversationLogs.escalated', 'Escalada')}
+                  </Badge>
+                )}
+                {conv.endedAt && !conv.escalatedToHuman && (
+                  <Badge variant="default" className="gap-1 bg-green-600">
+                    <CheckCircle className="h-3 w-3" />
+                    {t('omnibridge.conversationLogs.completed', 'Concluída')}
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>
+                {t('omnibridge.conversationLogs.sessionId', 'ID da Sessão')}: {conv.id}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
+              <p className="font-medium capitalize">{conv.channel}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
+              <p className="font-medium">{conv.totalMessages || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
+              <p className="font-medium">{conv.totalActions || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+              <p className="font-medium flex items-center gap-1 text-sm">
+                <Clock className="h-3 w-3" />
+                {formatDate(conv.startedAt)}
+              </p>
+            </div>
+          </div>
+          {conv.escalationReason && (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <p className="text-sm text-red-800 dark:text-red-200">
+                <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Messages */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            {t('omnibridge.conversationLogs.messages', 'Mensagens')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {conv.messages && conv.messages.length > 0 ? (
+            <div className="space-y-4">
+              {conv.messages.map((msg: any, idx: number) => (
+                <div 
+                  key={idx} 
+                  className={`p-4 rounded-lg ${
+                    msg.sender === 'user' 
+                      ? 'bg-blue-50 dark:bg-blue-900/20 ml-8' 
+                      : 'bg-gray-50 dark:bg-gray-800 mr-8'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {msg.sender === 'user' ? (
+                      <User className="h-4 w-4" />
+                    ) : (
+                      <Bot className="h-4 w-4 text-purple-600" />
+                    )}
+                    <span className="text-sm font-medium capitalize">{msg.sender}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {formatDate(msg.timestamp)}
+                    </span>
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              {t('omnibridge.conversationLogs.noMessages', 'Nenhuma mensagem encontrada')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      {conv.actions && conv.actions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              {t('omnibridge.conversationLogs.actions', 'Ações Executadas')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {conv.actions.map((action: any, idx: number) => (
+                <div key={idx} className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline">{action.actionType}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(action.executedAt)}
+                    </span>
+                  </div>
+                  {action.result && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {typeof action.result === 'string' ? action.result : JSON.stringify(action.result)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // Conversation Logs Content Component
-function ConversationLogsContent() {
+function ConversationLogsContent({ 
+  selectedConversationId, 
+  setSelectedConversationId 
+}: { 
+  selectedConversationId: string | null;
+  setSelectedConversationId: (id: string | null) => void;
+}) {
   const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(0);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const limit = 20;
 
   const { data, isLoading } = useQuery({
@@ -1571,19 +1768,6 @@ function ConversationLogsContent() {
       if (!response.ok) throw new Error('Failed to fetch conversations');
       return response.json();
     },
-  });
-
-  const { data: conversationDetails } = useQuery({
-    queryKey: ['/api/omnibridge/conversation-logs', selectedConversationId],
-    queryFn: async () => {
-      if (!selectedConversationId) return null;
-      const response = await fetch(`/api/omnibridge/conversation-logs/${selectedConversationId}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch conversation details');
-      return response.json();
-    },
-    enabled: !!selectedConversationId,
   });
 
   const getDateLocale = () => {
@@ -1620,6 +1804,24 @@ function ConversationLogsContent() {
     link.download = `conversations-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
   };
+
+  // If a conversation is selected, show details view
+  if (selectedConversationId) {
+    return (
+      <div className="space-y-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setSelectedConversationId(null)}
+          className="mb-4"
+          data-testid="button-back-to-list"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t('common.back', 'Voltar')}
+        </Button>
+        <ConversationDetail conversationId={selectedConversationId} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -1714,55 +1916,55 @@ function ConversationLogsContent() {
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Bot className="h-5 w-5 text-purple-600" />
-                      <h3 className="font-semibold text-lg">{conv.agentName}</h3>
-                      {conv.escalatedToHuman && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {t('omnibridge.conversationLogs.escalated', 'Escalada')}
-                        </Badge>
-                      )}
-                      {conv.endedAt && !conv.escalatedToHuman && (
-                        <Badge variant="default" className="gap-1 bg-green-600">
-                          <CheckCircle className="h-3 w-3" />
-                          {t('omnibridge.conversationLogs.completed', 'Concluída')}
-                        </Badge>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Bot className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-lg">{conv.agentName}</h3>
+                        {conv.escalatedToHuman && (
+                          <Badge variant="destructive" className="gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.escalated', 'Escalada')}
+                          </Badge>
+                        )}
+                        {conv.endedAt && !conv.escalatedToHuman && (
+                          <Badge variant="default" className="gap-1 bg-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.completed', 'Concluída')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
+                          <p className="font-medium capitalize">{conv.channel}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
+                          <p className="font-medium">{conv.totalMessages}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
+                          <p className="font-medium">{conv.totalActions}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+                          <p className="font-medium flex items-center gap-1 text-sm">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(conv.startedAt)}
+                          </p>
+                        </div>
+                      </div>
+                      {conv.escalationReason && (
+                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                          <p className="text-sm text-red-800 dark:text-red-200">
+                            <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
+                          </p>
+                        </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-                        <p className="font-medium capitalize">{conv.channel}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
-                        <p className="font-medium">{conv.totalMessages}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
-                        <p className="font-medium">{conv.totalActions}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
-                        <p className="font-medium flex items-center gap-1 text-sm">
-                          <Clock className="h-3 w-3" />
-                          {formatDate(conv.startedAt)}
-                        </p>
-                      </div>
-                    </div>
-                    {conv.escalationReason && (
-                      <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                        <p className="text-sm text-red-800 dark:text-red-200">
-                          <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
           ))
         )}
       </div>
@@ -1790,105 +1992,6 @@ function ConversationLogsContent() {
           </Button>
         </div>
       )}
-
-      <Dialog open={!!selectedConversationId} onOpenChange={(open) => !open && setSelectedConversationId(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-purple-600" />
-              {t('omnibridge.conversationLogs.conversationDetails', 'Detalhes da Conversa')}
-            </DialogTitle>
-          </DialogHeader>
-          {conversationDetails?.data && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('omnibridge.conversationLogs.agent', 'Agente')}</p>
-                  <p className="font-medium">{conversationDetails.data.agentName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-                  <p className="font-medium capitalize">{conversationDetails.data.channel}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
-                  <p className="font-medium">{conversationDetails.data.startedAt ? formatDate(conversationDetails.data.startedAt) : '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('omnibridge.conversationLogs.endTime', 'Término')}</p>
-                  <p className="font-medium">{conversationDetails.data.endedAt ? formatDate(conversationDetails.data.endedAt) : t('omnibridge.conversationLogs.ongoing', 'Em andamento')}</p>
-                </div>
-              </div>
-
-              {conversationDetails.data.escalatedToHuman && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                    <h3 className="font-semibold text-red-800 dark:text-red-200">
-                      {t('omnibridge.conversationLogs.escalated', 'Escalada')}
-                    </h3>
-                  </div>
-                  {conversationDetails.data.escalationReason && (
-                    <p className="text-sm text-red-800 dark:text-red-200">{conversationDetails.data.escalationReason}</p>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  {t('omnibridge.conversationLogs.messages', 'Mensagens')} ({conversationDetails.data.messages?.length || 0})
-                </h3>
-                <ScrollArea className="h-[300px] border rounded-lg p-4">
-                  {conversationDetails.data.messages?.map((msg: any, idx: number) => (
-                    <div key={idx} className={`mb-4 ${msg.sender === 'agent' ? 'text-right' : 'text-left'}`}>
-                      <div className={`inline-block max-w-[80%] p-3 rounded-lg ${
-                        msg.sender === 'agent' 
-                          ? 'bg-purple-100 dark:bg-purple-900/30' 
-                          : 'bg-gray-100 dark:bg-gray-800'
-                      }`}>
-                        <p className="text-xs text-muted-foreground mb-1 capitalize">{msg.sender}</p>
-                        <p className="text-sm">{msg.content}</p>
-                        {msg.timestamp && <p className="text-xs text-muted-foreground mt-1">{formatDate(msg.timestamp)}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </ScrollArea>
-              </div>
-
-              {conversationDetails.data.actions && conversationDetails.data.actions.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    {t('omnibridge.conversationLogs.actions', 'Ações')} ({conversationDetails.data.actions.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {conversationDetails.data.actions.map((action: any, idx: number) => (
-                      <Card key={idx}>
-                        <CardContent className="p-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium">{action.actionType}</p>
-                              {action.parameters && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {JSON.stringify(action.parameters)}
-                                </p>
-                              )}
-                            </div>
-                            <Badge variant={action.status === 'success' ? 'default' : 'destructive'}>
-                              {action.status}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
