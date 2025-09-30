@@ -337,12 +337,13 @@ export class ActionExecutor implements IActionExecutorPort {
         console.error(`❌ [ActionExecutor] Error sending auto-reply:`, error);
         sendError = error instanceof Error ? error.message : 'Unknown error';
         await this.storeFailedMessage(responseText, context);
-
+        
+        const errorRecipient = context.messageData.sender;
         return {
           success: false,
           message: 'Error sending auto-reply',
           error: sendError,
-          data: { responseText, recipient }
+          data: { responseText, recipient: errorRecipient }
         };
       }
     } catch (error) {
@@ -930,7 +931,8 @@ export class ActionExecutor implements IActionExecutorPort {
               console.error(`❌ [ActionExecutor] Failed to create notification for user ${userId}:`, result.error);
             }
           } catch (userError) {
-            results.push({ userId, success: false, error: userError.message });
+            const errorMessage = userError instanceof Error ? userError.message : 'Unknown error';
+            results.push({ userId, success: false, error: errorMessage });
             console.error(`❌ [ActionExecutor] Error creating notification for user ${userId}:`, userError);
           }
         }
@@ -1022,7 +1024,7 @@ export class ActionExecutor implements IActionExecutorPort {
       return [];
     }
 
-    const { db } = await import('../../../../db');
+    const { pool } = await import('@shared/schema');
     const resolvedIds: string[] = [];
 
     for (const recipient of recipients) {
@@ -1035,7 +1037,7 @@ export class ActionExecutor implements IActionExecutorPort {
 
         // If it looks like an email, resolve to user ID
         if (recipient.includes('@')) {
-          const user = await db.query(
+          const user = await pool.query(
             'SELECT id FROM users WHERE email = $1 LIMIT 1',
             [recipient]
           );
@@ -1069,7 +1071,7 @@ export class ActionExecutor implements IActionExecutorPort {
       let processed = template;
 
       // Replace common template variables
-      const variables = {
+      const variables: Record<string, string> = {
         '{{sender}}': context.messageData.sender || 'Usuário',
         '{{channel}}': context.messageData.channel || context.messageData.channelType || 'Sistema',
         '{{content}}': context.messageData.content || context.messageData.body || '',
@@ -1165,9 +1167,8 @@ export class ActionExecutor implements IActionExecutorPort {
       }
 
       // Import SendGrid service dynamically
-      const { MailService } = await import('@sendgrid/mail');
-      const mailService = new MailService();
-      mailService.setApiKey(apiKey);
+      const sgMail = (await import('@sendgrid/mail')).default;
+      sgMail.setApiKey(apiKey);
 
       // Prepare email content
       const emailParams = {
@@ -1178,7 +1179,7 @@ export class ActionExecutor implements IActionExecutorPort {
         html: `<p>${message.replace(/\n/g, '<br>')}</p>`
       };
 
-      await mailService.send(emailParams);
+      await sgMail.send(emailParams);
       console.log(`✅ [ActionExecutor] Email sent successfully to ${emailAddress}`);
       return true;
     } catch (error) {
@@ -1278,15 +1279,29 @@ export class ActionExecutor implements IActionExecutorPort {
       };
 
       try {
-        // Store notification using the user notifications repository
-        const { DrizzleUserNotificationRepository } = await import('../../../user-notifications/infrastructure/repositories/DrizzleUserNotificationRepository');
-        const notificationRepo = new DrizzleUserNotificationRepository();
-
-        await notificationRepo.create(notificationData);
+        // Try to store notification using database directly
+        const { pool } = await import('@shared/schema');
+        
+        await pool.query(
+          `INSERT INTO user_notifications (id, user_id, tenant_id, type, title, message, priority, is_read, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            notificationData.id,
+            notificationData.userId,
+            notificationData.tenantId,
+            notificationData.type,
+            notificationData.title,
+            notificationData.message,
+            notificationData.priority,
+            notificationData.isRead,
+            notificationData.createdAt,
+            notificationData.updatedAt
+          ]
+        );
 
         console.log(`✅ [ACTION-EXECUTOR] Notification stored for user ${userId}`);
       } catch (repoError) {
-        console.warn(`⚠️ [ACTION-EXECUTOR] Failed to use notification repository, using fallback method:`, repoError);
+        console.warn(`⚠️ [ACTION-EXECUTOR] Failed to store notification, using fallback method:`, repoError);
 
         // Fallback: Log the notification (could be extended to use other notification methods)
         console.log(`📝 [ACTION-EXECUTOR] FALLBACK NOTIFICATION for user ${userId}: ${message}`);
@@ -1526,17 +1541,18 @@ Responda em JSON com o seguinte formato:
 
       // Build ticket data from extracted fields and template
       const ticketData: any = {
-        title: extractedFields.title || extractedFields.subject || 'Ticket criado por AI Agent',
+        subject: extractedFields.title || extractedFields.subject || 'Ticket criado por AI Agent',
         description: extractedFields.description || extractedFields.body || '',
         priority: extractedFields.priority || 'medium',
-        status: 'open',
-        tenantId: context.tenantId,
-        requesterId: context.userId || 'ai-agent',
-        metadata: {
+        urgency: extractedFields.urgency || 'medium',
+        impact: 'medium',
+        status: 'new',
+        customFields: {
           createdByAIAgent: true,
           originalMessage: context.messageData.content,
           extractedFields
-        }
+        },
+        createdById: '550e8400-e29b-41d4-a716-446655440001'
       };
 
       // Add template ID if configured
@@ -1552,7 +1568,7 @@ Responda em JSON com o seguinte formato:
       }
 
       // Create the ticket
-      const ticket = await this.createTicketUseCase.execute(ticketData as CreateTicketDTO);
+      const ticket = await this.createTicketUseCase.execute(ticketData as CreateTicketDTO, context.tenantId);
 
       console.log(`✅ [AI-AGENT] Ticket created successfully:`, ticket.id);
 

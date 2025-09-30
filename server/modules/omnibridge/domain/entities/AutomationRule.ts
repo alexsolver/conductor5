@@ -20,7 +20,7 @@ export interface AutomationCondition {
 
 export interface AutomationAction {
   id: string;
-  type: 'create_ticket' | 'send_auto_reply' | 'forward_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'webhook' | 'ai_response' | 'notify_team' |
+  type: 'create_ticket' | 'send_auto_reply' | 'auto_reply' | 'forward_message' | 'assign_user' | 'add_tag' | 'change_status' | 'escalate' | 'webhook' | 'ai_response' | 'ai_agent' | 'notify_team' |
         'create_urgent_ticket' | 'create_ticket_from_template' | 'assign_by_skill' | 'assign_round_robin' | 'escalate_ticket' | 'link_related_tickets' |
         'send_sms' | 'send_survey' | 'ai_categorize' | 'ai_translate' | 'update_crm' | 'generate_report' | 'assign_team' | 'remove_tags' |
         'create_followup_task' | 'schedule_reminder' | 'add_note' | 'log_activity' | 'notify_customer' | 'send_email' | 'notify_manager' |
@@ -28,6 +28,7 @@ export interface AutomationAction {
         'add_tags' | 'assign_agent' | 'archive' | 'mark_priority' | 'webhook_call' | 'send_notification';
   target?: string;
   params: Record<string, any>;
+  config?: Record<string, any>;
   aiEnabled?: boolean;
   templateId?: string;
   priority: number;
