@@ -10,7 +10,7 @@ import {
   actionExecutions,
   feedbackAnnotations,
   agentImprovements 
-} from '@shared/schema-omnibridge-logging';
+} from '@shared/schema';
 import { eq, and, desc, gte, lte, like, sql, count, avg } from 'drizzle-orm';
 
 const router = Router();
@@ -146,16 +146,16 @@ router.post('/conversation-logs/:id/feedback', async (req: Request, res: Respons
       .values({
         tenantId,
         conversationId: Number(id),
-        messageId: data.messageId || null,
-        actionExecutionId: data.actionExecutionId || null,
-        rating: data.rating || null,
-        category: data.category || null,
-        tags: data.tags || null,
-        notes: data.notes || null,
-        correctiveAction: data.correctiveAction || null,
-        expectedBehavior: data.expectedBehavior || null,
-        actualBehavior: data.actualBehavior || null,
-        severity: data.severity || null,
+        messageId: data.messageId,
+        actionExecutionId: data.actionExecutionId,
+        rating: data.rating,
+        category: data.category,
+        tags: data.tags ? JSON.stringify(data.tags) : null,
+        notes: data.notes,
+        correctiveAction: data.correctiveAction,
+        expectedBehavior: data.expectedBehavior,
+        actualBehavior: data.actualBehavior,
+        severity: data.severity,
         annotatedBy: userId,
         resolved: false,
       })
@@ -297,6 +297,10 @@ router.patch('/feedback/:id', async (req: Request, res: Response) => {
       ...data,
       updatedAt: new Date(),
     };
+
+    if (data.tags) {
+      updateData.tags = JSON.stringify(data.tags);
+    }
 
     if (data.resolved) {
       updateData.resolvedAt = new Date();
