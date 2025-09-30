@@ -397,7 +397,7 @@ ${initialMessage.content}
 
 ---
 Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
-      
+
       setActionConfig(prev => ({ ...prev, message: messageContent }));
     }
   }, [currentAction, initialMessage]);
@@ -562,7 +562,7 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
       hasCurrentAction: !!currentAction, 
       actionType: currentAction?.type 
     });
-    
+
     if (!currentAction) return null;
 
     switch (currentAction.type) {

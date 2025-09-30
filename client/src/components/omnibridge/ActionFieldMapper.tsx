@@ -74,6 +74,7 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
   const { data: ticketTemplates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['ticket-templates'],
     queryFn: async () => {
+      // Fixed API call - ensure proper method is specified
       const response = await apiRequest('/api/ticket-templates');
       return response.data || [];
     },
@@ -103,6 +104,19 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
   const { data: templates } = useQuery<any>({
     queryKey: ['/api/ticket-templates'],
     enabled: actionType === 'createTicket',
+    queryFn: async () => {
+          // Fixed API call - ensure proper method is specified
+          const templatesResponse = await fetch('/api/ticket-templates', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!templatesResponse.ok) {
+            throw new Error('Failed to fetch ticket templates');
+          }
+          return templatesResponse.json();
+        },
   });
 
   // Buscar campos disponíveis do template selecionado

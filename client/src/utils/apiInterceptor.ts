@@ -20,6 +20,16 @@ export const setupApiInterceptor = () => {
   const originalFetch = window.fetch;
   
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    // Fix malformed requests where method and URL might be swapped
+    if (typeof input === 'string' && input.startsWith('/api/') && init?.method === undefined) {
+      // This is likely a URL being passed as input, ensure it's handled correctly
+      if (!init) {
+        init = { method: 'GET' };
+      } else if (!init.method) {
+        init.method = 'GET';
+      }
+    }
+    
     // Adicionar token automaticamente se disponível
     const token = localStorage.getItem('accessToken');
     
