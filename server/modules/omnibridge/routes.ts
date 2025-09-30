@@ -81,6 +81,39 @@ router.get('/automation-rules/:ruleId', jwtAuth, async (req, res) => {
   }
 });
 
+// ✅ 1QA.MD: Endpoint específico para toggle de regras de automação
+router.patch('/automation-rules/:ruleId/toggle', jwtAuth, async (req, res) => {
+  try {
+    const { AutomationController } = await import('./application/controllers/AutomationController');
+    const { GetAutomationRulesUseCase } = await import('./application/use-cases/GetAutomationRulesUseCase');
+    const { CreateAutomationRuleUseCase } = await import('./application/use-cases/CreateAutomationRuleUseCase');
+    const { UpdateAutomationRuleUseCase } = await import('./application/use-cases/UpdateAutomationRuleUseCase');
+    const { DeleteAutomationRuleUseCase } = await import('./application/use-cases/DeleteAutomationRuleUseCase');
+    const { ExecuteAutomationRuleUseCase } = await import('./application/use-cases/ExecuteAutomationRuleUseCase');
+    const { DrizzleAutomationRuleRepository } = await import('./infrastructure/repositories/DrizzleAutomationRuleRepository');
+
+    const repository = new DrizzleAutomationRuleRepository();
+    const getUseCase = new GetAutomationRulesUseCase(repository);
+    const createUseCase = new CreateAutomationRuleUseCase(repository);
+    const updateUseCase = new UpdateAutomationRuleUseCase(repository);
+    const deleteUseCase = new DeleteAutomationRuleUseCase(repository);
+    const executeUseCase = new ExecuteAutomationRuleUseCase(repository);
+
+    const controller = new AutomationController(
+      getUseCase,
+      createUseCase,
+      updateUseCase,
+      deleteUseCase,
+      executeUseCase
+    );
+
+    await controller.toggleRule(req, res);
+  } catch (error) {
+    console.error('[OmniBridge] Error in toggle rule endpoint:', error);
+    res.status(500).json({ success: false, error: 'Failed to toggle rule' });
+  }
+});
+
 // Test automation rule without saving (preview mode)
 router.post('/automation-rules/test', jwtAuth, async (req, res) => {
   try {

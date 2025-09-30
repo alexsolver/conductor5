@@ -159,6 +159,7 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
   async update(id: string, tenantId: string, updateData: Partial<AutomationRule>): Promise<AutomationRule> {
     try {
       console.log(`🔧 [DrizzleAutomationRuleRepository] Updating rule: ${id}`);
+      console.log(`🔧 [DrizzleAutomationRuleRepository] Update data:`, JSON.stringify(updateData, null, 2));
 
       const tenantDb = await this.getTenantDb(tenantId);
 
@@ -169,7 +170,11 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
 
       if (updateData.name !== undefined) updateObject.name = updateData.name;
       if (updateData.description !== undefined) updateObject.description = updateData.description || '';
-      if (updateData.enabled !== undefined) updateObject.enabled = updateData.enabled;
+      // ✅ 1QA.MD: Garantir que enabled seja sempre persistido corretamente
+      if (updateData.enabled !== undefined) {
+        updateObject.enabled = Boolean(updateData.enabled);
+        console.log(`🔧 [DrizzleAutomationRuleRepository] Setting enabled to: ${updateObject.enabled}`);
+      }
       if (updateData.priority !== undefined) updateObject.priority = updateData.priority;
       if (updateData.trigger !== undefined) {
         console.log(`🔧 [DrizzleAutomationRuleRepository] RAW updateData.trigger:`, JSON.stringify(updateData.trigger, null, 2));
