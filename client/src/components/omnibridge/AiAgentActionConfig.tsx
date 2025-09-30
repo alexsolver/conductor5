@@ -52,6 +52,7 @@ import {
   Lightbulb,
   Sparkles,
 } from 'lucide-react';
+import ActionFieldMapper, { ActionFieldConfig } from './ActionFieldMapper';
 
 export interface FieldConfig {
   id: string;
@@ -86,6 +87,8 @@ export interface AiAgentConfig {
     sendEmail: boolean;
   };
   actionConfigs?: {
+    createTicket?: ActionFieldConfig;
+    scheduleAppointment?: ActionFieldConfig;
     [key: string]: any;
   };
 }
@@ -311,6 +314,12 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   const updateAvailableActions = (action: keyof AiAgentConfig['availableActions'], value: boolean) => {
     updateConfig({
       availableActions: { ...mergedConfig.availableActions, [action]: value }
+    });
+  };
+
+  const updateActionConfig = (action: string, actionConfig: ActionFieldConfig) => {
+    updateConfig({
+      actionConfigs: { ...mergedConfig.actionConfigs, [action]: actionConfig }
     });
   };
 
@@ -828,7 +837,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                 <div className="grid gap-4">
                   <Card className={mergedConfig.availableActions.createTicket ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex gap-3">
                           <FileText className="w-5 h-5 text-primary mt-1" />
                           <div>
@@ -847,6 +856,22 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                           data-testid="switch-action-create-ticket"
                         />
                       </div>
+                      
+                      {mergedConfig.availableActions.createTicket && (
+                        <div className="mt-4 pt-4 border-t">
+                          <ActionFieldMapper
+                            actionType="createTicket"
+                            config={mergedConfig.actionConfigs?.createTicket || {
+                              actionType: 'createTicket',
+                              fieldsToMap: [],
+                              conversationMode: 'natural',
+                              feedbackMessage: '✅ Ticket criado com sucesso! Número: {{ticketNumber}}',
+                              showResultDetails: true
+                            }}
+                            onChange={(config) => updateActionConfig('createTicket', config)}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -900,7 +925,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
                   <Card className={mergedConfig.availableActions.scheduleAppointment ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex gap-3">
                           <Calendar className="w-5 h-5 text-primary mt-1" />
                           <div>
@@ -919,6 +944,22 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                           data-testid="switch-action-schedule"
                         />
                       </div>
+                      
+                      {mergedConfig.availableActions.scheduleAppointment && (
+                        <div className="mt-4 pt-4 border-t">
+                          <ActionFieldMapper
+                            actionType="scheduleAppointment"
+                            config={mergedConfig.actionConfigs?.scheduleAppointment || {
+                              actionType: 'scheduleAppointment',
+                              fieldsToMap: [],
+                              conversationMode: 'natural',
+                              feedbackMessage: '📅 Atendimento agendado com sucesso! Data: {{date}} às {{time}}',
+                              showResultDetails: true
+                            }}
+                            onChange={(config) => updateActionConfig('scheduleAppointment', config)}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
