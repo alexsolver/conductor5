@@ -53,6 +53,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import ActionFieldMapper, { ActionFieldConfig } from './ActionFieldMapper';
+import { EnhancedActionsTab } from './EnhancedActionsTab';
 
 export interface FieldConfig {
   id: string;
@@ -821,198 +822,14 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
             </Card>
           </TabsContent>
 
-          {/* Aba 5: Ações Disponíveis */}
+          {/* Aba 5: Ações Disponíveis - Nova Interface Visual */}
           <TabsContent value="actions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
-                  Ações Disponíveis
-                </CardTitle>
-                <CardDescription>
-                  Configure quais ações o agente pode executar autonomamente.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <Card className={mergedConfig.availableActions.createTicket ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex gap-3">
-                          <FileText className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-create-ticket" className="text-base font-medium cursor-pointer">
-                              Criar Ticket
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Permite que o agente crie tickets automaticamente quando necessário
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-create-ticket"
-                          checked={mergedConfig.availableActions.createTicket}
-                          onCheckedChange={(checked) => updateAvailableActions('createTicket', checked)}
-                          data-testid="switch-action-create-ticket"
-                        />
-                      </div>
-                      
-                      {mergedConfig.availableActions.createTicket && (
-                        <div className="mt-4 pt-4 border-t">
-                          <ActionFieldMapper
-                            actionType="createTicket"
-                            config={mergedConfig.actionConfigs?.createTicket || {
-                              actionType: 'createTicket',
-                              fieldsToMap: [],
-                              conversationMode: 'natural',
-                              feedbackMessage: '✅ Ticket criado com sucesso! Número: {{ticketNumber}}',
-                              showResultDetails: true
-                            }}
-                            onChange={(config) => updateActionConfig('createTicket', config)}
-                          />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Card className={mergedConfig.availableActions.queryKnowledgeBase ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex gap-3">
-                          <BookOpen className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-query-kb" className="text-base font-medium cursor-pointer">
-                              Consultar Base de Conhecimento
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Permite buscar e referenciar artigos da base de conhecimento
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-query-kb"
-                          checked={mergedConfig.availableActions.queryKnowledgeBase}
-                          onCheckedChange={(checked) => updateAvailableActions('queryKnowledgeBase', checked)}
-                          data-testid="switch-action-query-kb"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className={mergedConfig.availableActions.searchMaterials ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex gap-3">
-                          <Search className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-search-materials" className="text-base font-medium cursor-pointer">
-                              Buscar Materiais/Serviços
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Permite consultar catálogo de materiais e serviços disponíveis
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-search-materials"
-                          checked={mergedConfig.availableActions.searchMaterials}
-                          onCheckedChange={(checked) => updateAvailableActions('searchMaterials', checked)}
-                          data-testid="switch-action-search-materials"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className={mergedConfig.availableActions.scheduleAppointment ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex gap-3">
-                          <Calendar className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-schedule" className="text-base font-medium cursor-pointer">
-                              Agendar Atendimento
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Permite agendar compromissos e atendimentos no calendário
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-schedule"
-                          checked={mergedConfig.availableActions.scheduleAppointment}
-                          onCheckedChange={(checked) => updateAvailableActions('scheduleAppointment', checked)}
-                          data-testid="switch-action-schedule"
-                        />
-                      </div>
-                      
-                      {mergedConfig.availableActions.scheduleAppointment && (
-                        <div className="mt-4 pt-4 border-t">
-                          <ActionFieldMapper
-                            actionType="scheduleAppointment"
-                            config={mergedConfig.actionConfigs?.scheduleAppointment || {
-                              actionType: 'scheduleAppointment',
-                              fieldsToMap: [],
-                              conversationMode: 'natural',
-                              feedbackMessage: '📅 Atendimento agendado com sucesso! Data: {{date}} às {{time}}',
-                              showResultDetails: true
-                            }}
-                            onChange={(config) => updateActionConfig('scheduleAppointment', config)}
-                          />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Card className={mergedConfig.availableActions.escalateToHuman ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex gap-3">
-                          <UserPlus className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-escalate" className="text-base font-medium cursor-pointer">
-                              Escalar para Humano
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Transfere a conversa para um atendente humano quando necessário
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-escalate"
-                          checked={mergedConfig.availableActions.escalateToHuman}
-                          onCheckedChange={(checked) => updateAvailableActions('escalateToHuman', checked)}
-                          data-testid="switch-action-escalate"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className={mergedConfig.availableActions.sendEmail ? 'border-primary' : ''}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex gap-3">
-                          <Mail className="w-5 h-5 text-primary mt-1" />
-                          <div>
-                            <Label htmlFor="action-send-email" className="text-base font-medium cursor-pointer">
-                              Enviar Email
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Permite enviar emails de confirmação ou acompanhamento
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          id="action-send-email"
-                          checked={mergedConfig.availableActions.sendEmail}
-                          onCheckedChange={(checked) => updateAvailableActions('sendEmail', checked)}
-                          data-testid="switch-action-send-email"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+            <EnhancedActionsTab
+              availableActions={mergedConfig.availableActions}
+              actionConfigs={mergedConfig.actionConfigs || {}}
+              onActionToggle={updateAvailableActions}
+              onActionConfigChange={updateActionConfig}
+            />
           </TabsContent>
         </ScrollArea>
       </Tabs>
