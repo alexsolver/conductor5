@@ -27,10 +27,12 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import {
+  Brain,
+  Target,
+  MessageSquare,
+  Database,
+  Zap,
   Plus,
   Trash2,
   GripVertical,
@@ -52,7 +54,6 @@ import {
 } from 'lucide-react';
 import ActionFieldMapper, { ActionFieldConfig } from './ActionFieldMapper';
 import { EnhancedActionsTab } from './EnhancedActionsTab';
-import React from 'react';
 
 export interface FieldConfig {
   id: string;
@@ -361,177 +362,6 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   const applyTemplate = (type: 'system' | 'context' | 'goal', content: string) => {
     updatePrompts(type === 'system' ? 'system' : type === 'context' ? 'context' : 'goalPrompt', content);
-  };
-
-  const [availableCustomFields, setAvailableCustomFields] = useState<any[]>([]);
-  const [selectedCustomFieldIds, setSelectedCustomFieldIds] = useState<string[]>([]);
-
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // ✅ 1QA.MD: Buscar templates de ticket disponíveis
-  const { data: ticketTemplatesResponse, isLoading: templatesLoading } = useQuery({
-    queryKey: ['ticket-templates-for-ai'],
-    queryFn: async () => {
-      try {
-        console.log('🎯 [AI-AGENT-CONFIG] Fetching ticket templates');
-        const response = await apiRequest('GET', '/api/ticket-templates');
-        console.log('✅ [AI-AGENT-CONFIG] Templates response:', response);
-        return response;
-      } catch (error) {
-        console.error('❌ [AI-AGENT-CONFIG] Error fetching templates:', error);
-        throw error;
-      }
-    },
-  });
-
-  const ticketTemplates = React.useMemo(() => {
-    if (!ticketTemplatesResponse) return [];
-
-    // Handle different response formats
-    if (ticketTemplatesResponse.success && ticketTemplatesResponse.data) {
-      if (Array.isArray(ticketTemplatesResponse.data.templates)) {
-        return ticketTemplatesResponse.data.templates;
-      }
-      if (Array.isArray(ticketTemplatesResponse.data)) {
-        return ticketTemplatesResponse.data;
-      }
-    }
-
-    if (Array.isArray(ticketTemplatesResponse)) {
-      return ticketTemplatesResponse;
-    }
-
-    return [];
-  }, [ticketTemplatesResponse]);
-
-  // Configuration for the modal that shows action configurations
-  const [showActionConfigModal, setShowActionConfigModal] = useState(false);
-  const [currentAction, setCurrentAction] = useState<{ type: keyof AiAgentConfig['availableActions']; config: ActionFieldConfig | undefined } | null>(null);
-  const [actionConfig, setActionConfig] = useState<ActionFieldConfig>({});
-
-  React.useEffect(() => {
-    if (currentAction) {
-      setActionConfig(currentAction.config || {});
-    }
-  }, [currentAction]);
-
-  const handleActionConfigSave = () => {
-    if (currentAction) {
-      updateActionConfig(currentAction.type, actionConfig);
-      setShowActionConfigModal(false);
-      setCurrentAction(null);
-    }
-  };
-
-  const renderActionConfig = () => {
-    if (!currentAction) return null;
-
-    switch (currentAction.type) {
-      case 'createTicket':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Template de Ticket</Label>
-              <Select
-                value={actionConfig.templateId || ''}
-                onValueChange={(value) => setActionConfig({ ...actionConfig, templateId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={templatesLoading ? "Carregando templates..." : "Selecione um template"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {templatesLoading ? (
-                    <SelectItem value="" disabled>Carregando...</SelectItem>
-                  ) : ticketTemplates.length === 0 ? (
-                    <SelectItem value="" disabled>Nenhum template encontrado</SelectItem>
-                  ) : (
-                    <>
-                      <SelectItem value="">Sem template (padrão)</SelectItem>
-                      {ticketTemplates.map((template: any) => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.name} ({template.category || 'Sem categoria'})
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              {actionConfig.templateId && (
-                <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                  <FileText className="w-4 h-4 inline mr-1" />
-                  Template selecionado será usado para pré-preencher campos do ticket
-                </div>
-              )}
-            </div>
-
-            <div>
-              <Label>Título do Ticket</Label>
-              <Input
-                value={actionConfig.title || ''}
-                onChange={(e) => setActionConfig({ ...actionConfig, title: e.target.value })}
-                placeholder="Título automático do ticket (opcional se usando template)"
-              />
-            </div>
-
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={actionConfig.description || ''}
-                onChange={(e) => setActionConfig({ ...actionConfig, description: e.target.value })}
-                placeholder="Descrição do ticket baseada na conversa (opcional se usando template)"
-              />
-            </div>
-
-            <div>
-              <Label>Prioridade</Label>
-              <Select
-                value={actionConfig.priority || 'medium'}
-                onValueChange={(value) => setActionConfig({ ...actionConfig, priority: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Categoria</Label>
-              <Input
-                value={actionConfig.category || ''}
-                onChange={(e) => setActionConfig({ ...actionConfig, category: e.target.value })}
-                placeholder="Categoria do ticket (opcional se usando template)"
-              />
-            </div>
-
-            <div>
-              <Label>Tags (separadas por vírgula)</Label>
-              <Input
-                value={actionConfig.tags || ''}
-                onChange={(e) => setActionConfig({ ...actionConfig, tags: e.target.value })}
-                placeholder="tag1, tag2, tag3"
-              />
-            </div>
-          </div>
-        );
-      case 'scheduleAppointment':
-        return (
-          <ActionFieldMapper
-            config={actionConfig}
-            fields={mergedConfig.fieldsToCollect}
-            onChange={setActionConfig}
-            type="scheduleAppointment"
-          />
-        );
-      default:
-        return <p>Configuração não disponível para esta ação.</p>;
-    }
   };
 
   return (
@@ -994,95 +824,12 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
           {/* Aba 5: Ações Disponíveis - Nova Interface Visual */}
           <TabsContent value="actions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
-                  Ações Disponíveis
-                </CardTitle>
-                <CardDescription>
-                  Configure quais ações o agente pode executar e como.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {(Object.keys(mergedConfig.availableActions) as Array<keyof typeof mergedConfig.availableActions>).map((actionKey) => {
-                    const isActionEnabled = mergedConfig.availableActions[actionKey];
-                    const hasConfiguration = mergedConfig.actionConfigs && mergedConfig.actionConfigs[actionKey];
-
-                    return (
-                      <div key={actionKey} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                        <div className="flex items-center gap-3">
-                          {/* Ícone da ação (pode ser mapeado para melhor representação) */}
-                          {actionKey === 'createTicket' && <FileText className="w-5 h-5 text-primary" />}
-                          {actionKey === 'queryKnowledgeBase' && <Search className="w-5 h-5 text-primary" />}
-                          {actionKey === 'searchMaterials' && <Upload className="w-5 h-5 text-primary" />}
-                          {actionKey === 'scheduleAppointment' && <Calendar className="w-5 h-5 text-primary" />}
-                          {actionKey === 'escalateToHuman' && <UserPlus className="w-5 h-5 text-primary" />}
-                          {actionKey === 'sendEmail' && <Mail className="w-5 h-5 text-primary" />}
-
-                          <Label className="capitalize">{actionKey.replace(/([A-Z])/g, ' $1').toLowerCase()}</Label>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            id={actionKey}
-                            checked={isActionEnabled}
-                            onCheckedChange={(checked) => {
-                              updateAvailableActions(actionKey, checked);
-                              if (checked && !hasConfiguration) {
-                                // Automatically open config modal if action is enabled for the first time
-                                setCurrentAction({ type: actionKey, config: undefined });
-                                setShowActionConfigModal(true);
-                              } else if (!checked && currentAction?.type === actionKey) {
-                                // Close modal if the current action is disabled
-                                setShowActionConfigModal(false);
-                                setCurrentAction(null);
-                              }
-                            }}
-                          />
-                          {isActionEnabled && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setCurrentAction({ type: actionKey, config: mergedConfig.actionConfigs?.[actionKey] });
-                                setShowActionConfigModal(true);
-                              }}
-                            >
-                              Configurar
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-            {showActionConfigModal && currentAction && (
-              <Card className="mt-6 border-2 border-primary">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    Configuração da Ação: {currentAction.type.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                  </CardTitle>
-                  <CardDescription>Ajuste os parâmetros para a ação selecionada.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderActionConfig()}
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => {
-                    setShowActionConfigModal(false);
-                    setCurrentAction(null);
-                  }}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleActionConfigSave}>Salvar</Button>
-                </CardFooter>
-              </Card>
-            )}
+            <EnhancedActionsTab
+              availableActions={mergedConfig.availableActions}
+              actionConfigs={mergedConfig.actionConfigs || {}}
+              onActionToggle={updateAvailableActions}
+              onActionConfigChange={updateActionConfig}
+            />
           </TabsContent>
         </ScrollArea>
       </Tabs>
