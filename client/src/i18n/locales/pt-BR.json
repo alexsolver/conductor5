@@ -6631,5 +6631,9 @@
   "hardcoded.token_refreshed_successfully": "token_atualizado_com_sucesso",
   "hardcoded.displayname": "nome_de_exibição",
   "hardcoded.comum": "comum",
-  "hardcoded.breadcrumplink": "link de navegação"
+  "hardcoded.breadcrumplink": "link de navegação",
+  "omnibridge.conversationLogs.notFound": "Conversa não encontrada",
+  "omnibridge.conversationLogs.sessionId": "ID da Sessão",
+  "omnibridge.conversationLogs.noMessages": "Nenhuma mensagem encontrada",
+  "common.back": "Voltar"
 }
