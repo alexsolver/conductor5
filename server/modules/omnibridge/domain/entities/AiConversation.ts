@@ -118,10 +118,21 @@ export class AiConversation {
     return requiredParams.filter(param => {
       const value = this.actionParams[param];
       // ✅ ANTI-LOOP: Validação mais robusta para evitar loops
-      return value === undefined || 
-             value === '' || 
-             value === null || 
-             (typeof value === 'string' && value.trim() === '');
+      if (value === undefined || value === null) {
+        return true;
+      }
+      
+      if (typeof value === 'string') {
+        const trimmedValue = value.trim();
+        return trimmedValue === '' || trimmedValue.length < 2;
+      }
+      
+      if (typeof value === 'number') {
+        return isNaN(value);
+      }
+      
+      // Para outros tipos, considerar como válido se não for undefined/null
+      return false;
     });
   }
 

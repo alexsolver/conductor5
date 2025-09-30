@@ -1,3 +1,4 @@
+replit_final_file>
 import { IAiAgentRepository } from '../../domain/repositories/IAiAgentRepository';
 import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
@@ -536,57 +537,68 @@ export class ConversationalAgentEngine {
         break;
 
       default:
-        // ✅ ANTI-LOOP: Para ações não reconhecidas, extrair texto genérico
-        if (content.trim().length > 3) {
+        console.log(`⚠️ [ConversationalAgent] Unknown action type for parameter extraction: ${actionType}`);
+        // Para ações desconhecidas, tentar extrair informações básicas
+        if (content.trim().length > 5) {
           params.content = content.trim();
         }
+        break;
     }
 
-    console.log(`✅ [ConversationalAgent] Extracted parameters:`, params);
+    console.log(`🔍 [ConversationalAgent] Extracted parameters:`, params);
     return params;
   }
 
-  private getRequiredParameters(actionType: string): string[] {
-    const parameterMap: Record<string, string[]> = {
-      'send_notification': ['users', 'message'],
-      'create_ticket': ['title', 'description'],
-      'send_auto_reply': ['message'],
-      'forward_message': ['forwardTo'],
-      'assign_agent': ['agentId'],
-      'add_tags': ['tags']
+  // ✅ ANTI-LOOP: Melhorar geração de perguntas com contexto do que já foi coletado
+  private generateParameterQuestion(missingParam: string, agent: AiAgent): string {
+    const questionMap: Record<string, string> = {
+      'email': 'Por favor, informe seu endereço de e-mail para que eu possa prosseguir.',
+      'title': 'Qual seria o título ou assunto para esta solicitação?',
+      'description': 'Poderia descrever melhor sua solicitação ou problema?',
+      'priority': 'Qual a prioridade desta solicitação? (alta, média ou baixa)',
+      'category': 'Em qual categoria esta solicitação se encaixa?',
+      'name': 'Por favor, informe seu nome completo.',
+      'phone': 'Poderia informar seu número de telefone?',
+      'subject': 'Qual seria o assunto desta notificação?',
+      'message': 'Qual a mensagem que gostaria de enviar?',
+      'recipient': 'Para quem gostaria de enviar esta mensagem?'
     };
 
-    return parameterMap[actionType] || [];
+    return questionMap[missingParam] || `Por favor, informe o valor para ${missingParam}.`;
   }
 
-  private generateParameterQuestion(parameterName: string, agent: AiAgent): string {
-    const questions: Record<string, string> = {
-      'users': 'Para quem devo enviar a notificação? (Email ou nome do usuário)',
-      'message': 'Qual mensagem você gostaria de enviar?',
-      'title': 'Qual o título do ticket?',
-      'description': 'Descreva detalhadamente o problema ou solicitação:',
-      'forwardTo': 'Para qual email ou agente devo encaminhar?',
-      'agentId': 'Qual agente deve ser responsável por esta solicitação?',
-      'tags': 'Quais tags devo adicionar? (separadas por vírgula)'
-    };
-
-    return questions[parameterName] || `Por favor, forneça o valor para: ${parameterName}`;
-  }
-
+  // ✅ ANTI-LOOP: Melhorar geração de mensagem de confirmação
   private generateConfirmationMessage(conversation: AiConversation, agent: AiAgent): string {
     const action = conversation.intendedAction;
     const params = conversation.actionParams;
-    const actionName = this.getActionDisplayName(action!);
 
-    let summary = `Confirme se entendi corretamente:\n\n`;
-    summary += `**Ação:** ${actionName}\n`;
+    let message = "Vou confirmar os dados coletados:\n\n";
 
-    Object.entries(params).forEach(([key, value]) => {
-      summary += `**${key}:** ${value}\n`;
-    });
+    switch (action) {
+      case 'send_notification':
+        message += `📧 Enviar notificação para: ${params.email}\n`;
+        if (params.subject) message += `📋 Assunto: ${params.subject}\n`;
+        if (params.message) message += `💬 Mensagem: ${params.message}\n`;
+        break;
 
-    summary += `\nPosso prosseguir com esta ação?`;
+      case 'create_ticket':
+        if (params.title) message += `🎫 Título: ${params.title}\n`;
+        if (params.description) message += `📝 Descrição: ${params.description}\n`;
+        if (params.priority) message += `⚡ Prioridade: ${params.priority}\n`;
+        break;
 
-    return summary;
+      default:
+        message += `Ação: ${action}\n`;
+        Object.entries(params).forEach(([key, value]) => {
+          if (key !== '_attemptCount' && value) {
+            message += `${key}: ${value}\n`;
+          }
+        });
+        break;
+    }
+
+    message += "\nEstá correto? Posso prosseguir?";
+    return message;
   }
 }
+</replit_final_file>
