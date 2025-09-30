@@ -88,16 +88,16 @@ export class ConversationalAgentEngine {
 
   private async findBestAgent(channelType: string, tenantId: string): Promise<AiAgent | null> {
     const agents = await this.agentRepository.findByChannel(channelType, tenantId);
-    
+
     if (agents.length === 0) return null;
-    
+
     // Retornar agente com maior prioridade
     return agents.sort((a, b) => b.priority - a.priority)[0];
   }
 
   private async startNewConversation(context: MessageContext, agent: AiAgent): Promise<AiConversation> {
     const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const conversation = new AiConversation(
       conversationId,
       context.tenantId,
@@ -122,19 +122,19 @@ export class ConversationalAgentEngine {
     switch (currentStep) {
       case 'greeting':
         return await this.handleGreeting(conversation, agent, context);
-      
+
       case 'understanding_intent':
         return await this.handleIntentUnderstanding(conversation, agent, context);
-      
+
       case 'collecting_parameters':
         return await this.handleParameterCollection(conversation, agent, context);
-      
+
       case 'confirmation':
         return await this.handleConfirmation(conversation, agent, context);
-      
+
       case 'executing_action':
         return await this.handleActionExecution(conversation, agent, context);
-      
+
       default:
         console.warn(`⚠️ [ConversationalAgent] Unknown step: ${currentStep}`);
         return await this.handleFallback(conversation, agent, context);
@@ -159,20 +159,20 @@ export class ConversationalAgentEngine {
     if (analysis.intent && this.isActionableIntent(analysis.intent, agent)) {
       conversation.setIntendedAction(analysis.intent);
       conversation.updateStep('collecting_parameters');
-      
+
       // Gerar resposta baseada na intenção identificada
       const response = await this.generateIntentResponse(analysis.intent, agent);
       conversation.addMessage('agent', response.message);
-      
+
       return response;
     } else {
       // Apresentar menu de opções disponíveis
       conversation.updateStep('understanding_intent');
       const menuOptions = this.generateActionMenu(agent);
-      
+
       const message = `${agent.personality.greeting}\\n\\nComo posso ajudar você hoje?`;
       conversation.addMessage('agent', message);
-      
+
       return {
         message,
         requiresInput: true,
@@ -188,20 +188,20 @@ export class ConversationalAgentEngine {
   ): Promise<ConversationResponse> {
 
     const userMessage = context.content.toLowerCase().trim();
-    
+
     // Verificar se é uma seleção de menu numérica
-    if (/^\\d+$/.test(userMessage)) {
+    if (/^\d+$/.test(userMessage)) {
       const optionIndex = parseInt(userMessage) - 1;
       const availableActions = agent.enabledActions;
-      
+
       if (optionIndex >= 0 && optionIndex < availableActions.length) {
         const selectedAction = availableActions[optionIndex];
         conversation.setIntendedAction(selectedAction);
         conversation.updateStep('collecting_parameters');
-        
+
         const response = await this.generateIntentResponse(selectedAction, agent);
         conversation.addMessage('agent', response.message);
-        
+
         return response;
       }
     }
@@ -217,10 +217,10 @@ export class ConversationalAgentEngine {
     if (analysis.intent && this.isActionableIntent(analysis.intent, agent)) {
       conversation.setIntendedAction(analysis.intent);
       conversation.updateStep('collecting_parameters');
-      
+
       const response = await this.generateIntentResponse(analysis.intent, agent);
       conversation.addMessage('agent', response.message);
-      
+
       return response;
     }
 
@@ -228,7 +228,7 @@ export class ConversationalAgentEngine {
     const menuOptions = this.generateActionMenu(agent);
     const message = `${agent.personality.fallbackMessage}\\n\\nEscolha uma das opções abaixo ou descreva como posso ajudar:`;
     conversation.addMessage('agent', message);
-    
+
     return {
       message,
       requiresInput: true,
@@ -268,7 +268,7 @@ export class ConversationalAgentEngine {
       // Solicitar parâmetros faltantes
       const question = this.generateParameterQuestion(missingParams[0], agent);
       conversation.addMessage('agent', question);
-      
+
       return {
         message: question,
         requiresInput: true
@@ -278,7 +278,7 @@ export class ConversationalAgentEngine {
       conversation.updateStep('confirmation');
       const confirmationMessage = this.generateConfirmationMessage(conversation, agent);
       conversation.addMessage('agent', confirmationMessage);
-      
+
       return {
         message: confirmationMessage,
         requiresInput: true,
@@ -298,7 +298,7 @@ export class ConversationalAgentEngine {
   ): Promise<ConversationResponse> {
 
     const userResponse = context.content.toLowerCase().trim();
-    
+
     if (userResponse.includes('sim') || userResponse.includes('confirmar') || userResponse === '1') {
       conversation.updateStep('executing_action');
       return await this.handleActionExecution(conversation, agent, context);
@@ -306,7 +306,7 @@ export class ConversationalAgentEngine {
       conversation.updateStatus('completed');
       const message = "Operação cancelada. Posso ajudar com mais alguma coisa?";
       conversation.addMessage('agent', message);
-      
+
       return {
         message,
         conversationComplete: true
@@ -314,10 +314,10 @@ export class ConversationalAgentEngine {
     } else if (userResponse.includes('alterar') || userResponse.includes('editar') || userResponse === '3') {
       conversation.updateStep('collecting_parameters');
       conversation.setIntendedAction(conversation.intendedAction!, {}); // Limpar parâmetros
-      
+
       const message = "Vamos recomeçar. Qual informação você gostaria de fornecer?";
       conversation.addMessage('agent', message);
-      
+
       return {
         message,
         requiresInput: true
@@ -327,7 +327,7 @@ export class ConversationalAgentEngine {
     // Resposta não reconhecida
     const message = "Por favor, confirme com 'Sim' ou 'Não', ou escolha uma das opções:";
     conversation.addMessage('agent', message);
-    
+
     return {
       message,
       requiresInput: true,
@@ -351,7 +351,7 @@ export class ConversationalAgentEngine {
 
     try {
       console.log(`🚀 [ConversationalAgent] Executing action: ${conversation.intendedAction}`);
-      
+
       // Executar ação através do ActionExecutor existente
       const actionResult = await this.actionExecutor.execute(
         {
@@ -396,7 +396,7 @@ export class ConversationalAgentEngine {
 
     } catch (error) {
       console.error('❌ [ConversationalAgent] Error executing action:', error);
-      
+
       const errorMessage = "Desculpe, ocorreu um erro ao executar a ação. Posso ajudar com outra coisa?";
       conversation.addMessage('agent', errorMessage);
       conversation.updateStatus('completed');
@@ -431,7 +431,7 @@ export class ConversationalAgentEngine {
   private async escalateConversation(context: MessageContext, agent: AiAgent): Promise<ConversationResponse> {
     // TODO: Implementar lógica de escalação para humanos
     const message = "Entendo que você precisa falar com um atendente humano. Vou transferir sua solicitação para nossa equipe de suporte.";
-    
+
     return {
       message,
       escalated: true,
@@ -472,26 +472,78 @@ export class ConversationalAgentEngine {
   private async generateIntentResponse(actionType: string, agent: AiAgent): Promise<ConversationResponse> {
     const actionName = this.getActionDisplayName(actionType);
     const message = `Perfeito! Vou ajudar você com: ${actionName}. Preciso de algumas informações para prosseguir.`;
-    
+
     return { message, requiresInput: true };
   }
 
-  private async extractParameters(message: string, actionType: string, agent: AiAgent): Promise<Record<string, any>> {
-    // TODO: Implementar extração inteligente de parâmetros usando IA
-    const extractedParams: Record<string, any> = {};
+  private async extractParameters(
+    content: string, 
+    actionType: string, 
+    agent: AiAgent
+  ): Promise<Record<string, any>> {
+    console.log(`🔍 [ConversationalAgent] Extracting parameters for action: ${actionType} from: "${content}"`);
 
-    // Extração básica por padrões
-    const emailMatch = message.match(/[\\w.-]+@[\\w.-]+\\.\\w+/);
-    if (emailMatch) {
-      extractedParams.email = emailMatch[0];
+    const params: Record<string, any> = {};
+    const lowerContent = content.toLowerCase();
+
+    // ✅ ANTI-LOOP: Extrair informações baseadas no tipo de ação com validação mais robusta
+    switch (actionType) {
+      case 'create_ticket':
+        // Extrair descrição do problema
+        if (lowerContent.includes('problema') || lowerContent.includes('erro') || lowerContent.includes('defeito')) {
+          params.description = content;
+        }
+        // Extrair prioridade
+        if (lowerContent.includes('urgente') || lowerContent.includes('crítico')) {
+          params.priority = 'high';
+        } else if (lowerContent.includes('baixa') || lowerContent.includes('simples')) {
+          params.priority = 'low';
+        } else {
+          params.priority = 'medium';
+        }
+        // Extrair categoria se mencionada
+        if (lowerContent.includes('técnico') || lowerContent.includes('sistema')) {
+          params.category = 'technical';
+        }
+        break;
+
+      case 'send_notification':
+        // Extrair email com regex mais robusta
+        const emailMatch = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (emailMatch) {
+          params.email = emailMatch[0];
+        }
+        // Extrair assunto se mencionado
+        if (lowerContent.includes('assunto:') || lowerContent.includes('sobre:')) {
+          const subjectMatch = content.match(/(?:assunto:|sobre:)\s*(.+)/i);
+          if (subjectMatch) {
+            params.subject = subjectMatch[1].trim();
+          }
+        }
+        break;
+
+      case 'schedule_meeting':
+        // Extrair data/hora
+        const dateMatch = content.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/);
+        if (dateMatch) {
+          params.date = dateMatch[1];
+        }
+        // Extrair horário
+        const timeMatch = content.match(/(\d{1,2}):(\d{2})/);
+        if (timeMatch) {
+          params.time = `${timeMatch[1]}:${timeMatch[2]}`;
+        }
+        break;
+
+      default:
+        // ✅ ANTI-LOOP: Para ações não reconhecidas, extrair texto genérico
+        if (content.trim().length > 3) {
+          params.content = content.trim();
+        }
     }
 
-    const phoneMatch = message.match(/\\(?(\\d{2})\\)?\\s?\\d{4,5}-?\\d{4}/);
-    if (phoneMatch) {
-      extractedParams.phone = phoneMatch[0];
-    }
-
-    return extractedParams;
+    console.log(`✅ [ConversationalAgent] Extracted parameters:`, params);
+    return params;
   }
 
   private getRequiredParameters(actionType: string): string[] {
@@ -526,14 +578,14 @@ export class ConversationalAgentEngine {
     const params = conversation.actionParams;
     const actionName = this.getActionDisplayName(action!);
 
-    let summary = `Confirme se entendi corretamente:\\n\\n`;
-    summary += `**Ação:** ${actionName}\\n`;
+    let summary = `Confirme se entendi corretamente:\n\n`;
+    summary += `**Ação:** ${actionName}\n`;
 
     Object.entries(params).forEach(([key, value]) => {
-      summary += `**${key}:** ${value}\\n`;
+      summary += `**${key}:** ${value}\n`;
     });
 
-    summary += `\\nPosso prosseguir com esta ação?`;
+    summary += `\nPosso prosseguir com esta ação?`;
 
     return summary;
   }

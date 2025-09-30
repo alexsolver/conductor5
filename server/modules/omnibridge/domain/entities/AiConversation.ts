@@ -115,9 +115,38 @@ export class AiConversation {
   }
 
   public getMissingParams(requiredParams: string[]): string[] {
-    return requiredParams.filter(param => 
-      this.actionParams[param] === undefined || this.actionParams[param] === ''
-    );
+    return requiredParams.filter(param => {
+      const value = this.actionParams[param];
+      // ✅ ANTI-LOOP: Validação mais robusta para evitar loops
+      return value === undefined || 
+             value === '' || 
+             value === null || 
+             (typeof value === 'string' && value.trim() === '');
+    });
+  }
+
+  public getAttemptCount(): number {
+    return this.actionParams._attemptCount || 0;
+  }
+
+  public incrementAttemptCount(): void {
+    this.actionParams._attemptCount = this.getAttemptCount() + 1;
+    this.updatedAt = new Date();
+  }
+
+  public resetAttemptCount(): void {
+    this.actionParams._attemptCount = 0;
+    this.updatedAt = new Date();
+  }
+
+  public isStuck(): boolean {
+    return this.getAttemptCount() >= 5;
+  }
+
+  public getLastMessagesByRole(role: 'user' | 'agent' | 'system', count: number = 3): ConversationMessage[] {
+    return this.conversationHistory
+      .filter(msg => msg.role === role)
+      .slice(-count);
   }
 
   public extendExpiry(hours: number = 24): void {
