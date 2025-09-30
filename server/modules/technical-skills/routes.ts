@@ -1,30 +1,28 @@
 /**
- * Technical Skills Routes - Clean Architecture Implementation
+ * Technical Skills Routes - Multi-Schema Clean Architecture
  *
- * ✅ 1QA.MD COMPLIANCE: Following Clean Architecture patterns
- * ✅ MULTITENANT: Proper tenant isolation with tenant_id
+ * ✅ CLEAN ARCHITECTURE
+ * ✅ MULTITENANT: Schema isolation (tenant_{tenantId})
  * ✅ PRESERVAÇÃO: Não quebrar código existente
  *
  * @module TechnicalSkillsRoutes
- * @version 1.0.0
- * @created 2025-09-10 - Clean Architecture Implementation
+ * @version 2.0.0
  */
 
 import { Router } from 'express';
 import { db } from '../../db.js';
-import { skills, userSkills, insertSkillSchema, sql } from '@shared/schema';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { jwtAuth } from '../../middleware/jwtAuth.js';
 import { z } from 'zod';
 import type { Request, Response } from 'express';
-import crypto from 'crypto'; // Import crypto for UUID generation
+import crypto from 'crypto';
 
 const router = Router();
 
-// ✅ 1QA.MD: Apply authentication
+// ✅ Middleware de autenticação
 router.use(jwtAuth);
 
-// ✅ 1QA.MD: Schema validation following existing patterns
+// ✅ Schema validation
 const createSkillSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(255),
   category: z.string().min(1, 'Categoria é obrigatória'),
@@ -32,634 +30,299 @@ const createSkillSchema = z.object({
 });
 
 /**
- * ✅ 1QA.MD: Get all skills with proper tenant isolation
+ * Helper para montar schema do tenant
+ */
+function getTenantSchema(tenantId: string) {
+  return `tenant_${tenantId}`;
+}
+
+/**
  * GET /api/technical-skills/skills
  */
 router.get('/skills', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Getting skills for tenant: ${tenantId}`);
+    const skillsData = await db.execute(sql`
+      SELECT *
+      FROM ${sql.identifier([schema, 'skills'])}
+      WHERE is_active = true
+      ORDER BY created_at DESC
+    `);
 
-    // ✅ 1QA.MD: Query with tenant isolation
-    const skillsData = await db
-      .select()
-      .from(skills)
-      .where(and(
-        eq(skills.tenantId, tenantId),
-        eq(skills.isActive, true)
-      ))
-      .orderBy(desc(skills.createdAt));
+    console.log(`[TECHNICAL-SKILLS] Found ${skillsData.length} skills for tenant ${tenantId}`);
 
-    console.log(`[TECHNICAL-SKILLS] Found ${skillsData.length} skills`);
-
-    res.json({
-      success: true,
-      data: skillsData,
-      count: skillsData.length
-    });
-
+    res.json({ success: true, data: skillsData, count: skillsData.length });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error fetching skills:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar habilidades',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao buscar habilidades' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Get skill categories with proper tenant isolation
  * GET /api/technical-skills/skills/categories
  */
 router.get('/skills/categories', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Getting categories for tenant: ${tenantId}`);
-
-    // ✅ 1QA.MD: Get distinct categories with tenant isolation
-    const categoriesResult = await db
-      .selectDistinct({
-        category: skills.category
-      })
-      .from(skills)
-      .where(and(
-        eq(skills.tenantId, tenantId),
-        eq(skills.isActive, true)
-      ));
+    const categoriesResult = await db.execute(sql`
+      SELECT DISTINCT category
+      FROM ${sql.identifier([schema, 'skills'])}
+      WHERE is_active = true
+    `);
 
     const categories = categoriesResult
-      .map(row => row.category)
-      .filter(category => category !== null && category !== '');
+      .map((r: any) => r.category)
+      .filter((c: string) => c !== null && c !== '');
 
-    console.log(`[TECHNICAL-SKILLS] Found ${categories.length} categories`);
-
-    res.json({
-      success: true,
-      data: categories,
-      count: categories.length
-    });
-
+    res.json({ success: true, data: categories, count: categories.length });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error fetching categories:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar categorias',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao buscar categorias' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Create new skill with proper validation and tenant isolation
  * POST /api/technical-skills/skills
  */
 router.post('/skills', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
-
-    // ✅ 1QA.MD: Validate input data
     const validatedData = createSkillSchema.parse(req.body);
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Creating skill for tenant: ${tenantId}`, validatedData);
+    const [newSkill] = await db.execute(sql`
+      INSERT INTO ${sql.identifier([schema, 'skills'])}
+      (id, name, category, description, is_active, created_at, updated_at)
+      VALUES (
+        ${crypto.randomUUID()}, ${validatedData.name}, ${validatedData.category},
+        ${validatedData.description || ''}, true, ${new Date()}, ${new Date()}
+      )
+      RETURNING *
+    `);
 
-    // ✅ 1QA.MD: Create skill with proper tenant isolation
-    const newSkillData = {
-      tenantId,
-      name: validatedData.name,
-      category: validatedData.category,
-      description: validatedData.description || '',
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const [newSkill] = await db
-      .insert(skills)
-      .values(newSkillData)
-      .returning();
-
-    console.log(`[TECHNICAL-SKILLS] Created skill: ${newSkill.id}`);
-
-    res.status(201).json({
-      success: true,
-      message: 'Habilidade criada com sucesso',
-      data: newSkill
-    });
-
+    res.status(201).json({ success: true, message: 'Habilidade criada com sucesso', data: newSkill });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Dados inválidos',
-        errors: error.errors
-      });
-    }
+    if (error instanceof z.ZodError)
+      return res.status(400).json({ success: false, message: 'Dados inválidos', errors: error.errors });
 
     console.error('[TECHNICAL-SKILLS] Error creating skill:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao criar habilidade',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao criar habilidade' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Update skill with proper validation and tenant isolation
  * PUT /api/technical-skills/skills/:id
  */
 router.put('/skills/:id', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
     const { id } = req.params;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
-
-    // ✅ 1QA.MD: Validate input data (partial update)
     const validatedData = createSkillSchema.partial().parse(req.body);
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Updating skill ${id} for tenant: ${tenantId}`);
+    const [updatedSkill] = await db.execute(sql`
+      UPDATE ${sql.identifier([schema, 'skills'])}
+      SET name = COALESCE(${validatedData.name}, name),
+          category = COALESCE(${validatedData.category}, category),
+          description = COALESCE(${validatedData.description}, description),
+          updated_at = ${new Date()}
+      WHERE id = ${id}
+      RETURNING *
+    `);
 
-    // ✅ 1QA.MD: Update with tenant isolation
-    const [updatedSkill] = await db
-      .update(skills)
-      .set({
-        ...validatedData,
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(skills.id, id),
-        eq(skills.tenantId, tenantId)
-      ))
-      .returning();
+    if (!updatedSkill) return res.status(404).json({ success: false, message: 'Habilidade não encontrada' });
 
-    if (!updatedSkill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Habilidade não encontrada'
-      });
-    }
-
-    console.log(`[TECHNICAL-SKILLS] Updated skill: ${id}`);
-
-    res.json({
-      success: true,
-      message: 'Habilidade atualizada com sucesso',
-      data: updatedSkill
-    });
-
+    res.json({ success: true, message: 'Habilidade atualizada com sucesso', data: updatedSkill });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Dados inválidos',
-        errors: error.errors
-      });
-    }
+    if (error instanceof z.ZodError)
+      return res.status(400).json({ success: false, message: 'Dados inválidos', errors: error.errors });
 
     console.error('[TECHNICAL-SKILLS] Error updating skill:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao atualizar habilidade',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao atualizar habilidade' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Soft delete skill (set isActive = false)
  * DELETE /api/technical-skills/skills/:id
  */
 router.delete('/skills/:id', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
     const { id } = req.params;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Soft deleting skill ${id} for tenant: ${tenantId}`);
+    const [deletedSkill] = await db.execute(sql`
+      UPDATE ${sql.identifier([schema, 'skills'])}
+      SET is_active = false, updated_at = ${new Date()}
+      WHERE id = ${id}
+      RETURNING *
+    `);
 
-    // ✅ 1QA.MD: Soft delete with tenant isolation
-    const [deletedSkill] = await db
-      .update(skills)
-      .set({
-        isActive: false,
-        updatedAt: new Date()
-      })
-      .where(and(
-        eq(skills.id, id),
-        eq(skills.tenantId, tenantId)
-      ))
-      .returning();
+    if (!deletedSkill) return res.status(404).json({ success: false, message: 'Habilidade não encontrada' });
 
-    if (!deletedSkill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Habilidade não encontrada'
-      });
-    }
-
-    console.log(`[TECHNICAL-SKILLS] Soft deleted skill: ${id}`);
-
-    res.json({
-      success: true,
-      message: 'Habilidade desativada com sucesso'
-    });
-
+    res.json({ success: true, message: 'Habilidade desativada com sucesso' });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error deleting skill:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao desativar habilidade',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao desativar habilidade' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Get user skills by user ID with proper tenant isolation
  * GET /api/technical-skills/user-skills/user/:userId
  */
 router.get('/user-skills/user/:userId', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
     const { userId } = req.params;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    const schema = getTenantSchema(tenantId);
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID é obrigatório'
-      });
-    }
+    const userSkillsData = await db.execute(sql`
+      SELECT us.*, s.name as skill_name, s.category as skill_category, s.level as skill_level, s.description as skill_description
+      FROM ${sql.identifier([schema, 'user_skills'])} us
+      INNER JOIN ${sql.identifier([schema, 'skills'])} s ON us.skill_id = s.id
+      WHERE us.user_id = ${userId}
+        AND us.is_active = true
+        AND s.is_active = true
+      ORDER BY s.category ASC, s.name ASC
+    `);
 
-    console.log(`[TECHNICAL-SKILLS] Getting user skills for user: ${userId} in tenant: ${tenantId}`);
-
-    // ✅ 1QA.MD: Query user skills with proper tenant isolation
-    const userSkillsData = await db.select({
-      id: userSkills.id,
-      userId: userSkills.userId,
-      skillId: userSkills.skillId,
-      proficiencyLevel: userSkills.proficiencyLevel,
-      yearsOfExperience: userSkills.yearsOfExperience,
-      certifications: userSkills.certifications,
-      notes: userSkills.notes,
-      createdAt: userSkills.createdAt,
-      updatedAt: userSkills.updatedAt,
-      skillName: skills.name,
-      skillCategory: skills.category,
-      skillLevel: skills.level,
-      skillDescription: skills.description
-    })
-    .from(userSkills)
-    .innerJoin(skills, eq(userSkills.skillId, skills.id))
-    .where(
-      and(
-        eq(userSkills.tenantId, tenantId),
-        eq(userSkills.userId, userId),
-        eq(userSkills.isActive, true),
-        eq(skills.isActive, true)
-      )
-    )
-    .orderBy(asc(skills.category), asc(skills.name));
-
-    console.log(`[TECHNICAL-SKILLS] Found ${userSkillsData.length} skills for user: ${userId}`);
-
-    // ✅ 1QA.MD: Format response following established patterns
-    const formattedSkills = userSkillsData.map(us => ({
-      id: us.id,
-      userId: us.userId,
-      skillId: us.skillId,
-      proficiencyLevel: us.proficiencyLevel,
-      yearsOfExperience: us.yearsOfExperience,
-      certifications: us.certifications,
-      notes: us.notes,
-      createdAt: us.createdAt,
-      updatedAt: us.updatedAt,
+    const formatted = userSkillsData.map((us: any) => ({
+      ...us,
       skill: {
-        id: us.skillId,
-        name: us.skillName,
-        category: us.skillCategory,
-        level: us.skillLevel,
-        description: us.skillDescription
+        id: us.skill_id,
+        name: us.skill_name,
+        category: us.skill_category,
+        level: us.skill_level,
+        description: us.skill_description,
       },
-      // Backward compatibility fields
-      skillName: us.skillName,
-      skillCategory: us.skillCategory,
-      level: us.proficiencyLevel
+      skillName: us.skill_name,
+      skillCategory: us.skill_category,
+      level: us.proficiency_level,
     }));
 
-    res.json({
-      success: true,
-      data: formattedSkills,
-      count: formattedSkills.length,
-      message: 'User skills retrieved successfully'
-    });
-
+    res.json({ success: true, data: formatted, count: formatted.length });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error fetching user skills:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar habilidades do usuário',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao buscar habilidades do usuário' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Get expired certifications (empty for now)
- * GET /api/technical-skills/certifications/expired
+ * POST /api/technical-skills/skills/:skillId/assign-members
  */
-router.get('/certifications/expired', async (req: Request, res: Response) => {
-  try {
-    // Return empty array for now - certification tracking not fully implemented
-    res.json({
-      success: true,
-      data: [],
-      count: 0
-    });
-  } catch (error) {
-    console.error('[TECHNICAL-SKILLS] Error fetching expired certifications:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar certificações expiradas',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-/**
- * ✅ 1QA.MD: Get expiring certifications (empty for now)
- * GET /api/technical-skills/certifications/expiring
- */
-router.get('/certifications/expiring', async (req: Request, res: Response) => {
-  try {
-    // Return empty array for now - certification tracking not fully implemented
-    res.json({
-      success: true,
-      data: [],
-      count: 0
-    });
-  } catch (error) {
-    console.error('[TECHNICAL-SKILLS] Error fetching expiring certifications:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar certificações expirando',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Assign members to skill
 router.post('/skills/:skillId/assign-members', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
     const { skillId } = req.params;
     const { memberIds, defaultProficiencyLevel = 'beginner' } = req.body;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    console.log(`[TECHNICAL-SKILLS] Assigning members to skill ${skillId} for tenant: ${tenantId}`);
-    console.log(`[TECHNICAL-SKILLS] Member IDs:`, memberIds);
-    console.log(`[TECHNICAL-SKILLS] Default proficiency:`, defaultProficiencyLevel);
+    const schema = getTenantSchema(tenantId);
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    // validate skill
+    const skillExists = await db.execute(sql`
+      SELECT 1 FROM ${sql.identifier([schema, 'skills'])}
+      WHERE id = ${skillId} AND is_active = true
+      LIMIT 1
+    `);
+    if (skillExists.length === 0) return res.status(404).json({ success: false, message: 'Habilidade não encontrada' });
 
-    if (!skillId || !memberIds || !Array.isArray(memberIds) || memberIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Skill ID e array de member IDs são obrigatórios'
-      });
-    }
+    let successCount = 0, errorCount = 0;
+    const results: any[] = [];
 
-    // Validate skill exists
-    const skillExists = await db.select()
-      .from(skills)
-      .where(and(
-        eq(skills.id, skillId),
-        eq(skills.tenantId, tenantId),
-        eq(skills.isActive, true)
-      ))
-      .limit(1);
-
-    if (skillExists.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Habilidade não encontrada'
-      });
-    }
-
-    let successCount = 0;
-    let errorCount = 0;
-    const results = [];
-
-    // Process each member
     for (const memberId of memberIds) {
       try {
-        console.log(`[TECHNICAL-SKILLS] Processing member: ${memberId}`);
+        if (!memberId || typeof memberId !== 'string') throw new Error('ID de membro inválido');
 
-        // Validate member ID is valid UUID
-        if (!memberId || typeof memberId !== 'string') {
-          console.error(`[TECHNICAL-SKILLS] Invalid member ID: ${memberId}`);
-          errorCount++;
-          results.push({
-            memberId,
-            status: 'error',
-            message: 'ID de membro inválido'
-          });
+        const existing = await db.execute(sql`
+          SELECT 1 FROM ${sql.identifier([schema, 'user_skills'])}
+          WHERE user_id = ${memberId} AND skill_id = ${skillId}
+          LIMIT 1
+        `);
+        if (existing.length > 0) {
+          results.push({ memberId, status: 'skipped', message: 'Já atribuído' });
           continue;
         }
 
-        // Check if assignment already exists
-        const existingAssignment = await db.select()
-          .from(userSkills)
-          .where(
-            and(
-              eq(userSkills.userId, memberId),
-              eq(userSkills.skillId, skillId),
-              eq(userSkills.tenantId, tenantId)
-            )
-          )
-          .limit(1);
-
-        if (existingAssignment.length > 0) {
-          console.log(`[TECHNICAL-SKILLS] Member ${memberId} already has this skill`);
-          results.push({
-            memberId,
-            status: 'skipped',
-            message: 'Já atribuído'
-          });
-          continue;
-        }
-
-        // Create new assignment with all required fields including tenantId
         const assignmentId = crypto.randomUUID();
-        
-        console.log(`[TECHNICAL-SKILLS] Creating assignment with ID ${assignmentId} for member ${memberId}`);
-
-        // Insert the assignment using raw SQL to ensure proper column mapping
-        const insertResult = await db.execute(sql`
-          INSERT INTO user_skills (
-            id, tenant_id, user_id, skill_id, proficiency_level, 
-            years_of_experience, certifications, notes, is_active, created_at, updated_at
-          ) VALUES (
-            ${assignmentId}, ${tenantId}, ${memberId}, ${skillId}, ${defaultProficiencyLevel},
+        await db.execute(sql`
+          INSERT INTO ${sql.identifier([schema, 'user_skills'])}
+          (id, user_id, skill_id, proficiency_level, years_of_experience, certifications, notes, is_active, created_at, updated_at)
+          VALUES (
+            ${assignmentId}, ${memberId}, ${skillId}, ${defaultProficiencyLevel},
             0, ${JSON.stringify([])}, null, true, ${new Date()}, ${new Date()}
-          ) RETURNING *
+          )
         `);
 
-        if (insertResult && insertResult.length > 0) {
-          console.log(`[TECHNICAL-SKILLS] Assignment created successfully for member ${memberId}:`, insertResult[0]);
-          successCount++;
-          results.push({
-            memberId,
-            status: 'success',
-            message: 'Atribuído com sucesso',
-            assignmentId: assignmentId
-          });
-        } else {
-          throw new Error('Falha ao inserir no banco de dados');
-        }
-
-      } catch (memberError) {
-        console.error(`[TECHNICAL-SKILLS] Error assigning skill to member ${memberId}:`, memberError);
+        results.push({ memberId, status: 'success', assignmentId });
+        successCount++;
+      } catch (err) {
+        results.push({ memberId, status: 'error', message: (err as Error).message });
         errorCount++;
-        results.push({
-          memberId,
-          status: 'error',
-          message: 'Falha na atribuição: ' + (memberError instanceof Error ? memberError.message : 'Erro desconhecido')
-        });
       }
     }
 
-    console.log(`[TECHNICAL-SKILLS] Assignment completed: ${successCount} successful, ${errorCount} failed`);
-
-    // Return appropriate status code based on results
-    const statusCode = errorCount === 0 ? 200 : (successCount === 0 ? 400 : 207); // 207 for partial success
-
-    res.status(statusCode).json({
-      success: successCount > 0,
-      message: `Atribuição concluída: ${successCount} sucesso, ${errorCount} falha`,
-      data: {
-        skillId,
-        successCount,
-        errorCount,
-        results,
-        totalProcessed: memberIds.length
-      }
-    });
-
+    const statusCode = errorCount === 0 ? 200 : (successCount === 0 ? 400 : 207);
+    res.status(statusCode).json({ success: successCount > 0, data: { successCount, errorCount, results } });
   } catch (error) {
-    console.error('[TECHNICAL-SKILLS] Error in assign members endpoint:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro interno do servidor',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    console.error('[TECHNICAL-SKILLS] Error in assign-members:', error);
+    res.status(500).json({ success: false, message: 'Erro interno do servidor' });
   }
 });
 
 /**
- * ✅ 1QA.MD: Get user skills with proper tenant isolation
  * GET /api/technical-skills/user-skills
  */
 router.get('/user-skills', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    const tenantId = user?.tenantId;
+    const tenantId = (req as any).user?.tenantId;
+    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    if (!tenantId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tenant ID é obrigatório'
-      });
-    }
+    const schema = getTenantSchema(tenantId);
 
-    console.log(`[TECHNICAL-SKILLS] Getting user skills for tenant: ${tenantId}`);
+    const userSkillsData = await db.execute(sql`
+      SELECT us.*, s.name as skill_name, s.category as skill_category, s.description as skill_description
+      FROM ${sql.identifier([schema, 'user_skills'])} us
+      LEFT JOIN ${sql.identifier([schema, 'skills'])} s ON us.skill_id = s.id
+      WHERE us.is_active = true
+      ORDER BY us.created_at DESC
+    `);
 
-    // ✅ 1QA.MD: Query with proper tenant isolation and JOIN with skills
-    const userSkillsData = await db
-      .select({
-        id: userSkills.id,
-        userId: userSkills.userId,
-        skillId: userSkills.skillId,
-        proficiencyLevel: userSkills.proficiencyLevel,
-        isActive: userSkills.isActive,
-        createdAt: userSkills.createdAt,
-        updatedAt: userSkills.updatedAt,
-        skillName: skills.name,
-        skillCategory: skills.category,
-        skillDescription: skills.description
-      })
-      .from(userSkills)
-      .leftJoin(skills, eq(userSkills.skillId, skills.id))
-      .where(and(
-        eq(userSkills.isActive, true)
-      ))
-      .orderBy(desc(userSkills.createdAt));
-
-    console.log(`[TECHNICAL-SKILLS] Found ${userSkillsData.length} user skills`);
-
-    res.json(userSkillsData);
-
+    res.json({ success: true, data: userSkillsData, count: userSkillsData.length });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error fetching user skills:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao buscar habilidades dos usuários',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(500).json({ success: false, message: 'Erro ao buscar habilidades dos usuários' });
   }
+});
+
+/**
+ * GET /api/technical-skills/certifications/expired
+ */
+router.get('/certifications/expired', async (_req: Request, res: Response) => {
+  res.json({ success: true, data: [], count: 0 });
+});
+
+/**
+ * GET /api/technical-skills/certifications/expiring
+ */
+router.get('/certifications/expiring', async (_req: Request, res: Response) => {
+  res.json({ success: true, data: [], count: 0 });
 });
 
 export default router;
