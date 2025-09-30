@@ -272,9 +272,6 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
                       <SelectValue placeholder="Selecione uma ação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
-                        <span className="text-muted-foreground">Nenhuma ação</span>
-                      </SelectItem>
                       {Object.entries(actionsByCategory).map(([categoryKey, actions]) => (
                         <div key={categoryKey}>
                           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
