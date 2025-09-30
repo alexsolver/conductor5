@@ -357,7 +357,7 @@ export default function TechnicalSkillsTab() {
   const assignMembersToSkillMutation = useMutation({
     mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
       console.log('🔄 [ASSIGN-MEMBERS] Starting assignment:', { skillId, memberIds });
-      
+
       const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
         memberIds,
         defaultProficiencyLevel: 'beginner'
@@ -375,11 +375,11 @@ export default function TechnicalSkillsTab() {
     },
     onSuccess: (data) => {
       console.log('✅ [ASSIGN-MEMBERS] Mutation success:', data);
-      
+
       // Force refetch all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/skills'] });
-      
+
       // Force immediate refetch
       queryClient.refetchQueries({ 
         queryKey: ['/api/technical-skills/user-skills'],
@@ -519,13 +519,16 @@ export default function TechnicalSkillsTab() {
     );
   };
 
-  const filteredSkills = skills?.filter(skill => {
-    const matchesSearch = !searchTerm || 
-      skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      skill.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || skill.category === selectedCategory;
+  // Filter skills
+  const filteredSkills = skills ? skills.filter((skill) => {
+    const matchesSearch = skill?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const matchesCategory = selectedCategory === "all" || skill?.category === selectedCategory;
     return matchesSearch && matchesCategory && skill.isActive;
-  }) || [];
+  }) : [];
+
+  console.log('[TECHNICAL-SKILLS-TAB] Filtered Skills:', filteredSkills);
+  console.log('[TECHNICAL-SKILLS-TAB] Search Term:', searchTerm);
+  console.log('[TECHNICAL-SKILLS-TAB] Selected Category:', selectedCategory);
 
   return (
     <div className="space-y-6">
