@@ -248,6 +248,39 @@ function SortableFieldItem({ field, onEdit, onDelete }: SortableFieldItemProps) 
 }
 
 export default function AiAgentActionConfig({ config, onChange }: AiAgentActionConfigProps) {
+  const defaultConfig: AiAgentConfig = {
+    goal: '',
+    prompts: {
+      system: '',
+      context: '',
+      goalPrompt: ''
+    },
+    fieldsToCollect: [],
+    knowledgeBase: {
+      articleIds: [],
+      documents: [],
+      accessMaterials: false,
+      accessServices: false
+    },
+    availableActions: {
+      createTicket: false,
+      queryKnowledgeBase: false,
+      searchMaterials: false,
+      scheduleAppointment: false,
+      escalateToHuman: false,
+      sendEmail: false
+    }
+  };
+
+  const mergedConfig: AiAgentConfig = {
+    ...defaultConfig,
+    ...config,
+    prompts: { ...defaultConfig.prompts, ...(config.prompts || {}) },
+    fieldsToCollect: config.fieldsToCollect || defaultConfig.fieldsToCollect,
+    knowledgeBase: { ...defaultConfig.knowledgeBase, ...(config.knowledgeBase || {}) },
+    availableActions: { ...defaultConfig.availableActions, ...(config.availableActions || {}) }
+  };
+
   const [activeTab, setActiveTab] = useState('goal');
   const [editingField, setEditingField] = useState<FieldConfig | null>(null);
   const [showFieldForm, setShowFieldForm] = useState(false);
@@ -260,24 +293,24 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   );
 
   const updateConfig = (updates: Partial<AiAgentConfig>) => {
-    onChange({ ...config, ...updates });
+    onChange({ ...mergedConfig, ...updates });
   };
 
   const updatePrompts = (key: keyof AiAgentConfig['prompts'], value: string) => {
     updateConfig({
-      prompts: { ...config.prompts, [key]: value }
+      prompts: { ...mergedConfig.prompts, [key]: value }
     });
   };
 
   const updateKnowledgeBase = (updates: Partial<AiAgentConfig['knowledgeBase']>) => {
     updateConfig({
-      knowledgeBase: { ...config.knowledgeBase, ...updates }
+      knowledgeBase: { ...mergedConfig.knowledgeBase, ...updates }
     });
   };
 
   const updateAvailableActions = (action: keyof AiAgentConfig['availableActions'], value: boolean) => {
     updateConfig({
-      availableActions: { ...config.availableActions, [action]: value }
+      availableActions: { ...mergedConfig.availableActions, [action]: value }
     });
   };
 
@@ -285,25 +318,25 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = config.fieldsToCollect.findIndex((f) => f.id === active.id);
-      const newIndex = config.fieldsToCollect.findIndex((f) => f.id === over.id);
+      const oldIndex = mergedConfig.fieldsToCollect.findIndex((f) => f.id === active.id);
+      const newIndex = mergedConfig.fieldsToCollect.findIndex((f) => f.id === over.id);
 
       updateConfig({
-        fieldsToCollect: arrayMove(config.fieldsToCollect, oldIndex, newIndex)
+        fieldsToCollect: arrayMove(mergedConfig.fieldsToCollect, oldIndex, newIndex)
       });
     }
   };
 
   const addOrUpdateField = (field: FieldConfig) => {
-    const existingIndex = config.fieldsToCollect.findIndex(f => f.id === field.id);
+    const existingIndex = mergedConfig.fieldsToCollect.findIndex(f => f.id === field.id);
 
     if (existingIndex >= 0) {
-      const updated = [...config.fieldsToCollect];
+      const updated = [...mergedConfig.fieldsToCollect];
       updated[existingIndex] = field;
       updateConfig({ fieldsToCollect: updated });
     } else {
       updateConfig({
-        fieldsToCollect: [...config.fieldsToCollect, field]
+        fieldsToCollect: [...mergedConfig.fieldsToCollect, field]
       });
     }
 
@@ -313,7 +346,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   const deleteField = (id: string) => {
     updateConfig({
-      fieldsToCollect: config.fieldsToCollect.filter(f => f.id !== id)
+      fieldsToCollect: mergedConfig.fieldsToCollect.filter(f => f.id !== id)
     });
   };
 
@@ -365,7 +398,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   <Label htmlFor="agent-goal">Objetivo Principal</Label>
                   <Textarea
                     id="agent-goal"
-                    value={config.goal}
+                    value={mergedConfig.goal}
                     onChange={(e) => updateConfig({ goal: e.target.value })}
                     placeholder="Descreva o objetivo do agente de IA..."
                     className="min-h-[120px] mt-2"
@@ -434,7 +467,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </div>
                   <Textarea
                     id="system-prompt"
-                    value={config.prompts.system}
+                    value={mergedConfig.prompts.system}
                     onChange={(e) => updatePrompts('system', e.target.value)}
                     placeholder="Define a personalidade, tom e comportamento do agente..."
                     className="min-h-[100px]"
@@ -465,7 +498,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </div>
                   <Textarea
                     id="context-prompt"
-                    value={config.prompts.context}
+                    value={mergedConfig.prompts.context}
                     onChange={(e) => updatePrompts('context', e.target.value)}
                     placeholder="Informações sobre sua empresa, produtos e serviços..."
                     className="min-h-[100px]"
@@ -496,7 +529,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </div>
                   <Textarea
                     id="goal-prompt"
-                    value={config.prompts.goalPrompt}
+                    value={mergedConfig.prompts.goalPrompt}
                     onChange={(e) => updatePrompts('goalPrompt', e.target.value)}
                     placeholder="O que especificamente o agente deve fazer nesta conversa..."
                     className="min-h-[100px]"
@@ -544,7 +577,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!showFieldForm && config.fieldsToCollect.length === 0 && (
+                {!showFieldForm && mergedConfig.fieldsToCollect.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <p>Nenhum campo configurado ainda.</p>
@@ -662,19 +695,19 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </Card>
                 )}
 
-                {!showFieldForm && config.fieldsToCollect.length > 0 && (
+                {!showFieldForm && mergedConfig.fieldsToCollect.length > 0 && (
                   <div className="space-y-3">
-                    <Label>Campos Configurados ({config.fieldsToCollect.length})</Label>
+                    <Label>Campos Configurados ({mergedConfig.fieldsToCollect.length})</Label>
                     <DndContext
                       sensors={sensors}
                       collisionDetection={closestCenter}
                       onDragEnd={handleDragEnd}
                     >
                       <SortableContext
-                        items={config.fieldsToCollect.map(f => f.id)}
+                        items={mergedConfig.fieldsToCollect.map(f => f.id)}
                         strategy={verticalListSortingStrategy}
                       >
-                        {config.fieldsToCollect.map((field) => (
+                        {mergedConfig.fieldsToCollect.map((field) => (
                           <SortableFieldItem
                             key={field.id}
                             field={field}
@@ -713,7 +746,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </Label>
                   <Input
                     id="kb-articles"
-                    value={config.knowledgeBase.articleIds.join(', ')}
+                    value={mergedConfig.knowledgeBase.articleIds.join(', ')}
                     onChange={(e) => updateKnowledgeBase({
                       articleIds: e.target.value.split(',').map(id => id.trim()).filter(Boolean)
                     })}
@@ -734,7 +767,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </Label>
                   <Input
                     id="kb-documents"
-                    value={config.knowledgeBase.documents.join(', ')}
+                    value={mergedConfig.knowledgeBase.documents.join(', ')}
                     onChange={(e) => updateKnowledgeBase({
                       documents: e.target.value.split(',').map(doc => doc.trim()).filter(Boolean)
                     })}
@@ -754,7 +787,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="access-materials"
-                      checked={config.knowledgeBase.accessMaterials}
+                      checked={mergedConfig.knowledgeBase.accessMaterials}
                       onCheckedChange={(checked) => updateKnowledgeBase({ accessMaterials: checked })}
                       data-testid="switch-access-materials"
                     />
@@ -766,7 +799,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="access-services"
-                      checked={config.knowledgeBase.accessServices}
+                      checked={mergedConfig.knowledgeBase.accessServices}
                       onCheckedChange={(checked) => updateKnowledgeBase({ accessServices: checked })}
                       data-testid="switch-access-services"
                     />
@@ -793,7 +826,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4">
-                  <Card className={config.availableActions.createTicket ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.createTicket ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -809,7 +842,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-create-ticket"
-                          checked={config.availableActions.createTicket}
+                          checked={mergedConfig.availableActions.createTicket}
                           onCheckedChange={(checked) => updateAvailableActions('createTicket', checked)}
                           data-testid="switch-action-create-ticket"
                         />
@@ -817,7 +850,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     </CardContent>
                   </Card>
 
-                  <Card className={config.availableActions.queryKnowledgeBase ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.queryKnowledgeBase ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -833,7 +866,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-query-kb"
-                          checked={config.availableActions.queryKnowledgeBase}
+                          checked={mergedConfig.availableActions.queryKnowledgeBase}
                           onCheckedChange={(checked) => updateAvailableActions('queryKnowledgeBase', checked)}
                           data-testid="switch-action-query-kb"
                         />
@@ -841,7 +874,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     </CardContent>
                   </Card>
 
-                  <Card className={config.availableActions.searchMaterials ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.searchMaterials ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -857,7 +890,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-search-materials"
-                          checked={config.availableActions.searchMaterials}
+                          checked={mergedConfig.availableActions.searchMaterials}
                           onCheckedChange={(checked) => updateAvailableActions('searchMaterials', checked)}
                           data-testid="switch-action-search-materials"
                         />
@@ -865,7 +898,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     </CardContent>
                   </Card>
 
-                  <Card className={config.availableActions.scheduleAppointment ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.scheduleAppointment ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -881,7 +914,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-schedule"
-                          checked={config.availableActions.scheduleAppointment}
+                          checked={mergedConfig.availableActions.scheduleAppointment}
                           onCheckedChange={(checked) => updateAvailableActions('scheduleAppointment', checked)}
                           data-testid="switch-action-schedule"
                         />
@@ -889,7 +922,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     </CardContent>
                   </Card>
 
-                  <Card className={config.availableActions.escalateToHuman ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.escalateToHuman ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -905,7 +938,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-escalate"
-                          checked={config.availableActions.escalateToHuman}
+                          checked={mergedConfig.availableActions.escalateToHuman}
                           onCheckedChange={(checked) => updateAvailableActions('escalateToHuman', checked)}
                           data-testid="switch-action-escalate"
                         />
@@ -913,7 +946,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     </CardContent>
                   </Card>
 
-                  <Card className={config.availableActions.sendEmail ? 'border-primary' : ''}>
+                  <Card className={mergedConfig.availableActions.sendEmail ? 'border-primary' : ''}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-3">
@@ -929,7 +962,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                         </div>
                         <Switch
                           id="action-send-email"
-                          checked={config.availableActions.sendEmail}
+                          checked={mergedConfig.availableActions.sendEmail}
                           onCheckedChange={(checked) => updateAvailableActions('sendEmail', checked)}
                           data-testid="switch-action-send-email"
                         />
