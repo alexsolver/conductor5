@@ -66,6 +66,7 @@ import {
 } from 'lucide-react';
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
+import AiAgentActionConfig from './AiAgentActionConfig';
 
 
 
@@ -223,6 +224,13 @@ const actionTemplates: Omit<Action, 'id' | 'config'>[] = [
     description: 'Move para arquivo',
     icon: Archive,
     color: 'bg-gray-500'
+  },
+  {
+    type: 'ai_agent',
+    name: 'Agente de IA Conversacional',
+    description: 'IA que conversa e executa ações',
+    icon: Brain,
+    color: 'bg-purple-500'
   }
 ];
 
@@ -327,6 +335,7 @@ export default function AutomationRuleBuilder({
                   action.type === 'assign_agent' ? 'Atribuir agente' :
                   action.type === 'mark_priority' ? 'Marcar prioridade' :
                   action.type === 'ai_response' ? 'Resposta com IA' :
+                  action.type === 'ai_agent' ? 'Agente de IA Conversacional' :
                   action.type === 'escalate' ? 'Escalar' :
                   action.type === 'archive' ? 'Arquivar' :
                   `Ação ${action.type}`,
@@ -339,6 +348,7 @@ export default function AutomationRuleBuilder({
                         action.type === 'assign_agent' ? 'Designa agente específico' :
                         action.type === 'mark_priority' ? 'Define nível de prioridade' :
                         action.type === 'ai_response' ? 'Gera resposta usando IA' :
+                        action.type === 'ai_agent' ? 'IA que conversa e executa ações' :
                         action.type === 'escalate' ? 'Escala para supervisor' :
                         action.type === 'archive' ? 'Move para arquivo' :
                         `Descrição da ação ${action.type}`,
@@ -609,6 +619,16 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
               />
             </div>
           </div>
+        );
+
+      case 'ai_agent':
+        return (
+          <AiAgentActionConfig
+            config={actionConfig.aiAgentConfig || {}}
+            onChange={(aiAgentConfig) =>
+              setActionConfig(prev => ({ ...prev, aiAgentConfig }))
+            }
+          />
         );
 
       default:
