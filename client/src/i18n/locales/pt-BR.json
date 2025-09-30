@@ -6635,5 +6635,15 @@
   "omnibridge.conversationLogs.notFound": "Conversa não encontrada",
   "omnibridge.conversationLogs.sessionId": "ID da Sessão",
   "omnibridge.conversationLogs.noMessages": "Nenhuma mensagem encontrada",
+  "omnibridge.feedback.helpful": "Esta resposta foi útil?",
+  "omnibridge.feedback.success": "Feedback enviado",
+  "omnibridge.feedback.thankYou": "Obrigado por ajudar a melhorar o agente!",
+  "omnibridge.feedback.error": "Erro ao enviar feedback",
+  "omnibridge.feedback.tryAgain": "Tente novamente mais tarde",
+  "omnibridge.feedback.excellent": "Excelente",
+  "omnibridge.feedback.good": "Bom",
+  "omnibridge.feedback.neutral": "Neutro",
+  "omnibridge.feedback.poor": "Ruim",
+  "omnibridge.feedback.terrible": "Péssimo",
   "common.back": "Voltar"
 }

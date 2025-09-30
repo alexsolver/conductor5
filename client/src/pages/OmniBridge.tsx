@@ -67,7 +67,9 @@ import {
   Download,
   TrendingUp,
   BarChart3,
-  ArrowLeft
+  ArrowLeft,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
@@ -1555,6 +1557,8 @@ export default function OmniBridge() {
 // Conversation Detail Component
 function ConversationDetail({ conversationId }: { conversationId: string }) {
   const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const [feedbackStates, setFeedbackStates] = useState<Record<number, 'positive' | 'negative' | null>>({});
   
   const { data: conversation, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', conversationId],
@@ -1567,6 +1571,52 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
       return result.data;
     },
   });
+
+  const submitFeedback = async (messageId: number, rating: 'excellent' | 'good' | 'poor', notes?: string) => {
+    try {
+      const response = await fetch(`/api/omnibridge/conversation-logs/${conversationId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          messageId,
+          rating,
+          category: 'response_quality',
+          notes: notes || '',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit feedback');
+      
+      toast({
+        title: t('omnibridge.feedback.success', 'Feedback enviado'),
+        description: t('omnibridge.feedback.thankYou', 'Obrigado por ajudar a melhorar o agente!'),
+      });
+    } catch (error) {
+      toast({
+        title: t('omnibridge.feedback.error', 'Erro ao enviar feedback'),
+        description: t('omnibridge.feedback.tryAgain', 'Tente novamente mais tarde'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleFeedback = (messageIdx: number, messageId: number, type: 'positive' | 'negative') => {
+    const currentFeedback = feedbackStates[messageIdx];
+    const newFeedback = currentFeedback === type ? null : type;
+    
+    setFeedbackStates(prev => ({
+      ...prev,
+      [messageIdx]: newFeedback,
+    }));
+
+    if (newFeedback) {
+      const rating = newFeedback === 'positive' ? 'excellent' : 'poor';
+      submitFeedback(messageId, rating);
+    }
+  };
 
   const getDateLocale = () => {
     switch (i18n.language) {
@@ -1710,6 +1760,40 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
                     </span>
                   </div>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  
+                  {msg.sender === 'assistant' && msg.id && (
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <span className="text-xs text-muted-foreground mr-2">
+                        {t('omnibridge.feedback.helpful', 'Esta resposta foi útil?')}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-7 px-2 ${
+                          feedbackStates[idx] === 'positive' 
+                            ? 'text-green-600 bg-green-50 dark:bg-green-900/20' 
+                            : 'text-gray-400 hover:text-green-600'
+                        }`}
+                        onClick={() => handleFeedback(idx, msg.id, 'positive')}
+                        data-testid={`button-feedback-positive-${idx}`}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-7 px-2 ${
+                          feedbackStates[idx] === 'negative' 
+                            ? 'text-red-600 bg-red-50 dark:bg-red-900/20' 
+                            : 'text-gray-400 hover:text-red-600'
+                        }`}
+                        onClick={() => handleFeedback(idx, msg.id, 'negative')}
+                        data-testid={`button-feedback-negative-${idx}`}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
