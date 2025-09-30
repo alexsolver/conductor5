@@ -125,8 +125,8 @@ export function EnhancedActionsTab({
 
       {/* Configuration Dialog */}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center gap-3">
               {configuringAction && (
                 <>
@@ -146,18 +146,16 @@ export function EnhancedActionsTab({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
-              {configuringAction && (
-                <ActionConfigContent
-                  action={configuringAction}
-                  currentConfig={actionConfigs[configuringAction.name]}
-                  onConfigChange={handleConfigSave}
-                  onCancel={() => setConfigDialogOpen(false)}
-                />
-              )}
-            </div>
-          </ScrollArea>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {configuringAction && (
+              <ActionConfigContent
+                action={configuringAction}
+                currentConfig={actionConfigs[configuringAction.name]}
+                onConfigChange={handleConfigSave}
+                onCancel={() => setConfigDialogOpen(false)}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
