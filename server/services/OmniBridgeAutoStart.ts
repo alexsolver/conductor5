@@ -34,7 +34,7 @@ export class OmniBridgeAutoStart {
       console.log(`🔍 OmniBridge: Detecting communication channels for tenant: ${tenantId}`);
 
       // Get storage instance
-      const { storage } = await import('../storage-simple');
+      const { storage } = await import('../storage-master');
 
       // Get all integrations for tenant
       const integrations = await storage.getTenantIntegrations(tenantId);
@@ -52,7 +52,8 @@ export class OmniBridgeAutoStart {
       }
 
       // Specifically check for Gmail/IMAP Email integration
-      const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
+      const { storage: masterStorage } = await import('../storage-master');
+      const imapIntegration = await masterStorage.getIntegrationByType(tenantId, 'IMAP Email');
       if (imapIntegration && imapIntegration.status === 'connected') {
         console.log(`📧 [OMNIBRIDGE-AUTOSTART] Found IMAP Email integration for alexsolver@gmail.com`);
         await this.startGmailMonitoring(tenantId, imapIntegration);
@@ -76,7 +77,7 @@ export class OmniBridgeAutoStart {
         try {
           const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
           const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
-          const { storage } = await import('../storage-simple');
+          const { storage } = await import('../storage-master');
 
           const channelRepository = new DrizzleChannelRepository();
           const syncService = new IntegrationChannelSync(channelRepository, storage);
@@ -160,7 +161,7 @@ export class OmniBridgeAutoStart {
 
         // Update integration status in database to persist state
         try {
-          const { storage } = await import('../storage-simple');
+          const { storage } = await import('../storage-master');
           await storage.updateTenantIntegrationStatus(tenantId, integration.id, 'connected');
         } catch (error) {
           console.error('❌ Error updating integration status:', error);
@@ -201,7 +202,7 @@ export class OmniBridgeAutoStart {
 
       // Update integration status in database to persist state
       try {
-        const { storage } = await import('../storage-simple');
+        const { storage } = await import('../storage-master');
         const imapIntegration = await storage.getIntegrationByType(tenantId, 'IMAP Email');
         if (imapIntegration) {
           await storage.updateTenantIntegrationStatus(tenantId, imapIntegration.id, 'disconnected');
@@ -231,7 +232,7 @@ export class OmniBridgeAutoStart {
 
     try {
       // Get all tenants with IMAP integrations
-      const { storage } = await import('../storage-simple');
+      const { storage } = await import('../storage-master');
       
       // For now, use the main tenant for testing
       const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
@@ -256,7 +257,7 @@ export class OmniBridgeAutoStart {
       
       const { IntegrationChannelSync } = await import('../modules/omnibridge/infrastructure/services/IntegrationChannelSync');
       const { DrizzleChannelRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleChannelRepository');
-      const { storage } = await import('../storage-simple');
+      const { storage } = await import('../storage-master');
 
       const tenantId = '3f99462f-3621-4b1b-bea8-782acc50d62e';
       const channelRepository = new DrizzleChannelRepository();
