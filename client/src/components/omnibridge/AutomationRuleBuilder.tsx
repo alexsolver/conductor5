@@ -708,15 +708,6 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
 
                   <div className="flex items-center space-x-2">
                     <Switch
-                      id="rule-enabled"
-                      checked={rule.enabled}
-                      onCheckedChange={(enabled) => setRule({...rule, enabled})}
-                    />
-                    <Label htmlFor="rule-enabled">Regra ativa</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
                       id="ai-enabled"
                       checked={rule.aiEnabled}
                       onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
