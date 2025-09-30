@@ -471,7 +471,7 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
                   <SelectValue placeholder="Selecione um template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates?.data?.map((template: any) => (
+                  {(templates?.data?.templates || templates?.data || []).map((template: any) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
                     </SelectItem>
