@@ -228,33 +228,67 @@ export class ActionExecutor implements IActionExecutorPort {
 
       const { messageData, aiAnalysis, tenantId } = context;
 
+      // ✅ 1QA.MD: Buscar template se especificado
+      let templateData = null;
+      if (action.params?.templateId) {
+        try {
+          console.log(`🎯 [ActionExecutor] Loading ticket template: ${action.params.templateId}`);
+          
+          // Import template service
+          const { schemaManager } = await import('../../../../db');
+          const pool = schemaManager.getPool();
+          const schemaName = schemaManager.getSchemaName(tenantId);
+
+          const templateQuery = `
+            SELECT * FROM "${schemaName}".ticket_templates 
+            WHERE id = $1 AND tenant_id = $2 AND status = 'active'
+          `;
+          
+          const templateResult = await pool.query(templateQuery, [action.params.templateId, tenantId]);
+          
+          if (templateResult.rows.length > 0) {
+            templateData = templateResult.rows[0];
+            console.log(`✅ [ActionExecutor] Template loaded: ${templateData.name}`);
+          } else {
+            console.warn(`⚠️ [ActionExecutor] Template not found or inactive: ${action.params.templateId}`);
+          }
+        } catch (templateError) {
+          console.error(`❌ [ActionExecutor] Error loading template:`, templateError);
+        }
+      }
+
       // Usar análise de IA se disponível para melhorar os dados do ticket
-      const subject = action.params?.subject ||
+      const subject = action.params?.title ||
+                     templateData?.name ||
                      aiAnalysis?.summary ||
                      messageData.subject ||
                      `Ticket automático - ${messageData.channel || 'Sistema'}`;
 
       const description = action.params?.description ||
+                         templateData?.description ||
                          `${aiAnalysis?.summary || messageData.content || 'Conteúdo não disponível'}\n\n` +
                          `Categoria sugerida: ${aiAnalysis?.category || 'Geral'}\n` +
                          `Urgência detectada: ${aiAnalysis?.urgency || 'medium'}\n` +
                          `Sentimento: ${aiAnalysis?.sentiment || 'neutral'}\n` +
                          `Palavras-chave: ${aiAnalysis?.keywords?.join(', ') || 'Nenhuma'}`;
 
-      const priority = aiAnalysis?.urgency === 'critical' ? 'urgent' :
-                      aiAnalysis?.urgency === 'high' ? 'high' :
-                      aiAnalysis?.urgency === 'low' ? 'low' : 'medium';
+      const priority = action.params?.priority ||
+                      templateData?.priority ||
+                      (aiAnalysis?.urgency === 'critical' ? 'urgent' :
+                       aiAnalysis?.urgency === 'high' ? 'high' :
+                       aiAnalysis?.urgency === 'low' ? 'low' : 'medium');
 
       const ticketData = {
         subject,
         description,
         status: action.params?.status || 'open',
         priority,
-        urgency: aiAnalysis?.urgency || 'medium',
-        impact: 'medium',
-        category: aiAnalysis?.category || action.params?.category || 'Atendimento ao Cliente',
-        subcategory: action.params?.subcategory || 'Automação',
-        assignedToId: action.params?.assignedToId || null,
+        urgency: aiAnalysis?.urgency || templateData?.urgency || 'medium',
+        impact: templateData?.impact || 'medium',
+        category: action.params?.category || templateData?.category || aiAnalysis?.category || 'Atendimento ao Cliente',
+        subcategory: action.params?.subcategory || templateData?.subcategory || 'Automação',
+        assignedToId: action.params?.assignedToId || templateData?.default_assignee_id || null,
+        templateId: action.params?.templateId || null,
         tenantId,
         source: messageData.channel || messageData.channelType || 'omnibridge',
         metadata: {

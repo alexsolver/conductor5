@@ -67,7 +67,8 @@ import {
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 import AiAgentActionConfig from './AiAgentActionConfig';
-
+import { Ticket } from '@/types/ticket';
+import { fetchTemplates } from '@/services/templateService';
 
 
 // Campos específicos para automações do OmniBridge
@@ -260,6 +261,12 @@ export default function AutomationRuleBuilder({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // ✅ 1QA.MD: Buscar templates de ticket dinamicamente
+  const { data: ticketTemplates = [] } = useQuery<Ticket[]>({
+    queryKey: ['ticketTemplates'],
+    queryFn: async () => await fetchTemplates(),
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
 
   // Helper para obter ícone de ação com base no nome ou componente
   const getActionIcon = (iconName: string | React.ComponentType<any>) => {
@@ -397,7 +404,7 @@ ${initialMessage.content}
 
 ---
 Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
-      
+
       setActionConfig(prev => ({ ...prev, message: messageContent }));
     }
   }, [currentAction, initialMessage]);
@@ -558,11 +565,11 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
 
   // Renderizar configuração da ação
   const renderActionConfig = () => {
-    console.log('[AutomationRuleBuilder] renderActionConfig called', { 
-      hasCurrentAction: !!currentAction, 
-      actionType: currentAction?.type 
+    console.log('[AutomationRuleBuilder] renderActionConfig called', {
+      hasCurrentAction: !!currentAction,
+      actionType: currentAction?.type
     });
-    
+
     if (!currentAction) return null;
 
     switch (currentAction.type) {
@@ -630,6 +637,77 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
             }
           />
         );
+
+      // ✅ 1QA.MD: Configuração para 'create_ticket'
+      case 'create_ticket':
+          return (
+            <div className="space-y-4">
+              <div>
+                <Label>Template de Ticket</Label>
+                <Select
+                  value={actionConfig.templateId || ''}
+                  onValueChange={(value) => setActionConfig({ ...actionConfig, templateId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um template (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem template</SelectItem>
+                    {ticketTemplates.map((template: any) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name} ({template.category || 'Sem categoria'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Título do Ticket</Label>
+                <Input
+                  value={actionConfig.subject || ''}
+                  onChange={(e) => setActionConfig({ ...actionConfig, subject: e.target.value })}
+                  placeholder="Assunto automático do ticket"
+                />
+              </div>
+
+              <div>
+                <Label>Descrição</Label>
+                <Textarea
+                  value={actionConfig.description || ''}
+                  onChange={(e) => setActionConfig({ ...actionConfig, description: e.target.value })}
+                  placeholder="Descrição do ticket baseada na mensagem"
+                />
+              </div>
+
+              <div>
+                <Label>Prioridade</Label>
+                <Select
+                  value={actionConfig.priority || 'medium'}
+                  onValueChange={(value) => setActionConfig({ ...actionConfig, priority: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baixa</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="urgent">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Categoria</Label>
+                <Input
+                  value={actionConfig.category || ''}
+                  onChange={(e) => setActionConfig({ ...actionConfig, category: e.target.value })}
+                  placeholder="Categoria do ticket"
+                />
+              </div>
+            </div>
+          );
 
       default:
         return (
