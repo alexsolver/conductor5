@@ -220,7 +220,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     work_notes TEXT,
     parent_ticket_id UUID,
     location VARCHAR(255),
-    location_id UUID,
     due_date TIMESTAMP,
     trigger_date TIMESTAMP,
     original_due_date TIMESTAMP,
