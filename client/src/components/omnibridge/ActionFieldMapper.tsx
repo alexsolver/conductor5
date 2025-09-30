@@ -462,8 +462,9 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
               <Select
                 value={selectedTemplate}
                 onValueChange={(value) => {
-                  setSelectedTemplate(value);
-                  updateConfig({ templateId: value });
+                  const templateId = value === 'no-template' ? '' : value;
+                  setSelectedTemplate(templateId);
+                  updateConfig({ templateId });
                 }}
               >
                 <SelectTrigger>
@@ -576,7 +577,7 @@ export default function ActionFieldMapper({ actionType, config, onChange }: Acti
                   <SelectValue placeholder="Selecione um template (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sem template</SelectItem>
+                  <SelectItem value="no-template">Sem template</SelectItem>
                   {ticketTemplates?.map((template: any) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name} - {template.category}
