@@ -1132,4 +1132,8 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
 // AI Agent routes - temporarily disabled due to type conflicts
 // router.use('/ai', jwtAuth, createAiAgentRoutes());
 
+// Conversation Logging & Learning System routes
+import conversationLogRoutes from './routes/conversationLogRoutes';
+router.use('/', jwtAuth, conversationLogRoutes);
+
 export { router as omniBridgeRoutes };
