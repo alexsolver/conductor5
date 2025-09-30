@@ -1167,9 +1167,11 @@ async function processTelegramMessage(tenantId: string, message: any) {
     // ✅ SAVE TO OMNIBRIDGE INBOX: Using MessageIngestionService
     const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
     const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
+    const { ProcessMessageUseCase } = await import('../modules/omnibridge/application/use-cases/ProcessMessageUseCase');
     
     const messageRepository = new DrizzleMessageRepository();
-    const ingestionService = new MessageIngestionService(messageRepository);
+    const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
+    const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
     
     const incomingMessage = {
       channelId: 'telegram',

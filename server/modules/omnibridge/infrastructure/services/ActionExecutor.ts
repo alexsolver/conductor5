@@ -137,6 +137,9 @@ export class ActionExecutor implements IActionExecutorPort {
         case 'send_notification':
           return await this.sendNotificationAction(action, context);
 
+        case 'ai_agent':
+          return await this.aiAgentAction(action, context);
+
         default:
           return {
             success: false,
@@ -1325,6 +1328,97 @@ export class ActionExecutor implements IActionExecutorPort {
       console.error(`❌ [ActionExecutor] Error sending group notification:`, error);
       // Don't throw error - treat as warning and continue
       console.warn(`⚠️ [ACTION-EXECUTOR] Group notification failed but continuing automation execution`);
+    }
+  }
+
+  /**
+   * Execute AI Agent action with full conversational capabilities
+   */
+  private async aiAgentAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      console.log(`🤖 [AI-AGENT] Executing AI agent action for message: ${context.messageData.content}`);
+      
+      const aiAgentConfig = action.params?.aiAgentConfig;
+      if (!aiAgentConfig) {
+        return {
+          success: false,
+          message: 'AI Agent configuration not found',
+          error: 'Missing aiAgentConfig in action params'
+        };
+      }
+
+      // Extract configuration
+      const { goal, prompts, knowledgeBase, fieldsToCollect, availableActions } = aiAgentConfig;
+      
+      // Build the system prompt
+      const systemPrompt = `${prompts?.system || 'Você é um assistente virtual profissional.'}
+
+${prompts?.context ? `Contexto: ${prompts.context}` : ''}
+
+${prompts?.goalPrompt ? `Objetivo: ${prompts.goalPrompt}` : `Objetivo: ${goal}`}`;
+
+      // Get user message
+      const userMessage = context.messageData.content || context.messageData.body || '';
+      
+      console.log(`🤖 [AI-AGENT] System prompt: ${systemPrompt.substring(0, 100)}...`);
+      console.log(`🤖 [AI-AGENT] User message: ${userMessage}`);
+
+      // Use OpenAI to generate response
+      const { GoogleGenerativeAI } = await import('@google/genai');
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+      const result = await model.generateContent([
+        { text: systemPrompt },
+        { text: `Mensagem do usuário: ${userMessage}` }
+      ]);
+      
+      const aiResponse = result.response.text();
+      console.log(`🤖 [AI-AGENT] Generated response: ${aiResponse.substring(0, 100)}...`);
+
+      // Send response back to user
+      const channelType = context.messageData.channelType || context.messageData.channel;
+      const recipient = context.messageData.from || context.messageData.sender;
+      
+      let sendSuccess = false;
+      
+      if (channelType === 'telegram') {
+        sendSuccess = await this.sendTelegramMessage(aiResponse, recipient, context.tenantId);
+      } else if (channelType === 'email' || channelType === 'imap') {
+        sendSuccess = await this.sendEmailMessage(aiResponse, recipient, context.tenantId, context.messageData);
+      } else {
+        console.log(`📝 [AI-AGENT] Channel ${channelType} not supported, storing as outbound message`);
+        sendSuccess = await this.storeOutboundMessage(aiResponse, recipient, channelType, context.tenantId);
+      }
+
+      if (sendSuccess) {
+        return {
+          success: true,
+          message: 'AI Agent responded successfully',
+          data: {
+            type: 'ai_agent',
+            response: aiResponse,
+            config: { goal, prompts },
+            channel: channelType,
+            recipient
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Failed to send AI Agent response',
+          error: 'Send operation failed',
+          data: { response: aiResponse }
+        };
+      }
+
+    } catch (error) {
+      console.error(`❌ [AI-AGENT] Error executing AI agent action:`, error);
+      return {
+        success: false,
+        message: 'Failed to execute AI agent action',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 }
