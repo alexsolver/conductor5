@@ -480,3 +480,5 @@ export const omnibridgeAiActionTemplates = pgTable('omnibridge_ai_action_templat
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+// OmniBridge Logging & Learning System Schema
+export * from "./schema-omnibridge-logging";
