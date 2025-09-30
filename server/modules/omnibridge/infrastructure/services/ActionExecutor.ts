@@ -4,18 +4,10 @@ import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
 import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
 import * as crypto from 'crypto'; // Import crypto module
-import { DrizzleConversationLogRepository } from '../repositories/DrizzleConversationLogRepository';
-import { db } from '../../../../db';
-import { conversationMessages, actionExecutions } from '../../../../../shared/schema';
-import { sql } from 'drizzle-orm';
 
 export class ActionExecutor implements IActionExecutorPort {
-  private conversationLogRepo: DrizzleConversationLogRepository;
-  private activeConversations: Map<string, number> = new Map(); // sessionId -> conversationLogId
-
   constructor(private aiService?: IAIAnalysisPort, private createTicketUseCase?: CreateTicketUseCase) {
     console.log('✅ [ActionExecutor] Initialized with AI service and ticket use case');
-    this.conversationLogRepo = new DrizzleConversationLogRepository();
   }
 
   async executeActions(actions: AutomationAction[], context: ActionExecutionContext): Promise<ActionExecutionResult[]> {
@@ -1358,8 +1350,6 @@ export class ActionExecutor implements IActionExecutorPort {
    * Execute AI Agent action with full conversational capabilities and field extraction
    */
   private async aiAgentAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
-    const startTime = Date.now();
-    
     try {
       console.log(`🤖 [AI-AGENT] Executing AI agent action for message: ${context.messageData.content}`);
       
@@ -1378,22 +1368,6 @@ export class ActionExecutor implements IActionExecutorPort {
       
       console.log(`🤖 [AI-AGENT] Available actions:`, availableActions);
       console.log(`🤖 [AI-AGENT] Action configs:`, actionConfigs);
-
-      // Create or get conversation log
-      const agentId = 1; // Default agent ID - should be passed in context ideally
-      const conversationId = await this.getOrCreateConversationLog(context, agentId);
-      
-      // Log user message
-      await this.logConversationMessage(
-        conversationId,
-        context.tenantId,
-        'user',
-        userMessage,
-        {
-          from: context.messageData.from || context.messageData.sender,
-          channel: context.messageData.channelType || context.messageData.channel
-        }
-      );
 
       // Check if we need to execute an action (e.g., create ticket)
       let shouldExecuteAction = false;
@@ -1470,18 +1444,6 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // Send response to user
       await this.sendResponseToUser(conversationResponse, context);
-
-      // Log assistant response
-      await this.logConversationMessage(
-        conversationId,
-        context.tenantId,
-        'assistant',
-        conversationResponse,
-        {
-          responseType: 'conversational',
-          processingTime: Date.now() - startTime
-        }
-      );
 
       return {
         success: true,
@@ -1747,127 +1709,6 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     } else {
       console.log(`📝 [AI-AGENT] Channel ${channelType} not supported, storing as outbound message`);
       return await this.storeOutboundMessage(message, recipient, channelType, context.tenantId);
-    }
-  }
-
-  /**
-   * Get or create conversation log for session
-   */
-  private async getOrCreateConversationLog(
-    context: ActionExecutionContext,
-    agentId: number
-  ): Promise<number> {
-    const sessionId = `${context.messageData.channelType}-${context.messageData.from || context.messageData.sender}`;
-    
-    // Check if conversation already exists in memory
-    if (this.activeConversations.has(sessionId)) {
-      return this.activeConversations.get(sessionId)!;
-    }
-
-    // Check if conversation exists in database
-    const existing = await this.conversationLogRepo.findBySessionId(sessionId, context.tenantId);
-    if (existing) {
-      this.activeConversations.set(sessionId, existing.id);
-      return existing.id;
-    }
-
-    // Create new conversation
-    const conversation = await this.conversationLogRepo.create({
-      tenantId: context.tenantId,
-      agentId,
-      sessionId,
-      channelType: context.messageData.channelType || context.messageData.channel,
-      channelIdentifier: context.messageData.from || context.messageData.sender,
-      userId: undefined,
-      metadata: {
-        ruleName: context.ruleName,
-        ruleId: context.ruleId
-      }
-    });
-
-    this.activeConversations.set(sessionId, conversation.id);
-    console.log(`📝 [CONVERSATION-LOG] Created conversation log ${conversation.id} for session ${sessionId}`);
-    
-    return conversation.id;
-  }
-
-  /**
-   * Log message to conversation
-   */
-  private async logConversationMessage(
-    conversationId: number,
-    tenantId: string,
-    role: 'user' | 'assistant' | 'system',
-    content: string,
-    metadata?: any
-  ): Promise<void> {
-    try {
-      await db.insert(conversationMessages).values({
-        tenantId,
-        conversationId,
-        role,
-        content,
-        rawContent: content,
-        timestamp: new Date(),
-        metadata: metadata || {},
-        processingTimeMs: undefined,
-        tokenCount: undefined,
-        contextWindowSize: undefined,
-        intentDetected: undefined,
-        confidence: undefined
-      }).returning();
-
-      // Update conversation message count
-      await this.conversationLogRepo.update(conversationId, tenantId, {
-        totalMessages: sql`total_messages + 1` as any
-      });
-
-      console.log(`📝 [CONVERSATION-LOG] Logged ${role} message to conversation ${conversationId}`);
-    } catch (error) {
-      console.error(`❌ [CONVERSATION-LOG] Error logging message:`, error);
-    }
-  }
-
-  /**
-   * Log action execution to conversation
-   */
-  private async logActionExecution(
-    conversationId: number,
-    messageId: number,
-    tenantId: string,
-    actionName: string,
-    actionType: string,
-    parameters: any,
-    result: any,
-    success: boolean,
-    executionTimeMs: number
-  ): Promise<void> {
-    try {
-      await db.insert(actionExecutions).values({
-        tenantId,
-        conversationId,
-        messageId,
-        actionName,
-        actionType,
-        parameters,
-        result,
-        success,
-        errorMessage: success ? undefined : (result?.error || 'Unknown error'),
-        executionTimeMs,
-        retryCount: 0,
-        triggeredBy: 'ai',
-        metadata: {},
-        executedAt: new Date()
-      });
-
-      // Update conversation action count
-      await this.conversationLogRepo.update(conversationId, tenantId, {
-        totalActions: sql`total_actions + 1` as any
-      });
-
-      console.log(`📝 [CONVERSATION-LOG] Logged action execution: ${actionName} to conversation ${conversationId}`);
-    } catch (error) {
-      console.error(`❌ [CONVERSATION-LOG] Error logging action:`, error);
     }
   }
 }
