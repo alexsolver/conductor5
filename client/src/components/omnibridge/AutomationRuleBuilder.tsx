@@ -548,6 +548,11 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
 
   // Renderizar configuração da ação
   const renderActionConfig = () => {
+    console.log('[AutomationRuleBuilder] renderActionConfig called', { 
+      hasCurrentAction: !!currentAction, 
+      actionType: currentAction?.type 
+    });
+    
     if (!currentAction) return null;
 
     switch (currentAction.type) {
