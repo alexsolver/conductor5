@@ -307,4 +307,88 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
       notes: evaluation.feedback,
     });
   }
+
+  async findByUserAndSkill(userId: string, skillId: string, tenantId: string): Promise<any> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    const [result] = await tenantDb.select()
+      .from(userSkills)
+      .where(and(
+        eq(userSkills.userId, userId),
+        eq(userSkills.skillId, skillId),
+        eq(userSkills.tenantId, tenantId),
+        eq(userSkills.isActive, true)
+      ))
+      .limit(1);
+
+    return result || null;
+  }
+
+  async findUsersWithSkill(skillId: string, tenantId: string, filters?: any): Promise<any[]> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    let query = tenantDb.select({
+      id: userSkills.id,
+      userId: userSkills.userId,
+      skillId: userSkills.skillId,
+      level: userSkills.level,
+      notes: userSkills.notes,
+      isActive: userSkills.isActive,
+      createdAt: userSkills.createdAt,
+      updatedAt: userSkills.updatedAt,
+      skillName: technicalSkills.name,
+      skillCategory: technicalSkills.category,
+      userName: users.name,
+    })
+    .from(userSkills)
+    .innerJoin(technicalSkills, eq(technicalSkills.id, userSkills.skillId))
+    .leftJoin(users, eq(users.id, userSkills.userId))
+    .where(and(
+      eq(userSkills.skillId, skillId),
+      eq(userSkills.tenantId, tenantId),
+      eq(userSkills.isActive, true)
+    ));
+
+    if (filters?.minLevel) {
+      query = query.where(gte(userSkills.level, filters.minLevel));
+    }
+
+    return await query;
+  }
+
+  async getUserSkillsWithDetails(userId: string, tenantId: string): Promise<any[]> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    return await tenantDb.select({
+      id: userSkills.id,
+      userId: userSkills.userId,
+      skillId: userSkills.skillId,
+      level: userSkills.level,
+      notes: userSkills.notes,
+      isActive: userSkills.isActive,
+      createdAt: userSkills.createdAt,
+      updatedAt: userSkills.updatedAt,
+      skillName: technicalSkills.name,
+      skillCategory: technicalSkills.category,
+      skillDescription: technicalSkills.description,
+    })
+    .from(userSkills)
+    .innerJoin(technicalSkills, eq(technicalSkills.id, userSkills.skillId))
+    .where(and(
+      eq(userSkills.userId, userId),
+      eq(userSkills.tenantId, tenantId),
+      eq(userSkills.isActive, true)
+    ))
+    .orderBy(asc(technicalSkills.category), asc(technicalSkills.name));
+  }
+
+  async updateRating(userSkillId: string, newRating: number, totalEvaluations: number, tenantId: string): Promise<void> {
+    const tenantDb = await this.getTenantDb(tenantId);
+    await tenantDb.update(userSkills)
+      .set({
+        level: newRating,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(userSkills.id, userSkillId),
+        eq(userSkills.tenantId, tenantId)
+      ));
+  }
 }

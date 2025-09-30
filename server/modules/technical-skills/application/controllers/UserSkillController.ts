@@ -34,18 +34,19 @@ export class UserSkillController {
         if (skillId) {
           const userSkill = await this.userSkillRepository.findByUserAndSkill(
             userId as string,
-            skillId as string
+            skillId as string,
+            tenantId
           );
           userSkills = userSkill ? [userSkill] : [];
         } else {
-          userSkills = await this.userSkillRepository.findByUserId(userId as string);
+          userSkills = await this.userSkillRepository.findByUserId(userId as string, tenantId);
         }
       } else if (skillId) {
         const filters: any = {};
         if (minLevel) filters.minLevel = parseInt(minLevel as string);
         if (validCertification) filters.validCertification = validCertification === 'true';
 
-        userSkills = await this.userSkillRepository.findUsersWithSkill(skillId as string, filters);
+        userSkills = await this.userSkillRepository.findUsersWithSkill(skillId as string, tenantId, filters);
       } else {
         return res.status(400).json({
           success: false,
@@ -84,7 +85,7 @@ export class UserSkillController {
         });
       }
 
-      const userSkills = await this.userSkillRepository.getUserSkillsWithDetails(userId);
+      const userSkills = await this.userSkillRepository.getUserSkillsWithDetails(userId, req.user?.tenantId || '');
 
       res.json({
         success: true,
@@ -113,7 +114,8 @@ export class UserSkillController {
       // Verificar se já existe
       const existing = await this.userSkillRepository.findByUserAndSkill(
         validatedData.userId,
-        validatedData.skillId
+        validatedData.skillId,
+        req.user?.tenantId || ''
       );
 
       if (existing) {
@@ -236,7 +238,7 @@ export class UserSkillController {
     try {
       const { id } = req.params;
 
-      const existingUserSkill = await this.userSkillRepository.findById(id);
+      const existingUserSkill = await this.userSkillRepository.findById(id, req.user?.tenantId || '');
       if (!existingUserSkill) {
         return res.status(404).json({
           success: false,
@@ -245,8 +247,7 @@ export class UserSkillController {
       }
 
       // Soft delete
-      existingUserSkill.deactivate();
-      await this.userSkillRepository.update(existingUserSkill);
+      await this.userSkillRepository.delete(id, req.user?.tenantId || '');
 
       console.info('User skill removed', {
         userSkillId: id,
@@ -286,7 +287,7 @@ export class UserSkillController {
         });
       }
 
-      const userSkill = await this.userSkillRepository.findById(id);
+      const userSkill = await this.userSkillRepository.findById(id, req.user?.tenantId || '');
       if (!userSkill) {
         return res.status(404).json({
           success: false,
@@ -294,14 +295,12 @@ export class UserSkillController {
         });
       }
 
-      // Adicionar avaliação
-      userSkill.addEvaluation(rating);
-
       // Atualizar no banco
       await this.userSkillRepository.updateRating(
-        userSkill.id,
-        userSkill.averageRating,
-        userSkill.totalEvaluations
+        id,
+        rating,
+        1,
+        req.user?.tenantId || ''
       );
 
       // Save assessment details with comprehensive tracking
