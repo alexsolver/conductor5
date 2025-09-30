@@ -1364,16 +1364,22 @@ ${prompts?.goalPrompt ? `Objetivo: ${prompts.goalPrompt}` : `Objetivo: ${goal}`}
       console.log(`🤖 [AI-AGENT] User message: ${userMessage}`);
 
       // Use OpenAI to generate response
-      const { GoogleGenerativeAI } = await import('@google/genai');
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || ''
+      });
 
-      const result = await model.generateContent([
-        { text: systemPrompt },
-        { text: `Mensagem do usuário: ${userMessage}` }
-      ]);
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
       
-      const aiResponse = result.response.text();
+      const aiResponse = completion.choices[0]?.message?.content || 'Desculpe, não consegui gerar uma resposta.';
       console.log(`🤖 [AI-AGENT] Generated response: ${aiResponse.substring(0, 100)}...`);
 
       // Send response back to user
