@@ -294,20 +294,29 @@ router.get('/user-skills', async (req: Request, res: Response) => {
     const tenantId = (req as any).user?.tenantId;
     if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
 
-    const schema = getTenantSchema(tenantId);
+    const userSkillsData = await db.select({
+      id: sql`us.id`,
+      userId: sql`us.user_id`,
+      skillId: sql`us.skill_id`,
+      level: sql`us.level`,
+      notes: sql`us.notes`,
+      createdAt: sql`us.created_at`,
+      updatedAt: sql`us.updated_at`,
+      skillName: sql`s.name`,
+      skillCategory: sql`s.category`,
+      skillDescription: sql`s.description`
+    })
+    .from(sql`user_skills us`)
+    .leftJoin(sql`skills s`, sql`s.id = us.skill_id`)
+    .where(sql`us.tenant_id = ${tenantId}`)
+    .orderBy(sql`us.created_at DESC`);
 
-    const userSkillsData = await db.execute(sql`
-      SELECT us.*, s.name as skill_name, s.category as skill_category, s.description as skill_description
-      FROM ${sql.identifier([schema, 'user_skills'])} us
-      LEFT JOIN ${sql.identifier([schema, 'skills'])} s ON us.skill_id = s.id
-      WHERE us.is_active = true
-      ORDER BY us.created_at DESC
-    `);
+    console.log(`[TECHNICAL-SKILLS] Found ${userSkillsData.length} user skills for tenant ${tenantId}`);
 
     res.json({ success: true, data: userSkillsData, count: userSkillsData.length });
   } catch (error) {
     console.error('[TECHNICAL-SKILLS] Error fetching user skills:', error);
-    res.status(500).json({ success: false, message: 'Erro ao buscar habilidades dos usuários' });
+    res.status(500).json({ success: false, message: 'Erro ao buscar habilidades dos usuários', error: error.message });
   }
 });
 

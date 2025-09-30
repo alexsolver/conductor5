@@ -31,27 +31,10 @@ export class UserSkillController {
       let userSkills: any[] = [];
 
       if (userId) {
-        if (skillId) {
-          const userSkill = await this.userSkillRepository.findByUserAndSkill(
-            userId as string,
-            skillId as string,
-            tenantId
-          );
-          userSkills = userSkill ? [userSkill] : [];
-        } else {
-          userSkills = await this.userSkillRepository.findByUserId(userId as string, tenantId);
-        }
-      } else if (skillId) {
-        const filters: any = {};
-        if (minLevel) filters.minLevel = parseInt(minLevel as string);
-        if (validCertification) filters.validCertification = validCertification === 'true';
-
-        userSkills = await this.userSkillRepository.findUsersWithSkill(skillId as string, tenantId, filters);
+        userSkills = await this.userSkillRepository.findByUserId(userId as string, tenantId);
       } else {
-        return res.status(400).json({
-          success: false,
-          message: 'É necessário informar userId ou skillId'
-        });
+        // Return all user skills for the tenant
+        userSkills = await this.userSkillRepository.findByTenant(tenantId);
       }
 
       res.json({
