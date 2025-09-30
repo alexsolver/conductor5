@@ -191,6 +191,8 @@ export default function OmniBridge() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterChannel, setFilterChannel] = useState('all');
+
+  console.log('🔍 [OmniBridge] Current selectedConversationId:', selectedConversationId);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showCreateRuleModal, setShowCreateRuleModal] = useState(false);
@@ -1556,6 +1558,14 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
   
   const { data: conversation, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', conversationId],
+    queryFn: async () => {
+      const response = await fetch(`/api/omnibridge/conversation-logs/${conversationId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch conversation');
+      const result = await response.json();
+      return result.data;
+    },
   });
 
   const getDateLocale = () => {
@@ -1566,8 +1576,16 @@ function ConversationDetail({ conversationId }: { conversationId: string }) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return t('omnibridge.conversationLogs.noDate', 'N/A');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return t('omnibridge.conversationLogs.invalidDate', 'Data inválida');
+      return format(date, 'PPp', { locale: getDateLocale() });
+    } catch (error) {
+      console.error('[ConversationDetail] Error formatting date:', dateString, error);
+      return t('omnibridge.conversationLogs.invalidDate', 'Data inválida');
+    }
   };
 
   if (isLoading) {
@@ -1752,9 +1770,12 @@ function ConversationLogsContent({
   const [page, setPage] = useState(0);
   const limit = 20;
 
+  console.log('🔍 [ConversationLogs] Component mounted, selectedConversationId:', selectedConversationId);
+
   const { data, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
     queryFn: async () => {
+      console.log('📥 [ConversationLogs] Fetching conversation logs...');
       const params = new URLSearchParams({
         limit: String(limit),
         offset: String(page * limit),
@@ -1766,7 +1787,9 @@ function ConversationLogsContent({
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch conversations');
-      return response.json();
+      const result = await response.json();
+      console.log('✅ [ConversationLogs] Fetched conversations:', result);
+      return result;
     },
   });
 
@@ -1778,8 +1801,16 @@ function ConversationLogsContent({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return t('omnibridge.conversationLogs.noDate', 'N/A');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return t('omnibridge.conversationLogs.invalidDate', 'Data inválida');
+      return format(date, 'PPp', { locale: getDateLocale() });
+    } catch (error) {
+      console.error('[ConversationLogs] Error formatting date:', dateString, error);
+      return t('omnibridge.conversationLogs.invalidDate', 'Data inválida');
+    }
   };
 
   const filteredConversations = data?.data?.filter((conv: any) => {
