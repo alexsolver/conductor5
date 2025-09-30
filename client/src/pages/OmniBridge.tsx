@@ -66,8 +66,7 @@ import {
   Globe,
   Download,
   TrendingUp,
-  BarChart3,
-  ArrowLeft
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
@@ -187,7 +186,6 @@ export default function OmniBridge() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterChannel, setFilterChannel] = useState('all');
@@ -1056,10 +1054,7 @@ export default function OmniBridge() {
 
         {/* Conversation Logs Tab */}
         <TabsContent value="conversation-logs" className="space-y-4">
-          <ConversationLogsContent 
-            selectedConversationId={selectedConversationId}
-            setSelectedConversationId={setSelectedConversationId}
-          />
+          <ConversationLogsContent />
         </TabsContent>
 
         {/* Analytics Tab */}
@@ -1550,201 +1545,8 @@ export default function OmniBridge() {
   );
 }
 
-// Conversation Detail Component
-function ConversationDetail({ conversationId }: { conversationId: string }) {
-  const { t, i18n } = useTranslation();
-  
-  const { data: conversation, isLoading } = useQuery({
-    queryKey: ['/api/omnibridge/conversation-logs', conversationId],
-  });
-
-  const getDateLocale = () => {
-    switch (i18n.language) {
-      case 'pt-BR': return ptBR;
-      case 'es': return es;
-      default: return enUS;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="p-6">
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (!conversation) {
-    return (
-      <Card>
-        <CardContent className="p-12 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">
-            {t('omnibridge.conversationLogs.notFound', 'Conversa não encontrada')}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const conv = conversation;
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <Bot className="h-6 w-6 text-purple-600" />
-                <CardTitle className="text-2xl">{conv.agentName}</CardTitle>
-                {conv.escalatedToHuman && (
-                  <Badge variant="destructive" className="gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {t('omnibridge.conversationLogs.escalated', 'Escalada')}
-                  </Badge>
-                )}
-                {conv.endedAt && !conv.escalatedToHuman && (
-                  <Badge variant="default" className="gap-1 bg-green-600">
-                    <CheckCircle className="h-3 w-3" />
-                    {t('omnibridge.conversationLogs.completed', 'Concluída')}
-                  </Badge>
-                )}
-              </div>
-              <CardDescription>
-                {t('omnibridge.conversationLogs.sessionId', 'ID da Sessão')}: {conv.id}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-              <p className="font-medium capitalize">{conv.channel}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
-              <p className="font-medium">{conv.totalMessages || 0}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
-              <p className="font-medium">{conv.totalActions || 0}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
-              <p className="font-medium flex items-center gap-1 text-sm">
-                <Clock className="h-3 w-3" />
-                {formatDate(conv.startedAt)}
-              </p>
-            </div>
-          </div>
-          {conv.escalationReason && (
-            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p className="text-sm text-red-800 dark:text-red-200">
-                <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Messages */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            {t('omnibridge.conversationLogs.messages', 'Mensagens')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {conv.messages && conv.messages.length > 0 ? (
-            <div className="space-y-4">
-              {conv.messages.map((msg: any, idx: number) => (
-                <div 
-                  key={idx} 
-                  className={`p-4 rounded-lg ${
-                    msg.sender === 'user' 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 ml-8' 
-                      : 'bg-gray-50 dark:bg-gray-800 mr-8'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    {msg.sender === 'user' ? (
-                      <User className="h-4 w-4" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-purple-600" />
-                    )}
-                    <span className="text-sm font-medium capitalize">{msg.sender}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {formatDate(msg.timestamp)}
-                    </span>
-                  </div>
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-muted-foreground py-8">
-              {t('omnibridge.conversationLogs.noMessages', 'Nenhuma mensagem encontrada')}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      {conv.actions && conv.actions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              {t('omnibridge.conversationLogs.actions', 'Ações Executadas')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {conv.actions.map((action: any, idx: number) => (
-                <div key={idx} className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="outline">{action.actionType}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(action.executedAt)}
-                    </span>
-                  </div>
-                  {action.result && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {typeof action.result === 'string' ? action.result : JSON.stringify(action.result)}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
 // Conversation Logs Content Component
-function ConversationLogsContent({ 
-  selectedConversationId, 
-  setSelectedConversationId 
-}: { 
-  selectedConversationId: string | null;
-  setSelectedConversationId: (id: string | null) => void;
-}) {
+function ConversationLogsContent() {
   const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [agentFilter, setAgentFilter] = useState<string>('all');
@@ -1804,24 +1606,6 @@ function ConversationLogsContent({
     link.download = `conversations-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
   };
-
-  // If a conversation is selected, show details view
-  if (selectedConversationId) {
-    return (
-      <div className="space-y-4">
-        <Button 
-          variant="outline" 
-          onClick={() => setSelectedConversationId(null)}
-          className="mb-4"
-          data-testid="button-back-to-list"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t('common.back', 'Voltar')}
-        </Button>
-        <ConversationDetail conversationId={selectedConversationId} />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -1908,14 +1692,10 @@ function ConversationLogsContent({
           </Card>
         ) : (
           filteredConversations.map((conv: any) => (
-            <Card 
-              key={conv.id} 
-              className="hover:shadow-lg transition-shadow cursor-pointer" 
-              data-testid={`card-conversation-${conv.id}`}
-              onClick={() => setSelectedConversationId(conv.id)}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
+            <Link key={conv.id} href={`/omnibridge/conversations/${conv.id}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" data-testid={`card-conversation-${conv.id}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <Bot className="h-5 w-5 text-purple-600" />
@@ -1965,6 +1745,7 @@ function ConversationLogsContent({
                   </div>
                 </CardContent>
               </Card>
+            </Link>
           ))
         )}
       </div>
