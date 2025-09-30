@@ -1022,26 +1022,22 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="channels" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Canais
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            Configurações
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
+          </TabsTrigger>
+          <TabsTrigger value="channels" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Canais
           </TabsTrigger>
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
           </TabsTrigger>
-          <TabsTrigger value="ai-config" className="flex items-center gap-2">
+          <TabsTrigger value="ai-agents" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            Configuração IA
+            Agentes IA
           </TabsTrigger>
         </TabsList>
 
@@ -1170,365 +1166,26 @@ export default function OmniBridge() {
           <AutomationRules />
         </TabsContent>
 
-        {/* AI Assistant Tab */}
-        <TabsContent value="ai-config" className="space-y-4">
-          <Form {...aiForm}>
-            {/* AI Dashboard */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Análises Hoje</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-ai-analyses">
-                    {aiMetricsLoading ? '...' : currentMetrics.totalAnalyses}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    +12% vs ontem
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Taxa de Precisão</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-ai-accuracy">
-                    {aiMetricsLoading ? '...' : currentMetrics.accuracyRate}%
-                  </div>
-                  <Progress value={currentMetrics.accuracyRate} className="mt-2" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Respostas Automáticas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-ai-auto-response">
-                    {aiMetricsLoading ? '...' : currentMetrics.autoResponseRate}%
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {currentMetrics.escalationRate}% escaladas
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* AI Configuration Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* OpenAI Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <SettingsIcon className="h-5 w-5" />
-                    Configurações OpenAI
-                  </CardTitle>
-                  <CardDescription>
-                    Ajuste os parâmetros do modelo de IA para otimizar a análise
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={aiForm.control}
-                    name="model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Modelo</FormLabel>
-                        <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange} data-testid="select-ai-model">
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="gpt-4">GPT-4 (Mais Preciso)</SelectItem>
-                              <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Rápido)</SelectItem>
-                              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Econômico)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={aiForm.control}
-                    name="temperature"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Temperatura: {field.value.toFixed(1)}</FormLabel>
-                        <FormControl>
-                          <Slider
-                            value={[field.value]}
-                            onValueChange={([value]) => field.onChange(value)}
-                            max={1}
-                            step={0.1}
-                            className="mt-2"
-                            data-testid="slider-ai-temperature"
-                          />
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Menor = mais consistente, Maior = mais criativo
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={aiForm.control}
-                    name="maxTokens"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Max Tokens: {field.value}</FormLabel>
-                        <FormControl>
-                          <Slider
-                            value={[field.value]}
-                            onValueChange={([value]) => field.onChange(value)}
-                            min={100}
-                            max={4000}
-                            step={100}
-                            className="mt-2"
-                            data-testid="slider-ai-max-tokens"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={aiForm.control}
-                    name="confidenceThreshold"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Limite de Confiança: {field.value.toFixed(1)}</FormLabel>
-                        <FormControl>
-                          <Slider
-                            value={[field.value]}
-                            onValueChange={([value]) => field.onChange(value)}
-                            max={1}
-                            step={0.1}
-                            className="mt-2"
-                            data-testid="slider-ai-confidence"
-                          />
-                        </FormControl>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Confiança mínima para ações automáticas
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    className="w-full"
-                    onClick={aiForm.handleSubmit(handleSaveAiConfig)}
-                    disabled={saveAiConfigMutation.isPending}
-                    data-testid="button-save-ai-config"
-                  >
-                    <SettingsIcon className="h-4 w-4 mr-2" />
-                    {saveAiConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Analysis Types */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Tipos de Análise
-                  </CardTitle>
-                  <CardDescription>
-                    Ative os tipos de análise que deseja usar
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(currentAiConfig.enabledAnalysis).map(([key, enabled]) => (
-                    <FormField
-                      key={key}
-                      control={aiForm.control}
-                      name={`enabledAnalysis.${key}` as any}
-                      render={({ field }) => (
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label className="text-sm font-medium">
-                              {key === 'intention' && 'Análise de Intenção'}
-                              {key === 'priority' && 'Classificação de Prioridade'}
-                              {key === 'sentiment' && 'Análise de Sentimento'}
-                              {key === 'language' && 'Detecção de Idioma'}
-                              {key === 'entities' && 'Extração de Entidades'}
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                              {key === 'intention' && 'Identifica o propósito da mensagem'}
-                              {key === 'priority' && 'Classifica urgência e importância'}
-                              {key === 'sentiment' && 'Detecta emoções e tom'}
-                              {key === 'language' && 'Identifica idioma automaticamente'}
-                              {key === 'entities' && 'Extrai nomes, datas, produtos'}
-                            </p>
-                          </div>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid={`checkbox-analysis-${key}`}
-                          />
-                        </div>
-                      )}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* AI Prompts Manager */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Bot className="h-5 w-5" />
-                    Editor de Prompts IA
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setTempPromptContent(currentAiConfig.prompts[selectedPromptType as keyof typeof currentAiConfig.prompts]);
-                      setShowAiPromptEditor(true);
-                    }}
-                    data-testid="button-edit-prompt"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Editar Prompt
-                  </Button>
-                </CardTitle>
-                <CardDescription>
-                  Configure os prompts utilizados para cada tipo de análise de IA
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(currentAiConfig.prompts).map(([key, prompt]) => (
-                    <Card key={key} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                      setSelectedPromptType(key);
-                      setTempPromptContent(prompt);
-                      setShowAiPromptEditor(true);
-                    }} data-testid={`card-prompt-${key}`}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">
-                          {key === 'intentionAnalysis' && 'Análise de Intenção'}
-                          {key === 'priorityClassification' && 'Classificação de Prioridade'}
-                          {key === 'autoResponse' && 'Resposta Automática'}
-                          {key === 'sentimentAnalysis' && 'Análise de Sentimento'}
-                          {key === 'entityExtraction' && 'Extração de Entidades'}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-xs text-muted-foreground line-clamp-3">
-                          {prompt.length > 100 ? `${prompt.substring(0, 100)}...` : prompt}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant="outline" className="text-xs">
-                            {prompt.split('\\n').length} linhas
-                          </Badge>
-                          <Button variant="ghost" size="sm" data-testid={`button-edit-prompt-${key}`}>
-                            <SettingsIcon className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* AI Rules Templates */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Templates de Regras Inteligentes
-                </CardTitle>
-                <CardDescription>
-                  Modelos prontos de regras que usam análise de IA
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="cursor-pointer hover:bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Detector de Reclamações</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Detecta automaticamente reclamações e cria tickets prioritários
-                      </p>
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs">IA: Intenção</Badge>
-                        <Badge variant="outline" className="text-xs">IA: Sentimento</Badge>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        Usar Template
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="cursor-pointer hover:bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Resposta Inteligente</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Gera respostas contextualizadas baseadas na análise da mensagem
-                      </p>
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs">IA: Resposta</Badge>
-                        <Badge variant="outline" className="text-xs">IA: Contexto</Badge>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        Usar Template
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="cursor-pointer hover:bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Escalação Automática</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Escala mensagens críticas para supervisores automaticamente
-                      </p>
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs">IA: Prioridade</Badge>
-                        <Badge variant="outline" className="text-xs">IA: Urgência</Badge>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        Usar Template
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="cursor-pointer hover:bg-muted/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Extração de Dados</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Extrai informações importantes e preenche campos automaticamente
-                      </p>
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs">IA: Entidades</Badge>
-                        <Badge variant="outline" className="text-xs">IA: Dados</Badge>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        Usar Template
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </Form>
+        {/* AI Agents Tab */}
+        <TabsContent value="ai-agents" className="space-y-4">
+          {/* Placeholder for AI Agents Component */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Agentes IA Conversacionais</CardTitle>
+              <CardDescription>
+                Gerencie e configure seus Agentes IA Conversacionais aqui.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-16">
+                <Bot className="h-24 w-24 text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-xl font-semibold mb-2">Agentes IA em breve!</h3>
+                <p className="text-muted-foreground max-w-md text-center">
+                  A funcionalidade de Agentes IA Conversacionais está em desenvolvimento e será lançada em breve. Fique atento às atualizações!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
