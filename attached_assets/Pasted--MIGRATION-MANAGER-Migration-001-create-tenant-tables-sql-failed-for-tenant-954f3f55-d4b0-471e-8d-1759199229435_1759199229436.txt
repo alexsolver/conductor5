@@ -1,0 +1,75 @@
+❌ [MIGRATION-MANAGER] Migration 001_create_tenant_tables.sql failed for tenant_954f3f55_d4b0_471e_8d16_313862fc5b10: error: syntax error at or near "NOT"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/modules/auth/routes.ts:307:17) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42601',
+  detail: undefined,
+  hint: undefined,
+  position: '20120',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'scan.l',
+  line: '1244',
+  routine: 'scanner_yyerror'
+}
+❌ [MIGRATION-MANAGER] Tenant migration failed for tenant_954f3f55_d4b0_471e_8d16_313862fc5b10: error: syntax error at or near "NOT"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/modules/auth/routes.ts:307:17) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42601',
+  detail: undefined,
+  hint: undefined,
+  position: '20120',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'scan.l',
+  line: '1244',
+  routine: 'scanner_yyerror'
+}
+❌ [REGISTER] Tenant migration failed for 954f3f55-d4b0-471e-8d16-313862fc5b10: error: syntax error at or near "NOT"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at MigrationManager.executeTenantMigration (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:136:7)
+    at MigrationManager.runTenantMigrations (/home/runner/workspace/server/migrations/pg-migrations/config/migration-manager.ts:90:9)
+    at <anonymous> (/home/runner/workspace/server/modules/auth/routes.ts:307:17) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42601',
+  detail: undefined,
+  hint: undefined,
+  position: '20120',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'scan.l',
+  line: '1244',
+  routine: 'scanner_yyerror'
+}
+❌ [REGISTER] Schema creation/migration failed: Error: Failed to run tenant migrations: syntax error at or near "NOT"
+    at <anonymous> (/home/runner/workspace/server/modules/auth/routes.ts:311:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)

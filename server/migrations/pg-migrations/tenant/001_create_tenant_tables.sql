@@ -665,42 +665,51 @@ CREATE TABLE IF NOT EXISTS approval_workflows (
 -- ==============================
 
 -- Create enums for knowledge base
-CREATE TYPE IF NOT EXISTS knowledge_base_status AS ENUM (
-    'draft',
-    'pending_approval',
-    'approved',
-    'published',
-    'archived',
-    'rejected'
-);
+DO $$ BEGIN
+    CREATE TYPE knowledge_base_status AS ENUM (
+        'draft',
+        'pending_approval',
+        'approved',
+        'published',
+        'archived',
+        'rejected'
+    );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-CREATE TYPE IF NOT EXISTS knowledge_base_category AS ENUM (
-    'technical_support',
-    'troubleshooting',
-    'user_guide',
-    'faq',
-    'policy',
-    'process',
-    'training',
-    'announcement',
-    'best_practice',
-    'configuration',
-    'other'
-);
+DO $$ BEGIN
+    CREATE TYPE knowledge_base_category AS ENUM (
+        'technical_support',
+        'troubleshooting',
+        'user_guide',
+        'faq',
+        'policy',
+        'process',
+        'training',
+        'announcement',
+        'best_practice',
+        'configuration',
+        'other'
+    );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-CREATE TYPE IF NOT EXISTS knowledge_base_visibility AS ENUM (
-    'public',
-    'internal',
-    'restricted',
-    'private'
-);
+DO $$ BEGIN
+    CREATE TYPE knowledge_base_visibility AS ENUM (
+        'public',
+        'internal',
+        'restricted',
+        'private'
+    );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-CREATE TYPE IF NOT EXISTS knowledge_base_approval_status AS ENUM (
-    'pending',
-    'approved',
-    'rejected',
-    'needs_revision'
-);
+DO $$ BEGIN
+    CREATE TYPE knowledge_base_approval_status AS ENUM (
+        'pending',
+        'approved',
+        'rejected',
+        'needs_revision'
+    );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
 
 CREATE TABLE IF NOT EXISTS knowledge_base_articles (
     id UUID PRIMARY KEY,
