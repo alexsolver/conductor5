@@ -1022,7 +1022,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
@@ -1034,10 +1034,6 @@ export default function OmniBridge() {
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
-          </TabsTrigger>
-          <TabsTrigger value="ai-agents" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            Agentes IA
           </TabsTrigger>
         </TabsList>
 
