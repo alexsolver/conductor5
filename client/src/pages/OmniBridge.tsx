@@ -59,14 +59,12 @@ import {
   Upload,
   Play,
   Trash2,
-  Brain, // Added Brain icon
   Globe // Added Globe icon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
-import AiAgentsManager from '@/components/omnibridge/AiAgentsManager';
 
 
 
@@ -1024,7 +1022,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="channels" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             Canais
@@ -1040,10 +1038,6 @@ export default function OmniBridge() {
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
-          </TabsTrigger>
-          <TabsTrigger value="ai-agents" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            Agentes IA
           </TabsTrigger>
           <TabsTrigger value="ai-config" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
@@ -1174,11 +1168,6 @@ export default function OmniBridge() {
         {/* Automation Tab - Advanced Rules Builder */}
         <TabsContent value="automation" className="h-full">
           <AutomationRules />
-        </TabsContent>
-
-        {/* AI Agents Tab - Conversational Agents Manager */}
-        <TabsContent value="ai-agents" className="space-y-4">
-          <AiAgentsManager />
         </TabsContent>
 
         {/* AI Assistant Tab */}
