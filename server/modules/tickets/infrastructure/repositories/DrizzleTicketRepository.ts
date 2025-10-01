@@ -71,8 +71,12 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Use the ticket number provided by the use case
-      const ticketNumber = ticket.number;
+      // Generate ticket number if not provided
+      let ticketNumber = ticket.number;
+      if (!ticketNumber) {
+        const { ticketNumberGenerator } = await import('../../../utils/ticketNumberGenerator');
+        ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, ticket.companyId || '00000000-0000-0000-0000-000000000001');
+      }
 
       const insertData = {
         id: ticket.id,
@@ -107,11 +111,11 @@ export class DrizzleTicketRepository implements ITicketRepository {
           is_active, created_at, updated_at
         )
         VALUES (
-          ${tenantId}, ${ticketNumber}, ${ticket.subject}, ${ticket.description},
-          ${ticket.status}, ${ticket.priority}, ${ticket.urgency}, ${ticket.impact},
-          ${ticket.category}, ${ticket.subcategory}, ${ticket.customerId},
-          ${ticket.assignedToId}, ${ticket.companyId}, ${ticket.beneficiaryId},
-          ${ticket.isActive !== false}, ${now}, ${now}
+          ${tenantId}, ${ticketData.number}, ${ticketData.subject}, ${ticketData.description},
+          ${ticketData.status}, ${ticketData.priority}, ${ticketData.urgency}, ${ticketData.impact},
+          ${ticketData.category}, ${ticketData.subcategory}, ${ticketData.callerId},
+          ${ticketData.assignedToId}, ${ticketData.companyId}, ${ticketData.beneficiaryId},
+          ${ticketData.isActive !== false}, ${now}, ${now}
         )
         RETURNING 
           id, number, subject, description, status, priority, urgency, impact,
