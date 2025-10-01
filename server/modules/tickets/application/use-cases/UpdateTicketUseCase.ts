@@ -15,7 +15,7 @@ import { DrizzleTicketHistoryRepository } from '../../../ticket-history/infrastr
 import { TicketHistoryDomainService } from '../../../ticket-history/domain/services/TicketHistoryDomainService';
 import { SlaService } from '../../../sla/application/services/SlaService';
 import { DrizzleSlaRepository } from '../../../sla/infrastructure/repositories/DrizzleSlaRepository';
-import { db } from '@db/db';
+import { db } from '../../../../db';
 import { sql } from 'drizzle-orm';
 
 export class UpdateTicketUseCase {
