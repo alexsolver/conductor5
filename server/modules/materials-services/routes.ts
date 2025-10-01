@@ -102,6 +102,10 @@ router.get('/items', async (req: Request, res: Response) => {
   });
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Request method:`, req.method);
   console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Request path:`, req.path);
+  console.log(`🔍 [MATERIALS-SERVICES-ROUTE] Request headers:`, {
+    authorization: req.headers.authorization ? 'present' : 'missing',
+    'x-tenant-id': req.headers['x-tenant-id']
+  });
 
   try {
     const tenantId = req.user?.tenantId;

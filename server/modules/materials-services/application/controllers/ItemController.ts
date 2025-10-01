@@ -259,10 +259,14 @@ export class ItemController {
         success: true,
         data: result.rows,
         total: result.rows.length,
+        pagination: {
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+          total: result.rows.length
+        },
         metadata: {
           tenantId,
           filters,
-          pagination: { limit: parseInt(limit as string), offset: parseInt(offset as string) },
           timestamp: new Date().toISOString()
         }
       });

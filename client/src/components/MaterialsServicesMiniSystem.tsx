@@ -264,7 +264,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     }
   });
 
-  const items = itemsData?.data || [];
+  const items = itemsData?.data?.items || [];
   const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems :
                          Array.isArray(availableItemsData?.data) ? availableItemsData.data :
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
@@ -447,25 +447,42 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   <div>
                     <Label>Item</Label>
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um item" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione um item..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {(itemsData?.data?.items || []).map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            <div className="flex items-center gap-2">
-                              {item.type === 'material' ? (
-                                <Package className="h-4 w-4 text-blue-500" />
-                              ) : (
-                                <Wrench className="h-4 w-4 text-green-500" />
-                              )}
-                              <div>
-                                <div className="font-medium">{item.name}</div>
-                                <div className="text-xs text-muted-foreground">{item.type} • {item.measurement_unit || 'UN'}</div>
+                        {itemsLoading ? (
+                          <div className="flex items-center justify-center p-4">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="ml-2">Carregando itens...</span>
+                          </div>
+                        ) : itemsError ? (
+                          <div className="flex items-center justify-center p-4 text-red-500">
+                            <AlertCircle className="h-4 w-4" />
+                            <span className="ml-2">Erro ao carregar itens</span>
+                          </div>
+                        ) : items && items.length > 0 ? (
+                          items.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              <div className="flex items-center gap-2">
+                                {item.type === 'material' ? (
+                                  <Package className="h-4 w-4 text-blue-500" />
+                                ) : (
+                                  <Wrench className="h-4 w-4 text-green-500" />
+                                )}
+                                <span>{item.name}</span>
+                                {item.integration_code && (
+                                  <span className="text-xs text-muted-foreground">({item.integration_code})</span>
+                                )}
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="flex items-center justify-center p-4 text-muted-foreground">
+                            <Package className="h-4 w-4" />
+                            <span className="ml-2">Nenhum item encontrado</span>
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -483,7 +500,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   </div>
 
                   <div className="flex items-end">
-                    <Button 
+                    <Button
                       onClick={() => handleAddPlanned()}
                       disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
                       className="w-full"
