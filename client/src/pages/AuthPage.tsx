@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import conductorLogo from "@/../../attached_assets/logoconductormini.png";
 
 
@@ -39,25 +40,25 @@ export default function AuthPage() {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
+          <Label htmlFor="login-email">{t('common.email', 'Email')}</Label>
           <Input
             id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            placeholder={t('auth.emailPlaceholder', 'Enter your email')}
             required
             disabled={loginMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
+          <Label htmlFor="login-password">{t('auth.password', 'Password')}</Label>
           <Input
             id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
             required
             disabled={loginMutation.isPending}
           />
@@ -70,10 +71,10 @@ export default function AuthPage() {
           {loginMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
+              {t('auth.signingIn', 'Signing in...')}
             </>
           ) : (
-            "Sign In"
+            t('common.login', 'Sign In')
           )}
         </Button>
       </form>
@@ -113,48 +114,48 @@ export default function AuthPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="register-firstName">First Name</Label>
+            <Label htmlFor="register-firstName">{t('auth.firstName', 'First Name')}</Label>
             <Input
               id="register-firstName"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="John"
+              placeholder={t('auth.firstNamePlaceholder', 'John')}
               disabled={registerMutation.isPending}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="register-lastName">Last Name</Label>
+            <Label htmlFor="register-lastName">{t('auth.lastName', 'Last Name')}</Label>
             <Input
               id="register-lastName"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Doe"
+              placeholder={t('auth.lastNamePlaceholder', 'Doe')}
               disabled={registerMutation.isPending}
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-email">Email</Label>
+          <Label htmlFor="register-email">{t('common.email', 'Email')}</Label>
           <Input
             id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="john@example.com"
+            placeholder={t('auth.emailPlaceholder', 'john@example.com')}
             required
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-company">Nome da Empresa</Label>
+          <Label htmlFor="register-company">{t('auth.companyName', 'Company Name')}</Label>
           <Input
             id="register-company"
             type="text"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Acme Corporation"
+            placeholder={t('auth.companyPlaceholder', 'Acme Corporation')}
             required
             disabled={registerMutation.isPending}
           />
@@ -238,10 +239,10 @@ export default function AuthPage() {
           {registerMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              {t('auth.creatingAccount', 'Creating account...')}
             </>
           ) : (
-            "Create Account"
+            t('auth.createAccount', 'Create Account')
           )}
         </Button>
       </form>
@@ -264,27 +265,32 @@ export default function AuthPage() {
       <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left side - Authentication Form */}
         <div className="space-y-6">
+          {/* Language Selector */}
+          <div className="flex justify-end">
+            <LanguageSelector variant="compact" className="w-20" />
+          </div>
+          
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Welcome to Conductor
+              {t('auth.welcome', 'Welcome to Conductor')}
             </h1>
             <p className="text-slate-600 dark:text-slate-300 mt-2">
-              Your comprehensive customer support platform
+              {t('auth.subtitle', 'Your comprehensive customer support platform')}
             </p>
           </div>
 
           <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Get Started</CardTitle>
+              <CardTitle className="text-2xl">{t('auth.getStarted', 'Get Started')}</CardTitle>
               <CardDescription>
-                Sign in to your account or create a new one
+                {t('auth.getStartedDesc', 'Sign in to your account or create a new one')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="register">Register</TabsTrigger>
+                  <TabsTrigger value="login">{t('common.login', 'Sign In')}</TabsTrigger>
+                  <TabsTrigger value="register">{t('common.register', 'Register')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="space-y-4">
@@ -310,7 +316,7 @@ export default function AuthPage() {
               />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-              Streamline Your Support Operations
+              {t('auth.heroTitle', 'Streamline Your Support Operations')}
             </h2>
           </div>
 
@@ -322,9 +328,9 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Ticket Management</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature1Title', 'Ticket Management')}</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  Create, assign, and track support tickets with ease
+                  {t('auth.feature1Desc', 'Create, assign, and track support tickets with ease')}
                 </p>
               </div>
             </div>
@@ -338,14 +344,12 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Customer Database</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature2Title', 'Customer Database')}</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  Maintain detailed customer profiles and history
+                  {t('auth.feature2Desc', 'Maintain detailed customer profiles and history')}
                 </p>
               </div>
             </div>
-
-
 
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mt-0.5">
@@ -354,9 +358,9 @@ export default function AuthPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Analytics Dashboard</h3>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature3Title', 'Analytics Dashboard')}</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  Monitor performance with detailed insights
+                  {t('auth.feature3Desc', 'Monitor performance with detailed insights')}
                 </p>
               </div>
             </div>

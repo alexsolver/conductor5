@@ -33,7 +33,7 @@ const resources = {
   de: { translation: deTranslations }
 };
 
-// Get user's preferred language from localStorage or use Portuguese as default
+// Get user's preferred language from localStorage, browser, or use Portuguese as default
 const getInitialLanguage = () => {
   // Check multiple possible keys for language preference
   const saved = localStorage.getItem('preferred-language') || 
@@ -43,6 +43,27 @@ const getInitialLanguage = () => {
   if (saved && supportedLanguages.find(lang => lang.code === saved)) {
     return saved;
   }
+
+  // Detect browser language
+  const browserLang = navigator.language || navigator.languages?.[0];
+  
+  if (browserLang) {
+    // Check for exact match first
+    const exactMatch = supportedLanguages.find(lang => lang.code === browserLang);
+    if (exactMatch) {
+      return exactMatch.code;
+    }
+    
+    // Check for partial match (e.g., 'en-US' matches 'en')
+    const partialMatch = supportedLanguages.find(lang => 
+      browserLang.toLowerCase().startsWith(lang.code.toLowerCase()) || 
+      lang.code.toLowerCase().startsWith(browserLang.toLowerCase())
+    );
+    if (partialMatch) {
+      return partialMatch.code;
+    }
+  }
+  
   return 'pt-BR';
 };
 
@@ -99,11 +120,12 @@ i18n
     }
   });
 
-// Ensure we start with Portuguese by default if no preference exists
+// Ensure we start with detected language and save preference
+const initialLang = getInitialLanguage();
 if (!localStorage.getItem('preferred-language')) {
-  localStorage.setItem('preferred-language', 'pt-BR');
-  localStorage.setItem('conductor-language', 'pt-BR');
-  localStorage.setItem('i18nextLng', 'pt-BR');
+  localStorage.setItem('preferred-language', initialLang);
+  localStorage.setItem('conductor-language', initialLang);
+  localStorage.setItem('i18nextLng', initialLang);
 }
 
 export default i18n;
