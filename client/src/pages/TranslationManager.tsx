@@ -100,7 +100,7 @@ export default function TranslationManager() {
 
   // Translation analysis query - 1qa.md compliant
   const { data: analysisData, isLoading: isAnalyzing, refetch: refetchAnalysis } = useQuery({
-    queryKey: ['/api/saas-admin/translation-completion/analyze'],
+    queryKey: ['/api/saas-admin/translations/keys/all'],
     enabled: user?.role === 'saas_admin'
   });
 
@@ -133,7 +133,7 @@ export default function TranslationManager() {
 
   // Scan keys mutation
   const scanKeysMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/saas-admin/translation-completion/scan-keys'),
+    mutationFn: () => apiRequest('GET', '/api/saas-admin/translations/keys/all'),
     onSuccess: (response: any) => {
       toast({
         title: "Scan Concluído",
@@ -153,11 +153,20 @@ export default function TranslationManager() {
 
   // Update language completeness when analysis data changes
   useEffect(() => {
-    if (analysisData?.success && analysisData.data?.summary?.languageStats) {
-      const updatedLanguages = LANGUAGES.map(lang => ({
-        ...lang,
-        completeness: analysisData.data.summary.languageStats[lang.code]?.completeness || 0
-      }));
+    if (analysisData?.success && analysisData.data) {
+      const totalKeys = analysisData.data.totalKeys || 0;
+      const translations = analysisData.data.translations || {};
+      
+      const updatedLanguages = LANGUAGES.map(lang => {
+        const langTranslations = translations[lang.code] || {};
+        const existingKeys = Object.keys(langTranslations).length;
+        const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
+        
+        return {
+          ...lang,
+          completeness
+        };
+      });
       setLanguages(updatedLanguages);
     }
   }, [analysisData]);
@@ -221,7 +230,21 @@ export default function TranslationManager() {
 
   // Get completion stats
   const getLanguageStats = (langCode: string): TranslationStats | null => {
-    return analysisData?.data?.summary?.languageStats?.[langCode] || null;
+    if (!analysisData?.success || !analysisData.data) return null;
+    
+    const totalKeys = analysisData.data.totalKeys || 0;
+    const translations = analysisData.data.translations || {};
+    const langTranslations = translations[langCode] || {};
+    const existingKeys = Object.keys(langTranslations).length;
+    const missingKeys = totalKeys - existingKeys;
+    const completeness = totalKeys > 0 ? Math.round((existingKeys / totalKeys) * 100) : 0;
+    
+    return {
+      totalKeys,
+      existingKeys,
+      missingKeys,
+      completeness
+    };
   };
 
   // Render language badge with completeness
