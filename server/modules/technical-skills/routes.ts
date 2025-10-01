@@ -262,30 +262,38 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
   try {
     const tenantId = (req as any).user?.tenantId;
     const { skillId } = req.params;
-    const { memberIds, defaultProficiencyLevel = 'beginner' } = req.body;
-    if (!tenantId) return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    const { memberIds, defaultLevel = 1 } = req.body; // 👈 troquei proficiencyLevel -> level
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    }
 
     const schema = getTenantSchema(tenantId);
     const skillsTable = `${schema}.skills`;
     const userSkillsTable = `${schema}.user_skills`;
 
+    // Verifica se a skill existe
     const skillExists = await db.execute(sql`
       SELECT 1 FROM ${sql.raw(skillsTable)}
       WHERE id = ${skillId} AND tenant_id = ${tenantId} AND is_active = true
       LIMIT 1
     `);
 
-    if (getRows(skillExists).length === 0)
+    if (getRows(skillExists).length === 0) {
       return res.status(404).json({ success: false, message: 'Habilidade não encontrada' });
+    }
 
-    let successCount = 0, errorCount = 0;
+    let successCount = 0;
+    let errorCount = 0;
     const results: any[] = [];
 
     for (const memberId of memberIds) {
       try {
-        if (!memberId || typeof memberId !== 'string')
+        if (!memberId || typeof memberId !== 'string') {
           throw new Error('ID de membro inválido');
+        }
 
+        // Verifica se já existe atribuição
         const existing = await db.execute(sql`
           SELECT 1 FROM ${sql.raw(userSkillsTable)}
           WHERE user_id = ${memberId} AND skill_id = ${skillId} AND tenant_id = ${tenantId}
@@ -298,27 +306,38 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
         }
 
         const assignmentId = crypto.randomUUID();
+        const now = new Date();
+
+        // Faz o insert com colunas reais
         await db.execute(sql`
-          INSERT INTO ${sql.raw(userSkillsTable)}
-          (id, tenant_id, user_id, skill_id, proficiency_level,
-           years_of_experience, certifications, notes,
-           is_active, created_at, updated_at)
+          INSERT INTO ${sql.raw(userSkillsTable)} (
+            id, tenant_id, user_id, skill_id, level,
+            notes, is_active, created_at, updated_at
+          )
           VALUES (
-            ${assignmentId}, ${tenantId}, ${memberId}, ${skillId}, ${defaultProficiencyLevel},
-            0, ${JSON.stringify([])}, null, true, ${new Date()}, ${new Date()}
+            ${assignmentId}, ${tenantId}, ${memberId}, ${skillId}, ${defaultLevel},
+            NULL, TRUE, ${now}, ${now}
           )
         `);
 
         results.push({ memberId, status: 'success', assignmentId });
         successCount++;
       } catch (err) {
-        results.push({ memberId, status: 'error', message: (err as Error).message });
+        results.push({
+          memberId,
+          status: 'error',
+          message: (err as Error).message,
+        });
         errorCount++;
       }
     }
 
     const statusCode = errorCount === 0 ? 200 : successCount === 0 ? 400 : 207;
-    res.status(statusCode).json({ success: successCount > 0, data: { successCount, errorCount, results } });
+
+    res.status(statusCode).json({
+      success: successCount > 0,
+      data: { successCount, errorCount, results },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
     res.status(500).json({ success: false, message, error });
@@ -336,14 +355,28 @@ router.get('/user-skills', async (req: Request, res: Response) => {
     const schema = getTenantSchema(tenantId);
     const skillsTable = `${schema}.skills`;
     const userSkillsTable = `${schema}.user_skills`;
+    const usersTable = `public.users`;
 
     const result = await db.execute(sql`
-      SELECT us.*, s.name AS skill_name, s.category AS skill_category, s.description AS skill_description
+      SELECT 
+        us.id,
+        us.user_id,
+        us.skill_id,
+        us.level,
+        us.notes,
+        us.created_at,
+        us.updated_at,
+        us.is_active,
+        json_build_object(
+          'id', u.id,
+          'name', u.first_name || ' ' || u.last_name,
+          'email', u.email
+        ) AS user
       FROM ${sql.raw(userSkillsTable)} us
-      LEFT JOIN ${sql.raw(skillsTable)} s ON us.skill_id = s.id
-      WHERE us.is_active = true AND us.tenant_id = ${tenantId}
-      ORDER BY us.created_at DESC
+      JOIN ${sql.raw(usersTable)} u ON u.id = us.user_id
     `);
+
+
 
     const userSkillsData = getRows(result);
     res.json({ success: true, data: userSkillsData, count: userSkillsData.length });

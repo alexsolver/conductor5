@@ -68,7 +68,7 @@ interface Skill {
   certificationValidityMonths?: number;
   description?: string;
   observations?: string;
-  isActive: boolean;
+  is_active: boolean;
   createdAt: string;
   updatedAt: string;
   scaleOptions?: Array<{
@@ -106,22 +106,21 @@ interface CertificationsResponse {
 
 interface UserSkill {
   id: string;
-  tenantId: string;
-  userId: string;
-  skillId: string;
-  proficiencyLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-  yearsOfExperience: number;
-  certifications: string[];
+  tenant_id: string;
+  user_id: string;
+  skill_id: string;
+  level: number;  // agora é int
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
   skill: Skill;
   user: {
     id: string;
-    firstName: string;
-    lastName: string;
+    name: string
   };
 }
+
 
 interface TeamMember {
   id: string;
@@ -144,10 +143,9 @@ export default function TechnicalSkillsTab() {
   const [newUserSkill, setNewUserSkill] = useState({
     skillId: '',
     userId: '',
-    proficiencyLevel: 'beginner' as 'beginner' | 'intermediate' | 'advanced' | 'expert',
-    yearsOfExperience: 0,
-    certifications: [] as string[],
+    level: 1, // 👈 int
     notes: ''
+
   });
 
   const { toast } = useToast();
@@ -196,7 +194,8 @@ export default function TechnicalSkillsTab() {
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/technical-skills/user-skills');
       if (!res.ok) throw new Error('Erro ao buscar habilidades dos usuários');
-      return res.json();
+      let json = await res.json();
+      return json;
     },
   });
 
@@ -311,10 +310,9 @@ export default function TechnicalSkillsTab() {
       setNewUserSkill({
         skillId: '',
         userId: '',
-        proficiencyLevel: 'beginner',
-        yearsOfExperience: 0,
+        level: 1, // 👈 int
+        notes: '',
         certifications: [],
-        notes: ''
       });
       toast({
         title: 'Sucesso',
@@ -360,7 +358,7 @@ export default function TechnicalSkillsTab() {
 
       const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
         memberIds,
-        defaultProficiencyLevel: 'beginner'
+        defaultLevel: 1
       });
 
       if (!res.ok) {
@@ -490,13 +488,14 @@ export default function TechnicalSkillsTab() {
   // Get members already assigned to a skill
   const getMembersWithSkill = (skillId: string) => {
     if (!userSkills) return [];
-    return userSkills.filter((us: UserSkill) => us.skillId === skillId);
-  };
+    if(userSkills?.success === false) return [];
+    return userSkills.data.filter((us: UserSkill) => us.skill_id === skillId);
+};
 
   // Get available members for assignment (not already assigned to the skill)
   const getAvailableMembers = (skillId: string) => {
     if (!teamMembers) return [];
-    const assignedUserIds = getMembersWithSkill(skillId).map((us: UserSkill) => us.userId);
+    const assignedUserIds = getMembersWithSkill(skillId).map((us: UserSkill) => us.user_id);
     return teamMembers.filter((member: TeamMember) => !assignedUserIds.includes(member.id));
   };
 
@@ -523,7 +522,7 @@ export default function TechnicalSkillsTab() {
   const filteredSkills = skills ? skills.filter((skill) => {
     const matchesSearch = skill?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesCategory = selectedCategory === "all" || skill?.category === selectedCategory;
-    return matchesSearch && matchesCategory && skill.isActive;
+    return matchesSearch && matchesCategory && skill.is_active;
   }) : [];
 
   console.log('[TECHNICAL-SKILLS-TAB] Filtered Skills:', filteredSkills);
@@ -863,11 +862,12 @@ export default function TechnicalSkillsTab() {
                       <div className="flex flex-wrap gap-1">
                         {assignedMembers.slice(0, 5).map((userSkill: UserSkill) => (
                           <Badge key={userSkill.id} variant="secondary" className="text-xs">
-                            {userSkill.user.firstName} {userSkill.user.lastName}
+                            {userSkill.user.name}
                             <span className="ml-1 opacity-70">
-                              ({userSkill.proficiencyLevel === 'beginner' ? 'Iniciante' :
-                                userSkill.proficiencyLevel === 'intermediate' ? 'Intermediário' :
-                                userSkill.proficiencyLevel === 'advanced' ? 'Avançado' : 'Especialista'})
+                              ({userSkill.level === 1 ? 'Iniciante' :
+                                userSkill.level === 2 ? 'Intermediário' :
+                                userSkill.level === 3 ? 'Avançado' :
+                                'Especialista'})
                             </span>
                           </Badge>
                         ))}
@@ -956,17 +956,17 @@ export default function TechnicalSkillsTab() {
               <div>
                 <Label htmlFor="proficiency">Nível de Proficiência</Label>
                 <Select
-                  value={newUserSkill.proficiencyLevel}
-                  onValueChange={(value: any) => setNewUserSkill(prev => ({ ...prev, proficiencyLevel: value }))}
+                  value={String(newUserSkill.level)}
+                  onValueChange={(value) => setNewUserSkill(prev => ({ ...prev, level: Number(value) }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="beginner">Iniciante</SelectItem>
-                    <SelectItem value="intermediate">Intermediário</SelectItem>
-                    <SelectItem value="advanced">Avançado</SelectItem>
-                    <SelectItem value="expert">Especialista</SelectItem>
+                    <SelectItem value="1">Iniciante</SelectItem>
+                    <SelectItem value="2">Intermediário</SelectItem>
+                    <SelectItem value="3">Avançado</SelectItem>
+                    <SelectItem value="4">Especialista</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1024,7 +1024,7 @@ export default function TechnicalSkillsTab() {
               <div className="flex flex-wrap gap-2 mb-4">
                 {selectedSkillForAssignment && getMembersWithSkill(selectedSkillForAssignment.id).map((userSkill: UserSkill) => (
                   <Badge key={userSkill.id} variant="secondary">
-                    {userSkill.user.firstName} {userSkill.user.lastName}
+                    {userSkill.user.name}
                     <span className="ml-1 text-xs">({userSkill.proficiencyLevel === 'beginner' ? 'Iniciante' :
                       userSkill.proficiencyLevel === 'intermediate' ? 'Intermediário' :
                       userSkill.proficiencyLevel === 'advanced' ? 'Avançado' : 'Especialista'})</span>
