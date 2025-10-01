@@ -255,18 +255,6 @@ export class ItemController {
 
       // ✅ CRITICAL FIX - Ensure proper JSON response format per 1qa.md compliance
       res.setHeader('Content-Type', 'application/json');
-      
-      // Log the data being returned for debugging
-      console.log(`✅ [ItemController] Returning ${result.rows.length} items to frontend`);
-      if (result.rows.length > 0) {
-        console.log('📦 [ItemController] Sample item:', {
-          id: result.rows[0].id,
-          name: result.rows[0].name,
-          type: result.rows[0].type,
-          integration_code: result.rows[0].integration_code
-        });
-      }
-      
       res.status(200).json({
         success: true,
         data: result.rows,
