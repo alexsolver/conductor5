@@ -214,7 +214,7 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
-            Será usado como URL do seu workspace (ex: acme-support.conductor.com)
+            Será usado como URL do seu workspace (ex: acme-support.lansolver.com)
           </p>
         </div>
         <div className="space-y-2">
