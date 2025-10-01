@@ -480,15 +480,6 @@ export default function Companies() {
                               <SelectItem value="servicos-reparacao-suporte-tecnico">
                                 Serviços de Reparação e Suporte Técnico
                               </SelectItem>
-                              <SelectItem value="servicos-telecomunicacoes">
-                                Serviços de Telecomunicações
-                              </SelectItem>
-                              <SelectItem value="servicos-manutencao-predial">
-                                Serviços de Manutenção Predial
-                              </SelectItem>
-                              <SelectItem value="outros">
-                                Outros
-                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
