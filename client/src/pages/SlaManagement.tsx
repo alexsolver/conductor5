@@ -161,7 +161,14 @@ const slaDefinitionSchema = z.object({
     target: z.number().min(1),
     unit: z.enum(['minutes', 'hours', 'days']),
     priority: z.enum(['low', 'medium', 'high', 'critical']).optional()
-  })).min(1, 'Pelo menos uma meta de tempo deve ser especificada'),
+  })).min(1, 'Pelo menos uma meta de tempo deve ser especificada')
+    .refine((targets) => {
+      const metrics = targets.map(t => t.metric);
+      const uniqueMetrics = new Set(metrics);
+      return metrics.length === uniqueMetrics.size;
+    }, {
+      message: 'Não é permitido ter múltiplas metas com o mesmo medidor. Cada tipo de medidor (Tempo de Resposta, Tempo de Resolução, etc.) deve aparecer apenas uma vez.'
+    }),
   applicationRules: z.object({
     rules: z.array(z.object({
       field: z.string(),
