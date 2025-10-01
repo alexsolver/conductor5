@@ -264,11 +264,23 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     }
   });
 
-  const items = itemsData?.data || [];
-  const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems :
-                         Array.isArray(availableItemsData?.data) ? availableItemsData.data :
-                         Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
-                         Array.isArray(availableItemsData) ? availableItemsData : [];
+  // Get available items
+  const availableItems = useMemo(() => {
+    return availableItemsData?.data || [];
+  }, [availableItemsData]);
+
+  // Get regular items for selection
+  const items = useMemo(() => {
+    if (!itemsData?.data?.items) {
+      console.log('⚠️ [MaterialsSystem] No items data available:', itemsData);
+      return [];
+    }
+
+    const itemsList = itemsData.data.items;
+    console.log('📦 [MaterialsSystem] Items available for selection:', itemsList.length);
+    return itemsList;
+  }, [itemsData]);
+
   const plannedMaterials = plannedData?.data?.plannedItems || [];
 
   // Debug logs for consumption availability
@@ -448,26 +460,36 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <Label>Item</Label>
                     <Select value={selectedItem} onValueChange={setSelectedItem}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione um item" />
+                        <SelectValue placeholder="Selecione um item..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {(itemsData?.data?.items || []).map((item: any) => (
+                        {itemsLoading && (
+                          <SelectItem value="loading" disabled>
+                            Carregando itens...
+                          </SelectItem>
+                        )}
+                        {!itemsLoading && items.length === 0 && (
+                          <SelectItem value="no-items" disabled>
+                            Nenhum item disponível
+                          </SelectItem>
+                        )}
+                        {!itemsLoading && items.length > 0 && items.map((item) => (
                           <SelectItem key={item.id} value={item.id}>
-                            <div className="flex items-center gap-2">
-                              {item.type === 'material' ? (
-                                <Package className="h-4 w-4 text-blue-500" />
-                              ) : (
-                                <Wrench className="h-4 w-4 text-green-500" />
-                              )}
-                              <div>
-                                <div className="font-medium">{item.name}</div>
-                                <div className="text-xs text-muted-foreground">{item.type} • {item.measurement_unit || 'UN'}</div>
-                              </div>
-                            </div>
+                            {item.name} ({item.integrationCode || item.itemCode || item.integration_code || 'sem código'})
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {itemsError && (
+                      <p className="text-sm text-red-600 mt-1">
+                        Erro ao carregar itens: {itemsError.message}
+                      </p>
+                    )}
+                    {!itemsLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {items.length} itens disponíveis
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -483,7 +505,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   </div>
 
                   <div className="flex items-end">
-                    <Button 
+                    <Button
                       onClick={() => handleAddPlanned()}
                       disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
                       className="w-full"
@@ -693,8 +715,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
                           const itemDescription = itemData.itemDescription || item.description || itemData.display_description ||
                                                  item.itemDescription || item.description || item.display_description || '';
-                          const itemSku = itemData.itemSku || itemData.sku || itemData.integrationCode || itemData.integration_code ||
-                                         itemData.display_sku || item.itemSku || item.sku || item.integrationCode ||
+                          const itemSku = itemData.itemSku || item.sku || itemData.integrationCode || itemData.integration_code ||
+                                         item.display_sku || itemData.itemSku || item.sku || itemData.integrationCode ||
                                          item.integration_code || item.display_sku || '';
                           const remainingQty = item.remainingQuantity || item.plannedQuantity || '0';
                           const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
