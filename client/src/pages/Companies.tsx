@@ -150,7 +150,7 @@ export default function Companies() {
     refetchOnWindowFocus: false,
   });
 
-  
+
 
   // Handle different response formats from the API
   const companies = (() => {
@@ -172,7 +172,7 @@ export default function Companies() {
 
     // Success wrapper with data array
     if (
-      companiesData && 
+      companiesData &&
       typeof companiesData === 'object' &&
       'success' in companiesData &&
       'data' in companiesData &&
@@ -425,12 +425,63 @@ export default function Companies() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Setor</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex: Tecnologia, Saúde, Educação"
-                              {...field}
-                            />
-                          </FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o setor da empresa" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="servicos-manutencao">
+                                Serviços de Manutenção
+                              </SelectItem>
+                              <SelectItem value="transportes-logistica">
+                                Transportes e Logística
+                              </SelectItem>
+                              <SelectItem value="instalacao-sistemas-equipamentos">
+                                Instalação de Sistemas e Equipamentos
+                              </SelectItem>
+                              <SelectItem value="servicos-limpeza">
+                                Serviços de Limpeza
+                              </SelectItem>
+                              <SelectItem value="servicos-seguranca">
+                                Serviços de Segurança
+                              </SelectItem>
+                              <SelectItem value="consultoria-campo">
+                                Consultoria de Campo
+                              </SelectItem>
+                              <SelectItem value="servicos-atendimento-cliente">
+                                Serviços de Atendimento ao Cliente
+                              </SelectItem>
+                              <SelectItem value="servicos-saude-domiciliar">
+                                Serviços de Saúde Domiciliar
+                              </SelectItem>
+                              <SelectItem value="servicos-construcao-civil">
+                                Serviços de Construção Civil
+                              </SelectItem>
+                              <SelectItem value="servicos-entrega">
+                                Serviços de Entrega
+                              </SelectItem>
+                              <SelectItem value="agricultura-precisao">
+                                Agricultura de Precisão
+                              </SelectItem>
+                              <SelectItem value="monitoramento-ambiental">
+                                Monitoramento Ambiental
+                              </SelectItem>
+                              <SelectItem value="servicos-emergencia">
+                                Serviços de Emergência
+                              </SelectItem>
+                              <SelectItem value="inspecao-avaliacao-campo">
+                                Inspeção e Avaliação de Campo
+                              </SelectItem>
+                              <SelectItem value="servicos-reparacao-suporte-tecnico">
+                                Serviços de Reparação e Suporte Técnico
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -791,12 +842,63 @@ export default function Companies() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Setor</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: Tecnologia, Saúde, Educação"
-                          {...field}
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o setor da empresa" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="servicos-manutencao">
+                            Serviços de Manutenção
+                          </SelectItem>
+                          <SelectItem value="transportes-logistica">
+                            Transportes e Logística
+                          </SelectItem>
+                          <SelectItem value="instalacao-sistemas-equipamentos">
+                            Instalação de Sistemas e Equipamentos
+                          </SelectItem>
+                          <SelectItem value="servicos-limpeza">
+                            Serviços de Limpeza
+                          </SelectItem>
+                          <SelectItem value="servicos-seguranca">
+                            Serviços de Segurança
+                          </SelectItem>
+                          <SelectItem value="consultoria-campo">
+                            Consultoria de Campo
+                          </SelectItem>
+                          <SelectItem value="servicos-atendimento-cliente">
+                            Serviços de Atendimento ao Cliente
+                          </SelectItem>
+                          <SelectItem value="servicos-saude-domiciliar">
+                            Serviços de Saúde Domiciliar
+                          </SelectItem>
+                          <SelectItem value="servicos-construcao-civil">
+                            Serviços de Construção Civil
+                          </SelectItem>
+                          <SelectItem value="servicos-entrega">
+                            Serviços de Entrega
+                          </SelectItem>
+                          <SelectItem value="agricultura-precisao">
+                            Agricultura de Precisão
+                          </SelectItem>
+                          <SelectItem value="monitoramento-ambiental">
+                            Monitoramento Ambiental
+                          </SelectItem>
+                          <SelectItem value="servicos-emergencia">
+                            Serviços de Emergência
+                          </SelectItem>
+                          <SelectItem value="inspecao-avaliacao-campo">
+                            Inspeção e Avaliação de Campo
+                          </SelectItem>
+                          <SelectItem value="servicos-reparacao-suporte-tecnico">
+                            Serviços de Reparação e Suporte Técnico
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
