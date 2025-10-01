@@ -44,11 +44,16 @@ const getInitialLanguage = () => {
     return saved;
   }
 
-  // Detect browser language
+  // Detect browser language - check for Portuguese first
   const browserLang = navigator.language || navigator.languages?.[0];
   
   if (browserLang) {
-    // Check for exact match first
+    // Check for Portuguese variants first
+    if (browserLang.toLowerCase().startsWith('pt')) {
+      return 'pt-BR';
+    }
+    
+    // Check for exact match
     const exactMatch = supportedLanguages.find(lang => lang.code === browserLang);
     if (exactMatch) {
       return exactMatch.code;
@@ -64,6 +69,7 @@ const getInitialLanguage = () => {
     }
   }
   
+  // Default to Portuguese Brazilian
   return 'pt-BR';
 };
 
@@ -103,12 +109,18 @@ i18n
     // Enable proper code cleaning
     cleanCode: true,
 
-    // Disable debug mode to prevent missingKey logs
-    debug: false,
+    // Enable debug to see what's happening
+    debug: true,
 
     // Configure missing key behavior
     saveMissing: false,
-    missingKeyHandler: false,
+    missingKeyHandler: (lng, ns, key) => {
+      console.warn(`Missing translation key: ${key} for language: ${lng}`);
+    },
+
+    // Return key if translation is missing
+    returnEmptyString: false,
+    returnNull: false,
 
     react: {
       useSuspense: false,
