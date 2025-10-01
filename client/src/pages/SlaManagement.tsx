@@ -94,6 +94,12 @@ interface SlaDefinition {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  timeTargets?: Array<{
+    metric: string;
+    target: number;
+    unit: 'minutes' | 'hours' | 'days';
+    priority?: 'low' | 'medium' | 'high' | 'critical';
+  }>;
 }
 
 interface SlaInstance {
