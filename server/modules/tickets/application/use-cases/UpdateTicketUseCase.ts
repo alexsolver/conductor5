@@ -13,9 +13,14 @@ import { Ticket } from '../../domain/entities/Ticket';
 import { TicketHistoryApplicationService } from '../../../ticket-history/application/services/TicketHistoryApplicationService';
 import { DrizzleTicketHistoryRepository } from '../../../ticket-history/infrastructure/repositories/DrizzleTicketHistoryRepository';
 import { TicketHistoryDomainService } from '../../../ticket-history/domain/services/TicketHistoryDomainService';
+import { SlaService } from '../../../sla/application/services/SlaService';
+import { DrizzleSlaRepository } from '../../../sla/infrastructure/repositories/DrizzleSlaRepository';
+import { db } from '@db/db';
+import { sql } from 'drizzle-orm';
 
 export class UpdateTicketUseCase {
   private historyService: TicketHistoryApplicationService;
+  private slaService: SlaService;
 
   constructor(private ticketRepository: ITicketRepository) {
     console.log('✅ [UpdateTicketUseCase] Initialized with repository');
@@ -25,7 +30,11 @@ export class UpdateTicketUseCase {
     const historyDomainService = new TicketHistoryDomainService();
     this.historyService = new TicketHistoryApplicationService(historyRepository, historyDomainService);
     
-    console.log('✅ [UpdateTicketUseCase] History service initialized');
+    // Initialize SLA service
+    const slaRepository = new DrizzleSlaRepository();
+    this.slaService = new SlaService(slaRepository);
+    
+    console.log('✅ [UpdateTicketUseCase] History and SLA services initialized');
   }
 
   async execute(ticketId: string, data: UpdateTicketDTO, tenantId: string, userId: string): Promise<Ticket> {
@@ -96,7 +105,58 @@ export class UpdateTicketUseCase {
         updatedFields: Object.keys(updateData)
       });
 
-      // 5. 🎯 RECORD HISTORY FOLLOWING 1qa.md - COMPREHENSIVE LOGGING
+      // 5. 🎯 AUTOMATIC SLA CONTROL BASED ON STATUS TYPE
+      if (updateData.status && updateData.status !== oldTicketData.status) {
+        try {
+          console.log('🔄 [UpdateTicketUseCase] Status changed, checking SLA control requirements');
+          
+          // Get the status type from ticket_field_options
+          const statusTypeResult = await (db as any).execute(sql`
+            SELECT status_type 
+            FROM ${sql.identifier(tenantId.replace(/-/g, '_'))}.ticket_field_options
+            WHERE field_name = 'status' 
+              AND value = ${updateData.status}
+              AND is_active = true
+            LIMIT 1
+          `);
+          
+          const statusType = statusTypeResult.rows[0]?.status_type;
+          console.log(`📊 [UpdateTicketUseCase] New status type: ${statusType}`);
+          
+          if (statusType) {
+            // Get active SLA instances for this ticket
+            const slaRepository = new DrizzleSlaRepository();
+            const slaInstances = await slaRepository.getSlaInstancesByTicket(ticketId, tenantId);
+            
+            for (const instance of slaInstances) {
+              if (instance.status === 'running' || instance.status === 'paused') {
+                
+                // Pause SLA if status type is paused, closed or resolved
+                if (['paused', 'closed', 'resolved'].includes(statusType)) {
+                  if (instance.status === 'running') {
+                    console.log(`⏸️ [UpdateTicketUseCase] Pausing SLA instance ${instance.id} - status type: ${statusType}`);
+                    await this.slaService.pauseSlaInstance(
+                      instance.id, 
+                      tenantId, 
+                      `Ticket status changed to ${updateData.status} (type: ${statusType})`
+                    );
+                  }
+                }
+                // Resume SLA if status type is open (and was paused)
+                else if (statusType === 'open' && instance.status === 'paused') {
+                  console.log(`▶️ [UpdateTicketUseCase] Resuming SLA instance ${instance.id} - status type: ${statusType}`);
+                  await this.slaService.resumeSlaInstance(instance.id, tenantId);
+                }
+              }
+            }
+          }
+          
+        } catch (slaError: any) {
+          console.error('⚠️ [UpdateTicketUseCase] SLA control failed (non-critical):', slaError.message);
+        }
+      }
+
+      // 6. 🎯 RECORD HISTORY FOLLOWING 1qa.md - COMPREHENSIVE LOGGING
       try {
         console.log('📝 [UpdateTicketUseCase] Recording comprehensive ticket history');
         
