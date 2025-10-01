@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import conductorLogo from "@/../../attached_assets/logoconductormini.png";
+import { Ticket, Users, BarChart3 } from "lucide-react";
 
 
 export default function AuthPage() {
@@ -40,25 +41,25 @@ export default function AuthPage() {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="login-email">{t('common.email', 'Email')}</Label>
+          <Label htmlFor="login-email">{t('common.email')}</Label>
           <Input
             id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('auth.emailPlaceholder', 'Enter your email')}
+            placeholder={t('auth.emailPlaceholder')}
             required
             disabled={loginMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="login-password">{t('auth.password', 'Password')}</Label>
+          <Label htmlFor="login-password">{t('auth.password')}</Label>
           <Input
             id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
+            placeholder={t('auth.passwordPlaceholder')}
             required
             disabled={loginMutation.isPending}
           />
@@ -71,10 +72,10 @@ export default function AuthPage() {
           {loginMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('auth.signingIn', 'Signing in...')}
+              {t('auth.signingIn')}
             </>
           ) : (
-            t('auth.signIn', 'Entrar')
+            t('auth.signIn')
           )}
         </Button>
       </form>
@@ -114,48 +115,48 @@ export default function AuthPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="register-firstName">{t('auth.firstName', 'First Name')}</Label>
+            <Label htmlFor="register-firstName">{t('auth.firstName')}</Label>
             <Input
               id="register-firstName"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder={t('auth.firstNamePlaceholder', 'John')}
+              placeholder={t('auth.firstNamePlaceholder')}
               disabled={registerMutation.isPending}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="register-lastName">{t('auth.lastName', 'Last Name')}</Label>
+            <Label htmlFor="register-lastName">{t('auth.lastName')}</Label>
             <Input
               id="register-lastName"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder={t('auth.lastNamePlaceholder', 'Doe')}
+              placeholder={t('auth.lastNamePlaceholder')}
               disabled={registerMutation.isPending}
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-email">{t('common.email', 'Email')}</Label>
+          <Label htmlFor="register-email">{t('common.email')}</Label>
           <Input
             id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('auth.emailPlaceholder', 'john@example.com')}
+            placeholder={t('auth.emailPlaceholder')}
             required
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-company">{t('auth.companyName', 'Company Name')}</Label>
+          <Label htmlFor="register-company">{t('auth.companyName')}</Label>
           <Input
             id="register-company"
             type="text"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            placeholder={t('auth.companyPlaceholder', 'Acme Corporation')}
+            placeholder={t('auth.companyPlaceholder')}
             required
             disabled={registerMutation.isPending}
           />
@@ -239,10 +240,10 @@ export default function AuthPage() {
           {registerMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('auth.creatingAccount', 'Creating account...')}
+              {t('auth.creatingAccount')}
             </>
           ) : (
-            t('auth.createAccount', 'Create Account')
+            t('auth.createAccount')
           )}
         </Button>
       </form>
@@ -272,25 +273,25 @@ export default function AuthPage() {
 
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              {t('auth.welcome', 'Welcome to Conductor')}
+              {t('auth.welcome')}
             </h1>
             <p className="text-slate-600 dark:text-slate-300 mt-2">
-              {t('auth.subtitle', 'Your comprehensive customer support platform')}
+              {t('auth.subtitle')}
             </p>
           </div>
 
           <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{t('auth.getStarted', 'Get Started')}</CardTitle>
+              <CardTitle className="text-2xl">{t('auth.getStarted')}</CardTitle>
               <CardDescription>
-                {t('auth.getStartedDesc', 'Sign in to your account or create a new one')}
+                {t('auth.getStartedDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">{t('auth.signIn', 'Entrar')}</TabsTrigger>
-                  <TabsTrigger value="register">{t('common.register', 'Register')}</TabsTrigger>
+                  <TabsTrigger value="login">{t('auth.signIn')}</TabsTrigger>
+                  <TabsTrigger value="register">{t('common.register')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="space-y-4">
@@ -306,62 +307,64 @@ export default function AuthPage() {
         </div>
 
         {/* Right side - Hero Section */}
-        <div className="hidden lg:block space-y-6">
-          <div className="text-center">
-            <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-              <img
-                src={conductorLogo}
-                alt="Conductor Logo"
-                className="w-28 h-28 object-contain"
-              />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-              {t('auth.heroTitle', 'Streamline Your Support Operations')}
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-600" fill="currentColor">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+        <div className="hidden lg:block">
+          <div className="space-y-8">
+            <div className="text-center">
+              <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+                <img
+                  src={conductorLogo}
+                  alt="Conductor Logo"
+                  className="w-28 h-28 object-contain"
+                />
               </div>
-              <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature1Title', 'Ticket Management')}</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  {t('auth.feature1Desc', 'Create, assign, and track support tickets with ease')}
-                </p>
-              </div>
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+                {t('auth.heroTitle')}
+              </h2>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="m22 21-3-3m0 0-3-3m3 3 3-3m-3 3-3 3"/>
-                </svg>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mt-0.5">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-600" fill="currentColor">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature1Title')}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    {t('auth.feature1Desc')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature2Title', 'Customer Database')}</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  {t('auth.feature2Desc', 'Maintain detailed customer profiles and history')}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor">
-                  <path d="M16 4v12l-4-2-4 2V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2z"/>
-                </svg>
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mt-0.5">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 text-blue-600" fill="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="m22 21-3-3m0 0-3-3m3 3 3-3m-3 3-3 3"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature2Title')}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    {t('auth.feature2Desc')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature3Title', 'Analytics Dashboard')}</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  {t('auth.feature3Desc', 'Monitor performance with detailed insights')}
-                </p>
+
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mt-0.5">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 text-orange-600" fill="currentColor">
+                    <path d="M16 4v12l-4-2-4 2V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature3Title')}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    {t('auth.feature3Desc')}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
