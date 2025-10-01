@@ -7,6 +7,7 @@ import { Ticket } from '../../domain/entities/Ticket';
 import { TicketDomainService } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { CreateTicketDTO } from '../dto/CreateTicketDTO';
+import { ticketNumberGenerator } from '../../../utils/ticketNumberGenerator';
 
 export class CreateTicketUseCase {
   constructor(
@@ -24,10 +25,13 @@ export class CreateTicketUseCase {
       throw new Error('Created by user ID is required');
     }
 
+    // Generate ticket number using configurable generator
+    const ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, dto.companyId || '00000000-0000-0000-0000-000000000001');
+    
     // Preparar dados do ticket
     const ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> = {
       tenantId,
-      number: this.ticketDomainService.generateTicketNumber(),
+      number: ticketNumber,
       subject: dto.subject?.trim() || '',
       description: dto.description?.trim() || '',
       status: dto.status || 'new',
@@ -71,8 +75,8 @@ export class CreateTicketUseCase {
         break;
       }
       
-      // Regenerar número se já existir
-      ticketData.number = this.ticketDomainService.generateTicketNumber();
+      // Regenerar número usando o gerador configurável
+      ticketData.number = await ticketNumberGenerator.generateTicketNumber(tenantId, dto.companyId || '00000000-0000-0000-0000-000000000001');
       attempts++;
     }
 
