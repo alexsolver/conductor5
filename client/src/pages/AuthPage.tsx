@@ -195,10 +195,11 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           >
             <option value="">Selecione o porte</option>
-            <option value="micro">Microempresa (até 9 funcionários)</option>
-            <option value="small">Pequena empresa (10-49 funcionários)</option>
-            <option value="medium">Média empresa (50-499 funcionários)</option>
-            <option value="large">Grande empresa (500+ funcionários)</option>
+            <option value="startup">Startup</option>
+            <option value="small">Pequena</option>
+            <option value="medium">Média</option>
+            <option value="large">Grande</option>
+            <option value="enterprise">Corporação</option>
           </select>
         </div>
         <div className="space-y-2">
