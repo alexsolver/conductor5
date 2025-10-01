@@ -87,6 +87,9 @@ export default function AuthPage() {
     const [lastName, setLastName] = useState("");
     const [companyName, setCompanyName] = useState("");
     const [workspaceName, setWorkspaceName] = useState("");
+    const [website, setWebsite] = useState("");
+    const [phone, setPhone] = useState("");
+    const [companySize, setCompanySize] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -97,6 +100,9 @@ export default function AuthPage() {
         lastName: lastName || undefined,
         companyName: companyName || undefined,
         workspaceName: workspaceName || undefined,
+        website: website || undefined,
+        phone: phone || undefined,
+        companySize: companySize || undefined,
         role: 'tenant_admin' as const // First user becomes tenant admin
       };
 
@@ -152,6 +158,48 @@ export default function AuthPage() {
             required
             disabled={registerMutation.isPending}
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-website">Website (opcional)</Label>
+          <Input
+            id="register-website"
+            type="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="https://www.suaempresa.com"
+            disabled={registerMutation.isPending}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-phone">Telefone</Label>
+          <Input
+            id="register-phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+55 11 99999-9999"
+            required
+            disabled={registerMutation.isPending}
+          />
+          <p className="text-xs text-gray-500">
+            Formato internacional com código do país (ex: +55 11 99999-9999)
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-size">Porte da Empresa (opcional)</Label>
+          <select
+            id="register-size"
+            value={companySize}
+            onChange={(e) => setCompanySize(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
+            disabled={registerMutation.isPending}
+          >
+            <option value="">Selecione o porte</option>
+            <option value="micro">Microempresa (até 9 funcionários)</option>
+            <option value="small">Pequena empresa (10-49 funcionários)</option>
+            <option value="medium">Média empresa (50-499 funcionários)</option>
+            <option value="large">Grande empresa (500+ funcionários)</option>
+          </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="register-workspace">Nome do Workspace</Label>
