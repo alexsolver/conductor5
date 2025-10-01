@@ -15,13 +15,14 @@ export interface AutoProvisioningConfig {
   allowSelfProvisioning: boolean;
   defaultTenantSettings: Record<string, any>;
   autoCreateOnFirstUser: boolean;
-  subdomainGeneration: "random" | "company-based" | "user-based";
+  subdomainGeneration: "random" | "company-based" | "user-based" | "workspace-based";
 }
 
 export interface TenantProvisioningRequest {
   name: string;
   subdomain?: string;
   companyName?: string;
+  workspaceName?: string;
   userEmail?: string;
   settings?: Record<string, any>;
   trigger: "manual" | "registration" | "invitation" | "api";
@@ -41,7 +42,7 @@ class TenantAutoProvisioningService {
         theme: "default",
       },
       autoCreateOnFirstUser: true,
-      subdomainGeneration: "company-based",
+      subdomainGeneration: "workspace-based",
     };
   }
 
@@ -293,13 +294,20 @@ class TenantAutoProvisioningService {
 
     switch (this.config.subdomainGeneration) {
       case "company-based":
+        // Prioriza workspaceName se disponível, senão usa companyName ou name
         baseSubdomain = this.sanitizeSubdomain(
-          request.companyName || request.name,
+          request.workspaceName || request.companyName || request.name,
         );
         break;
       case "user-based":
         baseSubdomain = this.sanitizeSubdomain(
           request.userEmail?.split("@")[0] || request.name,
+        );
+        break;
+      case "workspace-based":
+        // Novo método específico para workspace
+        baseSubdomain = this.sanitizeSubdomain(
+          request.workspaceName || request.name,
         );
         break;
       case "random":

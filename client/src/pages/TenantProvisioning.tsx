@@ -48,7 +48,7 @@ const configSchema = z.object({
   enabled: z.boolean(),
   allowSelfProvisioning: z.boolean(),
   autoCreateOnFirstUser: z.boolean(),
-  subdomainGeneration: z.enum(['random', 'company-based', 'user-based']),
+  subdomainGeneration: z.enum(['random', 'company-based', 'user-based', 'workspace-based']),
   defaultTenantSettings: z.object({
     maxUsers: z.number().min(1),
     maxTickets: z.number().min(1),
@@ -65,7 +65,7 @@ interface ProvisioningConfig {
   enabled: boolean;
   allowSelfProvisioning: boolean;
   autoCreateOnFirstUser: boolean;
-  subdomainGeneration: 'random' | 'company-based' | 'user-based';
+  subdomainGeneration: 'random' | 'company-based' | 'user-based' | 'workspace-based';
   defaultTenantSettings: {
     maxUsers: number;
     maxTickets: number;
@@ -125,7 +125,7 @@ export default function TenantProvisioning() {
       enabled: true,
       allowSelfProvisioning: true,
       autoCreateOnFirstUser: true,
-      subdomainGeneration: 'company-based',
+      subdomainGeneration: 'workspace-based',
       defaultTenantSettings: {
         maxUsers: 50,
         maxTickets: 1000,
@@ -286,6 +286,7 @@ export default function TenantProvisioning() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="workspace-based">Baseado no Workspace</SelectItem>
                             <SelectItem value="company-based">Baseado na Empresa</SelectItem>
                             <SelectItem value="user-based">Baseado no Usuário</SelectItem>
                             <SelectItem value="random">Aleatório</SelectItem>
