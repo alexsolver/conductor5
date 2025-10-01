@@ -161,33 +161,33 @@ export default function AuthPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-website">Website (opcional)</Label>
+          <Label htmlFor="register-website">{t('auth.website')} {t('auth.optional')}</Label>
           <Input
             id="register-website"
             type="url"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
-            placeholder="https://www.suaempresa.com"
+            placeholder={t('auth.websitePlaceholder')}
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-phone">Telefone</Label>
+          <Label htmlFor="register-phone">{t('auth.phone')}</Label>
           <Input
             id="register-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+55 11 99999-9999"
+            placeholder={t('auth.phonePlaceholder')}
             required
             disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
-            Formato internacional com código do país (ex: +55 11 99999-9999)
+            {t('auth.phoneHelper')}
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-size">Porte da Empresa (opcional)</Label>
+          <Label htmlFor="register-size">{t('auth.companySizeOptional')}</Label>
           <select
             id="register-size"
             value={companySize}
@@ -195,37 +195,37 @@ export default function AuthPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
             disabled={registerMutation.isPending}
           >
-            <option value="">Selecione o porte</option>
-            <option value="startup">Startup</option>
-            <option value="small">Pequena</option>
-            <option value="medium">Média</option>
-            <option value="large">Grande</option>
-            <option value="enterprise">Corporação</option>
+            <option value="">{t('auth.companySizePlaceholder')}</option>
+            <option value="startup">{t('auth.startupSize')}</option>
+            <option value="small">{t('auth.smallSize')}</option>
+            <option value="medium">{t('auth.mediumSize')}</option>
+            <option value="large">{t('auth.largeSize')}</option>
+            <option value="enterprise">{t('auth.enterpriseSize')}</option>
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-workspace">Nome do Workspace</Label>
+          <Label htmlFor="register-workspace">{t('auth.workspaceName')}</Label>
           <Input
             id="register-workspace"
             type="text"
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
-            placeholder="acme-support"
+            placeholder={t('auth.workspaceNamePlaceholder')}
             required
             disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
-            Será usado como URL do seu workspace (ex: acme-support.lansolver.com)
+            {t('auth.workspaceHelper')}
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-password">Password</Label>
+          <Label htmlFor="register-password">{t('auth.password')}</Label>
           <Input
             id="register-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 8 characters"
+            placeholder={t('auth.passwordRequirement')}
             required
             minLength={8}
             disabled={registerMutation.isPending}
@@ -254,7 +254,7 @@ export default function AuthPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
-          <span className="text-lg text-slate-600 dark:text-slate-300">Loading...</span>
+          <span className="text-lg text-slate-600 dark:text-slate-300">{t('common.loading')}</span>
         </div>
       </div>
     );
