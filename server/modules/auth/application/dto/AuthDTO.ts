@@ -37,6 +37,19 @@ export interface LoginResponseDTO {
   };
 }
 
+export interface RegisterDTO {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  workspaceName?: string;
+  website?: string;
+  phone?: string;
+  companySize?: string;
+  role?: UserRole;
+}
+
 export interface RefreshTokenDTO {
   refreshToken: string;
 }
@@ -186,3 +199,6 @@ export interface MeResponseDTO {
     };
   };
 }
+
+// Assume UserRole is defined elsewhere, e.g., in a shared types file
+type UserRole = 'admin' | 'user' | 'tenant_admin';
