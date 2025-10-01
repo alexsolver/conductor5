@@ -74,7 +74,7 @@ export default function AuthPage() {
               {t('auth.signingIn', 'Signing in...')}
             </>
           ) : (
-            t('common.login', 'Sign In')
+            t('auth.signIn', 'Entrar')
           )}
         </Button>
       </form>
@@ -269,7 +269,7 @@ export default function AuthPage() {
           <div className="flex justify-end">
             <LanguageSelector variant="compact" className="w-20" />
           </div>
-          
+
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               {t('auth.welcome', 'Welcome to Conductor')}
@@ -289,7 +289,7 @@ export default function AuthPage() {
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">{t('common.login', 'Sign In')}</TabsTrigger>
+                  <TabsTrigger value="login">{t('auth.signIn', 'Entrar')}</TabsTrigger>
                   <TabsTrigger value="register">{t('common.register', 'Register')}</TabsTrigger>
                 </TabsList>
 
