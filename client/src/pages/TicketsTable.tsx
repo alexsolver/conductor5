@@ -875,7 +875,7 @@ const TicketsTable = React.memo(() => {
   // Obter visualização ativa
   const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
   const activeColumns = activeView?.columns || [
-    { id: "number", label: t("tickets.fields.number") || "Número", visible: true, order: 1, width: 120 },
+    { id: "number", label: t("tickets.fields.ticket_number") || "Número", visible: true, order: 1, width: 120 },
     { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: true, order: 2, width: 300 },
     { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: true, order: 3, width: 150 },
     { id: "company", label: t("tickets.fields.company") || "Empresa", visible: true, order: 4, width: 150 },

@@ -3600,7 +3600,7 @@ const TicketDetails = React.memo(() => {
                 {t('tickets.actions.back')}
               </Button>
               <div className="flex flex-col lg:flex-row lg:items-center gap-2">
-                <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
+                <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticket_number || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
               </div>
             </div>
 
