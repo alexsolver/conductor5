@@ -22,12 +22,11 @@ export class TicketHierarchicalService {
   async getCategories(tenantId: string, customerId?: string): Promise<TicketCategory[]> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     
-    // 🎯 [1QA-COMPLIANCE] Selecionar apenas categorias de primeiro nível (sem parent)
+    // 🎯 [1QA-COMPLIANCE] Selecionar apenas categorias ativas
     let query = `
       SELECT * FROM "${schemaName}".ticket_categories 
       WHERE tenant_id = $1 
-      AND is_active = true
-      AND (parent_category_id IS NULL OR parent_category_id = '')
+      AND active = true
     `;
     const params = [tenantId];
 
@@ -49,8 +48,8 @@ export class TicketHierarchicalService {
     
     const query = `
       INSERT INTO "${schemaName}".ticket_categories 
-      (tenant_id, customer_id, name, description, code, color, icon, sort_order, is_active, is_system)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      (tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
       RETURNING *
     `;
 
@@ -59,12 +58,10 @@ export class TicketHierarchicalService {
       categoryData.customerId || null,
       categoryData.name,
       categoryData.description || null,
-      categoryData.code,
       categoryData.color || '#3b82f6',
       categoryData.icon || null,
-      categoryData.sortOrder || 0,
       categoryData.isActive !== false,
-      categoryData.isSystem || false
+      categoryData.sortOrder || 0
     ];
 
     const result = await pool.query(query, params);
@@ -111,7 +108,7 @@ export class TicketHierarchicalService {
     // Soft delete - marca como inativo
     const query = `
       UPDATE "${schemaName}".ticket_categories 
-      SET is_active = false, updated_at = NOW()
+      SET active = false, updated_at = NOW()
       WHERE id = $1 AND tenant_id = $2
     `;
 
@@ -133,7 +130,7 @@ export class TicketHierarchicalService {
       FROM "${schemaName}".ticket_subcategories s
       JOIN "${schemaName}".ticket_categories c ON s.category_id = c.id
       WHERE s.tenant_id = $1 AND s.category_id = $2 
-      AND s.is_active = true
+      AND s.active = true
     `;
     const params = [tenantId, categoryId];
 
@@ -155,7 +152,7 @@ export class TicketHierarchicalService {
     
     const query = `
       INSERT INTO "${schemaName}".ticket_subcategories 
-      (tenant_id, customer_id, category_id, name, description, code, color, icon, sort_order, sla_hours, is_active)
+      (tenant_id, customer_id, category_id, name, description, code, color, icon, sort_order, sla_hours, active)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
@@ -217,7 +214,7 @@ export class TicketHierarchicalService {
     
     const query = `
       UPDATE "${schemaName}".ticket_subcategories 
-      SET is_active = false, updated_at = NOW()
+      SET active = false, updated_at = NOW()
       WHERE id = $1 AND tenant_id = $2
     `;
 
@@ -240,7 +237,7 @@ export class TicketHierarchicalService {
       JOIN "${schemaName}".ticket_subcategories s ON a.subcategory_id = s.id
       JOIN "${schemaName}".ticket_categories c ON s.category_id = c.id
       WHERE a.tenant_id = $1 AND a.subcategory_id = $2 
-      AND a.is_active = true
+      AND a.active = true
     `;
     const params = [tenantId, subcategoryId];
 
@@ -263,7 +260,7 @@ export class TicketHierarchicalService {
     const query = `
       INSERT INTO "${schemaName}".ticket_actions 
       (tenant_id, customer_id, subcategory_id, name, description, code, action_type, 
-       estimated_hours, required_skills, templates, automation_rules, sort_order, is_active)
+       estimated_hours, required_skills, templates, automation_rules, sort_order, active)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `;
@@ -332,7 +329,7 @@ export class TicketHierarchicalService {
     
     const query = `
       UPDATE "${schemaName}".ticket_actions 
-      SET is_active = false, updated_at = NOW()
+      SET active = false, updated_at = NOW()
       WHERE id = $1 AND tenant_id = $2
     `;
 
