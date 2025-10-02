@@ -1211,57 +1211,6 @@ export default function TechnicalSkillsTab() {
                       </Button>
                     </div>
                   </div>
-
-                  <div className="border-t pt-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Membros Atribuídos ({assignedMembers.length})
-                      </span>
-                      {assignedMembers.length > 0 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenAssignMembers(skill)}
-                        >
-                          <Users className="h-4 w-4 mr-1" />
-                          Gerenciar
-                        </Button>
-                      )}
-                    </div>
-
-                    {assignedMembers.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {getMembersWithSkill(skill.id).map((userSkill: UserSkill) => (
-                          <Badge key={userSkill.id} variant="secondary" className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{userSkill.user?.name || 'Usuário'}</span>
-                            {renderUserStars(userSkill.level || 1)}
-                            <button
-                              onClick={() => handleDeleteUserSkill(userSkill.id)}
-                              className="ml-1 hover:text-red-500"
-                            >
-                              ×
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-3">
-                        <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Nenhum membro atribuído ainda
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenAssignMembers(skill)}
-                        >
-                          <UserPlus className="h-4 w-4 mr-1" />
-                          Atribuir Membros
-                        </Button>
-                      </div>
-                    )}
-                  </div>
                 </CardContent>
               </Card>
             );
