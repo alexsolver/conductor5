@@ -431,6 +431,61 @@ router.get('/user-skills', async (req: Request, res: Response) => {
 });
 
 /**
+ * PUT /user-skills/:id
+ */
+router.put('/user-skills/:id', async (req: Request, res: Response) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const { id } = req.params;
+    const { level, notes } = req.body;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    }
+
+    if (!level || level < 1 || level > 5) {
+      return res.status(400).json({ success: false, message: 'Nível deve estar entre 1 e 5' });
+    }
+
+    const schema = getTenantSchema(tenantId);
+    const userSkillsTable = `${schema}.user_skills`;
+
+    // Verifica se o registro existe
+    const checkResult = await db.execute(sql`
+      SELECT id FROM ${sql.raw(userSkillsTable)}
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (getRows(checkResult).length === 0) {
+      return res.status(404).json({ success: false, message: 'Habilidade do usuário não encontrada' });
+    }
+
+    // Atualiza o registro
+    const updateResult = await db.execute(sql`
+      UPDATE ${sql.raw(userSkillsTable)}
+      SET level = ${level},
+          notes = ${notes || null},
+          updated_at = ${new Date()}
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+      RETURNING *
+    `);
+
+    const [updated] = getRows(updateResult);
+
+    res.json({ 
+      success: true, 
+      message: 'Habilidade do usuário atualizada com sucesso',
+      data: updated
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('❌ [UPDATE-USER-SKILL] Error:', error);
+    res.status(500).json({ success: false, message, error });
+  }
+});
+
+/**
  * DELETE /user-skills/:id
  */
 router.delete('/user-skills/:id', async (req: Request, res: Response) => {

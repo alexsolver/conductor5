@@ -149,6 +149,9 @@ export default function TechnicalSkillsTab() {
     certifications: [], // Assuming certifications might be an array of IDs or objects
     yearsOfExperience: 0, // Added for completeness, if it's used elsewhere
   });
+  const [editingUserSkill, setEditingUserSkill] = useState<UserSkill | null>(null);
+  const [editUserSkillLevel, setEditUserSkillLevel] = useState<number>(1);
+  const [editUserSkillNotes, setEditUserSkillNotes] = useState<string>('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -354,6 +357,26 @@ export default function TechnicalSkillsTab() {
     },
   });
 
+  // Update user skill mutation
+  const updateUserSkillMutation = useMutation({
+    mutationFn: ({ id, level, notes }: { id: string; level: number; notes?: string }) =>
+      apiRequest('PUT', `/api/technical-skills/user-skills/${id}`, { level, notes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Nível da habilidade atualizado com sucesso.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Assign members to skill mutation
   const assignMembersToSkillMutation = useMutation({
     mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
@@ -492,15 +515,15 @@ export default function TechnicalSkillsTab() {
 
   const handleAssignMembers = () => {
     if (selectedSkillForAssignment && selectedMembers.length > 0) {
-      console.log('📤 [ASSIGN] Sending data:', { 
-        skillId: selectedSkillForAssignment.id, 
+      console.log('📤 [ASSIGN] Sending data:', {
+        skillId: selectedSkillForAssignment.id,
         memberIds: selectedMembers,
-        levels: memberLevels 
+        levels: memberLevels
       });
-      
+
       // Validate that all selected members have a level assigned
       const allMembersHaveLevels = selectedMembers.every(id => memberLevels[id] !== undefined);
-      
+
       if (!allMembersHaveLevels) {
         toast({
           title: 'Erro',
@@ -509,7 +532,7 @@ export default function TechnicalSkillsTab() {
         });
         return;
       }
-      
+
       assignMembersToSkillMutation.mutate({
         skillId: selectedSkillForAssignment.id,
         memberIds: selectedMembers
@@ -1168,6 +1191,89 @@ export default function TechnicalSkillsTab() {
               disabled={selectedMembers.length === 0 || assignMembersToSkillMutation.isPending}
             >
               {assignMembersToSkillMutation.isPending ? 'Atribuindo...' : `Atribuir ${selectedMembers.length} Membro(s)`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Skill Dialog */}
+      <Dialog open={!!editingUserSkill} onOpenChange={(open) => {
+        if (!open) {
+          setEditingUserSkill(null);
+          setEditUserSkillLevel(1);
+          setEditUserSkillNotes('');
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Nível da Habilidade</DialogTitle>
+            <DialogDescription>
+              Altere o nível de proficiência da habilidade atribuída ao membro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Membro</Label>
+              <Input value={editingUserSkill?.user?.name || ''} disabled />
+            </div>
+            <div>
+              <Label>Habilidade</Label>
+              <Input value={editingUserSkill?.skill?.name || ''} disabled />
+            </div>
+            <div>
+              <Label>Nível (1-5)</Label>
+              <Select
+                value={editUserSkillLevel.toString()}
+                onValueChange={(val) => setEditUserSkillLevel(parseInt(val))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <SelectItem key={level} value={level.toString()}>
+                      Nível {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Observações (opcional)</Label>
+              <Textarea
+                value={editUserSkillNotes}
+                onChange={(e) => setEditUserSkillNotes(e.target.value)}
+                placeholder="Adicione observações sobre esta habilidade"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditingUserSkill(null);
+                setEditUserSkillLevel(1);
+                setEditUserSkillNotes('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (editingUserSkill) {
+                  updateUserSkillMutation.mutate({
+                    id: editingUserSkill.id,
+                    level: editUserSkillLevel,
+                    notes: editUserSkillNotes || undefined,
+                  });
+                  setEditingUserSkill(null);
+                  setEditUserSkillLevel(1);
+                  setEditUserSkillNotes('');
+                }
+              }}
+              disabled={updateUserSkillMutation.isPending}
+            >
+              {updateUserSkillMutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
         </DialogContent>
