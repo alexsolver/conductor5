@@ -417,8 +417,8 @@ export default function TechnicalSkillsTab() {
             // Update existing skill level
             console.log('🔄 [ASSIGN-MEMBERS] Updating existing skill for user:', userId);
             const response = await apiRequest(
-              'PUT', 
-              `/api/technical-skills/user-skills/${existingSkill.id}`, 
+              'PUT',
+              `/api/technical-skills/user-skills/${existingSkill.id}`,
               { level, notes: existingSkill.notes }
             );
             return response.json();
@@ -428,9 +428,9 @@ export default function TechnicalSkillsTab() {
             const response = await apiRequest(
               'POST',
               '/api/technical-skills/user-skills',
-              { 
-                skillId, 
-                userId, 
+              {
+                skillId,
+                userId,
                 level,
                 notes: ''
               }
@@ -1008,8 +1008,12 @@ export default function TechnicalSkillsTab() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => openEditDialog(skill)}
-                        title="Editar Habilidade"
+                        onClick={() => {
+                          console.log('[EDIT-SKILL] Opening edit dialog for skill:', skill);
+                          openEditDialog(skill);
+                        }}
+                        className="h-8 w-8"
+                        data-testid={`button-edit-skill-${skill.id}`}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
