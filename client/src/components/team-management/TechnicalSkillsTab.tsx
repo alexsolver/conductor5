@@ -905,6 +905,180 @@ export default function TechnicalSkillsTab() {
         </Dialog>
       </div>
 
+      {/* Edit Skill Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Habilidade</DialogTitle>
+            <DialogDescription>
+              Atualize os dados da habilidade técnica.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Instalação de fibra óptica" {...field} data-testid="input-edit-skill-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-skill-category">
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {DEFAULT_CATEGORIES.map((category: string) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                        {categories?.filter((category: string) =>
+                          !DEFAULT_CATEGORIES.includes(category)
+                        ).map((category: string) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Editor de Opções da Escala */}
+              <div className="space-y-4">
+                <FormLabel>Opções da Escala</FormLabel>
+                {scaleOptions.map((option, index) => (
+                  <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-1">
+                      <span className="text-sm font-medium">{option.level}</span>
+                    </div>
+                    <div className="col-span-3">
+                      <Input
+                        placeholder="Nome da escala"
+                        value={option.label}
+                        onChange={(e) => {
+                          const newOptions = [...scaleOptions];
+                          newOptions[index].label = e.target.value;
+                          setScaleOptions(newOptions);
+                        }}
+                        data-testid={`input-edit-scale-label-${index}`}
+                      />
+                    </div>
+                    <div className="col-span-8">
+                      <Input
+                        placeholder="Descrição da escala"
+                        value={option.description}
+                        onChange={(e) => {
+                          const newOptions = [...scaleOptions];
+                          newOptions[index].description = e.target.value;
+                          setScaleOptions(newOptions);
+                        }}
+                        data-testid={`input-edit-scale-description-${index}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Descreva a habilidade..." {...field} data-testid="textarea-edit-skill-description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="suggestedCertification"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certificação Sugerida (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: CCNA, ITIL Foundation..." {...field} data-testid="input-edit-skill-certification" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="certificationValidityMonths"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Validade da Certificação (meses)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex: 24, 36..."
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        data-testid="input-edit-certification-validity"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações (Opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Observações adicionais sobre a habilidade..." {...field} data-testid="textarea-edit-skill-observations" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingSkill(null);
+                }} data-testid="button-cancel-edit">
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={updateSkillMutation.isPending} data-testid="button-submit-edit">
+                  {updateSkillMutation.isPending ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
