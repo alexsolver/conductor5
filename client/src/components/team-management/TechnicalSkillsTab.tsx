@@ -1030,6 +1030,8 @@ export default function TechnicalSkillsTab() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteSkill(skill.id)}
+                        title="Excluir Habilidade"
+                        data-testid={`button-delete-skill-${skill.id}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
