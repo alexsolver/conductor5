@@ -56,6 +56,57 @@ export function DynamicSelect(props: DynamicSelectProps) {
         throw new Error('fieldName é obrigatório para buscar opções');
       }
 
+      // 🎯 Para campos hierárquicos, usar rotas específicas
+      if (fieldName === 'category') {
+        console.log('🔍 DynamicSelect: Buscando categorias da hierarquia');
+        const response = await apiRequest("GET", "/api/ticket-hierarchy/categories");
+        const data = await response.json();
+        // Transformar para formato esperado
+        return {
+          success: true,
+          data: data.categories?.map((cat: any) => ({
+            id: cat.id,
+            value: cat.value || cat.name,
+            label: cat.label || cat.name,
+            field_name: 'category',
+            color: cat.color
+          })) || []
+        };
+      }
+
+      if (fieldName === 'subcategory' && dependsOn) {
+        console.log(`🔍 DynamicSelect: Buscando subcategorias para categoria ${dependsOn}`);
+        const response = await apiRequest("GET", `/api/ticket-hierarchy/categories/${dependsOn}/subcategories`);
+        const data = await response.json();
+        return {
+          success: true,
+          data: data.subcategories?.map((sub: any) => ({
+            id: sub.id,
+            value: sub.value || sub.name,
+            label: sub.label || sub.name,
+            field_name: 'subcategory',
+            color: sub.color
+          })) || []
+        };
+      }
+
+      if (fieldName === 'action' && dependsOn) {
+        console.log(`🔍 DynamicSelect: Buscando ações para subcategoria ${dependsOn}`);
+        const response = await apiRequest("GET", `/api/ticket-hierarchy/subcategories/${dependsOn}/actions`);
+        const data = await response.json();
+        return {
+          success: true,
+          data: data.actions?.map((act: any) => ({
+            id: act.id,
+            value: act.value || act.name,
+            label: act.label || act.name,
+            field_name: 'action',
+            color: act.color
+          })) || []
+        };
+      }
+
+      // Para outros campos, usar a rota padrão
       const params: any = { fieldName };
       if (customerId) params.companyId = customerId; // API expects companyId, not customerId
       if (dependsOn) params.dependsOn = dependsOn;
@@ -70,7 +121,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       const response = await apiRequest("GET", `/api/ticket-config/field-options?${new URLSearchParams(params).toString()}`);
       return response.json();
     },
-    enabled: !!fieldName, // Só executa se fieldName existe
+    enabled: !!fieldName && (fieldName !== 'subcategory' || !!dependsOn) && (fieldName !== 'action' || !!dependsOn), // Só executa se tiver dependências quando necessário
     staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente
     cacheTime: 30 * 1000, // 30 segundos
     refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
