@@ -368,16 +368,16 @@ export default function TechnicalSkillsTab() {
     },
     onSuccess: async (data) => {
       console.log('✅ [UPDATE-USER-SKILL] Mutation success, invalidating queries...');
-      
+
       // Invalidate and force refetch immediately
       await queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
       await queryClient.refetchQueries({
         queryKey: ['/api/technical-skills/user-skills'],
         type: 'active'
       });
-      
+
       console.log('✅ [UPDATE-USER-SKILL] Queries invalidated and refetched');
-      
+
       toast({
         title: 'Sucesso',
         description: 'Nível da habilidade atualizado com sucesso.',
@@ -510,17 +510,34 @@ export default function TechnicalSkillsTab() {
     }
   };
 
+  // Handle opening assign members modal
   const handleOpenAssignMembers = (skill: Skill) => {
+    console.log('🔍 [ASSIGN-MEMBERS-OPEN] Opening modal for skill:', skill.id);
     setSelectedSkillForAssignment(skill);
-    setSelectedMembers([]);
-    setMemberLevels({}); // Reset levels when opening the dialog
     setShowAssignMembers(true);
+
+    // Pre-populate selected members and their levels
+    const skillUsers = userSkills?.filter(us => us.skill_id === skill.id) || [];
+    console.log('🔍 [ASSIGN-MEMBERS-OPEN] Found user skills:', skillUsers);
+
+    const memberIds = skillUsers.map(us => us.user_id);
+    const levels: { [key: string]: number } = {};
+
+    skillUsers.forEach(us => {
+      levels[us.user_id] = us.level;
+      console.log('🔍 [ASSIGN-MEMBERS-OPEN] Setting level for user:', us.user_id, 'level:', us.level);
+    });
+
+    console.log('🔍 [ASSIGN-MEMBERS-OPEN] Member levels:', levels);
+    setSelectedMembers(memberIds);
+    setMemberLevels(levels);
   };
 
   const handleMemberSelection = (memberId: string, checked: boolean) => {
     if (checked) {
       setSelectedMembers(prev => [...prev, memberId]);
-      setMemberLevels(prev => ({ ...prev, [memberId]: parseInt('1') })); // Ensure integer
+      // Set default level to 1 if not already set, or keep existing if it's a re-selection
+      setMemberLevels(prev => ({ ...prev, [memberId]: prev[memberId] || 1 }));
     } else {
       setSelectedMembers(prev => prev.filter(id => id !== memberId));
       const newLevels = { ...memberLevels };
@@ -620,16 +637,16 @@ export default function TechnicalSkillsTab() {
         newLevel: editUserSkillLevel,
         notes: editUserSkillNotes
       });
-      
+
       try {
         await updateUserSkillMutation.mutateAsync({
           id: editingUserSkill.id,
           level: editUserSkillLevel,
           notes: editUserSkillNotes || undefined,
         });
-        
+
         console.log('✅ [SAVE-USER-SKILL-EDIT] Update completed, closing modal');
-        
+
         // Reset state and close dialog only after successful update
         setEditingUserSkill(null);
         setEditUserSkillLevel(1);
@@ -1166,15 +1183,7 @@ export default function TechnicalSkillsTab() {
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedMembers([...selectedMembers, member.id]);
-                              setMemberLevels({ ...memberLevels, [member.id]: 1 });
-                            } else {
-                              setSelectedMembers(selectedMembers.filter(id => id !== member.id));
-                              const newLevels = { ...memberLevels };
-                              delete newLevels[member.id];
-                              setMemberLevels(newLevels);
-                            }
+                            handleMemberSelection(member.id, checked as boolean);
                           }}
                         />
                       </TableCell>
@@ -1183,32 +1192,40 @@ export default function TechnicalSkillsTab() {
                       <TableCell>
                         {isSelected ? (
                           <Select
-                            value={currentLevel.toString()}
-                            onValueChange={(value) => {
-                              setMemberLevels({
-                                ...memberLevels,
-                                [member.id]: parseInt(value)
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5].map((level) => (
-                                <SelectItem key={level} value={level.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    <span>Nível {level}</span>
-                                    <div className="flex">
-                                      {Array.from({ length: level }).map((_, i) => (
-                                        <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                      ))}
+                              value={memberLevels[member.id]?.toString() || '1'}
+                              onValueChange={(value) => {
+                                const level = parseInt(value);
+                                console.log('🔄 [LEVEL-CHANGE] Updating level for member:', member.id, 'to:', level);
+                                setMemberLevels(prev => {
+                                  const newLevels = { ...prev, [member.id]: level };
+                                  console.log('🔄 [LEVEL-CHANGE] New levels state:', newLevels);
+                                  return newLevels;
+                                });
+                              }}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue>
+                                  {memberLevels[member.id] ? (
+                                    <div className="flex items-center">
+                                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
+                                      <span>Nível {memberLevels[member.id]}</span>
                                     </div>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                  ) : (
+                                    <span>Selecionar nível</span>
+                                  )}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DEFAULT_SCALE_OPTIONS.map(opt => (
+                                  <SelectItem key={opt.level} value={opt.level.toString()}>
+                                    <div className="flex items-center">
+                                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
+                                      <span>Nível {opt.level} - {opt.label}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
@@ -1294,8 +1311,8 @@ export default function TechnicalSkillsTab() {
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setEditingUserSkill(null);
                 setEditUserSkillLevel(1);
