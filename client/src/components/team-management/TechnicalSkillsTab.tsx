@@ -492,13 +492,13 @@ export default function TechnicalSkillsTab() {
 
   const openEditDialog = (skill: Skill) => {
     console.log('[EDIT-SKILL] Opening edit dialog for skill:', skill);
-    
+
     const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
-    
+
     setEditingSkill(skill);
     setScaleOptions(skillScaleOptions);
     setIsEditDialogOpen(true);
-    
+
     editForm.reset({
       name: skill.name,
       category: skill.category,
@@ -508,7 +508,7 @@ export default function TechnicalSkillsTab() {
       observations: skill.observations || "",
       scaleOptions: skillScaleOptions,
     });
-    
+
     console.log('[EDIT-SKILL] Dialog state set to open');
   };
 
