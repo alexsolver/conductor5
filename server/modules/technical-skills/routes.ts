@@ -264,12 +264,36 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     const { skillId } = req.params;
     const { assignments } = req.body; // Array of { userId, level }
 
+    console.log('📥 [ASSIGN-MEMBERS-API] Received:', { skillId, assignments });
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
     }
 
-    if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
-      return res.status(400).json({ success: false, message: 'Lista de atribuições é obrigatória' });
+    // Validate assignments format
+    if (!Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assignments deve ser um array não vazio'
+      });
+    }
+
+    // Validate each assignment
+    for (const assignment of assignments) {
+      if (!assignment.userId || typeof assignment.userId !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'userId inválido'
+        });
+      }
+
+      const level = parseInt(String(assignment.level));
+      if (isNaN(level) || level < 1 || level > 5) {
+        return res.status(400).json({
+          success: false,
+          message: 'Level deve ser um número entre 1 e 5'
+        });
+      }
     }
 
     const schema = getTenantSchema(tenantId);
@@ -291,17 +315,11 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     let errorCount = 0;
     const results: any[] = [];
 
-    for (const assignment of assignments) {
-      const { userId, level = 1 } = assignment;
+    const resultsPromises = assignments.map(async (assignment: { userId: string; level: number }) => {
+      const { userId, level } = assignment;
+      const levelInt = parseInt(String(level)); // Ensure integer
 
       try {
-        if (!userId || typeof userId !== 'string') {
-          throw new Error('ID de usuário inválido');
-        }
-
-        // Validate level
-        const validLevel = Math.max(1, Math.min(5, parseInt(level.toString()) || 1));
-
         // Verifica se já existe atribuição
         const existing = await db.execute(sql`
           SELECT 1 FROM ${sql.raw(userSkillsTable)}
@@ -310,8 +328,7 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
         `);
 
         if (getRows(existing).length > 0) {
-          results.push({ userId, status: 'skipped', message: 'Já atribuído' });
-          continue;
+          return { userId, status: 'skipped', message: 'Já atribuído' };
         }
 
         const assignmentId = crypto.randomUUID();
@@ -324,22 +341,39 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
             notes, is_active, created_at, updated_at
           )
           VALUES (
-            ${assignmentId}, ${tenantId}, ${userId}, ${skillId}, ${validLevel},
+            ${assignmentId}, ${tenantId}, ${userId}, ${skillId}, ${levelInt},
             NULL, TRUE, ${now}, ${now}
           )
         `);
 
-        results.push({ userId, status: 'success', assignmentId, level: validLevel });
-        successCount++;
+        return { userId, status: 'success', assignmentId, level: levelInt };
       } catch (err) {
-        results.push({
+        return {
           userId,
           status: 'error',
           message: (err as Error).message,
-        });
-        errorCount++;
+        };
       }
-    }
+    });
+
+    const settledResults = await Promise.allSettled(resultsPromises);
+
+    settledResults.forEach(result => {
+      if (result.status === 'fulfilled') {
+        const data = result.value;
+        results.push(data);
+        if (data.status === 'success') {
+          successCount++;
+        } else if (data.status === 'error') {
+          errorCount++;
+        }
+      } else {
+        // Handle rejected promises, though the try-catch within map should prevent this
+        errorCount++;
+        results.push({ status: 'error', message: 'Unexpected error during processing' });
+      }
+    });
+
 
     const statusCode = errorCount === 0 ? 200 : successCount === 0 ? 400 : 207;
 
@@ -349,6 +383,7 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('❌ [ASSIGN-MEMBERS-API] Error:', error);
     res.status(500).json({ success: false, message, error });
   }
 });

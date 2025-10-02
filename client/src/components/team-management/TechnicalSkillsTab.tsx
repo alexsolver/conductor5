@@ -481,7 +481,7 @@ export default function TechnicalSkillsTab() {
   const handleMemberSelection = (memberId: string, checked: boolean) => {
     if (checked) {
       setSelectedMembers(prev => [...prev, memberId]);
-      setMemberLevels(prev => ({ ...prev, [memberId]: 1 })); // Default to level 1
+      setMemberLevels(prev => ({ ...prev, [memberId]: parseInt('1') })); // Ensure integer
     } else {
       setSelectedMembers(prev => prev.filter(id => id !== memberId));
       const newLevels = { ...memberLevels };
@@ -492,6 +492,24 @@ export default function TechnicalSkillsTab() {
 
   const handleAssignMembers = () => {
     if (selectedSkillForAssignment && selectedMembers.length > 0) {
+      console.log('📤 [ASSIGN] Sending data:', { 
+        skillId: selectedSkillForAssignment.id, 
+        memberIds: selectedMembers,
+        levels: memberLevels 
+      });
+      
+      // Validate that all selected members have a level assigned
+      const allMembersHaveLevels = selectedMembers.every(id => memberLevels[id] !== undefined);
+      
+      if (!allMembersHaveLevels) {
+        toast({
+          title: 'Erro',
+          description: 'Todos os membros devem ter um nível atribuído',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       assignMembersToSkillMutation.mutate({
         skillId: selectedSkillForAssignment.id,
         memberIds: selectedMembers
