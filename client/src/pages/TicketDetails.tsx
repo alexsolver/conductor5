@@ -1661,10 +1661,10 @@ const TicketDetails = React.memo(() => {
                                 fieldName="category"
                                 value={field.value || ticket?.category}
                               >
-                                {field.value || ticket?.category}
+                                {getFieldLabel('category', field.value || ticket?.category) || field.value || ticket?.category}
                               </DynamicBadge>
                             ) : (
-                              <span className="text-gray-400 text-sm">Não especificado</span>
+                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
                             )}
                           </div>
                         )}
@@ -1702,7 +1702,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="subcategory"
                                 value={field.value || ticket?.subcategory}
                               >
-                                {field.value || ticket?.subcategory}
+                                {getFieldLabel('subcategory', field.value || ticket?.subcategory) || field.value || ticket?.subcategory}
                               </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
@@ -1739,7 +1739,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="action"
                                 value={field.value || ticket?.action}
                               >
-                                {field.value || ticket?.action}
+                                {getFieldLabel('action', field.value || ticket?.action) || field.value || ticket?.action}
                               </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
