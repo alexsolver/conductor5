@@ -1076,6 +1076,8 @@ interface SlaFormProps {
 }
 
 function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
+  const { toast } = useToast();
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -1194,23 +1196,56 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 size="sm"
                 onClick={() => {
                   const currentTargets = form.getValues('timeTargets') || [];
+                  const usedMetrics = currentTargets.map(t => t.metric);
+                  const availableMetrics = ['response_time', 'resolution_time', 'update_time', 'idle_time']
+                    .filter(m => !usedMetrics.includes(m));
+                  
+                  if (availableMetrics.length === 0) {
+                    toast({
+                      title: "Todas as métricas já foram adicionadas",
+                      description: "Você já criou metas para todos os tipos de tempo disponíveis.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
                   form.setValue('timeTargets', [
                     ...currentTargets,
-                    { metric: 'response_time', target: 30, unit: 'minutes', priority: 'medium' }
+                    { metric: availableMetrics[0], target: 30, unit: 'minutes', priority: 'medium' }
                   ]);
                 }}
+                data-testid="button-add-time-target"
               >
                 Adicionar Meta
               </Button>
             </div>
 
-            {form.watch('timeTargets')?.map((target, index) => (
-              <div key={index} className="flex items-center gap-2 p-3 border rounded">
+            {form.watch('timeTargets')?.map((target: any, index: number) => {
+              const currentTargets = form.getValues('timeTargets') || [];
+              const usedMetrics = currentTargets
+                .map((t: any, i: number) => i !== index ? t.metric : null)
+                .filter(Boolean);
+              
+              return (
+                <div key={index} className="flex items-center gap-2 p-3 border rounded">
                 <div className="flex-1">
                   <Select
                     value={target.metric}
                     onValueChange={(value) => {
                       const targets = form.getValues('timeTargets');
+                      const otherMetrics = targets
+                        .map((t: any, i: number) => i !== index ? t.metric : null)
+                        .filter(Boolean);
+                      
+                      if (otherMetrics.includes(value)) {
+                        toast({
+                          title: "Métrica duplicada",
+                          description: "Esta métrica já está sendo usada em outra meta.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+                      
                       targets[index].metric = value;
                       form.setValue('timeTargets', targets);
                     }}
@@ -1219,10 +1254,10 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                       <SelectValue placeholder="Métrica" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="response_time">Tempo de Resposta</SelectItem>
-                      <SelectItem value="resolution_time">Tempo de Resolução</SelectItem>
-                      <SelectItem value="update_time">Tempo de Atualização</SelectItem>
-                      <SelectItem value="idle_time">Tempo Inativo</SelectItem>
+                      <SelectItem value="response_time" disabled={usedMetrics.includes('response_time')}>Tempo de Resposta</SelectItem>
+                      <SelectItem value="resolution_time" disabled={usedMetrics.includes('resolution_time')}>Tempo de Resolução</SelectItem>
+                      <SelectItem value="update_time" disabled={usedMetrics.includes('update_time')}>Tempo de Atualização</SelectItem>
+                      <SelectItem value="idle_time" disabled={usedMetrics.includes('idle_time')}>Tempo Inativo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
