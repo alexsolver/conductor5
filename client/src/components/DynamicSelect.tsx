@@ -65,7 +65,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         // Transformar para formato esperado - usar name como value e label
         return {
           success: true,
-          data: data.categories?.map((cat: any) => ({
+          data: data.data?.map((cat: any) => ({
             id: cat.id,
             value: cat.name, // Usar name como value
             label: cat.name, // Usar name como label
@@ -82,7 +82,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.log('📊 Subcategories response:', data);
         return {
           success: true,
-          data: data.subcategories?.map((sub: any) => ({
+          data: data.data?.map((sub: any) => ({
             id: sub.id,
             value: sub.name, // Usar name como value
             label: sub.name, // Usar name como label
@@ -99,7 +99,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.log('📊 Actions response:', data);
         return {
           success: true,
-          data: data.actions?.map((act: any) => ({
+          data: data.data?.map((act: any) => ({
             id: act.id,
             value: act.name, // Usar name como value
             label: act.name, // Usar name como label
