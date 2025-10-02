@@ -140,12 +140,14 @@ export default function TechnicalSkillsTab() {
   const [showAssignMembers, setShowAssignMembers] = useState(false);
   const [selectedSkillForAssignment, setSelectedSkillForAssignment] = useState<Skill | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [memberLevels, setMemberLevels] = useState<{ [key: string]: number }>({}); // State to hold levels for selected members
   const [newUserSkill, setNewUserSkill] = useState({
     skillId: '',
     userId: '',
     level: 1, // 👈 int
-    notes: ''
-
+    notes: '',
+    certifications: [], // Assuming certifications might be an array of IDs or objects
+    yearsOfExperience: 0, // Added for completeness, if it's used elsewhere
   });
 
   const { toast } = useToast();
@@ -302,8 +304,8 @@ export default function TechnicalSkillsTab() {
 
   // Create user skill mutation
   const createUserSkillMutation = useMutation({
-    mutationFn: ({ skillId, userId, proficiencyLevel, yearsOfExperience, certifications, notes }: UserSkill) => 
-      apiRequest('POST', '/api/technical-skills/user-skills', { skillId, userId, proficiencyLevel, yearsOfExperience, certifications, notes }),
+    mutationFn: ({ skillId, userId, level, notes, certifications, yearsOfExperience }: UserSkill) => 
+      apiRequest('POST', '/api/technical-skills/user-skills', { skillId, userId, proficiencyLevel: level, yearsOfExperience, certifications, notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
       setShowCreateUserSkill(false);
@@ -313,6 +315,7 @@ export default function TechnicalSkillsTab() {
         level: 1, // 👈 int
         notes: '',
         certifications: [],
+        yearsOfExperience: 0,
       });
       toast({
         title: 'Sucesso',
@@ -354,11 +357,14 @@ export default function TechnicalSkillsTab() {
   // Assign members to skill mutation
   const assignMembersToSkillMutation = useMutation({
     mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
-      console.log('🔄 [ASSIGN-MEMBERS] Starting assignment:', { skillId, memberIds });
-
+      console.log('🔄 [ASSIGN-MEMBERS] Starting assignment:', { skillId, memberIds, levels: memberLevels });
+      const assignments = memberIds.map(id => ({
+        userId: id,
+        level: memberLevels[id] || 1
+      }));
+      
       const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
-        memberIds,
-        defaultLevel: 1
+        assignments
       });
 
       if (!res.ok) {
@@ -387,6 +393,7 @@ export default function TechnicalSkillsTab() {
       setShowAssignMembers(false);
       setSelectedMembers([]);
       setSelectedSkillForAssignment(null);
+      setMemberLevels({}); // Clear levels state
 
       const { successCount, errorCount } = data.data || { successCount: 0, errorCount: 0 };
 
@@ -465,14 +472,19 @@ export default function TechnicalSkillsTab() {
   const handleOpenAssignMembers = (skill: Skill) => {
     setSelectedSkillForAssignment(skill);
     setSelectedMembers([]);
+    setMemberLevels({}); // Reset levels when opening the dialog
     setShowAssignMembers(true);
   };
 
   const handleMemberSelection = (memberId: string, checked: boolean) => {
     if (checked) {
       setSelectedMembers(prev => [...prev, memberId]);
+      setMemberLevels(prev => ({ ...prev, [memberId]: 1 })); // Default to level 1
     } else {
       setSelectedMembers(prev => prev.filter(id => id !== memberId));
+      const newLevels = { ...memberLevels };
+      delete newLevels[memberId];
+      setMemberLevels(newLevels);
     }
   };
 
@@ -867,7 +879,7 @@ export default function TechnicalSkillsTab() {
                               ({userSkill.level === 1 ? 'Iniciante' :
                                 userSkill.level === 2 ? 'Intermediário' :
                                 userSkill.level === 3 ? 'Avançado' :
-                                'Especialista'})
+                                userSkill.level === 4 ? 'Especialista' : 'Excelência'})
                             </span>
                           </Badge>
                         ))}
@@ -967,6 +979,7 @@ export default function TechnicalSkillsTab() {
                     <SelectItem value="2">Intermediário</SelectItem>
                     <SelectItem value="3">Avançado</SelectItem>
                     <SelectItem value="4">Especialista</SelectItem>
+                    <SelectItem value="5">Excelência</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1010,80 +1023,120 @@ export default function TechnicalSkillsTab() {
 
       {/* Assign Members to Skill Dialog */}
       <Dialog open={showAssignMembers} onOpenChange={setShowAssignMembers}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Atribuir Membros à Habilidade</DialogTitle>
             <DialogDescription>
-              Selecione os membros da equipe para atribuir à habilidade "{selectedSkillForAssignment?.name}".
+              Selecione os membros e defina o nível de proficiência (1-5) para a habilidade: {selectedSkillForAssignment?.name}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <div className="mb-4">
-              <h4 className="text-sm font-medium mb-2">Membros já atribuídos:</h4>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedSkillForAssignment && getMembersWithSkill(selectedSkillForAssignment.id).map((userSkill: UserSkill) => (
-                  <Badge key={userSkill.id} variant="secondary">
-                    {userSkill.user.name}
-                    <span className="ml-1 text-xs">({userSkill.proficiencyLevel === 'beginner' ? 'Iniciante' :
-                      userSkill.proficiencyLevel === 'intermediate' ? 'Intermediário' :
-                      userSkill.proficiencyLevel === 'advanced' ? 'Avançado' : 'Especialista'})</span>
-                  </Badge>
-                ))}
-                {selectedSkillForAssignment && getMembersWithSkill(selectedSkillForAssignment.id).length === 0 && (
-                  <span className="text-sm text-muted-foreground">Nenhum membro atribuído ainda</span>
-                )}
-              </div>
-            </div>
+          <div className="space-y-4">
+            {/* Level Scale Reference */}
+            <Card className="bg-muted/50">
+              <CardContent className="pt-4">
+                <div className="text-sm space-y-1">
+                  <div className="font-semibold mb-2">Escala de Níveis:</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div><span className="font-medium">Nível 1:</span> Básico - Conhecimento introdutório, precisa de supervisão</div>
+                    <div><span className="font-medium">Nível 2:</span> Intermediário - Executa tarefas com alguma autonomia</div>
+                    <div><span className="font-medium">Nível 3:</span> Avançado - Executa com autonomia, lida com situações variadas</div>
+                    <div><span className="font-medium">Nível 4:</span> Especialista - Referência técnica interna, resolve problemas críticos</div>
+                    <div><span className="font-medium">Nível 5:</span> Excelência - Comprovada por resultados e avaliações de clientes</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div>
-              <h4 className="text-sm font-medium mb-2">Selecionar novos membros:</h4>
-              <div className="max-h-60 overflow-y-auto border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">Selecionar</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Função</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Membro</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="w-32">Nível</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {teamMembers.map((member: TeamMember) => {
+                  const isSelected = selectedMembers.includes(member.id);
+                  const currentLevel = memberLevels[member.id] || 1;
+
+                  return (
+                    <TableRow key={member.id} className={isSelected ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedMembers([...selectedMembers, member.id]);
+                              setMemberLevels({ ...memberLevels, [member.id]: 1 });
+                            } else {
+                              setSelectedMembers(selectedMembers.filter(id => id !== member.id));
+                              const newLevels = { ...memberLevels };
+                              delete newLevels[member.id];
+                              setMemberLevels(newLevels);
+                            }
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{member.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{member.email}</TableCell>
+                      <TableCell>
+                        {isSelected ? (
+                          <Select
+                            value={currentLevel.toString()}
+                            onValueChange={(value) => {
+                              setMemberLevels({
+                                ...memberLevels,
+                                [member.id]: parseInt(value)
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map((level) => (
+                                <SelectItem key={level} value={level.toString()}>
+                                  <div className="flex items-center gap-2">
+                                    <span>Nível {level}</span>
+                                    <div className="flex">
+                                      {Array.from({ length: level }).map((_, i) => (
+                                        <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedSkillForAssignment && getAvailableMembers(selectedSkillForAssignment.id).map((member: TeamMember) => (
-                      <TableRow key={member.id}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedMembers.includes(member.id)}
-                            onCheckedChange={(checked) => handleMemberSelection(member.id, checked as boolean)}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{member.name}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{member.role}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {selectedSkillForAssignment && getAvailableMembers(selectedSkillForAssignment.id).length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          Todos os membros já foram atribuídos a esta habilidade
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAssignMembers(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAssignMembers(false);
+                setSelectedMembers([]);
+                setSelectedSkillForAssignment(null);
+                setMemberLevels({});
+              }}
+            >
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleAssignMembers}
-              disabled={assignMembersToSkillMutation.isPending || selectedMembers.length === 0}
+              disabled={selectedMembers.length === 0 || assignMembersToSkillMutation.isPending}
             >
               {assignMembersToSkillMutation.isPending ? 'Atribuindo...' : `Atribuir ${selectedMembers.length} Membro(s)`}
             </Button>

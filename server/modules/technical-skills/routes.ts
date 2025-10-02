@@ -262,10 +262,14 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
   try {
     const tenantId = (req as any).user?.tenantId;
     const { skillId } = req.params;
-    const { memberIds, defaultLevel = 1 } = req.body; // 👈 troquei proficiencyLevel -> level
+    const { assignments } = req.body; // Array of { userId, level }
 
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    }
+
+    if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({ success: false, message: 'Lista de atribuições é obrigatória' });
     }
 
     const schema = getTenantSchema(tenantId);
@@ -287,44 +291,49 @@ router.post('/skills/:skillId/assign-members', async (req: Request, res: Respons
     let errorCount = 0;
     const results: any[] = [];
 
-    for (const memberId of memberIds) {
+    for (const assignment of assignments) {
+      const { userId, level = 1 } = assignment;
+
       try {
-        if (!memberId || typeof memberId !== 'string') {
-          throw new Error('ID de membro inválido');
+        if (!userId || typeof userId !== 'string') {
+          throw new Error('ID de usuário inválido');
         }
+
+        // Validate level
+        const validLevel = Math.max(1, Math.min(5, parseInt(level.toString()) || 1));
 
         // Verifica se já existe atribuição
         const existing = await db.execute(sql`
           SELECT 1 FROM ${sql.raw(userSkillsTable)}
-          WHERE user_id = ${memberId} AND skill_id = ${skillId} AND tenant_id = ${tenantId}
+          WHERE user_id = ${userId} AND skill_id = ${skillId} AND tenant_id = ${tenantId}
           LIMIT 1
         `);
 
         if (getRows(existing).length > 0) {
-          results.push({ memberId, status: 'skipped', message: 'Já atribuído' });
+          results.push({ userId, status: 'skipped', message: 'Já atribuído' });
           continue;
         }
 
         const assignmentId = crypto.randomUUID();
         const now = new Date();
 
-        // Faz o insert com colunas reais
+        // Faz o insert com nível individual
         await db.execute(sql`
           INSERT INTO ${sql.raw(userSkillsTable)} (
             id, tenant_id, user_id, skill_id, level,
             notes, is_active, created_at, updated_at
           )
           VALUES (
-            ${assignmentId}, ${tenantId}, ${memberId}, ${skillId}, ${defaultLevel},
+            ${assignmentId}, ${tenantId}, ${userId}, ${skillId}, ${validLevel},
             NULL, TRUE, ${now}, ${now}
           )
         `);
 
-        results.push({ memberId, status: 'success', assignmentId });
+        results.push({ userId, status: 'success', assignmentId, level: validLevel });
         successCount++;
       } catch (err) {
         results.push({
-          memberId,
+          userId,
           status: 'error',
           message: (err as Error).message,
         });
