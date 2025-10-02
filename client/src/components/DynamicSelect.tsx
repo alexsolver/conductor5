@@ -78,15 +78,10 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
   useEffect(() => {
     if (fieldOptionsData && Array.isArray(fieldOptionsData.data)) {
-      // Filtrar pelos dados específicos do campo se não for hierárquico
-      let filteredOptions = fieldOptionsData.data;
-
-      // Para campos não-hierárquicos (status, priority, impact, urgency), filtrar pelo field_name
-      if (!['category', 'subcategory', 'action'].includes(fieldName) && fieldName) {
-        filteredOptions = fieldOptionsData.data.filter((option: any) => 
-          option.field_name === fieldName
-        );
-      }
+      // CRÍTICO: SEMPRE filtrar pelo field_name para garantir que apenas as opções corretas sejam exibidas
+      let filteredOptions = fieldOptionsData.data.filter((option: any) => 
+        option.field_name === fieldName
+      );
 
       console.log(`🔍 DynamicSelect ${fieldName}:`, {
         fieldName,
