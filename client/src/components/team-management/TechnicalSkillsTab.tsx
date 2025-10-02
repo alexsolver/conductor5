@@ -417,8 +417,8 @@ export default function TechnicalSkillsTab() {
             // Update existing skill level
             console.log('🔄 [ASSIGN-MEMBERS] Updating existing skill for user:', userId);
             const response = await apiRequest(
-              'PUT', 
-              `/api/technical-skills/user-skills/${existingSkill.id}`, 
+              'PUT',
+              `/api/technical-skills/user-skills/${existingSkill.id}`,
               { level, notes: existingSkill.notes }
             );
             return response.json();
@@ -428,9 +428,9 @@ export default function TechnicalSkillsTab() {
             const response = await apiRequest(
               'POST',
               '/api/technical-skills/user-skills',
-              { 
-                skillId, 
-                userId, 
+              {
+                skillId,
+                userId,
                 level,
                 notes: ''
               }
@@ -708,6 +708,15 @@ export default function TechnicalSkillsTab() {
         variant: 'destructive',
       });
     }
+  };
+
+
+  const handleEditUserSkill = (userSkill: UserSkill) => {
+    console.log('🔧 [EDIT-USER-SKILL] Opening edit dialog:', userSkill);
+    setEditingUserSkill(userSkill);
+    setEditUserSkillLevel(userSkill.level);
+    setEditUserSkillNotes(userSkill.notes || '');
+    // Dialog will be shown by conditional rendering
   };
 
   return (
@@ -1321,47 +1330,55 @@ export default function TechnicalSkillsTab() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Nível da Habilidade</DialogTitle>
+            <DialogTitle>Editar Nível de Habilidade</DialogTitle>
             <DialogDescription>
-              Altere o nível de proficiência da habilidade atribuída ao membro.
+              Atualize o nível de proficiência para {editingUserSkill?.user?.name || 'este usuário'}
             </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4">
             <div>
-              <Label>Membro</Label>
-              <Input value={editingUserSkill?.user?.name || ''} disabled />
-            </div>
-            <div>
               <Label>Habilidade</Label>
-              <Input value={editingUserSkill?.skill?.name || ''} disabled />
+              <Input
+                value={editingUserSkill?.skill?.name || ''}
+                disabled
+                className="bg-gray-50"
+              />
             </div>
+
             <div>
-              <Label>Nível (1-5)</Label>
+              <Label>Nível de Proficiência (1-5)</Label>
               <Select
-                value={editUserSkillLevel.toString()}
-                onValueChange={(val) => setEditUserSkillLevel(parseInt(val))}
+                value={String(editUserSkillLevel)}
+                onValueChange={(value) => setEditUserSkillLevel(parseInt(value))}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <SelectItem key={level} value={level.toString()}>
-                      Nível {level}
+                  {[1, 2, 3, 4, 5].map(level => (
+                    <SelectItem key={level} value={String(level)}>
+                      Nível {level} - {DEFAULT_SCALE_OPTIONS[level - 1]?.label || ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-sm text-gray-500 mt-1">
+                {DEFAULT_SCALE_OPTIONS[editUserSkillLevel - 1]?.description || ''}
+              </p>
             </div>
+
             <div>
               <Label>Observações (opcional)</Label>
               <Textarea
                 value={editUserSkillNotes}
                 onChange={(e) => setEditUserSkillNotes(e.target.value)}
-                placeholder="Adicione observações sobre esta habilidade"
+                placeholder="Adicione observações sobre esta habilidade..."
+                rows={3}
               />
             </div>
           </div>
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -1375,7 +1392,7 @@ export default function TechnicalSkillsTab() {
               Cancelar
             </Button>
             <Button
-              onClick={handleUpdateUserSkillLevel} // Changed to call the correct handler
+              onClick={handleUpdateUserSkillLevel}
               disabled={updateUserSkillMutation.isPending}
             >
               {updateUserSkillMutation.isPending ? 'Salvando...' : 'Salvar'}
