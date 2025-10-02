@@ -495,20 +495,15 @@ export default function TechnicalSkillsTab() {
     setEditingSkill(skill);
     const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
     setScaleOptions(skillScaleOptions);
-    
-    // Reset form with skill data
-    setTimeout(() => {
-      editForm.reset({
-        name: skill.name,
-        category: skill.category,
-        suggestedCertification: skill.suggestedCertification || "",
-        certificationValidityMonths: skill.certificationValidityMonths || undefined,
-        description: skill.description || "",
-        observations: skill.observations || "",
-        scaleOptions: skillScaleOptions,
-      });
-    }, 0);
-    
+    editForm.reset({
+      name: skill.name,
+      category: skill.category,
+      suggestedCertification: skill.suggestedCertification || "",
+      certificationValidityMonths: skill.certificationValidityMonths || undefined,
+      description: skill.description || "",
+      observations: skill.observations || "",
+      scaleOptions: skillScaleOptions,
+    });
     setIsEditDialogOpen(true);
   };
 
