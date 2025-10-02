@@ -508,7 +508,7 @@ export default function TechnicalSkillsTab() {
 
     setScaleOptions(skillScaleOptions);
     setEditingSkill(skill);
-
+    
     // Use setTimeout to ensure state is updated before opening dialog
     setTimeout(() => {
       setIsEditDialogOpen(true);
@@ -560,7 +560,7 @@ export default function TechnicalSkillsTab() {
   const handleMemberSelection = (memberId: string, checked: boolean) => {
     if (checked) {
       setSelectedMembers(prev => [...prev, memberId]);
-      // Set default level to 1 if not already set, or keep existing if it's re-selection
+      // Set default level to 1 if not already set, or keep existing if it's a re-selection
       setMemberLevels(prev => ({ ...prev, [memberId]: prev[memberId] || 1 }));
     } else {
       setSelectedMembers(prev => prev.filter(id => id !== memberId));
@@ -1476,25 +1476,6 @@ export default function TechnicalSkillsTab() {
                 })}
               </TableBody>
             </Table>
-
-            {selectedMembers.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {selectedMembers.map((memberId) => {
-                  const member = teamMembers.find(m => m.id === memberId);
-                  return member ? (
-                    <Badge key={member.id} variant="secondary" className="flex items-center gap-1">
-                      {member.name}
-                      <button
-                        onClick={() => handleMemberSelection(member.id, false)}
-                        className="hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-0.5"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ) : null;
-                })}
-              </div>
-            )}
           </div>
 
           <DialogFooter>
