@@ -1164,9 +1164,10 @@
   "Query testada! Verifique o console para detalhes.": "Consulta probada! Verifique la consola para más detalles.",
   "\\n\\n--- Mensagem Original ---\\nDe: ${email": "\\n\\n--- Mensagem Original ---\\nDe: ${email - ES",
   "\\n\\n--- Mensagem Original ---\\nDe: ${email.from}\\nData: ${new Date(email": "from}\\nData: ${new Date(email - ES",
-  "compliance": "Cumplimiento",
-  "compliance.view": "cumplimiento.ver",
-  "compliance.manage": "cumplimiento.gestionar",
+  "compliance": {
+    "view": "Ver cumplimiento",
+    "manage": "Gestionar cumplimiento"
+  },
   "locations.saveLocation": "ubicaciones.guardarUbicación",
   "approvals": "approvals - ES",
   "approvals.title": "aprobaciones.título",
@@ -1274,11 +1275,12 @@
   "imap.gmail": "imap.gmail",
   "smtp": "smtp - ES",
   "smtp.gmail": "smtp.gmail",
-  "pagination": "pagination - ES",
-  "pagination.page": "paginación.página",
-  "pagination.of": "paginación.de",
-  "pagination.previous": "paginación.anterior",
-  "pagination.next": "paginación.siguiente",
+  "pagination": {
+    "page": "Página",
+    "of": "de",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
   "ticket": "ticket - ES",
   "ticket.created": "ticket.creado",
   "ticket.assigned": "ticket.asignado",
@@ -1318,13 +1320,12 @@
   "timecards.id": "tarjetas_de_tiempo.id",
   "time_entries": "time_entries - ES",
   "time_entries.timecardId": "entradas_de_tiempo.tarjetaDeTiempoId",
-  "messages": "messages - ES",
-  "messages.channelId": "mensajes.canalId",
-  "messages.conversationId": "mensajes.conversaciónId",
-  "messages.success": "mensajes.éxito",
-  "messages.error": "mensajes.error",
-  "messages.warning": "mensajes.advertencia",
-  "messages.info": "mensajes.información",
+  "messages": {
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información"
+  },
   "channels": "channels - ES",
   "channels.id": "canales.id",
   "conversations": "conversations - ES",
@@ -1356,29 +1357,35 @@
   "translation": "translation - ES",
   "translation.backup": "traducción.respaldo",
   "translation.json": "traducción.json",
-  "workspace": "workspace - ES",
-  "workspace.manage": "espacioDeTrabajo.gestionar",
-  "workspace.configure": "espacioDeTrabajo.configurar",
-  "workspace.security": "espacioDeTrabajo.seguridad",
-  "workspace.integrations": "espacioDeTrabajo.integraciones",
-  "user": "user - ES",
-  "user.create": "usuario.crear",
-  "user.edit": "usuario.editar",
-  "user.delete": "usuario.eliminar",
-  "user.view": "usuario.ver",
-  "groups": "groups - ES",
-  "groups.manage": "grupos.gestionar",
-  "sessions": "sessions - ES",
-  "sessions.monitor": "sesiones.monitorear",
-  "hr": "hr - ES",
-  "hr.view": "rrhh.ver",
-  "hr.performance": "rrhh.rendimiento",
-  "hr.skills": "rrhh.habilidades",
-  "hr.absence": "rrhh.ausencia",
-  "timecard": "timecard - ES",
-  "timecard.view": "tarjetaTiempo.ver",
-  "timecard.manage": "tarjetaTiempo.gestionar",
-  "timecard.approve": "tarjetaTiempo.aprobar",
+  "workspace": {
+    "manage": "Gestionar espacio de trabajo",
+    "configure": "Configurar espacio de trabajo",
+    "security": "Seguridad del espacio de trabajo",
+    "integrations": "Integraciones del espacio de trabajo"
+  },
+  "user": {
+    "create": "Crear usuario",
+    "edit": "Editar usuario",
+    "delete": "Eliminar usuario",
+    "view": "Ver usuario"
+  },
+  "groups": {
+    "manage": "Gestionar grupos"
+  },
+  "sessions": {
+    "monitor": "Monitorear sesiones"
+  },
+  "hr": {
+    "view": "Ver RRHH",
+    "performance": "Rendimiento RRHH",
+    "skills": "Habilidades RRHH",
+    "absence": "Ausencias RRHH"
+  },
+  "timecard": {
+    "view": "Ver tarjeta de tiempo",
+    "manage": "Gestionar tarjeta de tiempo",
+    "approve": "Aprobar tarjeta de tiempo"
+  },
   "UNIFIED_SCHEMA_ARCHITECTURE": "UNIFIED_SCHEMA_ARCHITECTURE - ES",
   "UNIFIED_SCHEMA_ARCHITECTURE.md": "ARQUITECTURA_DE_ESQUEMA_UNIFICADO.md",
   "schema-master": "schema-master - ES",
