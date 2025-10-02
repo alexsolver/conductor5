@@ -194,7 +194,7 @@ export default function TechnicalSkillsTab() {
   });
 
   // Fetch user skills
-  const { data: userSkills, isLoading: userSkillsLoading } = useQuery<UserSkill[]>({
+  const { data: userSkillsResponse, isLoading: userSkillsLoading } = useQuery({
     queryKey: ['/api/technical-skills/user-skills'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/technical-skills/user-skills');
@@ -203,6 +203,13 @@ export default function TechnicalSkillsTab() {
       return json;
     },
   });
+
+  // Extract the actual array from the response
+  const userSkills = Array.isArray(userSkillsResponse) 
+    ? userSkillsResponse 
+    : (userSkillsResponse?.data && Array.isArray(userSkillsResponse.data) 
+        ? userSkillsResponse.data 
+        : []);
 
   // Fetch team members
   const { data: teamMembersResponse } = useQuery({
@@ -575,15 +582,7 @@ export default function TechnicalSkillsTab() {
 
   // Get members already assigned to a skill
   const getMembersWithSkill = (skillId: string) => {
-    if (!userSkills) return [];
-    if (!Array.isArray(userSkills)) {
-      // Handle case where userSkills has a data property
-      if (userSkills?.success === false) return [];
-      if (userSkills?.data && Array.isArray(userSkills.data)) {
-        return userSkills.data.filter((us: UserSkill) => us.skill_id === skillId);
-      }
-      return [];
-    }
+    if (!userSkills || !Array.isArray(userSkills)) return [];
     return userSkills.filter((us: UserSkill) => us.skill_id === skillId);
 };
 
