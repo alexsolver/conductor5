@@ -576,8 +576,15 @@ export default function TechnicalSkillsTab() {
   // Get members already assigned to a skill
   const getMembersWithSkill = (skillId: string) => {
     if (!userSkills) return [];
-    if(userSkills?.success === false) return [];
-    return userSkills.data.filter((us: UserSkill) => us.skill_id === skillId);
+    if (!Array.isArray(userSkills)) {
+      // Handle case where userSkills has a data property
+      if (userSkills?.success === false) return [];
+      if (userSkills?.data && Array.isArray(userSkills.data)) {
+        return userSkills.data.filter((us: UserSkill) => us.skill_id === skillId);
+      }
+      return [];
+    }
+    return userSkills.filter((us: UserSkill) => us.skill_id === skillId);
 };
 
   // Get available members for assignment (not already assigned to the skill)
