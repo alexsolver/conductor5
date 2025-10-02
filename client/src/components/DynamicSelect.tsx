@@ -61,13 +61,14 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.log('🔍 DynamicSelect: Buscando categorias da hierarquia');
         const response = await apiRequest("GET", "/api/ticket-hierarchy/categories");
         const data = await response.json();
-        // Transformar para formato esperado
+        console.log('📊 Categories response:', data);
+        // Transformar para formato esperado - usar name como value e label
         return {
           success: true,
           data: data.categories?.map((cat: any) => ({
             id: cat.id,
-            value: cat.value || cat.name,
-            label: cat.label || cat.name,
+            value: cat.name, // Usar name como value
+            label: cat.name, // Usar name como label
             field_name: 'category',
             color: cat.color
           })) || []
@@ -78,12 +79,13 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.log(`🔍 DynamicSelect: Buscando subcategorias para categoria ${dependsOn}`);
         const response = await apiRequest("GET", `/api/ticket-hierarchy/categories/${dependsOn}/subcategories`);
         const data = await response.json();
+        console.log('📊 Subcategories response:', data);
         return {
           success: true,
           data: data.subcategories?.map((sub: any) => ({
             id: sub.id,
-            value: sub.value || sub.name,
-            label: sub.label || sub.name,
+            value: sub.name, // Usar name como value
+            label: sub.name, // Usar name como label
             field_name: 'subcategory',
             color: sub.color
           })) || []
@@ -94,12 +96,13 @@ export function DynamicSelect(props: DynamicSelectProps) {
         console.log(`🔍 DynamicSelect: Buscando ações para subcategoria ${dependsOn}`);
         const response = await apiRequest("GET", `/api/ticket-hierarchy/subcategories/${dependsOn}/actions`);
         const data = await response.json();
+        console.log('📊 Actions response:', data);
         return {
           success: true,
           data: data.actions?.map((act: any) => ({
             id: act.id,
-            value: act.value || act.name,
-            label: act.label || act.name,
+            value: act.name, // Usar name como value
+            label: act.name, // Usar name como label
             field_name: 'action',
             color: act.color
           })) || []
