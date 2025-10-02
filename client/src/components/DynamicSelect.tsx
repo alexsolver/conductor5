@@ -58,17 +58,21 @@ export function DynamicSelect(props: DynamicSelectProps) {
 
       // 🎯 Para campos hierárquicos, usar rotas específicas
       if (fieldName === 'category') {
-        console.log('🔍 DynamicSelect: Buscando categorias da hierarquia');
-        const response = await apiRequest("GET", "/api/ticket-hierarchy/categories");
+        console.log('🔍 DynamicSelect: Buscando categorias da hierarquia', { customerId });
+        // Passar customerId como query parameter se disponível
+        const url = customerId 
+          ? `/api/ticket-hierarchy/categories?customerId=${customerId}`
+          : "/api/ticket-hierarchy/categories";
+        const response = await apiRequest("GET", url);
         const data = await response.json();
         console.log('📊 Categories response:', data);
-        // Transformar para formato esperado - usar name como value e label
+        // Transformar para formato esperado - usar ID como value (UUID para queries) e name como label
         return {
           success: true,
           data: data.data?.map((cat: any) => ({
             id: cat.id,
-            value: cat.name, // Usar name como value
-            label: cat.name, // Usar name como label
+            value: cat.id, // ✅ CRÍTICO: Usar ID (UUID) como value para queries hierárquicas
+            label: cat.name, // Exibir nome ao usuário
             field_name: 'category',
             color: cat.color
           })) || []
@@ -84,8 +88,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           success: true,
           data: data.data?.map((sub: any) => ({
             id: sub.id,
-            value: sub.name, // Usar name como value
-            label: sub.name, // Usar name como label
+            value: sub.id, // ✅ CRÍTICO: Usar ID (UUID) como value para queries hierárquicas
+            label: sub.name, // Exibir nome ao usuário
             field_name: 'subcategory',
             color: sub.color
           })) || []
@@ -101,8 +105,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           success: true,
           data: data.data?.map((act: any) => ({
             id: act.id,
-            value: act.name, // Usar name como value
-            label: act.name, // Usar name como label
+            value: act.id, // ✅ CRÍTICO: Usar ID (UUID) como value para queries hierárquicas
+            label: act.name, // Exibir nome ao usuário
             field_name: 'action',
             color: act.color
           })) || []
