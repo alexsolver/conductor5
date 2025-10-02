@@ -1196,7 +1196,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                 size="sm"
                 onClick={() => {
                   const currentTargets = form.getValues('timeTargets') || [];
-                  const usedMetrics = currentTargets.map(t => t.metric);
+                  const usedMetrics = currentTargets.map((t: any) => t.metric);
                   const availableMetrics = ['response_time', 'resolution_time', 'update_time', 'idle_time']
                     .filter(m => !usedMetrics.includes(m));
                   
@@ -1228,86 +1228,86 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
               
               return (
                 <div key={index} className="flex items-center gap-2 p-3 border rounded">
-                <div className="flex-1">
-                  <Select
-                    value={target.metric}
-                    onValueChange={(value) => {
+                  <div className="flex-1">
+                    <Select
+                      value={target.metric}
+                      onValueChange={(value) => {
+                        const targets = form.getValues('timeTargets');
+                        const otherMetrics = targets
+                          .map((t: any, i: number) => i !== index ? t.metric : null)
+                          .filter(Boolean);
+                        
+                        if (otherMetrics.includes(value)) {
+                          toast({
+                            title: "Métrica duplicada",
+                            description: "Esta métrica já está sendo usada em outra meta.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                        
+                        targets[index].metric = value;
+                        form.setValue('timeTargets', targets);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Métrica" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="response_time" disabled={usedMetrics.includes('response_time')}>Tempo de Resposta</SelectItem>
+                        <SelectItem value="resolution_time" disabled={usedMetrics.includes('resolution_time')}>Tempo de Resolução</SelectItem>
+                        <SelectItem value="update_time" disabled={usedMetrics.includes('update_time')}>Tempo de Atualização</SelectItem>
+                        <SelectItem value="idle_time" disabled={usedMetrics.includes('idle_time')}>Tempo Inativo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-20">
+                    <Input
+                      type="number"
+                      value={target.target}
+                      onChange={(e) => {
+                        const targets = form.getValues('timeTargets');
+                        targets[index].target = parseInt(e.target.value) || 0;
+                        form.setValue('timeTargets', targets);
+                      }}
+                      placeholder="Valor"
+                    />
+                  </div>
+
+                  <div className="w-24">
+                    <Select
+                      value={target.unit}
+                      onValueChange={(value) => {
+                        const targets = form.getValues('timeTargets');
+                        targets[index].unit = value as 'minutes' | 'hours' | 'days';
+                        form.setValue('timeTargets', targets);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="minutes">Minutos</SelectItem>
+                        <SelectItem value="hours">Horas</SelectItem>
+                        <SelectItem value="days">Dias</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
                       const targets = form.getValues('timeTargets');
-                      const otherMetrics = targets
-                        .map((t: any, i: number) => i !== index ? t.metric : null)
-                        .filter(Boolean);
-                      
-                      if (otherMetrics.includes(value)) {
-                        toast({
-                          title: "Métrica duplicada",
-                          description: "Esta métrica já está sendo usada em outra meta.",
-                          variant: "destructive"
-                        });
-                        return;
-                      }
-                      
-                      targets[index].metric = value;
+                      targets.splice(index, 1);
                       form.setValue('timeTargets', targets);
                     }}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Métrica" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="response_time" disabled={usedMetrics.includes('response_time')}>Tempo de Resposta</SelectItem>
-                      <SelectItem value="resolution_time" disabled={usedMetrics.includes('resolution_time')}>Tempo de Resolução</SelectItem>
-                      <SelectItem value="update_time" disabled={usedMetrics.includes('update_time')}>Tempo de Atualização</SelectItem>
-                      <SelectItem value="idle_time" disabled={usedMetrics.includes('idle_time')}>Tempo Inativo</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Remover
+                  </Button>
                 </div>
-
-                <div className="w-20">
-                  <Input
-                    type="number"
-                    value={target.target}
-                    onChange={(e) => {
-                      const targets = form.getValues('timeTargets');
-                      targets[index].target = parseInt(e.target.value) || 0;
-                      form.setValue('timeTargets', targets);
-                    }}
-                    placeholder="Valor"
-                  />
-                </div>
-
-                <div className="w-24">
-                  <Select
-                    value={target.unit}
-                    onValueChange={(value) => {
-                      const targets = form.getValues('timeTargets');
-                      targets[index].unit = value as 'minutes' | 'hours' | 'days';
-                      form.setValue('timeTargets', targets);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minutes">Minutos</SelectItem>
-                      <SelectItem value="hours">Horas</SelectItem>
-                      <SelectItem value="days">Dias</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const targets = form.getValues('timeTargets');
-                    targets.splice(index, 1);
-                    form.setValue('timeTargets', targets);
-                  }}
-                >
-                  Remover
-                </Button>
-              </div>
             ))}
           </div>
         </div>
