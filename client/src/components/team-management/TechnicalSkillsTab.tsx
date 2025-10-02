@@ -1171,45 +1171,43 @@ export default function TechnicalSkillsTab() {
             return (
               <Card key={skill.id}>
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold">{skill.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {skill.description || 'Sem descrição'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{skill.category}</Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenAssignMembers(skill)}
-                        title="Atribuir Membros"
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          console.log('[EDIT-SKILL] Opening edit dialog for skill:', skill);
-                          openEditDialog(skill);
-                        }}
-                        className="h-8 w-8"
-                        data-testid={`button-edit-skill-${skill.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteSkill(skill.id)}
-                        title="Excluir Habilidade"
-                        data-testid={`button-delete-skill-${skill.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-lg">{skill.name}</h3>
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {assignedMembers.length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenAssignMembers(skill)}
+                      title="Atribuir Membros"
+                      data-testid={`button-assign-skill-${skill.id}`}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log('[EDIT-SKILL] Opening edit dialog for skill:', skill);
+                        openEditDialog(skill);
+                      }}
+                      data-testid={`button-edit-skill-${skill.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteSkill(skill.id)}
+                      title="Excluir Habilidade"
+                      data-testid={`button-delete-skill-${skill.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
