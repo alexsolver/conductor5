@@ -3454,8 +3454,6 @@ const TicketDetails = React.memo(() => {
 
           {/* Responsável Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">RESPONSÁVEL</h3>
-
             {/* Grupo de Atribuição */}
             <div className="mb-4">
               <div className="space-y-2">
