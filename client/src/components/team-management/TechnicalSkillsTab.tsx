@@ -437,6 +437,7 @@ export default function TechnicalSkillsTab() {
   };
 
   const openEditDialog = (skill: Skill) => {
+    console.log('[EDIT-SKILL] Opening edit dialog for skill:', skill);
     setEditingSkill(skill);
     const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
     setScaleOptions(skillScaleOptions);
@@ -852,6 +853,7 @@ export default function TechnicalSkillsTab() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditDialog(skill)}
+                        title="Editar Habilidade"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
