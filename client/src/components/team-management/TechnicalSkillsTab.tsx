@@ -359,9 +359,16 @@ export default function TechnicalSkillsTab() {
 
   // Update user skill mutation
   const updateUserSkillMutation = useMutation({
-    mutationFn: ({ id, level, notes }: { id: string; level: number; notes?: string }) =>
-      apiRequest('PUT', `/api/technical-skills/user-skills/${id}`, { level, notes }),
-    onSuccess: async () => {
+    mutationFn: async ({ id, level, notes }: { id: string; level: number; notes?: string }) => {
+      console.log('🔄 [UPDATE-USER-SKILL] Sending update request:', { id, level, notes });
+      const response = await apiRequest('PUT', `/api/technical-skills/user-skills/${id}`, { level, notes });
+      const data = await response.json();
+      console.log('✅ [UPDATE-USER-SKILL] Response received:', data);
+      return data;
+    },
+    onSuccess: async (data) => {
+      console.log('✅ [UPDATE-USER-SKILL] Mutation success, invalidating queries...');
+      
       // Invalidate and force refetch immediately
       await queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
       await queryClient.refetchQueries({
@@ -369,12 +376,15 @@ export default function TechnicalSkillsTab() {
         type: 'active'
       });
       
+      console.log('✅ [UPDATE-USER-SKILL] Queries invalidated and refetched');
+      
       toast({
         title: 'Sucesso',
         description: 'Nível da habilidade atualizado com sucesso.',
       });
     },
     onError: (error) => {
+      console.error('❌ [UPDATE-USER-SKILL] Mutation error:', error);
       toast({
         title: 'Erro',
         description: error.message,
@@ -604,6 +614,13 @@ export default function TechnicalSkillsTab() {
   // Handler for saving edits in the User Skill Edit Dialog
   const handleSaveUserSkillEdit = async () => {
     if (editingUserSkill) {
+      console.log('💾 [SAVE-USER-SKILL-EDIT] Saving changes:', {
+        id: editingUserSkill.id,
+        oldLevel: editingUserSkill.level,
+        newLevel: editUserSkillLevel,
+        notes: editUserSkillNotes
+      });
+      
       try {
         await updateUserSkillMutation.mutateAsync({
           id: editingUserSkill.id,
@@ -611,13 +628,15 @@ export default function TechnicalSkillsTab() {
           notes: editUserSkillNotes || undefined,
         });
         
+        console.log('✅ [SAVE-USER-SKILL-EDIT] Update completed, closing modal');
+        
         // Reset state and close dialog only after successful update
         setEditingUserSkill(null);
         setEditUserSkillLevel(1);
         setEditUserSkillNotes('');
       } catch (error) {
         // Error is already handled in the mutation's onError
-        console.error('Error updating user skill:', error);
+        console.error('❌ [SAVE-USER-SKILL-EDIT] Error updating user skill:', error);
       }
     }
   };

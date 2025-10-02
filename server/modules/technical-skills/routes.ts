@@ -473,6 +473,12 @@ router.put('/user-skills/:id', async (req: Request, res: Response) => {
 
     const [updated] = getRows(updateResult);
 
+    console.log('✅ [UPDATE-USER-SKILL] Successfully updated:', {
+      id,
+      level,
+      updated
+    });
+
     res.json({ 
       success: true, 
       message: 'Habilidade do usuário atualizada com sucesso',
