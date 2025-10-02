@@ -1308,7 +1308,8 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
                     Remover
                   </Button>
                 </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
