@@ -31,10 +31,12 @@ export class TicketHierarchicalService {
     const params = [tenantId];
 
     if (customerId) {
-      query += ` AND (customer_id = $2 OR customer_id IS NULL)`;
+      // Filtrar por company_id: mostrar categorias da empresa específica + categorias globais
+      query += ` AND (company_id = $2 OR company_id = '00000000-0000-0000-0000-000000000001')`;
       params.push(customerId);
     } else {
-      query += ` AND customer_id IS NULL`;
+      // Sem filtro: mostrar apenas categorias globais
+      query += ` AND company_id = '00000000-0000-0000-0000-000000000001'`;
     }
 
     query += ` ORDER BY sort_order ASC, name ASC`;
@@ -135,10 +137,10 @@ export class TicketHierarchicalService {
     const params = [tenantId, categoryId];
 
     if (customerId) {
-      query += ` AND (s.customer_id = $3 OR s.customer_id IS NULL)`;
+      query += ` AND (s.company_id = $3 OR s.company_id = '00000000-0000-0000-0000-000000000001')`;
       params.push(customerId);
     } else {
-      query += ` AND s.customer_id IS NULL`;
+      query += ` AND s.company_id = '00000000-0000-0000-0000-000000000001'`;
     }
 
     query += ` ORDER BY s.sort_order ASC, s.name ASC`;
@@ -242,10 +244,10 @@ export class TicketHierarchicalService {
     const params = [tenantId, subcategoryId];
 
     if (customerId) {
-      query += ` AND (a.customer_id = $3 OR a.customer_id IS NULL)`;
+      query += ` AND (a.company_id = $3 OR a.company_id = '00000000-0000-0000-0000-000000000001')`;
       params.push(customerId);
     } else {
-      query += ` AND a.customer_id IS NULL`;
+      query += ` AND a.company_id = '00000000-0000-0000-0000-000000000001'`;
     }
 
     query += ` ORDER BY a.sort_order ASC, a.name ASC`;
