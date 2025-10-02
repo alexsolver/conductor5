@@ -117,7 +117,7 @@ export const useFieldColors = (companyId?: string) => {
     if (!fieldOptions?.data || !value) return value;
 
     const option = fieldOptions.data.find(opt => 
-      (opt.value === value || opt.id === value || opt.name === value)
+      opt.field_name === fieldName && (opt.value === value || opt.id === value || opt.name === value)
     );
 
     let label = option?.label || option?.display_value || option?.name || value;
