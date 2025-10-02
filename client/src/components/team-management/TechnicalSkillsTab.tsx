@@ -495,10 +495,7 @@ export default function TechnicalSkillsTab() {
 
     const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
 
-    setEditingSkill(skill);
-    setScaleOptions(skillScaleOptions);
-    setIsEditDialogOpen(true);
-
+    // Reset form first, then set state
     editForm.reset({
       name: skill.name,
       category: skill.category,
@@ -509,7 +506,14 @@ export default function TechnicalSkillsTab() {
       scaleOptions: skillScaleOptions,
     });
 
-    console.log('[EDIT-SKILL] Dialog state set to open');
+    setScaleOptions(skillScaleOptions);
+    setEditingSkill(skill);
+    
+    // Use setTimeout to ensure state is updated before opening dialog
+    setTimeout(() => {
+      setIsEditDialogOpen(true);
+      console.log('[EDIT-SKILL] Dialog state set to open');
+    }, 0);
   };
 
   const handleDeleteSkill = (skillId: string) => {
