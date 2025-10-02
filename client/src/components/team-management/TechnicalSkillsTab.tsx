@@ -373,7 +373,7 @@ export default function TechnicalSkillsTab() {
       console.log('✅ [UPDATE-USER-SKILL] Response received:', data);
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       console.log('✅ [UPDATE-USER-SKILL] Mutation success, invalidating queries...');
 
       // Invalidate and force refetch immediately
@@ -402,63 +402,71 @@ export default function TechnicalSkillsTab() {
 
   // Assign members to skill mutation
   const assignMembersToSkillMutation = useMutation({
-    mutationFn: async ({ skillId, memberIds }: { skillId: string; memberIds: string[] }) => {
-      console.log('🔄 [ASSIGN-MEMBERS] Starting assignment:', { skillId, memberIds, levels: memberLevels });
-      const assignments = memberIds.map(id => ({
-        userId: id,
-        level: memberLevels[id] || 1
-      }));
+    mutationFn: async ({ skillId, assignments }: { skillId: string; assignments: Array<{ userId: string; level: number }> }) => {
+      console.log('📤 [ASSIGN-MEMBERS] Sending request:', { skillId, assignments });
 
-      const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`,
-       {
-        assignments
-      });
+      // For each assignment, check if it's an update or create
+      const results = await Promise.all(
+        assignments.map(async ({ userId, level }) => {
+          // Check if user already has this skill
+          const existingSkill = userSkills.find(
+            (us: UserSkill) => us.user_id === userId && us.skill_id === skillId
+          );
 
-      if (!res.ok) {
-        const errorData = await res.text();
-        console.error('❌ [ASSIGN-MEMBERS] API Error:', errorData);
-        throw new Error('Erro ao atribuir membros à habilidade');
-      }
+          if (existingSkill) {
+            // Update existing skill level
+            console.log('🔄 [ASSIGN-MEMBERS] Updating existing skill for user:', userId);
+            const response = await apiRequest(
+              'PUT', 
+              `/api/technical-skills/user-skills/${existingSkill.id}`, 
+              { level, notes: existingSkill.notes }
+            );
+            return response.json();
+          } else {
+            // Create new skill assignment
+            console.log('➕ [ASSIGN-MEMBERS] Creating new skill assignment for user:', userId);
+            const response = await apiRequest(
+              'POST',
+              '/api/technical-skills/user-skills',
+              { 
+                skillId, 
+                userId, 
+                level,
+                notes: ''
+              }
+            );
+            return response.json();
+          }
+        })
+      );
 
-      const result = await res.json();
-      console.log('✅ [ASSIGN-MEMBERS] API Response:', result);
-      return result;
+      console.log('📥 [ASSIGN-MEMBERS] Response:', results);
+      return { success: true, results };
     },
-    onSuccess: (data) => {
-      console.log('✅ [ASSIGN-MEMBERS] Mutation success:', data);
+    onSuccess: async () => {
+      console.log('✅ [ASSIGN-MEMBERS] Assignment successful, invalidating queries...');
 
-      // Force refetch all related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/skills'] });
-
-      // Force immediate refetch
-      queryClient.refetchQueries({
+      // Invalidate and force refetch
+      await queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+      await queryClient.refetchQueries({
         queryKey: ['/api/technical-skills/user-skills'],
         type: 'active'
       });
 
+      console.log('✅ [ASSIGN-MEMBERS] Queries invalidated and refetched');
+
       setShowAssignMembers(false);
-      setSelectedMembers([]);
       setSelectedSkillForAssignment(null);
-      setMemberLevels({}); // Clear levels state
+      setSelectedMembers([]);
+      setMemberLevels({});
 
-      const { successCount, errorCount } = data.data || { successCount: 0, errorCount: 0 };
-
-      if (errorCount > 0) {
-        toast({
-          title: 'Atribuição Parcial',
-          description: `${successCount} membro(s) atribuído(s) com sucesso. ${errorCount} erro(s) encontrado(s).`,
-          variant: 'default',
-        });
-      } else {
-        toast({
-          title: 'Sucesso',
-          description: `${successCount} membro(s) atribuído(s) à habilidade com sucesso.`,
-        });
-      }
+      toast({
+        title: 'Sucesso',
+        description: 'Membros atribuídos à habilidade com sucesso.',
+      });
     },
     onError: (error) => {
-      console.error('❌ [ASSIGN-MEMBERS] Mutation error:', error);
+      console.error('❌ [ASSIGN-MEMBERS] Assignment error:', error);
       toast({
         title: 'Erro',
         description: error.message,
@@ -555,10 +563,14 @@ export default function TechnicalSkillsTab() {
 
   const handleAssignMembers = () => {
     if (selectedSkillForAssignment && selectedMembers.length > 0) {
+      const assignments = selectedMembers.map(id => ({
+        userId: id,
+        level: memberLevels[id] || 1,
+      }));
+
       console.log('📤 [ASSIGN] Sending data:', {
         skillId: selectedSkillForAssignment.id,
-        memberIds: selectedMembers,
-        levels: memberLevels
+        assignments: assignments,
       });
 
       // Validate that all selected members have a level assigned
@@ -567,7 +579,7 @@ export default function TechnicalSkillsTab() {
       if (!allMembersHaveLevels) {
         toast({
           title: 'Erro',
-          description: 'Todos os membros devem ter um nível atribuído',
+          description: 'Todos os membros selecionados devem ter um nível atribuído',
           variant: 'destructive',
         });
         return;
@@ -575,7 +587,7 @@ export default function TechnicalSkillsTab() {
 
       assignMembersToSkillMutation.mutate({
         skillId: selectedSkillForAssignment.id,
-        memberIds: selectedMembers
+        assignments: assignments
       });
     }
   };

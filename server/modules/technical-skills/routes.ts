@@ -256,6 +256,67 @@ router.get('/user-skills/user/:userId', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /user-skills - Create single user skill
+ */
+router.post('/user-skills', async (req: Request, res: Response) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const { skillId, userId, level, notes } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    }
+
+    if (!skillId || !userId || !level) {
+      return res.status(400).json({
+        success: false,
+        message: 'skillId, userId e level são obrigatórios'
+      });
+    }
+
+    const schema = getTenantSchema(tenantId);
+    const userSkillsTable = `${schema}.user_skills`;
+
+    // Check if already exists
+    const existing = await db.execute(sql`
+      SELECT 1 FROM ${sql.raw(userSkillsTable)}
+      WHERE user_id = ${userId} AND skill_id = ${skillId} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (getRows(existing).length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'Usuário já possui esta habilidade atribuída'
+      });
+    }
+
+    const userSkillId = crypto.randomUUID();
+    const now = new Date();
+
+    await db.execute(sql`
+      INSERT INTO ${sql.raw(userSkillsTable)} (
+        id, tenant_id, user_id, skill_id, level,
+        notes, is_active, created_at, updated_at
+      )
+      VALUES (
+        ${userSkillId}, ${tenantId}, ${userId}, ${skillId}, ${level},
+        ${notes || null}, TRUE, ${now}, ${now}
+      )
+    `);
+
+    res.status(201).json({
+      success: true,
+      data: { id: userSkillId, userId, skillId, level }
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('❌ [CREATE-USER-SKILL] Error:', error);
+    res.status(500).json({ success: false, message, error });
+  }
+});
+
+/**
  * POST /skills/:skillId/assign-members
  */
 router.post('/skills/:skillId/assign-members', async (req: Request, res: Response) => {
