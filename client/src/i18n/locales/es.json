@@ -1005,18 +1005,20 @@
     "reset_password": "restablecer contraseña",
     "welcome_back": "bienvenido de nuevo"
   },
-  "errors": "errors - ES",
-  "errors.generic": "Error genérico",
-  "errors.network": "errores.red",
-  "errors.unauthorized": "errores.no_autorizado",
-  "errors.not_found": "errores.no_encontrado",
-  "errors.validation": "errores.validación",
-  "errors.general": "errores.general",
-  "success": "success - ES",
-  "success.saved": "Guardado con éxito",
-  "success.created": "éxito.creado",
-  "success.updated": "éxito.actualizado",
-  "success.deleted": "éxito.borrado",
+  "errors": {
+    "generic": "Error genérico",
+    "network": "Error de red",
+    "unauthorized": "No autorizado",
+    "not_found": "No encontrado",
+    "validation": "Error de validación",
+    "general": "Error general"
+  },
+  "success": {
+    "saved": "Guardado con éxito",
+    "created": "Creado con éxito",
+    "updated": "Actualizado con éxito",
+    "deleted": "Eliminado con éxito"
+  },
   "userManagement": "userManagement - ES",
   "userManagement.error": "error",
   "userManagement.deleteActions": "userManagement.accionesDeEliminación",

@@ -942,18 +942,20 @@
     "optional": "(optionnel)",
     "required": "(obligatoire)"
   },
-  "errors": "errors - FR",
-  "errors.generic": "Erreur générique",
-  "errors.network": "erreurs.réseau",
-  "errors.unauthorized": "erreurs.non_autorisé",
-  "errors.not_found": "erreurs.non_trouvé",
-  "errors.validation": "erreurs.validation",
-  "errors.general": "erreurs générales",
-  "success": "success - FR",
-  "success.saved": "Enregistré avec succès",
-  "success.created": "succès.créé",
-  "success.updated": "succès.mis_à_jour",
-  "success.deleted": "succès.supprimé",
+  "errors": {
+    "generic": "Erreur générique",
+    "network": "Erreur réseau",
+    "unauthorized": "Non autorisé",
+    "not_found": "Non trouvé",
+    "validation": "Erreur de validation",
+    "general": "Erreur générale"
+  },
+  "success": {
+    "saved": "Enregistré avec succès",
+    "created": "Créé avec succès",
+    "updated": "Mis à jour avec succès",
+    "deleted": "Supprimé avec succès"
+  },
   "userManagement": "userManagement - FR",
   "userManagement.error": "Erreur",
   "userManagement.deleteActions": "Actions de suppression",
