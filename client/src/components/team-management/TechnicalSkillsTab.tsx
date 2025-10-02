@@ -504,7 +504,12 @@ export default function TechnicalSkillsTab() {
       observations: skill.observations || "",
       scaleOptions: skillScaleOptions,
     });
-    setIsEditDialogOpen(true);
+    
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      setIsEditDialogOpen(true);
+      console.log('[EDIT-SKILL] Dialog opened');
+    }, 0);
   };
 
   const handleDeleteSkill = (skillId: string) => {
