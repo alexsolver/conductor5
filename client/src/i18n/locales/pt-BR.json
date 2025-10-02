@@ -1418,30 +1418,30 @@
     "json": "en.json"
   },
   "forms": {
-    "name": "forms.name",
-    "email": "forms.email",
-    "description": "forms.description",
-    "status": "forms.status",
-    "priority": "forms.priority",
-    "category": "forms.category",
-    "assignedTo": "forms.assignedTo",
-    "createdAt": "forms.createdAt",
-    "updatedAt": "forms.updatedAt"
+    "name": "Nome",
+    "email": "E-mail",
+    "description": "Descrição",
+    "status": "Status",
+    "priority": "Prioridade",
+    "category": "Categoria",
+    "assigned_to": "Atribuído para",
+    "created_at": "Criado em",
+    "updated_at": "Atualizado em"
   },
   "modals": {
-    "confirm": "modals.confirm",
-    "confirmDelete": "modals.confirmDelete"
+    "confirm": "Confirmar",
+    "confirm_delete": "Confirmar Exclusão"
   },
   "placeholders": {
-    "searchHere": "placeholders.searchHere",
-    "selectOption": "placeholders.selectOption",
-    "enterText": "placeholders.enterText"
+    "search_here": "Pesquisar aqui",
+    "select_option": "Selecionar Opção",
+    "enter_text": "Inserir Texto"
   },
   "buttons": {
-    "submit": "buttons.submit",
-    "close": "buttons.close",
-    "add": "buttons.add",
-    "remove": "buttons.remove"
+    "submit": "Enviar",
+    "close": "Fechar",
+    "add": "Adicionar",
+    "remove": "Remover"
   },
   "i18n": {
     "t": "i18n.t"

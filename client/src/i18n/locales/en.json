@@ -1544,30 +1544,30 @@
     "json": "en.json"
   },
   "forms": {
-    "name": "forms.name",
-    "email": "forms.email",
-    "description": "forms.description",
-    "status": "forms.status",
-    "priority": "forms.priority",
-    "category": "forms.category",
-    "assignedTo": "forms.assignedTo",
-    "createdAt": "forms.createdAt",
-    "updatedAt": "forms.updatedAt"
+    "name": "Name",
+    "email": "Email",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "category": "Category",
+    "assigned_to": "Assigned To",
+    "created_at": "Created At",
+    "updated_at": "Updated At"
   },
   "modals": {
-    "confirm": "modals.confirm",
-    "confirmDelete": "modals.confirmDelete"
+    "confirm": "Confirm",
+    "confirm_delete": "Confirm Deletion"
   },
   "placeholders": {
-    "searchHere": "placeholders.searchHere",
-    "selectOption": "placeholders.selectOption",
-    "enterText": "placeholders.enterText"
+    "search_here": "Search here",
+    "select_option": "Select Option",
+    "enter_text": "Enter Text"
   },
   "buttons": {
-    "submit": "buttons.submit",
-    "close": "buttons.close",
-    "add": "buttons.add",
-    "remove": "buttons.remove"
+    "submit": "Submit",
+    "close": "Close",
+    "add": "Add",
+    "remove": "Remove"
   },
   "i18n": {
     "t": "i18n.t"
