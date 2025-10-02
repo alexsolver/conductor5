@@ -146,7 +146,7 @@ export default function TechnicalSkillsTab() {
     userId: '',
     level: 1, // 👈 int
     notes: '',
-    certifications: [], // Assuming certifications might be an array of IDs or objects
+    certifications: [], // Assuming certifications might be an array of objects
     yearsOfExperience: 0, // Added for completeness, if it's used elsewhere
   });
   const [editingUserSkill, setEditingUserSkill] = useState<UserSkill | null>(null);
@@ -594,6 +594,21 @@ export default function TechnicalSkillsTab() {
   console.log('[TECHNICAL-SKILLS-TAB] Filtered Skills:', filteredSkills);
   console.log('[TECHNICAL-SKILLS-TAB] Search Term:', searchTerm);
   console.log('[TECHNICAL-SKILLS-TAB] Selected Category:', selectedCategory);
+
+  // Handler for saving edits in the User Skill Edit Dialog
+  const handleSaveUserSkillEdit = () => {
+    if (editingUserSkill) {
+      updateUserSkillMutation.mutate({
+        id: editingUserSkill.id,
+        level: editUserSkillLevel,
+        notes: editUserSkillNotes || undefined,
+      });
+      // Reset state and close dialog
+      setEditingUserSkill(null);
+      setEditUserSkillLevel(1);
+      setEditUserSkillNotes('');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1248,29 +1263,19 @@ export default function TechnicalSkillsTab() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
+            <Button 
+              variant="outline" 
               onClick={() => {
                 setEditingUserSkill(null);
                 setEditUserSkillLevel(1);
                 setEditUserSkillNotes('');
               }}
+              disabled={updateUserSkillMutation.isPending}
             >
               Cancelar
             </Button>
             <Button
-              onClick={() => {
-                if (editingUserSkill) {
-                  updateUserSkillMutation.mutate({
-                    id: editingUserSkill.id,
-                    level: editUserSkillLevel,
-                    notes: editUserSkillNotes || undefined,
-                  });
-                  setEditingUserSkill(null);
-                  setEditUserSkillLevel(1);
-                  setEditUserSkillNotes('');
-                }
-              }}
+              onClick={handleSaveUserSkillEdit}
               disabled={updateUserSkillMutation.isPending}
             >
               {updateUserSkillMutation.isPending ? 'Salvando...' : 'Salvar'}
