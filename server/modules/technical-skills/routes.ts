@@ -431,6 +431,46 @@ router.get('/user-skills', async (req: Request, res: Response) => {
 });
 
 /**
+ * DELETE /user-skills/:id
+ */
+router.delete('/user-skills/:id', async (req: Request, res: Response) => {
+  try {
+    const tenantId = (req as any).user?.tenantId;
+    const { id } = req.params;
+    
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
+    }
+
+    const schema = getTenantSchema(tenantId);
+    const userSkillsTable = `${schema}.user_skills`;
+
+    // Verifica se o registro existe
+    const checkResult = await db.execute(sql`
+      SELECT id FROM ${sql.raw(userSkillsTable)}
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (getRows(checkResult).length === 0) {
+      return res.status(404).json({ success: false, message: 'Habilidade do usuário não encontrada' });
+    }
+
+    // Remove o registro
+    await db.execute(sql`
+      DELETE FROM ${sql.raw(userSkillsTable)}
+      WHERE id = ${id} AND tenant_id = ${tenantId}
+    `);
+
+    res.json({ success: true, message: 'Habilidade do usuário removida com sucesso' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error('❌ [DELETE-USER-SKILL] Error:', error);
+    res.status(500).json({ success: false, message, error });
+  }
+});
+
+/**
  * GET /certifications/expired
  */
 router.get('/certifications/expired', async (_req: Request, res: Response) => {
