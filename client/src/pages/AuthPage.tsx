@@ -41,25 +41,25 @@ export default function AuthPage() {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="login-email">{t('common.email')}</Label>
+          <Label htmlFor="login-email">E-mail</Label>
           <Input
             id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('auth.emailPlaceholder')}
+            placeholder="Digite seu e-mail"
             required
             disabled={loginMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="login-password">{t('auth.password')}</Label>
+          <Label htmlFor="login-password">Senha</Label>
           <Input
             id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('auth.passwordPlaceholder')}
+            placeholder="Digite sua senha"
             required
             disabled={loginMutation.isPending}
           />
@@ -72,10 +72,10 @@ export default function AuthPage() {
           {loginMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('auth.signingIn')}
+              Entrando...
             </>
           ) : (
-            t('auth.signIn')
+            'Entrar'
           )}
         </Button>
       </form>
@@ -115,80 +115,80 @@ export default function AuthPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="register-firstName">{t('auth.firstName')}</Label>
+            <Label htmlFor="register-firstName">Primeiro Nome</Label>
             <Input
               id="register-firstName"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder={t('auth.firstNamePlaceholder')}
+              placeholder="João"
               disabled={registerMutation.isPending}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="register-lastName">{t('auth.lastName')}</Label>
+            <Label htmlFor="register-lastName">Sobrenome</Label>
             <Input
               id="register-lastName"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder={t('auth.lastNamePlaceholder')}
+              placeholder="Silva"
               disabled={registerMutation.isPending}
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-email">{t('common.email')}</Label>
+          <Label htmlFor="register-email">E-mail</Label>
           <Input
             id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t('auth.emailPlaceholder')}
+            placeholder="Digite seu e-mail"
             required
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-company">{t('auth.companyName')}</Label>
+          <Label htmlFor="register-company">Nome da Empresa</Label>
           <Input
             id="register-company"
             type="text"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            placeholder={t('auth.companyPlaceholder')}
+            placeholder="Acme Corporation"
             required
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-website">{t('auth.website')} {t('auth.optional')}</Label>
+          <Label htmlFor="register-website">Website (opcional)</Label>
           <Input
             id="register-website"
             type="url"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
-            placeholder={t('auth.websitePlaceholder')}
+            placeholder="https://www.suaempresa.com"
             disabled={registerMutation.isPending}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-phone">{t('auth.phone')}</Label>
+          <Label htmlFor="register-phone">Telefone</Label>
           <Input
             id="register-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder={t('auth.phonePlaceholder')}
+            placeholder="+55 11 99999-9999"
             required
             disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
-            {t('auth.phoneHelper')}
+            Formato internacional com código do país (ex: +55 11 99999-9999)
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-size">{t('auth.companySizeOptional')}</Label>
+          <Label htmlFor="register-size">Porte da Empresa (opcional)</Label>
           <select
             id="register-size"
             value={companySize}
@@ -196,37 +196,37 @@ export default function AuthPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
             disabled={registerMutation.isPending}
           >
-            <option value="">{t('auth.companySizePlaceholder')}</option>
-            <option value="startup">{t('auth.startupSize')}</option>
-            <option value="small">{t('auth.smallSize')}</option>
-            <option value="medium">{t('auth.mediumSize')}</option>
-            <option value="large">{t('auth.largeSize')}</option>
-            <option value="enterprise">{t('auth.enterpriseSize')}</option>
+            <option value="">Selecione o porte</option>
+            <option value="startup">Startup</option>
+            <option value="small">Pequena</option>
+            <option value="medium">Média</option>
+            <option value="large">Grande</option>
+            <option value="enterprise">Corporação</option>
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-workspace">{t('auth.workspaceName')}</Label>
+          <Label htmlFor="register-workspace">Nome do Workspace</Label>
           <Input
             id="register-workspace"
             type="text"
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
-            placeholder={t('auth.workspaceNamePlaceholder')}
+            placeholder="acme-support"
             required
             disabled={registerMutation.isPending}
           />
           <p className="text-xs text-gray-500">
-            {t('auth.workspaceHelper')}
+            Será usado como URL do seu workspace (ex: acme-support.lansolver.com)
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="register-password">{t('auth.password')}</Label>
+          <Label htmlFor="register-password">Senha</Label>
           <Input
             id="register-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('auth.passwordRequirement')}
+            placeholder="Pelo menos 8 caracteres"
             required
             minLength={8}
             disabled={registerMutation.isPending}
@@ -240,10 +240,10 @@ export default function AuthPage() {
           {registerMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('auth.creatingAccount')}
+              Criando conta...
             </>
           ) : (
-            t('auth.createAccount')
+            'Criar Conta'
           )}
         </Button>
       </form>
@@ -273,25 +273,25 @@ export default function AuthPage() {
 
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              {t('auth.welcome')}
+              Bem-vindo ao Conductor
             </h1>
             <p className="text-slate-600 dark:text-slate-300 mt-2">
-              {t('auth.subtitle')}
+              Sua plataforma abrangente de suporte ao cliente
             </p>
           </div>
 
           <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{t('auth.getStarted')}</CardTitle>
+              <CardTitle className="text-2xl">Começar</CardTitle>
               <CardDescription>
-                {t('auth.getStartedDesc')}
+                Faça login em sua conta ou crie uma nova
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="login">{t('auth.signIn')}</TabsTrigger>
-                  <TabsTrigger value="register">{t('common.register')}</TabsTrigger>
+                  <TabsTrigger value="login">Entrar</TabsTrigger>
+                  <TabsTrigger value="register">Registrar</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="space-y-4">
@@ -318,7 +318,7 @@ export default function AuthPage() {
                 />
               </div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">
-                {t('auth.heroTitle')}
+                Otimize suas Operações de Suporte
               </h2>
             </div>
 
@@ -330,9 +330,9 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature1Title')}</h3>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">Gestão de Atendimentos</h3>
                   <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    {t('auth.feature1Desc')}
+                    Crie e acompanhe tickets com rapidez, eliminando gargalos e elevando a satisfação do cliente
                   </p>
                 </div>
               </div>
@@ -346,9 +346,9 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature2Title')}</h3>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">Controle de Atividades Externas</h3>
                   <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    {t('auth.feature2Desc')}
+                    Monitore deslocamentos em tempo real com mapas interativos, garantindo controle e eficiência
                   </p>
                 </div>
               </div>
@@ -360,9 +360,9 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">{t('auth.feature3Title')}</h3>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">Decisões Imediatas</h3>
                   <p className="text-slate-600 dark:text-slate-400 text-sm">
-                    {t('auth.feature3Desc')}
+                    Acesse dados críticos no momento certo e aja com rapidez para evitar imprevistos
                   </p>
                 </div>
               </div>
