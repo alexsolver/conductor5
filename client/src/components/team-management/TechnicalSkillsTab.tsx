@@ -14,9 +14,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Search, 
-  Plus, 
+import {
+  Search,
+  Plus,
   Award,
   TrendingUp,
   AlertTriangle,
@@ -26,7 +26,7 @@ import {
   Trash2,
   Star,
   UserPlus,
-  Users
+  Users,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -212,8 +212,8 @@ export default function TechnicalSkillsTab() {
   });
 
   // Extract team members array from response
-  const teamMembers = Array.isArray(teamMembersResponse) 
-    ? teamMembersResponse 
+  const teamMembers = Array.isArray(teamMembersResponse)
+    ? teamMembersResponse
     : (teamMembersResponse?.members || teamMembersResponse?.data || []);
 
   // Extract data from responses
@@ -253,7 +253,7 @@ export default function TechnicalSkillsTab() {
       await queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
 
       // Force immediate refetch
-      await queryClient.refetchQueries({ 
+      await queryClient.refetchQueries({
         queryKey: ["/api/technical-skills/skills"],
         type: 'active'
       });
@@ -290,7 +290,7 @@ export default function TechnicalSkillsTab() {
   });
 
   const deleteSkillMutation = useMutation({
-    mutationFn: (id: string) => 
+    mutationFn: (id: string) =>
       apiRequest("DELETE", `/api/technical-skills/skills/${id}`),
     onSuccess: () => {
       toast({ title: "Habilidade desativada com sucesso!" });
@@ -304,7 +304,7 @@ export default function TechnicalSkillsTab() {
 
   // Create user skill mutation
   const createUserSkillMutation = useMutation({
-    mutationFn: ({ skillId, userId, level, notes, certifications, yearsOfExperience }: UserSkill) => 
+    mutationFn: ({ skillId, userId, level, notes, certifications, yearsOfExperience }: UserSkill) =>
       apiRequest('POST', '/api/technical-skills/user-skills', { skillId, userId, proficiencyLevel: level, yearsOfExperience, certifications, notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
@@ -362,8 +362,9 @@ export default function TechnicalSkillsTab() {
         userId: id,
         level: memberLevels[id] || 1
       }));
-      
-      const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`, {
+
+      const res = await apiRequest('POST', `/api/technical-skills/skills/${skillId}/assign-members`,
+       {
         assignments
       });
 
@@ -385,7 +386,7 @@ export default function TechnicalSkillsTab() {
       queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/skills'] });
 
       // Force immediate refetch
-      queryClient.refetchQueries({ 
+      queryClient.refetchQueries({
         queryKey: ['/api/technical-skills/user-skills'],
         type: 'active'
       });
@@ -517,7 +518,7 @@ export default function TechnicalSkillsTab() {
 
     return (
       <div className="flex items-center space-x-1">
-        {Array.from({ length: maxLevel }, (_, i) => (
+        {Array.from({ length: maxLevel }).map((_, i) => (
           <Star
             key={i}
             className={`h-4 w-4 fill-yellow-400 text-yellow-400`}
@@ -526,6 +527,17 @@ export default function TechnicalSkillsTab() {
         <span className="ml-1 text-xs text-gray-500">
           {options.length} níveis
         </span>
+      </div>
+    );
+  };
+
+  // Render stars for a specific user's skill level
+  const renderUserStars = (level: number) => {
+    return (
+      <div className="flex items-center">
+        {Array.from({ length: level }).map((_, i) => (
+          <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+        ))}
       </div>
     );
   };
@@ -601,7 +613,7 @@ export default function TechnicalSkillsTab() {
                               {category}
                             </SelectItem>
                           ))}
-                          {categories?.filter((category: string) => 
+                          {categories?.filter((category: string) =>
                             !DEFAULT_CATEGORIES.includes(category)
                           ).map((category: string) => (
                             <SelectItem key={category} value={category}>
@@ -686,9 +698,9 @@ export default function TechnicalSkillsTab() {
                     <FormItem>
                       <FormLabel>Validade da Certificação (meses)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Ex: 24, 36..." 
+                        <Input
+                          type="number"
+                          placeholder="Ex: 24, 36..."
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                           data-testid="input-certification-validity"
@@ -871,23 +883,20 @@ export default function TechnicalSkillsTab() {
                     </div>
 
                     {assignedMembers.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {assignedMembers.slice(0, 5).map((userSkill: UserSkill) => (
-                          <Badge key={userSkill.id} variant="secondary" className="text-xs">
-                            {userSkill.user.name}
-                            <span className="ml-1 opacity-70">
-                              ({userSkill.level === 1 ? 'Iniciante' :
-                                userSkill.level === 2 ? 'Intermediário' :
-                                userSkill.level === 3 ? 'Avançado' :
-                                userSkill.level === 4 ? 'Especialista' : 'Excelência'})
-                            </span>
+                      <div className="flex flex-wrap gap-2">
+                        {getMembersWithSkill(skill.id).map((userSkill: UserSkill) => (
+                          <Badge key={userSkill.id} variant="secondary" className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>{userSkill.user?.name || 'Usuário'}</span>
+                            {renderUserStars(userSkill.level || 1)}
+                            <button
+                              onClick={() => handleDeleteUserSkill(userSkill.id)}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              ×
+                            </button>
                           </Badge>
                         ))}
-                        {assignedMembers.length > 5 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{assignedMembers.length - 5} mais
-                          </Badge>
-                        )}
                       </div>
                     ) : (
                       <div className="text-center py-3">
@@ -1011,7 +1020,7 @@ export default function TechnicalSkillsTab() {
             <Button variant="outline" onClick={() => setShowCreateUserSkill(false)}>
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleCreateUserSkill}
               disabled={createUserSkillMutation.isPending || !newUserSkill.skillId || !newUserSkill.userId}
             >
