@@ -205,10 +205,10 @@ export default function TechnicalSkillsTab() {
   });
 
   // Extract the actual array from the response
-  const userSkills = Array.isArray(userSkillsResponse) 
-    ? userSkillsResponse 
-    : (userSkillsResponse?.data && Array.isArray(userSkillsResponse.data) 
-        ? userSkillsResponse.data 
+  const userSkills = Array.isArray(userSkillsResponse)
+    ? userSkillsResponse
+    : (userSkillsResponse?.data && Array.isArray(userSkillsResponse.data)
+        ? userSkillsResponse.data
         : []);
 
   // Fetch team members
@@ -661,6 +661,40 @@ export default function TechnicalSkillsTab() {
         // Error is already handled in the mutation's onError
         console.error('❌ [SAVE-USER-SKILL-EDIT] Error updating user skill:', error);
       }
+    }
+  };
+
+  // Handle updating user skill level
+  const handleUpdateUserSkillLevel = async () => {
+    if (!editingUserSkill) return;
+
+    console.log('🔄 [HANDLE-UPDATE] Starting update...', {
+      id: editingUserSkill.id,
+      currentLevel: editingUserSkill.level,
+      newLevel: editUserSkillLevel,
+      notes: editUserSkillNotes
+    });
+
+    try {
+      await updateUserSkillMutation.mutateAsync({
+        id: editingUserSkill.id,
+        level: parseInt(String(editUserSkillLevel)),
+        notes: editUserSkillNotes,
+      });
+
+      console.log('✅ [HANDLE-UPDATE] Update successful, closing dialog');
+      setEditingUserSkill(null);
+      setShowAssignMembers(false);
+
+      // Force refetch to update UI
+      queryClient.invalidateQueries({ queryKey: ['/api/technical-skills/user-skills'] });
+    } catch (error) {
+      console.error('❌ [HANDLE-UPDATE] Update failed:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao atualizar nível da habilidade',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -1329,7 +1363,7 @@ export default function TechnicalSkillsTab() {
               Cancelar
             </Button>
             <Button
-              onClick={handleSaveUserSkillEdit}
+              onClick={handleUpdateUserSkillLevel} // Changed to call the correct handler
               disabled={updateUserSkillMutation.isPending}
             >
               {updateUserSkillMutation.isPending ? 'Salvando...' : 'Salvar'}

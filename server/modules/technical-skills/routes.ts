@@ -438,55 +438,50 @@ router.put('/user-skills/:id', async (req: Request, res: Response) => {
     const tenantId = (req as any).user?.tenantId;
     const { id } = req.params;
     const { level, notes } = req.body;
-    
+
+    console.log('🔄 [UPDATE-USER-SKILL-API] Received:', { id, level, notes, tenantId });
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
-    }
-
-    if (!level || level < 1 || level > 5) {
-      return res.status(400).json({ success: false, message: 'Nível deve estar entre 1 e 5' });
     }
 
     const schema = getTenantSchema(tenantId);
     const userSkillsTable = `${schema}.user_skills`;
 
-    // Verifica se o registro existe
-    const checkResult = await db.execute(sql`
-      SELECT id FROM ${sql.raw(userSkillsTable)}
-      WHERE id = ${id} AND tenant_id = ${tenantId}
-      LIMIT 1
-    `);
-
-    if (getRows(checkResult).length === 0) {
-      return res.status(404).json({ success: false, message: 'Habilidade do usuário não encontrada' });
+    const levelInt = parseInt(String(level));
+    if (isNaN(levelInt) || levelInt < 1 || levelInt > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Level deve ser um número entre 1 e 5'
+      });
     }
 
-    // Atualiza o registro
-    const updateResult = await db.execute(sql`
+    const now = new Date();
+    const result = await db.execute(sql`
       UPDATE ${sql.raw(userSkillsTable)}
-      SET level = ${level},
+      SET level = ${levelInt},
           notes = ${notes || null},
-          updated_at = ${new Date()}
+          updated_at = ${now}
       WHERE id = ${id} AND tenant_id = ${tenantId}
-      RETURNING *
+      RETURNING id, user_id, skill_id, level, notes, created_at, updated_at
     `);
 
-    const [updated] = getRows(updateResult);
+    const updatedRows = getRows(result);
+    if (updatedRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User skill não encontrado' });
+    }
 
-    console.log('✅ [UPDATE-USER-SKILL] Successfully updated:', {
-      id,
-      level,
-      updated
-    });
+    const updatedSkill = updatedRows[0];
+    console.log('✅ [UPDATE-USER-SKILL-API] Updated successfully:', updatedSkill);
 
-    res.json({ 
-      success: true, 
-      message: 'Habilidade do usuário atualizada com sucesso',
-      data: updated
+    res.json({
+      success: true,
+      data: updatedSkill,
+      message: 'Nível da habilidade atualizado com sucesso'
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('❌ [UPDATE-USER-SKILL] Error:', error);
+    console.error('❌ [UPDATE-USER-SKILL-API] Error:', error);
     res.status(500).json({ success: false, message, error });
   }
 });
@@ -498,7 +493,7 @@ router.delete('/user-skills/:id', async (req: Request, res: Response) => {
   try {
     const tenantId = (req as any).user?.tenantId;
     const { id } = req.params;
-    
+
     if (!tenantId) {
       return res.status(401).json({ success: false, message: 'Tenant ID é obrigatório' });
     }
