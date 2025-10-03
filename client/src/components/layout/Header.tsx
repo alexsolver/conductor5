@@ -125,7 +125,7 @@ export function Header() {
           )}
 
           {/* Notifications */}
-          <Link href="/notifications">
+          <Link href="/my-notifications">
             <Button
               variant="ghost"
               size="sm"

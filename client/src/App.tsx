@@ -138,7 +138,7 @@ const AppRoutes = ({ children }: { children: React.ReactNode }) => <>{children}<
 
 
 function AppRouter() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   // Show loading state
   if (isLoading) {
@@ -179,7 +179,6 @@ function AppRouter() {
 
         <Route path="/analytics" component={Analytics} />
         <Route path="/automation-rules" component={AutomationRules} />
-        <Route path="/notifications" component={NotificationsPage} />
         <Route path="/my-notifications" component={UserNotificationsPage} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         {/* Unified Tenants Management Page */}
@@ -266,7 +265,9 @@ function AppRouter() {
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
-        <Route path="/notifications" component={NotificationsPage} />
+        {user?.role === 'saas_admin' && (
+          <Route path="/saas-admin/notifications" component={NotificationsPage} />
+        )}
         <Route path="/reports" component={Reports} />
         <Route path="/reports/create" component={ReportCreate} />
         <Route path="/reports/:id/edit" component={ReportEdit} />

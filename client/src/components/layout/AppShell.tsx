@@ -7,7 +7,7 @@ import {
   SidebarMenuButton 
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, Shield, Plug } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface AppShellProps {
@@ -38,15 +38,27 @@ export function AppShell({ children }: AppShellProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {(userRole === 'saas_admin' || userRole === 'tenant_admin') && (
-              <SidebarMenuItem>
+          {userRole === 'saas_admin' && (
+              <>
                 <SidebarMenuButton asChild>
-                  <Link to="/notifications">
+                  <Link to="/saas-admin">
+                    <Shield className="h-4 w-4" />
+                    <span>Administração SaaS</span>
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuButton asChild>
+                  <Link to="/saas-admin/integrations">
+                    <Plug className="h-4 w-4" />
+                    <span>Integrações SaaS</span>
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuButton asChild>
+                  <Link to="/saas-admin/notifications">
                     <Bell className="h-4 w-4" />
                     <span>Gestão de Notificações</span>
                   </Link>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
+              </>
             )}
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
