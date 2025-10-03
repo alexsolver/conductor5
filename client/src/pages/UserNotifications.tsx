@@ -54,17 +54,17 @@ export default function UserNotificationsPage() {
   });
 
   // Query para contagem de não lidas
-  const { data: unreadCountData } = useQuery({
+  const { data: unreadCountResponse } = useQuery({
     queryKey: ['/api/schedule-notifications/count'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/schedule-notifications/count');
       const result = await response.json();
-      return result.data?.unreadCount || 0;
+      return result;
     },
     refetchInterval: 10000,
   });
 
-  const unreadCount = unreadCountData || 0;
+  const unreadCount = unreadCountResponse?.data?.unreadCount || 0;
 
   // Mutation para marcar como lida
   const markAsReadMutation = useMutation({
