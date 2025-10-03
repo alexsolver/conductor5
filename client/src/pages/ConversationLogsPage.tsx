@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, Bot, AlertCircle, CheckCircle, Clock, Search, Filter, Download } from 'lucide-react';
+import { MessageSquare, Bot, AlertCircle, CheckCircle, Clock, Search, Filter, Download, Activity } from 'lucide-react';
 
 interface ConversationLog {
   id: number;
@@ -37,7 +37,7 @@ export default function ConversationLogsPage() {
   const [page, setPage] = useState(0);
   const limit = 20;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -53,6 +53,7 @@ export default function ConversationLogsPage() {
       if (!response.ok) throw new Error('Failed to fetch conversations');
       return response.json();
     },
+    refetchInterval: 5000, // Atualiza a cada 5 segundos
   });
 
   const getDateLocale = () => {
@@ -72,11 +73,11 @@ export default function ConversationLogsPage() {
       conv.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conv.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conv.channel.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || 
       (statusFilter === 'escalated' && conv.escalatedToHuman) ||
       (statusFilter === 'completed' && !conv.escalatedToHuman && conv.endedAt);
-    
+
     return matchesSearch && matchesStatus;
   }) || [];
 
@@ -112,6 +113,10 @@ export default function ConversationLogsPage() {
               {t('omnibridge.conversationLogs.analytics', 'Analytics')}
             </Button>
           </Link>
+          <Button variant="outline" onClick={refetch} data-testid="button-refresh-conversations">
+            <Activity className="h-4 w-4 mr-2" />
+            {t('common.refresh', 'Atualizar')}
+          </Button>
         </div>
       </div>
 
@@ -139,7 +144,7 @@ export default function ConversationLogsPage() {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium mb-2 block">
                 {t('omnibridge.conversationLogs.status', 'Status')}
@@ -214,7 +219,7 @@ export default function ConversationLogsPage() {
                           </Badge>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                         <div>
                           <p className="text-xs text-muted-foreground">
