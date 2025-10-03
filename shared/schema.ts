@@ -63,6 +63,8 @@ export {
 // Interactive Map Module Schema - Clean Architecture
 export * from "./schema-interactive-map";
 
+// AI Conversational Agent Module Schema - Clean Architecture
+export * from "./schema-ai-agent";
 
 // SaaS Admin Module Schema - Clean Architecture
 export * from "./schema-saas-admin";
