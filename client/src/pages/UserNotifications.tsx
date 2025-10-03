@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -55,15 +54,17 @@ export default function UserNotificationsPage() {
   });
 
   // Query para contagem de não lidas
-  const { data: unreadCount } = useQuery({
+  const { data: unreadCountData } = useQuery({
     queryKey: ['/api/schedule-notifications/count'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/schedule-notifications/count');
       const result = await response.json();
-      return result.data?.count || 0;
+      return result.data?.unreadCount || 0;
     },
     refetchInterval: 10000,
   });
+
+  const unreadCount = unreadCountData || 0;
 
   // Mutation para marcar como lida
   const markAsReadMutation = useMutation({
@@ -133,7 +134,7 @@ export default function UserNotificationsPage() {
     const unreadIds = notifications?.data?.notifications
       ?.filter((n: Notification) => !n.readAt)
       ?.map((n: Notification) => n.id) || [];
-    
+
     if (unreadIds.length > 0) {
       markAsReadMutation.mutate(unreadIds);
     }
