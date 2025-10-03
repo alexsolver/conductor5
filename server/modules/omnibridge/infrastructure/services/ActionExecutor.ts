@@ -2341,12 +2341,14 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
         console.log(`📝 [CONVERSATION-LOG] Updated conversation ${conversationId} - Total messages: ${(existingConversation.totalMessages || 0) + 1}`);
       } else {
-        // Create new conversation
+        // Create new conversation with session_id
+        const sessionId = `ai-${channelType}-${Date.now()}`;
         const [newConversation] = await db
           .insert(conversationLogs)
           .values({
             tenantId,
             agentId: 1, // Default agent ID
+            sessionId,
             channelType,
             totalMessages: 1,
             totalActions: 0,
@@ -2358,7 +2360,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
           .returning();
 
         conversationId = newConversation.id;
-        console.log(`✅ [CONVERSATION-LOG] Created new conversation ${conversationId} for channel ${channelType}`);
+        console.log(`✅ [CONVERSATION-LOG] Created new conversation ${conversationId} for channel ${channelType} (session: ${sessionId})`);
       }
 
       // Log the message
