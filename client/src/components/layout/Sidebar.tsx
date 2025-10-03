@@ -113,7 +113,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "analytics", href: "/analytics", icon: BarChart3 },
-  { name: "notifications", href: "/saas-admin/my-notifications", icon: Bell },
+  { name: "notifications", href: "/saas-admin/notifications", icon: Bell },
   { name: "gdprCompliance", href: "/gdpr-compliance", icon: Shield },
   {
     name: "reports",
