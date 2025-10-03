@@ -4,6 +4,9 @@ import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
 import { CreateTicketUseCase } from '../../../tickets/application/use-cases/CreateTicketUseCase';
 import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
 import * as crypto from 'crypto'; // Import crypto module
+import { db } from '../../../../db';
+import { conversationLogs, conversationMessages } from '@shared/schema';
+import { sql } from 'drizzle-orm';
 
 export class ActionExecutor implements IActionExecutorPort {
   constructor(private aiService?: IAIAnalysisPort, private createTicketUseCase?: CreateTicketUseCase) {
@@ -1563,6 +1566,14 @@ export class ActionExecutor implements IActionExecutorPort {
       console.log(`🤖 [AI-AGENT] Available actions:`, availableActions);
       console.log(`🤖 [AI-AGENT] Action configs:`, actionConfigs);
 
+      // ✅ Create or update conversation log
+      const conversationLog = await this.createOrUpdateConversationLog(
+        tenantId,
+        action.id || 'ai-agent-1',
+        context.messageData.channelType || context.messageData.channel || 'unknown',
+        userMessage
+      );
+
       // Check if we need to execute an action (e.g., create ticket, customer, beneficiary)
       let shouldExecuteAction = false;
       let actionToExecute: string | null = null;
@@ -2291,5 +2302,80 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
     const lowerMessage = userMessage.toLowerCase();
     return beneficiaryKeywords.some(keyword => lowerMessage.includes(keyword));
+  }
+
+  /**
+   * Create or update conversation log for AI Agent interactions
+   */
+  private async createOrUpdateConversationLog(
+    tenantId: string,
+    agentId: string,
+    channelType: string,
+    userMessage: string
+  ) {
+    try {
+      // Find the most recent ongoing conversation for this agent and channel
+      const [existingConversation] = await db
+        .select()
+        .from(conversationLogs)
+        .where(sql`${conversationLogs.tenantId} = ${tenantId} 
+          AND ${conversationLogs.agentId} = ${1} 
+          AND ${conversationLogs.channelType} = ${channelType}
+          AND ${conversationLogs.endedAt} IS NULL`)
+        .orderBy(sql`${conversationLogs.startedAt} DESC`)
+        .limit(1);
+
+      let conversationId: number;
+
+      if (existingConversation) {
+        // Update existing conversation
+        conversationId = existingConversation.id;
+        
+        await db
+          .update(conversationLogs)
+          .set({
+            totalMessages: (existingConversation.totalMessages || 0) + 1,
+            updatedAt: new Date()
+          })
+          .where(sql`${conversationLogs.id} = ${conversationId}`);
+
+        console.log(`📝 [CONVERSATION-LOG] Updated conversation ${conversationId} - Total messages: ${(existingConversation.totalMessages || 0) + 1}`);
+      } else {
+        // Create new conversation
+        const [newConversation] = await db
+          .insert(conversationLogs)
+          .values({
+            tenantId,
+            agentId: 1, // Default agent ID
+            channelType,
+            totalMessages: 1,
+            totalActions: 0,
+            escalatedToHuman: false,
+            startedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+          .returning();
+
+        conversationId = newConversation.id;
+        console.log(`✅ [CONVERSATION-LOG] Created new conversation ${conversationId} for channel ${channelType}`);
+      }
+
+      // Log the message
+      await db
+        .insert(conversationMessages)
+        .values({
+          conversationId,
+          tenantId,
+          role: 'user',
+          content: userMessage,
+          timestamp: new Date()
+        });
+
+      return conversationId;
+    } catch (error) {
+      console.error('❌ [CONVERSATION-LOG] Error creating/updating conversation log:', error);
+      return null;
+    }
   }
 }
