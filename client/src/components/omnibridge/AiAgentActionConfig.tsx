@@ -101,9 +101,19 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   });
 
   // Fetch available actions
-  const { data: availableActions = [], isLoading: loadingActions } = useQuery<AIAction[]>({
+  const { data: availableActions = [], isLoading: loadingActions, error: actionsError } = useQuery<AIAction[]>({
     queryKey: ['/api/ai-agents/actions/available'],
   });
+
+  // Debug logs
+  useEffect(() => {
+    console.log('🔍 [AI-AGENT-CONFIG] Component state:', {
+      loadingActions,
+      availableActionsCount: availableActions?.length || 0,
+      hasError: !!actionsError,
+      error: actionsError
+    });
+  }, [loadingActions, availableActions, actionsError]);
 
   // Fetch selected agent details if agentId is provided
   const { data: selectedAgent, isLoading: loadingAgent } = useQuery<AIAgent>({
