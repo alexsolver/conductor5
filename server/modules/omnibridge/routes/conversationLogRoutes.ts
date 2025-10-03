@@ -72,10 +72,10 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
     console.log(`📊 [CONVERSATION-LOGS] Results: ${results.length} conversations (total: ${total})`);
     console.log(`🔍 [CONVERSATION-LOGS] Filters:`, { agentId, limit, offset, startDate, endDate });
     
-    // ✅ Ensure agentName is populated from agentId if missing
+    // ✅ Ensure agentName is populated from agentId
     const enrichedResults = results.map(conv => ({
       ...conv,
-      agentName: conv.agentName || `Agent ${conv.agentId}`, // Fallback name
+      agentName: `Agent ${conv.agentId}`, // Generate name from agentId
     }));
     
     if (enrichedResults.length > 0) {
@@ -212,7 +212,7 @@ router.post('/conversation-logs/:id/feedback', async (req: Request, res: Respons
         actionExecutionId: data.actionExecutionId,
         rating: data.rating,
         category: data.category,
-        tags: data.tags ? JSON.stringify(data.tags) : null,
+        tags: data.tags || null,
         notes: data.notes,
         correctiveAction: data.correctiveAction,
         expectedBehavior: data.expectedBehavior,
@@ -359,10 +359,6 @@ router.patch('/feedback/:id', async (req: Request, res: Response) => {
       ...data,
       updatedAt: new Date(),
     };
-
-    if (data.tags) {
-      updateData.tags = JSON.stringify(data.tags);
-    }
 
     if (data.resolved) {
       updateData.resolvedAt = new Date();
