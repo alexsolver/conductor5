@@ -193,6 +193,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      queryFn: getQueryFn({ on401: "throwError" }), // ✅ Set default query function
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: (failureCount, error: any) => {
         // Don't retry on 401/403 errors (authentication issues)
