@@ -45,8 +45,10 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
  * MUST be before /:id route to avoid being captured as an ID
  */
 router.get('/actions/available', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('🔍 [AI-ACTIONS] /actions/available endpoint called by:', req.user?.email);
   try {
     let actions = await unifiedStorage.getAiActions();
+    console.log(`📋 [AI-ACTIONS] Found ${actions.length} actions in database`);
     
     // Auto-seed if no actions exist
     if (actions.length === 0) {
