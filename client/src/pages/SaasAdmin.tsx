@@ -309,25 +309,59 @@ const SaasAdmin: React.FC = () => {
       console.log('[SAAS-ADMIN] Creating notification with data:', newNotification);
 
       // ✅ 1QA.MD: Get authentication token from localStorage (same pattern as other modules)
-      const token = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
+      let token = localStorage.getItem('token');
+      let userStr = localStorage.getItem('user');
       
-      if (!token || !userStr) {
+      // Fallback: Try to get from sessionStorage if not in localStorage
+      if (!token) {
+        token = sessionStorage.getItem('token');
+      }
+      if (!userStr) {
+        userStr = sessionStorage.getItem('user');
+      }
+      
+      // Final validation
+      if (!token || token === 'null' || token === 'undefined') {
+        console.error('[SAAS-ADMIN] Invalid token:', token);
         toast({
           title: "Erro de autenticação",
-          description: "Usuário não autenticado. Faça login novamente.",
+          description: "Token de autenticação inválido. Por favor, faça login novamente.",
           variant: "destructive"
         });
         setLoading(false);
         return;
       }
 
-      const user = JSON.parse(userStr);
-
-      if (!user?.id || !user?.tenantId) {
+      if (!userStr || userStr === 'null' || userStr === 'undefined') {
+        console.error('[SAAS-ADMIN] Invalid user data:', userStr);
         toast({
           title: "Erro de autenticação",
-          description: "Dados do usuário inválidos. Faça login novamente.",
+          description: "Dados do usuário inválidos. Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      let user;
+      try {
+        user = JSON.parse(userStr);
+      } catch (parseError) {
+        console.error('[SAAS-ADMIN] Error parsing user data:', parseError);
+        toast({
+          title: "Erro de autenticação",
+          description: "Erro ao processar dados do usuário. Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!user?.id || !user?.tenantId) {
+        console.error('[SAAS-ADMIN] Missing user id or tenantId:', user);
+        toast({
+          title: "Erro de autenticação",
+          description: "Dados do usuário incompletos. Por favor, faça login novamente.",
           variant: "destructive"
         });
         setLoading(false);
@@ -346,7 +380,11 @@ const SaasAdmin: React.FC = () => {
         priority: newNotification.severity === 'critical' ? 'critical' : 'medium'
       };
 
-      console.log('[SAAS-ADMIN] Sending notification data:', notificationData);
+      console.log('[SAAS-ADMIN] Sending notification data:', {
+        ...notificationData,
+        token: `${token.substring(0, 20)}...`,
+        tenantId: user.tenantId
+      });
 
       // ✅ 1QA.MD: Include authentication headers
       const response = await fetch('/api/notifications', {
@@ -361,7 +399,7 @@ const SaasAdmin: React.FC = () => {
       });
 
       const result = await response.json();
-      console.log('[SAAS-ADMIN] Notification creation response:', result);
+      console.log('[SAAS-ADMIN] Notification creation response:', { status: response.status, result });
 
       if (response.ok) {
         toast({
@@ -377,13 +415,13 @@ const SaasAdmin: React.FC = () => {
           channels: ['in_app']
         });
       } else {
-        throw new Error(result.message || 'Failed to create notification');
+        throw new Error(result.message || result.error || 'Failed to create notification');
       }
     } catch (error) {
       console.error('[SAAS-ADMIN] Error creating notification:', error);
       toast({
         title: "Erro ao criar notificação",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a notificação. Tente novamente.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a notificação. Verifique sua autenticação e tente novamente.",
         variant: "destructive"
       });
     } finally {
