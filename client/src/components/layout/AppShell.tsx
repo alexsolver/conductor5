@@ -59,7 +59,7 @@ export function AppShell({ children }: AppShellProps) {
                   </Link>
                 </SidebarMenuButton>
                 <SidebarMenuButton asChild>
-                  <Link to="/notifications">
+                  <Link to="/saas-admin/notifications">
                     <Bell className="h-4 w-4" />
                     <span>Notificações</span>
                   </Link>
