@@ -10,7 +10,6 @@ const AI_ACTIONS = [
   // CUSTOMER ACTIONS
   // ========================================
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e', // Default tenant
     actionType: 'create_customer',
     name: 'Criar Cliente',
     description: 'Cria um novo cliente no sistema',
@@ -31,7 +30,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'update_customer',
     name: 'Atualizar Cliente',
     description: 'Atualiza informações de um cliente existente',
@@ -51,7 +49,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'search_customer',
     name: 'Buscar Cliente',
     description: 'Busca clientes por nome, email ou telefone',
@@ -89,7 +86,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'update_ticket',
     name: 'Atualizar Ticket',
     description: 'Atualiza informações de um ticket',
@@ -110,7 +106,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'add_ticket_comment',
     name: 'Adicionar Comentário',
     description: 'Adiciona um comentário ao ticket',
@@ -129,7 +124,6 @@ const AI_ACTIONS = [
     riskLevel: 'low'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'assign_ticket',
     name: 'Atribuir Ticket',
     description: 'Atribui um ticket a um usuário',
@@ -144,7 +138,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'change_ticket_status',
     name: 'Alterar Status do Ticket',
     description: 'Altera o status de um ticket',
@@ -159,7 +152,6 @@ const AI_ACTIONS = [
     riskLevel: 'medium'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'search_tickets',
     name: 'Buscar Tickets',
     description: 'Busca tickets por diversos critérios',
@@ -188,7 +180,6 @@ const AI_ACTIONS = [
     riskLevel: 'low'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'get_article',
     name: 'Obter Artigo',
     description: 'Obtém um artigo específico da base de conhecimento',
@@ -219,7 +210,6 @@ const AI_ACTIONS = [
     riskLevel: 'low'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'notify_group',
     name: 'Notificar Grupo',
     description: 'Envia uma notificação para um grupo de usuários',
@@ -272,7 +262,6 @@ const AI_ACTIONS = [
     riskLevel: 'low'
   },
   {
-    tenantId: '3f99462f-3621-4b1b-bea8-782acc50d62e',
     actionType: 'get_location_info',
     name: 'Consultar Informações de Local',
     description: 'Obtém informações sobre um local específico',
@@ -301,16 +290,39 @@ export async function seedAiActions() {
         continue;
       }
 
+      // Convert params to array format expected by schema
+      const requiredParams = action.requiredParams 
+        ? Object.entries(action.requiredParams).map(([name, description]) => ({
+            name,
+            type: 'string',
+            description: description as string
+          }))
+        : [];
+
+      const optionalParams = action.optionalParams
+        ? Object.entries(action.optionalParams).map(([name, description]) => ({
+            name,
+            type: 'string',
+            description: description as string
+          }))
+        : [];
+
+      const prerequisites = action.prerequisites
+        ? Object.entries(action.prerequisites).map(([check, value]) => ({
+            check,
+            errorMessage: `Prerequisite ${check} failed`
+          }))
+        : [];
+
       // Insert directly using drizzle
       await db.insert(aiActions).values({
-        tenantId: action.tenantId,
         actionType: action.actionType,
         name: action.name,
         description: action.description,
         category: action.category,
-        requiredParams: action.requiredParams,
-        optionalParams: action.optionalParams,
-        prerequisites: action.prerequisites,
+        requiredParams,
+        optionalParams,
+        prerequisites,
         riskLevel: action.riskLevel
       });
       
