@@ -54,6 +54,8 @@ export default function ConversationLogsPage() {
       return response.json();
     },
     refetchInterval: 5000, // Atualiza a cada 5 segundos
+    refetchOnWindowFocus: true, // Atualiza quando a janela recebe foco
+    refetchOnMount: true, // Atualiza ao montar o componente
   });
 
   const getDateLocale = () => {
@@ -113,8 +115,13 @@ export default function ConversationLogsPage() {
               {t('omnibridge.conversationLogs.analytics', 'Analytics')}
             </Button>
           </Link>
-          <Button variant="outline" onClick={refetch} data-testid="button-refresh-conversations">
-            <Activity className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            onClick={() => refetch()} 
+            disabled={isLoading}
+            data-testid="button-refresh-conversations"
+          >
+            <Activity className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             {t('common.refresh', 'Atualizar')}
           </Button>
         </div>
