@@ -461,14 +461,14 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   }
 
   async createAiAgent(agent: InsertAiAgent): Promise<AiAgent> {
-    const result = await db.insert(aiAgents).values(agent).returning();
+    const result = await db.insert(aiAgents).values(agent as any).returning();
     return result[0];
   }
 
   async updateAiAgent(tenantId: string, id: string, updates: Partial<InsertAiAgent>): Promise<AiAgent> {
     const result = await db
       .update(aiAgents)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() } as any)
       .where(and(
         eq(aiAgents.tenantId, tenantId),
         eq(aiAgents.id, id)
@@ -538,14 +538,14 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   }
 
   async createAiConversation(conversation: InsertAiConversation): Promise<AiConversation> {
-    const result = await db.insert(aiConversations).values(conversation).returning();
+    const result = await db.insert(aiConversations).values(conversation as any).returning();
     return result[0];
   }
 
   async updateAiConversation(conversationId: string, updates: Partial<InsertAiConversation>): Promise<AiConversation> {
     const result = await db
       .update(aiConversations)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() } as any)
       .where(eq(aiConversations.id, conversationId))
       .returning();
     return result[0];
@@ -560,7 +560,7 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   }
 
   async createAiConversationMessage(message: InsertAiConversationMessage): Promise<AiConversationMessage> {
-    const result = await db.insert(aiConversationMessages).values(message).returning();
+    const result = await db.insert(aiConversationMessages).values(message as any).returning();
     return result[0];
   }
 
@@ -613,7 +613,7 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   }
 
   async createAiConversationFeedback(feedback: InsertAiConversationFeedback): Promise<AiConversationFeedback> {
-    const result = await db.insert(aiConversationFeedback).values(feedback).returning();
+    const result = await db.insert(aiConversationFeedback).values(feedback as any).returning();
     return result[0];
   }
 
