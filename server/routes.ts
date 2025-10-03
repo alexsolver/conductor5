@@ -107,6 +107,9 @@ import userGroupsRoutes from './routes/userGroups';
 // Import user notification preferences routes
 import { userNotificationPreferencesRoutes } from './modules/user-notifications/routes';
 
+// Import AI Agent routes
+import aiAgentRoutes from './routes/aiAgentRoutes';
+
 console.log(
   "🔥🔥🔥 [CUSTOM-FIELDS-DIRECT] TODAS AS ROTAS REGISTRADAS INLINE! 🔥🔥🔥",
 );
@@ -678,6 +681,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log(
     "✅ [KNOWLEDGE-BASE] Clean Architecture module registered at /api/knowledge-base",
   );
+
+  // AI AGENT ROUTES
+  console.log('🤖 [AI-AGENT] Registering AI Agent routes...');
+  app.use("/api/ai-agents", aiAgentRoutes);
+  app.use("/api/ai", aiAgentRoutes);
+  console.log('✅ [AI-AGENT] AI Agent routes registered successfully!');
 
   // ✅ CUSTOM FIELDS CLEAN ARCHITECTURE MODULE per 1qa.md
   console.log(
