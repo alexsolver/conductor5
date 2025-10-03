@@ -59,7 +59,7 @@ export default function ConversationLogsPage() {
   // ✅ 1QA.MD: Fetch conversation logs with auto-refresh and proper authentication
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [
-      '/api/omnibridge/conversation-logs', 
+      'conversation-logs', 
       user?.tenantId, 
       page, 
       limit, 
@@ -79,6 +79,7 @@ export default function ConversationLogsPage() {
       const params = new URLSearchParams({
         limit: String(limit),
         offset: String(page * limit),
+        _t: Date.now().toString(), // ✅ Force cache bust on server
       });
       if (agentFilter !== 'all') {
         params.append('agentId', agentFilter);
@@ -101,6 +102,10 @@ export default function ConversationLogsPage() {
 
       const response = await apiRequest('GET', `/api/omnibridge/conversation-logs?${params.toString()}`, {
         credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        }
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
@@ -110,6 +115,7 @@ export default function ConversationLogsPage() {
       const result = await response.json();
 
       console.log(`✅ [CONVERSATION-LOGS] Received ${result?.data?.length || 0} conversations at ${new Date().toISOString()}`);
+      console.log(`📋 [CONVERSATION-LOGS] Data structure:`, result);
 
       return result;
     },

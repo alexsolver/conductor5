@@ -72,9 +72,15 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
     console.log(`📊 [CONVERSATION-LOGS] Results: ${results.length} conversations (total: ${total})`);
     console.log(`🔍 [CONVERSATION-LOGS] Filters:`, { agentId, limit, offset, startDate, endDate });
     
-    if (results.length > 0) {
+    // ✅ Ensure agentName is populated from agentId if missing
+    const enrichedResults = results.map(conv => ({
+      ...conv,
+      agentName: conv.agentName || `Agent ${conv.agentId}`, // Fallback name
+    }));
+    
+    if (enrichedResults.length > 0) {
       console.log(`📋 [CONVERSATION-LOGS] Latest 3 conversations:`, 
-        results.slice(0, 3).map(r => ({
+        enrichedResults.slice(0, 3).map(r => ({
           id: r.id,
           agentName: r.agentName,
           startedAt: r.startedAt,
@@ -93,7 +99,7 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: results,
+      data: enrichedResults, // ✅ Return enriched results with agentName
       total: Number(total),
       limit: Number(limit),
       offset: Number(offset),
