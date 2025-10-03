@@ -58,6 +58,12 @@ export function AppShell({ children }: AppShellProps) {
                     <span>Gestão de Notificações</span>
                   </Link>
                 </SidebarMenuButton>
+                <SidebarMenuButton asChild>
+                  <Link to="/notifications">
+                    <Bell className="h-4 w-4" />
+                    <span>Notificações</span>
+                  </Link>
+                </SidebarMenuButton>
               </>
             )}
             <SidebarMenuItem>
