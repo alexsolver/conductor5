@@ -1575,7 +1575,7 @@ function ConversationLogsContent() {
   });
   const limit = 20;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -2058,63 +2058,63 @@ function ConversationLogsContent() {
           </Card>
         ) : (
           filteredConversations.map((conv: any) => (
-            <Card 
-              key={conv.id} 
-              className="hover:shadow-lg transition-shadow cursor-pointer" 
-              data-testid={`card-conversation-${conv.id}`}
-              onClick={() => setSelectedConversationId(conv.id)}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Bot className="h-5 w-5 text-purple-600" />
-                      <h3 className="font-semibold text-lg">{conv.agentName}</h3>
-                      {conv.escalatedToHuman && (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" />
-                          {t('omnibridge.conversationLogs.escalated', 'Escalada')}
-                        </Badge>
-                      )}
-                      {conv.endedAt && !conv.escalatedToHuman && (
-                        <Badge variant="default" className="gap-1 bg-green-600">
-                          <CheckCircle className="h-3 w-3" />
-                          {t('omnibridge.conversationLogs.completed', 'Concluída')}
-                        </Badge>
+              <Card 
+                key={conv.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer" 
+                data-testid={`card-conversation-${conv.id}`}
+                onClick={() => setSelectedConversationId(conv.id)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Bot className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-lg">{conv.agentName}</h3>
+                        {conv.escalatedToHuman && (
+                          <Badge variant="destructive" className="gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.escalated', 'Escalada')}
+                          </Badge>
+                        )}
+                        {conv.endedAt && !conv.escalatedToHuman && (
+                          <Badge variant="default" className="gap-1 bg-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                            {t('omnibridge.conversationLogs.completed', 'Concluída')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
+                          <p className="font-medium capitalize">{conv.channelType}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
+                          <p className="font-medium">{conv.totalMessages}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
+                          <p className="font-medium">{conv.totalActions}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+                          <p className="font-medium flex items-center gap-1 text-sm">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(conv.startedAt)}
+                          </p>
+                        </div>
+                      </div>
+                      {conv.escalationReason && (
+                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                          <p className="text-sm text-red-800 dark:text-red-200">
+                            <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
+                          </p>
+                        </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-                        <p className="font-medium capitalize">{conv.channelType}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
-                        <p className="font-medium">{conv.totalMessages}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
-                        <p className="font-medium">{conv.totalActions}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
-                        <p className="font-medium flex items-center gap-1 text-sm">
-                          <Clock className="h-3 w-3" />
-                          {formatDate(conv.startedAt)}
-                        </p>
-                      </div>
-                    </div>
-                    {conv.escalationReason && (
-                      <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                        <p className="text-sm text-red-800 dark:text-red-200">
-                          <strong>{t('omnibridge.conversationLogs.escalationReason', 'Motivo da escalação')}:</strong> {conv.escalationReason}
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
           ))
         )}
       </div>
