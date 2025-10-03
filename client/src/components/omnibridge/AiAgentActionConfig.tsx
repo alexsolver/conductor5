@@ -111,8 +111,14 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
       loadingActions,
       availableActionsCount: availableActions?.length || 0,
       hasError: !!actionsError,
-      error: actionsError
+      error: actionsError,
+      errorMessage: actionsError?.message || 'No error',
+      errorStack: actionsError?.stack || 'No stack'
     });
+    
+    if (actionsError) {
+      console.error('❌ [AI-AGENT-CONFIG] Actions query error:', actionsError);
+    }
   }, [loadingActions, availableActions, actionsError]);
 
   // Fetch selected agent details if agentId is provided
