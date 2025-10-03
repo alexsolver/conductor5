@@ -2,8 +2,10 @@ import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { SidebarMenuItem } from "./SidebarMenuItem";
-import { SidebarMenuButton } from "./SidebarMenuButton";
+import { 
+  SidebarMenuItem, 
+  SidebarMenuButton 
+} from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
