@@ -18,7 +18,22 @@ const router = Router();
 // GET /api/omnibridge/conversation-logs - Listar conversas
 router.get('/conversation-logs', async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
+    // ✅ MULTITENANT: Validação obrigatória de tenant_id
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      console.error('❌ [CONVERSATION-LOGS] No tenant ID found');
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+    
+    // Validar formato UUID v4
+    const uuidV4Regex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!uuidV4Regex.test(tenantId)) {
+      console.error('❌ [CONVERSATION-LOGS] Invalid tenant ID format');
+      return res.status(400).json({ success: false, error: 'Invalid tenant ID format' });
+    }
+    
+    console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${tenantId}`);
+    
     const { agentId, limit = 50, offset = 0, startDate, endDate } = req.query;
 
     const conditions = [eq(conversationLogs.tenantId, tenantId)];
@@ -46,6 +61,8 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       .from(conversationLogs)
       .where(and(...conditions));
 
+    console.log(`✅ [CONVERSATION-LOGS] Found ${results.length} conversations (total: ${total})`);
+
     res.json({
       success: true,
       data: results,
@@ -54,7 +71,7 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       offset: Number(offset),
     });
   } catch (error) {
-    console.error('Error fetching conversation logs:', error);
+    console.error('❌ [CONVERSATION-LOGS] Error fetching conversation logs:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch conversation logs' });
   }
 });
@@ -62,8 +79,15 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
 // GET /api/omnibridge/conversation-logs/:id - Detalhes de uma conversa
 router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
+    // ✅ MULTITENANT: Validação obrigatória de tenant_id
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      console.error('❌ [CONVERSATION-DETAILS] No tenant ID found');
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+    
     const { id } = req.params;
+    console.log(`🔍 [CONVERSATION-DETAILS] Fetching conversation ${id} for tenant: ${tenantId}`);
 
     // Get conversation
     const [conversation] = await db
@@ -72,8 +96,11 @@ router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
       .where(and(eq(conversationLogs.id, Number(id)), eq(conversationLogs.tenantId, tenantId)));
 
     if (!conversation) {
+      console.error(`❌ [CONVERSATION-DETAILS] Conversation ${id} not found for tenant ${tenantId}`);
       return res.status(404).json({ success: false, error: 'Conversation not found' });
     }
+    
+    console.log(`✅ [CONVERSATION-DETAILS] Found conversation ${id}`);
 
     // Get messages
     const messages = await db

@@ -3,7 +3,7 @@
 
 import { eq, and, gte, lte, desc, count, avg, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { conversationLogs } from '../../../../../shared/schema';
+import { conversationLogs } from '../../../../../shared/schema-omnibridge-logging';
 import { 
   IConversationLogRepository 
 } from '../../domain/repositories/IConversationLogRepository';
@@ -14,7 +14,17 @@ import {
 } from '../../domain/entities/ConversationLog';
 
 export class DrizzleConversationLogRepository implements IConversationLogRepository {
+  // 🏢 Validação obrigatória de tenant_id UUID v4
+  private validateTenantId(tenantId: string): void {
+    const uuidV4Regex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!tenantId || !uuidV4Regex.test(tenantId)) {
+      throw new Error(`Invalid tenant_id format: ${tenantId}. Must be UUID v4.`);
+    }
+  }
+
   async create(data: CreateConversationLogDTO): Promise<ConversationLog> {
+    this.validateTenantId(data.tenantId);
+
     const [result] = await db
       .insert(conversationLogs)
       .values({
@@ -25,39 +35,47 @@ export class DrizzleConversationLogRepository implements IConversationLogReposit
         escalatedToHuman: false,
       })
       .returning();
-    
+
     return this.mapToEntity(result);
   }
 
   async findById(id: number, tenantId: string): Promise<ConversationLog | null> {
+    this.validateTenantId(tenantId);
+
     const [result] = await db
       .select()
       .from(conversationLogs)
       .where(and(eq(conversationLogs.id, id), eq(conversationLogs.tenantId, tenantId)));
-    
+
     return result ? this.mapToEntity(result) : null;
   }
 
   async findBySessionId(sessionId: string, tenantId: string): Promise<ConversationLog | null> {
+    this.validateTenantId(tenantId);
+
     const [result] = await db
       .select()
       .from(conversationLogs)
       .where(and(eq(conversationLogs.sessionId, sessionId), eq(conversationLogs.tenantId, tenantId)));
-    
+
     return result ? this.mapToEntity(result) : null;
   }
 
   async update(id: number, tenantId: string, data: UpdateConversationLogDTO): Promise<ConversationLog> {
+    this.validateTenantId(tenantId);
+
     const [result] = await db
       .update(conversationLogs)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(conversationLogs.id, id), eq(conversationLogs.tenantId, tenantId)))
       .returning();
-    
+
     return this.mapToEntity(result);
   }
 
   async delete(id: number, tenantId: string): Promise<void> {
+    this.validateTenantId(tenantId);
+
     await db
       .delete(conversationLogs)
       .where(and(eq(conversationLogs.id, id), eq(conversationLogs.tenantId, tenantId)));
@@ -73,6 +91,8 @@ export class DrizzleConversationLogRepository implements IConversationLogReposit
       endDate?: Date;
     }
   ): Promise<{ conversations: ConversationLog[]; total: number }> {
+    this.validateTenantId(tenantId);
+
     const conditions = [
       eq(conversationLogs.agentId, agentId),
       eq(conversationLogs.tenantId, tenantId)
@@ -112,6 +132,8 @@ export class DrizzleConversationLogRepository implements IConversationLogReposit
       offset?: number;
     }
   ): Promise<{ conversations: ConversationLog[]; total: number }> {
+    this.validateTenantId(tenantId);
+
     const results = await db
       .select()
       .from(conversationLogs)
@@ -146,6 +168,8 @@ export class DrizzleConversationLogRepository implements IConversationLogReposit
     avgMessagesPerConversation: number;
     avgActionsPerConversation: number;
   }> {
+    this.validateTenantId(tenantId);
+
     const conditions = [
       eq(conversationLogs.agentId, agentId),
       eq(conversationLogs.tenantId, tenantId)
