@@ -108,6 +108,10 @@ import ConversationDetailPage from "./pages/ConversationDetailPage";
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
 
+// AI Agent Module
+import AIAgentConfig from "./pages/AIAgentConfig";
+import AIChat from "./pages/AIChat";
+
 // Components
 import { AppShell } from "./components/layout/AppShell";
 
@@ -280,6 +284,10 @@ function AppRouter() {
 
         {/* Knowledge Base Route */}
         <Route path="/knowledge-base" component={KnowledgeBase} />
+        
+        {/* AI Agent Module */}
+        <Route path="/ai-agent/config" component={AIAgentConfig} />
+        <Route path="/ai-agent/chat" component={AIChat} />
 
         <Route component={NotFound} />
       </Switch>

@@ -5,6 +5,7 @@
 
 import { unifiedStorage } from '../storage-master';
 import { aiEngine } from './ai-engine';
+import { actionExecutor } from './action-executor';
 import type { 
   AiAgent, AiConversation, AiAction,
   InsertAiConversationMessage, InsertAiConversationLog
@@ -499,20 +500,104 @@ export class ConversationManager {
     // Execute action
     await this.log(conversation.id, 'info', 'action_confirmed', {});
     
-    // TODO: Execute action via ActionExecutor
-    // For now, just log and return success
-    
-    await unifiedStorage.updateAiConversation(conversation.id, {
-      status: 'completed',
-      currentStep: 'completed'
+    // Get action details
+    if (!conversation.intendedAction) {
+      return {
+        conversationId: conversation.id,
+        agentResponse: 'Erro: Nenhuma ação foi identificada.',
+        status: 'error',
+        nextStep: 'greeting'
+      };
+    }
+
+    const action = await unifiedStorage.getAiAction(conversation.intendedAction);
+    if (!action) {
+      return {
+        conversationId: conversation.id,
+        agentResponse: 'Erro: Ação não encontrada.',
+        status: 'error',
+        nextStep: 'greeting'
+      };
+    }
+
+    // Execute action via ActionExecutor
+    await this.log(conversation.id, 'info', 'executing_action', { 
+      action: action.actionType,
+      params: conversation.collectedParams 
     });
 
-    return {
-      conversationId: conversation.id,
-      agentResponse: 'Ação executada com sucesso!',
-      status: 'completed',
-      nextStep: 'completed'
-    };
+    const executionResult = await actionExecutor.executeAction(
+      conversation.tenantId,
+      agent,
+      action,
+      conversation.collectedParams || {},
+      conversation.id
+    );
+
+    if (executionResult.success) {
+      await this.log(conversation.id, 'info', 'action_completed', { 
+        result: executionResult.result 
+      });
+
+      await unifiedStorage.updateAiConversation(conversation.id, {
+        status: 'completed',
+        currentStep: 'completed',
+        completedAt: new Date()
+      });
+
+      const response = await aiEngine.generateResponse(
+        agent,
+        [{ role: 'system', content: 'Action completed successfully' }],
+        'action_completed',
+        `Result: ${JSON.stringify(executionResult.result)}`
+      );
+
+      return {
+        conversationId: conversation.id,
+        agentResponse: response || 'Ação executada com sucesso!',
+        status: 'completed',
+        nextStep: 'completed',
+        actionExecuted: {
+          actionType: action.actionType,
+          result: executionResult.result
+        }
+      };
+    } else {
+      // Action failed
+      await this.log(conversation.id, 'error', 'action_failed', { 
+        error: executionResult.error 
+      });
+
+      if (executionResult.shouldEscalate) {
+        return await this.escalateToHuman(
+          conversation,
+          agent,
+          userMessage,
+          { error: executionResult.error }
+        );
+      }
+
+      if (executionResult.shouldRetry) {
+        return {
+          conversationId: conversation.id,
+          agentResponse: 'Ocorreu um erro temporário. Gostaria de tentar novamente?',
+          status: 'retry_pending',
+          nextStep: 'confirming_action'
+        };
+      }
+
+      await unifiedStorage.updateAiConversation(conversation.id, {
+        status: 'failed',
+        currentStep: 'failed'
+      });
+
+      return {
+        conversationId: conversation.id,
+        agentResponse: `Erro ao executar a ação: ${executionResult.error}`,
+        status: 'failed',
+        nextStep: 'failed'
+      };
+    }
   }
 
   /**
