@@ -153,7 +153,16 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
  */
 router.get('/actions/available', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const actions = await unifiedStorage.getAiActions();
+    let actions = await unifiedStorage.getAiActions();
+    
+    // Auto-seed if no actions exist
+    if (actions.length === 0) {
+      console.log('🌱 No actions found, seeding default actions...');
+      const { seedAiActions } = require('../scripts/seed-ai-actions');
+      await seedAiActions();
+      actions = await unifiedStorage.getAiActions();
+    }
+    
     res.json(actions);
   } catch (error) {
     console.error('Error fetching available actions:', error);
