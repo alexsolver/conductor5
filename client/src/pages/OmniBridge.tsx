@@ -1627,6 +1627,24 @@ function ConversationLogsContent() {
     },
   });
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit] });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [queryClient, agentFilter, page, limit]);
+
+  useEffect(() => {
+    if (selectedConversationId) {
+      const interval = setInterval(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/conversation-logs', selectedConversationId] });
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [queryClient, selectedConversationId]);
+
   const getDateLocale = () => {
     switch (i18n.language) {
       case 'pt-BR': return ptBR;
