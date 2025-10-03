@@ -1554,6 +1554,7 @@ export default function OmniBridge() {
 
 // Conversation Logs Content Component
 function ConversationLogsContent() {
+  console.log('🚀 [CONVERSATION-LOGS-COMPONENT] Component mounted/rendered');
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
