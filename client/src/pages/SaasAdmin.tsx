@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -74,6 +73,15 @@ interface PlatformUser {
   tenantAccess: string[];
 }
 
+// Define the structure for newNotification to match the creation logic
+interface NewNotification {
+  type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  message: string;
+  channels: string[];
+}
+
 const SaasAdmin: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
@@ -84,6 +92,7 @@ const SaasAdmin: React.FC = () => {
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [showCreateTenant, setShowCreateTenant] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showCreateNotification, setShowCreateNotification] = useState(false); // State for notification dialog
 
   // New tenant form
   const [newTenant, setNewTenant] = useState({
@@ -103,6 +112,15 @@ const SaasAdmin: React.FC = () => {
     tenantAccess: [] as string[]
   });
 
+  // New notification form
+  const [newNotification, setNewNotification] = useState<NewNotification>({
+    type: 'system_notification',
+    severity: 'medium',
+    title: '',
+    message: '',
+    channels: ['in_app']
+  });
+
   // Load system overview data
   const loadSystemStats = async () => {
     try {
@@ -110,9 +128,9 @@ const SaasAdmin: React.FC = () => {
       const response = await fetch('/api/saas-admin/overview', {
         credentials: 'include'
       });
-      
+
       console.log('📡 [SAAS-ADMIN-CLIENT] Overview response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ [SAAS-ADMIN-CLIENT] System stats loaded:', data);
@@ -143,9 +161,9 @@ const SaasAdmin: React.FC = () => {
       const response = await fetch('/api/saas-admin/tenants', {
         credentials: 'include'
       });
-      
+
       console.log('📡 [SAAS-ADMIN-CLIENT] Tenants response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ [SAAS-ADMIN-CLIENT] Tenants loaded:', data);
@@ -176,9 +194,9 @@ const SaasAdmin: React.FC = () => {
       const response = await fetch('/api/saas-admin/platform-users', {
         credentials: 'include'
       });
-      
+
       console.log('📡 [SAAS-ADMIN-CLIENT] Platform users response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ [SAAS-ADMIN-CLIENT] Platform users loaded:', data);
@@ -284,6 +302,79 @@ const SaasAdmin: React.FC = () => {
     }
   };
 
+  // Create new notification
+  const createNotification = async () => {
+    setLoading(true);
+    try {
+      console.log('[SAAS-ADMIN] Creating notification with data:', newNotification);
+
+      // Get current user from auth context
+      const user = (window as any).__currentUser;
+
+      if (!user?.id || !user?.tenantId) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Usuário não autenticado corretamente.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Prepare notification data following 1qa.md patterns
+      const notificationData = {
+        tenantId: user.tenantId,
+        userId: user.id, // Notification creator
+        type: newNotification.type,
+        severity: newNotification.severity || 'medium',
+        title: newNotification.title,
+        message: newNotification.message,
+        channels: newNotification.channels || ['in_app'],
+        priority: newNotification.severity === 'critical' ? 'critical' : 'medium'
+      };
+
+      console.log('[SAAS-ADMIN] Sending notification data:', notificationData);
+
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(notificationData)
+      });
+
+      const result = await response.json();
+      console.log('[SAAS-ADMIN] Notification creation response:', result);
+
+      if (response.ok) {
+        toast({
+          title: "Notificação criada com sucesso",
+          description: "A notificação foi enviada para os destinatários.",
+        });
+        setShowCreateNotification(false);
+        setNewNotification({
+          type: 'system_notification',
+          severity: 'medium',
+          title: '',
+          message: '',
+          channels: ['in_app']
+        });
+      } else {
+        throw new Error(result.message || 'Failed to create notification');
+      }
+    } catch (error) {
+      console.error('[SAAS-ADMIN] Error creating notification:', error);
+      toast({
+        title: "Erro ao criar notificação",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao criar a notificação. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Toggle tenant status
   const toggleTenantStatus = async (tenantId: string, currentStatus: string) => {
     try {
@@ -357,11 +448,12 @@ const SaasAdmin: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5"> {/* Increased cols for notification tab */}
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="tenants">Gestão de Tenant</TabsTrigger>
           <TabsTrigger value="provisioning">Provisionamento</TabsTrigger>
           <TabsTrigger value="users">Usuários da Plataforma</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger> {/* New tab for notifications */}
         </TabsList>
 
         {/* Overview Tab */}
@@ -744,6 +836,115 @@ const SaasAdmin: React.FC = () => {
                 <Button type="submit" onClick={createPlatformUser} disabled={loading}>
                   {loading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
                   Criar Usuário
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Gerenciar Notificações</CardTitle>
+                <CardDescription>
+                  Crie e gerencie notificações para os tenants
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowCreateNotification(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Nova Notificação
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {/* Placeholder for notification table or list */}
+              <p className="text-muted-foreground">Lista de notificações será exibida aqui.</p>
+            </CardContent>
+          </Card>
+
+          <Dialog open={showCreateNotification} onOpenChange={setShowCreateNotification}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Notificação</DialogTitle>
+                <DialogDescription>
+                  Preencha os detalhes para criar uma nova notificação.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="notificationType" className="text-right">
+                    Tipo
+                  </Label>
+                  <Select value={newNotification.type} onValueChange={(value) => setNewNotification({...newNotification, type: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system_notification">Notificação do Sistema</SelectItem>
+                      <SelectItem value="maintenance_alert">Alerta de Manutenção</SelectItem>
+                      <SelectItem value="marketing_message">Mensagem de Marketing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="notificationSeverity" className="text-right">
+                    Severidade
+                  </Label>
+                  <Select value={newNotification.severity} onValueChange={(value: any) => setNewNotification({...newNotification, severity: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="critical">Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="notificationTitle" className="text-right">
+                    Título
+                  </Label>
+                  <Input
+                    id="notificationTitle"
+                    value={newNotification.title}
+                    onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="notificationMessage" className="text-right">
+                    Mensagem
+                  </Label>
+                  <Textarea
+                    id="notificationMessage"
+                    value={newNotification.message}
+                    onChange={(e) => setNewNotification({...newNotification, message: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="notificationChannels" className="text-right">
+                    Canais
+                  </Label>
+                  <Select value={newNotification.channels[0]} onValueChange={(value) => setNewNotification({...newNotification, channels: [value]})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="in_app">In App</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" onClick={createNotification} disabled={loading}>
+                  {loading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+                  Criar Notificação
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -114,15 +114,18 @@ export class NotificationController {
   // POST /api/notifications - Create new notification
   async createNotification(req: Request, res: Response): Promise<void> {
     try {
+      console.log('[NOTIFICATION-CONTROLLER] Create notification request received');
+      
       const user = (req as any).user;
-      const tenantId = user?.tenantId;
       const {
-        userId,
+        tenantId: bodyTenantId,
+        userId: bodyUserId,
         type,
         title,
         message,
         data,
         priority,
+        severity,
         channels,
         scheduledAt,
         expiresAt,
@@ -130,40 +133,79 @@ export class NotificationController {
         sourceType
       } = req.body;
 
+      // ✅ 1QA.MD: Validate tenant ID from authenticated user or request body
+      const tenantId = user?.tenantId || bodyTenantId;
+      
       if (!tenantId) {
+        console.error('[NOTIFICATION-CONTROLLER] Missing tenant ID');
         res.status(400).json({
           success: false,
-          error: 'Tenant ID is required'
+          message: 'Tenant ID is required',
+          error: 'Missing tenantId in request'
         });
         return;
       }
 
-      const result = await this.createNotificationUseCase.execute({
+      // ✅ 1QA.MD: Validate user ID from authenticated user or request body
+      const userId = user?.id || bodyUserId;
+      
+      if (!userId) {
+        console.error('[NOTIFICATION-CONTROLLER] Missing user ID');
+        res.status(400).json({
+          success: false,
+          message: 'User ID is required',
+          error: 'Missing userId in request'
+        });
+        return;
+      }
+
+      // ✅ 1QA.MD: Validate required fields
+      if (!title || !message) {
+        console.error('[NOTIFICATION-CONTROLLER] Missing required fields:', { title: !!title, message: !!message });
+        res.status(400).json({
+          success: false,
+          message: 'Missing required fields: tenantId, userId, title, message',
+          error: 'title and message are required'
+        });
+        return;
+      }
+
+      console.log('[NOTIFICATION-CONTROLLER] Creating notification:', {
         tenantId,
         userId,
         type,
+        title: title?.substring(0, 50)
+      });
+
+      const result = await this.createNotificationUseCase.execute({
+        tenantId,
+        userId,
+        type: type || 'custom',
         title,
         message,
-        data,
-        priority,
-        channels,
+        data: data || {},
+        priority: priority || severity || 'medium',
+        channels: channels || ['in_app'],
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
         sourceId,
         sourceType,
-        createdBy: req.user?.userId
+        createdBy: user?.id
       });
 
       if (result.success) {
+        console.log('[NOTIFICATION-CONTROLLER] Notification created successfully:', result.notificationId);
         res.status(201).json(result);
       } else {
+        console.error('[NOTIFICATION-CONTROLLER] Failed to create notification:', result.message);
         res.status(400).json(result);
       }
     } catch (error) {
-      console.error('Error creating notification:', error);
+      console.error('[NOTIFICATION-CONTROLLER] Error creating notification:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to create notification'
+        message: 'Failed to create notification',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
