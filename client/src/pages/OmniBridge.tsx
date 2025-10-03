@@ -1578,6 +1578,7 @@ function ConversationLogsContent() {
   const { data, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
     queryFn: async () => {
+      console.log('🔍 [CONVERSATION-LOGS] Fetching conversation logs...', { agentFilter, page, limit });
       const params = new URLSearchParams({
         limit: String(limit),
         offset: String(page * limit),
@@ -1585,12 +1586,17 @@ function ConversationLogsContent() {
       if (agentFilter !== 'all') {
         params.append('agentId', agentFilter);
       }
+      console.log('📡 [CONVERSATION-LOGS] Request URL:', `/api/omnibridge/conversation-logs?${params}`);
       const response = await fetch(`/api/omnibridge/conversation-logs?${params}`, {
         credentials: 'include',
       });
+      console.log('📨 [CONVERSATION-LOGS] Response status:', response.status, response.ok);
       if (!response.ok) throw new Error('Failed to fetch conversations');
-      return response.json();
+      const result = await response.json();
+      console.log('✅ [CONVERSATION-LOGS] Data received:', result);
+      return result;
     },
+    enabled: true,
   });
 
   const { data: conversationDetail, isLoading: isLoadingDetail } = useQuery({
