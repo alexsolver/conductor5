@@ -113,7 +113,6 @@ const baseNavigation: Array<{
     ]
   },
   { name: "analytics", href: "/analytics", icon: BarChart3 },
-  { name: "notifications", href: "/saas-admin/notifications", icon: Bell },
   { name: "gdprCompliance", href: "/gdpr-compliance", icon: Shield },
   {
     name: "reports",
@@ -147,6 +146,7 @@ const adminNavigation = [
       { name: "integrations", href: "/saas-admin/integrations", icon: Plug },
       { name: "moduleIntegrity", href: "/saas-admin/module-integrity", icon: Shield },
       { name: "multilocationSettings", href: "/tenant-admin/multilocation", icon: Globe2 },
+      { name: "notifications", href: "/saas-admin/notifications", icon: Bell },
     ]
   },
   {
