@@ -16,14 +16,14 @@ import { z } from 'zod';
 // ENUMS
 // ========================================
 
-export const agentStatusEnum = pgEnum('agent_status', [
+export const aiAgentStatusEnum = pgEnum('ai_agent_status', [
   'active',
   'inactive',
   'training',
   'testing'
 ]);
 
-export const conversationStatusEnum = pgEnum('conversation_status', [
+export const aiConversationStatusEnum = pgEnum('ai_conversation_status', [
   'active',
   'waiting_input',
   'waiting_confirmation',
@@ -34,13 +34,13 @@ export const conversationStatusEnum = pgEnum('conversation_status', [
   'timeout'
 ]);
 
-export const messageRoleEnum = pgEnum('message_role', [
+export const aiMessageRoleEnum = pgEnum('ai_message_role', [
   'user',
   'agent',
   'system'
 ]);
 
-export const sentimentEnum = pgEnum('sentiment', [
+export const aiSentimentEnum = pgEnum('ai_sentiment', [
   'very_positive',
   'positive',
   'neutral',
@@ -49,7 +49,7 @@ export const sentimentEnum = pgEnum('sentiment', [
   'urgent'
 ]);
 
-export const logLevelEnum = pgEnum('log_level', [
+export const aiLogLevelEnum = pgEnum('ai_log_level', [
   'debug',
   'info',
   'warning',
@@ -57,7 +57,7 @@ export const logLevelEnum = pgEnum('log_level', [
   'critical'
 ]);
 
-export const feedbackRatingEnum = pgEnum('feedback_rating', [
+export const aiFeedbackRatingEnum = pgEnum('ai_feedback_rating', [
   'excellent',
   'good',
   'acceptable',
@@ -65,7 +65,7 @@ export const feedbackRatingEnum = pgEnum('feedback_rating', [
   'poor'
 ]);
 
-export const actionStatusEnum = pgEnum('action_status', [
+export const aiActionStatusEnum = pgEnum('ai_action_status', [
   'pending',
   'validating',
   'collecting_data',
@@ -88,7 +88,7 @@ export const aiAgents = pgTable('ai_agents', {
   // Basic Info
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
-  status: agentStatusEnum('status').default('active').notNull(),
+  status: aiAgentStatusEnum('status').default('active').notNull(),
   
   // Configuration via Prompt
   configPrompt: text('config_prompt').notNull(), // Original prompt from user
@@ -236,7 +236,7 @@ export const aiConversations = pgTable('ai_conversations', {
   channelType: varchar('channel_type', { length: 50 }).notNull(), // 'email', 'whatsapp', 'chat'
   
   // Conversation State
-  status: conversationStatusEnum('status').default('active').notNull(),
+  status: aiConversationStatusEnum('status').default('active').notNull(),
   currentStep: varchar('current_step', { length: 100 }).default('greeting'),
   
   // Detected Intent and Action
@@ -256,7 +256,7 @@ export const aiConversations = pgTable('ai_conversations', {
   }>().default({}),
   
   // Sentiment Analysis
-  overallSentiment: sentimentEnum('overall_sentiment'),
+  overallSentiment: aiSentimentEnum('overall_sentiment'),
   sentimentHistory: jsonb('sentiment_history').$type<Array<{
     timestamp: string;
     sentiment: string;
@@ -288,7 +288,7 @@ export const aiConversationMessages = pgTable('ai_conversation_messages', {
   conversationId: varchar('conversation_id', { length: 36 }).notNull(),
   
   // Message Content
-  role: messageRoleEnum('role').notNull(),
+  role: aiMessageRoleEnum('role').notNull(),
   content: text('content').notNull(),
   
   // Metadata
@@ -317,7 +317,7 @@ export const aiConversationLogs = pgTable('ai_conversation_logs', {
   conversationId: varchar('conversation_id', { length: 36 }).notNull(),
   
   // Log Details
-  level: logLevelEnum('level').notNull(),
+  level: aiLogLevelEnum('level').notNull(),
   category: varchar('category', { length: 50 }).notNull(), // 'intent_detection', 'validation', 'execution', etc.
   message: text('message').notNull(),
   
@@ -344,7 +344,7 @@ export const aiActionExecutions = pgTable('ai_action_executions', {
   actionType: varchar('action_type', { length: 100 }).notNull(),
   
   // Execution State
-  status: actionStatusEnum('status').default('pending').notNull(),
+  status: aiActionStatusEnum('status').default('pending').notNull(),
   
   // Input/Output
   inputParams: jsonb('input_params').notNull(),
@@ -381,7 +381,7 @@ export const aiConversationFeedback = pgTable('ai_conversation_feedback', {
   agentId: varchar('agent_id', { length: 36 }).notNull(),
   
   // Feedback
-  rating: feedbackRatingEnum('rating').notNull(),
+  rating: aiFeedbackRatingEnum('rating').notNull(),
   comment: text('comment'),
   
   // Specific Issues

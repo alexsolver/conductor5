@@ -4,11 +4,17 @@
 
 import { db } from "./db";
 import { 
-  users, tenants, customers, tickets, ticketMessages, 
+  users, tenants, customers, tickets, ticketMessages,
+  aiAgents, aiConversations, aiConversationMessages, aiConversationLogs,
+  aiActionExecutions, aiConversationFeedback, aiLearningPatterns, aiActions,
   type User, type Tenant, type Customer, type Ticket, type TicketMessage,
-  type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage
+  type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage,
+  type AiAgent, type AiConversation, type AiConversationMessage, type AiConversationLog,
+  type AiActionExecution, type AiConversationFeedback, type AiLearningPattern, type AiAction,
+  type InsertAiAgent, type InsertAiConversation, type InsertAiConversationMessage,
+  type InsertAiConversationLog, type InsertAiActionExecution, type InsertAiConversationFeedback
 } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 
 // ========================================
 // UNIFIED STORAGE INTERFACE
@@ -48,6 +54,56 @@ export interface IUnifiedStorage {
     openTickets: number;
     resolvedTickets: number;
   }>;
+  
+  // ========================================
+  // AI AGENT OPERATIONS
+  // ========================================
+  
+  // Agent CRUD
+  getAiAgents(tenantId: string): Promise<AiAgent[]>;
+  getAiAgent(tenantId: string, id: string): Promise<AiAgent | undefined>;
+  createAiAgent(agent: InsertAiAgent): Promise<AiAgent>;
+  updateAiAgent(tenantId: string, id: string, updates: Partial<InsertAiAgent>): Promise<AiAgent>;
+  deleteAiAgent(tenantId: string, id: string): Promise<void>;
+  
+  // Action definitions
+  getAiActions(): Promise<AiAction[]>;
+  getAiAction(actionType: string): Promise<AiAction | undefined>;
+  
+  // Conversation management
+  getAiConversations(tenantId: string, filters?: {
+    agentId?: string;
+    userId?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<AiConversation[]>;
+  getAiConversation(conversationId: string): Promise<AiConversation | undefined>;
+  createAiConversation(conversation: InsertAiConversation): Promise<AiConversation>;
+  updateAiConversation(conversationId: string, updates: Partial<InsertAiConversation>): Promise<AiConversation>;
+  
+  // Conversation messages
+  getAiConversationMessages(conversationId: string): Promise<AiConversationMessage[]>;
+  createAiConversationMessage(message: InsertAiConversationMessage): Promise<AiConversationMessage>;
+  
+  // Conversation logs
+  getAiConversationLogs(conversationId: string, level?: string): Promise<AiConversationLog[]>;
+  createAiConversationLog(log: InsertAiConversationLog): Promise<AiConversationLog>;
+  
+  // Action executions
+  getAiActionExecutions(conversationId: string): Promise<AiActionExecution[]>;
+  createAiActionExecution(execution: InsertAiActionExecution): Promise<AiActionExecution>;
+  updateAiActionExecution(id: string, updates: Partial<InsertAiActionExecution>): Promise<AiActionExecution>;
+  
+  // Feedback and learning
+  getAiConversationFeedback(conversationId: string): Promise<AiConversationFeedback | undefined>;
+  createAiConversationFeedback(feedback: InsertAiConversationFeedback): Promise<AiConversationFeedback>;
+  getUnprocessedFeedback(agentId: string, limit?: number): Promise<AiConversationFeedback[]>;
+  markFeedbackAsProcessed(feedbackId: string): Promise<void>;
+  
+  // Learning patterns
+  getAiLearningPatterns(agentId: string, applied?: boolean): Promise<AiLearningPattern[]>;
+  createAiLearningPattern(pattern: Omit<AiLearningPattern, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiLearningPattern>;
+  applyLearningPattern(patternId: string): Promise<void>;
 }
 
 // ========================================
@@ -380,6 +436,238 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
       console.error(`Failed to set search path for tenant ${tenantId}:`, error);
       throw new Error(`Unable to access tenant data for ${tenantId}`);
     }
+  }
+
+  // ========================================
+  // AI AGENT OPERATIONS IMPLEMENTATION
+  // ========================================
+  
+  async getAiAgents(tenantId: string): Promise<AiAgent[]> {
+    const result = await db.select()
+      .from(aiAgents)
+      .where(eq(aiAgents.tenantId, tenantId))
+      .orderBy(desc(aiAgents.createdAt));
+    return result;
+  }
+
+  async getAiAgent(tenantId: string, id: string): Promise<AiAgent | undefined> {
+    const result = await db.select()
+      .from(aiAgents)
+      .where(and(
+        eq(aiAgents.tenantId, tenantId),
+        eq(aiAgents.id, id)
+      ));
+    return result[0];
+  }
+
+  async createAiAgent(agent: InsertAiAgent): Promise<AiAgent> {
+    const result = await db.insert(aiAgents).values(agent).returning();
+    return result[0];
+  }
+
+  async updateAiAgent(tenantId: string, id: string, updates: Partial<InsertAiAgent>): Promise<AiAgent> {
+    const result = await db
+      .update(aiAgents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(aiAgents.tenantId, tenantId),
+        eq(aiAgents.id, id)
+      ))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAiAgent(tenantId: string, id: string): Promise<void> {
+    await db.delete(aiAgents)
+      .where(and(
+        eq(aiAgents.tenantId, tenantId),
+        eq(aiAgents.id, id)
+      ));
+  }
+
+  async getAiActions(): Promise<AiAction[]> {
+    const result = await db.select()
+      .from(aiActions)
+      .where(eq(aiActions.isActive, true))
+      .orderBy(aiActions.category, aiActions.name);
+    return result;
+  }
+
+  async getAiAction(actionType: string): Promise<AiAction | undefined> {
+    const result = await db.select()
+      .from(aiActions)
+      .where(eq(aiActions.actionType, actionType));
+    return result[0];
+  }
+
+  async getAiConversations(tenantId: string, filters?: {
+    agentId?: string;
+    userId?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<AiConversation[]> {
+    const conditions = [eq(aiConversations.tenantId, tenantId)];
+    
+    if (filters?.agentId) {
+      conditions.push(eq(aiConversations.agentId, filters.agentId));
+    }
+    if (filters?.userId) {
+      conditions.push(eq(aiConversations.userId, filters.userId));
+    }
+    if (filters?.status) {
+      conditions.push(sql`${aiConversations.status} = ${filters.status}`);
+    }
+
+    let query = db.select()
+      .from(aiConversations)
+      .where(and(...conditions))
+      .orderBy(desc(aiConversations.lastMessageAt));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+
+    return await query;
+  }
+
+  async getAiConversation(conversationId: string): Promise<AiConversation | undefined> {
+    const result = await db.select()
+      .from(aiConversations)
+      .where(eq(aiConversations.id, conversationId));
+    return result[0];
+  }
+
+  async createAiConversation(conversation: InsertAiConversation): Promise<AiConversation> {
+    const result = await db.insert(aiConversations).values(conversation).returning();
+    return result[0];
+  }
+
+  async updateAiConversation(conversationId: string, updates: Partial<InsertAiConversation>): Promise<AiConversation> {
+    const result = await db
+      .update(aiConversations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiConversations.id, conversationId))
+      .returning();
+    return result[0];
+  }
+
+  async getAiConversationMessages(conversationId: string): Promise<AiConversationMessage[]> {
+    const result = await db.select()
+      .from(aiConversationMessages)
+      .where(eq(aiConversationMessages.conversationId, conversationId))
+      .orderBy(aiConversationMessages.timestamp);
+    return result;
+  }
+
+  async createAiConversationMessage(message: InsertAiConversationMessage): Promise<AiConversationMessage> {
+    const result = await db.insert(aiConversationMessages).values(message).returning();
+    return result[0];
+  }
+
+  async getAiConversationLogs(conversationId: string, level?: string): Promise<AiConversationLog[]> {
+    const conditions = [eq(aiConversationLogs.conversationId, conversationId)];
+    
+    if (level) {
+      conditions.push(sql`${aiConversationLogs.level} = ${level}`);
+    }
+
+    const result = await db.select()
+      .from(aiConversationLogs)
+      .where(and(...conditions))
+      .orderBy(aiConversationLogs.timestamp);
+    return result;
+  }
+
+  async createAiConversationLog(log: InsertAiConversationLog): Promise<AiConversationLog> {
+    const result = await db.insert(aiConversationLogs).values(log).returning();
+    return result[0];
+  }
+
+  async getAiActionExecutions(conversationId: string): Promise<AiActionExecution[]> {
+    const result = await db.select()
+      .from(aiActionExecutions)
+      .where(eq(aiActionExecutions.conversationId, conversationId))
+      .orderBy(aiActionExecutions.startedAt);
+    return result;
+  }
+
+  async createAiActionExecution(execution: InsertAiActionExecution): Promise<AiActionExecution> {
+    const result = await db.insert(aiActionExecutions).values(execution).returning();
+    return result[0];
+  }
+
+  async updateAiActionExecution(id: string, updates: Partial<InsertAiActionExecution>): Promise<AiActionExecution> {
+    const result = await db
+      .update(aiActionExecutions)
+      .set(updates)
+      .where(eq(aiActionExecutions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getAiConversationFeedback(conversationId: string): Promise<AiConversationFeedback | undefined> {
+    const result = await db.select()
+      .from(aiConversationFeedback)
+      .where(eq(aiConversationFeedback.conversationId, conversationId));
+    return result[0];
+  }
+
+  async createAiConversationFeedback(feedback: InsertAiConversationFeedback): Promise<AiConversationFeedback> {
+    const result = await db.insert(aiConversationFeedback).values(feedback).returning();
+    return result[0];
+  }
+
+  async getUnprocessedFeedback(agentId: string, limit: number = 50): Promise<AiConversationFeedback[]> {
+    const result = await db.select()
+      .from(aiConversationFeedback)
+      .where(and(
+        eq(aiConversationFeedback.agentId, agentId),
+        eq(aiConversationFeedback.appliedToLearning, false)
+      ))
+      .orderBy(desc(aiConversationFeedback.createdAt))
+      .limit(limit);
+    return result;
+  }
+
+  async markFeedbackAsProcessed(feedbackId: string): Promise<void> {
+    await db
+      .update(aiConversationFeedback)
+      .set({ 
+        appliedToLearning: true,
+        learningAppliedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(aiConversationFeedback.id, feedbackId));
+  }
+
+  async getAiLearningPatterns(agentId: string, applied?: boolean): Promise<AiLearningPattern[]> {
+    const conditions = [eq(aiLearningPatterns.agentId, agentId)];
+    
+    if (applied !== undefined) {
+      conditions.push(eq(aiLearningPatterns.applied, applied));
+    }
+
+    const result = await db.select()
+      .from(aiLearningPatterns)
+      .where(and(...conditions))
+      .orderBy(desc(aiLearningPatterns.createdAt));
+    return result;
+  }
+
+  async createAiLearningPattern(pattern: Omit<AiLearningPattern, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiLearningPattern> {
+    const result = await db.insert(aiLearningPatterns).values(pattern as any).returning();
+    return result[0];
+  }
+
+  async applyLearningPattern(patternId: string): Promise<void> {
+    await db
+      .update(aiLearningPatterns)
+      .set({ 
+        applied: true,
+        appliedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(aiLearningPatterns.id, patternId));
   }
 
   // ========================================
