@@ -93,6 +93,7 @@ import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
 import TimecardApprovals from './pages/TimecardApprovals';
 import NotificationsPage from './pages/NotificationsPage';
+import UserNotificationsPage from './pages/UserNotifications';
 import Reports from './pages/Reports';
 import Dashboards from './pages/Dashboards';
 import DashboardView from "./pages/DashboardView";
@@ -179,6 +180,7 @@ function AppRouter() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/automation-rules" component={AutomationRules} />
         <Route path="/notifications" component={NotificationsPage} />
+        <Route path="/my-notifications" element={<UserNotificationsPage />} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         {/* Unified Tenants Management Page */}
         <Route path="/tenants" component={Tenants} />
