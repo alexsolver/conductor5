@@ -67,16 +67,25 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       .from(conversationLogs)
       .where(and(...conditions));
 
-    console.log(`✅ [CONVERSATION-LOGS] Found ${results.length} conversations (total: ${total})`);
+    console.log(`✅ [CONVERSATION-LOGS] Found ${results.length} conversations (total: ${total}) at ${new Date().toISOString()}`);
     
     if (results.length > 0) {
       console.log(`📋 [CONVERSATION-LOGS] Sample conversation:`, {
         id: results[0].id,
         agentId: results[0].agentId,
+        agentName: results[0].agentName,
         sessionId: results[0].sessionId,
-        startedAt: results[0].startedAt
+        startedAt: results[0].startedAt,
+        totalMessages: results[0].totalMessages
       });
+    } else {
+      console.log(`⚠️ [CONVERSATION-LOGS] No conversations found for tenant: ${tenantId}`);
     }
+
+    // ✅ 1QA.MD: Add cache control headers to prevent browser caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     res.json({
       success: true,
@@ -84,6 +93,7 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       total: Number(total),
       limit: Number(limit),
       offset: Number(offset),
+      timestamp: new Date().toISOString(), // ✅ Add timestamp for debugging
     });
   } catch (error) {
     console.error('❌ [CONVERSATION-LOGS] Error fetching conversation logs:', error);

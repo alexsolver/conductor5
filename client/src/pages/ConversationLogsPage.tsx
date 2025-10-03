@@ -58,10 +58,21 @@ export default function ConversationLogsPage() {
 
   // ✅ 1QA.MD: Fetch conversation logs with auto-refresh and proper authentication
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/omnibridge/conversation-logs', user?.tenantId, page, limit, agentFilter, statusFilter, startDate, endDate],
+    queryKey: [
+      '/api/omnibridge/conversation-logs', 
+      user?.tenantId, 
+      page, 
+      limit, 
+      agentFilter, 
+      statusFilter, 
+      searchTerm, // ✅ Include searchTerm in query key
+      startDate, 
+      endDate
+    ],
     queryFn: async () => {
       // ✅ 1QA.MD: Validate authentication using useAuth hook as primary source
       if (!user?.tenantId) {
+        console.error('❌ [CONVERSATION-LOGS] No tenantId available');
         throw new Error('User not authenticated');
       }
 
@@ -80,7 +91,13 @@ export default function ConversationLogsPage() {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
-      console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${user.tenantId}`);
+      console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${user.tenantId}`, {
+        page,
+        limit,
+        agentFilter,
+        statusFilter,
+        timestamp: new Date().toISOString()
+      });
 
       const response = await apiRequest('GET', `/api/omnibridge/conversation-logs?${params.toString()}`, {
         credentials: 'include',
@@ -92,15 +109,16 @@ export default function ConversationLogsPage() {
       }
       const result = await response.json();
 
-      console.log(`✅ [CONVERSATION-LOGS] Received ${result?.data?.length || 0} conversations`);
+      console.log(`✅ [CONVERSATION-LOGS] Received ${result?.data?.length || 0} conversations at ${new Date().toISOString()}`);
 
       return result;
     },
     enabled: !!user?.tenantId, // Enable query only if user is authenticated
     refetchInterval: 5000, // ✅ Auto-refresh every 5 seconds
-    staleTime: 1000, // Consider data fresh for 1 second
+    staleTime: 0, // ✅ Always consider data stale to force fresh fetches
     refetchOnWindowFocus: true, // Refetch when window gets focus
     refetchOnMount: true, // Refetch on component mount
+    refetchIntervalInBackground: true, // ✅ Continue refetching even when tab is not focused
   });
 
   const filteredConversations = data?.data?.filter((conv: ConversationLog) => {
