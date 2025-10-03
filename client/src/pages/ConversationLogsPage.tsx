@@ -67,8 +67,7 @@ export default function ConversationLogsPage() {
       statusFilter, 
       searchTerm,
       startDate, 
-      endDate,
-      Date.now() // ✅ Force cache invalidation on every refetch
+      endDate
     ],
     queryFn: async () => {
       // ✅ 1QA.MD: Validate authentication using useAuth hook as primary source
@@ -115,12 +114,12 @@ export default function ConversationLogsPage() {
       return result;
     },
     enabled: !!user?.tenantId,
-    refetchInterval: 5000,
-    staleTime: 0,
+    refetchInterval: 5000, // ✅ Auto-refresh every 5 seconds
+    staleTime: 0, // ✅ Always consider data stale
+    gcTime: 0, // ✅ React Query v5: gcTime replaces cacheTime
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchIntervalInBackground: true,
-    cacheTime: 0, // ✅ Never cache results
   });
 
   const filteredConversations = data?.data?.filter((conv: ConversationLog) => {

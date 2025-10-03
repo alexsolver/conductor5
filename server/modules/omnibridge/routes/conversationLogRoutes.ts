@@ -68,14 +68,17 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       .where(and(...conditions));
 
     const timestamp = new Date().toISOString();
-    console.log(`✅ [CONVERSATION-LOGS] Found ${results.length} conversations (total: ${total}) at ${timestamp}`);
+    console.log(`✅ [CONVERSATION-LOGS] Query executed at ${timestamp}`);
+    console.log(`📊 [CONVERSATION-LOGS] Results: ${results.length} conversations (total: ${total})`);
+    console.log(`🔍 [CONVERSATION-LOGS] Filters:`, { agentId, limit, offset, startDate, endDate });
     
     if (results.length > 0) {
-      console.log(`📋 [CONVERSATION-LOGS] Latest conversations:`, 
+      console.log(`📋 [CONVERSATION-LOGS] Latest 3 conversations:`, 
         results.slice(0, 3).map(r => ({
           id: r.id,
           agentName: r.agentName,
-          startedAt: r.startedAt
+          startedAt: r.startedAt,
+          totalMessages: r.totalMessages
         }))
       );
     } else {
