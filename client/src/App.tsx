@@ -180,7 +180,7 @@ function AppRouter() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/automation-rules" component={AutomationRules} />
         <Route path="/notifications" component={NotificationsPage} />
-        <Route path="/my-notifications" element={<UserNotificationsPage />} />
+        <Route path="/my-notifications" component={UserNotificationsPage} />
         <Route path="/clt-compliance" component={CLTCompliance} />
         {/* Unified Tenants Management Page */}
         <Route path="/tenants" component={Tenants} />
