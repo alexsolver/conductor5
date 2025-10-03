@@ -121,6 +121,27 @@ export const getQueryFn: <T>(options: {
     // ✅ Para HTTP-only cookies, não verificamos localStorage
     // O browser gerencia automaticamente os cookies com credentials: 'include'
 
+    // 🔧 Get tenant ID from queryClient cache or local storage
+    let tenantId = '';
+    try {
+      // Try to get tenant ID from cached user data
+      const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
+      if (cachedUser?.tenantId) {
+        tenantId = cachedUser.tenantId;
+      } else {
+        // Fallback to localStorage (for backward compatibility)
+        tenantId = localStorage.getItem('tenantId') || '';
+      }
+    } catch (e) {
+      // Fallback to localStorage if queryClient is not available
+      tenantId = localStorage.getItem('tenantId') || '';
+    }
+
+    // 🔧 Include tenant ID header if available
+    if (tenantId) {
+      headers['x-tenant-id'] = tenantId;
+    }
+
     const endpoint = queryKey.join("/");
     let res = await fetch(endpoint, {
       headers,
@@ -133,8 +154,13 @@ export const getQueryFn: <T>(options: {
       const refreshSucceeded = await refreshAccessToken();
       if (refreshSucceeded) {
         console.log('✅ [QUERY-CLIENT] Token refreshed, retrying query...');
+        // 🔧 Rebuild headers with tenant ID for retry
+        const retryHeaders: Record<string, string> = {};
+        if (tenantId) {
+          retryHeaders['x-tenant-id'] = tenantId;
+        }
         res = await fetch(endpoint, {
-          headers,
+          headers: retryHeaders,
           credentials: "include",
         });
       } else {
