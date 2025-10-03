@@ -288,8 +288,12 @@ export async function seedAiActions() {
   console.log('🌱 Seeding AI Actions...');
 
   try {
+    const { db } = await import('../db');
+    const { aiActions } = await import('@shared/schema');
+    
+    const existing = await unifiedStorage.getAiActions();
+    
     for (const action of AI_ACTIONS) {
-      const existing = await unifiedStorage.getAiActions('3f99462f-3621-4b1b-bea8-782acc50d62e');
       const found = existing.find(a => a.actionType === action.actionType);
       
       if (found) {
@@ -297,7 +301,19 @@ export async function seedAiActions() {
         continue;
       }
 
-      await unifiedStorage.createAiAction(action);
+      // Insert directly using drizzle
+      await db.insert(aiActions).values({
+        tenantId: action.tenantId,
+        actionType: action.actionType,
+        name: action.name,
+        description: action.description,
+        category: action.category,
+        requiredParams: action.requiredParams,
+        optionalParams: action.optionalParams,
+        prerequisites: action.prerequisites,
+        riskLevel: action.riskLevel
+      });
+      
       console.log(`✅ Created action: ${action.name}`);
     }
 
