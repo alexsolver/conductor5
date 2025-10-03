@@ -1554,7 +1554,6 @@ export default function OmniBridge() {
 
 // Conversation Logs Content Component
 function ConversationLogsContent() {
-  console.log('🚀 [CONVERSATION-LOGS-COMPONENT] Component mounted/rendered');
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1579,7 +1578,6 @@ function ConversationLogsContent() {
   const { data, isLoading } = useQuery({
     queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
     queryFn: async () => {
-      console.log('🔍 [CONVERSATION-LOGS] Fetching conversation logs...', { agentFilter, page, limit });
       const params = new URLSearchParams({
         limit: String(limit),
         offset: String(page * limit),
@@ -1587,15 +1585,11 @@ function ConversationLogsContent() {
       if (agentFilter !== 'all') {
         params.append('agentId', agentFilter);
       }
-      console.log('📡 [CONVERSATION-LOGS] Request URL:', `/api/omnibridge/conversation-logs?${params}`);
       const response = await fetch(`/api/omnibridge/conversation-logs?${params}`, {
         credentials: 'include',
       });
-      console.log('📨 [CONVERSATION-LOGS] Response status:', response.status, response.ok);
       if (!response.ok) throw new Error('Failed to fetch conversations');
-      const result = await response.json();
-      console.log('✅ [CONVERSATION-LOGS] Data received:', result);
-      return result;
+      return response.json();
     },
     enabled: true,
   });
@@ -1689,9 +1683,9 @@ function ConversationLogsContent() {
 
   const filteredConversations = data?.data?.filter((conv: any) => {
     const matchesSearch = !searchTerm || 
-      conv.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.agentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conv.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.channel.toLowerCase().includes(searchTerm.toLowerCase());
+      conv.channelType?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || 
       (statusFilter === 'escalated' && conv.escalatedToHuman) ||
@@ -2092,7 +2086,7 @@ function ConversationLogsContent() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                       <div>
                         <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-                        <p className="font-medium capitalize">{conv.channel}</p>
+                        <p className="font-medium capitalize">{conv.channelType}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
