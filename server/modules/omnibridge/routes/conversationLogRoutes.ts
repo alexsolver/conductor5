@@ -32,10 +32,16 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid tenant ID format' });
     }
     
-    console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${tenantId}`);
-    
     const { agentId, limit = 50, offset = 0, startDate, endDate } = req.query;
-
+    
+    console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${tenantId}`, {
+      agentId,
+      limit,
+      offset,
+      startDate,
+      endDate
+    });
+    
     const conditions = [eq(conversationLogs.tenantId, tenantId)];
 
     if (agentId) {
@@ -62,6 +68,15 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       .where(and(...conditions));
 
     console.log(`✅ [CONVERSATION-LOGS] Found ${results.length} conversations (total: ${total})`);
+    
+    if (results.length > 0) {
+      console.log(`📋 [CONVERSATION-LOGS] Sample conversation:`, {
+        id: results[0].id,
+        agentId: results[0].agentId,
+        sessionId: results[0].sessionId,
+        startedAt: results[0].startedAt
+      });
+    }
 
     res.json({
       success: true,

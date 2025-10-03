@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ptBR, enUS, es } from 'date-fns/locale';
@@ -10,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, Bot, AlertCircle, CheckCircle, Clock, Search, Filter, Download, Activity } from 'lucide-react';
+import { MessageSquare, Bot, AlertCircle, CheckCircle, Clock, Search, Filter, Download, Activity, RefreshCw } from 'lucide-react';
 
 interface ConversationLog {
   id: number;
@@ -31,32 +34,15 @@ interface ConversationLog {
 
 export default function ConversationLogsPage() {
   const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [page, setPage] = useState(0);
+  const limit = 20;
   const [searchTerm, setSearchTerm] = useState('');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [page, setPage] = useState(0);
-  const limit = 20;
-
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        limit: String(limit),
-        offset: String(page * limit),
-      });
-      if (agentFilter !== 'all') {
-        params.append('agentId', agentFilter);
-      }
-      const response = await fetch(`/api/omnibridge/conversation-logs?${params}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch conversations');
-      return response.json();
-    },
-    refetchInterval: 5000, // Atualiza a cada 5 segundos
-    refetchOnWindowFocus: true, // Atualiza quando a janela recebe foco
-    refetchOnMount: true, // Atualiza ao montar o componente
-  });
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   const getDateLocale = () => {
     switch (i18n.language) {
@@ -69,6 +55,53 @@ export default function ConversationLogsPage() {
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'PPp', { locale: getDateLocale() });
   };
+
+  // ✅ 1QA.MD: Fetch conversation logs with auto-refresh and proper authentication
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/omnibridge/conversation-logs', user?.tenantId, page, limit, agentFilter, statusFilter, startDate, endDate],
+    queryFn: async () => {
+      // ✅ 1QA.MD: Validate authentication using useAuth hook as primary source
+      if (!user?.tenantId) {
+        throw new Error('User not authenticated');
+      }
+
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(page * limit),
+      });
+      if (agentFilter !== 'all') {
+        params.append('agentId', agentFilter);
+      }
+      if (statusFilter === 'escalated') {
+        params.append('escalated', 'true');
+      } else if (statusFilter === 'completed') {
+        params.append('completed', 'true');
+      }
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${user.tenantId}`);
+
+      const response = await apiRequest('GET', `/api/omnibridge/conversation-logs?${params.toString()}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('❌ [CONVERSATION-LOGS] API Error response:', errorData);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+
+      console.log(`✅ [CONVERSATION-LOGS] Received ${result?.data?.length || 0} conversations`);
+
+      return result;
+    },
+    enabled: !!user?.tenantId, // Enable query only if user is authenticated
+    refetchInterval: 5000, // ✅ Auto-refresh every 5 seconds
+    staleTime: 1000, // Consider data fresh for 1 second
+    refetchOnWindowFocus: true, // Refetch when window gets focus
+    refetchOnMount: true, // Refetch on component mount
+  });
 
   const filteredConversations = data?.data?.filter((conv: ConversationLog) => {
     const matchesSearch = !searchTerm || 
@@ -92,6 +125,70 @@ export default function ConversationLogsPage() {
     link.download = `conversations-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
   };
+
+  // ✅ 1QA.MD: Validate user authentication before rendering
+  if (!user?.tenantId) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          {t('omnibridge.conversationLogs.title', 'Histórico de Conversas IA')}
+        </h1>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">
+            {t('common.pleaseLogin', 'Por favor, faça login para continuar')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-64" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-8 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('❌ [CONVERSATION-LOGS] Error loading conversations:', error);
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          {t('omnibridge.conversationLogs.title', 'Histórico de Conversas IA')}
+        </h1>
+        <div className="flex items-center justify-center h-64 text-destructive">
+          <p>{t('omnibridge.conversationLogs.errorLoading', 'Erro ao carregar conversas')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -178,6 +275,9 @@ export default function ConversationLogsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('common.all', 'Todos')}</SelectItem>
+                  {/* Placeholder for agents - ideally fetched from an API */}
+                  <SelectItem value="agent1">Agente 1</SelectItem>
+                  <SelectItem value="agent2">Agente 2</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -186,15 +286,7 @@ export default function ConversationLogsPage() {
       </Card>
 
       <div className="space-y-3">
-        {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredConversations.length === 0 ? (
+        {filteredConversations.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
