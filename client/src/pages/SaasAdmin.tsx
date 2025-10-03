@@ -308,20 +308,33 @@ const SaasAdmin: React.FC = () => {
     try {
       console.log('[SAAS-ADMIN] Creating notification with data:', newNotification);
 
-      // Get current user from auth context
-      const user = (window as any).__currentUser;
-
-      if (!user?.id || !user?.tenantId) {
+      // ✅ 1QA.MD: Get authentication token from localStorage (same pattern as other modules)
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (!token || !userStr) {
         toast({
           title: "Erro de autenticação",
-          description: "Usuário não autenticado corretamente.",
+          description: "Usuário não autenticado. Faça login novamente.",
           variant: "destructive"
         });
         setLoading(false);
         return;
       }
 
-      // Prepare notification data following 1qa.md patterns
+      const user = JSON.parse(userStr);
+
+      if (!user?.id || !user?.tenantId) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Dados do usuário inválidos. Faça login novamente.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // ✅ 1QA.MD: Prepare notification data following Clean Architecture patterns
       const notificationData = {
         tenantId: user.tenantId,
         userId: user.id, // Notification creator
@@ -335,10 +348,13 @@ const SaasAdmin: React.FC = () => {
 
       console.log('[SAAS-ADMIN] Sending notification data:', notificationData);
 
+      // ✅ 1QA.MD: Include authentication headers
       const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Id': user.tenantId
         },
         credentials: 'include',
         body: JSON.stringify(notificationData)
