@@ -72,7 +72,7 @@ export default function AIAgentConfig() {
 
   // Create agent mutation
   const createAgentMutation = useMutation({
-    mutationFn: (data: Partial<AIAgent>) => apiRequest('/api/ai-agents', 'POST', data),
+    mutationFn: (data: Partial<AIAgent>) => apiRequest('POST', '/api/ai-agents', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents'] });
       toast({ title: 'Agente criado com sucesso!' });
@@ -85,7 +85,7 @@ export default function AIAgentConfig() {
   // Update agent mutation
   const updateAgentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AIAgent> }) =>
-      apiRequest(`/api/ai-agents/${id}`, 'PATCH', data),
+      apiRequest('PATCH', `/api/ai-agents/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents'] });
       toast({ title: 'Agente atualizado com sucesso!' });
