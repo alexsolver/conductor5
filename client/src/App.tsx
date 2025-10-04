@@ -109,7 +109,6 @@ import ConversationDetailPage from "./pages/ConversationDetailPage";
 import KnowledgeBase from "./pages/KnowledgeBase";
 
 // AI Agent Module
-import AIAgentConfig from "./pages/AIAgentConfig";
 import AIChat from "./pages/AIChat";
 
 // Components
@@ -286,7 +285,6 @@ function AppRouter() {
         <Route path="/knowledge-base" component={KnowledgeBase} />
         
         {/* AI Agent Module */}
-        <Route path="/ai-agent/config" component={AIAgentConfig} />
         <Route path="/ai-agent/chat" component={AIChat} />
 
         <Route component={NotFound} />
