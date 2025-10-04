@@ -27,7 +27,9 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     path: req.path,
     url: req.url,
     hasCookies: !!req.cookies,
-    cookieKeys: req.cookies ? Object.keys(req.cookies) : []
+    cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
+    accessTokenValue: req.cookies?.accessToken?.substring(0, 30) || 'none',
+    refreshTokenValue: req.cookies?.refreshToken?.substring(0, 30) || 'none'
   });
   
   try {

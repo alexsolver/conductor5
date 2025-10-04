@@ -96,6 +96,9 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
  * Generate agent configuration from natural language prompt
  */
 router.post('/generate-config', async (req: AuthenticatedRequest, res: Response) => {
+  console.log('🤖 [AI-CONFIG-GEN] Auto-configuration endpoint called');
+  console.log('🤖 [AI-CONFIG-GEN] User:', req.user);
+  console.log('🤖 [AI-CONFIG-GEN] Body:', req.body);
   try {
     const { prompt } = req.body;
     
