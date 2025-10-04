@@ -413,7 +413,7 @@ export function ActionConfigModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="action-config-modal">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="action-config-modal">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className={`p-2 ${action.color} rounded-lg text-white`}>

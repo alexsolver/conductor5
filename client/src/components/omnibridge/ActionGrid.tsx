@@ -355,19 +355,19 @@ export function ActionGrid({
     return matchesSearch && matchesCategory;
   });
 
-  // Verificar se ação está selecionada
-  const isActionEnabled = (actionId: string) => {
-    return selectedActions.some(a => a.id === actionId);
+  // Verificar se ação está selecionada (compara por type, não por id)
+  const isActionEnabled = (actionType: string) => {
+    return selectedActions.some(a => a.type === actionType);
   };
 
-  // Pegar configuração da ação
-  const getActionConfig = (actionId: string) => {
-    return selectedActions.find(a => a.id === actionId)?.config || {};
+  // Pegar configuração da ação (compara por type, não por id)
+  const getActionConfig = (actionType: string) => {
+    return selectedActions.find(a => a.type === actionType)?.config || {};
   };
 
   // Determinar status da ação
   const getActionStatus = (action: ActionDefinition): 'configured' | 'partial' | 'unconfigured' => {
-    const config = getActionConfig(action.id);
+    const config = getActionConfig(action.type);
     const configKeys = Object.keys(config);
     
     if (configKeys.length === 0) return 'unconfigured';
@@ -412,9 +412,9 @@ export function ActionGrid({
               <ActionCard
                 key={action.id}
                 {...action}
-                enabled={isActionEnabled(action.id)}
-                config={getActionConfig(action.id)}
-                status={isActionEnabled(action.id) ? getActionStatus(action) : 'unconfigured'}
+                enabled={isActionEnabled(action.type)}
+                config={getActionConfig(action.type)}
+                status={isActionEnabled(action.type) ? getActionStatus(action) : 'unconfigured'}
                 onToggle={(enabled) => onToggleAction(action, enabled)}
                 onConfigure={() => onConfigureAction(action)}
               />
