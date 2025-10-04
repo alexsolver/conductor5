@@ -135,7 +135,6 @@ interface AutomationRule {
   conditions: any; // Query Builder structure
   actions: Action[];
   priority: number;
-  aiEnabled: boolean;
 }
 
 interface AutomationRuleBuilderProps {
@@ -247,8 +246,7 @@ export default function AutomationRuleBuilder({
     enabled: true,
     conditions: { rules: [], logicalOperator: 'AND' },
     actions: [],
-    priority: 1,
-    aiEnabled: false
+    priority: 1
   });
 
   const [activeTab, setActiveTab] = useState('conditions');
@@ -365,8 +363,7 @@ export default function AutomationRuleBuilder({
             id: stableId
           };
         }),
-        priority: existingRule.priority || 1,
-        aiEnabled: existingRule.aiEnabled || false
+        priority: existingRule.priority || 1
       };
 
       setRule(mappedRule);
@@ -378,8 +375,7 @@ export default function AutomationRuleBuilder({
         enabled: true,
         conditions: { rules: [], logicalOperator: 'AND' },
         actions: [],
-        priority: 1,
-        aiEnabled: false
+        priority: 1
       });
     }
   }, [existingRule]);

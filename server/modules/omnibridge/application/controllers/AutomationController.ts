@@ -45,7 +45,6 @@ export class AutomationController {
         conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
         actions: rule.actions || [],
         priority: rule.priority || 1,
-        aiEnabled: rule.aiEnabled || false,
         createdAt: rule.createdAt,
         updatedAt: rule.updatedAt,
         executionCount: rule.executionCount || 0,
@@ -228,7 +227,6 @@ export class AutomationController {
           priority: action.priority || 1
         })),
         priority: rule.priority || 1,
-        aiEnabled: rule.aiEnabled || false,
         createdAt: rule.createdAt,
         updatedAt: rule.updatedAt,
         executionCount: rule.executionCount || 0,

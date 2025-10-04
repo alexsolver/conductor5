@@ -4,7 +4,6 @@ import { IActionExecutorPort, ActionExecutionContext } from '../ports/IActionExe
 export interface AutomationTrigger {
   type: 'message_received' | 'email_received' | 'keyword_match' | 'ai_analysis' | 'time_based' | 'channel_specific';
   conditions: AutomationCondition[];
-  aiEnabled?: boolean;
   aiPromptId?: string;
 }
 
@@ -29,7 +28,6 @@ export interface AutomationAction {
   target?: string;
   params: Record<string, any>;
   config?: Record<string, any>;
-  aiEnabled?: boolean;
   templateId?: string;
   priority: number;
 }
@@ -44,7 +42,6 @@ export class AutomationRule {
     public actions: any[], // Changed from AutomationAction[] to any[] for flexibility
     public enabled: boolean,
     public priority: number,
-    public aiEnabled: boolean = false,
     public aiPromptId?: string,
     public executionCount: number = 0,
     public successCount: number = 0,
@@ -77,9 +74,9 @@ export class AutomationRule {
 
     console.log(`🔍 [AutomationRule] Evaluating rule "${this.name}" for message from ${messageData.sender}`);
 
-    // Se a regra requer análise de IA e não foi fornecida, fazer a análise
+    // Sempre usar análise de IA se o serviço estiver disponível
     let analysis = aiAnalysis;
-    if (this.aiEnabled && !analysis && aiService) {
+    if (!analysis && aiService) {
       console.log(`🤖 [AutomationRule] Running AI analysis for rule "${this.name}"`);
       analysis = await aiService.analyzeMessage({
         content: messageData.content || messageData.body,

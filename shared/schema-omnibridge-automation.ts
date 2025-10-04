@@ -34,7 +34,6 @@ export interface OmniBridgeAutomationRule {
   conditions: OmniBridgeQueryBuilder;
   actions: OmniBridgeAutomationAction[];
   priority: number;
-  aiEnabled: boolean;
   aiPromptId?: string;
   executionCount: number;
   successCount: number;
