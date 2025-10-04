@@ -28,6 +28,7 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
     - **Project Management**: Full project and project actions system with automatic project-ticket integration.
     - **Timecard/Journey Management**: CLT-compliant electronic timecard system with integrity hashing and compliance reports.
     - **Omnichannel Communication**: Unified communication center supporting email, WhatsApp, Slack, Telegram, with real-time inbox processing and automation.
+    - **OmniBridge AI Agent System**: Comprehensive AI conversational agent with natural language configuration, modal-based workflow, visual card interface, 20 automation actions (3 fully implemented with real integrations: reply_email/SendGrid, merge_tickets/DB operations, update_customer/use case integration), ticket context tracking with email header extraction and chat metadata detection for automation rule bypass.
     - **Agenda/Schedule Management**: Integrated scheduling system.
     - **Internationalization (i18n)**: Comprehensive system with multiple languages (English, Portuguese, Spanish, French, German), dynamic switching, and translation management interface, with full translation infrastructure operational.
     - **Template System**: Dynamic UI customization via CSS variables and hierarchical template management.
