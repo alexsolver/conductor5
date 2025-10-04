@@ -1411,62 +1411,64 @@ export class TenantTemplateService {
     schemaName: string,
     tenantId: string,
     userId: string,
-    defaultCompanyId: string,
-    customizations: {
+    companyInfo: {
       companyName: string;
       companyEmail?: string;
       industry?: string;
-    },
-  ): Promise<void> {
-    const company = DEFAULT_COMPANY_TEMPLATE.company;
+    }
+  ): Promise<string> {
+    console.log(`[TENANT-TEMPLATE] Step 1: Creating customized company for ${tenantId}`);
+    console.log(`[TENANT-TEMPLATE] Using table: companies in schema: ${schemaName}`);
 
-    // First, check which table name exists in the schema
-    const tableCheckQuery = `
-      SELECT table_name
-      FROM information_schema.tables
-      WHERE table_schema = $1
-      AND table_name IN ('customer_companies', 'companies')
-    `;
+    try {
+      // Check if company already exists
+      const existingCompany = await pool.query(
+        `SELECT id FROM "${schemaName}".companies WHERE tenant_id = $1 AND name = $2 LIMIT 1`,
+        [tenantId, companyInfo.companyName]
+      );
 
-    const tableCheckResult = await pool.query(tableCheckQuery, [schemaName]);
-    const tableName = tableCheckResult.rows.find(
-      (row) => row.table_name === "customer_companies",
-    )
-      ? "customer_companies"
-      : "companies";
+      if (existingCompany.rows.length > 0) {
+        const companyId = existingCompany.rows[0].id;
+        console.log(`[TENANT-TEMPLATE] ✅ Company already exists with ID: ${companyId}`);
 
-    console.log(
-      `[TENANT-TEMPLATE] Using table: ${tableName} in schema: ${schemaName}`,
-    );
+        // Update existing company
+        await pool.query(
+          `UPDATE "${schemaName}".companies 
+           SET display_name = $1, description = $2, updated_at = NOW()
+           WHERE id = $3`,
+          [companyInfo.companyName, companyInfo.industry || 'General Industry', companyId]
+        );
 
-    const query = `
-      INSERT INTO "${schemaName}"."${tableName}" (
-        id, tenant_id, name, display_name, description, industry, size,
-        email, phone, website, subscription_tier, status,
-        created_by, created_at, updated_at, is_active, country
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), true, 'Brazil')
-      ON CONFLICT (id) DO NOTHING
-    `;
+        return companyId;
+      }
 
-    await pool.query(query, [
-      defaultCompanyId,
-      tenantId,
-      customizations.companyName, // Nome personalizado
-      customizations.companyName, // Display name igual ao nome
-      `Empresa ${customizations.companyName} - Configurações padrão do sistema`, // Descrição personalizada
-      customizations.industry || company.industry, // Indústria personalizada ou padrão
-      company.size,
-      customizations.companyEmail || company.email, // Email personalizado ou padrão
-      company.phone,
-      company.website,
-      company.subscriptionTier,
-      company.status,
-      userId,
-    ]);
+      // Create new company
+      const companyId = randomUUID();
+      await pool.query(
+        `
+        INSERT INTO "${schemaName}".companies 
+        (id, tenant_id, name, display_name, description, size, subscription_tier, status, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      `,
+        [
+          companyId,
+          tenantId,
+          companyInfo.companyName,
+          companyInfo.companyName,
+          companyInfo.industry || 'General Industry',
+          'medium',
+          'premium',
+          'active',
+          userId,
+        ]
+      );
 
-    console.log(
-      `[TENANT-TEMPLATE] Customized default company '${customizations.companyName}' created with ID: ${defaultCompanyId} in table: ${tableName}`,
-    );
+      console.log(`[TENANT-TEMPLATE] ✅ Company created with ID: ${companyId}`);
+      return companyId;
+    } catch (error) {
+      console.error(`[TENANT-TEMPLATE] Error creating company:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -1820,7 +1822,6 @@ export class TenantTemplateService {
         schemaName,
         tenantId,
         userId,
-        defaultCompanyId,
         customizations,
       );
 
