@@ -393,17 +393,19 @@ export function ActionGrid({
 
       {/* Tabs de categorias */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-        <TabsList className="w-full justify-start overflow-x-auto">
-          {CATEGORIES.map(cat => {
-            const Icon = cat.icon;
-            return (
-              <TabsTrigger key={cat.id} value={cat.id} className="gap-2" data-testid={`category-${cat.id}`}>
-                <Icon className="h-4 w-4" />
-                {cat.label}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="w-full justify-start">
+            {CATEGORIES.map(cat => {
+              const Icon = cat.icon;
+              return (
+                <TabsTrigger key={cat.id} value={cat.id} className="gap-2 whitespace-nowrap" data-testid={`category-${cat.id}`}>
+                  <Icon className="h-4 w-4" />
+                  {cat.label}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
 
         <TabsContent value={activeCategory} className="mt-4">
           {/* Grid de cards */}
