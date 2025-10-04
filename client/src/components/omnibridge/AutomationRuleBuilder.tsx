@@ -625,6 +625,8 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
         type: action.type,
         name: action.name,
         description: action.description,
+        icon: action.icon,
+        color: action.color,
         config: action.config || {}
       }))
     };
