@@ -1820,7 +1820,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_versions" (
   "change_description" TEXT NULL DEFAULT NULL,
   "author_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "created_by_id" text
+  "created_by_id" UUID
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1874,7 +1874,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "comment" TEXT,
-  "user_id" text
+  "user_id" UUID
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2725,7 +2725,7 @@ CREATE TABLE IF NOT EXISTS "schedule_templates" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.service_integrations
 CREATE TABLE IF NOT EXISTS "service_integrations" (
-  "id" TEXT NOT NULL,
+  "id" UUID NOT NULL,
   "tenant_id" UUID NOT NULL,
   "name" TEXT NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -3940,7 +3940,7 @@ CREATE TABLE IF NOT EXISTS "user_group_memberships" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
   "user_id" UUID NOT NULL,
-  "group_id" TEXT NOT NULL,
+  "group_id" UUID NOT NULL,
   "role" VARCHAR(50) NULL DEFAULT 'member',
   "is_active" BOOLEAN NULL DEFAULT true,
   "added_at" TIMESTAMP NULL DEFAULT now(),
