@@ -163,7 +163,7 @@ export class ConversationalAgentEngine {
 
       // Gerar resposta baseada na intenção identificada
       const response = await this.generateIntentResponse(analysis.intent, agent);
-      conversation.addMessage('agent', response.message);
+      conversation.addMessage('assistant', response.message);
 
       return response;
     } else {
@@ -172,7 +172,7 @@ export class ConversationalAgentEngine {
       const menuOptions = this.generateActionMenu(agent);
 
       const message = `${agent.personality.greeting}\\n\\nComo posso ajudar você hoje?`;
-      conversation.addMessage('agent', message);
+      conversation.addMessage('assistant', message);
 
       return {
         message,
@@ -201,7 +201,7 @@ export class ConversationalAgentEngine {
         conversation.updateStep('collecting_parameters');
 
         const response = await this.generateIntentResponse(selectedAction, agent);
-        conversation.addMessage('agent', response.message);
+        conversation.addMessage('assistant', response.message);
 
         return response;
       }
@@ -220,7 +220,7 @@ export class ConversationalAgentEngine {
       conversation.updateStep('collecting_parameters');
 
       const response = await this.generateIntentResponse(analysis.intent, agent);
-      conversation.addMessage('agent', response.message);
+      conversation.addMessage('assistant', response.message);
 
       return response;
     }
@@ -228,7 +228,7 @@ export class ConversationalAgentEngine {
     // Fallback - reapresentar menu
     const menuOptions = this.generateActionMenu(agent);
     const message = `${agent.personality.fallbackMessage}\\n\\nEscolha uma das opções abaixo ou descreva como posso ajudar:`;
-    conversation.addMessage('agent', message);
+    conversation.addMessage('assistant', message);
 
     return {
       message,
@@ -268,7 +268,7 @@ export class ConversationalAgentEngine {
     if (missingParams.length > 0) {
       // Solicitar parâmetros faltantes
       const question = this.generateParameterQuestion(missingParams[0], agent);
-      conversation.addMessage('agent', question);
+      conversation.addMessage('assistant', question);
 
       return {
         message: question,
@@ -278,7 +278,7 @@ export class ConversationalAgentEngine {
       // Todos parâmetros coletados, ir para confirmação
       conversation.updateStep('confirmation');
       const confirmationMessage = this.generateConfirmationMessage(conversation, agent);
-      conversation.addMessage('agent', confirmationMessage);
+      conversation.addMessage('assistant', confirmationMessage);
 
       return {
         message: confirmationMessage,
@@ -306,7 +306,7 @@ export class ConversationalAgentEngine {
     } else if (userResponse.includes('não') || userResponse.includes('cancelar') || userResponse === '2') {
       conversation.updateStatus('completed');
       const message = "Operação cancelada. Posso ajudar com mais alguma coisa?";
-      conversation.addMessage('agent', message);
+      conversation.addMessage('assistant', message);
 
       return {
         message,
@@ -317,7 +317,7 @@ export class ConversationalAgentEngine {
       conversation.setIntendedAction(conversation.intendedAction!, {}); // Limpar parâmetros
 
       const message = "Vamos recomeçar. Qual informação você gostaria de fornecer?";
-      conversation.addMessage('agent', message);
+      conversation.addMessage('assistant', message);
 
       return {
         message,
@@ -327,7 +327,7 @@ export class ConversationalAgentEngine {
 
     // Resposta não reconhecida
     const message = "Por favor, confirme com 'Sim' ou 'Não', ou escolha uma das opções:";
-    conversation.addMessage('agent', message);
+    conversation.addMessage('assistant', message);
 
     return {
       message,
@@ -387,7 +387,7 @@ export class ConversationalAgentEngine {
         responseMessage = `Ocorreu um erro ao executar a ação: ${actionResult.error || 'Erro desconhecido'}. Posso tentar novamente?`;
       }
 
-      conversation.addMessage('agent', responseMessage);
+      conversation.addMessage('assistant', responseMessage);
 
       return {
         message: responseMessage,
@@ -399,7 +399,7 @@ export class ConversationalAgentEngine {
       console.error('❌ [ConversationalAgent] Error executing action:', error);
 
       const errorMessage = "Desculpe, ocorreu um erro ao executar a ação. Posso ajudar com outra coisa?";
-      conversation.addMessage('agent', errorMessage);
+      conversation.addMessage('assistant', errorMessage);
       conversation.updateStatus('completed');
 
       return {
@@ -417,7 +417,7 @@ export class ConversationalAgentEngine {
   ): Promise<ConversationResponse> {
 
     const message = `${agent.personality.fallbackMessage}\\n\\nVamos começar novamente. Como posso ajudar você?`;
-    conversation.addMessage('agent', message);
+    conversation.addMessage('assistant', message);
     conversation.updateStep('understanding_intent');
 
     const menuOptions = this.generateActionMenu(agent);

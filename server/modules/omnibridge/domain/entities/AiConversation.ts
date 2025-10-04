@@ -1,6 +1,6 @@
 export interface ConversationMessage {
   id: string;
-  role: 'user' | 'agent' | 'system';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   metadata?: {
@@ -52,7 +52,7 @@ export class AiConversation {
     }
   }
 
-  public addMessage(role: 'user' | 'agent' | 'system', content: string, metadata?: any): ConversationMessage {
+  public addMessage(role: 'user' | 'assistant' | 'system', content: string, metadata?: any): ConversationMessage {
     const message: ConversationMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       role,
@@ -154,7 +154,7 @@ export class AiConversation {
     return this.getAttemptCount() >= 5;
   }
 
-  public getLastMessagesByRole(role: 'user' | 'agent' | 'system', count: number = 3): ConversationMessage[] {
+  public getLastMessagesByRole(role: 'user' | 'assistant' | 'system', count: number = 3): ConversationMessage[] {
     return this.conversationHistory
       .filter(msg => msg.role === role)
       .slice(-count);
