@@ -198,6 +198,26 @@ router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
       ))
       .orderBy(actionExecutions.executedAt);
 
+    // Enrich messages with related actions for troubleshooting
+    const messagesWithActions = messages.map(msg => {
+      const relatedActions = actions.filter(action => action.messageId === msg.id);
+      return {
+        ...msg,
+        actions: relatedActions.map(action => ({
+          id: action.id,
+          actionName: action.actionName,
+          actionType: action.actionType,
+          parameters: action.parameters,
+          result: action.result,
+          success: action.success,
+          errorMessage: action.errorMessage,
+          executionTimeMs: action.executionTimeMs,
+          retryCount: action.retryCount,
+          executedAt: action.executedAt,
+        }))
+      };
+    });
+
     // Get feedback
     const feedback = await db
       .select()
@@ -211,7 +231,7 @@ router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
       success: true,
       data: {
         conversation,
-        messages,
+        messages: messagesWithActions, // Messages with related actions included
         actions,
         feedback,
       },
