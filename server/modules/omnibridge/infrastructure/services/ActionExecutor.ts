@@ -2521,11 +2521,41 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
   private async replyEmailAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      const { messageData } = context;
-      const { to, subject, body } = action.config || {};
-      console.log(`📧 Reply Email - To: ${to || messageData.from}, Subject: ${subject || `Re: ${messageData.subject}`}`);
-      return { success: true, message: 'Email reply sent', data: { to: to || messageData.from, sentAt: new Date().toISOString() } };
+      const { messageData, tenantId } = context;
+      const { to, subject, body, template } = action.config || {};
+      
+      // Import SendGrid dynamically to avoid circular deps
+      const { SendGridService } = await import('../../../../services/sendgridService');
+      
+      const recipientEmail = to || messageData.from;
+      const emailSubject = subject || `Re: ${messageData.subject || 'Sua mensagem'}`;
+      const emailBody = template || body || 'Obrigado pela sua mensagem. Entraremos em contato em breve.';
+      
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@conductor.lansolver.com';
+      
+      console.log(`📧 [REPLY-EMAIL-ACTION] Sending reply to ${recipientEmail} from tenant ${tenantId}`);
+      
+      const sent = await SendGridService.sendEmail({
+        to: recipientEmail,
+        from: fromEmail,
+        subject: emailSubject,
+        html: emailBody,
+        text: emailBody.replace(/<[^>]*>/g, '')
+      });
+      
+      if (sent) {
+        console.log(`✅ [REPLY-EMAIL-ACTION] Email sent successfully to ${recipientEmail}`);
+        return { 
+          success: true, 
+          message: 'Email reply sent successfully via SendGrid', 
+          data: { to: recipientEmail, subject: emailSubject, sentAt: new Date().toISOString() } 
+        };
+      } else {
+        console.error(`❌ [REPLY-EMAIL-ACTION] SendGrid failed to send email`);
+        return { success: false, message: 'SendGrid failed to send email' };
+      }
     } catch (error: any) {
+      console.error('❌ [REPLY-EMAIL-ACTION] Error:', error);
       return { success: false, message: 'Failed to send email reply', error: error.message };
     }
   }
@@ -2573,9 +2603,72 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
   private async mergeTicketsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
       const { sourceTicketId, targetTicketId } = action.config || {};
-      console.log(`🔗 Merging ticket ${sourceTicketId} into ${targetTicketId}`);
-      return { success: true, message: 'Tickets merged', data: { sourceTicketId, targetTicketId } };
+      const { tenantId } = context;
+      
+      if (!sourceTicketId || !targetTicketId) {
+        return { success: false, message: 'Source and target ticket IDs are required' };
+      }
+      
+      console.log(`🔗 [MERGE-TICKETS] Merging ticket ${sourceTicketId} into ${targetTicketId} for tenant ${tenantId}`);
+      
+      // Import schema
+      const { ticketMessages, tickets } = await import('../../../../../shared/schema-tenant');
+      const { eq, and } = await import('drizzle-orm');
+      
+      // 1. Move all messages from source to target
+      const messagesUpdated = await db
+        .update(ticketMessages)
+        .set({ ticketId: targetTicketId })
+        .where(
+          and(
+            eq(ticketMessages.tenantId, tenantId),
+            eq(ticketMessages.ticketId, sourceTicketId)
+          )
+        );
+      
+      console.log(`✅ [MERGE-TICKETS] Moved messages from ${sourceTicketId} to ${targetTicketId}`);
+      
+      // 2. Update source ticket status to 'merged' and add merge note
+      await db
+        .update(tickets)
+        .set({ 
+          status: 'closed',
+          resolution: `Merged into ticket ${targetTicketId}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(tickets.tenantId, tenantId),
+            eq(tickets.id, sourceTicketId)
+          )
+        );
+      
+      console.log(`✅ [MERGE-TICKETS] Updated source ticket ${sourceTicketId} status to closed`);
+      
+      // 3. Add merge notification to target ticket
+      await db.insert(ticketMessages).values({
+        tenantId,
+        ticketId: targetTicketId,
+        sender: 'system',
+        content: `Ticket ${sourceTicketId} was merged into this ticket`,
+        timestamp: new Date(),
+        isInternal: true
+      });
+      
+      console.log(`✅ [MERGE-TICKETS] Added merge notification to target ticket ${targetTicketId}`);
+      
+      return { 
+        success: true, 
+        message: 'Tickets merged successfully', 
+        data: { 
+          sourceTicketId, 
+          targetTicketId,
+          messagesMovedCount: messagesUpdated.rowCount || 0,
+          mergedAt: new Date().toISOString()
+        } 
+      };
     } catch (error: any) {
+      console.error('❌ [MERGE-TICKETS] Error:', error);
       return { success: false, message: 'Failed to merge tickets', error: error.message };
     }
   }
@@ -2593,10 +2686,43 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
   private async updateCustomerAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
       const { customerId, updates } = action.config || {};
-      console.log(`👤 Updating customer ${customerId}`);
-      return { success: true, message: 'Customer updated', data: { customerId } };
+      const { tenantId } = context;
+      
+      if (!customerId || !updates) {
+        return { success: false, message: 'Customer ID and updates are required' };
+      }
+      
+      console.log(`👤 [UPDATE-CUSTOMER] Updating customer ${customerId} for tenant ${tenantId}`);
+      
+      // Import customer repository and use case
+      const { DrizzleCustomerRepository } = await import('../../../customers/infrastructure/repositories/DrizzleCustomerRepository');
+      const { UpdateCustomerUseCase } = await import('../../../customers/application/use-cases/UpdateCustomerUseCase');
+      const { CustomerDomainService } = await import('../../../customers/domain/entities/Customer');
+      
+      // Initialize repository and use case
+      const customerRepository = new DrizzleCustomerRepository(db, tenantId);
+      const customerDomainService = new CustomerDomainService();
+      const updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository, customerDomainService);
+      
+      // Execute update
+      const updatedCustomer = await updateCustomerUseCase.execute(customerId, updates);
+      
+      console.log(`✅ [UPDATE-CUSTOMER] Customer ${customerId} updated successfully`);
+      
+      return { 
+        success: true, 
+        message: 'Customer updated successfully', 
+        data: { 
+          customerId,
+          name: updatedCustomer.name,
+          email: updatedCustomer.email,
+          updatedFields: Object.keys(updates),
+          updatedAt: new Date().toISOString()
+        } 
+      };
     } catch (error: any) {
-      return { success: false, message: 'Failed to update customer', error: error.message };
+      console.error('❌ [UPDATE-CUSTOMER] Error:', error);
+      return { success: false, message: `Failed to update customer: ${error.message}`, error: error.message };
     }
   }
 
