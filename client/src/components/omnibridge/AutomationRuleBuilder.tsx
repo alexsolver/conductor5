@@ -314,7 +314,7 @@ export default function AutomationRuleBuilder({
         description: existingRule.description || '',
         enabled: existingRule.enabled ?? true,
         conditions: conditions,
-        actions: (existingRule.actions || []).map((action, index) => {
+        actions: (existingRule.actions || []).map((action: any, index: number) => {
           // Encontrar template correspondente para hidratar campos UI
           const template = actionTemplates.find(t => t.type === action.type);
 
@@ -529,14 +529,12 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
       enabled: rule.enabled,
       conditions: rule.conditions,
       priority: rule.priority,
-      aiEnabled: rule.aiEnabled,
       actions: rule.actions.map(action => ({
         id: action.id,
         type: action.type,
         name: action.name,
         description: action.description,
-        config: action.config || {},
-        priority: action.priority || 1 // Assuming priority might be a field in Action in the future
+        config: action.config || {}
       }))
     };
 
@@ -702,14 +700,6 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
                     />
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="ai-enabled"
-                      checked={rule.aiEnabled}
-                      onCheckedChange={(aiEnabled) => setRule({...rule, aiEnabled})}
-                    />
-                    <Label htmlFor="ai-enabled">Usar análise de IA</Label>
-                  </div>
                 </CardContent>
               </Card>
 
