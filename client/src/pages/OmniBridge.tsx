@@ -1681,6 +1681,60 @@ function ConversationLogsContent() {
     }
   };
 
+  const getChannelConfig = (channelType: string) => {
+    switch (channelType?.toLowerCase()) {
+      case 'email':
+        return {
+          icon: Mail,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+          borderColor: 'border-blue-200 dark:border-blue-800',
+          badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+          label: 'Email'
+        };
+      case 'whatsapp':
+        return {
+          icon: MessageCircle,
+          color: 'text-green-600',
+          bgColor: 'bg-green-50 dark:bg-green-900/20',
+          borderColor: 'border-green-200 dark:border-green-800',
+          badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+          label: 'WhatsApp'
+        };
+      case 'telegram':
+        return {
+          icon: Send,
+          color: 'text-cyan-600',
+          bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
+          borderColor: 'border-cyan-200 dark:border-cyan-800',
+          badgeColor: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+          label: 'Telegram'
+        };
+      case 'sms':
+        return {
+          icon: Phone,
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+          borderColor: 'border-orange-200 dark:border-orange-800',
+          badgeColor: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+          label: 'SMS'
+        };
+      default:
+        return {
+          icon: MessageSquare,
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50 dark:bg-gray-900/20',
+          borderColor: 'border-gray-200 dark:border-gray-800',
+          badgeColor: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300',
+          label: channelType || 'Chat'
+        };
+    }
+  };
+
+  const getLastInteraction = (conv: any) => {
+    return conv.endedAt || conv.startedAt;
+  };
+
   const filteredConversations = data?.data?.filter((conv: any) => {
     const matchesSearch = !searchTerm || 
       conv.agentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2057,50 +2111,70 @@ function ConversationLogsContent() {
             </CardContent>
           </Card>
         ) : (
-          filteredConversations.map((conv: any) => (
+          filteredConversations.map((conv: any) => {
+            const channelConfig = getChannelConfig(conv.channelType);
+            const ChannelIcon = channelConfig.icon;
+            const lastInteraction = getLastInteraction(conv);
+            
+            return (
               <Card 
                 key={conv.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer" 
+                className={`hover:shadow-lg transition-all cursor-pointer border-l-4 ${channelConfig.borderColor}`}
                 data-testid={`card-conversation-${conv.id}`}
                 onClick={() => setSelectedConversationId(conv.id)}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Bot className="h-5 w-5 text-purple-600" />
-                        <h3 className="font-semibold text-lg">{conv.agentName}</h3>
-                        {conv.escalatedToHuman && (
-                          <Badge variant="destructive" className="gap-1">
-                            <AlertCircle className="h-3 w-3" />
-                            {t('omnibridge.conversationLogs.escalated', 'Escalada')}
-                          </Badge>
-                        )}
-                        {conv.endedAt && !conv.escalatedToHuman && (
-                          <Badge variant="default" className="gap-1 bg-green-600">
-                            <CheckCircle className="h-3 w-3" />
-                            {t('omnibridge.conversationLogs.completed', 'Concluída')}
-                          </Badge>
-                        )}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`p-2 rounded-lg ${channelConfig.bgColor}`}>
+                          <ChannelIcon className={`h-5 w-5 ${channelConfig.color}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-lg">{conv.agentName}</h3>
+                            <Badge className={channelConfig.badgeColor}>
+                              {channelConfig.label}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {conv.escalatedToHuman && (
+                              <Badge variant="destructive" className="gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {t('omnibridge.conversationLogs.escalated', 'Escalada')}
+                              </Badge>
+                            )}
+                            {conv.endedAt && !conv.escalatedToHuman && (
+                              <Badge variant="default" className="gap-1 bg-green-600">
+                                <CheckCircle className="h-3 w-3" />
+                                {t('omnibridge.conversationLogs.completed', 'Concluída')}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
                         <div>
-                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.channel', 'Canal')}</p>
-                          <p className="font-medium capitalize">{conv.channelType}</p>
-                        </div>
-                        <div>
                           <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.messages', 'Mensagens')}</p>
-                          <p className="font-medium">{conv.totalMessages}</p>
+                          <p className="font-medium flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" />
+                            {conv.totalMessages}
+                          </p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.actions', 'Ações')}</p>
-                          <p className="font-medium">{conv.totalActions}</p>
+                          <p className="font-medium flex items-center gap-1">
+                            <ChevronRight className="h-3 w-3" />
+                            {conv.totalActions}
+                          </p>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+                        <div className="md:col-span-2">
+                          <p className="text-xs text-muted-foreground">
+                            {conv.endedAt ? t('omnibridge.conversationLogs.lastInteraction', 'Última Interação') : t('omnibridge.conversationLogs.startTime', 'Início')}
+                          </p>
                           <p className="font-medium flex items-center gap-1 text-sm">
                             <Clock className="h-3 w-3" />
-                            {formatDate(conv.startedAt)}
+                            {formatDate(lastInteraction)}
                           </p>
                         </div>
                       </div>
@@ -2115,7 +2189,8 @@ function ConversationLogsContent() {
                   </div>
                 </CardContent>
               </Card>
-          ))
+            );
+          })
         )}
       </div>
 
