@@ -33,6 +33,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
   });
   
   try {
+    // ✅ Skip auth for CORS preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+    
     // ✅ Skip auth for HEAD requests to root and health checks
     if (req.method === 'HEAD' && (req.path === '/' || req.path === '/health')) {
       return next();
