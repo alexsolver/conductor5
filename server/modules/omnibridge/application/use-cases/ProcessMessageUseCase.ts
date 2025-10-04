@@ -72,6 +72,26 @@ export class ProcessMessageUseCase {
     try {
       console.log(`🤖 [ProcessMessageUseCase] Starting AI analysis and automation for message ${message.id}`);
 
+      // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem possui ticket_id
+      const ticketId = message.metadata?.ticketId;
+      if (ticketId) {
+        console.log(`🎫 [ProcessMessageUseCase] Message has ticket context: ${ticketId} - BYPASSING AUTOMATION`);
+        
+        // TODO: Adicionar mensagem diretamente ao ticket existente
+        await this.messageRepository.markAsProcessed(message.id, tenantId);
+        
+        return {
+          success: true,
+          message: `Message linked to existing ticket ${ticketId} - automation bypassed`,
+          automationResults: {
+            rulesExecuted: 0,
+            actionsTriggered: 0,
+            bypassed: true,
+            linkedTicketId: ticketId
+          }
+        };
+      }
+
       // Preparar dados da mensagem para o motor de automação
       const messageData = {
         id: message.id,
@@ -155,6 +175,25 @@ export class ProcessMessageUseCase {
         sender: messageData.sender || messageData.from,
         channel: messageData.channel || messageData.channelType
       });
+
+      // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem possui ticket_id em metadata
+      const ticketId = messageData.metadata?.ticketId;
+      if (ticketId) {
+        console.log(`🎫 [ProcessMessageUseCase] Direct message has ticket context: ${ticketId} - BYPASSING AUTOMATION`);
+        
+        // TODO: Adicionar mensagem diretamente ao ticket existente
+        
+        return {
+          success: true,
+          message: `Message linked to existing ticket ${ticketId} - automation bypassed`,
+          automationResults: {
+            rulesExecuted: 0,
+            actionsTriggered: 0,
+            bypassed: true,
+            linkedTicketId: ticketId
+          }
+        };
+      }
 
       // Initialize automation engine for tenant using GlobalAutomationManager
       const { GlobalAutomationManager } = await import('../../infrastructure/services/AutomationEngine');

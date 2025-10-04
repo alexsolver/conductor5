@@ -162,6 +162,12 @@ export class MessageIngestionService {
     const fromEmail = extractEmail(emailData.from);
     const toEmail = extractEmail(emailData.to);
 
+    // 🎯 TICKET CONTEXT TRACKING: Extrair ticket_id de headers de email
+    const ticketId = this.extractTicketIdFromEmailHeaders(emailData);
+    if (ticketId) {
+      console.log(`🎫 [IMAP-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
+    }
+
     const incomingMessage: IncomingMessage = {
       channelId: emailData.metadata?.channelId || 'imap-email',
       channelType: 'email',
@@ -173,6 +179,9 @@ export class MessageIngestionService {
         messageId: emailData.messageId,
         originalMessageId: emailData.messageId,
         date: emailData.date,
+        ticketId, // 🎯 Incluir ticket_id se encontrado
+        inReplyTo: emailData.headers?.['in-reply-to']?.[0],
+        references: emailData.headers?.references,
         headers: emailData.headers || {},
         hasAttachments: Boolean(emailData.attachments?.length),
         imapProcessed: true,
@@ -214,6 +223,53 @@ export class MessageIngestionService {
     
     console.log(`🎯 [IMAP-INGESTION] Email successfully processed and available in OmniBridge inbox`);
     return result;
+  }
+
+  /**
+   * 🎯 TICKET CONTEXT TRACKING: Extrai ticket_id de headers de email
+   * Verifica os headers: X-Ticket-ID, In-Reply-To, References
+   */
+  private extractTicketIdFromEmailHeaders(emailData: any): string | null {
+    try {
+      const headers = emailData.headers || {};
+      
+      // 1. Verificar header customizado X-Ticket-ID (mais confiável)
+      const xTicketId = headers['x-ticket-id']?.[0] || headers['X-Ticket-ID']?.[0];
+      if (xTicketId) {
+        console.log(`🎫 [TICKET-TRACKING] Found X-Ticket-ID: ${xTicketId}`);
+        return xTicketId;
+      }
+
+      // 2. Verificar In-Reply-To para extrair ticket_id do Message-ID anterior
+      const inReplyTo = headers['in-reply-to']?.[0];
+      if (inReplyTo) {
+        // Message-ID format: <ticket-{ticketId}.{timestamp}@conductor.system>
+        const ticketMatch = inReplyTo.match(/ticket-([a-f0-9-]+)\./i);
+        if (ticketMatch) {
+          console.log(`🎫 [TICKET-TRACKING] Extracted ticket_id from In-Reply-To: ${ticketMatch[1]}`);
+          return ticketMatch[1];
+        }
+      }
+
+      // 3. Verificar References (último Message-ID na thread)
+      const references = headers['references']?.[0] || headers['References']?.[0];
+      if (references) {
+        const refArray = references.split(/\s+/);
+        for (const ref of refArray.reverse()) {
+          const ticketMatch = ref.match(/ticket-([a-f0-9-]+)\./i);
+          if (ticketMatch) {
+            console.log(`🎫 [TICKET-TRACKING] Extracted ticket_id from References: ${ticketMatch[1]}`);
+            return ticketMatch[1];
+          }
+        }
+      }
+
+      console.log(`📭 [TICKET-TRACKING] No ticket context found in email headers`);
+      return null;
+    } catch (error) {
+      console.error(`❌ [TICKET-TRACKING] Error extracting ticket_id:`, error);
+      return null;
+    }
   }
 
   /**
