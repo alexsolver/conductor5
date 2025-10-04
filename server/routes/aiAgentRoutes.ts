@@ -54,8 +54,8 @@ router.get('/actions/available', async (req: AuthenticatedRequest, res: Response
     // Auto-seed if no actions exist
     if (actions.length === 0) {
       console.log('🌱 No actions found, seeding default actions...');
-      const { seedAiActions } = require('../scripts/seed-ai-actions');
-      await seedAiActions();
+      const seedModule = await import('../scripts/seed-ai-actions.js');
+      await seedModule.seedAiActions();
       actions = await unifiedStorage.getAiActions();
     }
     
