@@ -67,6 +67,8 @@ import {
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 import AiAgentActionConfig from './AiAgentActionConfig';
+import { ActionGrid, ACTION_DEFINITIONS, type ActionDefinition } from './ActionGrid';
+import { ActionConfigModal } from './ActionConfigModal';
 
 
 
@@ -254,6 +256,8 @@ export default function AutomationRuleBuilder({
   const [currentAction, setCurrentAction] = useState<Action | null>(null);
   const [actionConfig, setActionConfig] = useState<Record<string, any>>({});
   const [editingActionIndex, setEditingActionIndex] = useState<number>(-1);
+  const [showActionConfigModal, setShowActionConfigModal] = useState(false);
+  const [selectedActionForConfig, setSelectedActionForConfig] = useState<ActionDefinition | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -491,6 +495,93 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
     setActionConfig(actionToEdit.config || {});
     setEditingActionIndex(index);
     setShowActionConfig(true);
+  };
+
+  // Funções para ActionGrid
+  const handleToggleAction = (action: ActionDefinition, enabled: boolean) => {
+    if (enabled) {
+      // Adicionar ação
+      const newAction: Action = {
+        id: `${action.id}_${Date.now()}`,
+        type: action.type,
+        name: action.name,
+        description: action.description,
+        icon: action.icon,
+        color: action.color,
+        config: {}
+      };
+      setRule(prev => ({ ...prev, actions: [...prev.actions, newAction] }));
+    } else {
+      // Remover ação
+      setRule(prev => ({
+        ...prev,
+        actions: prev.actions.filter(a => a.type !== action.type)
+      }));
+    }
+  };
+
+  const handleConfigureAction = (action: ActionDefinition) => {
+    // Encontrar ação existente ou criar nova
+    const existingAction = rule.actions.find(a => a.type === action.type);
+    
+    if (existingAction) {
+      setSelectedActionForConfig({
+        ...action,
+        config: existingAction.config || {}
+      });
+    } else {
+      setSelectedActionForConfig(action);
+    }
+    
+    setShowActionConfigModal(true);
+  };
+
+  const handleSaveActionConfig = (config: Record<string, any>) => {
+    if (!selectedActionForConfig) return;
+
+    setRule(prev => {
+      const existingIndex = prev.actions.findIndex(a => a.type === selectedActionForConfig.type);
+      const updatedActions = [...prev.actions];
+
+      if (existingIndex >= 0) {
+        // Atualizar ação existente
+        updatedActions[existingIndex] = {
+          ...updatedActions[existingIndex],
+          config
+        };
+      } else {
+        // Adicionar nova ação
+        updatedActions.push({
+          id: `${selectedActionForConfig.id}_${Date.now()}`,
+          type: selectedActionForConfig.type,
+          name: selectedActionForConfig.name,
+          description: selectedActionForConfig.description,
+          icon: selectedActionForConfig.icon,
+          color: selectedActionForConfig.color,
+          config
+        });
+      }
+
+      return { ...prev, actions: updatedActions };
+    });
+
+    setShowActionConfigModal(false);
+    setSelectedActionForConfig(null);
+  };
+
+  // Converter rule.actions para formato ActionDefinition[]
+  const getSelectedActions = (): ActionDefinition[] => {
+    return rule.actions.map(action => ({
+      id: action.id,
+      type: action.type,
+      name: action.name,
+      description: action.description,
+      icon: action.icon,
+      color: action.color,
+      category: ACTION_DEFINITIONS.find(def => def.type === action.type)?.category || 'tickets',
+      enabled: true,
+      config: action.config
+    }));
   };
 
   // Salvar regra
@@ -739,195 +830,18 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Zap className="w-5 h-5" />
-                        Ações da Regra
+                        Ações da Regra ({rule.actions.length} selecionadas)
                       </CardTitle>
                       <CardDescription>
-                        Configure o que acontece quando as condições são atendidas.
+                        Selecione e configure as ações que serão executadas quando as condições forem atendidas.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Ações existentes */}
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Ações Configuradas ({rule.actions.length})</Label>
-                          {rule.actions.map((action, index) => {
-                            // Determinar nome e descrição baseado no tipo da ação
-                            const getActionInfo = (actionType: string) => {
-                              switch (actionType) {
-                                case 'send_auto_reply':
-                                case 'auto_reply':
-                                  return {
-                                    name: 'Resposta Automática',
-                                    description: 'Envia resposta pré-definida automaticamente',
-                                    icon: Reply,
-                                    color: 'text-blue-600'
-                                  };
-                                case 'send_notification':
-                                  return {
-                                    name: 'Enviar Notificação',
-                                    description: 'Notifica equipe responsável',
-                                    icon: Bell,
-                                    color: 'text-yellow-600'
-                                  };
-                                case 'create_ticket':
-                                  return {
-                                    name: 'Criar Ticket',
-                                    description: 'Cria ticket automaticamente',
-                                    icon: FileText,
-                                    color: 'text-green-600'
-                                  };
-                                case 'forward_message':
-                                  return {
-                                    name: 'Encaminhar Mensagem',
-                                    description: 'Encaminha para outro agente',
-                                    icon: Forward,
-                                    color: 'text-purple-600'
-                                  };
-                                case 'add_tags':
-                                  return {
-                                    name: 'Adicionar Tags',
-                                    description: 'Categoriza com tags',
-                                    icon: Tag,
-                                    color: 'text-indigo-600'
-                                  };
-                                case 'assign_agent':
-                                  return {
-                                    name: 'Atribuir Agente',
-                                    description: 'Designa agente específico',
-                                    icon: Users,
-                                    color: 'text-teal-600'
-                                  };
-                                case 'mark_priority':
-                                  return {
-                                    name: 'Marcar Prioridade',
-                                    description: 'Define nível de prioridade',
-                                    icon: Star,
-                                    color: 'text-red-600'
-                                  };
-                                case 'archive':
-                                  return {
-                                    name: 'Arquivar',
-                                    description: 'Move para arquivo',
-                                    icon: Archive,
-                                    color: 'text-gray-600'
-                                  };
-                                default:
-                                  return {
-                                    name: action.name || `Ação ${action.type}`,
-                                    description: action.description || `Descrição da ação ${action.type}`,
-                                    icon: Settings,
-                                    color: 'text-muted-foreground'
-                                  };
-                              }
-                            };
-
-                            const actionInfo = getActionInfo(action.type);
-                            const hasConfig = action.config && Object.keys(action.config).length > 0;
-
-                            return (
-                              <div key={action.id || index} className="group relative overflow-hidden bg-white border-2 border-gray-100 hover:border-blue-200 rounded-xl p-4 transition-all duration-200 hover:shadow-md">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex items-start space-x-4 flex-1 min-w-0">
-                                      {/* Ícone com melhor destaque */}
-                                      <div className={`flex-shrink-0 w-12 h-12 ${action.color || 'bg-gray-500'} rounded-xl flex items-center justify-center shadow-sm`}>
-                                        {React.createElement(actionInfo.icon, {
-                                          className: "w-6 h-6 text-white"
-                                        })}
-                                      </div>
-
-                                      {/* Conteúdo principal */}
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center space-x-2 mb-1">
-                                          <h4 className="font-semibold text-gray-900 text-base truncate">{actionInfo.name}</h4>
-                                          {hasConfig && (
-                                            <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                              Configurada
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        <p className="text-sm text-gray-600 leading-relaxed mb-2">{actionInfo.description}</p>
-
-                                        {/* Mostrar preview das configurações se existirem */}
-                                        {action.config && Object.keys(action.config).length > 0 && (
-                                          <div className="flex items-center space-x-1 text-xs text-gray-500">
-                                            <Settings className="w-3 h-3" />
-                                            <span>
-                                              {action.config.message ? `Mensagem: "${action.config.message.substring(0, 30)}${action.config.message.length > 30 ? '...' : ''}"` :
-                                               action.config.users ? `Usuários: ${action.config.users}` :
-                                               action.config.groups ? `Grupo: ${action.config.groups}` :
-                                               action.config.tags ? `Tags: ${action.config.tags}` :
-                                               `${Object.keys(action.config).length} configuração(ões)`}
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Botões de ação */}
-                                    <div className="flex items-center space-x-1 ml-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => editAction(action, index)}
-                                        className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Editar configurações"
-                                      >
-                                        <Cog className="w-4 h-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => removeAction(index)}
-                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Remover ação"
-                                      >
-                                        <Minus className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-
-                                  {/* Indicador visual sutil */}
-                                  <div className={`absolute bottom-0 left-0 right-0 h-1 ${action.color || 'bg-gray-500'} opacity-20 group-hover:opacity-40 transition-opacity`} />
-                                </div>
-                            );
-                          })}
-                        </div>
-
-                      <Separator />
-
-                      {/* Templates de Ações */}
-                      <div>
-                        <h4 className="font-medium mb-3">Adicionar Ação:</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {actionTemplates.map((template) => (
-                            <Button
-                              key={template.type}
-                              variant="outline"
-                              className="justify-start h-auto p-3"
-                              onClick={() => {
-                                const newAction: Action = {
-                                  id: `action_${Date.now()}_${template.type}`,
-                                  ...template,
-                                  config: {}
-                                };
-                                setRule(prev => ({
-                                  ...prev,
-                                  actions: [...prev.actions, newAction]
-                                }));
-                              }}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${template.color}`}>
-                                  {getActionIcon(template.icon)}
-                                </div>
-                                <div className="text-left">
-                                  <p className="font-medium text-sm">{template.name}</p>
-                                  <p className="text-sm text-gray-600">{template.description}</p>
-                                </div>
-                              </div>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
+                      <ActionGrid
+                        selectedActions={getSelectedActions()}
+                        onToggleAction={handleToggleAction}
+                        onConfigureAction={handleConfigureAction}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1001,6 +915,18 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Configuração de Ação (novo sistema) */}
+      <ActionConfigModal
+        isOpen={showActionConfigModal}
+        action={selectedActionForConfig}
+        config={selectedActionForConfig?.config || {}}
+        onClose={() => {
+          setShowActionConfigModal(false);
+          setSelectedActionForConfig(null);
+        }}
+        onSave={handleSaveActionConfig}
+      />
     </Dialog>
   );
 }
