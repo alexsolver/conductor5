@@ -516,8 +516,8 @@ app.use((req, res, next) => {
 
   // AI Agents routes (independent implementation)
   console.log('🤖 [SERVER] Registering AI agents routes...');
-  const { aiAgentsRoutes } = await import('./routes/aiAgents');
-  app.use('/api/ai-agents', aiAgentsRoutes);
+  const aiAgentsRouter = (await import('./routes/aiAgentRoutes')).default;
+  app.use('/api/ai-agents', aiAgentsRouter);
   console.log('✅ [SERVER] AI agents routes registered at /api/ai-agents');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
