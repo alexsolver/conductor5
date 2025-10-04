@@ -32,15 +32,43 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid tenant ID format' });
     }
     
-    const { agentId, limit = 50, offset = 0, startDate, endDate } = req.query;
+    const { agentId, limit = 50, offset = 0, startDate, endDate, messageSearch } = req.query;
     
     console.log(`🔍 [CONVERSATION-LOGS] Fetching conversations for tenant: ${tenantId}`, {
       agentId,
       limit,
       offset,
       startDate,
-      endDate
+      endDate,
+      messageSearch
     });
+    
+    // If message search is provided, we need to find conversations that have matching messages
+    let conversationIds: number[] | null = null;
+    if (messageSearch && typeof messageSearch === 'string') {
+      const matchingMessages = await db
+        .select({ conversationId: conversationMessages.conversationId })
+        .from(conversationMessages)
+        .where(and(
+          eq(conversationMessages.tenantId, tenantId),
+          like(conversationMessages.content, `%${messageSearch}%`)
+        ))
+        .groupBy(conversationMessages.conversationId);
+      
+      conversationIds = matchingMessages.map(m => m.conversationId);
+      
+      // If no matching messages found, return empty result
+      if (conversationIds.length === 0) {
+        return res.json({
+          success: true,
+          data: [],
+          total: 0,
+          limit: Number(limit),
+          offset: Number(offset),
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
     
     const conditions = [eq(conversationLogs.tenantId, tenantId)];
 
@@ -52,6 +80,9 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
     }
     if (endDate) {
       conditions.push(lte(conversationLogs.startedAt, new Date(endDate as string)));
+    }
+    if (conversationIds !== null) {
+      conditions.push(sql`${conversationLogs.id} IN (${sql.join(conversationIds.map(id => sql`${id}`), sql`, `)})`);
     }
 
     const results = await db

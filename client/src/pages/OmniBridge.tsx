@@ -1576,7 +1576,7 @@ function ConversationLogsContent() {
   const limit = 20;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit],
+    queryKey: ['/api/omnibridge/conversation-logs', agentFilter, page, limit, searchTerm],
     queryFn: async () => {
       const params = new URLSearchParams({
         limit: String(limit),
@@ -1584,6 +1584,9 @@ function ConversationLogsContent() {
       });
       if (agentFilter !== 'all') {
         params.append('agentId', agentFilter);
+      }
+      if (searchTerm) {
+        params.append('messageSearch', searchTerm);
       }
       const response = await fetch(`/api/omnibridge/conversation-logs?${params}`, {
         credentials: 'include',
@@ -2056,7 +2059,7 @@ function ConversationLogsContent() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('omnibridge.conversationLogs.searchPlaceholder', 'Agente, usuário, canal...')}
+                  placeholder={t('omnibridge.conversationLogs.searchPlaceholder', 'Pesquisar por conteúdo das mensagens...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
