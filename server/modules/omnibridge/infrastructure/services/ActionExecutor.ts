@@ -5,7 +5,7 @@ import { CreateTicketUseCase } from '../../../tickets/application/use-cases/Crea
 import { CreateTicketDTO } from '../../../tickets/application/dto/CreateTicketDTO';
 import * as crypto from 'crypto'; // Import crypto module
 import { db } from '../../../../db';
-import { conversationLogs, conversationMessages } from '@shared/schema';
+import { conversationLogs, conversationMessages, actionExecutions } from '@shared/schema';
 import { sql } from 'drizzle-orm';
 
 export class ActionExecutor implements IActionExecutorPort {
@@ -1661,6 +1661,24 @@ export class ActionExecutor implements IActionExecutorPort {
 
       // If an action was executed, return its result
       if (shouldExecuteAction && actionToExecute && actionResult) {
+        // Log the action execution for troubleshooting
+        const actionResultFormatted = {
+          success: actionResult.success !== false, // Default to true if not specified
+          message: actionResult.message || `AI Agent action '${actionToExecute}' executed successfully.`,
+          data: actionResult.data || actionResult,
+          error: actionResult.error || null
+        };
+
+        await this.logActionExecution(
+          tenantId,
+          context.messageData.channelType || context.messageData.channel || 'unknown',
+          actionToExecute,
+          'ai_agent',
+          actionResult.parameters || {}, // Action parameters if available
+          actionResultFormatted,
+          Date.now() - (context.startTime || Date.now()) // Execution time
+        );
+
         // If actionResult contains a direct success message, use it
         if (actionResult.message) {
           return {
@@ -2429,6 +2447,77 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       }
     } catch (error) {
       console.error('❌ [CONVERSATION-LOG] Error logging assistant message:', error);
+    }
+  }
+
+  /**
+   * Log action execution to action_executions table
+   */
+  private async logActionExecution(
+    tenantId: string,
+    channelType: string,
+    actionName: string,
+    actionType: string,
+    parameters: any,
+    result: ActionExecutionResult,
+    executionTimeMs: number
+  ) {
+    try {
+      // Find the most recent ongoing conversation for this channel
+      const [existingConversation] = await db
+        .select()
+        .from(conversationLogs)
+        .where(sql`${conversationLogs.tenantId} = ${tenantId} 
+          AND ${conversationLogs.channelType} = ${channelType}
+          AND ${conversationLogs.endedAt} IS NULL`)
+        .orderBy(sql`${conversationLogs.startedAt} DESC`)
+        .limit(1);
+
+      if (existingConversation) {
+        // Get the most recent assistant message (action will be linked to this message)
+        const [latestMessage] = await db
+          .select()
+          .from(conversationMessages)
+          .where(sql`${conversationMessages.conversationId} = ${existingConversation.id}
+            AND ${conversationMessages.role} = 'assistant'`)
+          .orderBy(sql`${conversationMessages.timestamp} DESC`)
+          .limit(1);
+
+        if (latestMessage) {
+          // Log the action execution
+          await db
+            .insert(actionExecutions)
+            .values({
+              tenantId,
+              messageId: latestMessage.id,
+              conversationId: existingConversation.id,
+              actionName,
+              actionType,
+              parameters: parameters || {},
+              result: result.data || null,
+              success: result.success,
+              errorMessage: result.error || null,
+              executionTimeMs,
+              retryCount: 0,
+              triggeredBy: 'ai',
+              executedAt: new Date(),
+              createdAt: new Date()
+            });
+
+          // Update total actions count
+          await db
+            .update(conversationLogs)
+            .set({
+              totalActions: (existingConversation.totalActions || 0) + 1,
+              updatedAt: new Date()
+            })
+            .where(sql`${conversationLogs.id} = ${existingConversation.id}`);
+
+          console.log(`✅ [ACTION-LOG] Logged action execution "${actionName}" for conversation ${existingConversation.id}, message ${latestMessage.id}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ [ACTION-LOG] Error logging action execution:', error);
     }
   }
 }
