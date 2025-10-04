@@ -14,7 +14,115 @@ import OpenAI from 'openai';
 
 const router = Router();
 
-// All routes require authentication
+/**
+ * OPTIONS /api/ai-agents/generate-config
+ * Handle CORS preflight - MUST be before authentication
+ */
+router.options('/generate-config', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-ID');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
+/**
+ * POST /api/ai-agents/generate-config
+ * Generate agent configuration from natural language prompt
+ * NO AUTH required - uses API key instead
+ */
+router.post('/generate-config', async (req: Request, res: Response) => {
+  console.log('🤖 [AI-CONFIG-GEN] Auto-configuration endpoint called');
+  console.log('🤖 [AI-CONFIG-GEN] Body:', req.body);
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    console.log('🤖 [AI-CONFIG-GEN] Generating config from prompt:', prompt);
+
+    // Initialize OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Get available actions
+    const actions = await unifiedStorage.getAiActions();
+    const actionList = actions.map(a => ({
+      actionType: a.actionType,
+      name: a.name,
+      description: a.description,
+      category: a.category
+    }));
+
+    const systemPrompt = `You are an AI agent configuration assistant. 
+Given a natural language description of what an AI agent should do, generate a complete configuration.
+
+Available actions that can be enabled:
+${JSON.stringify(actionList, null, 2)}
+
+Generate a configuration in this exact JSON format:
+{
+  "name": "Agent name (max 100 chars)",
+  "configPrompt": "Clear description of agent's purpose",
+  "personality": {
+    "tone": "professional|friendly|formal|casual",
+    "language": "pt-BR|en|es",
+    "greeting": "Initial greeting message",
+    "fallbackMessage": "Message when agent doesn't understand",
+    "confirmationStyle": "explicit|implicit|none"
+  },
+  "enabledActions": ["action_type1", "action_type2"],
+  "behaviorRules": {
+    "requireConfirmation": ["action_type1"],
+    "autoEscalateKeywords": ["urgent", "emergency"],
+    "maxConversationTurns": 10,
+    "collectionStrategy": "sequential|batch|adaptive",
+    "errorHandling": "retry|escalate|fallback"
+  },
+  "aiConfig": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "maxTokens": 1000
+  }
+}
+
+IMPORTANT RULES:
+1. Only use action types from the available actions list
+2. Set appropriate personality based on use case
+3. requireConfirmation should include actions that modify data
+4. Choose collection strategy based on use case complexity
+5. Return ONLY valid JSON, no markdown or explanations`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      response_format: { type: 'json_object' }
+    });
+
+    const generatedConfig = JSON.parse(response.choices[0].message.content || '{}');
+    console.log('✅ [AI-CONFIG-GEN] Generated config:', generatedConfig);
+
+    res.json({
+      success: true,
+      config: generatedConfig,
+      prompt,
+      model: 'gpt-4o-mini'
+    });
+  } catch (error) {
+    console.error('❌ [AI-CONFIG-GEN] Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate configuration',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// All routes below require authentication
 router.use(jwtAuth);
 
 // ========================================
@@ -88,106 +196,6 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   } catch (error) {
     console.error('Error fetching AI agent:', error);
     res.status(500).json({ error: 'Failed to fetch AI agent' });
-  }
-});
-
-/**
- * OPTIONS /api/ai-agents/generate-config
- * Handle CORS preflight for generate-config endpoint
- */
-router.options('/generate-config', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-ID');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
-});
-
-/**
- * POST /api/ai-agents/generate-config
- * Generate agent configuration from natural language prompt
- */
-router.post('/generate-config', async (req: AuthenticatedRequest, res: Response) => {
-  console.log('🤖 [AI-CONFIG-GEN] Auto-configuration endpoint called');
-  console.log('🤖 [AI-CONFIG-GEN] User:', req.user);
-  console.log('🤖 [AI-CONFIG-GEN] Body:', req.body);
-  try {
-    const { prompt } = req.body;
-    
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({ error: 'Prompt is required' });
-    }
-
-    console.log('🤖 [AI-CONFIG-GEN] Generating config from prompt:', prompt);
-
-    // Initialize OpenAI
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    // Get available actions
-    const actions = await unifiedStorage.getAiActions();
-    const actionList = actions.map(a => ({
-      actionType: a.actionType,
-      name: a.name,
-      description: a.description,
-      category: a.category
-    }));
-
-    const systemPrompt = `You are an AI agent configuration assistant. 
-Given a natural language description of what an AI agent should do, generate a complete configuration.
-
-Available actions that can be enabled:
-${JSON.stringify(actionList, null, 2)}
-
-Generate a configuration in this exact JSON format:
-{
-  "name": "Agent name (max 100 chars)",
-  "configPrompt": "Clear description of agent's purpose",
-  "personality": {
-    "tone": "professional|friendly|formal|casual",
-    "language": "pt-BR|en|es",
-    "greeting": "Initial greeting message",
-    "fallbackMessage": "Message when agent doesn't understand",
-    "confirmationStyle": "explicit|implicit|none"
-  },
-  "enabledActions": ["action_type1", "action_type2"],
-  "behaviorRules": {
-    "requireConfirmation": ["action_type1"],
-    "autoEscalateKeywords": ["urgent", "emergency"],
-    "maxConversationTurns": 10,
-    "collectionStrategy": "sequential|batch|adaptive",
-    "errorHandling": "retry|escalate|fallback"
-  },
-  "aiConfig": {
-    "model": "gpt-4o-mini",
-    "temperature": 0.7,
-    "maxTokens": 1000,
-    "systemPrompt": "Detailed system prompt for the agent"
-  }
-}
-
-Select appropriate actions based on the user's request. Be intelligent about defaults.`;
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      max_tokens: 2000,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `User request: "${prompt}"` }
-      ],
-      response_format: { type: 'json_object' }
-    });
-
-    const generatedConfig = JSON.parse(response.choices[0].message.content || '{}');
-    console.log('✅ [AI-CONFIG-GEN] Generated config:', generatedConfig);
-
-    res.json({
-      success: true,
-      config: generatedConfig
-    });
-  } catch (error) {
-    console.error('Error generating config:', error);
-    res.status(500).json({ error: 'Failed to generate configuration' });
   }
 });
 

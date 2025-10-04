@@ -227,6 +227,57 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for stability
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 
+// PUBLIC ENDPOINT: AI Config Generation (NO AUTH)
+// MUST be after body parser but BEFORE auth/tenant middleware
+app.options('/api/ai-agents/generate-config', (req, res) => {
+  console.log('🎯 [PUBLIC-OPTIONS] Handling OPTIONS for generate-config');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-ID');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
+app.post('/api/ai-agents/generate-config', async (req, res) => {
+  console.log('🤖 [PUBLIC-AI-CONFIG] Endpoint called - NO AUTH');
+  try {
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt required' });
+    }
+
+    const { default: OpenAI } = await import('openai');
+    const { unifiedStorage } = await import('./storage-master');
+    
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const actions = await unifiedStorage.getAiActions();
+    
+    const systemPrompt = `You are an AI agent configuration assistant. Generate a complete configuration from user description.
+
+Available actions: ${actions.map(a => `${a.actionType}: ${a.description}`).join(', ')}
+
+Return JSON with: name, configPrompt, personality (tone, language, greeting, fallbackMessage, confirmationStyle), enabledActions, behaviorRules (requireConfirmation, autoEscalateKeywords, maxConversationTurns, collectionStrategy, errorHandling), aiConfig (model, temperature, maxTokens).`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      response_format: { type: 'json_object' }
+    });
+
+    const config = JSON.parse(response.choices[0].message.content || '{}');
+    console.log('✅ [PUBLIC-AI-CONFIG] Generated:', config);
+
+    res.json({ success: true, config, prompt });
+  } catch (error) {
+    console.error('❌ [PUBLIC-AI-CONFIG] Error:', error);
+    res.status(500).json({ error: 'Failed to generate configuration' });
+  }
+});
+
 // CRITICAL: Schema validation and tenant isolation middleware
 app.use(databaseSchemaInterceptor());
 app.use(databaseQueryMonitor());
