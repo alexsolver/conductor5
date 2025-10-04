@@ -137,7 +137,7 @@ router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
     
     console.log(`✅ [CONVERSATION-DETAILS] Found conversation ${id}`);
 
-    // Get messages
+    // Get messages (ordered by timestamp descending - most recent first)
     const messages = await db
       .select()
       .from(conversationMessages)
@@ -145,7 +145,7 @@ router.get('/conversation-logs/:id', async (req: Request, res: Response) => {
         eq(conversationMessages.conversationId, Number(id)),
         eq(conversationMessages.tenantId, tenantId)
       ))
-      .orderBy(conversationMessages.timestamp);
+      .orderBy(desc(conversationMessages.timestamp));
 
     // Get actions
     const actions = await db
