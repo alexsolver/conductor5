@@ -100,11 +100,7 @@ CREATE TABLE IF NOT EXISTS "absence_requests" (
   "cover_user_id" VARCHAR(36) NULL DEFAULT NULL,
   "cover_approved" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "user_id"),
-  KEY ("tenant_id", "status"),
-  CONSTRAINT "absence_requests_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -125,9 +121,6 @@ CREATE TABLE IF NOT EXISTS "activity_logs" (
   "metadata" TEXT,
   "new_values" TEXT,
   "old_values" TEXT
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "entity_type", "entity_id"),
-  CONSTRAINT "chk_activity_logs_tenant_id" CHECK ((((tenant_id)::text = '3f99462f-3621-4b1b-bea8-782acc50d62e'::text)))
 );
 
 -- Exportação de dados foi desmarcado.
@@ -143,8 +136,7 @@ CREATE TABLE IF NOT EXISTS "activity_types" (
   "category" VARCHAR(50) NOT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -163,8 +155,7 @@ CREATE TABLE IF NOT EXISTS "agent_availability" (
   "max_appointments" INTEGER NULL DEFAULT 8,
   "preferred_zones" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -184,8 +175,7 @@ CREATE TABLE IF NOT EXISTS "agent_trajectories" (
   "battery_level" INTEGER NULL DEFAULT NULL,
   "signal_strength" INTEGER NULL DEFAULT NULL,
   "status" VARCHAR(50) NULL DEFAULT NULL,
-  "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -200,9 +190,7 @@ CREATE TABLE IF NOT EXISTS "agrupamentos" (
   "codigo_integracao" VARCHAR(100) NULL DEFAULT NULL,
   "areas_vinculadas" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -213,13 +201,11 @@ CREATE TABLE IF NOT EXISTS "approval_conditions" (
   "tenant_id" UUID NOT NULL,
   "rule_id" UUID NOT NULL,
   "field_name" VARCHAR(100) NULL DEFAULT NULL,
-  "operator" UNKNOWN NULL DEFAULT NULL,
+  "operator" TEXT NULL DEFAULT NULL,
   "value" JSONB NULL DEFAULT NULL,
   "logical_operator" VARCHAR(10) NULL DEFAULT NULL,
   "group_index" INTEGER NULL DEFAULT 0,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "approval_conditions_rule_id_fkey" FOREIGN KEY ("rule_id") REFERENCES "approval_rules" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -234,14 +220,7 @@ CREATE TABLE IF NOT EXISTS "approval_decisions" (
   "decision" VARCHAR(20) NULL DEFAULT NULL,
   "comments" TEXT NULL DEFAULT NULL,
   "metadata" JSONB NULL DEFAULT '{}',
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "instance_id"),
-  KEY ("tenant_id", "step_id"),
-  KEY ("tenant_id", "approver_id"),
-  KEY ("tenant_id", "decision"),
-  UNIQUE ("step_id", "approver_id", "approver_type"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "approval_decisions_instance_id_fkey" FOREIGN KEY ("instance_id") REFERENCES "approval_instances" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -255,12 +234,7 @@ CREATE TABLE IF NOT EXISTS "approval_group_members" (
   "role" VARCHAR(50) NULL DEFAULT 'member',
   "is_active" BOOLEAN NULL DEFAULT true,
   "added_at" TIMESTAMP NULL DEFAULT now(),
-  "added_by_id" UUID NULL DEFAULT NULL,
-  KEY ("group_id"),
-  KEY ("user_id"),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id"),
-  UNIQUE ("group_id", "user_id")
+  "added_by_id" UUID NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -279,14 +253,7 @@ CREATE TABLE IF NOT EXISTS "approval_instances" (
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "completed_at" TIMESTAMP NULL DEFAULT NULL,
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "entity_type", "entity_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "sla_status", "sla_deadline"),
-  KEY ("tenant_id", "requested_by_id"),
-  KEY ("rule_id"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "approval_instances_rule_id_fkey" FOREIGN KEY ("rule_id") REFERENCES "approval_rules" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -311,14 +278,8 @@ CREATE TABLE IF NOT EXISTS "approval_rules" (
   "created_by_id" UUID NULL DEFAULT NULL,
   "updated_by_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "module_type"),
-  KEY ("tenant_id", "is_active"),
-  KEY ("tenant_id", "priority"),
-  UNIQUE ("tenant_id", "name"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "approval_rules_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
-);
+  "updated_at" TIMESTAMP NULL DEFAULT now()
+  );
 
 -- Exportação de dados foi desmarcado.
 
@@ -329,21 +290,14 @@ CREATE TABLE IF NOT EXISTS "approval_steps" (
   "rule_id" UUID NOT NULL,
   "step_index" INTEGER NOT NULL,
   "name" VARCHAR(255) NULL DEFAULT NULL,
-  "approver_type" UNKNOWN NULL DEFAULT NULL,
+  "approver_type" TEXT NULL DEFAULT NULL,
   "approvers" JSONB NULL DEFAULT '[]',
   "required_approvals" INTEGER NULL DEFAULT 1,
   "timeout_hours" INTEGER NULL DEFAULT NULL,
   "escalation_rules" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "instance_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "step_deadline"),
-  UNIQUE ("instance_id", "step_index"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "approval_steps_rule_id_fkey" FOREIGN KEY ("rule_id") REFERENCES "approval_rules" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.approval_workflows
@@ -357,8 +311,7 @@ CREATE TABLE IF NOT EXISTS "approval_workflows" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_by_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -375,11 +328,8 @@ CREATE TABLE IF NOT EXISTS "areas" (
   "cor_mapa" VARCHAR(7) NULL DEFAULT NULL,
   "classificacao_area" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.area_groups
@@ -387,16 +337,13 @@ CREATE TABLE IF NOT EXISTS "area_groups" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
   "group_name" VARCHAR(200) NOT NULL,
-  "group_type" UNKNOWN NOT NULL,
+  "group_type" TEXT NOT NULL,
   "parent_group_id" UUID NULL DEFAULT NULL,
   "coordinates_center" JSONB NULL DEFAULT NULL,
   "total_locations" INTEGER NULL DEFAULT 0,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "area_groups_parent_group_id_fkey" FOREIGN KEY ("parent_group_id") REFERENCES "area_groups" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.assets
@@ -425,10 +372,7 @@ CREATE TABLE IF NOT EXISTS "assets" (
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
-  "updated_by" UUID NOT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "assets_criticality_check" CHECK ((((criticality)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'critical'::character varying])::text[])))),
-  CONSTRAINT "assets_status_check" CHECK ((((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying, 'maintenance'::character varying, 'decommissioned'::character varying])::text[]))))
+  "updated_by" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -455,10 +399,8 @@ CREATE TABLE IF NOT EXISTS "beneficiaries" (
   "customer_id" UUID NULL DEFAULT NULL,
   "cpf" TEXT NULL DEFAULT NULL,
   "cnpj" TEXT NULL DEFAULT NULL,
-  "metadata" TEXT,
-  PRIMARY KEY ("id")
+  "metadata" text
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.beneficiary_customer_relationships
@@ -468,11 +410,9 @@ CREATE TABLE IF NOT EXISTS "beneficiary_customer_relationships" (
   "customer_id" UUID NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "tenant_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("beneficiary_id", "customer_id"),
-  CONSTRAINT "favorecido_customer_relationships_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "tenant_id" UUID NULL DEFAULT NULL
 );
+
 
 -- Exportação de dados foi desmarcado.
 
@@ -486,9 +426,7 @@ CREATE TABLE IF NOT EXISTS "certifications" (
   "validity_months" INTEGER NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "certifications_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "is_active" BOOLEAN NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -501,14 +439,10 @@ CREATE TABLE IF NOT EXISTS "chatbot_edges" (
   "to_node_id" VARCHAR(36) NOT NULL,
   "label" VARCHAR(255) NULL DEFAULT NULL,
   "condition" TEXT NULL DEFAULT NULL,
-  "kind" UNKNOWN NOT NULL DEFAULT 'default',
+  "kind" TEXT NOT NULL DEFAULT 'default',
   "order" INTEGER NOT NULL DEFAULT 0,
   "is_enabled" BOOLEAN NOT NULL DEFAULT true,
-  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("flow_id"),
-  KEY ("from_node_id"),
-  KEY ("to_node_id")
+  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -525,18 +459,15 @@ CREATE TABLE IF NOT EXISTS "chatbot_flows" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "tenant_id" VARCHAR NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "chatbot_flows_bot_id_fkey" FOREIGN KEY ("bot_id") REFERENCES "omnibridge_chatbots" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.chatbot_nodes
 CREATE TABLE IF NOT EXISTS "chatbot_nodes" (
   "id" VARCHAR(36) NOT NULL DEFAULT gen_random_uuid(),
   "flow_id" VARCHAR(36) NOT NULL,
-  "category" UNKNOWN NOT NULL,
+  "category" TEXT NOT NULL,
   "type" VARCHAR(100) NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -546,11 +477,7 @@ CREATE TABLE IF NOT EXISTS "chatbot_nodes" (
   "is_end" BOOLEAN NOT NULL DEFAULT false,
   "is_enabled" BOOLEAN NOT NULL DEFAULT true,
   "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("flow_id"),
-  KEY ("category"),
-  KEY ("flow_id", "is_start")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -563,15 +490,11 @@ CREATE TABLE IF NOT EXISTS "chatbot_variables" (
   "label" VARCHAR(255) NOT NULL,
   "value_type" VARCHAR(50) NOT NULL DEFAULT 'string',
   "default_value" JSONB NULL DEFAULT NULL,
-  "scope" UNKNOWN NOT NULL DEFAULT 'flow',
+  "scope" TEXT NOT NULL DEFAULT 'flow',
   "is_required" BOOLEAN NOT NULL DEFAULT false,
   "description" TEXT NULL DEFAULT NULL,
-  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("flow_id"),
-  KEY ("flow_id", "key")
+  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.companies
@@ -612,11 +535,8 @@ CREATE TABLE IF NOT EXISTS "companies" (
   "subscriptionTier" VARCHAR(255) NULL DEFAULT NULL,
   "complement" VARCHAR(100) NULL DEFAULT NULL,
   "neighborhood" VARCHAR(100) NULL DEFAULT NULL,
-  "metadata" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "name")
+  "metadata" text
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.companies_relationships
@@ -632,11 +552,7 @@ CREATE TABLE IF NOT EXISTS "companies_relationships" (
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "tenant_id" UUID NULL DEFAULT NULL,
-  "created_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("customer_id", "company_id"),
-  CONSTRAINT "customer_companies_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "customer_companies_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_by" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -655,10 +571,7 @@ CREATE TABLE IF NOT EXISTS "company_memberships" (
   "permissions" TEXT NULL DEFAULT NULL,
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "customer_id", "company_id"),
-  CONSTRAINT "memberships_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -673,10 +586,8 @@ CREATE TABLE IF NOT EXISTS "compliance_alerts" (
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "category" VARCHAR(100) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.compliance_certifications
@@ -690,8 +601,7 @@ CREATE TABLE IF NOT EXISTS "compliance_certifications" (
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "certificate_number" VARCHAR(100) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -704,8 +614,7 @@ CREATE TABLE IF NOT EXISTS "compliance_scores" (
   "score" INTEGER NULL DEFAULT 0,
   "max_score" INTEGER NULL DEFAULT 100,
   "calculated_at" TIMESTAMP NULL DEFAULT now(),
-  "details" JSONB NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "details" JSONB NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -742,21 +651,14 @@ CREATE TABLE IF NOT EXISTS "contracts" (
   "compliance_status" VARCHAR(50) NULL DEFAULT 'compliant',
   "terms" TEXT NULL DEFAULT NULL,
   "notes" TEXT NULL DEFAULT NULL,
-  "tags" UNKNOWN NULL DEFAULT '{}',
+  "tags" TEXT NULL DEFAULT '{}',
   "custom_fields" JSONB NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
   "created_by_id" UUID NULL DEFAULT NULL,
   "updated_by_id" UUID NULL DEFAULT NULL,
-  "payment_terms" INTEGER NULL DEFAULT 30,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "contract_number"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "contract_type"),
-  KEY ("manager_id"),
-  KEY ("customer_company_id"),
-  KEY ("start_date", "end_date")
+  "payment_terms" INTEGER NULL DEFAULT 30
 );
 
 -- Exportação de dados foi desmarcado.
@@ -789,9 +691,7 @@ CREATE TABLE IF NOT EXISTS "contract_billing" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "generated_by_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "contract_billing_contract_id_fkey" FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "generated_by_id" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -816,18 +716,15 @@ CREATE TABLE IF NOT EXISTS "contract_documents" (
   "signed_by_id" UUID NULL DEFAULT NULL,
   "digital_signature_id" VARCHAR(255) NULL DEFAULT NULL,
   "access_level" VARCHAR(50) NULL DEFAULT 'internal',
-  "allowed_user_ids" UNKNOWN NULL DEFAULT '{}',
-  "allowed_roles" UNKNOWN NULL DEFAULT '{}',
+  "allowed_user_ids" TEXT NULL DEFAULT '{}',
+  "allowed_roles" TEXT NULL DEFAULT '{}',
   "description" TEXT NULL DEFAULT NULL,
-  "tags" UNKNOWN NULL DEFAULT '{}',
+  "tags" TEXT NULL DEFAULT '{}',
   "expiration_date" TIMESTAMP NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "uploaded_by_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("contract_id"),
-  CONSTRAINT "contract_documents_contract_id_fkey" FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "uploaded_by_id" UUID NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -856,9 +753,7 @@ CREATE TABLE IF NOT EXISTS "contract_equipment" (
   "maintenance_history" JSONB NULL DEFAULT '[]',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "contract_equipment_contract_id_fkey" FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -887,9 +782,7 @@ CREATE TABLE IF NOT EXISTS "contract_renewals" (
   "approval_notes" TEXT NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "contract_renewals_contract_id_fkey" FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -907,7 +800,7 @@ CREATE TABLE IF NOT EXISTS "contract_slas" (
   "uptime_hours" NUMERIC(8,2) NULL DEFAULT NULL,
   "business_hours_start" TIME NULL DEFAULT '08:00:00',
   "business_hours_end" TIME NULL DEFAULT '18:00:00',
-  "business_days" UNKNOWN NULL DEFAULT '{monday,tuesday,wednesday,thursday,friday}',
+  "business_days" TEXT NULL DEFAULT '{monday,tuesday,wednesday,thursday,friday}',
   "include_weekends" BOOLEAN NULL DEFAULT false,
   "include_holidays" BOOLEAN NULL DEFAULT false,
   "escalation_level1" INTEGER NULL DEFAULT NULL,
@@ -919,12 +812,9 @@ CREATE TABLE IF NOT EXISTS "contract_slas" (
   "penalty_cap_percent" NUMERIC(5,2) NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("contract_id", "sla_name"),
-  KEY ("contract_id"),
-  CONSTRAINT "contract_slas_contract_id_fkey" FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
+
 
 -- Exportação de dados foi desmarcado.
 
@@ -956,18 +846,7 @@ CREATE TABLE IF NOT EXISTS "customers" (
   "updated_by_id" UUID NULL DEFAULT NULL,
   "address_country" TEXT,
   "tags" TEXT,
-  "verified" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "email"),
-  KEY ("customer_type"),
-  KEY ("is_active"),
-  KEY ("email"),
-  KEY ("tenant_id", "email"),
-  KEY ("tenant_id", "is_active"),
-  KEY ("tenant_id", "customer_type"),
-  KEY ("tenant_id", "first_name", "last_name"),
-  UNIQUE ("tenant_id", "email"),
-  CONSTRAINT "customer_type_check" CHECK ((((customer_type)::text = ANY ((ARRAY['PF'::character varying, 'PJ'::character varying])::text[]))))
+  "verified" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1000,16 +879,7 @@ CREATE TABLE IF NOT EXISTS "customer_item_mappings" (
   "customer_item_code" TEXT NULL DEFAULT NULL,
   "customer_item_name" TEXT NULL DEFAULT NULL,
   "customer_item_description" TEXT NULL DEFAULT NULL,
-  "unit_price" TEXT NULL DEFAULT NULL,
-  KEY ("tenant_id", "customer_id"),
-  KEY ("tenant_id", "item_id"),
-  KEY ("tenant_id", "is_active"),
-  KEY ("tenant_id", "custom_sku"),
-  UNIQUE ("tenant_id", "customer_id", "item_id"),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "customer_id", "item_id"),
-  UNIQUE ("tenant_id", "customer_id", "custom_sku"),
-  KEY ("tenant_id")
+  "unit_price" TEXT NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1029,9 +899,7 @@ CREATE TABLE IF NOT EXISTS "custom_fields_metadata" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "created_by" UUID NOT NULL,
-  PRIMARY KEY ("id")
-);
+  "created_by" UUID NOT NULL);
 
 -- Exportação de dados foi desmarcado.
 
@@ -1044,8 +912,7 @@ CREATE TABLE IF NOT EXISTS "custom_fields_values" (
   "entity_id" UUID NOT NULL,
   "field_value" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1066,9 +933,7 @@ CREATE TABLE IF NOT EXISTS "custom_field_metadata" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "help_text" TEXT NULL DEFAULT '',
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("module_type", "field_name")
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1089,10 +954,7 @@ CREATE TABLE IF NOT EXISTS "daily_timesheet" (
   "digital_signature" TEXT NULL DEFAULT NULL,
   "tenant_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("user_id", "date", "tenant_id"),
-  CONSTRAINT "daily_timesheet_status_check" CHECK ((((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'disputed'::character varying, 'corrected'::character varying])::text[]))))
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1108,10 +970,10 @@ CREATE TABLE IF NOT EXISTS "dashboards" (
   "is_real_time" BOOLEAN NULL DEFAULT false,
   "refresh_interval" INTEGER NULL DEFAULT 60,
   "is_public" BOOLEAN NULL DEFAULT false,
-  "tags" UNKNOWN NULL DEFAULT '{}',
+  "tags" TEXT NULL DEFAULT '{}',
   "share_token" VARCHAR(255) NULL DEFAULT NULL,
   "expires_at" TIMESTAMP NULL DEFAULT NULL,
-  "allowed_roles" UNKNOWN NULL DEFAULT '{}',
+  "allowed_roles" TEXT NULL DEFAULT '{}',
   "theme" JSONB NULL DEFAULT '{"background": "default", "primaryColor": "#3b82f6", "secondaryColor": "#8b5cf6"}',
   "mobile_config" JSONB NULL DEFAULT '{"columns": 1, "enabled": true, "hiddenWidgets": []}',
   "tablet_config" JSONB NULL DEFAULT '{"columns": 2, "enabled": true, "hiddenWidgets": []}',
@@ -1129,8 +991,7 @@ CREATE TABLE IF NOT EXISTS "dashboards" (
   "updated_by_id" UUID NULL DEFAULT NULL,
   "layout_config" TEXT,
   "permissions" TEXT,
-  "widgets" TEXT,
-  PRIMARY KEY ("id")
+  "widgets" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1143,7 +1004,7 @@ CREATE TABLE IF NOT EXISTS "dashboard_configs" (
   "dashboard_type" VARCHAR(50) NOT NULL,
   "user_id" UUID NULL DEFAULT NULL,
   "role_based" BOOLEAN NULL DEFAULT false,
-  "target_roles" UNKNOWN NULL DEFAULT NULL,
+  "target_roles" TEXT NULL DEFAULT NULL,
   "widgets" JSONB NOT NULL,
   "layout_config" JSONB NULL DEFAULT NULL,
   "refresh_interval_seconds" INTEGER NULL DEFAULT 300,
@@ -1155,9 +1016,7 @@ CREATE TABLE IF NOT EXISTS "dashboard_configs" (
   "created_by" UUID NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "dashboard_configs_dashboard_type_check" CHECK ((((dashboard_type)::text = ANY ((ARRAY['OPERATIONAL'::character varying, 'FINANCIAL'::character varying, 'INVENTORY'::character varying, 'PERFORMANCE'::character varying, 'COMPLIANCE'::character varying])::text[]))))
+  "is_active" BOOLEAN NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1175,11 +1034,8 @@ CREATE TABLE IF NOT EXISTS "dashboard_widgets" (
   "size" JSONB NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "dashboard_widgets_dashboard_id_fkey" FOREIGN KEY ("dashboard_id") REFERENCES "dashboards" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.dynamic_pricing
@@ -1196,11 +1052,7 @@ CREATE TABLE IF NOT EXISTS "dynamic_pricing" (
   "competitor_factor" NUMERIC(5,4) NULL DEFAULT 1.0000,
   "last_updated" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "calculation_rules" JSONB NULL DEFAULT NULL,
-  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "price_list_id", "item_id"),
-  KEY ("tenant_id", "item_id"),
-  CONSTRAINT "dynamic_pricing_price_list_id_fkey" FOREIGN KEY ("price_list_id") REFERENCES "price_lists" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1230,13 +1082,8 @@ CREATE TABLE IF NOT EXISTS "emails" (
   "ticket_created" UUID NULL DEFAULT NULL,
   "email_date" TIMESTAMP NULL DEFAULT NULL,
   "received_at" TIMESTAMP NULL DEFAULT now(),
-  "processed_at" TIMESTAMP NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("message_id"),
-  KEY ("tenant_id", "received_at"),
-  KEY ("message_id")
+  "processed_at" TIMESTAMP NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.email_inbox
@@ -1252,10 +1099,8 @@ CREATE TABLE IF NOT EXISTS "email_inbox" (
   "status" VARCHAR(20) NULL DEFAULT 'unread',
   "processed" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.email_inbox_messages
@@ -1283,9 +1128,7 @@ CREATE TABLE IF NOT EXISTS "email_inbox_messages" (
   "ticket_created" UUID NULL DEFAULT NULL,
   "email_date" TIMESTAMP NULL DEFAULT NULL,
   "received_at" TIMESTAMP NULL DEFAULT now(),
-  "processed_at" TIMESTAMP NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("message_id")
+  "processed_at" TIMESTAMP NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1304,8 +1147,7 @@ CREATE TABLE IF NOT EXISTS "email_processing_logs" (
   "email_from" VARCHAR(255) NULL DEFAULT NULL,
   "email_subject" TEXT NULL DEFAULT NULL,
   "metadata" JSONB NULL DEFAULT '{}',
-  "processed_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id")
+  "processed_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1337,8 +1179,7 @@ CREATE TABLE IF NOT EXISTS "email_processing_rules" (
   "notify_assignee" BOOLEAN NULL DEFAULT true,
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1360,8 +1201,7 @@ CREATE TABLE IF NOT EXISTS "email_response_templates" (
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "signature_id" VARCHAR(36) NULL DEFAULT NULL,
-  "include_signature" BOOLEAN NULL DEFAULT false,
-  PRIMARY KEY ("id")
+  "include_signature" BOOLEAN NULL DEFAULT false
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1382,8 +1222,7 @@ CREATE TABLE IF NOT EXISTS "email_signatures" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "tenant_id" UUID NOT NULL,
-  PRIMARY KEY ("id")
+  "tenant_id" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1404,10 +1243,8 @@ CREATE TABLE IF NOT EXISTS "expense_audit_trail" (
   "old_values" JSONB NULL DEFAULT NULL,
   "new_values" JSONB NULL DEFAULT NULL,
   "metadata" JSONB NULL DEFAULT NULL,
-  "session_id" VARCHAR(100) NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "session_id" VARCHAR(100) NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.expense_items
@@ -1442,9 +1279,7 @@ CREATE TABLE IF NOT EXISTS "expense_items" (
   "compliance_notes" TEXT NULL DEFAULT NULL,
   "is_active" BOOLEAN NOT NULL DEFAULT true,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "expense_items_expense_report_id_fkey" FOREIGN KEY ("expense_report_id") REFERENCES "expense_reports" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1479,11 +1314,8 @@ CREATE TABLE IF NOT EXISTS "expense_reports" (
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by_id" UUID NOT NULL,
   "updated_by_id" UUID NOT NULL,
-  "is_active" BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "report_number")
+  "is_active" BOOLEAN NOT NULL DEFAULT true
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.external_contacts
@@ -1502,11 +1334,8 @@ CREATE TABLE IF NOT EXISTS "external_contacts" (
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "name" VARCHAR(255) NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "external_contacts_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "name" VARCHAR(255) NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.field_alias_mapping
@@ -1523,12 +1352,8 @@ CREATE TABLE IF NOT EXISTS "field_alias_mapping" (
   "description" TEXT NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "source_table"),
-  KEY ("tenant_id", "source_table")
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.flexible_work_arrangements
@@ -1551,10 +1376,7 @@ CREATE TABLE IF NOT EXISTS "flexible_work_arrangements" (
   "approved_by" VARCHAR(36) NULL DEFAULT NULL,
   "approved_at" TIMESTAMP NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "user_id"),
-  CONSTRAINT "flexible_work_arrangements_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1573,10 +1395,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_audit_log" (
   "session_id" VARCHAR(255) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
-  "tenant_id" UUID NOT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("entity_type", "entity_id"),
-  KEY ("created_at")
+  "tenant_id" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1592,8 +1411,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_audit_logs" (
   "details" TEXT NULL DEFAULT NULL,
   "ip_address" VARCHAR(45) NULL DEFAULT NULL,
   "user_agent" TEXT NULL DEFAULT NULL,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1604,8 +1422,8 @@ CREATE TABLE IF NOT EXISTS "gdpr_compliance_tasks" (
   "report_id" UUID NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "status" UNKNOWN NOT NULL DEFAULT 'draft',
-  "priority" UNKNOWN NOT NULL DEFAULT 'medium',
+  "status" TEXT NOT NULL DEFAULT 'draft',
+  "priority" TEXT NOT NULL DEFAULT 'medium',
   "task_type" VARCHAR(100) NULL DEFAULT NULL,
   "estimated_hours" INTEGER NULL DEFAULT NULL,
   "actual_hours" INTEGER NULL DEFAULT NULL,
@@ -1622,12 +1440,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_compliance_tasks" (
   "tenant_id" UUID NOT NULL,
   "deleted_at" TIMESTAMP NULL DEFAULT NULL,
   "deleted_by" UUID NULL DEFAULT NULL,
-  "is_active" BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  KEY ("report_id"),
-  KEY ("assigned_user_id"),
-  KEY ("status"),
-  CONSTRAINT "gdpr_compliance_tasks_report_id_fkey" FOREIGN KEY ("report_id") REFERENCES "gdpr_reports" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "is_active" BOOLEAN NOT NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1645,31 +1458,27 @@ CREATE TABLE IF NOT EXISTS "gdpr_consent_records" (
   "withdrawn_at" TIMESTAMP NULL DEFAULT NULL,
   "ip_address" VARCHAR(45) NULL DEFAULT NULL,
   "user_agent" TEXT NULL DEFAULT NULL,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.gdpr_data_requests
 CREATE TABLE IF NOT EXISTS "gdpr_data_requests" (
   "id" UUID NOT NULL,
   "tenant_id" UUID NOT NULL,
-  "request_type" UNKNOWN NOT NULL,
+  "request_type" TEXT NOT NULL,
   "subject_email" VARCHAR(255) NOT NULL,
   "subject_name" VARCHAR(255) NULL DEFAULT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "status" UNKNOWN NULL DEFAULT 'pending',
+  "status" TEXT NULL DEFAULT 'pending',
   "requested_at" TIMESTAMP NULL DEFAULT now(),
   "processed_at" TIMESTAMP NULL DEFAULT NULL,
   "processed_by_id" UUID NULL DEFAULT NULL,
   "response_data" JSONB NULL DEFAULT '{}',
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.gdpr_reports
@@ -1677,10 +1486,10 @@ CREATE TABLE IF NOT EXISTS "gdpr_reports" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "title" VARCHAR(500) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "report_type" UNKNOWN NOT NULL,
-  "status" UNKNOWN NOT NULL DEFAULT 'draft',
-  "priority" UNKNOWN NOT NULL DEFAULT 'medium',
-  "risk_level" UNKNOWN NULL DEFAULT 'medium',
+  "report_type" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'draft',
+  "priority" TEXT NOT NULL DEFAULT 'medium',
+  "risk_level" TEXT NULL DEFAULT 'medium',
   "report_data" JSONB NULL DEFAULT NULL,
   "findings" JSONB NULL DEFAULT NULL,
   "action_items" JSONB NULL DEFAULT NULL,
@@ -1702,15 +1511,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_reports" (
   "tenant_id" UUID NOT NULL,
   "deleted_at" TIMESTAMP NULL DEFAULT NULL,
   "deleted_by" UUID NULL DEFAULT NULL,
-  "is_active" BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("status"),
-  KEY ("report_type"),
-  KEY ("assigned_user_id"),
-  KEY ("created_at"),
-  KEY ("due_date"),
-  KEY ("is_active")
+  "is_active" BOOLEAN NOT NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1720,7 +1521,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_report_templates" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "report_type" UNKNOWN NOT NULL,
+  "report_type" TEXT NOT NULL,
   "template_data" JSONB NOT NULL,
   "is_default" BOOLEAN NOT NULL DEFAULT false,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
@@ -1730,8 +1531,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_report_templates" (
   "tenant_id" UUID NOT NULL,
   "deleted_at" TIMESTAMP NULL DEFAULT NULL,
   "deleted_by" UUID NULL DEFAULT NULL,
-  "is_active" BOOLEAN NOT NULL DEFAULT true,
-  PRIMARY KEY ("id")
+  "is_active" BOOLEAN NOT NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1749,13 +1549,7 @@ CREATE TABLE IF NOT EXISTS "holidays" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "description" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "date"),
-  KEY ("tenant_id", "country_code"),
-  KEY ("tenant_id", "type"),
-  KEY ("tenant_id", "is_active"),
-  CONSTRAINT "holidays_type_check" CHECK ((((type)::text = ANY ((ARRAY['national'::character varying, 'regional'::character varying, 'corporate'::character varying, 'optional'::character varying])::text[]))))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1776,8 +1570,7 @@ CREATE TABLE IF NOT EXISTS "hour_bank" (
   "description" TEXT NULL DEFAULT NULL,
   "related_timesheet_id" VARCHAR(36) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1791,13 +1584,12 @@ CREATE TABLE IF NOT EXISTS "integrations" (
   "icon" VARCHAR(100) NULL DEFAULT NULL,
   "status" VARCHAR(50) NULL DEFAULT 'disconnected',
   "config" JSONB NULL DEFAULT '{}',
-  "features" UNKNOWN NULL DEFAULT NULL,
+  "features" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
   "tenant_id" VARCHAR(36) NOT NULL,
   "is_currently_monitoring" BOOLEAN NULL DEFAULT false,
-  "configured" BOOLEAN NULL DEFAULT false,
-  PRIMARY KEY ("id")
+  "configured" BOOLEAN NULL DEFAULT false
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1825,12 +1617,7 @@ CREATE TABLE IF NOT EXISTS "integration_apis" (
   "retry_attempts" INTEGER NULL DEFAULT 3,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "integration_apis_api_type_check" CHECK ((((api_type)::text = ANY ((ARRAY['ERP'::character varying, 'ACCOUNTING'::character varying, 'CRM'::character varying, 'INVENTORY'::character varying, 'MAINTENANCE'::character varying, 'MOBILE'::character varying])::text[])))),
-  CONSTRAINT "integration_apis_auth_method_check" CHECK ((((auth_method)::text = ANY ((ARRAY['API_KEY'::character varying, 'OAUTH2'::character varying, 'BASIC'::character varying, 'BEARER'::character varying])::text[])))),
-  CONSTRAINT "integration_apis_status_check" CHECK ((((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'INACTIVE'::character varying, 'ERROR'::character varying, 'MAINTENANCE'::character varying])::text[])))),
-  CONSTRAINT "integration_apis_sync_direction_check" CHECK ((((sync_direction)::text = ANY ((ARRAY['INBOUND'::character varying, 'OUTBOUND'::character varying, 'BIDIRECTIONAL'::character varying])::text[]))))
+  "is_active" BOOLEAN NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1848,9 +1635,7 @@ CREATE TABLE IF NOT EXISTS "internal_forms" (
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
   "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
-  "updated_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "tenant_id_uuid_format" CHECK ((((length((tenant_id)::text) = 36) AND ((tenant_id)::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'::text))))
+  "updated_by" UUID NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1885,10 +1670,7 @@ CREATE TABLE IF NOT EXISTS "items" (
   "model" TEXT NULL DEFAULT NULL,
   "minimum_stock" TEXT,
   "specifications" TEXT,
-  "stock_quantity" TEXT,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "items_status_check" CHECK ((((status)::text = ANY ((ARRAY['active'::character varying, 'under_review'::character varying, 'discontinued'::character varying])::text[])))),
-  CONSTRAINT "items_type_check" CHECK ((((type)::text = ANY ((ARRAY['material'::character varying, 'service'::character varying])::text[]))))
+  "stock_quantity" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1905,12 +1687,7 @@ CREATE TABLE IF NOT EXISTS "item_hierarchy" (
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "created_by" UUID NULL DEFAULT NULL,
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("parent_item_id", "child_item_id"),
-  KEY ("parent_item_id"),
-  CONSTRAINT "fk_child_item" FOREIGN KEY ("child_item_id") REFERENCES "items" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "fk_parent_item" FOREIGN KEY ("parent_item_id") REFERENCES "items" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_by" UUID NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1938,12 +1715,8 @@ CREATE TABLE IF NOT EXISTS "item_supplier_links" (
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
   "created_by" UUID NULL DEFAULT NULL,
-  "updated_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "item_id", "supplier_id"),
-  UNIQUE ("tenant_id", "supplier_id", "part_number")
+  "updated_by" UUID NULL DEFAULT NULL
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_approvals
@@ -1952,17 +1725,12 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_approvals" (
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "approver_id" VARCHAR NOT NULL,
-  "status" UNKNOWN NOT NULL DEFAULT 'pending',
+  "status" TEXT NOT NULL DEFAULT 'pending',
   "comments" TEXT NULL DEFAULT NULL,
   "requested_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "reviewed_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "approver_id"),
-  KEY ("tenant_id", "status"),
-  CONSTRAINT "kb_approvals_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1979,8 +1747,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_approval_workflows" (
   "requested_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "responded_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -1992,8 +1759,8 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
   "title" VARCHAR(255) NOT NULL,
   "content" TEXT NOT NULL,
   "category" VARCHAR(100) NOT NULL,
-  "tags" UNKNOWN NULL DEFAULT ARRAY[]::text[],
-  "access_level" UNKNOWN NULL DEFAULT 'public',
+  "tags" TEXT NULL DEFAULT ARRAY[]::text[],
+  "access_level" TEXT NULL DEFAULT 'public',
   "author_id" VARCHAR(36) NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2014,7 +1781,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
   "rating_count" INTEGER NULL DEFAULT 0,
   "attachment_count" INTEGER NULL DEFAULT 0,
   "reviewer_id" VARCHAR NULL DEFAULT NULL,
-  "keywords" UNKNOWN NULL DEFAULT NULL,
+  "keywords" TEXT NULL DEFAULT NULL,
   "upvote_count" INTEGER NULL DEFAULT 0,
   "last_viewed_at" TIMESTAMP NULL DEFAULT NULL,
   "excerpt" TEXT NULL DEFAULT NULL,
@@ -2022,13 +1789,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
   "seo_description" TEXT NULL DEFAULT NULL,
   "archived_at" TIMESTAMP NULL DEFAULT NULL,
   "featured" TEXT,
-  "not_helpful_count" TEXT,
-  KEY ("tenant_id"),
-  KEY ("category_id"),
-  KEY ("status"),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "category"),
-  KEY ("tenant_id", "published", "published_at")
+  "not_helpful_count" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2042,12 +1803,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_relations" (
   "entity_id" VARCHAR NOT NULL,
   "relation_type" VARCHAR(50) NOT NULL,
   "created_by" VARCHAR NOT NULL,
-  "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  UNIQUE ("article_id", "entity_type", "entity_id"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "entity_type", "entity_id"),
-  CONSTRAINT "kb_relations_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2064,12 +1820,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_versions" (
   "change_description" TEXT NULL DEFAULT NULL,
   "author_id" VARCHAR NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "created_by_id" TEXT,
-  PRIMARY KEY ("id"),
-  UNIQUE ("article_id", "version_number"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "version_number"),
-  CONSTRAINT "kb_versions_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_by_id" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2087,8 +1838,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_attachments" (
   "uploaded_by" VARCHAR(36) NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "file_name" TEXT NULL DEFAULT NULL,
-  "file_type" TEXT NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "file_type" TEXT NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2105,12 +1855,8 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_categories" (
   "sort_order" INTEGER NULL DEFAULT 0,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY ("tenant_id"),
-  KEY ("parent_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_comments
@@ -2128,13 +1874,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "deleted_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "comment" TEXT,
-  "user_id" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "author_id"),
-  KEY ("parent_id"),
-  CONSTRAINT "kb_comments_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "kb_comments_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "knowledge_base_comments" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "user_id" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2149,12 +1889,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_ratings" (
   "feedback" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "comments" TEXT,
-  PRIMARY KEY ("id"),
-  UNIQUE ("article_id", "user_id"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "user_id"),
-  CONSTRAINT "kb_ratings_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "comments" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2173,13 +1908,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_scheduled_publications" (
   "execution_log" JSONB NULL DEFAULT '{}',
   "failure_reason" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "article_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("scheduled_for"),
-  CONSTRAINT "kb_scheduled_article_fk" FOREIGN KEY ("article_id") REFERENCES "knowledge_base_articles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2194,13 +1923,8 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_search_logs" (
   "clicked_article_id" VARCHAR NULL DEFAULT NULL,
   "search_context" JSONB NULL DEFAULT '{}',
   "user_agent" TEXT NULL DEFAULT NULL,
-  "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "query"),
-  KEY ("tenant_id", "user_id"),
-  KEY ("tenant_id", "created_at")
+  "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_templates
@@ -2217,11 +1941,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_templates" (
   "created_by" VARCHAR NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
-  "variables" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "category"),
-  KEY ("tenant_id", "is_active")
+  "variables" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2255,11 +1975,7 @@ CREATE TABLE IF NOT EXISTS "locais" (
   "feriados_incluidos" JSONB NULL DEFAULT NULL,
   "indisponibilidades" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  KEY ("ativo"),
-  KEY ("nome"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2276,10 +1992,7 @@ CREATE TABLE IF NOT EXISTS "localization_context" (
   "help_texts" JSONB NOT NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "context_key"),
-  KEY ("tenant_id", "context_key")
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2290,17 +2003,17 @@ CREATE TABLE IF NOT EXISTS "locations" (
   "tenant_id" UUID NOT NULL,
   "name" VARCHAR(200) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "location_type" UNKNOWN NOT NULL,
-  "geometry_type" UNKNOWN NOT NULL,
+  "location_type" TEXT NOT NULL,
+  "geometry_type" TEXT NOT NULL,
   "coordinates" JSONB NOT NULL,
   "address_data" JSONB NULL DEFAULT NULL,
   "business_hours" JSONB NULL DEFAULT NULL,
   "access_requirements" JSONB NULL DEFAULT NULL,
   "sla_config" JSONB NULL DEFAULT NULL,
-  "status" UNKNOWN NOT NULL DEFAULT 'active',
+  "status" TEXT NOT NULL DEFAULT 'active',
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "tags" UNKNOWN NULL DEFAULT NULL,
+  "tags" TEXT NULL DEFAULT NULL,
   "attachments" JSONB NULL DEFAULT '{}',
   "parent_location_id" UUID NULL DEFAULT NULL,
   "is_favorite" BOOLEAN NULL DEFAULT false,
@@ -2317,15 +2030,7 @@ CREATE TABLE IF NOT EXISTS "locations" (
   "longitude" TEXT NULL DEFAULT NULL,
   "address_country" TEXT,
   "is_active" BOOLEAN DEFAULT true,
-  "metadata" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("location_type"),
-  KEY ("status"),
-  KEY ("tags"),
-  KEY ("parent_location_id"),
-  KEY ("is_favorite"),
-  CONSTRAINT "locations_parent_location_id_fkey" FOREIGN KEY ("parent_location_id") REFERENCES "locations" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "metadata" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2335,15 +2040,13 @@ CREATE TABLE IF NOT EXISTS "location_areas" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
   "location_id" UUID NOT NULL,
-  "area_type" UNKNOWN NOT NULL,
+  "area_type" TEXT NOT NULL,
   "boundary_coordinates" JSONB NOT NULL,
   "area_size_km2" NUMERIC(10,2) NULL DEFAULT NULL,
   "population_estimate" INTEGER NULL DEFAULT NULL,
-  "service_level" UNKNOWN NOT NULL DEFAULT 'standard',
+  "service_level" TEXT NOT NULL DEFAULT 'standard',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "location_areas_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2353,11 +2056,8 @@ CREATE TABLE IF NOT EXISTS "location_area_memberships" (
   "location_id" UUID NOT NULL,
   "area_group_id" UUID NOT NULL,
   "tenant_id" UUID NOT NULL,
-  "membership_type" UNKNOWN NOT NULL DEFAULT 'primary',
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("location_id", "area_group_id"),
-  CONSTRAINT "location_area_memberships_area_group_id_fkey" FOREIGN KEY ("area_group_id") REFERENCES "area_groups" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "location_area_memberships_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "membership_type" TEXT NOT NULL DEFAULT 'primary',
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2367,14 +2067,13 @@ CREATE TABLE IF NOT EXISTS "location_routes" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
   "route_name" VARCHAR(200) NOT NULL,
-  "route_type" UNKNOWN NOT NULL,
+  "route_type" TEXT NOT NULL,
   "route_coordinates" JSONB NOT NULL,
   "estimated_duration_minutes" INTEGER NULL DEFAULT NULL,
-  "difficulty_level" UNKNOWN NOT NULL DEFAULT 'medium',
+  "difficulty_level" TEXT NOT NULL DEFAULT 'medium',
   "required_skills" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2384,18 +2083,15 @@ CREATE TABLE IF NOT EXISTS "location_segments" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
   "location_id" UUID NOT NULL,
-  "segment_type" UNKNOWN NOT NULL,
+  "segment_type" TEXT NOT NULL,
   "start_coordinates" JSONB NOT NULL,
   "end_coordinates" JSONB NOT NULL,
   "path_coordinates" JSONB NULL DEFAULT NULL,
   "length_meters" NUMERIC(10,2) NULL DEFAULT NULL,
   "infrastructure_data" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "location_segments_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.maintenance_plans
@@ -2422,10 +2118,7 @@ CREATE TABLE IF NOT EXISTS "maintenance_plans" (
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
-  "updated_by" UUID NOT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "maintenance_plans_priority_check" CHECK ((((priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'critical'::character varying])::text[])))),
-  CONSTRAINT "maintenance_plans_trigger_type_check" CHECK ((((trigger_type)::text = ANY ((ARRAY['time'::character varying, 'usage'::character varying, 'condition'::character varying, 'calendar'::character varying])::text[]))))
+  "updated_by" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2443,11 +2136,7 @@ CREATE TABLE IF NOT EXISTS "market_localization" (
   "display_config" JSONB NOT NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "market_code"),
-  KEY ("tenant_id", "is_active"),
-  KEY ("tenant_id", "market_code")
+  "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2459,13 +2148,12 @@ CREATE TABLE IF NOT EXISTS "notification_templates" (
   "name" VARCHAR(255) NOT NULL,
   "subject_template" VARCHAR(255) NULL DEFAULT NULL,
   "body_template" TEXT NULL DEFAULT NULL,
-  "type" UNKNOWN NULL DEFAULT NULL,
-  "channel" UNKNOWN NULL DEFAULT NULL,
+  "type" TEXT NULL DEFAULT NULL,
+  "channel" TEXT NULL DEFAULT NULL,
   "variables" JSONB NULL DEFAULT '[]',
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2478,8 +2166,7 @@ CREATE TABLE IF NOT EXISTS "nsr_sequences" (
   "last_reset" TIMESTAMP NULL DEFAULT NULL,
   "reset_period" VARCHAR(20) NULL DEFAULT 'yearly',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2502,11 +2189,7 @@ CREATE TABLE IF NOT EXISTS "offline_sync" (
   "error_message" TEXT NULL DEFAULT NULL,
   "retry_count" INTEGER NULL DEFAULT 0,
   "max_retries" INTEGER NULL DEFAULT 5,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "offline_sync_conflict_resolution_check" CHECK ((((conflict_resolution)::text = ANY ((ARRAY['SERVER_WINS'::character varying, 'CLIENT_WINS'::character varying, 'MANUAL_REVIEW'::character varying])::text[])))),
-  CONSTRAINT "offline_sync_operation_check" CHECK ((((operation)::text = ANY ((ARRAY['CREATE'::character varying, 'UPDATE'::character varying, 'DELETE'::character varying])::text[])))),
-  CONSTRAINT "offline_sync_sync_status_check" CHECK ((((sync_status)::text = ANY ((ARRAY['PENDING'::character varying, 'SYNCED'::character varying, 'CONFLICT'::character varying, 'ERROR'::character varying])::text[]))))
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2527,8 +2210,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_automation_rules" (
   "success_count" INTEGER NULL DEFAULT 0,
   "last_executed" TIMESTAMP NULL DEFAULT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2549,8 +2231,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_channels" (
   "metrics" JSONB NULL DEFAULT '{}',
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2566,10 +2247,8 @@ CREATE TABLE IF NOT EXISTS "omnibridge_chatbots" (
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" VARCHAR(36) NULL DEFAULT NULL,
-  "updated_by" VARCHAR(36) NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "updated_by" VARCHAR(36) NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_messages
@@ -2589,10 +2268,8 @@ CREATE TABLE IF NOT EXISTS "omnibridge_messages" (
   "attachments" INTEGER NULL DEFAULT 0,
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_rules
@@ -2609,10 +2286,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_rules" (
   "success_count" INTEGER NULL DEFAULT 0,
   "last_executed" TIMESTAMP NULL DEFAULT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  KEY ("is_enabled"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2625,8 +2299,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_settings" (
   "filters" JSONB NOT NULL DEFAULT '{}',
   "search" JSONB NOT NULL DEFAULT '{}',
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2650,9 +2323,7 @@ CREATE TABLE IF NOT EXISTS "physical_inventories" (
   "total_discrepancies" INTEGER NULL DEFAULT 0,
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "inventory_number")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2681,11 +2352,7 @@ CREATE TABLE IF NOT EXISTS "price_lists" (
   "list_code" VARCHAR(50) NULL DEFAULT 'DEFAULT',
   "created_by_id" UUID NULL DEFAULT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "valid_until" TEXT NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "is_active"),
-  KEY ("tenant_id", "code"),
-  KEY ("tenant_id", "customer_id", "is_active")
+  "valid_until" TEXT NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2707,11 +2374,7 @@ CREATE TABLE IF NOT EXISTS "price_list_items" (
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "discount_percentage" TEXT,
   "markup_percentage" TEXT,
-  "minimum_quantity" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "price_list_id"),
-  KEY ("price_list_id"),
-  KEY ("tenant_id", "price_list_id", "item_id")
+  "minimum_quantity" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2724,8 +2387,7 @@ CREATE TABLE IF NOT EXISTS "price_list_versions" (
   "version" VARCHAR(20) NOT NULL,
   "is_current" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "created_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "created_by" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2745,9 +2407,7 @@ CREATE TABLE IF NOT EXISTS "price_tables" (
   "default_margin_percentage" NUMERIC(5,2) NULL DEFAULT 0,
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("table_code")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2764,11 +2424,8 @@ CREATE TABLE IF NOT EXISTS "pricing_rules" (
   "priority" INTEGER NULL DEFAULT 1,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "is_active", "priority")
+  "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.project_timeline
@@ -2786,9 +2443,7 @@ CREATE TABLE IF NOT EXISTS "project_timeline" (
   "new_value" TEXT NULL DEFAULT NULL,
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "created_by" UUID NOT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "project_timeline_tenant_id_check" CHECK ((((tenant_id)::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'::text)))
+  "created_by" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2806,9 +2461,7 @@ CREATE TABLE IF NOT EXISTS "quality_certifications" (
   "expiry_date" DATE NULL DEFAULT NULL,
   "document_url" TEXT NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'active',
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "chk_quality_cert_item_type" CHECK ((((item_type)::text = ANY ((ARRAY['user'::character varying, 'equipment'::character varying, 'facility'::character varying, 'process'::character varying])::text[]))))
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2827,8 +2480,7 @@ CREATE TABLE IF NOT EXISTS "quotations" (
   "currency" VARCHAR(3) NULL DEFAULT 'BRL',
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "created_by_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "created_by_id" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2841,8 +2493,8 @@ CREATE TABLE IF NOT EXISTS "recall_notices" (
   "part_id" UUID NOT NULL,
   "recall_reason" TEXT NOT NULL,
   "severity_level" VARCHAR(20) NULL DEFAULT 'medium',
-  "affected_lot_numbers" UNKNOWN NULL DEFAULT NULL,
-  "affected_serial_numbers" UNKNOWN NULL DEFAULT NULL,
+  "affected_lot_numbers" TEXT NULL DEFAULT NULL,
+  "affected_serial_numbers" TEXT NULL DEFAULT NULL,
   "recall_date" DATE NOT NULL,
   "notification_date" DATE NULL DEFAULT NULL,
   "resolution_deadline" DATE NULL DEFAULT NULL,
@@ -2850,9 +2502,7 @@ CREATE TABLE IF NOT EXISTS "recall_notices" (
   "replacement_part_id" UUID NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("recall_number")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2882,10 +2532,7 @@ CREATE TABLE IF NOT EXISTS "regioes" (
   "numero" VARCHAR(20) NULL DEFAULT NULL,
   "complemento" VARCHAR(100) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  KEY ("ativo"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2904,8 +2551,7 @@ CREATE TABLE IF NOT EXISTS "reports" (
   "created_by_id" UUID NULL DEFAULT NULL,
   "updated_by_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2926,13 +2572,7 @@ CREATE TABLE IF NOT EXISTS "returns" (
   "refund_amount" NUMERIC(10,2) NULL DEFAULT NULL,
   "disposition" VARCHAR(50) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("return_number"),
-  CONSTRAINT "returns_original_transfer_id_fkey" FOREIGN KEY ("original_transfer_id") REFERENCES "transfers" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "returns_disposition_check" CHECK ((((disposition)::text = ANY ((ARRAY['RESTOCK'::character varying, 'SCRAP'::character varying, 'REPAIR'::character varying, 'VENDOR_RETURN'::character varying])::text[])))),
-  CONSTRAINT "returns_return_type_check" CHECK ((((return_type)::text = ANY ((ARRAY['DEFECTIVE'::character varying, 'EXCESS'::character varying, 'WRONG_ITEM'::character varying, 'CUSTOMER_RETURN'::character varying, 'EXPIRED'::character varying])::text[])))),
-  CONSTRAINT "returns_status_check" CHECK ((((status)::text = ANY ((ARRAY['INITIATED'::character varying, 'APPROVED'::character varying, 'IN_TRANSIT'::character varying, 'COMPLETED'::character varying, 'REJECTED'::character varying])::text[]))))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2943,13 +2583,12 @@ CREATE TABLE IF NOT EXISTS "roles" (
   "tenant_id" UUID NOT NULL,
   "name" TEXT NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "permissions" UNKNOWN NOT NULL DEFAULT '{}',
+  "permissions" TEXT NOT NULL DEFAULT '{}',
   "is_active" BOOLEAN NOT NULL DEFAULT true,
   "is_system" BOOLEAN NOT NULL DEFAULT false,
   "user_count" INTEGER NOT NULL DEFAULT 0,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2969,9 +2608,7 @@ CREATE TABLE IF NOT EXISTS "rotas_dinamicas" (
   "previsao_dias" INTEGER NULL DEFAULT NULL,
   "planejamento_rotas" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -2987,9 +2624,7 @@ CREATE TABLE IF NOT EXISTS "rotas_trecho" (
   "codigo_integracao" VARCHAR(100) NULL DEFAULT NULL,
   "definicao_trecho" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3020,9 +2655,7 @@ CREATE TABLE IF NOT EXISTS "schedules" (
   "parent_schedule_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "type" VARCHAR(20) NOT NULL DEFAULT 'planned',
-  PRIMARY KEY ("id"),
-  CONSTRAINT "schedules_activity_type_id_fkey" FOREIGN KEY ("activity_type_id") REFERENCES "activity_types" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "type" VARCHAR(20) NOT NULL DEFAULT 'planned'
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3039,10 +2672,7 @@ CREATE TABLE IF NOT EXISTS "schedule_conflicts" (
   "is_resolved" BOOLEAN NULL DEFAULT false,
   "resolution_notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "resolved_at" TIMESTAMP NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "schedule_conflicts_conflict_with_schedule_id_fkey" FOREIGN KEY ("conflict_with_schedule_id") REFERENCES "schedules" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "schedule_conflicts_schedule_id_fkey" FOREIGN KEY ("schedule_id") REFERENCES "schedules" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "resolved_at" TIMESTAMP NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3069,10 +2699,7 @@ CREATE TABLE IF NOT EXISTS "schedule_notifications" (
   "scheduled_date" TIMESTAMP NULL DEFAULT NULL,
   "type" TEXT NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
-  "metadata" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "user_id"),
-  CONSTRAINT "schedule_notifications_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "metadata" TEXT
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3091,10 +2718,7 @@ CREATE TABLE IF NOT EXISTS "schedule_templates" (
   "requires_approval" BOOLEAN NULL DEFAULT true,
   "created_by" VARCHAR(36) NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "is_active"),
-  CONSTRAINT "schedule_templates_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3110,11 +2734,10 @@ CREATE TABLE IF NOT EXISTS "service_integrations" (
   "status" TEXT NULL DEFAULT 'disconnected',
   "enabled" BOOLEAN NULL DEFAULT false,
   "config" JSONB NULL DEFAULT '{}',
-  "features" UNKNOWN NULL DEFAULT ARRAY[]::text[],
+  "features" TEXT NULL DEFAULT ARRAY[]::text[],
   "is_currently_monitoring" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3141,10 +2764,7 @@ CREATE TABLE IF NOT EXISTS "shift_swap_requests" (
   "approved_at" TIMESTAMP NULL DEFAULT NULL,
   "approval_notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "status"),
-  CONSTRAINT "shift_swap_requests_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3165,12 +2785,7 @@ CREATE TABLE IF NOT EXISTS "skills" (
   "certification_validity_months" INTEGER NULL DEFAULT NULL,
   "observations" TEXT NULL DEFAULT NULL,
   "scale_options" JSONB NULL DEFAULT '[]',
-  "updated_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "name"),
-  KEY ("tenant_id", "name"),
-  KEY ("tenant_id", "category"),
-  CONSTRAINT "skills_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "updated_by" UUID NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3205,12 +2820,7 @@ CREATE TABLE IF NOT EXISTS "sla_definitions" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_by" VARCHAR NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "name"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "type")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3231,13 +2841,7 @@ CREATE TABLE IF NOT EXISTS "sla_events" (
   "triggered_by_user_id" VARCHAR NULL DEFAULT NULL,
   "trigger_condition" TEXT NULL DEFAULT NULL,
   "event_data" JSONB NULL DEFAULT '{}',
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "sla_instance_id"),
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "event_type"),
-  KEY ("created_at")
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3274,15 +2878,7 @@ CREATE TABLE IF NOT EXISTS "sla_instances" (
   "automation_triggered" BOOLEAN NULL DEFAULT false,
   "automation_actions" JSONB NULL DEFAULT '[]',
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  UNIQUE ("ticket_id", "current_metric"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "sla_definition_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "is_breached"),
-  KEY ("tenant_id", "current_metric")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3305,12 +2901,7 @@ CREATE TABLE IF NOT EXISTS "sla_reports" (
   "escalation_rate" REAL NULL DEFAULT 0,
   "sla_metrics" JSONB NULL DEFAULT '{}',
   "trend_data" JSONB NULL DEFAULT '{}',
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "report_type", "report_period"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "report_type"),
-  KEY ("tenant_id", "report_period")
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3339,14 +2930,7 @@ CREATE TABLE IF NOT EXISTS "sla_violations" (
   "root_cause" TEXT NULL DEFAULT NULL,
   "preventive_actions" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "sla_definition_id"),
-  KEY ("tenant_id", "violation_type"),
-  KEY ("tenant_id", "severity_level"),
-  KEY ("created_at")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3363,12 +2947,7 @@ CREATE TABLE IF NOT EXISTS "sla_workflows" (
   "metadata" JSONB NULL DEFAULT '{}',
   "created_by" VARCHAR NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE ("tenant_id", "name"),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "name"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "is_active")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3386,12 +2965,7 @@ CREATE TABLE IF NOT EXISTS "sla_workflow_executions" (
   "error" TEXT NULL DEFAULT NULL,
   "completed_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("workflow_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("triggered_at")
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3406,10 +2980,7 @@ CREATE TABLE IF NOT EXISTS "stock_levels" (
   "quantity_reserved" NUMERIC(10,2) NULL DEFAULT 0,
   "quantity_on_order" NUMERIC(10,2) NULL DEFAULT 0,
   "last_updated" TIMESTAMP NULL DEFAULT now(),
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "stock_levels_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "stock_levels_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "stock_locations" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3426,9 +2997,7 @@ CREATE TABLE IF NOT EXISTS "stock_locations" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "metadata" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "stock_locations_parent_location_id_fkey" FOREIGN KEY ("parent_location_id") REFERENCES "stock_locations" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3439,7 +3008,7 @@ CREATE TABLE IF NOT EXISTS "stock_movements" (
   "tenant_id" UUID NOT NULL,
   "item_id" UUID NOT NULL,
   "location_id" UUID NOT NULL,
-  "movement_type" UNKNOWN NOT NULL,
+  "movement_type" TEXT NOT NULL,
   "quantity" NUMERIC(10,2) NOT NULL,
   "unit_cost" NUMERIC(10,2) NULL DEFAULT NULL,
   "reference_id" UUID NULL DEFAULT NULL,
@@ -3447,10 +3016,7 @@ CREATE TABLE IF NOT EXISTS "stock_movements" (
   "notes" TEXT NULL DEFAULT NULL,
   "performed_by" UUID NULL DEFAULT NULL,
   "performed_at" TIMESTAMP NULL DEFAULT now(),
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "stock_movements_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "stock_movements_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "stock_locations" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3470,10 +3036,8 @@ CREATE TABLE IF NOT EXISTS "suppliers" (
   "contact_person" TEXT NULL DEFAULT NULL,
   "rating" TEXT NULL DEFAULT NULL,
   "payment_terms" TEXT NULL DEFAULT NULL,
-  "address" TEXT,
-  PRIMARY KEY ("id")
+  "address" TEXT
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.supplier_item_links
@@ -3491,9 +3055,7 @@ CREATE TABLE IF NOT EXISTS "supplier_item_links" (
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "created_by" UUID NULL DEFAULT NULL,
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_by" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id")
+  "updated_by" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3506,9 +3068,7 @@ CREATE TABLE IF NOT EXISTS "system_settings" (
   "setting_value" TEXT NOT NULL,
   "setting_type" VARCHAR(50) NULL DEFAULT 'string',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "setting_key")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3578,7 +3138,7 @@ CREATE TABLE IF NOT EXISTS "tickets" (
   "location_id" UUID NULL DEFAULT NULL,
   "caller_type" VARCHAR(20) NULL DEFAULT 'customer',
   "beneficiary_type" VARCHAR(20) NULL DEFAULT 'customer',
-  "followers" UNKNOWN NULL DEFAULT ARRAY[]::text[],
+  "followers" TEXT NULL DEFAULT ARRAY[]::text[],
   "cost_center" VARCHAR(100) NULL DEFAULT NULL,
   "company_id" UUID NULL DEFAULT NULL,
   "action" VARCHAR(100) NULL DEFAULT NULL,
@@ -3600,18 +3160,7 @@ CREATE TABLE IF NOT EXISTS "tickets" (
   "template_id" UUID NULL DEFAULT NULL,
   "custom_fields" JSON,
   "tags" TEXT,
-  "metadata" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "urgency", "impact"),
-  KEY ("tenant_id", "due_date"),
-  KEY ("tenant_id", "customer_company_id"),
-  KEY ("tenant_id", "status", "priority"),
-  KEY ("tenant_id", "assigned_to_id", "status"),
-  KEY ("tenant_id", "status"),
-  CONSTRAINT "tickets_beneficiary_id_fkey" FOREIGN KEY ("beneficiary_id") REFERENCES "beneficiaries" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "tickets_customer_company_id_fkey" FOREIGN KEY ("company_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "tickets_parent_ticket_id_fkey" FOREIGN KEY ("parent_ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE SET NULL,
-  CONSTRAINT "chk_tickets_tenant_id" CHECK ((((tenant_id)::text = '3f99462f-3621-4b1b-bea8-782acc50d62e'::text)))
+  "metadata" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3633,15 +3182,7 @@ CREATE TABLE IF NOT EXISTS "ticket_actions" (
   "performed_by" UUID NULL DEFAULT NULL,
   "action_type" VARCHAR(50) NULL DEFAULT 'manual',
   "customer_id" UUID NULL DEFAULT NULL,
-  "estimated_time_minutes" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "company_id"),
-  KEY ("subcategory_id"),
-  KEY ("tenant_id", "active"),
-  UNIQUE ("subcategory_id", "code"),
-  CONSTRAINT "fk_actions_subcategory" FOREIGN KEY ("subcategory_id") REFERENCES "ticket_subcategories" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "ticket_actions_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "ticket_actions_performed_by_fkey" FOREIGN KEY ("performed_by") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "estimated_time_minutes" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3660,10 +3201,8 @@ CREATE TABLE IF NOT EXISTS "ticket_attachments" (
   "created_by" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
   "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "description" TEXT NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "description" TEXT NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_categories
@@ -3679,11 +3218,7 @@ CREATE TABLE IF NOT EXISTS "ticket_categories" (
   "sort_order" INTEGER NULL DEFAULT 1,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "customer_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "company_id"),
-  KEY ("tenant_id", "active"),
-  CONSTRAINT "ticket_categories_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "customer_id" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3706,10 +3241,8 @@ CREATE TABLE IF NOT EXISTS "ticket_communications" (
   "is_public" BOOLEAN NULL DEFAULT true,
   "created_by" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_consumed_items
@@ -3738,18 +3271,8 @@ CREATE TABLE IF NOT EXISTS "ticket_consumed_items" (
   "status" VARCHAR(50) NULL DEFAULT 'consumed',
   "unit_cost" TEXT NULL DEFAULT NULL,
   "consumed_by" TEXT NULL DEFAULT NULL,
-  "quantity_consumed" TEXT,
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "item_id"),
-  KEY ("tenant_id", "technician_id"),
-  KEY ("tenant_id", "consumed_at"),
-  KEY ("tenant_id", "lpu_id"),
-  KEY ("tenant_id", "stock_location_id"),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "ticket_id", "is_active"),
-  KEY ("planned_item_id")
+  "quantity_consumed" text
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_costs_summary
@@ -3763,11 +3286,7 @@ CREATE TABLE IF NOT EXISTS "ticket_costs_summary" (
   "status" VARCHAR(50) NULL DEFAULT 'draft',
   "last_calculated_at" TIMESTAMP NULL DEFAULT now(),
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "last_calculated_at"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3781,10 +3300,7 @@ CREATE TABLE IF NOT EXISTS "ticket_default_configurations" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "customer_id" UUID NULL DEFAULT NULL,
-  UNIQUE ("tenant_id", "customer_id", "field_name"),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "customer_id", "field_name")
+  "customer_id" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3805,12 +3321,7 @@ CREATE TABLE IF NOT EXISTS "ticket_field_configurations" (
   "customer_id" UUID NULL DEFAULT NULL,
   "display_order" TEXT NULL DEFAULT NULL,
   "active" BOOLEAN DEFAULT true,
-  "options" TEXT,
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "customer_id", "field_name"),
-  KEY ("tenant_id", "customer_id"),
-  KEY ("tenant_id", "field_name"),
-  UNIQUE ("tenant_id", "customer_id", "field_name")
+  "options" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3829,11 +3340,7 @@ CREATE TABLE IF NOT EXISTS "ticket_field_options" (
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
   "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
   "customer_id" UUID NULL DEFAULT NULL,
-  "status_type" VARCHAR(20) NULL DEFAULT NULL,
-  UNIQUE ("tenant_id", "customer_id", "field_config_id", "option_value"),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id", "customer_id", "field_name", "value"),
-  CONSTRAINT "ticket_field_options_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "status_type" VARCHAR(20) NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3855,12 +3362,7 @@ CREATE TABLE IF NOT EXISTS "ticket_history" (
   "metadata" JSONB NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
   "tenant_id" UUID NOT NULL,
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  KEY ("ticket_id"),
-  KEY ("created_at"),
-  KEY ("action_type"),
-  CONSTRAINT "ticket_history_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "is_active" BOOLEAN NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3885,11 +3387,7 @@ CREATE TABLE IF NOT EXISTS "ticket_internal_actions" (
   "planned_start_time" TIMESTAMPTZ NULL DEFAULT NULL,
   "planned_end_time" TIMESTAMPTZ NULL DEFAULT NULL,
   "tempo_realizado" INTEGER NULL DEFAULT NULL,
-  "actual_minutes" INTEGER NULL DEFAULT 0,
-  PRIMARY KEY ("id"),
-  UNIQUE ("action_number"),
-  CONSTRAINT "ticket_internal_actions_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "ticket_internal_actions_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "actual_minutes" INTEGER NULL DEFAULT 0
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3909,12 +3407,7 @@ CREATE TABLE IF NOT EXISTS "ticket_list_views" (
   "page_size" INTEGER NULL DEFAULT 25,
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("tenant_id", "created_by_id"),
-  KEY ("tenant_id", "is_public"),
-  UNIQUE ("tenant_id", "name", "created_by_id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3930,14 +3423,8 @@ CREATE TABLE IF NOT EXISTS "ticket_lpu_settings" (
   "applied_at" TIMESTAMP NULL DEFAULT now(),
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "lpu_id"),
-  KEY ("tenant_id", "is_active"),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "ticket_id", "is_active")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_messages
@@ -3953,11 +3440,7 @@ CREATE TABLE IF NOT EXISTS "ticket_messages" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "sender_id" UUID NULL DEFAULT NULL,
   "message" TEXT,
-  "message_type" TEXT,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "ticket_id"),
-  CONSTRAINT "ticket_messages_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "chk_ticket_messages_tenant_id" CHECK ((((tenant_id)::text = '3f99462f-3621-4b1b-bea8-782acc50d62e'::text)))
+  "message_type" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -3974,10 +3457,8 @@ CREATE TABLE IF NOT EXISTS "ticket_notes" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "created_by" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_numbering_config
@@ -3992,11 +3473,8 @@ CREATE TABLE IF NOT EXISTS "ticket_numbering_config" (
   "reset_yearly" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "first_separator" VARCHAR(10) NULL DEFAULT '-',
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "company_id")
+  "first_separator" VARCHAR(10) NULL DEFAULT '-'
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_planned_items
@@ -4021,13 +3499,7 @@ CREATE TABLE IF NOT EXISTS "ticket_planned_items" (
   "priority" VARCHAR(20) NULL DEFAULT 'medium',
   "unit_cost" TEXT NULL DEFAULT NULL,
   "total_cost" TEXT NULL DEFAULT NULL,
-  "quantity_planned" TEXT,
-  KEY ("tenant_id", "ticket_id"),
-  KEY ("tenant_id", "item_id"),
-  KEY ("tenant_id", "status"),
-  KEY ("tenant_id", "lpu_id"),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "ticket_id", "is_active")
+  "quantity_planned" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4041,14 +3513,7 @@ CREATE TABLE IF NOT EXISTS "ticket_relationships" (
   "relationship_type" VARCHAR(50) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "created_by" VARCHAR NOT NULL,
-  UNIQUE ("tenant_id", "source_ticket_id", "target_ticket_id", "relationship_type"),
-  PRIMARY KEY ("id"),
-  KEY ("source_ticket_id", "tenant_id"),
-  KEY ("target_ticket_id", "tenant_id"),
-  KEY ("relationship_type", "tenant_id"),
-  CONSTRAINT "ticket_relationships_source_ticket_id_fkey" FOREIGN KEY ("source_ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "ticket_relationships_target_ticket_id_fkey" FOREIGN KEY ("target_ticket_id") REFERENCES "tickets" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_by" VARCHAR NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4067,14 +3532,7 @@ CREATE TABLE IF NOT EXISTS "ticket_subcategories" (
   "sort_order" INTEGER NULL DEFAULT 1,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "customer_id" UUID NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "company_id"),
-  KEY ("category_id"),
-  KEY ("tenant_id", "active"),
-  UNIQUE ("category_id", "code"),
-  CONSTRAINT "fk_subcategories_category" FOREIGN KEY ("category_id") REFERENCES "ticket_categories" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "ticket_subcategories_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "companies" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "customer_id" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4107,8 +3565,8 @@ CREATE TABLE IF NOT EXISTS "ticket_templates" (
   "default_assignee_id" UUID NULL DEFAULT NULL,
   "default_assignment_group" VARCHAR(100) NULL DEFAULT NULL,
   "default_department" VARCHAR(100) NULL DEFAULT NULL,
-  "optional_fields" UNKNOWN NULL DEFAULT '{}',
-  "hidden_fields" UNKNOWN NULL DEFAULT '{}',
+  "optional_fields" TEXT NULL DEFAULT '{}',
+  "hidden_fields" TEXT NULL DEFAULT '{}',
   "auto_assignment_rules" JSONB NULL DEFAULT '{}',
   "sla_override" JSONB NULL DEFAULT '{}',
   "sort_order" INTEGER NULL DEFAULT 0,
@@ -4123,7 +3581,7 @@ CREATE TABLE IF NOT EXISTS "ticket_templates" (
   "status" VARCHAR(20) NOT NULL DEFAULT 'draft',
   "automation" JSONB NULL DEFAULT '{"enabled": false}',
   "workflow" JSONB NULL DEFAULT '{"enabled": false}',
-  "tags" UNKNOWN NULL DEFAULT NULL,
+  "tags" TEXT NULL DEFAULT NULL,
   "permissions" JSONB NULL DEFAULT '[]',
   "is_default" BOOLEAN NULL DEFAULT false,
   "is_system" BOOLEAN NULL DEFAULT false,
@@ -4132,9 +3590,7 @@ CREATE TABLE IF NOT EXISTS "ticket_templates" (
   "required_fields" JSONB NULL DEFAULT '[]',
   "custom_fields" JSONB NULL DEFAULT '[]',
   "department_id" UUID NULL DEFAULT NULL,
-  "fields" JSONB NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "ticket_templates_customer_company_id_fkey" FOREIGN KEY ("customer_company_id") REFERENCES "customers" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "fields" JSONB NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4150,10 +3606,7 @@ CREATE TABLE IF NOT EXISTS "ticket_validation_rules" (
   "error_message" TEXT NULL DEFAULT NULL,
   "default_value" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "company_id"),
-  KEY ("tenant_id", "field_name")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4167,10 +3620,7 @@ CREATE TABLE IF NOT EXISTS "ticket_view_shares" (
   "can_edit" BOOLEAN NULL DEFAULT false,
   "can_share" BOOLEAN NULL DEFAULT false,
   "shared_at" TIMESTAMP NULL DEFAULT now(),
-  "shared_by_id" UUID NOT NULL,
-  UNIQUE ("view_id", "user_id"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "ticket_view_shares_view_id_fkey" FOREIGN KEY ("view_id") REFERENCES "ticket_list_views" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "shared_by_id" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4187,11 +3637,7 @@ CREATE TABLE IF NOT EXISTS "timecard_alerts" (
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "tenant_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "resolved_at" TIMESTAMPTZ NULL DEFAULT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "timecard_alerts_alert_type_check" CHECK ((((alert_type)::text = ANY ((ARRAY['excessive_hours'::character varying, 'missing_record'::character varying, 'duplicate_record'::character varying, 'schedule_violation'::character varying, 'overtime_limit'::character varying, 'break_violation'::character varying])::text[])))),
-  CONSTRAINT "timecard_alerts_severity_check" CHECK ((((severity)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'critical'::character varying])::text[])))),
-  CONSTRAINT "timecard_alerts_status_check" CHECK ((((status)::text = ANY ((ARRAY['active'::character varying, 'resolved'::character varying, 'dismissed'::character varying])::text[]))))
+  "resolved_at" TIMESTAMPTZ NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4208,8 +3654,7 @@ CREATE TABLE IF NOT EXISTS "timecard_audit_log" (
   "ip_address" INET NULL DEFAULT NULL,
   "user_agent" TEXT NULL DEFAULT NULL,
   "tenant_id" UUID NOT NULL,
-  "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4247,10 +3692,8 @@ CREATE TABLE IF NOT EXISTS "timecard_entries" (
   "is_deleted" BOOLEAN NULL DEFAULT false,
   "deleted_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "deleted_by" UUID NULL DEFAULT NULL,
-  "deletion_reason" TEXT NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "deletion_reason" TEXT NULL DEFAULT null
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.timecard_settings
@@ -4269,10 +3712,7 @@ CREATE TABLE IF NOT EXISTS "timecard_settings" (
   "allow_mobile_registration" BOOLEAN NULL DEFAULT true,
   "digital_signature_required" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("tenant_id"),
-  CONSTRAINT "timecard_settings_overtime_calculation_type_check" CHECK ((((overtime_calculation_type)::text = ANY ((ARRAY['daily'::character varying, 'weekly'::character varying, 'monthly'::character varying])::text[]))))
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4295,8 +3735,7 @@ CREATE TABLE IF NOT EXISTS "time_alerts" (
   "notified_managers" JSONB NULL DEFAULT NULL,
   "notified_hr" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4314,10 +3753,7 @@ CREATE TABLE IF NOT EXISTS "time_bank" (
   "status" VARCHAR(20) NULL DEFAULT 'active',
   "tenant_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  UNIQUE ("user_id", "reference_month", "tenant_id"),
-  CONSTRAINT "time_bank_status_check" CHECK ((((status)::text = ANY ((ARRAY['active'::character varying, 'expired'::character varying, 'used'::character varying])::text[]))))
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4333,10 +3769,7 @@ CREATE TABLE IF NOT EXISTS "time_bank_movements" (
   "description" TEXT NULL DEFAULT NULL,
   "reference_timesheet_id" UUID NULL DEFAULT NULL,
   "tenant_id" UUID NOT NULL,
-  "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "time_bank_movements_time_bank_id_fkey" FOREIGN KEY ("time_bank_id") REFERENCES "time_bank" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "time_bank_movements_movement_type_check" CHECK ((((movement_type)::text = ANY ((ARRAY['credit'::character varying, 'debit'::character varying, 'expiration'::character varying, 'adjustment'::character varying])::text[]))))
+  "created_at" TIMESTAMPTZ NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4354,11 +3787,8 @@ CREATE TABLE IF NOT EXISTS "time_records" (
   "notes" TEXT NULL DEFAULT NULL,
   "tenant_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
-  "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "time_records_record_type_check" CHECK ((((record_type)::text = ANY ((ARRAY['clock_in'::character varying, 'clock_out'::character varying, 'break_start'::character varying, 'break_end'::character varying])::text[]))))
+  "updated_at" TIMESTAMPTZ NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.transfers
@@ -4382,11 +3812,7 @@ CREATE TABLE IF NOT EXISTS "transfers" (
   "created_by" UUID NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  UNIQUE ("transfer_number"),
-  CONSTRAINT "transfers_status_check" CHECK ((((status)::text = ANY ((ARRAY['PENDING'::character varying, 'IN_TRANSIT'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying])::text[])))),
-  CONSTRAINT "transfers_transfer_type_check" CHECK ((((transfer_type)::text = ANY ((ARRAY['INTERNAL'::character varying, 'CUSTOMER'::character varying, 'TECHNICIAN'::character varying, 'SUPPLIER'::character varying])::text[]))))
+  "is_active" BOOLEAN NULL DEFAULT true
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4400,9 +3826,7 @@ CREATE TABLE IF NOT EXISTS "trechos" (
   "descricao" TEXT NULL DEFAULT NULL,
   "codigo_integracao" VARCHAR(100) NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4416,12 +3840,8 @@ CREATE TABLE IF NOT EXISTS "trechos_rota" (
   "local_origem_id" UUID NOT NULL,
   "nome_trecho" VARCHAR(200) NULL DEFAULT NULL,
   "local_destino_id" UUID NOT NULL,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "fk_trechos_rota_rota_trecho_id" FOREIGN KEY ("rota_trecho_id") REFERENCES "rotas_trecho" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.users
@@ -4446,7 +3866,7 @@ CREATE TABLE IF NOT EXISTS "users" (
   "time_zone" VARCHAR(50) NULL DEFAULT 'America/Sao_Paulo',
   "vehicle_type" VARCHAR(50) NULL DEFAULT NULL,
   "cpf_cnpj" VARCHAR(20) NULL DEFAULT NULL,
-  "supervisor_ids" UNKNOWN NULL DEFAULT NULL,
+  "supervisor_ids" TEXT NULL DEFAULT NULL,
   "cep" VARCHAR(10) NULL DEFAULT NULL,
   "country" VARCHAR(100) NULL DEFAULT 'Brasil',
   "state" VARCHAR(100) NULL DEFAULT NULL,
@@ -4470,8 +3890,7 @@ CREATE TABLE IF NOT EXISTS "users" (
   "goals" INTEGER NULL DEFAULT 0,
   "completed_goals" INTEGER NULL DEFAULT 0,
   "employment_type" VARCHAR(20) NULL DEFAULT 'clt',
-  "last_login_at" TIMESTAMP NULL DEFAULT NULL,
-  PRIMARY KEY ("id")
+  "last_login_at" TIMESTAMP NULL DEFAULT NULL
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4494,15 +3913,7 @@ CREATE TABLE IF NOT EXISTS "user_activity_tracking" (
   "user_agent" TEXT NULL DEFAULT NULL,
   "ip_address" INET NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id"),
-  KEY ("user_id"),
-  KEY ("activity_type"),
-  KEY ("created_at"),
-  KEY ("resource_type", "resource_id"),
-  CONSTRAINT "fk_user_activity_tenant" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT "fk_user_activity_user" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4519,9 +3930,7 @@ CREATE TABLE IF NOT EXISTS "user_groups" (
   "created_by_id" UUID NULL DEFAULT NULL,
   "updated_by_id" UUID NULL DEFAULT NULL,
   "tenant_id" UUID NULL DEFAULT NULL,
-  "permissions" TEXT,
-  PRIMARY KEY ("id"),
-  UNIQUE ("name")
+  "permissions" text
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4541,13 +3950,7 @@ CREATE TABLE IF NOT EXISTS "user_group_memberships" (
   "created_by" UUID NULL DEFAULT NULL,
   "updated_by" UUID NULL DEFAULT NULL,
   "created_by_id" UUID,
-  "updated_by_id" UUID,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "user_id"),
-  UNIQUE ("tenant_id", "user_id", "group_id"),
-  KEY ("tenant_id", "group_id"),
-  CONSTRAINT "user_group_memberships_added_by_id_fkey" FOREIGN KEY ("added_by_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "user_group_memberships_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "updated_by_id" uuid
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4566,9 +3969,7 @@ CREATE TABLE IF NOT EXISTS "user_notification_preferences" (
   "quiet_hours_end" TIME NULL DEFAULT NULL,
   "categories" JSONB NULL DEFAULT '[]',
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  UNIQUE ("tenant_id", "user_id"),
-  PRIMARY KEY ("id")
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4579,13 +3980,9 @@ CREATE TABLE IF NOT EXISTS "user_roles" (
   "user_id" UUID NOT NULL,
   "role_id" UUID NOT NULL,
   "assigned_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "created_at" TIMESTAMPS DEFAULT now(),
-  "tenant_id" UUID,
-  PRIMARY KEY ("id"),
-  UNIQUE ("user_id", "role_id"),
-  CONSTRAINT "fk_role" FOREIGN KEY ("role_id") REFERENCES "roles" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+  "created_at" TIMESTAMPTZ DEFAULT now(),
+  "tenant_id" uuid
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.user_sessions
@@ -4603,13 +4000,8 @@ CREATE TABLE IF NOT EXISTS "user_sessions" (
   "is_active" BOOLEAN NULL DEFAULT true,
   "last_activity" TIMESTAMP NULL DEFAULT now(),
   "expires_at" TIMESTAMP NOT NULL,
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  KEY ("tenant_id", "user_id"),
-  KEY ("is_active", "last_activity"),
-  KEY ("session_token"),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.user_skills
@@ -4625,17 +4017,8 @@ CREATE TABLE IF NOT EXISTS "user_skills" (
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "is_active" BOOLEAN NULL DEFAULT true,
-  PRIMARY KEY ("id"),
-  KEY ("tenant_id", "skill_id"),
-  KEY ("tenant_id", "skill_id", "level"),
-  UNIQUE ("tenant_id", "user_id", "skill_id"),
-  KEY ("tenant_id", "user_id"),
-  KEY ("tenant_id", "user_id"),
-  CONSTRAINT "fk_user_skills_skill_id" FOREIGN KEY ("skill_id") REFERENCES "skills" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT "user_skills_tenant_id_format" CHECK (((length((tenant_id)::text) = 36)))
+  "is_active" BOOLEAN NULL DEFAULT true
 );
-
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.user_view_preferences
@@ -4647,10 +4030,7 @@ CREATE TABLE IF NOT EXISTS "user_view_preferences" (
   "personal_settings" JSONB NULL DEFAULT '{}',
   "last_used_at" TIMESTAMP NULL DEFAULT now(),
   "created_at" TIMESTAMP NULL DEFAULT now(),
-  "updated_at" TIMESTAMP NULL DEFAULT now(),
-  UNIQUE ("tenant_id", "user_id"),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "user_view_preferences_active_view_id_fkey" FOREIGN KEY ("active_view_id") REFERENCES "ticket_list_views" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
+  "updated_at" TIMESTAMP NULL DEFAULT now()
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4694,12 +4074,7 @@ CREATE TABLE IF NOT EXISTS "work_orders" (
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
-  "updated_by" UUID NOT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "work_orders_approval_status_check" CHECK ((((approval_status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[])))),
-  CONSTRAINT "work_orders_origin_check" CHECK ((((origin)::text = ANY ((ARRAY['pm'::character varying, 'incident'::character varying, 'manual'::character varying, 'condition'::character varying])::text[])))),
-  CONSTRAINT "work_orders_priority_check" CHECK ((((priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'critical'::character varying, 'emergency'::character varying])::text[])))),
-  CONSTRAINT "work_orders_status_check" CHECK ((((status)::text = ANY ((ARRAY['drafted'::character varying, 'scheduled'::character varying, 'in_progress'::character varying, 'waiting_parts'::character varying, 'waiting_window'::character varying, 'waiting_client'::character varying, 'completed'::character varying, 'approved'::character varying, 'closed'::character varying, 'rejected'::character varying, 'canceled'::character varying])::text[]))))
+  "updated_by" UUID NOT null
 );
 
 -- Exportação de dados foi desmarcado.
@@ -4716,11 +4091,8 @@ CREATE TABLE IF NOT EXISTS "work_order_integrations" (
   "used_parts" JSONB NULL DEFAULT NULL,
   "sync_status" VARCHAR(50) NULL DEFAULT NULL,
   "sync_timestamp" TIMESTAMP NULL DEFAULT now(),
-  "created_at" TIMESTAMP NULL DEFAULT now(),
-  PRIMARY KEY ("id")
+  "created_at" TIMESTAMP NULL DEFAULT now()
 );
-
--- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.work_schedules
 CREATE TABLE IF NOT EXISTS "work_schedules" (
@@ -4729,7 +4101,7 @@ CREATE TABLE IF NOT EXISTS "work_schedules" (
   "schedule_type" VARCHAR(100) NOT NULL,
   "start_date" DATE NOT NULL,
   "end_date" DATE NULL DEFAULT NULL,
-  "work_days" UNKNOWN NOT NULL,
+  "work_days" TEXT NOT NULL,
   "start_time" TIME NOT NULL,
   "end_time" TIME NOT NULL,
   "break_duration_minutes" INTEGER NULL DEFAULT 60,
@@ -4738,10 +4110,7 @@ CREATE TABLE IF NOT EXISTS "work_schedules" (
   "created_at" TIMESTAMPTZ NULL DEFAULT now(),
   "updated_at" TIMESTAMPTZ NULL DEFAULT now(),
   "created_by" UUID NULL DEFAULT NULL,
-  "updated_by" UUID NULL DEFAULT NULL,
-  KEY ("tenant_id", "user_id"),
-  KEY ("tenant_id", "is_active"),
-  PRIMARY KEY ("id")
+  "updated_by" UUID NULL DEFAULT null
 );
 
 -- Exportação de dados foi desmarcado.

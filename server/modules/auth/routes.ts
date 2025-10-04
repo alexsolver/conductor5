@@ -463,7 +463,7 @@ authRouter.post(
       logError("Register error", error, { email: req.body?.email });
       const message =
         error instanceof Error ? error.message : "Registration failed";
-      res.status(400).json({ message });
+      res.status(400).json({ message, error });
     }
   },
 );
