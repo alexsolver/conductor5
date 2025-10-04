@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,13 +11,16 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Brain,
   Settings,
   Sparkles,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  Wand2
 } from 'lucide-react';
 
 // Simplified AI Agent Configuration Component
@@ -94,10 +97,45 @@ interface AiAgentActionConfigProps {
 
 export default function AiAgentActionConfig({ config, onChange }: AiAgentActionConfigProps) {
   const [localConfig, setLocalConfig] = useState<AiAgentConfig>(config);
+  const { toast } = useToast();
 
   // Fetch available AI agents
   const { data: agents = [], isLoading: loadingAgents } = useQuery<AIAgent[]>({
     queryKey: ['/api/ai-agents'],
+  });
+
+  // Auto-generate configuration mutation
+  const generateConfigMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      return await apiRequest<{ success: boolean; config: any }>({
+        url: '/api/ai-agents/generate-config',
+        method: 'POST',
+        body: { prompt }
+      });
+    },
+    onSuccess: (data) => {
+      if (data.success && data.config) {
+        setLocalConfig({
+          ...localConfig,
+          name: data.config.name,
+          personality: data.config.personality,
+          enabledActions: data.config.enabledActions,
+          behaviorRules: data.config.behaviorRules,
+          aiConfig: data.config.aiConfig
+        });
+        toast({
+          title: 'Configuração gerada com sucesso!',
+          description: 'Revise as configurações antes de salvar.'
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao gerar configuração',
+        description: error.message || 'Tente novamente',
+        variant: 'destructive'
+      });
+    }
   });
 
   // Fetch available actions
@@ -265,10 +303,37 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                     className="min-h-[100px]"
                     data-testid="input-config-prompt"
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    <Sparkles className="h-3 w-3 inline mr-1" />
-                    O sistema irá interpretar automaticamente e configurar as ações necessárias
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-sm text-muted-foreground">
+                      <Sparkles className="h-3 w-3 inline mr-1" />
+                      O sistema irá interpretar automaticamente e configurar as ações necessárias
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!localConfig.configPrompt || generateConfigMutation.isPending}
+                      onClick={() => {
+                        if (localConfig.configPrompt) {
+                          generateConfigMutation.mutate(localConfig.configPrompt);
+                        }
+                      }}
+                      data-testid="button-generate-config"
+                      className="gap-2"
+                    >
+                      {generateConfigMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="h-4 w-4" />
+                          Gerar Configuração Automática
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
