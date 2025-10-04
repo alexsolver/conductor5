@@ -2525,7 +2525,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { to, subject, body } = action.config || {};
       console.log(`📧 Reply Email - To: ${to || messageData.from}, Subject: ${subject || `Re: ${messageData.subject}`}`);
       return { success: true, message: 'Email reply sent', data: { to: to || messageData.from, sentAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to send email reply', error: error.message };
     }
   }
@@ -2535,7 +2535,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { to } = action.config || {};
       console.log(`📧 Forward Email - To: ${to}`);
       return { success: true, message: 'Email forwarded', data: { to, forwardedAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to forward email', error: error.message };
     }
   }
@@ -2545,7 +2545,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { to, message } = action.config || {};
       console.log(`💬 WhatsApp - To: ${to}`);
       return { success: true, message: 'WhatsApp sent', data: { to, sentAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to send WhatsApp', error: error.message };
     }
   }
@@ -2555,7 +2555,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { channel } = action.config || {};
       console.log(`💬 Slack - Channel: ${channel}`);
       return { success: true, message: 'Slack sent', data: { channel, sentAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to send Slack', error: error.message };
     }
   }
@@ -2565,7 +2565,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { chatId } = action.config || {};
       console.log(`💬 Telegram - Chat: ${chatId}`);
       return { success: true, message: 'Telegram sent', data: { chatId, sentAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to send Telegram', error: error.message };
     }
   }
@@ -2575,7 +2575,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { sourceTicketId, targetTicketId } = action.config || {};
       console.log(`🔗 Merging ticket ${sourceTicketId} into ${targetTicketId}`);
       return { success: true, message: 'Tickets merged', data: { sourceTicketId, targetTicketId } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to merge tickets', error: error.message };
     }
   }
@@ -2585,7 +2585,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { ticketId1, ticketId2, linkType } = action.config || {};
       console.log(`🔗 Linking ticket ${ticketId1} with ${ticketId2}`);
       return { success: true, message: 'Tickets linked', data: { ticketId1, ticketId2, linkType } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to link tickets', error: error.message };
     }
   }
@@ -2595,7 +2595,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { customerId, updates } = action.config || {};
       console.log(`👤 Updating customer ${customerId}`);
       return { success: true, message: 'Customer updated', data: { customerId } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to update customer', error: error.message };
     }
   }
@@ -2605,7 +2605,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { customerId } = action.config || {};
       console.log(`🔍 Searching history for customer ${customerId}`);
       return { success: true, message: 'History retrieved', data: { customerId, historyItems: [] } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to search history', error: error.message };
     }
   }
@@ -2615,7 +2615,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { query } = action.config || {};
       console.log(`📚 KB Search - Query: ${query}`);
       return { success: true, message: 'KB searched', data: { query, results: [] } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to search KB', error: error.message };
     }
   }
@@ -2624,7 +2624,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     try {
       console.log(`💡 Suggesting KB article`);
       return { success: true, message: 'KB suggested', data: { suggestions: [] } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to suggest KB', error: error.message };
     }
   }
@@ -2634,7 +2634,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { ticketId } = action.config || {};
       console.log(`📝 Creating KB from ticket ${ticketId}`);
       return { success: true, message: 'KB created', data: { ticketId, articleId: `kb-${Date.now()}` } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to create KB', error: error.message };
     }
   }
@@ -2644,7 +2644,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { datetime, subject } = action.config || {};
       console.log(`📅 Scheduling: ${subject} at ${datetime}`);
       return { success: true, message: 'Appointment scheduled', data: { datetime, appointmentId: `appt-${Date.now()}` } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to schedule', error: error.message };
     }
   }
@@ -2654,7 +2654,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { datetime } = action.config || {};
       console.log(`📞 Callback scheduled for ${datetime}`);
       return { success: true, message: 'Callback scheduled', data: { datetime, callbackId: `cb-${Date.now()}` } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to schedule callback', error: error.message };
     }
   }
@@ -2664,7 +2664,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { appointmentId, newDatetime } = action.config || {};
       console.log(`📅 Rescheduling ${appointmentId} to ${newDatetime}`);
       return { success: true, message: 'Rescheduled', data: { appointmentId, newDatetime } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to reschedule', error: error.message };
     }
   }
@@ -2674,7 +2674,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { interactionType } = action.config || {};
       console.log(`📊 Logging ${interactionType} interaction`);
       return { success: true, message: 'Interaction logged', data: { loggedAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to log interaction', error: error.message };
     }
   }
@@ -2684,7 +2684,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { dataType, format } = action.config || {};
       console.log(`📤 Exporting ${dataType} as ${format}`);
       return { success: true, message: 'Export initiated', data: { exportId: `exp-${Date.now()}`, format } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to export', error: error.message };
     }
   }
@@ -2694,7 +2694,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { url, method } = action.config || {};
       console.log(`🔗 Webhook ${method} ${url}`);
       return { success: true, message: 'Webhook called', data: { url, calledAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to call webhook', error: error.message };
     }
   }
@@ -2704,7 +2704,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { crmType, operation } = action.config || {};
       console.log(`🔄 CRM Sync - ${crmType} ${operation}`);
       return { success: true, message: 'CRM synced', data: { crmType, syncedAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to sync CRM', error: error.message };
     }
   }
@@ -2714,7 +2714,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { systemName, endpoint } = action.config || {};
       console.log(`🌐 Updating ${systemName} at ${endpoint}`);
       return { success: true, message: 'External system updated', data: { systemName, updatedAt: new Date().toISOString() } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, message: 'Failed to update external system', error: error.message };
     }
   }
