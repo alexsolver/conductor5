@@ -10,6 +10,7 @@ import { unifiedStorage } from '../storage-master';
 import { conversationManager } from '../services/conversation-manager';
 import { insertAiAgentSchema, insertAiConversationFeedbackSchema } from '@shared/schema-ai-agent';
 import { z } from 'zod';
+import OpenAI from 'openai';
 
 const router = Router();
 
@@ -104,8 +105,7 @@ router.post('/generate-config', async (req: AuthenticatedRequest, res: Response)
 
     console.log('🤖 [AI-CONFIG-GEN] Generating config from prompt:', prompt);
 
-    // Import OpenAI dynamically
-    const OpenAI = require('openai').default;
+    // Initialize OpenAI
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     // Get available actions
