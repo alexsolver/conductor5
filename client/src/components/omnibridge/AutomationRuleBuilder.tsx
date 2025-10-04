@@ -836,7 +836,7 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
                         Selecione e configure as ações que serão executadas quando as condições forem atendidas.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 max-h-[500px] overflow-y-auto">
                       <ActionGrid
                         selectedActions={getSelectedActions()}
                         onToggleAction={handleToggleAction}
