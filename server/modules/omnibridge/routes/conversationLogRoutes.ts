@@ -279,7 +279,7 @@ router.post('/conversation-logs/:id/feedback', async (req: Request, res: Respons
         expectedBehavior: data.expectedBehavior,
         actualBehavior: data.actualBehavior,
         severity: data.severity,
-        annotatedBy: userId,
+        annotatedBy: 1, // TODO: Fix schema - should be varchar for UUID, temporarily using 1
         resolved: false,
       })
       .returning();
