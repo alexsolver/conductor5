@@ -2119,7 +2119,7 @@ function ConversationLogsContent() {
             return (
               <Card 
                 key={conv.id} 
-                className={`hover:shadow-lg transition-all cursor-pointer border-l-4 ${channelConfig.borderColor}`}
+                className={`hover:shadow-lg transition-all cursor-pointer border-l-8 ${channelConfig.borderColor} ${channelConfig.bgColor} bg-opacity-5`}
                 data-testid={`card-conversation-${conv.id}`}
                 onClick={() => setSelectedConversationId(conv.id)}
               >
