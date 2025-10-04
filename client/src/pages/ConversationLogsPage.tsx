@@ -100,7 +100,7 @@ export default function ConversationLogsPage() {
         timestamp: new Date().toISOString()
       });
 
-      const response = await apiRequest('GET', `/api/omnibridge/conversation-logs?${params.toString()}`, {
+      const response = await apiRequest('GET', `/api/omnibridge/conversation-logs?${params.toString()}`, undefined, {
         credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache',
