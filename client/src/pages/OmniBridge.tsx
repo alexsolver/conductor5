@@ -2181,6 +2181,21 @@ function ConversationLogsContent() {
                           </p>
                         </div>
                       </div>
+                      {conv.senderInfo && (
+                        <div className="mt-3 pt-3 border-t border-muted">
+                          <p className="text-xs text-muted-foreground mb-1">{t('omnibridge.conversationLogs.sender', 'Remetente')}</p>
+                          <p className="font-medium flex items-center gap-2 text-sm">
+                            {conv.channelType?.toLowerCase() === 'email' ? (
+                              <Mail className="h-3 w-3" />
+                            ) : conv.channelType?.toLowerCase() === 'telegram' || conv.channelType?.toLowerCase() === 'whatsapp' ? (
+                              <Phone className="h-3 w-3" />
+                            ) : (
+                              <User className="h-3 w-3" />
+                            )}
+                            <span className="text-muted-foreground">{conv.senderInfo}</span>
+                          </p>
+                        </div>
+                      )}
                       {conv.escalationReason && (
                         <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                           <p className="text-sm text-red-800 dark:text-red-200">

@@ -103,11 +103,21 @@ router.get('/conversation-logs', async (req: Request, res: Response) => {
     console.log(`📊 [CONVERSATION-LOGS] Results: ${results.length} conversations (total: ${total})`);
     console.log(`🔍 [CONVERSATION-LOGS] Filters:`, { agentId, limit, offset, startDate, endDate });
     
-    // ✅ Ensure agentName is populated from agentId
-    const enrichedResults = results.map(conv => ({
-      ...conv,
-      agentName: `Agent ${conv.agentId}`, // Generate name from agentId
-    }));
+    // ✅ Ensure agentName is populated from agentId and extract sender info from channelIdentifier
+    const enrichedResults = results.map(conv => {
+      // Extract sender information from channelIdentifier (format: "channel:identifier")
+      let senderInfo = '';
+      if (conv.channelIdentifier) {
+        const parts = conv.channelIdentifier.split(':');
+        senderInfo = parts.length > 1 ? parts[1] : conv.channelIdentifier;
+      }
+      
+      return {
+        ...conv,
+        agentName: `Agent ${conv.agentId}`, // Generate name from agentId
+        senderInfo, // Add sender information (email, phone, etc)
+      };
+    });
     
     if (enrichedResults.length > 0) {
       console.log(`📋 [CONVERSATION-LOGS] Latest 3 conversations:`, 
