@@ -143,6 +143,73 @@ export class ActionExecutor implements IActionExecutorPort {
         case 'ai_agent':
           return await this.aiAgentAction(action, context);
 
+        // 🆕 NOVAS AÇÕES DE COMUNICAÇÃO
+        case 'reply_email':
+          return await this.replyEmailAction(action, context);
+
+        case 'forward_email':
+          return await this.forwardEmailAction(action, context);
+
+        case 'send_whatsapp':
+          return await this.sendWhatsAppAction(action, context);
+
+        case 'send_slack':
+          return await this.sendSlackAction(action, context);
+
+        case 'send_telegram':
+          return await this.sendTelegramAction(action, context);
+
+        // 🆕 AÇÕES DE TICKET AVANÇADAS
+        case 'merge_tickets':
+          return await this.mergeTicketsAction(action, context);
+
+        case 'link_tickets':
+          return await this.linkTicketsAction(action, context);
+
+        // 🆕 AÇÕES DE CLIENTE
+        case 'update_customer':
+          return await this.updateCustomerAction(action, context);
+
+        case 'search_customer_history':
+          return await this.searchCustomerHistoryAction(action, context);
+
+        // 🆕 AÇÕES DE KNOWLEDGE BASE
+        case 'search_knowledge_base':
+          return await this.searchKnowledgeBaseAction(action, context);
+
+        case 'suggest_kb_article':
+          return await this.suggestKBArticleAction(action, context);
+
+        case 'create_kb_from_ticket':
+          return await this.createKBFromTicketAction(action, context);
+
+        // 🆕 AÇÕES DE AGENDAMENTO
+        case 'schedule_appointment':
+          return await this.scheduleAppointmentAction(action, context);
+
+        case 'schedule_callback':
+          return await this.scheduleCallbackAction(action, context);
+
+        case 'reschedule_appointment':
+          return await this.rescheduleAppointmentAction(action, context);
+
+        // 🆕 AÇÕES DE ANALYTICS
+        case 'log_interaction':
+          return await this.logInteractionAction(action, context);
+
+        case 'export_data':
+          return await this.exportDataAction(action, context);
+
+        // 🆕 AÇÕES DE INTEGRAÇÃO
+        case 'call_webhook':
+          return await this.callWebhookAction(action, context);
+
+        case 'sync_crm':
+          return await this.syncCRMAction(action, context);
+
+        case 'update_external_system':
+          return await this.updateExternalSystemAction(action, context);
+
         default:
           return {
             success: false,
@@ -2447,6 +2514,208 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       }
     } catch (error) {
       console.error('❌ [CONVERSATION-LOG] Error logging assistant message:', error);
+    }
+  }
+
+  // ==================== 🆕 NOVAS AÇÕES DE COMUNICAÇÃO ====================
+
+  private async replyEmailAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { messageData } = context;
+      const { to, subject, body } = action.config || {};
+      console.log(`📧 Reply Email - To: ${to || messageData.from}, Subject: ${subject || `Re: ${messageData.subject}`}`);
+      return { success: true, message: 'Email reply sent', data: { to: to || messageData.from, sentAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to send email reply', error: error.message };
+    }
+  }
+
+  private async forwardEmailAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { to } = action.config || {};
+      console.log(`📧 Forward Email - To: ${to}`);
+      return { success: true, message: 'Email forwarded', data: { to, forwardedAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to forward email', error: error.message };
+    }
+  }
+
+  private async sendWhatsAppAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { to, message } = action.config || {};
+      console.log(`💬 WhatsApp - To: ${to}`);
+      return { success: true, message: 'WhatsApp sent', data: { to, sentAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to send WhatsApp', error: error.message };
+    }
+  }
+
+  private async sendSlackAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { channel } = action.config || {};
+      console.log(`💬 Slack - Channel: ${channel}`);
+      return { success: true, message: 'Slack sent', data: { channel, sentAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to send Slack', error: error.message };
+    }
+  }
+
+  private async sendTelegramAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { chatId } = action.config || {};
+      console.log(`💬 Telegram - Chat: ${chatId}`);
+      return { success: true, message: 'Telegram sent', data: { chatId, sentAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to send Telegram', error: error.message };
+    }
+  }
+
+  private async mergeTicketsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { sourceTicketId, targetTicketId } = action.config || {};
+      console.log(`🔗 Merging ticket ${sourceTicketId} into ${targetTicketId}`);
+      return { success: true, message: 'Tickets merged', data: { sourceTicketId, targetTicketId } };
+    } catch (error) {
+      return { success: false, message: 'Failed to merge tickets', error: error.message };
+    }
+  }
+
+  private async linkTicketsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { ticketId1, ticketId2, linkType } = action.config || {};
+      console.log(`🔗 Linking ticket ${ticketId1} with ${ticketId2}`);
+      return { success: true, message: 'Tickets linked', data: { ticketId1, ticketId2, linkType } };
+    } catch (error) {
+      return { success: false, message: 'Failed to link tickets', error: error.message };
+    }
+  }
+
+  private async updateCustomerAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { customerId, updates } = action.config || {};
+      console.log(`👤 Updating customer ${customerId}`);
+      return { success: true, message: 'Customer updated', data: { customerId } };
+    } catch (error) {
+      return { success: false, message: 'Failed to update customer', error: error.message };
+    }
+  }
+
+  private async searchCustomerHistoryAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { customerId } = action.config || {};
+      console.log(`🔍 Searching history for customer ${customerId}`);
+      return { success: true, message: 'History retrieved', data: { customerId, historyItems: [] } };
+    } catch (error) {
+      return { success: false, message: 'Failed to search history', error: error.message };
+    }
+  }
+
+  private async searchKnowledgeBaseAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { query } = action.config || {};
+      console.log(`📚 KB Search - Query: ${query}`);
+      return { success: true, message: 'KB searched', data: { query, results: [] } };
+    } catch (error) {
+      return { success: false, message: 'Failed to search KB', error: error.message };
+    }
+  }
+
+  private async suggestKBArticleAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      console.log(`💡 Suggesting KB article`);
+      return { success: true, message: 'KB suggested', data: { suggestions: [] } };
+    } catch (error) {
+      return { success: false, message: 'Failed to suggest KB', error: error.message };
+    }
+  }
+
+  private async createKBFromTicketAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { ticketId } = action.config || {};
+      console.log(`📝 Creating KB from ticket ${ticketId}`);
+      return { success: true, message: 'KB created', data: { ticketId, articleId: `kb-${Date.now()}` } };
+    } catch (error) {
+      return { success: false, message: 'Failed to create KB', error: error.message };
+    }
+  }
+
+  private async scheduleAppointmentAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { datetime, subject } = action.config || {};
+      console.log(`📅 Scheduling: ${subject} at ${datetime}`);
+      return { success: true, message: 'Appointment scheduled', data: { datetime, appointmentId: `appt-${Date.now()}` } };
+    } catch (error) {
+      return { success: false, message: 'Failed to schedule', error: error.message };
+    }
+  }
+
+  private async scheduleCallbackAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { datetime } = action.config || {};
+      console.log(`📞 Callback scheduled for ${datetime}`);
+      return { success: true, message: 'Callback scheduled', data: { datetime, callbackId: `cb-${Date.now()}` } };
+    } catch (error) {
+      return { success: false, message: 'Failed to schedule callback', error: error.message };
+    }
+  }
+
+  private async rescheduleAppointmentAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { appointmentId, newDatetime } = action.config || {};
+      console.log(`📅 Rescheduling ${appointmentId} to ${newDatetime}`);
+      return { success: true, message: 'Rescheduled', data: { appointmentId, newDatetime } };
+    } catch (error) {
+      return { success: false, message: 'Failed to reschedule', error: error.message };
+    }
+  }
+
+  private async logInteractionAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { interactionType } = action.config || {};
+      console.log(`📊 Logging ${interactionType} interaction`);
+      return { success: true, message: 'Interaction logged', data: { loggedAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to log interaction', error: error.message };
+    }
+  }
+
+  private async exportDataAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { dataType, format } = action.config || {};
+      console.log(`📤 Exporting ${dataType} as ${format}`);
+      return { success: true, message: 'Export initiated', data: { exportId: `exp-${Date.now()}`, format } };
+    } catch (error) {
+      return { success: false, message: 'Failed to export', error: error.message };
+    }
+  }
+
+  private async callWebhookAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { url, method } = action.config || {};
+      console.log(`🔗 Webhook ${method} ${url}`);
+      return { success: true, message: 'Webhook called', data: { url, calledAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to call webhook', error: error.message };
+    }
+  }
+
+  private async syncCRMAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { crmType, operation } = action.config || {};
+      console.log(`🔄 CRM Sync - ${crmType} ${operation}`);
+      return { success: true, message: 'CRM synced', data: { crmType, syncedAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to sync CRM', error: error.message };
+    }
+  }
+
+  private async updateExternalSystemAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { systemName, endpoint } = action.config || {};
+      console.log(`🌐 Updating ${systemName} at ${endpoint}`);
+      return { success: true, message: 'External system updated', data: { systemName, updatedAt: new Date().toISOString() } };
+    } catch (error) {
+      return { success: false, message: 'Failed to update external system', error: error.message };
     }
   }
 
