@@ -4,6 +4,7 @@
 // Executes actions decided by the AI agent with validation and error handling
 
 import { unifiedStorage } from '../storage-master';
+import { knowledgeBase } from './knowledge-base';
 import type { AiAction, AiAgent } from '@shared/schema';
 
 // ========================================
@@ -387,20 +388,60 @@ export class ActionExecutor {
   // ========================================
 
   private async searchKnowledgeBase(tenantId: string, params: any) {
-    // TODO: Implement knowledge base search
-    // This would integrate with the knowledge base module
-    return {
-      message: 'Knowledge base search not yet implemented',
-      query: params.query
-    };
+    try {
+      const searchResults = await knowledgeBase.search(
+        tenantId,
+        params.query,
+        params.limit || 5,
+        params.category
+      );
+
+      console.log('[ACTION-EXECUTOR] Knowledge base search completed:', {
+        query: params.query,
+        results: searchResults.resultCount
+      });
+
+      return {
+        success: true,
+        results: searchResults.articles,
+        query: searchResults.query,
+        count: searchResults.resultCount
+      };
+    } catch (error) {
+      console.error('[ACTION-EXECUTOR] Knowledge base search error:', error);
+      return {
+        success: false,
+        message: 'Failed to search knowledge base',
+        query: params.query,
+        results: []
+      };
+    }
   }
 
   private async getArticle(tenantId: string, params: any) {
-    // TODO: Implement article retrieval
-    return {
-      message: 'Article retrieval not yet implemented',
-      articleId: params.articleId
-    };
+    try {
+      const article = await knowledgeBase.getArticle(params.articleId);
+      
+      if (!article) {
+        return {
+          success: false,
+          message: 'Article not found',
+          articleId: params.articleId
+        };
+      }
+
+      return {
+        success: true,
+        article
+      };
+    } catch (error) {
+      console.error('[ACTION-EXECUTOR] Get article error:', error);
+      return {
+        success: false,
+        message: 'Failed to retrieve article',
+        articleId: params.articleId
+      };
+    }
   }
 
   // ========================================
@@ -430,13 +471,43 @@ export class ActionExecutor {
   // ========================================
 
   private async sendEmail(tenantId: string, params: any) {
-    // TODO: Integrate with email service (SendGrid)
-    return {
-      message: 'Email sent',
-      to: params.to,
-      subject: params.subject,
-      body: params.body
-    };
+    try {
+      // Check if SendGrid is configured
+      if (!process.env.SENDGRID_API_KEY) {
+        console.warn('[ACTION-EXECUTOR] SendGrid not configured, simulating email send');
+        return {
+          message: 'Email sent (simulated - SendGrid not configured)',
+          to: params.to,
+          subject: params.subject,
+          body: params.body
+        };
+      }
+
+      // Import SendGrid dynamically
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const msg = {
+        to: params.to,
+        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@example.com',
+        subject: params.subject,
+        text: params.body,
+        html: params.html || `<p>${params.body}</p>`
+      };
+
+      await sgMail.send(msg);
+      
+      console.log('[ACTION-EXECUTOR] Email sent successfully via SendGrid');
+      return {
+        success: true,
+        message: 'Email sent successfully',
+        to: params.to,
+        subject: params.subject
+      };
+    } catch (error) {
+      console.error('[ACTION-EXECUTOR] Email send error:', error);
+      throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // ========================================
