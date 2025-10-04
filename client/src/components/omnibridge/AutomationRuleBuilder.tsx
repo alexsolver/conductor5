@@ -733,7 +733,7 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Workflow className="w-5 h-5" />
@@ -836,7 +836,7 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
                         Selecione e configure as ações que serão executadas quando as condições forem atendidas.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4 max-h-[500px] overflow-y-auto">
+                    <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
                       <ActionGrid
                         selectedActions={getSelectedActions()}
                         onToggleAction={handleToggleAction}
