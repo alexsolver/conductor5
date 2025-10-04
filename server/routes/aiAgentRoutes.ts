@@ -91,6 +91,92 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 /**
+ * POST /api/ai-agents/generate-config
+ * Generate agent configuration from natural language prompt
+ */
+router.post('/generate-config', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    console.log('🤖 [AI-CONFIG-GEN] Generating config from prompt:', prompt);
+
+    // Import OpenAI dynamically
+    const OpenAI = require('openai').default;
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Get available actions
+    const actions = await unifiedStorage.getAiActions();
+    const actionList = actions.map(a => ({
+      actionType: a.actionType,
+      name: a.name,
+      description: a.description,
+      category: a.category
+    }));
+
+    const systemPrompt = `You are an AI agent configuration assistant. 
+Given a natural language description of what an AI agent should do, generate a complete configuration.
+
+Available actions that can be enabled:
+${JSON.stringify(actionList, null, 2)}
+
+Generate a configuration in this exact JSON format:
+{
+  "name": "Agent name (max 100 chars)",
+  "configPrompt": "Clear description of agent's purpose",
+  "personality": {
+    "tone": "professional|friendly|formal|casual",
+    "language": "pt-BR|en|es",
+    "greeting": "Initial greeting message",
+    "fallbackMessage": "Message when agent doesn't understand",
+    "confirmationStyle": "explicit|implicit|none"
+  },
+  "enabledActions": ["action_type1", "action_type2"],
+  "behaviorRules": {
+    "requireConfirmation": ["action_type1"],
+    "autoEscalateKeywords": ["urgent", "emergency"],
+    "maxConversationTurns": 10,
+    "collectionStrategy": "sequential|batch|adaptive",
+    "errorHandling": "retry|escalate|fallback"
+  },
+  "aiConfig": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "maxTokens": 1000,
+    "systemPrompt": "Detailed system prompt for the agent"
+  }
+}
+
+Select appropriate actions based on the user's request. Be intelligent about defaults.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0.7,
+      max_tokens: 2000,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `User request: "${prompt}"` }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    const generatedConfig = JSON.parse(response.choices[0].message.content || '{}');
+    console.log('✅ [AI-CONFIG-GEN] Generated config:', generatedConfig);
+
+    res.json({
+      success: true,
+      config: generatedConfig
+    });
+  } catch (error) {
+    console.error('Error generating config:', error);
+    res.status(500).json({ error: 'Failed to generate configuration' });
+  }
+});
+
+/**
  * POST /api/ai-agents
  * Create new AI agent
  */
