@@ -50,8 +50,8 @@ router.get(
         `✅ [TEAM-MEMBERS] Found ${members.length} team members for tenant ${tenantId}`
       );
 
-      // Buscar memberships + grupos using sql with proper parameterization
-      const membershipsQuery = sql`
+      // Buscar memberships + grupos using raw SQL with proper UUID handling
+      const membershipsResult = await db.execute(sql.raw(`
         SELECT 
           ugm.user_id,
           ug.id AS group_id,
@@ -60,14 +60,12 @@ router.get(
           ugm.role,
           ugm.is_active,
           ugm.created_at
-        FROM ${sql.raw(`"${schemaName}".user_group_memberships`)} ugm
-        INNER JOIN ${sql.raw(`"${schemaName}".user_groups`)} ug
+        FROM "${schemaName}".user_group_memberships ugm
+        INNER JOIN "${schemaName}".user_groups ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id::text = ${tenantId}
+        WHERE ugm.tenant_id::text = '${tenantId}'
           AND ug.is_active = true
-      `;
-
-      const membershipsResult = await db.execute(membershipsQuery);
+      `));
 
       // Organizar grupos por usuário
       const groupsByUser: Record<string, any[]> = {};
