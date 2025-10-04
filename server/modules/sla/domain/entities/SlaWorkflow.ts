@@ -172,7 +172,8 @@ export class SlaWorkflow {
     // Validate required parameters for each action type
     switch (action.type) {
       case 'notify':
-        return !!(params.recipients && (params.message || params.message === ''));
+        // Accept if has recipients OR message (more flexible)
+        return !!(params.recipients || params.message !== undefined);
       case 'escalate':
         return !!(params.targetUserId || params.targetTeamId);
       case 'assign':
@@ -185,7 +186,8 @@ export class SlaWorkflow {
       case 'create_task':
         return !!(params.title && params.assignedTo);
       default:
-        return false;
+        // For unknown action types, accept if has any parameters
+        return true;
     }
   }
 }

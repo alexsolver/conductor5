@@ -37,12 +37,18 @@ export class CreateSlaWorkflowUseCase {
     }
 
     // Normalize actions structure and add missing properties
-    const normalizedActions = data.actions.map((action, index) => ({
-      ...action,
-      id: action.id || `action_${Date.now()}_${index}`,
-      parameters: action.parameters || action.config || {},
-      order: action.order || index + 1
-    }));
+    const normalizedActions = data.actions.map((action: any, index: number) => {
+      // Accept both 'config' and 'parameters' from frontend
+      const params = action.parameters || action.config || {};
+      
+      return {
+        id: action.id || `action_${Date.now()}_${index}`,
+        type: action.type,
+        parameters: params,
+        order: action.order || index + 1,
+        delay: action.delay
+      };
+    });
 
     // Normalize triggers structure
     const normalizedTriggers = data.triggers.map((trigger, index) => ({
