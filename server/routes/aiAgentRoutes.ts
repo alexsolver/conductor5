@@ -92,6 +92,18 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 /**
+ * OPTIONS /api/ai-agents/generate-config
+ * Handle CORS preflight for generate-config endpoint
+ */
+router.options('/generate-config', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-ID');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
+/**
  * POST /api/ai-agents/generate-config
  * Generate agent configuration from natural language prompt
  */

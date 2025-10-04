@@ -35,6 +35,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
   try {
     // ✅ Skip auth for CORS preflight OPTIONS requests
     if (req.method === 'OPTIONS') {
+      console.log('✅ [JWT-AUTH-OPTIONS] Skipping auth for OPTIONS request - calling next()');
       return next();
     }
     

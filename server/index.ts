@@ -206,6 +206,19 @@ import automationRulesRoutes from './routes/automationRules';
 
 const app = express();
 
+// 🔍 DEBUG: Log ALL requests BEFORE any middleware
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    console.log('🚨 [SERVER-OPTIONS] OPTIONS request received:', {
+      method: req.method,
+      path: req.path,
+      url: req.url,
+      headers: Object.keys(req.headers)
+    });
+  }
+  next();
+});
+
 // CRITICAL VITE STABILITY: Apply enhanced WebSocket stability middleware first
 app.use(enhancedWebsocketStability);
 app.use(viteStabilityMiddleware);
