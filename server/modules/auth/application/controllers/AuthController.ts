@@ -27,44 +27,31 @@ export class AuthController {
 
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
 
-      // DEBUG: Log cookie setting
-      console.log('🍪 [LOGIN] Setting cookies for login...');
-      console.log('🍪 [LOGIN] Access token length:', result.tokens.accessToken.length);
-      console.log('🍪 [LOGIN] Refresh token length:', result.tokens.refreshToken.length);
-      
       // Set access token as httpOnly cookie
-      // TEMP DEBUG: httpOnly disabled to test cookie storage issue
       res.cookie('accessToken', result.tokens.accessToken, {
-        httpOnly: false, // TEMP: was true
-        secure: false,
-        sameSite: 'lax',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         path: '/',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
-      console.log('🍪 [LOGIN] Access token cookie set');
 
       // Set refresh token as httpOnly cookie
       res.cookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: false, // TEMP: was true  
-        secure: false,
-        sameSite: 'lax',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
-      console.log('🍪 [LOGIN] Refresh token cookie set');
 
       // Return user data without tokens (they're now in cookies)
       const responseData = {
         ...result,
-        tokens: undefined // Remove tokens from response
+        tokens: undefined
       };
       delete responseData.tokens;
 
-      // Add CORS headers to ensure cookies work
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-      
-      console.log('🍪 [LOGIN] Response headers set, sending response');
       res.json({
         success: true,
         message: 'Login successful',
@@ -102,6 +89,7 @@ export class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        path: '/',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
 
@@ -110,6 +98,7 @@ export class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 

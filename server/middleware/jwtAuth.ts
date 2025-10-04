@@ -21,21 +21,9 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  // 🔍 DEBUG: Log every request to jwtAuth middleware
-  console.log('🔐 [JWT-AUTH-ENTRY] Middleware called:', {
-    method: req.method,
-    path: req.path,
-    url: req.url,
-    hasCookies: !!req.cookies,
-    cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
-    accessTokenValue: req.cookies?.accessToken?.substring(0, 30) || 'none',
-    refreshTokenValue: req.cookies?.refreshToken?.substring(0, 30) || 'none'
-  });
-  
   try {
     // ✅ Skip auth for CORS preflight OPTIONS requests
     if (req.method === 'OPTIONS') {
-      console.log('✅ [JWT-AUTH-OPTIONS] Skipping auth for OPTIONS request - calling next()');
       return next();
     }
     
@@ -58,21 +46,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
 
     const token = tokenFromCookie || tokenFromHeader;
 
-    // ✅ Only log for API routes to reduce noise
-    if (req.path.includes('/api/')) {
-      console.log('🔍 [JWT-AUTH] Processing request:', {
-        method: req.method,
-        path: req.path,
-        hasTokenCookie: !!tokenFromCookie,
-        hasAuthHeader: !!authHeader,
-        tokenSource: tokenFromCookie ? 'cookie' : (tokenFromHeader ? 'header' : 'none'),
-        tokenStart: token?.substring(0, 20) || 'none',
-        tokenLength: token?.length || 0
-      });
-    }
-
     if (!token) {
-      // ✅ Only log token missing errors for API routes
       if (req.path.includes('/api/')) {
         console.log('❌ [JWT-AUTH] No access token found in cookies or headers');
       }
