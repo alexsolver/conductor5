@@ -84,7 +84,7 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 CREATE TABLE IF NOT EXISTS "absence_requests" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "user_id" VARCHAR(36) NOT NULL,
+  "user_id" UUID NOT NULL,
   "absence_type" VARCHAR(30) NOT NULL,
   "start_date" TIMESTAMP NOT NULL,
   "end_date" TIMESTAMP NOT NULL,
@@ -94,10 +94,10 @@ CREATE TABLE IF NOT EXISTS "absence_requests" (
   "medical_certificate" VARCHAR(500) NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'pending',
   "submitted_at" TIMESTAMP NULL DEFAULT now(),
-  "reviewed_by" VARCHAR(36) NULL DEFAULT NULL,
+  "reviewed_by" UUID NULL DEFAULT NULL,
   "reviewed_at" TIMESTAMP NULL DEFAULT NULL,
   "review_notes" TEXT NULL DEFAULT NULL,
-  "cover_user_id" VARCHAR(36) NULL DEFAULT NULL,
+  "cover_user_id" UUID NULL DEFAULT NULL,
   "cover_approved" BOOLEAN NULL DEFAULT false,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now()
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "absence_requests" (
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.activity_logs
 CREATE TABLE IF NOT EXISTS "activity_logs" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "entity_type" VARCHAR(50) NOT NULL,
   "entity_id" UUID NOT NULL,
   "action" VARCHAR(100) NOT NULL,
@@ -419,7 +419,7 @@ CREATE TABLE IF NOT EXISTS "beneficiary_customer_relationships" (
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.certifications
 CREATE TABLE IF NOT EXISTS "certifications" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "issuer" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -433,10 +433,10 @@ CREATE TABLE IF NOT EXISTS "certifications" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.chatbot_edges
 CREATE TABLE IF NOT EXISTS "chatbot_edges" (
-  "id" VARCHAR(36) NOT NULL DEFAULT gen_random_uuid(),
-  "flow_id" VARCHAR(36) NOT NULL,
-  "from_node_id" VARCHAR(36) NOT NULL,
-  "to_node_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "flow_id" UUID NOT NULL,
+  "from_node_id" UUID NOT NULL,
+  "to_node_id" UUID NOT NULL,
   "label" VARCHAR(255) NULL DEFAULT NULL,
   "condition" TEXT NULL DEFAULT NULL,
   "kind" TEXT NOT NULL DEFAULT 'default',
@@ -465,8 +465,8 @@ CREATE TABLE IF NOT EXISTS "chatbot_flows" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.chatbot_nodes
 CREATE TABLE IF NOT EXISTS "chatbot_nodes" (
-  "id" VARCHAR(36) NOT NULL DEFAULT gen_random_uuid(),
-  "flow_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "flow_id" UUID NOT NULL,
   "category" TEXT NOT NULL,
   "type" VARCHAR(100) NOT NULL,
   "title" VARCHAR(255) NOT NULL,
@@ -484,8 +484,8 @@ CREATE TABLE IF NOT EXISTS "chatbot_nodes" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.chatbot_variables
 CREATE TABLE IF NOT EXISTS "chatbot_variables" (
-  "id" VARCHAR(36) NOT NULL DEFAULT gen_random_uuid(),
-  "flow_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "flow_id" UUID NOT NULL,
   "key" VARCHAR(100) NOT NULL,
   "label" VARCHAR(255) NOT NULL,
   "value_type" VARCHAR(50) NOT NULL DEFAULT 'string',
@@ -1200,7 +1200,7 @@ CREATE TABLE IF NOT EXISTS "email_response_templates" (
   "variable_mapping" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  "signature_id" VARCHAR(36) NULL DEFAULT NULL,
+  "signature_id" UUID NULL DEFAULT NULL,
   "include_signature" BOOLEAN NULL DEFAULT false
 );
 
@@ -1208,7 +1208,7 @@ CREATE TABLE IF NOT EXISTS "email_response_templates" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.email_signatures
 CREATE TABLE IF NOT EXISTS "email_signatures" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::text,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "support_group" VARCHAR(100) NOT NULL,
@@ -1360,7 +1360,7 @@ CREATE TABLE IF NOT EXISTS "field_alias_mapping" (
 CREATE TABLE IF NOT EXISTS "flexible_work_arrangements" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "user_id" VARCHAR(36) NOT NULL,
+  "user_id" UUID NOT NULL,
   "arrangement_type" VARCHAR(30) NOT NULL,
   "core_hours_start" VARCHAR(8) NULL DEFAULT NULL,
   "core_hours_end" VARCHAR(8) NULL DEFAULT NULL,
@@ -1373,7 +1373,7 @@ CREATE TABLE IF NOT EXISTS "flexible_work_arrangements" (
   "start_date" TIMESTAMP NOT NULL,
   "end_date" TIMESTAMP NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'active',
-  "approved_by" VARCHAR(36) NULL DEFAULT NULL,
+  "approved_by" UUID NULL DEFAULT NULL,
   "approved_at" TIMESTAMP NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now()
@@ -1558,7 +1558,7 @@ CREATE TABLE IF NOT EXISTS "holidays" (
 CREATE TABLE IF NOT EXISTS "hour_bank" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "user_id" VARCHAR(36) NOT NULL,
+  "user_id" UUID NOT NULL,
   "reference_date" TIMESTAMP NOT NULL,
   "balance_hours" VARCHAR(10) NOT NULL,
   "accumulated_hours" VARCHAR(10) NULL DEFAULT '0',
@@ -1568,7 +1568,7 @@ CREATE TABLE IF NOT EXISTS "hour_bank" (
   "expiration_date" TIMESTAMP NULL DEFAULT NULL,
   "movement_type" VARCHAR(20) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "related_timesheet_id" VARCHAR(36) NULL DEFAULT NULL,
+  "related_timesheet_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now()
 );
@@ -1587,7 +1587,7 @@ CREATE TABLE IF NOT EXISTS "integrations" (
   "features" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "is_currently_monitoring" BOOLEAN NULL DEFAULT false,
   "configured" BOOLEAN NULL DEFAULT false
 );
@@ -1721,7 +1721,7 @@ CREATE TABLE IF NOT EXISTS "item_supplier_links" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_approvals
 CREATE TABLE IF NOT EXISTS "knowledge_base_approvals" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "approver_id" VARCHAR NOT NULL,
@@ -1737,12 +1737,12 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_approvals" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_approval_workflows
 CREATE TABLE IF NOT EXISTS "knowledge_base_approval_workflows" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::text,
-  "tenant_id" VARCHAR(36) NOT NULL,
-  "article_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
   "status" VARCHAR(50) NULL DEFAULT 'pending',
-  "requested_by" VARCHAR(36) NOT NULL,
-  "approved_by" VARCHAR(36) NULL DEFAULT NULL,
+  "requested_by" UUID NOT NULL,
+  "approved_by" UUID NULL DEFAULT NULL,
   "comments" TEXT NULL DEFAULT NULL,
   "requested_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "responded_at" TIMESTAMPTZ NULL DEFAULT NULL,
@@ -1754,14 +1754,14 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_approval_workflows" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_articles
 CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::text,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "title" VARCHAR(255) NOT NULL,
   "content" TEXT NOT NULL,
   "category" VARCHAR(100) NOT NULL,
   "tags" TEXT NULL DEFAULT ARRAY[]::text[],
   "access_level" TEXT NULL DEFAULT 'public',
-  "author_id" VARCHAR(36) NOT NULL,
+  "author_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "published" BOOLEAN NULL DEFAULT false,
@@ -1796,7 +1796,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_article_relations
 CREATE TABLE IF NOT EXISTS "knowledge_base_article_relations" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "entity_type" VARCHAR(50) NOT NULL,
@@ -1810,7 +1810,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_relations" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_article_versions
 CREATE TABLE IF NOT EXISTS "knowledge_base_article_versions" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "version_number" INTEGER NOT NULL,
@@ -1827,15 +1827,15 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_versions" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_attachments
 CREATE TABLE IF NOT EXISTS "knowledge_base_attachments" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::text,
-  "tenant_id" VARCHAR(36) NOT NULL,
-  "article_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
   "filename" VARCHAR(255) NOT NULL,
   "original_filename" VARCHAR(255) NOT NULL,
   "mime_type" VARCHAR(100) NULL DEFAULT NULL,
   "file_size" INTEGER NULL DEFAULT NULL,
   "file_path" VARCHAR(500) NOT NULL,
-  "uploaded_by" VARCHAR(36) NOT NULL,
+  "uploaded_by" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "file_name" TEXT NULL DEFAULT NULL,
   "file_type" TEXT NULL DEFAULT null
@@ -1845,11 +1845,11 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_attachments" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_categories
 CREATE TABLE IF NOT EXISTS "knowledge_base_categories" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::text,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(100) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
-  "parent_id" VARCHAR(36) NULL DEFAULT NULL,
+  "parent_id" UUID NULL DEFAULT NULL,
   "color" VARCHAR(7) NULL DEFAULT NULL,
   "icon" VARCHAR(50) NULL DEFAULT NULL,
   "sort_order" INTEGER NULL DEFAULT 0,
@@ -1861,7 +1861,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_categories" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_comments
 CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "parent_id" VARCHAR NULL DEFAULT NULL,
@@ -1881,7 +1881,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_ratings
 CREATE TABLE IF NOT EXISTS "knowledge_base_ratings" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "user_id" VARCHAR NOT NULL,
@@ -1896,7 +1896,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_ratings" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_scheduled_publications
 CREATE TABLE IF NOT EXISTS "knowledge_base_scheduled_publications" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "article_id" VARCHAR NOT NULL,
   "scheduled_for" TIMESTAMPTZ NOT NULL,
@@ -1915,7 +1915,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_scheduled_publications" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_search_logs
 CREATE TABLE IF NOT EXISTS "knowledge_base_search_logs" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "query" TEXT NOT NULL,
   "user_id" VARCHAR NOT NULL,
@@ -1929,7 +1929,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_search_logs" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_templates
 CREATE TABLE IF NOT EXISTS "knowledge_base_templates" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -2196,8 +2196,8 @@ CREATE TABLE IF NOT EXISTS "offline_sync" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_automation_rules
 CREATE TABLE IF NOT EXISTS "omnibridge_automation_rules" (
-  "id" VARCHAR(36) NOT NULL,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "trigger" JSONB NOT NULL,
@@ -2205,7 +2205,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_automation_rules" (
   "enabled" BOOLEAN NULL DEFAULT true,
   "priority" INTEGER NULL DEFAULT 1,
   "ai_enabled" BOOLEAN NULL DEFAULT false,
-  "ai_prompt_id" VARCHAR(36) NULL DEFAULT NULL,
+  "ai_prompt_id" UUID NULL DEFAULT NULL,
   "execution_count" INTEGER NULL DEFAULT 0,
   "success_count" INTEGER NULL DEFAULT 0,
   "last_executed" TIMESTAMP NULL DEFAULT NULL,
@@ -2217,8 +2217,8 @@ CREATE TABLE IF NOT EXISTS "omnibridge_automation_rules" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_channels
 CREATE TABLE IF NOT EXISTS "omnibridge_channels" (
-  "id" VARCHAR(36) NOT NULL,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "integration_id" VARCHAR(100) NULL DEFAULT NULL,
   "name" VARCHAR(255) NOT NULL,
   "type" VARCHAR(50) NOT NULL,
@@ -2238,24 +2238,24 @@ CREATE TABLE IF NOT EXISTS "omnibridge_channels" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_chatbots
 CREATE TABLE IF NOT EXISTS "omnibridge_chatbots" (
-  "id" VARCHAR(36) NOT NULL,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "configuration" JSONB NULL DEFAULT '{}',
   "is_enabled" BOOLEAN NULL DEFAULT true,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-  "created_by" VARCHAR(36) NULL DEFAULT NULL,
-  "updated_by" VARCHAR(36) NULL DEFAULT null
+  "created_by" UUID NULL DEFAULT NULL,
+  "updated_by" UUID NULL DEFAULT null
 );
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_messages
 CREATE TABLE IF NOT EXISTS "omnibridge_messages" (
-  "id" VARCHAR(36) NOT NULL,
-  "tenant_id" VARCHAR(36) NOT NULL,
-  "channel_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
+  "channel_id" UUID NOT NULL,
   "channel_type" VARCHAR(50) NOT NULL,
   "from_address" TEXT NULL DEFAULT NULL,
   "to_address" TEXT NULL DEFAULT NULL,
@@ -2274,8 +2274,8 @@ CREATE TABLE IF NOT EXISTS "omnibridge_messages" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_rules
 CREATE TABLE IF NOT EXISTS "omnibridge_rules" (
-  "id" VARCHAR(36) NOT NULL,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "conditions" JSONB NOT NULL,
@@ -2293,8 +2293,8 @@ CREATE TABLE IF NOT EXISTS "omnibridge_rules" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.omnibridge_settings
 CREATE TABLE IF NOT EXISTS "omnibridge_settings" (
-  "id" VARCHAR(36) NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "channels" JSONB NOT NULL DEFAULT '[]',
   "filters" JSONB NOT NULL DEFAULT '{}',
   "search" JSONB NOT NULL DEFAULT '{}',
@@ -2681,7 +2681,7 @@ CREATE TABLE IF NOT EXISTS "schedule_conflicts" (
 CREATE TABLE IF NOT EXISTS "schedule_notifications" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "user_id" VARCHAR(36) NOT NULL,
+  "user_id" UUID NOT NULL,
   "notification_type" VARCHAR(30) NOT NULL,
   "title" VARCHAR(200) NOT NULL,
   "message" TEXT NOT NULL,
@@ -2690,7 +2690,7 @@ CREATE TABLE IF NOT EXISTS "schedule_notifications" (
   "sent_at" TIMESTAMP NULL DEFAULT NULL,
   "read_at" TIMESTAMP NULL DEFAULT NULL,
   "related_entity_type" VARCHAR(30) NULL DEFAULT NULL,
-  "related_entity_id" VARCHAR(36) NULL DEFAULT NULL,
+  "related_entity_id" UUID NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'pending',
   "delivery_method" VARCHAR(20) NULL DEFAULT 'in_app',
   "created_at" TIMESTAMP NULL DEFAULT now(),
@@ -2716,7 +2716,7 @@ CREATE TABLE IF NOT EXISTS "schedule_templates" (
   "configuration" JSONB NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
   "requires_approval" BOOLEAN NULL DEFAULT true,
-  "created_by" VARCHAR(36) NOT NULL,
+  "created_by" UUID NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
   "updated_at" TIMESTAMP NULL DEFAULT now()
 );
@@ -2746,8 +2746,8 @@ CREATE TABLE IF NOT EXISTS "service_integrations" (
 CREATE TABLE IF NOT EXISTS "shift_swap_requests" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "requester_id" VARCHAR(36) NOT NULL,
-  "target_user_id" VARCHAR(36) NULL DEFAULT NULL,
+  "requester_id" UUID NOT NULL,
+  "target_user_id" UUID NULL DEFAULT NULL,
   "original_shift_date" TIMESTAMP NOT NULL,
   "original_shift_start" TIMESTAMP NOT NULL,
   "original_shift_end" TIMESTAMP NOT NULL,
@@ -2760,7 +2760,7 @@ CREATE TABLE IF NOT EXISTS "shift_swap_requests" (
   "target_user_response" VARCHAR(20) NULL DEFAULT NULL,
   "target_user_response_at" TIMESTAMP NULL DEFAULT NULL,
   "manager_approval_required" BOOLEAN NULL DEFAULT true,
-  "approved_by" VARCHAR(36) NULL DEFAULT NULL,
+  "approved_by" UUID NULL DEFAULT NULL,
   "approved_at" TIMESTAMP NULL DEFAULT NULL,
   "approval_notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
@@ -2772,7 +2772,7 @@ CREATE TABLE IF NOT EXISTS "shift_swap_requests" (
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.skills
 CREATE TABLE IF NOT EXISTS "skills" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "category" VARCHAR(100) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -2792,7 +2792,7 @@ CREATE TABLE IF NOT EXISTS "skills" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_definitions
 CREATE TABLE IF NOT EXISTS "sla_definitions" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -2827,7 +2827,7 @@ CREATE TABLE IF NOT EXISTS "sla_definitions" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_events
 CREATE TABLE IF NOT EXISTS "sla_events" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "sla_instance_id" VARCHAR NOT NULL,
   "ticket_id" VARCHAR NOT NULL,
@@ -2848,7 +2848,7 @@ CREATE TABLE IF NOT EXISTS "sla_events" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_instances
 CREATE TABLE IF NOT EXISTS "sla_instances" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "sla_definition_id" VARCHAR NOT NULL,
   "ticket_id" VARCHAR NOT NULL,
@@ -2885,7 +2885,7 @@ CREATE TABLE IF NOT EXISTS "sla_instances" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_reports
 CREATE TABLE IF NOT EXISTS "sla_reports" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "report_type" VARCHAR(50) NOT NULL,
   "report_period" VARCHAR(50) NOT NULL,
@@ -2908,7 +2908,7 @@ CREATE TABLE IF NOT EXISTS "sla_reports" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_violations
 CREATE TABLE IF NOT EXISTS "sla_violations" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "sla_instance_id" VARCHAR NOT NULL,
   "ticket_id" VARCHAR NOT NULL,
@@ -2937,7 +2937,7 @@ CREATE TABLE IF NOT EXISTS "sla_violations" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_workflows
 CREATE TABLE IF NOT EXISTS "sla_workflows" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" VARCHAR NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -2954,7 +2954,7 @@ CREATE TABLE IF NOT EXISTS "sla_workflows" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_workflow_executions
 CREATE TABLE IF NOT EXISTS "sla_workflow_executions" (
-  "id" VARCHAR NOT NULL DEFAULT (gen_random_uuid())::character varying,
+  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
   "workflow_id" VARCHAR NOT NULL,
   "tenant_id" VARCHAR NOT NULL,
   "triggered_by" VARCHAR(255) NOT NULL,
@@ -3076,7 +3076,7 @@ CREATE TABLE IF NOT EXISTS "system_settings" (
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.tickets
 CREATE TABLE IF NOT EXISTS "tickets" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "number" VARCHAR(50) NULL DEFAULT NULL,
   "subject" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -3430,7 +3430,7 @@ CREATE TABLE IF NOT EXISTS "ticket_lpu_settings" (
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_messages
 CREATE TABLE IF NOT EXISTS "ticket_messages" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "ticket_id" UUID NOT NULL,
   "user_id" UUID NULL DEFAULT NULL,
   "content" TEXT NOT NULL,
@@ -3721,15 +3721,15 @@ CREATE TABLE IF NOT EXISTS "timecard_settings" (
 CREATE TABLE IF NOT EXISTS "time_alerts" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "user_id" VARCHAR(36) NULL DEFAULT NULL,
+  "user_id" UUID NULL DEFAULT NULL,
   "alert_type" VARCHAR(30) NOT NULL,
   "severity" VARCHAR(10) NOT NULL,
   "title" VARCHAR(200) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "related_date" TIMESTAMP NULL DEFAULT NULL,
-  "related_record_id" VARCHAR(36) NULL DEFAULT NULL,
+  "related_record_id" UUID NULL DEFAULT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'active',
-  "resolved_by" VARCHAR(36) NULL DEFAULT NULL,
+  "resolved_by" UUID NULL DEFAULT NULL,
   "resolved_at" TIMESTAMP NULL DEFAULT NULL,
   "resolution_notes" TEXT NULL DEFAULT NULL,
   "notified_managers" JSONB NULL DEFAULT NULL,
@@ -3846,8 +3846,8 @@ CREATE TABLE IF NOT EXISTS "trechos_rota" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.users
 CREATE TABLE IF NOT EXISTS "users" (
-  "id" VARCHAR(36) NOT NULL DEFAULT (gen_random_uuid())::character varying,
-  "tenant_id" VARCHAR(36) NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "first_name" VARCHAR(255) NOT NULL,
   "last_name" VARCHAR(255) NULL DEFAULT NULL,
   "email" VARCHAR(255) NOT NULL,
@@ -4012,7 +4012,7 @@ CREATE TABLE IF NOT EXISTS "user_skills" (
   "skill_id" UUID NOT NULL,
   "level" INTEGER NOT NULL,
   "assessed_at" TIMESTAMP NULL DEFAULT now(),
-  "assessed_by" VARCHAR(36) NULL DEFAULT NULL,
+  "assessed_by" UUID NULL DEFAULT NULL,
   "expires_at" TIMESTAMP NULL DEFAULT NULL,
   "notes" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMP NULL DEFAULT now(),
