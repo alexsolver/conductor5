@@ -107,13 +107,13 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   // Auto-generate configuration mutation
   const generateConfigMutation = useMutation({
     mutationFn: async (prompt: string) => {
-      return await apiRequest<{ success: boolean; config: any }>({
-        url: '/api/ai-agents/generate-config',
-        method: 'POST',
-        body: { prompt }
-      });
+      const response = await apiRequest('POST', '/api/ai-agents/generate-config', { prompt });
+      if (!response.ok) {
+        throw new Error('Failed to generate configuration');
+      }
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { success: boolean; config: any }) => {
       if (data.success && data.config) {
         setLocalConfig({
           ...localConfig,
