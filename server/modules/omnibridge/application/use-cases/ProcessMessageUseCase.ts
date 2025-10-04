@@ -77,7 +77,14 @@ export class ProcessMessageUseCase {
       if (ticketId) {
         console.log(`🎫 [ProcessMessageUseCase] Message has ticket context: ${ticketId} - BYPASSING AUTOMATION`);
         
-        // TODO: Adicionar mensagem diretamente ao ticket existente
+        // Adicionar mensagem diretamente ao ticket existente
+        try {
+          await this.addMessageToTicket(ticketId, message, tenantId);
+          console.log(`✅ [ProcessMessageUseCase] Message added to ticket ${ticketId}`);
+        } catch (ticketError) {
+          console.error(`❌ [ProcessMessageUseCase] Failed to add message to ticket:`, ticketError);
+        }
+        
         await this.messageRepository.markAsProcessed(message.id, tenantId);
         
         return {
@@ -181,7 +188,23 @@ export class ProcessMessageUseCase {
       if (ticketId) {
         console.log(`🎫 [ProcessMessageUseCase] Direct message has ticket context: ${ticketId} - BYPASSING AUTOMATION`);
         
-        // TODO: Adicionar mensagem diretamente ao ticket existente
+        // Adicionar mensagem diretamente ao ticket existente
+        try {
+          const messageEntity = {
+            id: messageData.id,
+            fromAddress: messageData.sender || messageData.from,
+            toAddress: messageData.recipient || messageData.to,
+            subject: messageData.subject,
+            content: messageData.content || messageData.body,
+            channelType: messageData.channel || messageData.channelType,
+            metadata: messageData.metadata
+          } as any; // Cast para compatibilidade
+          
+          await this.addMessageToTicket(ticketId, messageEntity, tenantId);
+          console.log(`✅ [ProcessMessageUseCase] Direct message added to ticket ${ticketId}`);
+        } catch (ticketError) {
+          console.error(`❌ [ProcessMessageUseCase] Failed to add direct message to ticket:`, ticketError);
+        }
         
         return {
           success: true,
@@ -266,6 +289,48 @@ export class ProcessMessageUseCase {
         success: false,
         message: `Error testing rule: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
+    }
+  }
+
+  /**
+   * 🎯 TICKET CONTEXT TRACKING: Adiciona mensagem diretamente a um ticket existente
+   * Usado quando mensagem é resposta de um ticket (bypass de automação)
+   */
+  private async addMessageToTicket(ticketId: string, message: any, tenantId: string): Promise<void> {
+    try {
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      console.log(`🎫 [TICKET-CONTEXT] Adding message to ticket ${ticketId} in schema ${schemaName}`);
+
+      // Determinar sender_id (usar 'system' se não houver usuário identificado)
+      const senderId = message.metadata?.userId || message.metadata?.authorId || 'system';
+      
+      // Determinar tipo de mensagem baseado no canal
+      const messageType = message.channelType === 'email' ? 'email' : 'comment';
+      
+      // Formatar conteúdo da mensagem
+      const messageContent = `**[${message.channelType?.toUpperCase() || 'SYSTEM'}]** ${message.subject ? `${message.subject}\n\n` : ''}${message.content || message.body || ''}`;
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_messages 
+        (id, tenant_id, ticket_id, sender_id, message, message_type, is_internal, attachments, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      `, [
+        `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        tenantId,
+        ticketId,
+        senderId,
+        messageContent,
+        messageType,
+        false, // is_internal
+        JSON.stringify(message.metadata?.attachments || [])
+      ]);
+
+      console.log(`✅ [TICKET-CONTEXT] Message successfully added to ticket ${ticketId}`);
+    } catch (error) {
+      console.error(`❌ [TICKET-CONTEXT] Error adding message to ticket:`, error);
+      throw error;
     }
   }
 }
