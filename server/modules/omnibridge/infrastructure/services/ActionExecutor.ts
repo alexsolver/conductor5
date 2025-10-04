@@ -1333,6 +1333,10 @@ export class ActionExecutor implements IActionExecutorPort {
 
       if (response.ok && result.ok) {
         console.log(`✅ [ActionExecutor] Telegram message sent successfully to ${chatId}`);
+        
+        // Log the assistant message to conversation history
+        await this.logAssistantMessage(tenantId, 'telegram', message);
+        
         return true;
       } else {
         console.error(`❌ [ActionExecutor] Telegram API error:`, result);
@@ -2378,6 +2382,53 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     } catch (error) {
       console.error('❌ [CONVERSATION-LOG] Error creating/updating conversation log:', error);
       return null;
+    }
+  }
+
+  /**
+   * Log assistant message to conversation_messages table
+   */
+  private async logAssistantMessage(
+    tenantId: string,
+    channelType: string,
+    assistantMessage: string
+  ) {
+    try {
+      // Find the most recent ongoing conversation for this channel
+      const [existingConversation] = await db
+        .select()
+        .from(conversationLogs)
+        .where(sql`${conversationLogs.tenantId} = ${tenantId} 
+          AND ${conversationLogs.channelType} = ${channelType}
+          AND ${conversationLogs.endedAt} IS NULL`)
+        .orderBy(sql`${conversationLogs.startedAt} DESC`)
+        .limit(1);
+
+      if (existingConversation) {
+        // Log the assistant message
+        await db
+          .insert(conversationMessages)
+          .values({
+            conversationId: existingConversation.id,
+            tenantId,
+            role: 'assistant',
+            content: assistantMessage,
+            timestamp: new Date()
+          });
+
+        // Update total messages count
+        await db
+          .update(conversationLogs)
+          .set({
+            totalMessages: (existingConversation.totalMessages || 0) + 1,
+            updatedAt: new Date()
+          })
+          .where(sql`${conversationLogs.id} = ${existingConversation.id}`);
+
+        console.log(`📝 [CONVERSATION-LOG] Logged assistant message for conversation ${existingConversation.id}`);
+      }
+    } catch (error) {
+      console.error('❌ [CONVERSATION-LOG] Error logging assistant message:', error);
     }
   }
 }
