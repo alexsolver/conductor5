@@ -28,18 +28,21 @@ export class AuthController {
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
 
       // Set access token as httpOnly cookie
+      // TEMP DEBUG: httpOnly disabled to test cookie storage issue
       res.cookie('accessToken', result.tokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        httpOnly: false, // TEMP: was true
+        secure: false,
+        sameSite: 'lax',
+        path: '/',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
 
       // Set refresh token as httpOnly cookie
       res.cookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        httpOnly: false, // TEMP: was true  
+        secure: false,
+        sameSite: 'lax',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -86,7 +89,7 @@ export class AuthController {
       res.cookie('accessToken', result.tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
 
@@ -94,7 +97,7 @@ export class AuthController {
       res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 

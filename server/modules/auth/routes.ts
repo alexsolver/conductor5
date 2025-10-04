@@ -49,7 +49,7 @@ authRouter.post(
         res.clearCookie("refreshToken", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         });
         return res.status(401).json({
           success: false,
@@ -67,7 +67,7 @@ authRouter.post(
         res.clearCookie("refreshToken", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         });
         return res.status(401).json({
           success: false,
@@ -83,7 +83,7 @@ authRouter.post(
         res.clearCookie("refreshToken", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         });
         return res.status(401).json({
           success: false,
@@ -108,7 +108,7 @@ authRouter.post(
       res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -130,7 +130,7 @@ authRouter.post(
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       });
       res.status(401).json({
         success: false,
@@ -161,7 +161,7 @@ authRouter.post(
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -435,7 +435,7 @@ authRouter.post(
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -475,7 +475,7 @@ authRouter.post("/logout", async (req, res) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     });
     res.json({ message: "Logged out successfully" });
   } catch (error) {
