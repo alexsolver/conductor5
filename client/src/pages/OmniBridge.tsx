@@ -1822,6 +1822,89 @@ function ConversationLogsContent() {
                           {t('omnibridge.feedback.hasAnnotation', 'Com anotação')}
                         </Badge>
                       )}
+                      
+                      {/* Log detalhado de ações relacionadas à mensagem */}
+                      {msg.actions && msg.actions.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-muted">
+                          <div className="flex items-center gap-2 mb-2">
+                            <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-semibold text-muted-foreground uppercase">
+                              {t('omnibridge.actionLog.title', 'Log de Ações')} ({msg.actions.length})
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {msg.actions.map((action: any) => (
+                              <div
+                                key={action.id}
+                                className={`p-2 rounded border ${
+                                  action.success 
+                                    ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' 
+                                    : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
+                                }`}
+                                data-testid={`message-action-${action.id}`}
+                              >
+                                <div className="flex items-start gap-2">
+                                  {action.success ? (
+                                    <Check className="h-3 w-3 text-green-600 mt-0.5" />
+                                  ) : (
+                                    <X className="h-3 w-3 text-red-600 mt-0.5" />
+                                  )}
+                                  <div className="flex-1 space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-medium">{action.actionName}</span>
+                                      <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                        {action.actionType}
+                                      </Badge>
+                                    </div>
+                                    
+                                    {action.parameters && (
+                                      <details className="text-xs">
+                                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                                          {t('omnibridge.actionLog.parameters', 'Parâmetros')}
+                                        </summary>
+                                        <pre className="mt-1 p-1 bg-muted/50 rounded text-[10px] overflow-x-auto">
+                                          {JSON.stringify(action.parameters, null, 2)}
+                                        </pre>
+                                      </details>
+                                    )}
+                                    
+                                    {action.result && (
+                                      <details className="text-xs">
+                                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                                          {t('omnibridge.actionLog.result', 'Resultado')}
+                                        </summary>
+                                        <pre className="mt-1 p-1 bg-muted/50 rounded text-[10px] overflow-x-auto">
+                                          {JSON.stringify(action.result, null, 2)}
+                                        </pre>
+                                      </details>
+                                    )}
+                                    
+                                    {action.errorMessage && (
+                                      <div className="text-xs text-red-600 mt-1">
+                                        <span className="font-medium">{t('omnibridge.actionLog.error', 'Erro')}:</span> {action.errorMessage}
+                                      </div>
+                                    )}
+                                    
+                                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-1">
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {action.executionTimeMs}ms
+                                      </span>
+                                      {action.retryCount > 0 && (
+                                        <span className="flex items-center gap-1">
+                                          <AlertCircle className="h-3 w-3" />
+                                          {action.retryCount} {t('omnibridge.actionLog.retries', 'tentativas')}
+                                        </span>
+                                      )}
+                                      <span>{formatTime(action.executedAt)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
