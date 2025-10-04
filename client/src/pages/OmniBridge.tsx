@@ -2259,10 +2259,15 @@ function ConversationLogsContent() {
                             {conv.totalActions}
                           </p>
                         </div>
-                        <div className="md:col-span-2">
-                          <p className="text-xs text-muted-foreground">
-                            {conv.endedAt ? t('omnibridge.conversationLogs.lastInteraction', 'Última Interação') : t('omnibridge.conversationLogs.startTime', 'Início')}
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.startTime', 'Início')}</p>
+                          <p className="font-medium flex items-center gap-1 text-sm">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(conv.startedAt)}
                           </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{t('omnibridge.conversationLogs.lastInteraction', 'Última Interação')}</p>
                           <p className="font-medium flex items-center gap-1 text-sm">
                             <Clock className="h-3 w-3" />
                             {formatDate(lastInteraction)}
