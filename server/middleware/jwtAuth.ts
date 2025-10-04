@@ -21,6 +21,15 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  // 🔍 DEBUG: Log every request to jwtAuth middleware
+  console.log('🔐 [JWT-AUTH-ENTRY] Middleware called:', {
+    method: req.method,
+    path: req.path,
+    url: req.url,
+    hasCookies: !!req.cookies,
+    cookieKeys: req.cookies ? Object.keys(req.cookies) : []
+  });
+  
   try {
     // ✅ Skip auth for HEAD requests to root and health checks
     if (req.method === 'HEAD' && (req.path === '/' || req.path === '/health')) {
