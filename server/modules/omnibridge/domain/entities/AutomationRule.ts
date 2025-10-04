@@ -24,7 +24,12 @@ export interface AutomationAction {
         'send_sms' | 'send_survey' | 'ai_categorize' | 'ai_translate' | 'update_crm' | 'generate_report' | 'assign_team' | 'remove_tags' |
         'create_followup_task' | 'schedule_reminder' | 'add_note' | 'log_activity' | 'notify_customer' | 'send_email' | 'notify_manager' |
         'api_request' | 'close_ticket' | 'reopen_ticket' | 'set_ticket_sla' | 'assign_ticket_by_category' | 'update_priority' | 'update_metrics' |
-        'add_tags' | 'assign_agent' | 'archive' | 'mark_priority' | 'webhook_call' | 'send_notification';
+        'add_tags' | 'assign_agent' | 'archive' | 'mark_priority' | 'webhook_call' | 'send_notification' |
+        'reply_email' | 'forward_email' | 'send_whatsapp' | 'send_slack' | 'send_telegram' |
+        'merge_tickets' | 'link_tickets' | 'update_customer' | 'search_customer_history' |
+        'search_knowledge_base' | 'suggest_kb_article' | 'create_kb_from_ticket' |
+        'schedule_appointment' | 'schedule_callback' | 'reschedule_appointment' |
+        'log_interaction' | 'export_data' | 'call_webhook' | 'sync_crm' | 'update_external_system';
   target?: string;
   params: Record<string, any>;
   config?: Record<string, any>;
