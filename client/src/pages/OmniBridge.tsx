@@ -1735,7 +1735,7 @@ function ConversationLogsContent() {
   };
 
   const getLastInteraction = (conv: any) => {
-    return conv.endedAt || conv.startedAt;
+    return conv.endedAt || conv.updatedAt || conv.startedAt;
   };
 
   const filteredConversations = data?.data?.filter((conv: any) => {
@@ -1749,6 +1749,11 @@ function ConversationLogsContent() {
       (statusFilter === 'completed' && !conv.escalatedToHuman && conv.endedAt);
     
     return matchesSearch && matchesStatus;
+  }).sort((a: any, b: any) => {
+    // Ordenar por última interação (decrescente - mais recente primeiro)
+    const aLastInteraction = new Date(getLastInteraction(a)).getTime();
+    const bLastInteraction = new Date(getLastInteraction(b)).getTime();
+    return bLastInteraction - aLastInteraction;
   }) || [];
 
   const exportData = () => {
