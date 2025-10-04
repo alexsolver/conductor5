@@ -63,8 +63,7 @@ router.get(
         FROM "${schemaName}".user_group_memberships ugm
         INNER JOIN "${schemaName}".user_groups ug
           ON ug.id = ugm.group_id
-        WHERE ugm.tenant_id::text = '${tenantId}'
-          AND ug.is_active = true
+        WHERE ug.is_active = true
       `));
 
       // Organizar grupos por usuário

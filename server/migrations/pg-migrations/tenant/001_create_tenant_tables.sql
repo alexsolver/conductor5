@@ -449,7 +449,7 @@ CREATE TABLE IF NOT EXISTS "chatbot_edges" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.chatbot_flows
 CREATE TABLE IF NOT EXISTS "chatbot_flows" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "bot_id" VARCHAR NOT NULL,
   "name" VARCHAR NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
@@ -457,7 +457,7 @@ CREATE TABLE IF NOT EXISTS "chatbot_flows" (
   "edges" JSONB NULL DEFAULT '[]',
   "variables" JSONB NULL DEFAULT '{}',
   "is_active" BOOLEAN NULL DEFAULT true,
-  "tenant_id" VARCHAR NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -919,7 +919,7 @@ CREATE TABLE IF NOT EXISTS "custom_fields_values" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.custom_field_metadata
 CREATE TABLE IF NOT EXISTS "custom_field_metadata" (
-  "id" VARCHAR(255) NOT NULL,
+  "id" UUID NOT NULL,
   "module_type" VARCHAR(100) NOT NULL,
   "field_name" VARCHAR(255) NOT NULL,
   "field_type" VARCHAR(100) NOT NULL,
@@ -1392,7 +1392,7 @@ CREATE TABLE IF NOT EXISTS "gdpr_audit_log" (
   "changes" JSONB NULL DEFAULT NULL,
   "user_agent" TEXT NULL DEFAULT NULL,
   "ip_address" VARCHAR(45) NULL DEFAULT NULL,
-  "session_id" VARCHAR(255) NULL DEFAULT NULL,
+  "session_id" UUID NULL DEFAULT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT now(),
   "created_by" UUID NOT NULL,
   "tenant_id" UUID NOT null
@@ -1577,7 +1577,7 @@ CREATE TABLE IF NOT EXISTS "hour_bank" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.integrations
 CREATE TABLE IF NOT EXISTS "integrations" (
-  "id" VARCHAR(255) NOT NULL,
+  "id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "category" VARCHAR(100) NULL DEFAULT NULL,
@@ -1721,10 +1721,10 @@ CREATE TABLE IF NOT EXISTS "item_supplier_links" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_approvals
 CREATE TABLE IF NOT EXISTS "knowledge_base_approvals" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
-  "approver_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
+  "approver_id" UUID NOT NULL,
   "status" TEXT NOT NULL DEFAULT 'pending',
   "comments" TEXT NULL DEFAULT NULL,
   "requested_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1780,7 +1780,7 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
   "rating_average" NUMERIC(3,2) NULL DEFAULT 0.0,
   "rating_count" INTEGER NULL DEFAULT 0,
   "attachment_count" INTEGER NULL DEFAULT 0,
-  "reviewer_id" VARCHAR NULL DEFAULT NULL,
+  "reviewer_id" UUID NULL DEFAULT NULL,
   "keywords" TEXT NULL DEFAULT NULL,
   "upvote_count" INTEGER NULL DEFAULT 0,
   "last_viewed_at" TIMESTAMP NULL DEFAULT NULL,
@@ -1796,11 +1796,11 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_articles" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_article_relations
 CREATE TABLE IF NOT EXISTS "knowledge_base_article_relations" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
   "entity_type" VARCHAR(50) NOT NULL,
-  "entity_id" VARCHAR NOT NULL,
+  "entity_id" UUID NOT NULL,
   "relation_type" VARCHAR(50) NOT NULL,
   "created_by" VARCHAR NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
@@ -1810,15 +1810,15 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_article_relations" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_article_versions
 CREATE TABLE IF NOT EXISTS "knowledge_base_article_versions" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
   "version_number" INTEGER NOT NULL,
   "title" VARCHAR(500) NOT NULL,
   "content" TEXT NOT NULL,
   "summary" TEXT NULL DEFAULT NULL,
   "change_description" TEXT NULL DEFAULT NULL,
-  "author_id" VARCHAR NOT NULL,
+  "author_id" UUID NOT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
   "created_by_id" text
 );
@@ -1861,12 +1861,12 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_categories" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_comments
 CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
-  "parent_id" VARCHAR NULL DEFAULT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
+  "parent_id" UUID NULL DEFAULT NULL,
   "content" TEXT NOT NULL,
-  "author_id" VARCHAR NOT NULL,
+  "author_id" UUID NOT NULL,
   "author_name" VARCHAR(255) NOT NULL,
   "is_edited" BOOLEAN NOT NULL DEFAULT false,
   "is_approved" BOOLEAN NOT NULL DEFAULT true,
@@ -1881,10 +1881,10 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_comments" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_ratings
 CREATE TABLE IF NOT EXISTS "knowledge_base_ratings" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
-  "user_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
+  "user_id" UUID NOT NULL,
   "rating" INTEGER NOT NULL,
   "feedback" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1896,15 +1896,15 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_ratings" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_scheduled_publications
 CREATE TABLE IF NOT EXISTS "knowledge_base_scheduled_publications" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "article_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "article_id" UUID NOT NULL,
   "scheduled_for" TIMESTAMPTZ NOT NULL,
   "status" VARCHAR(50) NOT NULL DEFAULT 'scheduled',
   "published_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "auto_publish" BOOLEAN NOT NULL DEFAULT true,
   "notify_users" BOOLEAN NOT NULL DEFAULT false,
-  "scheduled_by" VARCHAR NOT NULL,
+  "scheduled_by" UUID NOT NULL,
   "execution_log" JSONB NULL DEFAULT '{}',
   "failure_reason" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1915,12 +1915,12 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_scheduled_publications" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_search_logs
 CREATE TABLE IF NOT EXISTS "knowledge_base_search_logs" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "query" TEXT NOT NULL,
-  "user_id" VARCHAR NOT NULL,
+  "user_id" UUID NOT NULL,
   "results_count" INTEGER NULL DEFAULT 0,
-  "clicked_article_id" VARCHAR NULL DEFAULT NULL,
+  "clicked_article_id" UUID NULL DEFAULT NULL,
   "search_context" JSONB NULL DEFAULT '{}',
   "user_agent" TEXT NULL DEFAULT NULL,
   "created_at" TIMESTAMPTZ NULL DEFAULT CURRENT_TIMESTAMP
@@ -1929,8 +1929,8 @@ CREATE TABLE IF NOT EXISTS "knowledge_base_search_logs" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.knowledge_base_templates
 CREATE TABLE IF NOT EXISTS "knowledge_base_templates" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "content" TEXT NOT NULL,
@@ -2175,7 +2175,7 @@ CREATE TABLE IF NOT EXISTS "nsr_sequences" (
 CREATE TABLE IF NOT EXISTS "offline_sync" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "tenant_id" UUID NOT NULL,
-  "device_id" VARCHAR(255) NOT NULL,
+  "device_id" UUID NOT NULL,
   "user_id" UUID NOT NULL,
   "table_name" VARCHAR(100) NOT NULL,
   "operation" VARCHAR(20) NOT NULL,
@@ -2219,7 +2219,7 @@ CREATE TABLE IF NOT EXISTS "omnibridge_automation_rules" (
 CREATE TABLE IF NOT EXISTS "omnibridge_channels" (
   "id" UUID NOT NULL,
   "tenant_id" UUID NOT NULL,
-  "integration_id" VARCHAR(100) NULL DEFAULT NULL,
+  "integration_id" UUID NULL DEFAULT NULL,
   "name" VARCHAR(255) NOT NULL,
   "type" VARCHAR(50) NOT NULL,
   "status" VARCHAR(20) NOT NULL DEFAULT 'inactive',
@@ -2792,8 +2792,8 @@ CREATE TABLE IF NOT EXISTS "skills" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_definitions
 CREATE TABLE IF NOT EXISTS "sla_definitions" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "type" VARCHAR(20) NOT NULL DEFAULT 'SLA',
@@ -2827,10 +2827,10 @@ CREATE TABLE IF NOT EXISTS "sla_definitions" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_events
 CREATE TABLE IF NOT EXISTS "sla_events" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "sla_instance_id" VARCHAR NOT NULL,
-  "ticket_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "sla_instance_id" UUID NOT NULL,
+  "ticket_id" UUID NOT NULL,
   "event_type" VARCHAR(50) NOT NULL,
   "event_reason" VARCHAR(100) NULL DEFAULT NULL,
   "previous_status" VARCHAR(20) NULL DEFAULT NULL,
@@ -2838,7 +2838,7 @@ CREATE TABLE IF NOT EXISTS "sla_events" (
   "elapsed_minutes_at_event" INTEGER NULL DEFAULT 0,
   "remaining_minutes_at_event" INTEGER NULL DEFAULT 0,
   "triggered_by" VARCHAR(50) NULL DEFAULT NULL,
-  "triggered_by_user_id" VARCHAR NULL DEFAULT NULL,
+  "triggered_by_user_id" UUID NULL DEFAULT NULL,
   "trigger_condition" TEXT NULL DEFAULT NULL,
   "event_data" JSONB NULL DEFAULT '{}',
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -2848,10 +2848,10 @@ CREATE TABLE IF NOT EXISTS "sla_events" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_instances
 CREATE TABLE IF NOT EXISTS "sla_instances" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "sla_definition_id" VARCHAR NOT NULL,
-  "ticket_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "sla_definition_id" UUID NOT NULL,
+  "ticket_id" UUID NOT NULL,
   "started_at" TIMESTAMPTZ NOT NULL,
   "paused_at" TIMESTAMPTZ NULL DEFAULT NULL,
   "resumed_at" TIMESTAMPTZ NULL DEFAULT NULL,
@@ -2885,8 +2885,8 @@ CREATE TABLE IF NOT EXISTS "sla_instances" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_reports
 CREATE TABLE IF NOT EXISTS "sla_reports" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "report_type" VARCHAR(50) NOT NULL,
   "report_period" VARCHAR(50) NOT NULL,
   "generated_at" TIMESTAMPTZ NOT NULL,
@@ -2908,11 +2908,11 @@ CREATE TABLE IF NOT EXISTS "sla_reports" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_violations
 CREATE TABLE IF NOT EXISTS "sla_violations" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
-  "sla_instance_id" VARCHAR NOT NULL,
-  "ticket_id" VARCHAR NOT NULL,
-  "sla_definition_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "sla_instance_id" UUID NOT NULL,
+  "ticket_id" UUID NOT NULL,
+  "sla_definition_id" UUID NOT NULL,
   "violation_type" VARCHAR(50) NOT NULL,
   "target_minutes" INTEGER NOT NULL,
   "actual_minutes" INTEGER NOT NULL,
@@ -2937,8 +2937,8 @@ CREATE TABLE IF NOT EXISTS "sla_violations" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_workflows
 CREATE TABLE IF NOT EXISTS "sla_workflows" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
   "name" VARCHAR(255) NOT NULL,
   "description" TEXT NULL DEFAULT NULL,
   "is_active" BOOLEAN NULL DEFAULT true,
@@ -2954,9 +2954,9 @@ CREATE TABLE IF NOT EXISTS "sla_workflows" (
 
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.sla_workflow_executions
 CREATE TABLE IF NOT EXISTS "sla_workflow_executions" (
-  "id" VARCHAR NOT NULL DEFAULT gen_random_uuid(),
-  "workflow_id" VARCHAR NOT NULL,
-  "tenant_id" VARCHAR NOT NULL,
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "workflow_id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
   "triggered_by" VARCHAR(255) NOT NULL,
   "triggered_at" TIMESTAMPTZ NOT NULL,
   "status" VARCHAR(20) NULL DEFAULT 'pending',
