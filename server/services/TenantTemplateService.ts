@@ -1421,29 +1421,31 @@ export class TenantTemplateService {
     console.log(`[TENANT-TEMPLATE] Using table: companies in schema: ${schemaName}`);
 
     try {
+      // Use fixed default company ID
+      const defaultCompanyId = '00000000-0000-0000-0000-000000000001';
+
       // Check if company already exists
       const existingCompany = await pool.query(
-        `SELECT id FROM "${schemaName}".companies WHERE tenant_id = $1 AND name = $2 LIMIT 1`,
-        [tenantId, companyInfo.companyName]
+        `SELECT id FROM "${schemaName}".companies WHERE id = $1 LIMIT 1`,
+        [defaultCompanyId]
       );
 
       if (existingCompany.rows.length > 0) {
-        const companyId = existingCompany.rows[0].id;
-        console.log(`[TENANT-TEMPLATE] ✅ Company already exists with ID: ${companyId}`);
+        console.log(`[TENANT-TEMPLATE] ✅ Company already exists with ID: ${defaultCompanyId}`);
 
         // Update existing company
         await pool.query(
           `UPDATE "${schemaName}".companies 
-           SET display_name = $1, description = $2, updated_at = NOW()
-           WHERE id = $3`,
-          [companyInfo.companyName, companyInfo.industry || 'General Industry', companyId]
+           SET name = $1, display_name = $2, description = $3, updated_at = NOW()
+           WHERE id = $4`,
+          [companyInfo.companyName, companyInfo.companyName, companyInfo.industry || 'General Industry', defaultCompanyId]
         );
 
-        return companyId;
+        return defaultCompanyId;
       }
 
-      // Create new company
-      const companyId = randomUUID();
+      // Create new company with fixed default ID
+      const companyId = defaultCompanyId;
       await pool.query(
         `
         INSERT INTO "${schemaName}".companies 
