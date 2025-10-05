@@ -2773,43 +2773,35 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       console.log(`📚 [SEARCH-KB] Searching knowledge base for: "${query}" in tenant ${tenantId}`);
       
       const { pool } = await import('../../../db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Buscar artigos publicados que correspondam à query
+      // knowledge_base_articles está no schema PUBLIC com tenant_id
       let searchQuery = `
         SELECT 
           id, 
           title, 
           excerpt, 
           content,
-          category,
           tags,
-          view_count,
-          helpful_count,
-          not_helpful_count,
+          views_count,
+          is_public,
+          status,
           created_at,
-          updated_at,
-          published_at
-        FROM "${schemaName}".knowledge_base_articles
-        WHERE status = 'published'
-          AND visibility IN ('public', 'internal')
+          updated_at
+        FROM public.knowledge_base_articles
+        WHERE tenant_id = $1
+          AND status = 'published'
+          AND is_active = true
           AND (
-            title ILIKE $1 
-            OR content ILIKE $1 
-            OR excerpt ILIKE $1
-            OR $2 = ANY(tags)
+            title ILIKE $2 
+            OR content ILIKE $2 
+            OR excerpt ILIKE $2
+            OR $3 = ANY(tags)
           )
       `;
       
-      const params: any[] = [`%${query}%`, query];
+      const params: any[] = [tenantId, `%${query}%`, query];
       
-      // Filtrar por categoria se especificado
-      if (category) {
-        searchQuery += ` AND category = $${params.length + 1}`;
-        params.push(category);
-      }
-      
-      searchQuery += ` ORDER BY helpful_count DESC, view_count DESC LIMIT $${params.length + 1}`;
+      searchQuery += ` ORDER BY views_count DESC LIMIT $${params.length + 1}`;
       params.push(maxResults);
       
       const result = await pool.query(searchQuery, params);
@@ -2818,14 +2810,13 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
         id: row.id,
         title: row.title,
         excerpt: row.excerpt,
-        content: row.content?.substring(0, 500) + '...', // Resumo do conteúdo
-        category: row.category,
-        tags: row.tags,
-        viewCount: row.view_count,
-        helpfulCount: row.helpful_count,
-        notHelpfulCount: row.not_helpful_count,
-        relevanceScore: row.helpful_count / Math.max(row.view_count, 1), // Score básico de relevância
-        publishedAt: row.published_at
+        content: row.content?.substring(0, 500) + (row.content?.length > 500 ? '...' : ''),
+        tags: row.tags || [],
+        viewCount: row.views_count || 0,
+        isPublic: row.is_public,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
       }));
       
       console.log(`✅ [SEARCH-KB] Found ${articles.length} articles matching "${query}"`);
@@ -2862,30 +2853,27 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       console.log(`📖 [GET-ARTICLE] Fetching article ${articleId} for tenant ${tenantId}`);
       
       const { pool } = await import('../../../db');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // Buscar artigo por ID
+      // knowledge_base_articles está no schema PUBLIC com tenant_id
       const result = await pool.query(`
         SELECT 
           id, 
           title, 
           content,
           excerpt,
-          category,
           status,
-          visibility,
           tags,
-          view_count,
-          helpful_count,
-          not_helpful_count,
+          views_count,
+          is_public,
           author_id,
           created_at,
-          updated_at,
-          published_at
-        FROM "${schemaName}".knowledge_base_articles
+          updated_at
+        FROM public.knowledge_base_articles
         WHERE id = $1
+          AND tenant_id = $2
           AND status = 'published'
-      `, [articleId]);
+          AND is_active = true
+      `, [articleId, tenantId]);
       
       if (result.rows.length === 0) {
         return { 
@@ -2899,10 +2887,10 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       
       // Incrementar contador de visualizações
       await pool.query(`
-        UPDATE "${schemaName}".knowledge_base_articles
-        SET view_count = view_count + 1
-        WHERE id = $1
-      `, [articleId]);
+        UPDATE public.knowledge_base_articles
+        SET views_count = views_count + 1
+        WHERE id = $1 AND tenant_id = $2
+      `, [articleId, tenantId]);
       
       console.log(`✅ [GET-ARTICLE] Retrieved article: "${article.title}"`);
       
@@ -2914,12 +2902,10 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
           title: article.title,
           content: article.content,
           excerpt: article.excerpt,
-          category: article.category,
-          tags: article.tags,
-          viewCount: article.view_count + 1,
-          helpfulCount: article.helpful_count,
-          notHelpfulCount: article.not_helpful_count,
-          publishedAt: article.published_at,
+          status: article.status,
+          tags: article.tags || [],
+          viewCount: (article.views_count || 0) + 1,
+          isPublic: article.is_public,
           retrievedAt: new Date().toISOString()
         } 
       };
