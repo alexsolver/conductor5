@@ -16,6 +16,7 @@ export interface AIProviderConfig {
   apiKey: string;
   model: string;
   provider: 'openai' | 'deepseek' | 'googleai';
+  baseURL?: string;
 }
 
 export class SaaSAdminAIConfigService {
@@ -79,6 +80,7 @@ export class SaaSAdminAIConfigService {
         apiKey: config.openaiApiKey,
         model: config.openaiModel || 'gpt-4o-mini',
         provider: 'openai'
+        // No baseURL needed for OpenAI (uses default)
       };
     }
 
@@ -87,7 +89,8 @@ export class SaaSAdminAIConfigService {
       return {
         apiKey: config.deepseekApiKey,
         model: config.deepseekModel || 'deepseek-chat',
-        provider: 'deepseek'
+        provider: 'deepseek',
+        baseURL: 'https://api.deepseek.com'
       };
     }
 
@@ -96,7 +99,8 @@ export class SaaSAdminAIConfigService {
       return {
         apiKey: config.googleaiApiKey,
         model: config.googleaiModel || 'gemini-2.0-flash-exp',
-        provider: 'googleai'
+        provider: 'googleai',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai'
       };
     }
 
@@ -106,6 +110,7 @@ export class SaaSAdminAIConfigService {
         apiKey: process.env.OPENAI_API_KEY,
         model: 'gpt-4o-mini',
         provider: 'openai'
+        // No baseURL needed for OpenAI (uses default)
       };
     }
 
