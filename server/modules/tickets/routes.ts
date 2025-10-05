@@ -1779,7 +1779,31 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
       WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid
-      ORDER BY tc.created_at DESC
+      
+      UNION ALL
+      
+      SELECT 
+        tm.id,
+        tm.message_type as channel,
+        'inbound' as direction,
+        'received' as status,
+        COALESCE(u.email, 'customer') as "from",
+        '' as "to",
+        tm.subject,
+        tm.content,
+        tm.id as message_id,
+        NULL as thread_id,
+        NULL as cc_address,
+        NULL as bcc_address,
+        true as is_public,
+        tm.metadata,
+        tm.created_at as timestamp,
+        tm.updated_at
+      FROM "${schemaName}".ticket_messages tm
+      LEFT JOIN "${schemaName}".users u ON tm.sender_id = u.id
+      WHERE tm.ticket_id = $1::uuid
+      
+      ORDER BY timestamp DESC
     `;
 
     const result = await pool.query(query, [id, tenantId]);
