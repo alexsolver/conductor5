@@ -24,6 +24,7 @@ import {
   ArrowRightLeft
 } from 'lucide-react';
 import FieldMappingConfig, { FieldMapping } from './FieldMappingConfig';
+import SentimentConfig, { SentimentConfig as SentimentConfigType } from './SentimentConfig';
 
 // Simplified AI Agent Configuration Component
 // Integrates with new AI Agent backend
@@ -91,6 +92,7 @@ export interface AiAgentConfig {
     systemPrompt: string;
   };
   fieldMappings?: FieldMapping[];
+  sentimentConfig?: SentimentConfigType;
 }
 
 interface AiAgentActionConfigProps {
@@ -366,13 +368,16 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
         {/* Configuration Tabs */}
         {(localConfig.agentId === 'new' || selectedAgent) && (
           <Tabs defaultValue="actions" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="actions">Ações</TabsTrigger>
               <TabsTrigger value="personality">Personalidade</TabsTrigger>
               <TabsTrigger value="behavior">Comportamento</TabsTrigger>
               <TabsTrigger value="mapping" data-testid="tab-mapping">
                 <ArrowRightLeft className="h-4 w-4 mr-1" />
                 Mapeamento
+              </TabsTrigger>
+              <TabsTrigger value="sentiment" data-testid="tab-sentiment">
+                Sentimento
               </TabsTrigger>
             </TabsList>
 
@@ -574,6 +579,19 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
               <FieldMappingConfig
                 mappings={localConfig.fieldMappings || []}
                 onChange={(fieldMappings) => setLocalConfig({ ...localConfig, fieldMappings })}
+              />
+            </TabsContent>
+
+            <TabsContent value="sentiment" className="space-y-4">
+              <SentimentConfig
+                config={localConfig.sentimentConfig || {
+                  enabled: true,
+                  thresholds: { negative: -0.3, neutral: 0.3, positive: 0.7 },
+                  alerts: [],
+                  autoEscalate: { enabled: true, sentimentThreshold: -0.6, consecutiveMessages: 3 },
+                  visualizationEnabled: true
+                }}
+                onChange={(sentimentConfig) => setLocalConfig({ ...localConfig, sentimentConfig })}
               />
             </TabsContent>
           </Tabs>
