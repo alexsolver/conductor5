@@ -142,6 +142,7 @@ export class LoginUseCase {
   private generateRefreshToken(user: any, expiresAt: Date): string {
     const payload = {
       sub: user.id,
+      tenantId: user.tenantId,
       type: 'refresh',
       exp: Math.floor(expiresAt.getTime() / 1000),
       iat: Math.floor(Date.now() / 1000)
