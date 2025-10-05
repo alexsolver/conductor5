@@ -304,8 +304,8 @@ export class ProcessMessageUseCase {
 
       console.log(`🎫 [TICKET-CONTEXT] Adding message to ticket ${ticketId} in schema ${schemaName}`);
 
-      // Determinar sender_id (usar 'system' se não houver usuário identificado)
-      const senderId = message.metadata?.userId || message.metadata?.authorId || 'system';
+      // Determinar sender_id (usar NULL se não houver usuário identificado)
+      const senderId = message.metadata?.userId || message.metadata?.authorId || null;
       
       // Determinar tipo de mensagem baseado no canal
       const messageType = message.channelType === 'email' ? 'email' : 'comment';
