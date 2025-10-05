@@ -755,6 +755,40 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
       case 'googleai':
         return await testGoogleAI(config, res, tenantId);
 
+      // === NOVAS INTEGRAÇÕES TENANT ADMIN ===
+      case 'microsoft-365':
+        return await testMicrosoft365(config, res, tenantId);
+
+      case 'discord':
+        return await testDiscord(config, res, tenantId);
+
+      case 'oauth2-generic':
+        return await testOAuth2Generic(config, res, tenantId);
+
+      case 'azure-ad':
+        return await testAzureAD(config, res, tenantId);
+
+      case 'google-workspace-sso':
+        return await testGoogleWorkspaceSSO(config, res, tenantId);
+
+      case 'sap':
+        return await testSAP(config, res, tenantId);
+
+      case 'totvs':
+        return await testTotvs(config, res, tenantId);
+
+      case 'jira-service-management':
+        return await testJiraServiceManagement(config, res, tenantId);
+
+      case 'servicenow':
+        return await testServiceNow(config, res, tenantId);
+
+      case 'zendesk':
+        return await testZendesk(config, res, tenantId);
+
+      case 'freshdesk':
+        return await testFreshdesk(config, res, tenantId);
+
       default:
         return res.status(400).json({ 
           success: false, 
@@ -2363,6 +2397,599 @@ async function testGoogleAI(config: any, res: any, tenantId: string) {
     return res.status(500).json({
       success: false,
       message: `Erro ao testar Google AI: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Microsoft 365 Integration
+ */
+async function testMicrosoft365(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [MICROSOFT365-TEST] Starting Microsoft 365 test`);
+    
+    const { clientId, clientSecret, tenantIdMs } = config;
+    
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client ID não configurado. Configure as credenciais OAuth do Microsoft 365.'
+      });
+    }
+
+    if (!clientSecret) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client Secret não configurado. Configure o Client Secret do Microsoft 365.'
+      });
+    }
+
+    // Validação de configuração bem-sucedida
+    return res.json({
+      success: true,
+      message: '✅ Configuração do Microsoft 365 validada com sucesso!',
+      details: {
+        clientId: `${clientId.substring(0, 8)}...`,
+        configured: true,
+        timestamp: new Date().toISOString(),
+        note: 'OAuth flow requires interactive authentication'
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [MICROSOFT365-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Microsoft 365: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Discord Integration
+ */
+async function testDiscord(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [DISCORD-TEST] Starting Discord test`);
+    
+    const { webhookUrl, botToken } = config;
+    
+    if (!webhookUrl && !botToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Webhook URL ou Bot Token não configurados. Configure um dos dois para continuar.'
+      });
+    }
+
+    // Test Discord webhook if configured
+    if (webhookUrl) {
+      const testMessage = {
+        content: `🧪 **Teste de Integração Discord**\n\n✅ Tenant: ${tenantId}\n📅 Data: ${new Date().toLocaleString('pt-BR')}\n\nSe você recebeu esta mensagem, a integração está funcionando!`
+      };
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(testMessage)
+      });
+
+      if (response.ok || response.status === 204) {
+        return res.json({
+          success: true,
+          message: '✅ Teste do Discord realizado com sucesso! Mensagem enviada via webhook.',
+          details: {
+            method: 'webhook',
+            timestamp: new Date().toISOString(),
+            status: 'sent'
+          }
+        });
+      } else {
+        const errorText = await response.text();
+        return res.status(400).json({
+          success: false,
+          message: 'Erro ao enviar mensagem via Discord webhook',
+          details: {
+            status: response.status,
+            error: errorText
+          }
+        });
+      }
+    }
+
+    // If only bot token is configured
+    return res.json({
+      success: true,
+      message: '✅ Configuração do Discord validada!',
+      details: {
+        method: 'bot',
+        configured: true,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [DISCORD-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Discord: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Generic OAuth 2.0 Integration
+ */
+async function testOAuth2Generic(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [OAUTH2-TEST] Starting OAuth 2.0 test`);
+    
+    const { clientId, clientSecret, authorizationUrl, tokenUrl } = config;
+    
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client ID não configurado.'
+      });
+    }
+
+    if (!clientSecret) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client Secret não configurado.'
+      });
+    }
+
+    if (!authorizationUrl || !tokenUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'URLs de autorização e token não configuradas.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração OAuth 2.0 validada com sucesso!',
+      details: {
+        clientId: `${clientId.substring(0, 8)}...`,
+        authorizationUrl,
+        tokenUrl,
+        configured: true,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [OAUTH2-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar OAuth 2.0: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Azure AD Integration
+ */
+async function testAzureAD(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [AZUREAD-TEST] Starting Azure AD test`);
+    
+    const { clientId, clientSecret, tenantIdAzure } = config;
+    
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client ID (Application ID) não configurado.'
+      });
+    }
+
+    if (!clientSecret) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client Secret não configurado.'
+      });
+    }
+
+    if (!tenantIdAzure) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID do Azure não configurado.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração Azure AD validada com sucesso!',
+      details: {
+        clientId: `${clientId.substring(0, 8)}...`,
+        tenantId: tenantIdAzure,
+        configured: true,
+        timestamp: new Date().toISOString(),
+        note: 'SSO flow requires interactive authentication'
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [AZUREAD-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Azure AD: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Google Workspace SSO Integration
+ */
+async function testGoogleWorkspaceSSO(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [GOOGLEWORKSPACE-SSO-TEST] Starting Google Workspace SSO test`);
+    
+    const { clientId, clientSecret, domain } = config;
+    
+    if (!clientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client ID não configurado.'
+      });
+    }
+
+    if (!clientSecret) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client Secret não configurado.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração Google Workspace SSO validada com sucesso!',
+      details: {
+        clientId: `${clientId.substring(0, 8)}...`,
+        domain: domain || 'not specified',
+        configured: true,
+        timestamp: new Date().toISOString(),
+        note: 'SSO flow requires interactive authentication'
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [GOOGLEWORKSPACE-SSO-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Google Workspace SSO: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test SAP Integration
+ */
+async function testSAP(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [SAP-TEST] Starting SAP test`);
+    
+    const { baseUrl, apiKey, username, password } = config;
+    
+    if (!baseUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'SAP Base URL não configurada.'
+      });
+    }
+
+    if (!apiKey && !username) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key ou credenciais de usuário não configuradas.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração SAP validada com sucesso!',
+      details: {
+        baseUrl,
+        authMethod: apiKey ? 'API Key' : 'Username/Password',
+        configured: true,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [SAP-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar SAP: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Totvs Integration
+ */
+async function testTotvs(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [TOTVS-TEST] Starting Totvs test`);
+    
+    const { baseUrl, apiKey, username, password } = config;
+    
+    if (!baseUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Totvs Base URL não configurada.'
+      });
+    }
+
+    if (!apiKey && !username) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key ou credenciais não configuradas.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração Totvs validada com sucesso!',
+      details: {
+        baseUrl,
+        authMethod: apiKey ? 'API Key' : 'Username/Password',
+        configured: true,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [TOTVS-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Totvs: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Jira Service Management Integration
+ */
+async function testJiraServiceManagement(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [JIRA-TEST] Starting Jira Service Management test`);
+    
+    const { baseUrl, email, apiToken } = config;
+    
+    if (!baseUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Jira Base URL não configurada.'
+      });
+    }
+
+    if (!email || !apiToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email ou API Token não configurados.'
+      });
+    }
+
+    // Test Jira API
+    const response = await fetch(`${baseUrl}/rest/api/3/myself`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Jira realizado com sucesso!',
+        details: {
+          displayName: userData.displayName,
+          emailAddress: userData.emailAddress,
+          accountId: userData.accountId,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Erro ao conectar com Jira. Verifique suas credenciais.',
+        details: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [JIRA-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Jira: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test ServiceNow Integration
+ */
+async function testServiceNow(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [SERVICENOW-TEST] Starting ServiceNow test`);
+    
+    const { instanceUrl, username, password, clientId, clientSecret } = config;
+    
+    if (!instanceUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'ServiceNow Instance URL não configurada.'
+      });
+    }
+
+    if (!username && !clientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Credenciais não configuradas. Configure username/password ou OAuth credentials.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '✅ Configuração ServiceNow validada com sucesso!',
+      details: {
+        instanceUrl,
+        authMethod: clientId ? 'OAuth' : 'Basic Auth',
+        configured: true,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error(`❌ [SERVICENOW-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar ServiceNow: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Zendesk Integration
+ */
+async function testZendesk(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [ZENDESK-TEST] Starting Zendesk test`);
+    
+    const { subdomain, email, apiToken } = config;
+    
+    if (!subdomain) {
+      return res.status(400).json({
+        success: false,
+        message: 'Zendesk Subdomain não configurado.'
+      });
+    }
+
+    if (!email || !apiToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email ou API Token não configurados.'
+      });
+    }
+
+    // Test Zendesk API
+    const zendeskUrl = `https://${subdomain}.zendesk.com/api/v2/users/me.json`;
+    const auth = Buffer.from(`${email}/token:${apiToken}`).toString('base64');
+
+    const response = await fetch(zendeskUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Zendesk realizado com sucesso!',
+        details: {
+          name: data.user?.name,
+          email: data.user?.email,
+          role: data.user?.role,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Erro ao conectar com Zendesk. Verifique suas credenciais.',
+        details: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [ZENDESK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Zendesk: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Freshdesk Integration
+ */
+async function testFreshdesk(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [FRESHDESK-TEST] Starting Freshdesk test`);
+    
+    const { domain, apiKey } = config;
+    
+    if (!domain) {
+      return res.status(400).json({
+        success: false,
+        message: 'Freshdesk Domain não configurado.'
+      });
+    }
+
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key não configurada.'
+      });
+    }
+
+    // Test Freshdesk API
+    const freshdeskUrl = `https://${domain}.freshdesk.com/api/v2/agents/me`;
+    const auth = Buffer.from(`${apiKey}:X`).toString('base64');
+
+    const response = await fetch(freshdeskUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return res.json({
+        success: true,
+        message: '✅ Teste do Freshdesk realizado com sucesso!',
+        details: {
+          name: data.contact?.name,
+          email: data.contact?.email,
+          role: data.contact?.job_title,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Erro ao conectar com Freshdesk. Verifique suas credenciais.',
+        details: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [FRESHDESK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Freshdesk: ${error.message}`,
       details: { error: error.message }
     });
   }
