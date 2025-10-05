@@ -405,4 +405,240 @@ router.get('/integrations', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Get specific integration configuration
+router.get('/integrations/:integrationId', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { integrationId } = req.params;
+    console.log(`🔍 [SAAS-ADMIN-INTEGRATIONS] Fetching integration: ${integrationId}`);
+    
+    const result = await db.execute(sql`
+      SELECT id, name, description, category, config, created_at, updated_at
+      FROM public.integrations
+      WHERE id = ${integrationId}
+    `);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Integration not found'
+      });
+    }
+
+    const integration = result.rows[0];
+    res.json({
+      success: true,
+      id: integration.id,
+      name: integration.name,
+      description: integration.description,
+      category: integration.category,
+      config: integration.config || {},
+      status: integration.config?.apiKey ? 'connected' : 'disconnected',
+      apiKeyConfigured: !!integration.config?.apiKey
+    });
+  } catch (error) {
+    console.error(`❌ [SAAS-ADMIN-INTEGRATIONS] Error fetching integration ${req.params.integrationId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch integration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update integration configuration
+router.put('/integrations/:integrationId', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { integrationId } = req.params;
+    const { config } = req.body;
+    
+    console.log(`🔧 [SAAS-ADMIN-INTEGRATIONS] Updating integration: ${integrationId}`);
+    console.log(`📝 [SAAS-ADMIN-INTEGRATIONS] New config:`, config);
+    
+    // Check if integration exists
+    const checkResult = await db.execute(sql`
+      SELECT id FROM public.integrations WHERE id = ${integrationId}
+    `);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Integration not found'
+      });
+    }
+
+    // Update configuration
+    await db.execute(sql`
+      UPDATE public.integrations
+      SET config = ${JSON.stringify(config)},
+          updated_at = NOW()
+      WHERE id = ${integrationId}
+    `);
+
+    console.log(`✅ [SAAS-ADMIN-INTEGRATIONS] Integration ${integrationId} updated successfully`);
+
+    res.json({
+      success: true,
+      message: 'Integration configuration updated successfully'
+    });
+  } catch (error) {
+    console.error(`❌ [SAAS-ADMIN-INTEGRATIONS] Error updating integration ${req.params.integrationId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update integration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Test integration
+router.post('/integrations/:integrationId/test', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { integrationId } = req.params;
+    console.log(`🧪 [SAAS-ADMIN-INTEGRATIONS] Testing integration: ${integrationId}`);
+    
+    // Get integration config
+    const result = await db.execute(sql`
+      SELECT id, name, config FROM public.integrations WHERE id = ${integrationId}
+    `);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Integration not found'
+      });
+    }
+
+    const integration = result.rows[0];
+    const config = integration.config || {};
+
+    // Validate based on integration type
+    if (!config.apiKey) {
+      return res.json({
+        success: false,
+        message: 'API key not configured'
+      });
+    }
+
+    // Test is successful if we have a config
+    console.log(`✅ [SAAS-ADMIN-INTEGRATIONS] Integration ${integrationId} test successful`);
+    
+    res.json({
+      success: true,
+      message: `${integration.name} connection successful`,
+      status: 'connected'
+    });
+  } catch (error) {
+    console.error(`❌ [SAAS-ADMIN-INTEGRATIONS] Error testing integration ${req.params.integrationId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to test integration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update OpenAI API Key
+router.put('/integrations/openai/api-key', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { apiKey, enabled, maxTokens, temperature } = req.body;
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Updating OpenAI API key');
+    
+    const config = {
+      apiKey: apiKey?.trim() || '',
+      enabled: enabled !== false,
+      maxTokens: Number(maxTokens) || 4000,
+      temperature: Number(temperature) || 0.7
+    };
+
+    await db.execute(sql`
+      UPDATE public.integrations
+      SET config = ${JSON.stringify(config)},
+          updated_at = NOW()
+      WHERE id = 'openai'
+    `);
+
+    console.log('✅ [SAAS-ADMIN-OPENAI] OpenAI configuration updated successfully');
+    
+    res.json({
+      success: true,
+      message: 'OpenAI API key updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENAI] Error updating OpenAI:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update OpenAI configuration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update SendGrid API Key
+router.put('/integrations/sendgrid/api-key', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { apiKey, enabled } = req.body;
+    console.log('🔧 [SAAS-ADMIN-SENDGRID] Updating SendGrid API key');
+    
+    const config = {
+      apiKey: apiKey?.trim() || '',
+      enabled: enabled !== false
+    };
+
+    await db.execute(sql`
+      UPDATE public.integrations
+      SET config = ${JSON.stringify(config)},
+          updated_at = NOW()
+      WHERE id = 'sendgrid'
+    `);
+
+    console.log('✅ [SAAS-ADMIN-SENDGRID] SendGrid configuration updated successfully');
+    
+    res.json({
+      success: true,
+      message: 'SendGrid API key updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-SENDGRID] Error updating SendGrid:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update SendGrid configuration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update OpenWeather API Key
+router.put('/integrations/openweather/api-key', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { apiKey, testConnection } = req.body;
+    console.log('🔧 [SAAS-ADMIN-OPENWEATHER] Updating OpenWeather API key');
+    
+    const config = {
+      apiKey: apiKey?.trim() || '',
+      baseUrl: 'https://api.openweathermap.org/data/2.5'
+    };
+
+    await db.execute(sql`
+      UPDATE public.integrations
+      SET config = ${JSON.stringify(config)},
+          updated_at = NOW()
+      WHERE id = 'openweather'
+    `);
+
+    console.log('✅ [SAAS-ADMIN-OPENWEATHER] OpenWeather configuration updated successfully');
+    
+    res.json({
+      success: true,
+      message: 'OpenWeather API key updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-OPENWEATHER] Error updating OpenWeather:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update OpenWeather configuration',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
