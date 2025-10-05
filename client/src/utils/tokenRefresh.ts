@@ -1,4 +1,4 @@
-// Enhanced Token Refresh Utility
+// Enhanced Token Refresh Utility for HttpOnly Cookies
 export class TokenRefresh {
   private static refreshTimeout: NodeJS.Timeout | null = null;
   private static activityInterval: NodeJS.Timeout | null = null;
@@ -17,27 +17,15 @@ export class TokenRefresh {
     // Setup activity monitoring
     TokenRefresh.setupActivityMonitoring();
 
-    const token = localStorage.getItem('accessToken');
-    if (!token) return;
+    // ✅ HttpOnly cookies: Browser handles token storage automatically
+    // We can't read the token from JavaScript, so we rely on server-side expiry headers
+    // or scheduled refresh (every 45 minutes as a safe default)
+    console.log('⏰ [TOKEN-REFRESH] Setting up auto-refresh for HttpOnly cookies');
 
-    try {
-      // Parse token payload to check expiry
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiryTime = payload.exp * 1000;
-      const currentTime = Date.now();
-      const timeUntilExpiry = expiryTime - currentTime;
-
-      // Refresh 30 minutes before expiry, or immediately if less than 30 minutes remain
-      const refreshTime = Math.max(timeUntilExpiry - (30 * 60 * 1000), 1000);
-
-      console.log(`⏰ [TOKEN-REFRESH] Token expires in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes, refresh scheduled in ${Math.round(refreshTime / 1000 / 60)} minutes`);
-
-      TokenRefresh.refreshTimeout = setTimeout(() => {
-        TokenRefresh.performRefresh();
-      }, refreshTime);
-    } catch (error) {
-      console.warn('Failed to setup token auto-refresh:', error);
-    }
+    // Refresh every 45 minutes to keep session alive
+    TokenRefresh.refreshTimeout = setTimeout(() => {
+      TokenRefresh.performRefresh();
+    }, 45 * 60 * 1000); // 45 minutes
   }
 
   static async performRefresh(): Promise<boolean> {
@@ -49,39 +37,19 @@ export class TokenRefresh {
     TokenRefresh.isRefreshing = true;
     
     try {
-      // Try to get refresh token from localStorage as fallback
-      const refreshToken = localStorage.getItem('refreshToken');
-      
-      console.log('🔄 [TOKEN-REFRESH] Attempting refresh with token:', refreshToken ? 'present' : 'missing');
-      
-      // Always include the refresh token in the request body if we have it
-      const requestBody = refreshToken ? { refreshToken } : {};
+      // ✅ HttpOnly cookies: No need to send anything in body, cookies are sent automatically
+      console.log('🔄 [TOKEN-REFRESH] Attempting refresh using HttpOnly cookies');
       
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
-        credentials: 'include', // This ensures cookies are sent
+        credentials: 'include', // This ensures HttpOnly cookies are sent automatically
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data && data.data.tokens) {
-          // Handle the standardized response format
-          localStorage.setItem('accessToken', data.data.tokens.accessToken);
-          if (data.data.tokens.refreshToken) {
-            localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
-          }
-        } else if (data.accessToken) {
-          // Handle legacy response format
-          localStorage.setItem('accessToken', data.accessToken);
-          if (data.refreshToken) {
-            localStorage.setItem('refreshToken', data.refreshToken);
-          }
-        }
-        console.log('✅ [TOKEN-REFRESH] Token refreshed successfully');
+        console.log('✅ [TOKEN-REFRESH] Token refreshed successfully via HttpOnly cookies');
         
         // Setup next auto-refresh
         TokenRefresh.setupAutoRefresh();
@@ -94,21 +62,12 @@ export class TokenRefresh {
           error: errorData.error
         });
         
-        // Clear tokens if refresh failed due to invalid token
+        // If refresh failed with 401, session expired - redirect to login
         if (response.status === 401) {
-          console.log('🔄 [TOKEN-REFRESH] Clearing invalid tokens due to 401');
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          
-          // If the refresh token is invalid, user needs to login again
-          if (errorData.message?.includes('Invalid refresh token') || 
-              errorData.message?.includes('expired') ||
-              errorData.message?.includes('malformed')) {
-            console.log('🔄 [TOKEN-REFRESH] Refresh token is invalid, redirecting to login');
-            // Only redirect if we're not already on the login page
-            if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
-              window.location.href = '/auth';
-            }
+          console.log('🔄 [TOKEN-REFRESH] Session expired, redirecting to login');
+          // Only redirect if we're not already on the login page
+          if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
+            window.location.href = '/auth';
           }
         }
         return false;
@@ -142,64 +101,49 @@ export class TokenRefresh {
       document.addEventListener(event, updateActivity, true);
     });
 
-    // Check token status every 2 minutes
+    // Check activity every 2 minutes
     TokenRefresh.activityInterval = setInterval(() => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
+      const currentTime = Date.now();
+      const timeSinceActivity = currentTime - TokenRefresh.lastActivity;
 
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const expiryTime = payload.exp * 1000;
-        const currentTime = Date.now();
-        const timeUntilExpiry = expiryTime - currentTime;
-        const timeSinceActivity = currentTime - TokenRefresh.lastActivity;
-
-        // If user was active in the last 10 minutes and token expires in less than 45 minutes
-        if (timeSinceActivity < (10 * 60 * 1000) && timeUntilExpiry < (45 * 60 * 1000)) {
-          console.log('🔄 [TOKEN-REFRESH] User is active, refreshing token preemptively');
-          TokenRefresh.performRefresh();
-        }
-      } catch (error) {
-        console.warn('⚠️ [TOKEN-REFRESH] Error checking token in activity monitor:', error);
+      // ✅ HttpOnly cookies: If user was active in the last 10 minutes, refresh token preemptively
+      // This keeps the session alive while the user is actively using the app
+      if (timeSinceActivity < (10 * 60 * 1000)) {
+        console.log('🔄 [TOKEN-REFRESH] User is active, refreshing token preemptively');
+        TokenRefresh.performRefresh();
       }
     }, 2 * 60 * 1000); // Check every 2 minutes
   }
 }
 
-// Enhanced fetch wrapper with automatic token refresh
+// Enhanced fetch wrapper with automatic token refresh (HttpOnly cookies)
 export const apiRequestWithRefresh = async (
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> => {
-  const token = localStorage.getItem('accessToken');
-  
+  // ✅ HttpOnly cookies: No need to manually add Authorization header
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers
   };
 
   let response = await fetch(url, {
     ...options,
-    credentials: 'include', // Always include credentials for cookies
+    credentials: 'include', // Always include HttpOnly cookies
     headers
   });
 
-  // If 401, try refreshing regardless of whether we have a local token
+  // If 401, try refreshing token
   if (response.status === 401) {
     console.log('🔄 [API-REQUEST] 401 detected, attempting token refresh');
     const refreshed = await TokenRefresh.performRefresh();
     
     if (refreshed) {
-      // Retry request with new token
-      const newToken = localStorage.getItem('accessToken');
+      // Retry request - new cookies are set automatically by the server
       response = await fetch(url, {
         ...options,
         credentials: 'include',
-        headers: {
-          ...headers,
-          ...(newToken && { Authorization: `Bearer ${newToken}` })
-        }
+        headers
       });
     }
   }

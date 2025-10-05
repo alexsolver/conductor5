@@ -191,10 +191,9 @@ export default function TenantAdminIntegrations() {
     const response = await fetch('/api/tenant-admin/integrations', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         'Content-Type': 'application/json'
       },
-      credentials: 'include'
+      credentials: 'include' // Use HttpOnly cookies for authentication
     });
 
     if (!response.ok) {
@@ -241,9 +240,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integrationId}/test`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`, // Use accessToken consistently
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include' // Use HttpOnly cookies for authentication
       });
 
       console.log('🧪 [TESTE-INTEGRAÇÃO] Response status:', response.status);
@@ -358,9 +357,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use HttpOnly cookies for authentication
         body: JSON.stringify({ webhookUrl })
       });
 
@@ -418,9 +417,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/set-webhook', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use HttpOnly cookies for authentication
         body: JSON.stringify({ 
           useDefault: true 
         })
@@ -483,9 +482,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/tenant-admin/integrations/telegram/webhook-status', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include' // Use HttpOnly cookies for authentication
       });
 
       console.log('📊 [WEBHOOK-STATUS] Response status:', response.status);
@@ -539,10 +538,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch('/api/auth/user', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include' // Use HttpOnly cookies for authentication
       });
 
       if (response.ok) {
@@ -887,11 +885,10 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/config`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include' // Use HttpOnly cookies for authentication
       });
 
       console.log(`🔍 [CONFIG-LOAD] Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
@@ -1117,9 +1114,9 @@ export default function TenantAdminIntegrations() {
       const response = await fetch(`/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use HttpOnly cookies for authentication
         body: JSON.stringify({ redirectUri }) // Send redirect URI to backend
       });
 
@@ -1289,9 +1286,9 @@ export default function TenantAdminIntegrations() {
         const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json'
-          }
+          },
+          credentials: 'include' // Use HttpOnly cookies for authentication
         });
         if (configResponse.ok) {
           const configResult = await configResponse.json();
