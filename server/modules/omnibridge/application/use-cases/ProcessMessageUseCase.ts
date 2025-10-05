@@ -351,9 +351,8 @@ export class ProcessMessageUseCase {
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_messages 
         (id, tenant_id, ticket_id, sender_id, content, is_internal, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
       `, [
-        `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         tenantId,
         ticketId,
         senderId,

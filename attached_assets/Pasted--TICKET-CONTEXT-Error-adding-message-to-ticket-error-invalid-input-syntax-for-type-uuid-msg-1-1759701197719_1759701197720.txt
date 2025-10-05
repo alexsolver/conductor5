@@ -1,0 +1,50 @@
+❌ [TICKET-CONTEXT] Error adding message to ticket: error: invalid input syntax for type uuid: "msg-1759701174512-6l4vrt9yq"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at ProcessMessageUseCase.addMessageToTicket (/home/runner/workspace/server/modules/omnibridge/application/use-cases/ProcessMessageUseCase.ts:351:7)
+    at ProcessMessageUseCase.processDirectMessage (/home/runner/workspace/server/modules/omnibridge/application/use-cases/ProcessMessageUseCase.ts:203:11)
+    at MessageIngestionService.processTelegramWebhook (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/MessageIngestionService.ts:126:36)
+    at <anonymous> (/home/runner/workspace/server/routes/webhooks.ts:49:22) {
+  length: 159,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'uuid.c',
+  line: '133',
+  routine: 'string_to_uuid'
+}
+❌ [ProcessMessageUseCase] Failed to add direct message to ticket: error: invalid input syntax for type uuid: "msg-1759701174512-6l4vrt9yq"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at ProcessMessageUseCase.addMessageToTicket (/home/runner/workspace/server/modules/omnibridge/application/use-cases/ProcessMessageUseCase.ts:351:7)
+    at ProcessMessageUseCase.processDirectMessage (/home/runner/workspace/server/modules/omnibridge/application/use-cases/ProcessMessageUseCase.ts:203:11)
+    at MessageIngestionService.processTelegramWebhook (/home/runner/workspace/server/modules/omnibridge/infrastructure/services/MessageIngestionService.ts:126:36)
+    at <anonymous> (/home/runner/workspace/server/routes/webhooks.ts:49:22) {
+  length: 159,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'uuid.c',
+  line: '133',
+  routine: 'string_to_uuid'
+}
