@@ -520,7 +520,8 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
       });
     }
 
-    if (!configResult || !configResult.config) {
+    // ✅ CRITICAL FIX: getTenantIntegrationConfig returns config directly, not wrapped
+    if (!configResult || typeof configResult !== 'object') {
       return res.status(404).json({
         success: false,
         message: 'Integração não configurada. Configure a integração antes de testá-la.'
@@ -530,7 +531,7 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
     // ✅ CRITICAL FIX: Test based on integration type with comprehensive error handling
     if (integrationId === 'telegram') {
       try {
-        const config = configResult.config;
+        const config = configResult;
         console.log(`🔍 [TELEGRAM-TEST] Config validation started`);
 
         // ✅ VALIDATION: Check required configuration fields
@@ -689,7 +690,8 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
     }
 
     // ✅ REAL TESTS: Implement real API tests for all integrations
-    const config = configResult.config;
+    // ✅ CRITICAL FIX: configResult IS the config object, not wrapped
+    const config = configResult;
     
     switch (integrationId) {
       case 'gmail-oauth2':
