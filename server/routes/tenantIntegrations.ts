@@ -469,12 +469,17 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
     res.setHeader('Cache-Control', 'no-cache');
 
     console.log(`🧪 [TESTE-INTEGRAÇÃO] Iniciando teste para integração: ${req.params.integrationId}`);
+    console.log(`🧪 [TEST-DEBUG] User:`, req.user);
+    console.log(`🧪 [TEST-DEBUG] Params:`, req.params);
 
     const { integrationId } = req.params;
     const tenantId = req.user?.tenantId;
 
+    console.log(`🧪 [TEST-DEBUG] integrationId: ${integrationId}, tenantId: ${tenantId}`);
+
     // ✅ VALIDATION: Early validation with proper error response
     if (!tenantId) {
+      console.log(`❌ [TEST-DEBUG] No tenantId found`);
       return res.status(400).json({ 
         success: false, 
         message: 'User not associated with a tenant' 
@@ -483,6 +488,7 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
 
     // ✅ VALIDATION: Integration ID validation
     if (!integrationId || typeof integrationId !== 'string') {
+      console.log(`❌ [TEST-DEBUG] Invalid integrationId: ${integrationId}`);
       return res.status(400).json({
         success: false,
         message: 'Invalid integration ID provided'
