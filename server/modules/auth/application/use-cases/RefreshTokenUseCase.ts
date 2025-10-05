@@ -79,8 +79,14 @@ export class RefreshTokenUseCase {
         throw error; // Re-throw the error from the domain service
       }
 
-      // Find user to generate new tokens
-      const user = await this.userRepository.findById(session.userId);
+      // Find user to generate new tokens with tenant context (1qa.md compliance)
+      // Use tenantId from decoded token
+      const tenantId = decoded.tenantId;
+      if (!tenantId) {
+        throw new Error('Tenant ID not found in token');
+      }
+
+      const user = await this.userRepository.findByIdAndTenant(session.userId, tenantId);
       if (!user) {
         // Invalidate session for non-existent user
         await this.authRepository.invalidateSession(session.id);

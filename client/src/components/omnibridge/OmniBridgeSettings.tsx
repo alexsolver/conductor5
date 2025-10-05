@@ -203,7 +203,13 @@ export default function OmniBridgeSettings() {
   useEffect(() => {
     if (settings?.success && settings?.data) {
       console.log('Loading settings:', settings.data);
-      setLocalSettings(settings.data);
+      // Merge loaded settings with defaults to ensure ai field exists
+      setLocalSettings(prev => ({
+        ...prev,
+        ...settings.data,
+        // Ensure ai field exists with defaults if not present
+        ai: settings.data.ai || prev.ai
+      }));
     }
   }, [settings]);
 
