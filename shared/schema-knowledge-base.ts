@@ -66,49 +66,42 @@ export const knowledgeBaseApprovalStatusEnum = pgEnum("knowledge_base_approval_s
 // KNOWLEDGE BASE MAIN TABLES
 // ========================================
 
-// Knowledge Base Articles - Exactly matching existing database structure
+// Knowledge Base Articles - REAL DATABASE STRUCTURE (verified from database)
 export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
 
-  // Basic Article Info - matching actual DB structure
+  // Basic Article Info
   title: varchar("title", { length: 500 }).notNull(),
   content: text("content"),
   excerpt: text("excerpt"),
 
   // Authoring
-  authorId: uuid("author_id"),
+  authorId: uuid("author_id").notNull(),
 
-  // Categorization - using enum as in actual DB (corrected field name)
-  category: knowledgeBaseCategoryEnum("category").default("other"),
+  // Categorization - REAL: category_id (UUID reference), not category enum
+  categoryId: uuid("category_id"),
   
-  // Status & Visibility - using enums as in actual DB
-  status: knowledgeBaseStatusEnum("status"),
-  visibility: knowledgeBaseVisibilityEnum("visibility"),
-  approvalStatus: knowledgeBaseApprovalStatusEnum("approval_status"),
+  // Status - REAL: VARCHAR, not enum
+  status: varchar("status", { length: 50 }),
 
-  // Tags as JSONB like in actual DB
-  tags: jsonb("tags").default(sql`'[]'::jsonb`),
+  // Visibility - REAL: is_public (boolean), not visibility enum
+  isPublic: boolean("is_public").default(true),
 
-  // Counters
-  viewCount: integer("view_count").default(0),
-  helpfulCount: integer("helpful_count").default(0),
-  notHelpfulCount: integer("not_helpful_count").default(0),
+  // Tags - REAL: TEXT ARRAY, not JSONB
+  tags: text("tags").array(),
 
-  // Features
-  featured: boolean("featured").default(false),
+  // Counters - REAL: views_count (not view_count)
+  viewsCount: integer("views_count").default(0),
 
-  // SEO
-  seoTitle: varchar("seo_title", { length: 255 }),
-  seoDescription: varchar("seo_description", { length: 500 }),
-  slug: varchar("slug", { length: 500 }),
+  // Rich Content
+  richContent: jsonb("rich_content"),
+  
+  // Search
+  searchKeywords: text("search_keywords"),
 
-  // Publishing
-  publishedAt: timestamp("published_at"),
-  archivedAt: timestamp("archived_at"),
-
-  // Metadata
-  metadata: jsonb("metadata").default(sql`'{}'::jsonb`),
+  // Active Flag
+  isActive: boolean("is_active").default(true),
 
   // Audit
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -117,7 +110,7 @@ export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
   // TENANT ISOLATION: Critical indexes for multi-tenant performance
   index("kb_articles_tenant_idx").on(table.tenantId),
   index("kb_articles_tenant_status_idx").on(table.tenantId, table.status),
-  index("kb_articles_tenant_category_idx").on(table.tenantId, table.category),
+  index("kb_articles_tenant_category_idx").on(table.tenantId, table.categoryId),
   index("kb_articles_tenant_author_idx").on(table.tenantId, table.authorId),
   index("kb_articles_tenant_created_idx").on(table.tenantId, table.createdAt),
 
@@ -270,22 +263,23 @@ export const knowledgeBaseSearchLogs = pgTable("knowledge_base_search_logs", {
 // ZOD SCHEMAS FOR VALIDATION
 // ========================================
 
-// Article schemas
+// Article schemas - Updated to match real database structure
 export const insertKnowledgeBaseArticleSchema = createInsertSchema(knowledgeBaseArticles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  viewCount: true,
-  helpfulCount: true,
-  notHelpfulCount: true,
+  viewsCount: true,
+  isActive: true,
 }).extend({
   title: z.string().min(1, "Título é obrigatório").max(500, "Título muito longo"),
-  content: z.string().min(1, "Conteúdo é obrigatório"),
+  content: z.string().optional(),
   excerpt: z.string().optional(),
-  category: z.enum(["technical_support", "troubleshooting", "user_guide", "faq", "policy", "process", "training", "announcement", "best_practice", "configuration", "other"]).optional().default("other"),
-  status: z.enum(["draft", "pending_approval", "approved", "published", "archived", "rejected"]).optional().default("draft"),
-  visibility: z.enum(["public", "internal", "restricted", "private"]).optional().default("public"),
-  tags: z.array(z.string()).optional().default([]),
+  categoryId: z.string().uuid().optional(),
+  status: z.string().optional().default("draft"),
+  isPublic: z.boolean().optional().default(true),
+  tags: z.array(z.string()).optional(),
+  searchKeywords: z.string().optional(),
+  richContent: z.any().optional(),
 });
 
 export const updateKnowledgeBaseArticleSchema = insertKnowledgeBaseArticleSchema.partial().extend({
