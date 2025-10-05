@@ -2415,9 +2415,12 @@ export class DatabaseStorage implements IStorage {
 
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     try {
+      console.log('🔍 [GET-INTEGRATIONS] Starting fetch for tenant:', tenantId);
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      console.log('🔍 [GET-INTEGRATIONS] Schema:', schemaName);
 
       const result = await tenantDb.execute(sql`
         SELECT id, name, description, config, created_at, updated_at
@@ -2426,8 +2429,10 @@ export class DatabaseStorage implements IStorage {
         ORDER BY name
       `);
 
+      console.log('✅ [GET-INTEGRATIONS] Query succeeded, rows:', result.rows?.length || 0);
       return result.rows || [];
     } catch (error) {
+      console.error('❌ [GET-INTEGRATIONS] Error fetching tenant integrations:', error);
       logError("Error fetching tenant integrations", error, { tenantId });
       return [];
     }
