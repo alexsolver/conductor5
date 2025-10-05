@@ -469,7 +469,7 @@ router.put('/integrations/:integrationId', async (req: AuthenticatedRequest, res
     // Update configuration
     await db.execute(sql`
       UPDATE public.integrations
-      SET config = ${JSON.stringify(config)},
+      SET config = ${JSON.stringify(config)}::jsonb,
           updated_at = NOW()
       WHERE id = ${integrationId}
     `);
@@ -552,7 +552,7 @@ router.put('/integrations/openai/api-key', async (req: AuthenticatedRequest, res
 
     await db.execute(sql`
       UPDATE public.integrations
-      SET config = ${JSON.stringify(config)},
+      SET config = ${JSON.stringify(config)}::jsonb,
           updated_at = NOW()
       WHERE id = 'openai'
     `);
@@ -586,7 +586,7 @@ router.put('/integrations/sendgrid/api-key', async (req: AuthenticatedRequest, r
 
     await db.execute(sql`
       UPDATE public.integrations
-      SET config = ${JSON.stringify(config)},
+      SET config = ${JSON.stringify(config)}::jsonb,
           updated_at = NOW()
       WHERE id = 'sendgrid'
     `);
@@ -620,7 +620,7 @@ router.put('/integrations/openweather/api-key', async (req: AuthenticatedRequest
 
     await db.execute(sql`
       UPDATE public.integrations
-      SET config = ${JSON.stringify(config)},
+      SET config = ${JSON.stringify(config)}::jsonb,
           updated_at = NOW()
       WHERE id = 'openweather'
     `);
