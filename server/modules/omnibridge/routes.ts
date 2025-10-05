@@ -184,7 +184,8 @@ router.post('/ai-response-configurations/preview', jwtAuth, async (req, res) => 
     }
 
     const { AIAnalysisService } = await import('./infrastructure/services/AIAnalysisService');
-    const aiService = new AIAnalysisService();
+    const { storage } = await import('../../storage-simple');
+    const aiService = new AIAnalysisService(storage);
     
     // Analyze test message
     const analysis = await aiService.analyzeMessage({
@@ -193,7 +194,7 @@ router.post('/ai-response-configurations/preview', jwtAuth, async (req, res) => 
       subject: 'Teste de Configuração de IA',
       channel: 'email',
       timestamp: new Date().toISOString()
-    });
+    }, undefined, tenantId);
 
     // Generate response with configuration
     const response = await aiService.generateResponse(
@@ -203,7 +204,9 @@ router.post('/ai-response-configurations/preview', jwtAuth, async (req, res) => 
         customInstructions: configuration.customInstructions,
         tone: configuration.tone,
         language: configuration.language
-      }
+      },
+      undefined,
+      tenantId
     );
 
     // Apply template if provided

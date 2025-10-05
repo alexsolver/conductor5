@@ -513,17 +513,18 @@ export class ActionExecutor implements IActionExecutorPort {
         console.log(`⚠️ [ActionExecutor] AI service not available, creating mock service`);
 
         // Import AI service dinamicamente se não estiver disponível
-        const { AIAnalysisService } = await import('./AIAnalysisService'); // Assumindo que este arquivo existe e exporta AIAnalysisService
-        const aiService = new AIAnalysisService();
+        const { AIAnalysisService } = await import('./AIAnalysisService');
+        const { storage } = await import('../../../../storage-simple');
+        const aiService = new AIAnalysisService(storage);
 
-        // Usar o serviço para gerar resposta
+        // Usar o serviço para gerar resposta (passando tenantId do context)
         const messageAnalysis = context.aiAnalysis || await aiService.analyzeMessage({
           content: context.messageData.content || context.messageData.body || '',
           sender: context.messageData.from || context.messageData.sender || 'Anônimo',
           subject: context.messageData.subject || '',
           channel: context.messageData.channel || context.messageData.channelType || 'sistema',
           timestamp: new Date().toISOString()
-        });
+        }, undefined, context.tenantId);
 
         const aiResponse = await aiService.generateResponse(
           messageAnalysis,
@@ -535,7 +536,9 @@ export class ActionExecutor implements IActionExecutorPort {
             language: action.params?.language || 'pt-BR',
             template: action.params?.template,
             includeOriginalMessage: action.params?.includeOriginalMessage || false
-          }
+          },
+          undefined,
+          context.tenantId
         );
 
         // Salvar resposta como mensagem de resposta
@@ -599,14 +602,14 @@ export class ActionExecutor implements IActionExecutorPort {
         };
       }
 
-      // Se AI service está disponível, usar diretamente
+      // Se AI service está disponível, usar diretamente (passando tenantId do context)
       const messageAnalysis = context.aiAnalysis || await this.aiService.analyzeMessage({
         content: context.messageData.content || context.messageData.body || '',
         sender: context.messageData.from || context.messageData.sender || 'Anônimo',
         subject: context.messageData.subject || '',
         channel: context.messageData.channel || context.messageData.channelType || 'sistema',
         timestamp: new Date().toISOString()
-      });
+      }, undefined, context.tenantId);
 
       const aiResponse = await this.aiService.generateResponse(
         messageAnalysis,
@@ -616,7 +619,9 @@ export class ActionExecutor implements IActionExecutorPort {
           customInstructions: action.params?.customInstructions || action.params?.instructions,
           tone: action.params?.tone || 'professional',
           language: action.params?.language || 'pt-BR'
-        }
+        },
+        undefined,
+        context.tenantId
       );
 
       return {

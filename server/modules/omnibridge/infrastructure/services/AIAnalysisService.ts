@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { IAIAnalysisPort, MessageData, MessageAnalysis } from '../../domain/ports/IAIAnalysisPort';
+import { getTenantAIConfigService } from '../../../../services/tenant-ai-config';
+import type { StorageSimple } from '../../../../storage-simple';
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 
@@ -17,14 +19,29 @@ export interface AIPromptConfig {
 }
 
 export class AIAnalysisService implements IAIAnalysisPort {
-  private openai: OpenAI;
   private defaultPrompts: Map<string, AIPromptConfig> = new Map();
+  private storage: StorageSimple;
 
-  constructor() {
-    this.openai = new OpenAI({ 
-      apiKey: process.env.OPENAI_API_KEY 
-    });
+  constructor(storage: StorageSimple) {
+    this.storage = storage;
     this.initializeDefaultPrompts();
+  }
+
+  /**
+   * Get OpenAI client with tenant-specific API key
+   */
+  private async getOpenAIClient(tenantId: string): Promise<OpenAI> {
+    const aiConfigService = getTenantAIConfigService(this.storage);
+    const providerConfig = await aiConfigService.getPreferredAIProvider(tenantId);
+
+    if (providerConfig && providerConfig.provider === 'openai') {
+      console.log(`🤖 [AI-CONFIG] Using tenant-specific OpenAI key for tenant: ${tenantId}`);
+      return new OpenAI({ apiKey: providerConfig.apiKey });
+    }
+
+    // Fallback to environment variable
+    console.log(`⚠️ [AI-CONFIG] No tenant-specific OpenAI key found, using environment variable for tenant: ${tenantId}`);
+    return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
 
   private initializeDefaultPrompts(): void {
@@ -112,9 +129,18 @@ Gere uma resposta profissional e empática em português.`,
     this.defaultPrompts.set('response', responsePrompt);
   }
 
-  async analyzeMessage(messageData: MessageData, customPrompt?: AIPromptConfig): Promise<MessageAnalysis> {
+  async analyzeMessage(messageData: MessageData, customPrompt?: AIPromptConfig, tenantId?: string): Promise<MessageAnalysis> {
     try {
       const prompt = customPrompt || this.defaultPrompts.get('analysis')!;
+      
+      // Require tenantId for OmniBridge context
+      if (!tenantId) {
+        console.error('❌ [AI-ANALYSIS] tenantId is required for analyzeMessage');
+        throw new Error('tenantId is required for AI analysis');
+      }
+
+      // Get tenant-specific OpenAI client
+      const openai = await this.getOpenAIClient(tenantId);
       
       // Substituir variáveis no template do prompt
       const userPrompt = prompt.userPromptTemplate
@@ -124,9 +150,9 @@ Gere uma resposta profissional e empática em português.`,
         .replace('{content}', messageData.content)
         .replace('{timestamp}', messageData.timestamp || new Date().toISOString());
 
-      console.log(`🤖 [AI-ANALYSIS] Analyzing message from ${messageData.sender} via ${messageData.channel}`);
+      console.log(`🤖 [AI-ANALYSIS] Analyzing message from ${messageData.sender} via ${messageData.channel} for tenant ${tenantId}`);
 
-      const response = await this.openai.chat.completions.create({
+      const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           {
@@ -179,8 +205,17 @@ Gere uma resposta profissional e empática em português.`,
     }
   }
 
-  async generateResponse(analysisData: MessageAnalysis, originalMessage: string, context?: any, customPrompt?: AIPromptConfig): Promise<string> {
+  async generateResponse(analysisData: MessageAnalysis, originalMessage: string, context?: any, customPrompt?: AIPromptConfig, tenantId?: string): Promise<string> {
     try {
+      // Require tenantId for OmniBridge context
+      if (!tenantId) {
+        console.error('❌ [AI-RESPONSE] tenantId is required for generateResponse');
+        throw new Error('tenantId is required for AI response generation');
+      }
+
+      // Get tenant-specific OpenAI client
+      const openai = await this.getOpenAIClient(tenantId);
+
       const prompt = customPrompt || this.defaultPrompts.get('response')!;
       
       // Enhanced system prompt based on context
@@ -218,9 +253,9 @@ Gere uma resposta profissional e empática em português.`,
         .replace('{channel}', context?.channel || 'Desconhecido')
         .replace('{context}', context ? JSON.stringify(context, null, 2) : 'Nenhum contexto adicional');
 
-      console.log(`🤖 [AI-RESPONSE] Generating response for ${analysisData.intent} message with tone: ${context?.tone || 'default'}`);
+      console.log(`🤖 [AI-RESPONSE] Generating response for ${analysisData.intent} message with tone: ${context?.tone || 'default'} for tenant ${tenantId}`);
 
-      const response = await this.openai.chat.completions.create({
+      const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           {
@@ -257,9 +292,18 @@ Gere uma resposta profissional e empática em português.`,
     }
   }
 
-  async classifyIntent(text: string): Promise<{intent: string, confidence: number}> {
+  async classifyIntent(text: string, tenantId?: string): Promise<{intent: string, confidence: number}> {
     try {
-      const response = await this.openai.chat.completions.create({
+      // Require tenantId for OmniBridge context
+      if (!tenantId) {
+        console.error('❌ [AI-CLASSIFICATION] tenantId is required for classifyIntent');
+        throw new Error('tenantId is required for AI classification');
+      }
+
+      // Get tenant-specific OpenAI client
+      const openai = await this.getOpenAIClient(tenantId);
+
+      const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
           {
