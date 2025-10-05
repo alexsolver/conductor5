@@ -1761,7 +1761,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
 
     const query = `
       SELECT 
-        tc.id,
+        tc.id::text,
         tc.communication_type as channel,
         tc.direction,
         tc.direction as status,
