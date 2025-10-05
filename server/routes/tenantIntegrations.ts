@@ -211,35 +211,59 @@ router.get('/:integrationId/config', async (req: any, res: any) => {
 
     // ✅ SECURITY: Retornar dados mascarados para segurança
     // Note: configResult is already the config object directly, not wrapped
+    
+    // Map generic fields back to provider-specific fields
+    const configData: any = {
+      // Mascarar dados sensíveis
+      apiKey: configResult.apiKey ? '••••••••' : '',
+      apiSecret: configResult.apiSecret ? '••••••••' : '',
+      clientSecret: configResult.clientSecret ? '••••••••' : '',
+      password: configResult.password ? '••••••••' : '',
+      accessToken: configResult.accessToken ? '••••••••' : '',
+      refreshToken: configResult.refreshToken ? '••••••••' : '',
+      dropboxAppSecret: configResult.dropboxAppSecret ? '••••••••' : '',
+      dropboxAccessToken: configResult.dropboxAccessToken ? '••••••••' : '',
+      // ✅ TELEGRAM SPECIFIC: Mascarar token do Telegram mas manter Chat ID
+      telegramBotToken: configResult.telegramBotToken ? '••••••••' : '',
+      telegramChatId: configResult.telegramChatId || '',
+      // Manter outros campos não sensíveis
+      enabled: configResult.enabled,
+      clientId: configResult.clientId,
+      redirectUri: configResult.redirectUri,
+      webhookUrl: configResult.webhookUrl,
+      telegramWebhookUrl: configResult.telegramWebhookUrl,
+      imapServer: configResult.imapServer,
+      imapPort: configResult.imapPort,
+      imapSecurity: configResult.imapSecurity,
+      emailAddress: configResult.emailAddress,
+      useSSL: configResult.useSSL,
+      backupFolder: configResult.backupFolder,
+      settings: configResult.settings || {},
+      // AI Provider fields
+      baseUrl: configResult.baseUrl || '',
+      model: configResult.model || '',
+      maxTokens: configResult.maxTokens,
+      temperature: configResult.temperature,
+      topP: configResult.topP,
+      frequencyPenalty: configResult.frequencyPenalty,
+      presencePenalty: configResult.presencePenalty,
+    };
+    
+    // Add provider-specific mapped fields
+    if (integrationId === 'openai') {
+      configData.openaiApiKey = configResult.apiKey ? '••••••••' : '';
+      configData.openaiModel = configResult.model || '';
+    } else if (integrationId === 'deepseek') {
+      configData.deepseekApiKey = configResult.apiKey ? '••••••••' : '';
+      configData.deepseekModel = configResult.model || '';
+    } else if (integrationId === 'googleai') {
+      configData.googleaiApiKey = configResult.apiKey ? '••••••••' : '';
+      configData.googleaiModel = configResult.model || '';
+    }
+    
     const maskedConfig = {
       configured: true,
-      config: {
-        // Mascarar dados sensíveis
-        apiKey: configResult.apiKey ? '••••••••' : '',
-        apiSecret: configResult.apiSecret ? '••••••••' : '',
-        clientSecret: configResult.clientSecret ? '••••••••' : '',
-        password: configResult.password ? '••••••••' : '',
-        accessToken: configResult.accessToken ? '••••••••' : '',
-        refreshToken: configResult.refreshToken ? '••••••••' : '',
-        dropboxAppSecret: configResult.dropboxAppSecret ? '••••••••' : '',
-        dropboxAccessToken: configResult.dropboxAccessToken ? '••••••••' : '',
-        // ✅ TELEGRAM SPECIFIC: Mascarar token do Telegram mas manter Chat ID
-        telegramBotToken: configResult.telegramBotToken ? '••••••••' : '',
-        telegramChatId: configResult.telegramChatId || '',
-        // Manter outros campos não sensíveis
-        enabled: configResult.enabled,
-        clientId: configResult.clientId,
-        redirectUri: configResult.redirectUri,
-        webhookUrl: configResult.webhookUrl,
-        telegramWebhookUrl: configResult.telegramWebhookUrl,
-        imapServer: configResult.imapServer,
-        imapPort: configResult.imapPort,
-        imapSecurity: configResult.imapSecurity,
-        emailAddress: configResult.emailAddress,
-        useSSL: configResult.useSSL,
-        backupFolder: configResult.backupFolder,
-        settings: configResult.settings || {},
-      }
+      config: configData
     };
 
     console.log(`✅ [GET config route] Retornando config mascarada para ${integrationId}`);
@@ -270,6 +294,21 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
 
     console.log(`💾 [SAVE-CONFIG] Salvando config para tenant: ${tenantId}, integration: ${integrationId}`);
     console.log(`💾 [SAVE-CONFIG] Body recebido:`, req.body);
+
+    // Map AI provider specific fields to generic apiKey field
+    let apiKeyValue = req.body.apiKey || '';
+    let modelValue = req.body.model || '';
+    
+    if (integrationId === 'openai') {
+      apiKeyValue = req.body.openaiApiKey || req.body.apiKey || '';
+      modelValue = req.body.openaiModel || req.body.model || '';
+    } else if (integrationId === 'deepseek') {
+      apiKeyValue = req.body.deepseekApiKey || req.body.apiKey || '';
+      modelValue = req.body.deepseekModel || req.body.model || '';
+    } else if (integrationId === 'googleai') {
+      apiKeyValue = req.body.googleaiApiKey || req.body.apiKey || '';
+      modelValue = req.body.googleaiModel || req.body.model || '';
+    }
 
     // Validate required fields for Telegram
     if (integrationId === 'telegram') {
@@ -315,14 +354,14 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
       clientSecret: req.body.clientSecret || '',
       redirectUri: req.body.redirectUri || '',
       // Traditional fields
-      apiKey: req.body.apiKey || '',
+      apiKey: apiKeyValue,
       apiSecret: req.body.apiSecret || '',
       webhookUrl: req.body.webhookUrl || '',
       accessToken: req.body.accessToken || '',
       refreshToken: req.body.refreshToken || '',
       // AI Provider specific fields (OpenAI, DeepSeek, Google AI)
       baseUrl: req.body.baseUrl || '',
-      model: req.body.model || '',
+      model: modelValue,
       maxTokens: req.body.maxTokens ? Number(req.body.maxTokens) : undefined,
       temperature: req.body.temperature !== undefined ? Number(req.body.temperature) : undefined,
       topP: req.body.topP !== undefined ? Number(req.body.topP) : undefined,
