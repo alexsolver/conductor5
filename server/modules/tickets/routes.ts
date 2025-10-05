@@ -2053,6 +2053,26 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       });
     }
 
+    // 🎯 CONVERSATION ID: Gerar/obter conversationId único para esta thread
+    let conversationId: string;
+    try {
+      const ticketQuery = `SELECT metadata FROM "${schemaName}".tickets WHERE id = $1`;
+      const ticketResult = await pool.query(ticketQuery, [id]);
+      const ticketMetadata = ticketResult.rows[0]?.metadata || {};
+      
+      // Se já existe conversationId, reutilizar; senão, gerar novo
+      if (ticketMetadata.conversationId) {
+        conversationId = ticketMetadata.conversationId;
+        console.log(`💬 [CONVERSATION] Reusing existing conversationId: ${conversationId}`);
+      } else {
+        conversationId = crypto.randomUUID();
+        console.log(`💬 [CONVERSATION] Generated NEW conversationId: ${conversationId}`);
+      }
+    } catch (err) {
+      console.error('❌ [CONVERSATION] Error managing conversationId:', err);
+      conversationId = crypto.randomUUID(); // Fallback
+    }
+
     // Send message via the appropriate channel
     let sendSuccess = false;
     let sendError: string | null = null;
@@ -2109,17 +2129,25 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
             sendSuccess = true;
             console.log('✅ [TELEGRAM] Message sent successfully:', telegramResult);
             
-            // 🎯 CRITICAL: Save chatId to ticket metadata for future reply linking
+            // 🎯 CRITICAL: Save chatId AND conversationId to ticket metadata for future reply linking
             try {
               const ticketUpdateQuery = `
                 UPDATE "${schemaName}".tickets 
-                SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('chatId', $1::text)
-                WHERE id = $2 AND tenant_id = $3
+                SET metadata = jsonb_set(
+                  jsonb_set(COALESCE(metadata, '{}'::jsonb), '{chatId}', $1), 
+                  '{conversationId}', $2
+                )
+                WHERE id = $3 AND tenant_id = $4
               `;
-              await pool.query(ticketUpdateQuery, [targetChatId.toString(), id, tenantId]);
-              console.log(`✅ [TELEGRAM] Saved chatId ${targetChatId} to ticket ${id} metadata for reply tracking`);
+              await pool.query(ticketUpdateQuery, [
+                JSON.stringify(targetChatId.toString()), 
+                JSON.stringify(conversationId),
+                id, 
+                tenantId
+              ]);
+              console.log(`✅ [TELEGRAM] Saved chatId ${targetChatId} AND conversationId ${conversationId} to ticket ${id}`);
             } catch (metadataError) {
-              console.error('⚠️ [TELEGRAM] Failed to save chatId to ticket metadata:', metadataError);
+              console.error('⚠️ [TELEGRAM] Failed to save metadata:', metadataError);
               // Don't fail the request if metadata update fails
             }
           } else {
@@ -2127,8 +2155,33 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
             console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
           }
         }
+      } else if (channel === 'whatsapp') {
+        // WhatsApp: Save conversationId for reply tracking
+        console.log(`📱 [WHATSAPP] Processing message to ${recipient}`);
+        
+        try {
+          const ticketUpdateQuery = `
+            UPDATE "${schemaName}".tickets 
+            SET metadata = jsonb_set(
+              jsonb_set(COALESCE(metadata, '{}'::jsonb), '{chatId}', $1), 
+              '{conversationId}', $2
+            )
+            WHERE id = $3 AND tenant_id = $4
+          `;
+          await pool.query(ticketUpdateQuery, [
+            JSON.stringify(recipient), 
+            JSON.stringify(conversationId),
+            id, 
+            tenantId
+          ]);
+          console.log(`✅ [WHATSAPP] Saved conversationId ${conversationId} to ticket ${id}`);
+          sendSuccess = true;
+        } catch (metadataError) {
+          console.error('⚠️ [WHATSAPP] Failed to save metadata:', metadataError);
+          sendError = 'Failed to save conversation metadata';
+        }
       } else {
-        // For WhatsApp and SMS, just simulate for now
+        // For SMS, just simulate for now
         console.log(`📱 [MESSAGE] Simulating ${channel} message to ${recipient}: ${message}`);
         sendSuccess = true;
       }

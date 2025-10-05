@@ -360,7 +360,18 @@ export class MessageIngestionService {
         }
       }
 
-      // 4. Verificar subject para padrão [Ticket #12345]
+      // 4. Verificar header X-Conversation-ID (novo sistema de conversationId único)
+      if (emailData.headers?.['x-conversation-id']) {
+        const conversationId = emailData.headers['x-conversation-id'];
+        console.log(`🎯 [CONVERSATION-TRACKING] Found X-Conversation-ID header: ${conversationId}`);
+        const ticketId = await this.findTicketByConversationId(conversationId, tenantId);
+        if (ticketId) {
+          console.log(`✅ [CONVERSATION-TRACKING] Found ticket via X-Conversation-ID: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      // 5. Verificar subject para padrão [Ticket #12345]
       if (emailData.subject) {
         const subjectMatch = emailData.subject.match(/\[Ticket\s+#?([a-f0-9-]+)\]/i);
         if (subjectMatch) {
