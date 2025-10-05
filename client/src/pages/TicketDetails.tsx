@@ -53,6 +53,7 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 import EmailModal from "@/components/tickets/EmailModal";
 import MessagingModal from "@/components/tickets/MessagingModal";
+import { SentimentTimeline } from "@/components/tickets/SentimentTimeline";
 
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
@@ -2014,6 +2015,9 @@ const TicketDetails = React.memo(() => {
                   <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">📱 SMS</Badge>
                 </div>
               </div>
+
+              {/* Sentiment Timeline Visualization */}
+              <SentimentTimeline messages={communicationsData} />
 
               {communicationsData.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
