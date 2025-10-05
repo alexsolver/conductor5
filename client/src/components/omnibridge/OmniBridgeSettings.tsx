@@ -203,12 +203,45 @@ export default function OmniBridgeSettings() {
   useEffect(() => {
     if (settings?.success && settings?.data) {
       console.log('Loading settings:', settings.data);
-      // Merge loaded settings with defaults to ensure ai field exists
+      // Deep merge to preserve nested structure
       setLocalSettings(prev => ({
         ...prev,
-        ...settings.data,
-        // Ensure ai field exists with defaults if not present
-        ai: settings.data.ai || prev.ai
+        channels: settings.data.channels || prev.channels,
+        filters: settings.data.filters ? {
+          ...prev.filters,
+          ...settings.data.filters,
+          spamFilters: settings.data.filters.spamFilters ? {
+            ...prev.filters.spamFilters,
+            ...settings.data.filters.spamFilters
+          } : prev.filters.spamFilters,
+          contentFilters: settings.data.filters.contentFilters ? {
+            ...prev.filters.contentFilters,
+            ...settings.data.filters.contentFilters
+          } : prev.filters.contentFilters
+        } : prev.filters,
+        search: settings.data.search ? {
+          ...prev.search,
+          ...settings.data.search
+        } : prev.search,
+        ai: settings.data.ai ? {
+          ...prev.ai,
+          ...settings.data.ai,
+          sentimentAnalysis: settings.data.ai.sentimentAnalysis ? {
+            ...prev.ai.sentimentAnalysis,
+            ...settings.data.ai.sentimentAnalysis,
+            autoEscalate: settings.data.ai.sentimentAnalysis.autoEscalate ? {
+              ...prev.ai.sentimentAnalysis.autoEscalate,
+              ...settings.data.ai.sentimentAnalysis.autoEscalate
+            } : prev.ai.sentimentAnalysis.autoEscalate
+          } : prev.ai.sentimentAnalysis,
+          fallbackKeywords: settings.data.ai.fallbackKeywords || prev.ai.fallbackKeywords,
+          supportedEmotions: settings.data.ai.supportedEmotions || prev.ai.supportedEmotions,
+          urgencyIndicators: settings.data.ai.urgencyIndicators || prev.ai.urgencyIndicators,
+          visualization: settings.data.ai.visualization ? {
+            ...prev.ai.visualization,
+            ...settings.data.ai.visualization
+          } : prev.ai.visualization
+        } : prev.ai
       }));
     }
   }, [settings]);

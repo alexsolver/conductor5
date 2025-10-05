@@ -1996,9 +1996,67 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       });
     }
 
-    // For now, we'll just save the message without actually sending it
-    // In a real implementation, you would integrate with WhatsApp Business API, Telegram API, or SMS provider
-    console.log(`📱 [MESSAGE] Simulating ${channel} message to ${recipient}: ${message}`);
+    // Send message via the appropriate channel
+    let sendSuccess = false;
+    let sendError: string | null = null;
+
+    try {
+      if (channel === 'telegram') {
+        // Extract chat ID from recipient (format: "telegram:123456789")
+        const chatId = recipient.replace(/^telegram:/, '');
+        
+        // Get Telegram integration config
+        const integrationQuery = `
+          SELECT config 
+          FROM "${schemaName}".tenant_integrations 
+          WHERE integration_type = 'telegram' AND is_enabled = true
+          LIMIT 1
+        `;
+        const integrationResult = await pool.query(integrationQuery);
+        
+        if (integrationResult.rows.length === 0) {
+          sendError = 'Telegram integration not configured';
+          console.error('❌ [TELEGRAM] Integration not configured for tenant:', tenantId);
+        } else {
+          const config = integrationResult.rows[0].config;
+          const botToken = config.botToken;
+          
+          if (!botToken) {
+            sendError = 'Telegram bot token not found';
+            console.error('❌ [TELEGRAM] Bot token not found in config');
+          } else {
+            // Send message via Telegram API
+            const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const telegramResponse = await fetch(telegramApiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'HTML'
+              })
+            });
+            
+            const telegramResult = await telegramResponse.json();
+            
+            if (telegramResult.ok) {
+              sendSuccess = true;
+              console.log('✅ [TELEGRAM] Message sent successfully:', telegramResult);
+            } else {
+              sendError = telegramResult.description || 'Unknown Telegram API error';
+              console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
+            }
+          }
+        }
+      } else {
+        // For WhatsApp and SMS, just simulate for now
+        console.log(`📱 [MESSAGE] Simulating ${channel} message to ${recipient}: ${message}`);
+        sendSuccess = true;
+      }
+    } catch (sendingError: any) {
+      sendError = sendingError.message || 'Failed to send message';
+      console.error(`❌ [${channel.toUpperCase()}] Error sending message:`, sendingError);
+    }
     
     // Save communication record
     try {
@@ -2046,10 +2104,18 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
-    return res.json({ 
-      success: true, 
-      message: `${channel.charAt(0).toUpperCase() + channel.slice(1)} message sent successfully` 
-    });
+    // Return appropriate response based on sending result
+    if (sendSuccess) {
+      return res.json({ 
+        success: true, 
+        message: `${channel.charAt(0).toUpperCase() + channel.slice(1)} message sent successfully` 
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false, 
+        message: `Failed to send ${channel} message: ${sendError || 'Unknown error'}` 
+      });
+    }
 
   } catch (error) {
     console.error("❌ [MESSAGE] Error sending message:", error);
