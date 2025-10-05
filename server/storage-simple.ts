@@ -2420,7 +2420,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, enabled, config, created_at, updated_at
+        SELECT id, name, description, config, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.integrations
         WHERE tenant_id = ${validatedTenantId}
         ORDER BY name

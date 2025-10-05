@@ -200,7 +200,7 @@ router.get('/:integrationId/config', async (req: any, res: any) => {
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, configResult);
 
-    if (!configResult || configResult.configured === false) {
+    if (!configResult) {
       console.log(`⚠️ [GET config route] Nenhuma config encontrada para ${integrationId}, retornando dados padrão`);
       return res.json({ 
         configured: false, 
@@ -210,34 +210,35 @@ router.get('/:integrationId/config', async (req: any, res: any) => {
     }
 
     // ✅ SECURITY: Retornar dados mascarados para segurança
+    // Note: configResult is already the config object directly, not wrapped
     const maskedConfig = {
-      ...configResult,
+      configured: true,
       config: {
-        ...configResult.config,
         // Mascarar dados sensíveis
-        apiKey: configResult.config.apiKey ? '••••••••' : '',
-        apiSecret: configResult.config.apiSecret ? '••••••••' : '',
-        clientSecret: configResult.config.clientSecret ? '••••••••' : '',
-        password: configResult.config.password ? '••••••••' : '',
-        accessToken: configResult.config.accessToken ? '••••••••' : '',
-        refreshToken: configResult.config.refreshToken ? '••••••••' : '',
-        dropboxAppSecret: configResult.config.dropboxAppSecret ? '••••••••' : '',
-        dropboxAccessToken: configResult.config.dropboxAccessToken ? '••••••••' : '',
+        apiKey: configResult.apiKey ? '••••••••' : '',
+        apiSecret: configResult.apiSecret ? '••••••••' : '',
+        clientSecret: configResult.clientSecret ? '••••••••' : '',
+        password: configResult.password ? '••••••••' : '',
+        accessToken: configResult.accessToken ? '••••••••' : '',
+        refreshToken: configResult.refreshToken ? '••••••••' : '',
+        dropboxAppSecret: configResult.dropboxAppSecret ? '••••••••' : '',
+        dropboxAccessToken: configResult.dropboxAccessToken ? '••••••••' : '',
         // ✅ TELEGRAM SPECIFIC: Mascarar token do Telegram mas manter Chat ID
-        telegramBotToken: configResult.config.telegramBotToken ? '••••••••' : '',
-        telegramChatId: configResult.config.telegramChatId || '',
+        telegramBotToken: configResult.telegramBotToken ? '••••••••' : '',
+        telegramChatId: configResult.telegramChatId || '',
         // Manter outros campos não sensíveis
-        enabled: configResult.config.enabled,
-        clientId: configResult.config.clientId,
-        redirectUri: configResult.config.redirectUri,
-        webhookUrl: configResult.config.webhookUrl,
-        telegramWebhookUrl: configResult.config.telegramWebhookUrl,
-        imapServer: configResult.config.imapServer,
-        imapPort: configResult.config.imapPort,
-        imapSecurity: configResult.config.imapSecurity,
-        emailAddress: configResult.config.emailAddress,
-        useSSL: configResult.config.useSSL,
-        backupFolder: configResult.config.backupFolder,
+        enabled: configResult.enabled,
+        clientId: configResult.clientId,
+        redirectUri: configResult.redirectUri,
+        webhookUrl: configResult.webhookUrl,
+        telegramWebhookUrl: configResult.telegramWebhookUrl,
+        imapServer: configResult.imapServer,
+        imapPort: configResult.imapPort,
+        imapSecurity: configResult.imapSecurity,
+        emailAddress: configResult.emailAddress,
+        useSSL: configResult.useSSL,
+        backupFolder: configResult.backupFolder,
+        settings: configResult.settings || {},
       }
     };
 
