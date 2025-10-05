@@ -1764,6 +1764,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         tc.id,
         tc.communication_type as channel,
         tc.direction,
+        tc.direction as status,
         tc.from_address as "from",
         tc.to_address as "to", 
         tc.subject,
@@ -1773,6 +1774,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         tc.cc_address,
         tc.bcc_address,
         tc.is_public,
+        tc.metadata,
         tc.created_at as timestamp,
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
