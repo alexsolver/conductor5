@@ -15,7 +15,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
-import TicketDetails from "./pages/TicketDetail";
+import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
