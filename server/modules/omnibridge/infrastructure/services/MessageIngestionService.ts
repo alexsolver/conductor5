@@ -95,17 +95,35 @@ export class MessageIngestionService {
         // Buscar conversationId do ticket metadata
         try {
           const { pool } = await import('../../../../db');
+          const { randomUUID } = await import('crypto');
           const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
           const result = await pool.query(`
             SELECT metadata FROM "${schemaName}".tickets WHERE id = $1
           `, [ticketId]);
           
           conversationId = result.rows[0]?.metadata?.conversationId;
+          
           if (conversationId) {
             console.log(`✅ [TELEGRAM-INGESTION] Found conversationId from ticket: ${conversationId}`);
+          } else {
+            // ⚠️ Ticket não tem conversationId - CRIAR UM NOVO!
+            conversationId = randomUUID();
+            console.log(`🆕 [TELEGRAM-INGESTION] Creating NEW conversationId for ticket: ${conversationId}`);
+            
+            // Salvar conversationId no ticket metadata
+            const currentMetadata = result.rows[0]?.metadata || {};
+            const updatedMetadata = { ...currentMetadata, conversationId };
+            
+            await pool.query(`
+              UPDATE "${schemaName}".tickets 
+              SET metadata = $1 
+              WHERE id = $2
+            `, [JSON.stringify(updatedMetadata), ticketId]);
+            
+            console.log(`✅ [TELEGRAM-INGESTION] ConversationId saved to ticket metadata`);
           }
         } catch (err) {
-          console.error(`❌ [TELEGRAM-INGESTION] Error fetching conversationId:`, err);
+          console.error(`❌ [TELEGRAM-INGESTION] Error fetching/creating conversationId:`, err);
         }
       }
       
@@ -202,17 +220,35 @@ export class MessageIngestionService {
         // Buscar conversationId do ticket metadata
         try {
           const { pool } = await import('../../../../db');
+          const { randomUUID } = await import('crypto');
           const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
           const result = await pool.query(`
             SELECT metadata FROM "${schemaName}".tickets WHERE id = $1
           `, [ticketId]);
           
           conversationId = result.rows[0]?.metadata?.conversationId;
+          
           if (conversationId) {
             console.log(`✅ [WHATSAPP-INGESTION] Found conversationId from ticket: ${conversationId}`);
+          } else {
+            // ⚠️ Ticket não tem conversationId - CRIAR UM NOVO!
+            conversationId = randomUUID();
+            console.log(`🆕 [WHATSAPP-INGESTION] Creating NEW conversationId for ticket: ${conversationId}`);
+            
+            // Salvar conversationId no ticket metadata
+            const currentMetadata = result.rows[0]?.metadata || {};
+            const updatedMetadata = { ...currentMetadata, conversationId };
+            
+            await pool.query(`
+              UPDATE "${schemaName}".tickets 
+              SET metadata = $1 
+              WHERE id = $2
+            `, [JSON.stringify(updatedMetadata), ticketId]);
+            
+            console.log(`✅ [WHATSAPP-INGESTION] ConversationId saved to ticket metadata`);
           }
         } catch (err) {
-          console.error(`❌ [WHATSAPP-INGESTION] Error fetching conversationId:`, err);
+          console.error(`❌ [WHATSAPP-INGESTION] Error fetching/creating conversationId:`, err);
         }
       }
       
