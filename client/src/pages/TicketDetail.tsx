@@ -121,12 +121,26 @@ export default function TicketDetail() {
   });
 
   // Fetch communications
-  const { data: communications, isLoading: isCommunicationsLoading } = useQuery<Communication[]>({
+  const { data: communications, isLoading: isCommunicationsLoading, error: communicationsError } = useQuery<Communication[]>({
     queryKey: [`/api/tickets/${id}/communications`],
     enabled: !!id,
-    select: (data: any) => data?.data || [],
+    select: (data: any) => {
+      console.log('[COMMUNICATIONS-DEBUG] Raw data:', data);
+      return data?.data || [];
+    },
     refetchInterval: 5000, // Auto-refresh every 5 seconds for real-time Telegram/email messages
   });
+
+  // Debug communications loading
+  useEffect(() => {
+    console.log('[COMMUNICATIONS-DEBUG] Status:', { 
+      enabled: !!id, 
+      id,
+      isLoading: isCommunicationsLoading, 
+      dataLength: communications?.length,
+      error: communicationsError 
+    });
+  }, [id, isCommunicationsLoading, communications, communicationsError]);
 
   // Fetch notes
   const { data: notes, isLoading: isNotesLoading } = useQuery<Note[]>({
