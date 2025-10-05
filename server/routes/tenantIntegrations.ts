@@ -395,7 +395,7 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
       telegramWebhookUrl: req.body.telegramWebhookUrl,
       enabled: req.body.enabled !== false,
       settings: req.body.settings || {},
-      updatedAt: savedConfig.updatedAt
+      updatedAt: savedConfig?.updatedAt || savedConfig?.updated_at || new Date().toISOString()
     };
 
     res.json({
