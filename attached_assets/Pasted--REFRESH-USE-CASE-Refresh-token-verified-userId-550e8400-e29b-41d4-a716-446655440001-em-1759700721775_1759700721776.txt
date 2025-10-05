@@ -1,0 +1,64 @@
+✅ [REFRESH-USE-CASE] Refresh token verified {
+  userId: '550e8400-e29b-41d4-a716-446655440001',
+  email: undefined,
+  exp: 1760305372,
+  iat: 1759700572
+}
+[USER-REPOSITORY-QA] Finding user by ID for schema: tenant_3f99462f_3621_4b1b_bea8_782acc50d62e
+[USER-REPOSITORY-QA] Error finding user by ID: error: column "department" does not exist
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)
+    at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)
+    at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22) {
+  length: 177,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "users.department_id".',
+  position: '161',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3729',
+  routine: 'errorMissingColumn'
+}
+❌ [REFRESH-USE-CASE] Error during token refresh: {
+  message: 'column "department" does not exist',
+  stack: 'error: column "department" does not exist\n' +
+    '    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)\n' +
+    '    at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)\n' +
+    '    at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22)',
+  errorObject: error: column "department" does not exist
+      at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)
+      at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)
+      at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22) {
+    length: 177,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: 'Perhaps you meant to reference the column "users.department_id".',
+    position: '161',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3729',
+    routine: 'errorMissingColumn'
+  }
+}
