@@ -127,58 +127,72 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
     );
   };
 
-  if (sortedMessages.length === 0) {
-    return null;
-  }
-
   return (
     <div className="w-full bg-white border border-gray-200 rounded-lg p-4 mb-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-700">
           📊 Temperatura do Sentimento ao Longo da Conversa
         </h3>
-        <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-gray-600">Positivo</span>
+        {sortedMessages.length > 0 && (
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="text-gray-600">Positivo</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <span className="text-gray-600">Neutro</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <span className="text-gray-600">Negativo</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span className="text-gray-600">Neutro</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-gray-600">Negativo</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {renderTimelineTrack(
-          agentMessages,
-          'Agente',
-          <UserCheck className="h-4 w-4 text-blue-600" />,
-          'bg-blue-50'
-        )}
-        
-        <div className="border-t border-gray-200"></div>
-
-        {renderTimelineTrack(
-          userMessages,
-          'Usuário',
-          <User className="h-4 w-4 text-purple-600" />,
-          'bg-purple-50'
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>Total de mensagens: {sortedMessages.length}</span>
-          <span>
-            Agente: {agentMessages.length} | Usuário: {userMessages.length}
-          </span>
+      {sortedMessages.length === 0 ? (
+        <div className="text-center py-6 text-gray-500">
+          <div className="flex flex-col items-center gap-3">
+            <div className="text-4xl">🤖</div>
+            <div>
+              <p className="font-medium mb-1">Análise de Sentimento Indisponível</p>
+              <p className="text-xs text-gray-400">
+                As mensagens ainda não foram analisadas. Configure a IA nas configurações do OmniBridge para habilitar análise automática.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            {renderTimelineTrack(
+              agentMessages,
+              'Agente',
+              <UserCheck className="h-4 w-4 text-blue-600" />,
+              'bg-blue-50'
+            )}
+            
+            <div className="border-t border-gray-200"></div>
+
+            {renderTimelineTrack(
+              userMessages,
+              'Usuário',
+              <User className="h-4 w-4 text-purple-600" />,
+              'bg-purple-50'
+            )}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>Total de mensagens: {sortedMessages.length}</span>
+              <span>
+                Agente: {agentMessages.length} | Usuário: {userMessages.length}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
