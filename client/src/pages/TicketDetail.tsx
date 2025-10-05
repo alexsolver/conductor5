@@ -128,7 +128,8 @@ export default function TicketDetail() {
       console.log('[COMMUNICATIONS-DEBUG] Raw data:', data);
       return data?.data || [];
     },
-    refetchInterval: 5000, // Auto-refresh every 5 seconds for real-time Telegram/email messages
+    refetchInterval: 2000, // Auto-refresh every 2 seconds for real-time Telegram/email messages
+    refetchOnWindowFocus: true, // Refresh when user returns to window
   });
 
   // Debug communications loading
