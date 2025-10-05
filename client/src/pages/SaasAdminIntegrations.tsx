@@ -1006,39 +1006,52 @@ export default function SaasAdminIntegrations() {
       {/* Integrações Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {integrations.map((integration) => {
-          const IconComponent = integration.icon || Plug; // Fallback para Plug se icon for undefined
+          const IconComponent = integration.icon || Plug;
           return (
-            <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+            <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
                       <IconComponent className="h-6 w-6 text-purple-600" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{integration.name}</CardTitle>
-                      <p className="text-sm text-gray-500">{integration.provider}</p>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
+                        {integration.name}
+                      </CardTitle>
+                      <p className="text-sm text-gray-500 truncate" title={integration.provider}>
+                        {integration.provider}
+                      </p>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(integration.status)}>
-                    {getStatusIcon(integration.status)}
-                    <span className="ml-1 capitalize">{integration.status}</span>
-                  </Badge>
+                  <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                    {integration.apiKeyConfigured && (
+                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                        <Key className="h-3 w-3 mr-1" />
+                        <span className="hidden sm:inline">Configurada</span>
+                        <span className="sm:hidden">Config.</span>
+                      </Badge>
+                    )}
+                    <Badge className={`${getStatusColor(integration.status)} text-xs`}>
+                      {getStatusIcon(integration.status)}
+                      <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
+                      <span className="ml-1 capitalize sm:hidden">
+                        {integration.status === 'connected' ? 'OK' : 
+                         integration.status === 'disconnected' ? 'OFF' : 'ERR'}
+                      </span>
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
+
+              <CardContent className="flex-1 flex flex-col">
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
                   {integration.description}
                 </p>
 
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium">API Key:</span>
-                  <Badge variant={integration.apiKeyConfigured ? "default" : "secondary"}>
-                    {integration.apiKeyConfigured ? "Configurada" : "Não configurada"}
-                  </Badge>
+                <div className="space-y-2 mt-auto">
+                  {renderActionButtons(integration)}
                 </div>
-
-                {renderActionButtons(integration)}
 
                 {integration.lastTested && (
                   <p className="text-xs text-gray-500 mt-2">
