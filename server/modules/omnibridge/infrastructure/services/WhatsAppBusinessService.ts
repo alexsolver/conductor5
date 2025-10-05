@@ -210,40 +210,61 @@ export class WhatsAppBusinessService {
   private async processIncomingMessage(message: any): Promise<void> {
     this.metrics.messagesReceived++;
 
-    // Salvar na inbox unificada
-    const { storage } = await import('../../../../storage-simple');
-    
-    const inboxMessage = {
-      id: `whatsapp-${message.id}-${Date.now()}`,
-      tenant_id: this.tenantId,
-      message_id: `whatsapp-${message.id}`,
-      from_email: `whatsapp:${message.from}`,
-      from_name: message.profile?.name || message.from,
-      to_email: 'whatsapp-business@conductor.com',
-      cc_emails: JSON.stringify([]),
-      bcc_emails: JSON.stringify([]),
-      subject: `Mensagem do WhatsApp - ${message.profile?.name || message.from}`,
-      body_text: message.text?.body || '[Mensagem não textual]',
-      body_html: null,
-      has_attachments: Boolean(message.image || message.document || message.audio),
-      attachment_count: 0,
-      attachment_details: JSON.stringify([]),
-      email_headers: JSON.stringify({
-        'whatsapp-from': message.from,
-        'whatsapp-message-id': message.id,
-        'whatsapp-timestamp': message.timestamp,
-        'whatsapp-type': message.type
-      }),
-      priority: 'medium',
-      is_read: false,
-      is_processed: false,
-      email_date: new Date(parseInt(message.timestamp) * 1000).toISOString(),
-      received_at: new Date().toISOString()
-    };
+    // 🎯 CRITICAL FIX: Usar MessageIngestionService para processar mensagem com ticket tracking
+    try {
+      const { MessageIngestionService } = await import('./MessageIngestionService');
+      const { DrizzleMessageRepository } = await import('../repositories/DrizzleMessageRepository');
+      const { ProcessMessageUseCase } = await import('../../application/use-cases/ProcessMessageUseCase');
 
-    await storage.saveEmailToInbox(this.tenantId, inboxMessage);
-    
-    console.log(`📨 [WHATSAPP-BUSINESS] Message saved to inbox`);
+      const messageRepository = new DrizzleMessageRepository();
+      const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
+      const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
+
+      console.log(`🤖 [WHATSAPP-BUSINESS] Processing message with automation support enabled`);
+      const result = await ingestionService.processWhatsAppWebhook(message, this.tenantId);
+
+      if (result.success) {
+        console.log(`✅ [WHATSAPP-BUSINESS] Successfully processed message with automation rules`);
+      } else {
+        console.log(`⚠️ [WHATSAPP-BUSINESS] Message processing failed`);
+      }
+    } catch (error) {
+      console.error(`❌ [WHATSAPP-BUSINESS] Failed to process message via MessageIngestionService:`, error);
+      // Em caso de erro, tentar fallback para o método antigo
+      console.log(`⚠️ [WHATSAPP-BUSINESS] Falling back to legacy storage method`);
+      const { storage } = await import('../../../../storage-simple');
+      
+      const inboxMessage = {
+        id: `whatsapp-${message.id}-${Date.now()}`,
+        tenant_id: this.tenantId,
+        message_id: `whatsapp-${message.id}`,
+        from_email: `whatsapp:${message.from}`,
+        from_name: message.profile?.name || message.from,
+        to_email: 'whatsapp-business@conductor.com',
+        cc_emails: JSON.stringify([]),
+        bcc_emails: JSON.stringify([]),
+        subject: `Mensagem do WhatsApp - ${message.profile?.name || message.from}`,
+        body_text: message.text?.body || '[Mensagem não textual]',
+        body_html: null,
+        has_attachments: Boolean(message.image || message.document || message.audio),
+        attachment_count: 0,
+        attachment_details: JSON.stringify([]),
+        email_headers: JSON.stringify({
+          'whatsapp-from': message.from,
+          'whatsapp-message-id': message.id,
+          'whatsapp-timestamp': message.timestamp,
+          'whatsapp-type': message.type
+        }),
+        priority: 'medium',
+        is_read: false,
+        is_processed: false,
+        email_date: new Date(parseInt(message.timestamp) * 1000).toISOString(),
+        received_at: new Date().toISOString()
+      };
+
+      await storage.saveEmailToInbox(this.tenantId, inboxMessage);
+      console.log(`📨 [WHATSAPP-BUSINESS] Message saved to inbox via fallback`);
+    }
   }
 
   private async processMessageStatus(status: any): Promise<void> {

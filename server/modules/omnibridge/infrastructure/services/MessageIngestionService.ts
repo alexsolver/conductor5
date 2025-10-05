@@ -154,6 +154,91 @@ export class MessageIngestionService {
   }
 
   /**
+   * Processa webhook do WhatsApp
+   */
+  async processWhatsAppWebhook(message: any, tenantId: string): Promise<{ success: boolean; processed: number }> {
+    let processedCount = 0;
+
+    try {
+      console.log(`📱 [WHATSAPP-INGESTION] Processing message for tenant: ${tenantId}`);
+      console.log(`📱 [WHATSAPP-INGESTION] Message data:`, JSON.stringify(message, null, 2));
+
+      if (!message || !message.from) {
+        console.log(`❌ [WHATSAPP-INGESTION] Invalid message data`);
+        return { success: false, processed: 0 };
+      }
+
+      // 🎯 TICKET CONTEXT TRACKING: Criar metadata com chatId para link automático
+      const metadata = {
+        whatsappMessageId: message.id,
+        chatId: message.from, // WhatsApp usa 'from' como identificador único do chat
+        fromUser: message.profile?.name || message.from,
+        messageType: message.type,
+        timestamp: message.timestamp,
+        conversationId: `whatsapp-${message.from}`, // Usar 'from' como conversationId
+      };
+
+      const ticketId = await this.extractTicketIdFromChatMetadata(metadata, tenantId);
+      if (ticketId) {
+        metadata.ticketId = ticketId;
+        console.log(`🎫 [WHATSAPP-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
+      }
+
+      // Extrair dados da mensagem do WhatsApp
+      const incomingMessage: IncomingMessage = {
+        channelId: 'whatsapp',
+        channelType: 'whatsapp',
+        from: `whatsapp:${message.from}`,
+        to: 'whatsapp-business@conductor.com',
+        subject: `WhatsApp - ${message.profile?.name || message.from}`,
+        content: message.text?.body || '[Mensagem não textual]',
+        metadata,
+        priority: 'medium',
+        tenantId
+      };
+
+      const savedMessage = await this.ingestMessage(incomingMessage);
+      processedCount++;
+
+      console.log(`✅ [WHATSAPP-INGESTION] Message saved with ID: ${savedMessage.id}`);
+      console.log(`✅ [WHATSAPP-INGESTION] Message content: ${incomingMessage.content}`);
+      console.log(`✅ [WHATSAPP-INGESTION] From: ${incomingMessage.from}`);
+
+      // 🤖 CRITICAL FIX: Processar regras de automação após salvar mensagem
+      if (this.processMessageUseCase) {
+        console.log(`🤖 [WHATSAPP-INGESTION] Triggering automation rules for message ${savedMessage.id}`);
+        try {
+          const automationResult = await this.processMessageUseCase.processDirectMessage(
+            {
+              id: savedMessage.id,
+              content: incomingMessage.content,
+              sender: incomingMessage.from,
+              subject: incomingMessage.subject,
+              channel: incomingMessage.channelType,
+              timestamp: new Date().toISOString(),
+              metadata: incomingMessage.metadata
+            }, 
+            tenantId
+          );
+          console.log(`✅ [WHATSAPP-INGESTION] Automation result:`, automationResult);
+        } catch (automationError) {
+          console.error(`❌ [WHATSAPP-INGESTION] Automation processing failed:`, automationError);
+          // Não falhar o webhook por causa de erro na automação
+        }
+      } else {
+        console.log(`⚠️ [WHATSAPP-INGESTION] ProcessMessageUseCase not available - skipping automation`);
+      }
+
+      console.log(`✅ [WHATSAPP-INGESTION] Webhook processed: ${processedCount} messages`);
+      
+      return { success: true, processed: processedCount };
+    } catch (error) {
+      console.error(`❌ [WHATSAPP-INGESTION] Webhook processing error:`, error);
+      return { success: false, processed: processedCount };
+    }
+  }
+
+  /**
    * Processa email do IMAP para OmniBridge inbox
    */
   async processImapEmail(emailData: any, tenantId: string): Promise<MessageEntity> {
