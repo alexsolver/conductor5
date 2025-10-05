@@ -731,6 +731,15 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
       case 'google-workspace':
         return await testGoogleWorkspace(config, res, tenantId);
 
+      case 'openai':
+        return await testOpenAI(config, res, tenantId);
+
+      case 'deepseek':
+        return await testDeepSeek(config, res, tenantId);
+
+      case 'googleai':
+        return await testGoogleAI(config, res, tenantId);
+
       default:
         return res.status(400).json({ 
           success: false, 
@@ -2090,6 +2099,255 @@ async function testGoogleWorkspace(config: any, res: any, tenantId: string) {
     return res.status(500).json({
       success: false,
       message: `Erro ao testar Google Workspace: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test OpenAI Integration
+ */
+async function testOpenAI(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [OPENAI-TEST] Starting OpenAI test`);
+    
+    const { apiKey, model } = config;
+    
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key não configurada. Configure a chave de API do OpenAI para continuar.'
+      });
+    }
+
+    const testModel = model || 'gpt-3.5-turbo';
+    console.log(`🔍 [OPENAI-TEST] Testing with model: ${testModel}`);
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: testModel,
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: 'Say "API Key is valid" in Portuguese.' }
+        ],
+        max_tokens: 50,
+        temperature: 0.7
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const aiResponse = result.choices?.[0]?.message?.content || 'No response';
+      
+      return res.json({
+        success: true,
+        message: '✅ Teste do OpenAI realizado com sucesso!',
+        details: {
+          model: testModel,
+          response: aiResponse,
+          usage: result.usage,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      let userMessage = 'Erro na API do OpenAI';
+      
+      if (response.status === 401) {
+        userMessage = 'API Key inválida. Verifique se a chave está correta.';
+      } else if (response.status === 429) {
+        userMessage = 'Limite de requisições excedido. Verifique seu plano OpenAI.';
+      } else if (error.error?.message) {
+        userMessage = `Erro do OpenAI: ${error.error.message}`;
+      }
+      
+      return res.status(400).json({
+        success: false,
+        message: userMessage,
+        details: { 
+          errorType: error.error?.type,
+          errorCode: error.error?.code,
+          status: response.status
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [OPENAI-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar OpenAI: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test DeepSeek Integration
+ */
+async function testDeepSeek(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [DEEPSEEK-TEST] Starting DeepSeek test`);
+    
+    const { apiKey, model } = config;
+    
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key não configurada. Configure a chave de API do DeepSeek para continuar.'
+      });
+    }
+
+    const testModel = model || 'deepseek-chat';
+    console.log(`🔍 [DEEPSEEK-TEST] Testing with model: ${testModel}`);
+
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: testModel,
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: 'Say "API Key is valid" in Portuguese.' }
+        ],
+        max_tokens: 50,
+        temperature: 0.7
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const aiResponse = result.choices?.[0]?.message?.content || 'No response';
+      
+      return res.json({
+        success: true,
+        message: '✅ Teste do DeepSeek realizado com sucesso!',
+        details: {
+          model: testModel,
+          response: aiResponse,
+          usage: result.usage,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      let userMessage = 'Erro na API do DeepSeek';
+      
+      if (response.status === 401) {
+        userMessage = 'API Key inválida. Verifique se a chave está correta.';
+      } else if (response.status === 429) {
+        userMessage = 'Limite de requisições excedido. Verifique seu plano DeepSeek.';
+      } else if (error.error?.message) {
+        userMessage = `Erro do DeepSeek: ${error.error.message}`;
+      }
+      
+      return res.status(400).json({
+        success: false,
+        message: userMessage,
+        details: { 
+          errorType: error.error?.type,
+          errorCode: error.error?.code,
+          status: response.status
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [DEEPSEEK-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar DeepSeek: ${error.message}`,
+      details: { error: error.message }
+    });
+  }
+}
+
+/**
+ * Test Google AI Integration
+ */
+async function testGoogleAI(config: any, res: any, tenantId: string) {
+  try {
+    console.log(`🔍 [GOOGLEAI-TEST] Starting Google AI test`);
+    
+    const { apiKey, model } = config;
+    
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API Key não configurada. Configure a chave de API do Google AI para continuar.'
+      });
+    }
+
+    const testModel = model || 'gemini-pro';
+    console.log(`🔍 [GOOGLEAI-TEST] Testing with model: ${testModel}`);
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: 'Say "API Key is valid" in Portuguese.'
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 50
+        }
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+      
+      return res.json({
+        success: true,
+        message: '✅ Teste do Google AI realizado com sucesso!',
+        details: {
+          model: testModel,
+          response: aiResponse,
+          timestamp: new Date().toISOString(),
+          status: 'connected'
+        }
+      });
+    } else {
+      const error = await response.json();
+      let userMessage = 'Erro na API do Google AI';
+      
+      if (response.status === 400 && error.error?.message?.includes('API_KEY_INVALID')) {
+        userMessage = 'API Key inválida. Verifique se a chave está correta.';
+      } else if (response.status === 429) {
+        userMessage = 'Limite de requisições excedido. Verifique seu plano Google AI.';
+      } else if (error.error?.message) {
+        userMessage = `Erro do Google AI: ${error.error.message}`;
+      }
+      
+      return res.status(400).json({
+        success: false,
+        message: userMessage,
+        details: { 
+          errorCode: error.error?.code,
+          errorMessage: error.error?.message,
+          status: response.status
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error(`❌ [GOOGLEAI-TEST] Error:`, error);
+    return res.status(500).json({
+      success: false,
+      message: `Erro ao testar Google AI: ${error.message}`,
       details: { error: error.message }
     });
   }
