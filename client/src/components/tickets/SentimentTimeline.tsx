@@ -154,7 +154,6 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
       {sortedMessages.length === 0 ? (
         <div className="text-center py-6 text-gray-500">
           <div className="flex flex-col items-center gap-3">
-            <div className="text-4xl">🤖</div>
             <div>
               <p className="font-medium mb-1">Análise de Sentimento Indisponível</p>
               <p className="text-xs text-gray-400">
