@@ -444,40 +444,27 @@ export class MessageIngestionService {
 
   /**
    * Busca ticket por conversationId em metadata
-   * CRITICAL FIX: Busca o ticket ABERTO mais recente, não qualquer ticket
+   * ✨ CONVERSATION ID = ID ÚNICO por conversa (100% preciso)
+   * Diferente de chatId, conversationId é gerado UMA VEZ por thread de conversa
    */
   private async findTicketByConversationId(conversationId: string, tenantId: string): Promise<string | null> {
     try {
       const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // 1. Primeiro: buscar ticket ABERTO mais recente
-      const openResult = await pool.query(`
+      // ConversationId é ÚNICO - retorna o ticket EXATO (não precisa filtrar por status)
+      const result = await pool.query(`
         SELECT id FROM "${schemaName}".tickets 
         WHERE metadata->>'conversationId' = $1
-          AND status IN ('open', 'pending', 'in_progress')
-        ORDER BY created_at DESC
         LIMIT 1
       `, [conversationId]);
 
-      if (openResult.rows[0]) {
-        console.log(`🎫 [TICKET-TRACKING] Found OPEN ticket for conversationId ${conversationId}: ${openResult.rows[0].id}`);
-        return openResult.rows[0].id;
+      if (result.rows[0]) {
+        console.log(`✅ [CONVERSATION-TRACKING] Found EXACT ticket by conversationId ${conversationId}: ${result.rows[0].id}`);
+        return result.rows[0].id;
       }
 
-      // 2. Se não houver aberto: buscar qualquer ticket mais recente
-      const anyResult = await pool.query(`
-        SELECT id FROM "${schemaName}".tickets 
-        WHERE metadata->>'conversationId' = $1
-        ORDER BY created_at DESC
-        LIMIT 1
-      `, [conversationId]);
-
-      if (anyResult.rows[0]) {
-        console.log(`🎫 [TICKET-TRACKING] Found MOST RECENT ticket for conversationId ${conversationId}: ${anyResult.rows[0].id}`);
-        return anyResult.rows[0].id;
-      }
-
+      console.log(`📭 [CONVERSATION-TRACKING] No ticket found for conversationId: ${conversationId}`);
       return null;
     } catch (error) {
       console.error(`❌ [TICKET-TRACKING] Error finding ticket by conversationId:`, error);
