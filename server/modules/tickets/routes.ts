@@ -2005,47 +2005,36 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
         // Extract chat ID from recipient (format: "telegram:123456789")
         const chatId = recipient.replace(/^telegram:/, '');
         
-        // Get Telegram integration config
-        const integrationQuery = `
-          SELECT config 
-          FROM "${schemaName}".tenant_integrations 
-          WHERE integration_type = 'telegram' AND is_enabled = true
-          LIMIT 1
-        `;
-        const integrationResult = await pool.query(integrationQuery);
+        // Get Telegram integration config using storage service
+        const { storage } = await import('../../storage-simple');
+        const config = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
         
-        if (integrationResult.rows.length === 0) {
+        if (!config || !config.telegramBotToken) {
           sendError = 'Telegram integration not configured';
           console.error('❌ [TELEGRAM] Integration not configured for tenant:', tenantId);
         } else {
-          const config = integrationResult.rows[0].config;
-          const botToken = config.botToken;
+          const botToken = config.telegramBotToken;
           
-          if (!botToken) {
-            sendError = 'Telegram bot token not found';
-            console.error('❌ [TELEGRAM] Bot token not found in config');
+          // Send message via Telegram API
+          const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+          const telegramResponse = await fetch(telegramApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message,
+              parse_mode: 'HTML'
+            })
+          });
+          
+          const telegramResult = await telegramResponse.json();
+          
+          if (telegramResult.ok) {
+            sendSuccess = true;
+            console.log('✅ [TELEGRAM] Message sent successfully:', telegramResult);
           } else {
-            // Send message via Telegram API
-            const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-            const telegramResponse = await fetch(telegramApiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'HTML'
-              })
-            });
-            
-            const telegramResult = await telegramResponse.json();
-            
-            if (telegramResult.ok) {
-              sendSuccess = true;
-              console.log('✅ [TELEGRAM] Message sent successfully:', telegramResult);
-            } else {
-              sendError = telegramResult.description || 'Unknown Telegram API error';
-              console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
-            }
+            sendError = telegramResult.description || 'Unknown Telegram API error';
+            console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
           }
         }
       } else {
