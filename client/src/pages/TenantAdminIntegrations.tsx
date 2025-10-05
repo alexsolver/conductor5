@@ -763,6 +763,37 @@ export default function TenantAdminIntegrations() {
       status: 'disconnected',
       configured: false,
       features: ['Backup automático', 'Sincronização de anexos', 'Armazenamento seguro', 'API v2 Dropbox']
+    },
+    // IA
+    {
+      id: 'openai',
+      name: 'OpenAI',
+      category: 'IA',
+      description: 'Configure as chaves de API do OpenAI (GPT-4, GPT-3.5, etc.)',
+      icon: Bot,
+      status: 'disconnected',
+      configured: false,
+      features: ['GPT-4o', 'GPT-4o-mini', 'GPT-4 Turbo', 'GPT-3.5 Turbo']
+    },
+    {
+      id: 'deepseek',
+      name: 'DeepSeek',
+      category: 'IA',
+      description: 'Configure as chaves de API do DeepSeek',
+      icon: Bot,
+      status: 'disconnected',
+      configured: false,
+      features: ['DeepSeek Chat', 'DeepSeek Reasoner']
+    },
+    {
+      id: 'googleai',
+      name: 'Google AI',
+      category: 'IA',
+      description: 'Configure as chaves de API do Google AI (Gemini)',
+      icon: Bot,
+      status: 'disconnected',
+      configured: false,
+      features: ['Gemini 2.0 Flash', 'Gemini 1.5 Flash', 'Gemini 1.5 Pro', 'Gemini 1.0 Pro']
     }
   ];
 
@@ -781,7 +812,7 @@ export default function TenantAdminIntegrations() {
       case 'twilio-sms':
         return Phone;
       case 'telegram':
-        return Send; // Telegram icon
+        return Send;
       case 'zapier':
         return Zap;
       case 'webhooks':
@@ -796,6 +827,10 @@ export default function TenantAdminIntegrations() {
         return Shield;
       case 'google-workspace':
         return Calendar;
+      case 'openai':
+      case 'deepseek':
+      case 'googleai':
+        return Bot;
       default:
         return Database;
     }
@@ -1422,12 +1457,9 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 2}`}>
+        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
           <TabsTrigger value="certificados">
             Certificados
-          </TabsTrigger>
-          <TabsTrigger value="ia">
-            IA
           </TabsTrigger>
           {Object.keys(groupedIntegrations).map((category) => (
             <TabsTrigger key={category} value={category}>
@@ -1454,148 +1486,6 @@ export default function TenantAdminIntegrations() {
           </Card>
         </TabsContent>
 
-        {/* Aba de IA */}
-        <TabsContent value="ia" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-            {/* OpenAI */}
-            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg flex-shrink-0">
-                      <Bot className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base md:text-lg">OpenAI</CardTitle>
-                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
-                        IA
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-between">
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm text-gray-600">
-                    Configure as chaves de API do OpenAI (GPT-4, GPT-3.5, etc.)
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setSelectedIntegration({
-                      id: 'openai',
-                      name: 'OpenAI',
-                      category: 'IA',
-                      description: 'Provedor de IA OpenAI (GPT-4, GPT-3.5, etc.)',
-                      icon: Bot,
-                      status: 'disconnected',
-                      configured: false,
-                      features: []
-                    });
-                    setIsConfigDialogOpen(true);
-                  }}
-                  className="w-full"
-                  data-testid="button-configure-openai"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurar
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* DeepSeek */}
-            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
-                      <Bot className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base md:text-lg">DeepSeek</CardTitle>
-                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
-                        IA
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-between">
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm text-gray-600">
-                    Configure as chaves de API do DeepSeek
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setSelectedIntegration({
-                      id: 'deepseek',
-                      name: 'DeepSeek',
-                      category: 'IA',
-                      description: 'Provedor de IA DeepSeek',
-                      icon: Bot,
-                      status: 'disconnected',
-                      configured: false,
-                      features: []
-                    });
-                    setIsConfigDialogOpen(true);
-                  }}
-                  className="w-full"
-                  data-testid="button-configure-deepseek"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurar
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Google AI */}
-            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="p-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg flex-shrink-0">
-                      <Bot className="h-6 w-6 text-orange-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base md:text-lg">Google AI</CardTitle>
-                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
-                        IA
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-between">
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm text-gray-600">
-                    Configure as chaves de API do Google AI (Gemini)
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => {
-                    setSelectedIntegration({
-                      id: 'googleai',
-                      name: 'Google AI',
-                      category: 'IA',
-                      description: 'Provedor de IA Google (Gemini)',
-                      icon: Bot,
-                      status: 'disconnected',
-                      configured: false,
-                      features: []
-                    });
-                    setIsConfigDialogOpen(true);
-                  }}
-                  className="w-full"
-                  data-testid="button-configure-googleai"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurar
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
 
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
           <TabsContent key={category} value={category} className="space-y-4">
