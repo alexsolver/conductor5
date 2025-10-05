@@ -27,36 +27,47 @@ export class AuthController {
 
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
 
-      // Set access token as httpOnly cookie
-      res.cookie('accessToken', result.tokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 2 * 60 * 60 * 1000 // 2 hours
-      });
+      // Hybrid approach: cookies in production, tokens in body for development (Replit)
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      if (isProduction) {
+        // Production: Use HTTP-only cookies for security
+        res.cookie('accessToken', result.tokens.accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 2 * 60 * 60 * 1000 // 2 hours
+        });
 
-      // Set refresh token as httpOnly cookie
-      res.cookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+        res.cookie('refreshToken', result.tokens.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
-      // Return user data without tokens (they're now in cookies)
-      const responseData = {
-        ...result,
-        tokens: undefined
-      };
-      delete responseData.tokens;
+        // Don't send tokens in response body for production
+        const responseData = {
+          ...result,
+          tokens: undefined
+        };
+        delete responseData.tokens;
 
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: responseData
-      });
+        res.json({
+          success: true,
+          message: 'Login successful',
+          data: responseData
+        });
+      } else {
+        // Development: Send tokens in response body for Replit compatibility
+        res.json({
+          success: true,
+          message: 'Login successful',
+          data: result
+        });
+      }
     } catch (error: any) {
       const statusCode = error.message.includes('Invalid') || error.message.includes('deactivated') ? 401 : 400;
       
@@ -70,10 +81,12 @@ export class AuthController {
 
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      // Get refresh token from cookie (HTTP-only)
+      // Hybrid approach: try cookie first, then body
       const refreshTokenFromCookie = req.cookies?.refreshToken;
+      const refreshTokenFromBody = req.body?.refreshToken;
+      const refreshToken = refreshTokenFromCookie || refreshTokenFromBody;
       
-      if (!refreshTokenFromCookie) {
+      if (!refreshToken) {
         res.status(400).json({
           success: false,
           message: 'Refresh token is required'
@@ -81,39 +94,48 @@ export class AuthController {
         return;
       }
 
-      const dto: RefreshTokenDTO = { refreshToken: refreshTokenFromCookie };
+      const dto: RefreshTokenDTO = { refreshToken };
       const result = await this.refreshTokenUseCase.execute(dto);
 
-      // Set new access token as httpOnly cookie
-      res.cookie('accessToken', result.tokens.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 2 * 60 * 60 * 1000 // 2 hours
-      });
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      if (isProduction) {
+        // Production: Use HTTP-only cookies
+        res.cookie('accessToken', result.tokens.accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 2 * 60 * 60 * 1000 // 2 hours
+        });
 
-      // Update refresh token cookie
-      res.cookie('refreshToken', result.tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+        res.cookie('refreshToken', result.tokens.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
-      // Return response without tokens (they're now in cookies)
-      const responseData = {
-        ...result,
-        tokens: undefined
-      };
-      delete responseData.tokens;
+        const responseData = {
+          ...result,
+          tokens: undefined
+        };
+        delete responseData.tokens;
 
-      res.json({
-        success: true,
-        message: 'Token refreshed successfully',
-        data: responseData
-      });
+        res.json({
+          success: true,
+          message: 'Token refreshed successfully',
+          data: responseData
+        });
+      } else {
+        // Development: Send tokens in response body
+        res.json({
+          success: true,
+          message: 'Token refreshed successfully',
+          data: result
+        });
+      }
     } catch (error: any) {
       // Clear both cookies on error
       res.clearCookie('accessToken');
