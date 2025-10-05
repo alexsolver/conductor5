@@ -26,7 +26,7 @@ import {
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
   Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen,
-  FormInput
+  FormInput, Smile, Meh, Frown, Heart
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -2116,6 +2116,45 @@ const TicketDetails = React.memo(() => {
                         }`}>
                           <p className="text-gray-800 text-sm leading-relaxed">{comm.content}</p>
                         </div>
+
+                        {/* Sentiment Indicator */}
+                        {comm.metadata?.sentiment && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge
+                              variant="outline"
+                              className={`text-xs flex items-center gap-1 ${
+                                comm.metadata.sentiment === 'positive' 
+                                  ? 'bg-green-50 text-green-700 border-green-300' 
+                                  : comm.metadata.sentiment === 'negative'
+                                  ? 'bg-red-50 text-red-700 border-red-300'
+                                  : 'bg-gray-50 text-gray-700 border-gray-300'
+                              }`}
+                              data-testid={`sentiment-badge-${comm.id}`}
+                            >
+                              {comm.metadata.sentiment === 'positive' ? (
+                                <>
+                                  <Smile className="h-3 w-3" />
+                                  Positivo
+                                </>
+                              ) : comm.metadata.sentiment === 'negative' ? (
+                                <>
+                                  <Frown className="h-3 w-3" />
+                                  Negativo
+                                </>
+                              ) : (
+                                <>
+                                  <Meh className="h-3 w-3" />
+                                  Neutro
+                                </>
+                              )}
+                            </Badge>
+                            {comm.metadata.sentimentScore !== undefined && (
+                              <span className="text-xs text-gray-500">
+                                Score: {comm.metadata.sentimentScore.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         {/* Enhanced Footer */}
                         <div className="flex items-center justify-between">
