@@ -350,18 +350,15 @@ export class ProcessMessageUseCase {
 
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_messages 
-        (id, tenant_id, ticket_id, sender_id, message, message_type, is_internal, attachments, metadata, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        (id, tenant_id, ticket_id, sender_id, content, is_internal, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
       `, [
         `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         tenantId,
         ticketId,
         senderId,
         messageContent,
-        messageType,
-        false, // is_internal
-        JSON.stringify(message.metadata?.attachments || []),
-        JSON.stringify(metadata)
+        false // is_internal
       ]);
 
       console.log(`✅ [TICKET-CONTEXT] Message successfully added to ticket ${ticketId} with sentiment analysis`);
