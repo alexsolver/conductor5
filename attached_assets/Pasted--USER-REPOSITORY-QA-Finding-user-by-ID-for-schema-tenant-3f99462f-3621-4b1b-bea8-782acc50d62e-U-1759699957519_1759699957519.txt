@@ -1,0 +1,60 @@
+}
+[USER-REPOSITORY-QA] Finding user by ID for schema: tenant_3f99462f_3621_4b1b_bea8_782acc50d62e
+[USER-REPOSITORY-QA] Error finding user by ID: error: column "name" does not exist
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)
+    at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)
+    at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22) {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '32',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+❌ [REFRESH-USE-CASE] Error during token refresh: {
+  message: 'column "name" does not exist',
+  stack: 'error: column "name" does not exist\n' +
+    '    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)\n' +
+    '    at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)\n' +
+    '    at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22)',
+  errorObject: error: column "name" does not exist
+      at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at DrizzleUserRepository.findByIdAndTenant (/home/runner/workspace/server/modules/users/infrastructure/repositories/DrizzleUserRepository.ts:30:22)
+      at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:89:20)
+      at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:22) {
+    length: 104,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '32',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3722',
+    routine: 'errorMissingColumn'
+  }
+}
+9:29:26 PM [express] POST /api/auth/refresh 401 in 32ms :: {"success":false,"message":"column \"name…
