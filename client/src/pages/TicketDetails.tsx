@@ -489,7 +489,7 @@ const TicketDetails = React.memo(() => {
   });
 
 
-  // ✅ 1QA.MD: Buscar campos customizados do módulo /custom-fields-admin
+  // ✅ [1QA-COMPLIANCE] Buscar campos customizados do módulo /custom-fields-admin
   const { data: availableCustomFieldsResponse } = useQuery({
     queryKey: ['/api/custom-fields/fields/tickets'],
     queryFn: async () => {
@@ -1640,34 +1640,19 @@ const TicketDetails = React.memo(() => {
                     <FormItem>
                       <FormLabel>{t('tickets.fields.category')}</FormLabel>
                       <FormControl>
-                        {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="category"
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              // Reset subcategoria e ação quando categoria muda
-                              form.setValue('subcategory', '');
-                              form.setValue('action', '');
-                            }}
-                            placeholder="Selecione a categoria"
-                            disabled={!isEditMode}
-                            customerId={ticket?.companyId || ticket?.company_id}
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {(field.value || ticket?.category) ? (
-                              <DynamicBadge
-                                fieldName="category"
-                                value={field.value || ticket?.category}
-                              >
-                                {getFieldLabel('category', field.value || ticket?.category) || field.value || ticket?.category}
-                              </DynamicBadge>
-                            ) : (
-                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
-                            )}
-                          </div>
-                        )}
+                        <DynamicSelect
+                          fieldName="category"
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Reset subcategoria e ação quando categoria muda
+                            form.setValue('subcategory', '');
+                            form.setValue('action', '');
+                          }}
+                          placeholder="Selecione a categoria"
+                          disabled={!isEditMode}
+                          customerId={ticket?.companyId || ticket?.company_id}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1679,36 +1664,21 @@ const TicketDetails = React.memo(() => {
                   name="subcategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('tickets.fields.subcategory')}</FormLabel>
+                      <FormLabel>Subcategoria</FormLabel>
                       <FormControl>
-                        {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="subcategory"
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              // Reset ação quando subcategoria muda
-                              form.setValue('action', '');
-                            }}
-                            placeholder="Selecione a subcategoria"
-                            disabled={!isEditMode || !form.watch('category')}
-                            dependsOn={form.watch('category') || ticket?.category}
-                            customerId={ticket?.companyId || ticket?.company_id}
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {(field.value || ticket?.subcategory) ? (
-                              <DynamicBadge
-                                fieldName="subcategory"
-                                value={field.value || ticket?.subcategory}
-                              >
-                                {getFieldLabel('subcategory', field.value || ticket?.subcategory) || field.value || ticket?.subcategory}
-                              </DynamicBadge>
-                            ) : (
-                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
-                            )}
-                          </div>
-                        )}
+                        <DynamicSelect
+                          fieldName="subcategory"
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Reset ação quando subcategoria muda
+                            form.setValue('action', '');
+                          }}
+                          placeholder="Selecione a subcategoria"
+                          disabled={!isEditMode || !form.watch('category')}
+                          dependsOn={form.watch('category') || ticket?.category}
+                          customerId={ticket?.companyId || ticket?.company_id}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1720,32 +1690,17 @@ const TicketDetails = React.memo(() => {
                   name="action"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('tickets.fields.action')}</FormLabel>
+                      <FormLabel>Ação</FormLabel>
                       <FormControl>
-                        {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="action"
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder={t('tickets.placeholders.selectAction')}
-                            disabled={!isEditMode || !form.watch('subcategory')}
-                            dependsOn={form.watch('subcategory') || ticket?.subcategory}
-                            customerId={ticket?.companyId || ticket?.company_id}
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {(field.value || ticket?.action) ? (
-                              <DynamicBadge
-                                fieldName="action"
-                                value={field.value || ticket?.action}
-                              >
-                                {getFieldLabel('action', field.value || ticket?.action) || field.value || ticket?.action}
-                              </DynamicBadge>
-                            ) : (
-                              <span className="text-gray-400 text-sm">{t('tickets.fields.notSpecified')}</span>
-                            )}
-                          </div>
-                        )}
+                        <DynamicSelect
+                          fieldName="action"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder={t('tickets.placeholders.selectAction')}
+                          disabled={!isEditMode || !form.watch('subcategory')}
+                          dependsOn={form.watch('subcategory') || ticket?.subcategory}
+                          customerId={ticket?.companyId || ticket?.company_id}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -4393,12 +4348,7 @@ const TicketDetails = React.memo(() => {
                   {customer.address && (
                     <div className="gap-2 p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
-                      <span className="text-sm text-gray-900">
-                        {typeof customer.address === 'string'
-                          ? customer.address
-                          : `${customer.address.street || ''} ${customer.address.number || ''}, ${customer.address.neighborhood || ''}, ${customer.address.city || ''} - ${customer.address.state || ''}, ${customer.address.zipCode || ''}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '').trim() || 'Endereço não informado'
-                        }
-                      </span>
+                      <span className="text-sm text-gray-900">{customer.address}</span>
                     </div>
                   )}
                 </div>
