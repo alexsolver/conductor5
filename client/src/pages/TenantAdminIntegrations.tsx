@@ -977,6 +977,14 @@ export default function TenantAdminIntegrations() {
           dropboxAccessToken: maskSensitiveData(config.dropboxAccessToken),
           backupFolder: config.backupFolder || '/Backups/Conductor',
 
+          // AI Provider specific fields (OpenAI, DeepSeek, Google AI)
+          openaiApiKey: config.openaiApiKey || maskSensitiveData(config.apiKey),
+          openaiModel: config.openaiModel || config.model || '',
+          deepseekApiKey: config.deepseekApiKey || maskSensitiveData(config.apiKey),
+          deepseekModel: config.deepseekModel || config.model || '',
+          googleaiApiKey: config.googleaiApiKey || maskSensitiveData(config.apiKey),
+          googleaiModel: config.googleaiModel || config.model || '',
+
           // Telegram specific fields - CRITICAL FIX
           telegramBotToken: maskSensitiveData(config.telegramBotToken),
           telegramChatId: config.telegramChatId || '',
