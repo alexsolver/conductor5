@@ -82,22 +82,43 @@ export class MessageIngestionService {
 
       console.log(`📨 [TELEGRAM-INGESTION] Message found:`, JSON.stringify(message, null, 2));
 
-      // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem tem contexto de ticket
+      // 🎯 TICKET CONTEXT TRACKING: Buscar ticket e conversationId correto
+      const chatId = message.chat.id;
+      
+      // Primeiro buscar ticket pelo chatId
+      const ticketId = await this.findTicketByChatId(chatId.toString(), tenantId);
+      let conversationId: string | undefined;
+      
+      if (ticketId) {
+        console.log(`✅ [TELEGRAM-INGESTION] Found ticket by chatId: ${ticketId}`);
+        
+        // Buscar conversationId do ticket metadata
+        try {
+          const { pool } = await import('../../../../db');
+          const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+          const result = await pool.query(`
+            SELECT metadata FROM "${schemaName}".tickets WHERE id = $1
+          `, [ticketId]);
+          
+          conversationId = result.rows[0]?.metadata?.conversationId;
+          if (conversationId) {
+            console.log(`✅ [TELEGRAM-INGESTION] Found conversationId from ticket: ${conversationId}`);
+          }
+        } catch (err) {
+          console.error(`❌ [TELEGRAM-INGESTION] Error fetching conversationId:`, err);
+        }
+      }
+      
       const metadata: Record<string, any> = {
         telegramMessageId: message.message_id,
-        chatId: message.chat.id,
+        chatId: chatId,
         fromUser: message.from,
         chatType: message.chat.type,
         timestamp: message.date,
-        conversationId: `telegram-${message.chat.id}`, // Usar chatId como conversationId
-        threadId: message.reply_to_message?.message_id ? `telegram-thread-${message.reply_to_message.message_id}` : undefined
+        conversationId: conversationId, // Usar conversationId UUID do ticket
+        threadId: message.reply_to_message?.message_id ? `telegram-thread-${message.reply_to_message.message_id}` : undefined,
+        ticketId: ticketId // Já temos o ticketId
       };
-
-      const ticketId = await this.extractTicketIdFromChatMetadata(metadata, tenantId);
-      if (ticketId) {
-        metadata.ticketId = ticketId;
-        console.log(`🎫 [TELEGRAM-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
-      }
 
       // Extrair dados da mensagem do Telegram
       const incomingMessage: IncomingMessage = {
@@ -168,21 +189,42 @@ export class MessageIngestionService {
         return { success: false, processed: 0 };
       }
 
-      // 🎯 TICKET CONTEXT TRACKING: Criar metadata com chatId para link automático
+      // 🎯 TICKET CONTEXT TRACKING: Buscar ticket e conversationId correto
+      const chatId = message.from;
+      
+      // Primeiro buscar ticket pelo chatId
+      const ticketId = await this.findTicketByChatId(chatId, tenantId);
+      let conversationId: string | undefined;
+      
+      if (ticketId) {
+        console.log(`✅ [WHATSAPP-INGESTION] Found ticket by chatId: ${ticketId}`);
+        
+        // Buscar conversationId do ticket metadata
+        try {
+          const { pool } = await import('../../../../db');
+          const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+          const result = await pool.query(`
+            SELECT metadata FROM "${schemaName}".tickets WHERE id = $1
+          `, [ticketId]);
+          
+          conversationId = result.rows[0]?.metadata?.conversationId;
+          if (conversationId) {
+            console.log(`✅ [WHATSAPP-INGESTION] Found conversationId from ticket: ${conversationId}`);
+          }
+        } catch (err) {
+          console.error(`❌ [WHATSAPP-INGESTION] Error fetching conversationId:`, err);
+        }
+      }
+      
       const metadata: Record<string, any> = {
         whatsappMessageId: message.id,
-        chatId: message.from, // WhatsApp usa 'from' como identificador único do chat
+        chatId: chatId, // WhatsApp usa 'from' como identificador único do chat
         fromUser: message.profile?.name || message.from,
         messageType: message.type,
         timestamp: message.timestamp,
-        conversationId: `whatsapp-${message.from}`, // Usar 'from' como conversationId
+        conversationId: conversationId, // Usar conversationId UUID do ticket
+        ticketId: ticketId // Já temos o ticketId
       };
-
-      const ticketId = await this.extractTicketIdFromChatMetadata(metadata, tenantId);
-      if (ticketId) {
-        metadata.ticketId = ticketId;
-        console.log(`🎫 [WHATSAPP-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
-      }
 
       // Extrair dados da mensagem do WhatsApp
       const incomingMessage: IncomingMessage = {

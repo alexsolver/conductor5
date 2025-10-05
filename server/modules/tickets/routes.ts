@@ -2067,6 +2067,15 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       } else {
         conversationId = crypto.randomUUID();
         console.log(`💬 [CONVERSATION] Generated NEW conversationId: ${conversationId}`);
+        
+        // 🎯 CRITICAL FIX: Salvar conversationId no ticket metadata
+        const updateQuery = `
+          UPDATE "${schemaName}".tickets 
+          SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{conversationId}', $1)
+          WHERE id = $2
+        `;
+        await pool.query(updateQuery, [JSON.stringify(conversationId), id]);
+        console.log(`✅ [CONVERSATION] Saved conversationId to ticket metadata for chat channels`);
       }
     } catch (err) {
       console.error('❌ [CONVERSATION] Error managing conversationId:', err);
