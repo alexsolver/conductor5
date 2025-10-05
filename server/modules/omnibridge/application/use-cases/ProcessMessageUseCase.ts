@@ -299,7 +299,7 @@ export class ProcessMessageUseCase {
    */
   private async addMessageToTicket(ticketId: string, message: any, tenantId: string): Promise<void> {
     try {
-      const { pool } = await import('../../../db');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       console.log(`🎫 [TICKET-CONTEXT] Adding message to ticket ${ticketId} in schema ${schemaName}`);
