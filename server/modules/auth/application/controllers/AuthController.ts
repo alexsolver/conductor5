@@ -4,7 +4,7 @@
  */
 
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { LoginUseCase } from '../use-cases/LoginUseCase';
 import { RefreshTokenUseCase } from '../use-cases/RefreshTokenUseCase';
 import { LogoutUseCase } from '../use-cases/LogoutUseCase';

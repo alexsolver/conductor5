@@ -8,7 +8,13 @@ import jwt from 'jsonwebtoken';
 import { AuthDomainService, AuthTokens } from '../../domain/entities/AuthSession';
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { IUserRepository } from '../../../users/domain/repositories/IUserRepository';
-import { RefreshTokenDTO, RefreshTokenResponseDTO } from '../dto/AuthDTO';
+import { RefreshTokenDTO } from '../dto/AuthDTO';
+
+// Internal response type for use case (not the HTTP DTO)
+interface RefreshTokenResult {
+  tokens: AuthTokens;
+  expiresAt: string;
+}
 
 export class RefreshTokenUseCase {
   constructor(
@@ -17,11 +23,13 @@ export class RefreshTokenUseCase {
     private authDomainService: AuthDomainService
   ) {}
 
-  async execute({ refreshToken }: RefreshTokenDTO): Promise<RefreshTokenResponseDTO> {
+  async execute({ refreshToken }: RefreshTokenDTO): Promise<RefreshTokenResult> {
     try {
       console.log('🔄 [REFRESH-USE-CASE] Starting token refresh process', {
         tokenLength: refreshToken?.length,
-        tokenStart: refreshToken?.substring(0, 20)
+        tokenStart: refreshToken?.substring(0, 20),
+        hasJwtRefreshSecret: !!process.env.JWT_REFRESH_SECRET,
+        hasJwtSecret: !!process.env.JWT_SECRET
       });
 
       if (!refreshToken || typeof refreshToken !== 'string') {
@@ -31,9 +39,11 @@ export class RefreshTokenUseCase {
       // Verify the refresh token
       let decoded: any;
       try {
-        decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'your-refresh-secret');
+        // Use consistent fallback: JWT_REFRESH_SECRET > JWT_SECRET > default
+        const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'conductor-jwt-secret-key-2025';
+        decoded = jwt.verify(refreshToken, refreshSecret);
         console.log('✅ [REFRESH-USE-CASE] Refresh token verified', {
-          userId: decoded.userId,
+          userId: decoded.userId || decoded.sub,
           email: decoded.email,
           exp: decoded.exp,
           iat: decoded.iat
