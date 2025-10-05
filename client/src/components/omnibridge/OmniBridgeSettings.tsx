@@ -28,7 +28,9 @@ import {
   Save,
   RefreshCw,
   Globe,
-  Volume2
+  Volume2,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 
 interface ChannelSettings {
@@ -70,6 +72,33 @@ interface SearchSettings {
   maxResultsPerChannel: number;
   priorityChannels: string[];
   autoArchiveAfter: number; // days
+}
+
+interface AISettings {
+  sentimentAnalysis: {
+    enabled: boolean;
+    provider: 'openai' | 'deepseek' | 'google' | 'fallback';
+    model: string;
+    confidenceThreshold: number;
+    autoEscalate: {
+      enabled: boolean;
+      threshold: number;
+      assignTo: string;
+    };
+  };
+  fallbackKeywords: {
+    positive: string[];
+    negative: string[];
+    neutral: string[];
+  };
+  supportedEmotions: string[];
+  urgencyIndicators: string[];
+  visualization: {
+    positiveColor: string;
+    neutralColor: string;
+    negativeColor: string;
+    showIntensity: boolean;
+  };
 }
 
 export default function OmniBridgeSettings() {
@@ -142,7 +171,33 @@ export default function OmniBridgeSettings() {
       maxResultsPerChannel: 1000,
       priorityChannels: [],
       autoArchiveAfter: 90
-    } as SearchSettings
+    } as SearchSettings,
+    ai: {
+      sentimentAnalysis: {
+        enabled: true,
+        provider: 'openai' as const,
+        model: 'gpt-4o-mini',
+        confidenceThreshold: 0.6,
+        autoEscalate: {
+          enabled: false,
+          threshold: -0.7,
+          assignTo: ''
+        }
+      },
+      fallbackKeywords: {
+        positive: ['obrigado', 'excelente', 'ótimo', 'perfeito', 'maravilhoso', 'resolvido', 'funcionou'],
+        negative: ['problema', 'erro', 'não funciona', 'urgente', 'crítico', 'horrível', 'péssimo', 'insatisfeito'],
+        neutral: ['ok', 'entendi', 'aguardando', 'verificar', 'analisar']
+      },
+      supportedEmotions: ['feliz', 'frustrado', 'neutro', 'ansioso', 'satisfeito', 'irritado', 'confuso'],
+      urgencyIndicators: ['urgente', 'crítico', 'emergência', 'imediato', 'agora', 'asap'],
+      visualization: {
+        positiveColor: '#10b981',
+        neutralColor: '#f59e0b',
+        negativeColor: '#ef4444',
+        showIntensity: true
+      }
+    } as AISettings
   });
 
   useEffect(() => {
@@ -231,7 +286,7 @@ export default function OmniBridgeSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="channels">
             <Globe className="h-4 w-4 mr-2" />
             Canais
@@ -247,6 +302,10 @@ export default function OmniBridgeSettings() {
           <TabsTrigger value="limits">
             <Volume2 className="h-4 w-4 mr-2" />
             Limites
+          </TabsTrigger>
+          <TabsTrigger value="ai">
+            <Brain className="h-4 w-4 mr-2" />
+            IA
           </TabsTrigger>
         </TabsList>
 
@@ -656,6 +715,510 @@ export default function OmniBridgeSettings() {
                   placeholder="pdf, doc, docx, txt, jpg, png, gif"
                 />
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                Análise de Sentimento com IA
+              </CardTitle>
+              <CardDescription>
+                Configure como a inteligência artificial analisa e classifica o sentimento das mensagens
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div className="flex-1">
+                  <Label className="text-base font-semibold">Habilitar Análise de Sentimento</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Detecta automaticamente o sentimento (positivo, neutro, negativo) em todas as mensagens
+                  </p>
+                </div>
+                <Switch
+                  checked={localSettings.ai.sentimentAnalysis.enabled}
+                  onCheckedChange={(checked) =>
+                    setLocalSettings(prev => ({
+                      ...prev,
+                      ai: {
+                        ...prev.ai,
+                        sentimentAnalysis: { ...prev.ai.sentimentAnalysis, enabled: checked }
+                      }
+                    }))
+                  }
+                />
+              </div>
+
+              {localSettings.ai.sentimentAnalysis.enabled && (
+                <>
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Provedor de IA</Label>
+                      <Select
+                        value={localSettings.ai.sentimentAnalysis.provider}
+                        onValueChange={(value: any) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              sentimentAnalysis: { ...prev.ai.sentimentAnalysis, provider: value }
+                            }
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="openai">OpenAI (GPT-4o-mini)</SelectItem>
+                          <SelectItem value="deepseek">DeepSeek</SelectItem>
+                          <SelectItem value="google">Google AI (Gemini)</SelectItem>
+                          <SelectItem value="fallback">Fallback (Keywords)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Escolha o modelo de IA para análise de sentimento
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>Modelo</Label>
+                      <Select
+                        value={localSettings.ai.sentimentAnalysis.model}
+                        onValueChange={(value) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              sentimentAnalysis: { ...prev.ai.sentimentAnalysis, model: value }
+                            }
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {localSettings.ai.sentimentAnalysis.provider === 'openai' && (
+                            <>
+                              <SelectItem value="gpt-4o-mini">GPT-4o-mini (Recomendado)</SelectItem>
+                              <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                            </>
+                          )}
+                          {localSettings.ai.sentimentAnalysis.provider === 'deepseek' && (
+                            <>
+                              <SelectItem value="deepseek-chat">DeepSeek Chat</SelectItem>
+                              <SelectItem value="deepseek-reasoner">DeepSeek Reasoner</SelectItem>
+                            </>
+                          )}
+                          {localSettings.ai.sentimentAnalysis.provider === 'google' && (
+                            <>
+                              <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+                              <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                            </>
+                          )}
+                          {localSettings.ai.sentimentAnalysis.provider === 'fallback' && (
+                            <SelectItem value="keywords">Keywords Matching</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>
+                      Limiar de Confiança: {localSettings.ai.sentimentAnalysis.confidenceThreshold.toFixed(2)}
+                    </Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={localSettings.ai.sentimentAnalysis.confidenceThreshold}
+                      onChange={(e) =>
+                        setLocalSettings(prev => ({
+                          ...prev,
+                          ai: {
+                            ...prev.ai,
+                            sentimentAnalysis: { 
+                              ...prev.ai.sentimentAnalysis, 
+                              confidenceThreshold: parseFloat(e.target.value) 
+                            }
+                          }
+                        }))
+                      }
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Nível mínimo de confiança para considerar a análise válida (0 = menos rigoroso, 1 = mais rigoroso)
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label className="text-base font-semibold text-red-900">Auto-Escalação por Sentimento Negativo</Label>
+                        <p className="text-sm text-red-700 mt-1">
+                          Escala automaticamente tickets com sentimento muito negativo
+                        </p>
+                      </div>
+                      <Switch
+                        checked={localSettings.ai.sentimentAnalysis.autoEscalate.enabled}
+                        onCheckedChange={(checked) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              sentimentAnalysis: {
+                                ...prev.ai.sentimentAnalysis,
+                                autoEscalate: { ...prev.ai.sentimentAnalysis.autoEscalate, enabled: checked }
+                              }
+                            }
+                          }))
+                        }
+                      />
+                    </div>
+
+                    {localSettings.ai.sentimentAnalysis.autoEscalate.enabled && (
+                      <div className="space-y-3 mt-4">
+                        <div>
+                          <Label className="text-red-900">
+                            Limiar de Escalação: {localSettings.ai.sentimentAnalysis.autoEscalate.threshold.toFixed(2)}
+                          </Label>
+                          <input
+                            type="range"
+                            min="-1"
+                            max="0"
+                            step="0.1"
+                            value={localSettings.ai.sentimentAnalysis.autoEscalate.threshold}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  sentimentAnalysis: {
+                                    ...prev.ai.sentimentAnalysis,
+                                    autoEscalate: {
+                                      ...prev.ai.sentimentAnalysis.autoEscalate,
+                                      threshold: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }
+                              }))
+                            }
+                            className="w-full"
+                          />
+                          <p className="text-xs text-red-700 mt-1">
+                            Score abaixo do qual o ticket será escalado (-1 = muito negativo, 0 = neutro)
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label className="text-red-900">Atribuir Para (User ID)</Label>
+                          <Input
+                            placeholder="ID do usuário para escalação"
+                            value={localSettings.ai.sentimentAnalysis.autoEscalate.assignTo}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  sentimentAnalysis: {
+                                    ...prev.ai.sentimentAnalysis,
+                                    autoEscalate: {
+                                      ...prev.ai.sentimentAnalysis.autoEscalate,
+                                      assignTo: e.target.value
+                                    }
+                                  }
+                                }
+                              }))
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-base font-semibold">Keywords de Fallback - Positivas</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Palavras-chave para detecção de sentimento positivo quando IA não está disponível
+                      </p>
+                      <Textarea
+                        value={localSettings.ai.fallbackKeywords.positive.join(', ')}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              fallbackKeywords: {
+                                ...prev.ai.fallbackKeywords,
+                                positive: e.target.value.split(',').map(k => k.trim()).filter(k => k)
+                              }
+                            }
+                          }))
+                        }
+                        placeholder="obrigado, excelente, ótimo, perfeito..."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-semibold">Keywords de Fallback - Negativas</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Palavras-chave para detecção de sentimento negativo quando IA não está disponível
+                      </p>
+                      <Textarea
+                        value={localSettings.ai.fallbackKeywords.negative.join(', ')}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              fallbackKeywords: {
+                                ...prev.ai.fallbackKeywords,
+                                negative: e.target.value.split(',').map(k => k.trim()).filter(k => k)
+                              }
+                            }
+                          }))
+                        }
+                        placeholder="problema, erro, não funciona, urgente, crítico..."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-semibold">Keywords de Fallback - Neutras</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Palavras-chave para detecção de sentimento neutro quando IA não está disponível
+                      </p>
+                      <Textarea
+                        value={localSettings.ai.fallbackKeywords.neutral.join(', ')}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              fallbackKeywords: {
+                                ...prev.ai.fallbackKeywords,
+                                neutral: e.target.value.split(',').map(k => k.trim()).filter(k => k)
+                              }
+                            }
+                          }))
+                        }
+                        placeholder="ok, entendi, aguardando, verificar..."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-base font-semibold">Emoções Suportadas</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Lista de emoções que o sistema pode detectar nas mensagens
+                      </p>
+                      <Textarea
+                        value={localSettings.ai.supportedEmotions.join(', ')}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              supportedEmotions: e.target.value.split(',').map(e => e.trim()).filter(e => e)
+                            }
+                          }))
+                        }
+                        placeholder="feliz, frustrado, neutro, ansioso, satisfeito..."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-semibold">Indicadores de Urgência</Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Palavras que indicam urgência nas mensagens
+                      </p>
+                      <Textarea
+                        value={localSettings.ai.urgencyIndicators.join(', ')}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              urgencyIndicators: e.target.value.split(',').map(i => i.trim()).filter(i => i)
+                            }
+                          }))
+                        }
+                        placeholder="urgente, crítico, emergência, imediato, agora, asap..."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Label className="text-base font-semibold">Configurações de Visualização</Label>
+                      <Switch
+                        checked={localSettings.ai.visualization.showIntensity}
+                        onCheckedChange={(checked) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            ai: {
+                              ...prev.ai,
+                              visualization: { ...prev.ai.visualization, showIntensity: checked }
+                            }
+                          }))
+                        }
+                      />
+                      <span className="text-sm text-muted-foreground">Mostrar Intensidade</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label>Cor Positiva</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={localSettings.ai.visualization.positiveColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, positiveColor: e.target.value }
+                                }
+                              }))
+                            }
+                            className="w-16 h-10 p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={localSettings.ai.visualization.positiveColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, positiveColor: e.target.value }
+                                }
+                              }))
+                            }
+                            placeholder="#10b981"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Cor Neutra</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={localSettings.ai.visualization.neutralColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, neutralColor: e.target.value }
+                                }
+                              }))
+                            }
+                            className="w-16 h-10 p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={localSettings.ai.visualization.neutralColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, neutralColor: e.target.value }
+                                }
+                              }))
+                            }
+                            placeholder="#f59e0b"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Cor Negativa</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={localSettings.ai.visualization.negativeColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, negativeColor: e.target.value }
+                                }
+                              }))
+                            }
+                            className="w-16 h-10 p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={localSettings.ai.visualization.negativeColor}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                ai: {
+                                  ...prev.ai,
+                                  visualization: { ...prev.ai.visualization, negativeColor: e.target.value }
+                                }
+                              }))
+                            }
+                            placeholder="#ef4444"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-100 rounded-lg">
+                      <p className="text-sm font-medium mb-2">Preview:</p>
+                      <div className="flex gap-2">
+                        <div 
+                          className="px-3 py-1 rounded text-white text-sm"
+                          style={{ backgroundColor: localSettings.ai.visualization.positiveColor }}
+                        >
+                          Positivo
+                        </div>
+                        <div 
+                          className="px-3 py-1 rounded text-white text-sm"
+                          style={{ backgroundColor: localSettings.ai.visualization.neutralColor }}
+                        >
+                          Neutro
+                        </div>
+                        <div 
+                          className="px-3 py-1 rounded text-white text-sm"
+                          style={{ backgroundColor: localSettings.ai.visualization.negativeColor }}
+                        >
+                          Negativo
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
