@@ -138,6 +138,7 @@ export class ActionExecutor implements IActionExecutorPort {
           return await this.webhookAction(action, context);
 
         case 'send_notification':
+        case 'notify_in_app':
           return await this.sendNotificationAction(action, context);
 
         case 'ai_agent':
@@ -253,7 +254,8 @@ export class ActionExecutor implements IActionExecutorPort {
       'create_followup_task', 'schedule_reminder', 'add_note', 'log_activity', 'notify_customer',
       'send_email', 'notify_manager', 'api_request', 'close_ticket', 'reopen_ticket',
       'set_ticket_sla', 'assign_ticket_by_category', 'update_priority', 'update_metrics',
-      'add_tags', 'assign_agent', 'archive', 'mark_priority', 'webhook_call', 'send_notification'
+      'add_tags', 'assign_agent', 'archive', 'mark_priority', 'webhook_call', 'send_notification',
+      'notify_in_app'
     ];
     return supportedActions.includes(actionType);
   }
