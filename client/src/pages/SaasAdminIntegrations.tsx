@@ -54,6 +54,7 @@ interface Integration {
   name: string;
   provider: string;
   description: string;
+  category?: string;
   icon: any;
   status: 'connected' | 'error' | 'disconnected';
   apiKeyConfigured: boolean;
@@ -707,6 +708,32 @@ export default function SaasAdminIntegrations() {
     ];
   }
 
+  // Mapeamento de ícones por ID de integração
+  const iconMap: Record<string, any> = {
+    'openai': Brain,
+    'deepseek': Bot,
+    'googleai': Zap,
+    'google-ai': Zap,
+    'openweather': CloudRain,
+    'sendgrid': Plug,
+  };
+
+  // Adicionar ícones às integrações baseado no ID
+  const integrationsWithIcons = integrations.map(integration => ({
+    ...integration,
+    icon: iconMap[integration.id] || Plug,
+  }));
+
+  // Agrupar integrações por categoria
+  const groupedIntegrations = integrationsWithIcons.reduce((acc, integration) => {
+    const category = integration.category || 'Outros';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(integration);
+    return acc;
+  }, {} as Record<string, Integration[]>);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'connected': return 'text-green-600 bg-green-100';
@@ -962,7 +989,7 @@ export default function SaasAdminIntegrations() {
             <Plug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{integrations.length}</div>
+            <div className="text-2xl font-bold">{integrationsWithIcons.length}</div>
           </CardContent>
         </Card>
 
@@ -973,7 +1000,7 @@ export default function SaasAdminIntegrations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {integrations.filter(i => i.status === 'connected').length}
+              {integrationsWithIcons.filter(i => i.status === 'connected').length}
             </div>
           </CardContent>
         </Card>
@@ -985,84 +1012,98 @@ export default function SaasAdminIntegrations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {integrations.filter(i => i.status === 'error').length}
+              {integrationsWithIcons.filter(i => i.status === 'error').length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Desconectadas</CardTitle>
+            <CardTitle className="text-sm font-medium">Categorias</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {integrations.filter(i => i.status === 'disconnected').length}
+              {Object.keys(groupedIntegrations).length}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Integrações Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {integrations.map((integration) => {
-          const IconComponent = integration.icon || Plug;
-          return (
-            <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
-                      <IconComponent className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
-                        {integration.name}
-                      </CardTitle>
-                      <p className="text-sm text-gray-500 truncate" title={integration.provider}>
-                        {integration.provider}
+      {/* Integrações por Categoria */}
+      <Tabs defaultValue={Object.keys(groupedIntegrations)[0] || 'IA'} className="space-y-4">
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedIntegrations).length}, minmax(0, 1fr))` }}>
+          {Object.keys(groupedIntegrations).map((category) => (
+            <TabsTrigger key={category} value={category}>
+              {category}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
+          <TabsContent key={category} value={category} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+              {categoryIntegrations.map((integration) => {
+                const IconComponent = integration.icon || Plug;
+                return (
+                  <Card key={integration.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex-shrink-0">
+                            <IconComponent className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
+                              {integration.name}
+                            </CardTitle>
+                            <p className="text-sm text-gray-500 truncate" title={integration.provider || integration.name}>
+                              {integration.provider || integration.name}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                          {integration.apiKeyConfigured && (
+                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                              <Key className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">Configurada</span>
+                              <span className="sm:hidden">Config.</span>
+                            </Badge>
+                          )}
+                          <Badge className={`${getStatusColor(integration.status)} text-xs`}>
+                            {getStatusIcon(integration.status)}
+                            <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
+                            <span className="ml-1 capitalize sm:hidden">
+                              {integration.status === 'connected' ? 'OK' : 
+                               integration.status === 'disconnected' ? 'OFF' : 'ERR'}
+                            </span>
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="flex-1 flex flex-col">
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
+                        {integration.description}
                       </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end space-y-1 flex-shrink-0">
-                    {integration.apiKeyConfigured && (
-                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                        <Key className="h-3 w-3 mr-1" />
-                        <span className="hidden sm:inline">Configurada</span>
-                        <span className="sm:hidden">Config.</span>
-                      </Badge>
-                    )}
-                    <Badge className={`${getStatusColor(integration.status)} text-xs`}>
-                      {getStatusIcon(integration.status)}
-                      <span className="ml-1 capitalize hidden sm:inline">{integration.status}</span>
-                      <span className="ml-1 capitalize sm:hidden">
-                        {integration.status === 'connected' ? 'OK' : 
-                         integration.status === 'disconnected' ? 'OFF' : 'ERR'}
-                      </span>
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col">
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2" title={integration.description}>
-                  {integration.description}
-                </p>
+                      <div className="space-y-2 mt-auto">
+                        {renderActionButtons(integration)}
+                      </div>
 
-                <div className="space-y-2 mt-auto">
-                  {renderActionButtons(integration)}
-                </div>
-
-                {integration.lastTested && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Último teste: {new Date(integration.lastTested).toLocaleDateString()}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                      {integration.lastTested && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Último teste: {new Date(integration.lastTested).toLocaleDateString()}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {/* Dialog de Configuração */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>

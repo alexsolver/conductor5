@@ -367,4 +367,42 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// Get all integrations
+router.get('/integrations', async (req: AuthenticatedRequest, res) => {
+  try {
+    console.log('🔍 [SAAS-ADMIN-INTEGRATIONS] Fetching all integrations');
+    
+    const result = await db.execute(sql`
+      SELECT id, name, description, category, config, created_at, updated_at
+      FROM public.integrations
+      ORDER BY category, name
+    `);
+
+    const integrations = result.rows.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      config: row.config || {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    console.log(`✅ [SAAS-ADMIN-INTEGRATIONS] Found ${integrations.length} integrations`);
+
+    res.json({
+      success: true,
+      integrations,
+      total: integrations.length
+    });
+  } catch (error) {
+    console.error('❌ [SAAS-ADMIN-INTEGRATIONS] Error fetching integrations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch integrations',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
