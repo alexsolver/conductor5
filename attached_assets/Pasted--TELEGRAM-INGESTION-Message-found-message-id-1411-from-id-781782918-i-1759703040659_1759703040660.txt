@@ -1,0 +1,97 @@
+ [TELEGRAM-INGESTION] Message found: {
+  "message_id": 1411,
+  "from": {
+    "id": 781782918,
+    "is_bot": false,
+    "first_name": "Alex",
+    "username": "alexbenedito",
+    "language_code": "pt-br"
+  },
+  "chat": {
+    "id": 781782918,
+    "first_name": "Alex",
+    "username": "alexbenedito",
+    "type": "private"
+  },
+  "date": 1759702931,
+  "text": "21"
+}
+🎫 [TICKET-TRACKING] Checking conversationId: telegram-781782918
+🎫 [TICKET-TRACKING] Checking chatId: 781782918
+🎫 [TICKET-TRACKING] Found ticket via chatId: 6dfced0f-cf8e-460e-a1d0-f6e40c0fc1b0
+🎫 [TELEGRAM-INGESTION] Detected ticket context: 6dfced0f-cf8e-460e-a1d0-f6e40c0fc1b0 - will bypass automation
+📨 [MESSAGE-INGESTION] Processing telegram message from telegram:781782918
+💾 [DRIZZLE-MESSAGE-REPO] Creating message for tenant: 3f99462f-3621-4b1b-bea8-782acc50d62e
+💾 [DRIZZLE-MESSAGE-REPO] Message ID: 56f22cadb6267329
+💾 [DRIZZLE-MESSAGE-REPO] Channel: telegram (telegram)
+💾 [DRIZZLE-MESSAGE-REPO] From: telegram:781782918
+💾 [DRIZZLE-MESSAGE-REPO] Content: 21...
+✅ [DRIZZLE-MESSAGE-REPO] Message created successfully in database
+✅ [DRIZZLE-MESSAGE-REPO] Database result: [
+  {
+    "id": "56f22cadb6267329",
+    "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e",
+    "channelId": "telegram",
+    "channelType": "telegram",
+    "fromAddress": "telegram:781782918",
+    "toAddress": "bot:unknown",
+    "subject": "Telegram - Alex",
+    "content": "21",
+    "timestamp": "2025-10-05T22:22:19.208Z",
+    "status": "unread",
+    "priority": "medium",
+    "tags": [],
+    "attachments": 0,
+    "metadata": {
+      "chatId": 781782918,
+      "chatType": "private",
+      "fromUser": {
+        "id": 781782918,
+        "is_bot": false,
+        "username": "alexbenedito",
+        "first_name": "Alex",
+        "language_code": "pt-br"
+      },
+      "ticketId": "6dfced0f-cf8e-460e-a1d0-f6e40c0fc1b0",
+      "timestamp": 1759702931,
+      "conversationId": "telegram-781782918",
+      "telegramMessageId": 1411
+    },
+    "createdAt": "2025-10-05T22:22:19.208Z",
+    "updatedAt": "2025-10-05T22:22:19.208Z"
+  }
+]
+🔍 [DRIZZLE-MESSAGE-REPO] Verification query result: [
+  {
+    "id": "56f22cadb6267329",
+    "tenantId": "3f99462f-3621-4b1b-bea8-782acc50d62e",
+    "channelId": "telegram",
+    "channelType": "telegram",
+    "fromAddress": "telegram:781782918",
+    "toAddress": "bot:unknown",
+    "subject": "Telegram - Alex",
+    "content": "21",
+    "timestamp": "2025-10-05T22:22:19.208Z",
+    "status": "unread",
+    "priority": "medium",
+    "tags": [],
+    "attachments": 0,
+    "metadata": {
+      "chatId": 781782918,
+      "chatType": "private",
+      "fromUser": {
+        "id": 781782918,
+        "is_bot": false,
+        "username": "alexbenedito",
+        "first_name": "Alex",
+        "language_code": "pt-br"
+      },
+      "ticketId": "6dfced0f-cf8e-460e-a1d0-f6e40c0fc1b0",
+      "timestamp": 1759702931,
+      "conversationId": "telegram-781782918",
+      "telegramMessageId": 1411
+    },
+    "createdAt": "2025-10-05T22:22:19.208Z",
+    "updatedAt": "2025-10-05T22:22:19.208Z"
+  }
+]
