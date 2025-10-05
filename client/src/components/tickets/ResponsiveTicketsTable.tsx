@@ -232,8 +232,8 @@ export const ResponsiveTicketsTable = ({
                   <TableCell className="hidden lg:table-cell">
                     <OptimizedBadge
                       fieldName="category"
-                      value={ticket.category || ''}
-                      aria-label={`Categoria: ${ticket.category}`}
+                      value={(ticket as any).category_name || ticket.category || ''}
+                      aria-label={`Categoria: ${(ticket as any).category_name || ticket.category}`}
                     />
                   </TableCell>
 
