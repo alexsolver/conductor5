@@ -2408,6 +2408,86 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // ===========================
+  // TENANT INTEGRATIONS MANAGEMENT
+  // ===========================
+
+  async getTenantIntegrations(tenantId: string): Promise<any[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT id, name, description, type, enabled, config, created_at, updated_at
+        FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId}
+        ORDER BY name
+      `);
+
+      return result.rows || [];
+    } catch (error) {
+      logError("Error fetching tenant integrations", error, { tenantId });
+      return [];
+    }
+  }
+
+  async getTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+  ): Promise<any | undefined> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT config
+        FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+      `);
+
+      return result.rows?.[0]?.config || undefined;
+    } catch (error) {
+      logError("Error fetching tenant integration config", error, {
+        tenantId,
+        integrationId,
+      });
+      return undefined;
+    }
+  }
+
+  async saveTenantIntegrationConfig(
+    tenantId: string,
+    integrationId: string,
+    config: any,
+  ): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const configJson = JSON.stringify(config);
+
+      await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
+        SET config = ${configJson}::jsonb, updated_at = NOW()
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+      `);
+
+      logInfo("Tenant integration config saved", {
+        tenantId: validatedTenantId,
+        integrationId,
+      });
+    } catch (error) {
+      logError("Error saving tenant integration config", error, {
+        tenantId,
+        integrationId,
+      });
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

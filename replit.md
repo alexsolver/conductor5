@@ -56,6 +56,17 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
 - **Ticket Context Tracking**: Intelligent message-to-ticket linking system for emails and chat platforms.
 - **Extended Action Library**: Comprehensive automation action library across communication, ticket operations, customer management, knowledge base, scheduling, and analytics/integration.
 
+### AI Provider Configuration
+The platform supports per-tenant AI provider configuration. Each tenant can configure their own API keys for:
+- **OpenAI**: GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-3.5 Turbo
+- **DeepSeek**: DeepSeek Chat, DeepSeek Reasoner
+- **Google AI**: Gemini 2.0 Flash, Gemini 1.5 Flash/Pro, Gemini 1.0 Pro
+
+Configuration is managed through the Tenant Admin → Integrations → IA tab. The `TenantAIConfigService` provides methods to retrieve tenant-specific API keys:
+- `getTenantAIConfig(tenantId)`: Get all AI configurations for a tenant
+- `getPreferredAIProvider(tenantId)`: Get the preferred provider (OpenAI > DeepSeek > Google AI > env fallback)
+- `getProviderConfig(tenantId, provider)`: Get specific provider configuration
+
 ## External Dependencies
 - **Database**: Neon PostgreSQL.
 - **UI Components**: Radix UI, Shadcn UI.
