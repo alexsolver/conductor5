@@ -108,17 +108,15 @@ export class DrizzleTicketRepositoryFixed implements ITicketRepository {
         ? asc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt)
         : desc(tickets[pagination.sortBy as keyof typeof tickets] || tickets.createdAt);
 
-      // SOLUTION: Use correct tenant schema with assigned_to_id column and category name
+      // SOLUTION: Use correct tenant schema with assigned_to_id column
       const results = await db.execute(sql`
         SELECT 
-          t.id, t.number, t.subject, t.description, t.status, t.priority, t.urgency, t.impact,
-          t.category, tc.name as category_name, t.subcategory, t.caller_id as "callerId", 
-          t.assigned_to_id as "assignedToId", t.tenant_id as "tenantId", 
-          t.created_at as "createdAt", t.updated_at as "updatedAt",
-          t.company_id as "companyId", t.beneficiary_id as "beneficiaryId"
-        FROM ${sql.identifier(schemaName)}.tickets t
-        LEFT JOIN ${sql.identifier(schemaName)}.ticket_categories tc ON t.category = tc.id
-        ORDER BY t.created_at DESC
+          id, number, subject, description, status, priority, urgency, impact,
+          category, subcategory, caller_id as "callerId", assigned_to_id as "assignedToId",
+          tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
+          company_id as "companyId", beneficiary_id as "beneficiaryId"
+        FROM ${sql.identifier(schemaName)}.tickets
+        ORDER BY created_at DESC
         LIMIT ${pagination.limit} 
         OFFSET ${offset}
       `);
