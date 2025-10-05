@@ -341,7 +341,7 @@ export class MessageIngestionService {
    */
   private async findTicketByThreadId(threadId: string, tenantId: string): Promise<string | null> {
     try {
-      const { pool } = await import('../../../db');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       const result = await pool.query(`
@@ -362,7 +362,7 @@ export class MessageIngestionService {
    */
   private async findTicketByConversationId(conversationId: string, tenantId: string): Promise<string | null> {
     try {
-      const { pool } = await import('../../../db');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       const result = await pool.query(`
@@ -383,7 +383,7 @@ export class MessageIngestionService {
    */
   private async findTicketByChatId(chatId: string, tenantId: string): Promise<string | null> {
     try {
-      const { pool } = await import('../../../db');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
       const result = await pool.query(`
