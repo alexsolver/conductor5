@@ -2051,6 +2051,20 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
           if (telegramResult.ok) {
             sendSuccess = true;
             console.log('✅ [TELEGRAM] Message sent successfully:', telegramResult);
+            
+            // 🎯 CRITICAL: Save chatId to ticket metadata for future reply linking
+            try {
+              const ticketUpdateQuery = `
+                UPDATE "${schemaName}".tickets 
+                SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('chatId', $1::text)
+                WHERE id = $2 AND tenant_id = $3
+              `;
+              await pool.query(ticketUpdateQuery, [targetChatId.toString(), id, tenantId]);
+              console.log(`✅ [TELEGRAM] Saved chatId ${targetChatId} to ticket ${id} metadata for reply tracking`);
+            } catch (metadataError) {
+              console.error('⚠️ [TELEGRAM] Failed to save chatId to ticket metadata:', metadataError);
+              // Don't fail the request if metadata update fails
+            }
           } else {
             sendError = telegramResult.description || 'Unknown Telegram API error';
             console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
