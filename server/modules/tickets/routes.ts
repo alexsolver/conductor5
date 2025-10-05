@@ -1783,24 +1783,24 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
       UNION ALL
       
       SELECT 
-        tm.id,
-        tm.message_type as channel,
+        tm.id::text,
+        'telegram' as channel,
         'inbound' as direction,
         'received' as status,
         COALESCE(u.email, 'customer') as "from",
         '' as "to",
-        tm.subject,
+        NULL::text as subject,
         tm.content,
-        tm.id as message_id,
-        NULL as thread_id,
-        NULL as cc_address,
-        NULL as bcc_address,
-        true as is_public,
-        tm.metadata,
+        tm.id::text as message_id,
+        NULL::text as thread_id,
+        NULL::text as cc_address,
+        NULL::text as bcc_address,
+        NOT tm.is_internal as is_public,
+        '{}'::jsonb as metadata,
         tm.created_at as timestamp,
         tm.updated_at
       FROM "${schemaName}".ticket_messages tm
-      LEFT JOIN "${schemaName}".users u ON tm.sender_id = u.id
+      LEFT JOIN "${schemaName}".users u ON tm.sender_id::text = u.id
       WHERE tm.ticket_id = $1::uuid
       
       ORDER BY timestamp DESC
