@@ -27,37 +27,42 @@ export class AuthController {
 
       const result = await this.loginUseCase.execute(dto, ipAddress, userAgent);
 
-      // ✅ ALWAYS use HTTP-only cookies for security (both development and production)
+      // ✅ Adaptive strategy: Use cookies + response body for Replit compatibility
       const isProduction = process.env.NODE_ENV === 'production';
+      const isReplit = !!process.env.REPL_ID || !!process.env.REPL_SLUG;
       
-      // Set HTTP-only cookies
+      console.log('🍪 [AUTH-CONTROLLER] Setting authentication cookies:', {
+        isProduction,
+        isReplit,
+        hasAccessToken: !!result.tokens.accessToken,
+        accessTokenLength: result.tokens.accessToken?.length
+      });
+      
+      // ALWAYS set HTTP-only cookies (works in most environments)
       res.cookie('accessToken', result.tokens.accessToken, {
         httpOnly: true,
-        secure: isProduction, // Only require HTTPS in production
-        sameSite: isProduction ? 'strict' : 'lax', // 'lax' for dev, 'strict' for prod
+        secure: false, // Allow non-HTTPS in Replit dev
+        sameSite: 'lax', // Less strict for Replit compatibility
         path: '/',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
 
       res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
-        secure: isProduction, // Only require HTTPS in production
-        sameSite: isProduction ? 'strict' : 'lax', // 'lax' for dev, 'strict' for prod
+        secure: false, // Allow non-HTTPS in Replit dev
+        sameSite: 'lax', // Less strict for Replit compatibility
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      // Don't send tokens in response body for security
-      const responseData = {
-        ...result,
-        tokens: undefined
-      };
-      delete responseData.tokens;
+      console.log('✅ [AUTH-CONTROLLER] HTTP-only cookies set');
 
+      // ✅ In Replit, ALSO send tokens in response body as fallback
+      // Frontend will try cookies first, then localStorage as fallback
       res.json({
         success: true,
         message: 'Login successful',
-        data: responseData
+        data: result // Include tokens in response for Replit compatibility
       });
     } catch (error: any) {
       const statusCode = error.message.includes('Invalid') || error.message.includes('deactivated') ? 401 : 400;
@@ -88,37 +93,28 @@ export class AuthController {
       const dto: RefreshTokenDTO = { refreshToken };
       const result = await this.refreshTokenUseCase.execute(dto);
 
-      // ✅ ALWAYS use HTTP-only cookies for security (both development and production)
-      const isProduction = process.env.NODE_ENV === 'production';
-      
-      // Set HTTP-only cookies
+      // ✅ Set HTTP-only cookies
       res.cookie('accessToken', result.tokens.accessToken, {
         httpOnly: true,
-        secure: isProduction, // Only require HTTPS in production
-        sameSite: isProduction ? 'strict' : 'lax', // 'lax' for dev, 'strict' for prod
+        secure: false, // Allow non-HTTPS in Replit dev
+        sameSite: 'lax', // Less strict for Replit compatibility
         path: '/',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours
       });
 
       res.cookie('refreshToken', result.tokens.refreshToken, {
         httpOnly: true,
-        secure: isProduction, // Only require HTTPS in production
-        sameSite: isProduction ? 'strict' : 'lax', // 'lax' for dev, 'strict' for prod
+        secure: false, // Allow non-HTTPS in Replit dev
+        sameSite: 'lax', // Less strict for Replit compatibility
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      // Don't send tokens in response body for security
-      const responseData = {
-        ...result,
-        tokens: undefined
-      };
-      delete responseData.tokens;
-
+      // ✅ Also send tokens in response for Replit compatibility
       res.json({
         success: true,
         message: 'Token refreshed successfully',
-        data: responseData
+        data: result
       });
     } catch (error: any) {
       // Clear both cookies on error

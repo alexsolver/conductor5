@@ -70,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       // Clear any stored tenant info
       localStorage.removeItem('tenantId');
+      // Clear tokens (for Replit fallback)
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       // Clear any other auth-related data
       localStorage.removeItem('authState');
       // Redirect to login
@@ -181,13 +184,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('✅ [LOGIN] Login successful - tokens stored in HTTP-only cookies');
           return {
             user: responseData.data.user,
-            session: responseData.data.session // Assuming session might contain other auth info
+            session: responseData.data.session,
+            tokens: responseData.data.tokens // Include tokens for Replit fallback
           };
         } else if (responseData.user) {
           console.log('✅ [LOGIN] Login successful (fallback format)');
           return {
             user: responseData.user,
-            session: null
+            session: null,
+            tokens: null
           };
         }
 
@@ -198,8 +203,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; session?: any }) => {
-      console.log('✅ [LOGIN-SUCCESS] User authenticated via HTTP-only cookies');
+    onSuccess: (result: { user: User; session?: any; tokens?: { accessToken: string; refreshToken: string } }) => {
+      console.log('✅ [LOGIN-SUCCESS] User authenticated');
+
+      // ✅ Hybrid approach: Store tokens in localStorage as fallback for Replit compatibility
+      if (result.tokens?.accessToken) {
+        localStorage.setItem('accessToken', result.tokens.accessToken);
+        console.log('🔑 [LOGIN-SUCCESS] Access token stored in localStorage (Replit fallback)');
+      }
+      
+      if (result.tokens?.refreshToken) {
+        localStorage.setItem('refreshToken', result.tokens.refreshToken);
+        console.log('🔑 [LOGIN-SUCCESS] Refresh token stored in localStorage (Replit fallback)');
+      }
 
       // Store user's tenant ID for compatibility with existing code
       if (result.user.tenantId) {
