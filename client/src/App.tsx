@@ -79,6 +79,7 @@ import TicketMaterials from "./pages/TicketMaterials";
 import { ApprovalManagement } from "./pages/ApprovalManagement";
 import ActivityPlanner from "./pages/ActivityPlanner";
 import { StockManagement } from "./pages/StockManagement";
+import DiagnosticAuth from "./pages/DiagnosticAuth";
 import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
 import { CustomerItemMappings } from "./pages/CustomerItemMappings";
@@ -161,6 +162,7 @@ function AppRouter() {
     return (
       <Switch>
         <Route path="/auth" component={AuthPage} />
+        <Route path="/diagnostic-auth" component={DiagnosticAuth} />
         <Route component={AuthPage} />
       </Switch>
     );
