@@ -29,8 +29,10 @@ export class DrizzleUserRepository implements IUserRepository {
 
       const result = await db.execute(sql`
         SELECT 
-          id, name, email, password_hash as "passwordHash", role, position,
+          id, first_name as "firstName", last_name as "lastName", email, 
+          password_hash as "passwordHash", role, position,
           department, phone, avatar_url as "avatarUrl", is_active as "isActive",
+          employment_type as "employmentType",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt"
         FROM ${sql.identifier(tenantSchema)}.users
         WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
