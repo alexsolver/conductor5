@@ -379,11 +379,21 @@ export class MessageIngestionService {
 
   /**
    * 🎯 TICKET CONTEXT TRACKING: Extrai ticket_id de metadata de chat
-   * Verifica threadId, conversationId e replyTo para WhatsApp, Telegram, Slack
+   * PRIORITY ORDER: conversationId (100% preciso) > threadId > chatId (pode ter múltiplos tickets)
    */
   private async extractTicketIdFromChatMetadata(metadata: any, tenantId: string): Promise<string | null> {
     try {
-      // 1. Verificar se há threadId/conversationId vinculado a um ticket
+      // 1. PRIORIDADE MÁXIMA: ConversationId (ID único por thread de conversa)
+      if (metadata?.conversationId) {
+        console.log(`🎯 [CONVERSATION-TRACKING] Checking conversationId: ${metadata.conversationId}`);
+        const ticketId = await this.findTicketByConversationId(metadata.conversationId, tenantId);
+        if (ticketId) {
+          console.log(`✅ [CONVERSATION-TRACKING] Found EXACT ticket via conversationId: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      // 2. Verificar threadId (usado por alguns canais)
       if (metadata?.threadId) {
         console.log(`🎫 [TICKET-TRACKING] Checking threadId: ${metadata.threadId}`);
         const ticketId = await this.findTicketByThreadId(metadata.threadId, tenantId);
@@ -393,19 +403,9 @@ export class MessageIngestionService {
         }
       }
 
-      // 2. Verificar conversationId
-      if (metadata?.conversationId) {
-        console.log(`🎫 [TICKET-TRACKING] Checking conversationId: ${metadata.conversationId}`);
-        const ticketId = await this.findTicketByConversationId(metadata.conversationId, tenantId);
-        if (ticketId) {
-          console.log(`🎫 [TICKET-TRACKING] Found ticket via conversationId: ${ticketId}`);
-          return ticketId;
-        }
-      }
-
-      // 3. Verificar se há chatId para Telegram
+      // 3. FALLBACK: chatId (pode ter múltiplos tickets do mesmo usuário - menos preciso)
       if (metadata?.chatId) {
-        console.log(`🎫 [TICKET-TRACKING] Checking chatId: ${metadata.chatId}`);
+        console.log(`🎫 [TICKET-TRACKING] Checking chatId (fallback): ${metadata.chatId}`);
         const ticketId = await this.findTicketByChatId(metadata.chatId, tenantId);
         if (ticketId) {
           console.log(`🎫 [TICKET-TRACKING] Found ticket via chatId: ${ticketId}`);
