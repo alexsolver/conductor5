@@ -2005,6 +2005,10 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
         // Extract chat ID from recipient (format: "telegram:123456789")
         const chatId = recipient.replace(/^telegram:/, '');
         
+        console.log('🔍 [TELEGRAM-DEBUG] Original recipient:', recipient);
+        console.log('🔍 [TELEGRAM-DEBUG] Extracted chatId:', chatId);
+        console.log('🔍 [TELEGRAM-DEBUG] chatId type:', typeof chatId);
+        
         // Get Telegram integration config using storage service
         const { storage } = await import('../../storage-simple');
         const config = await storage.getTenantIntegrationConfig(tenantId, 'telegram');
@@ -2015,16 +2019,31 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
         } else {
           const botToken = config.telegramBotToken;
           
+          console.log('🔍 [TELEGRAM-DEBUG] Bot token configured:', botToken ? 'Yes' : 'No');
+          console.log('🔍 [TELEGRAM-DEBUG] Using configured chatId from config:', config.telegramChatId);
+          
+          // Use configured chat ID instead of recipient if available
+          const targetChatId = config.telegramChatId || chatId;
+          
+          console.log('🔍 [TELEGRAM-DEBUG] Final target chatId:', targetChatId);
+          
           // Send message via Telegram API
           const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+          const telegramPayload = {
+            chat_id: targetChatId,
+            text: message,
+            parse_mode: 'HTML'
+          };
+          
+          console.log('📤 [TELEGRAM-DEBUG] Sending to Telegram API:', {
+            url: telegramApiUrl.replace(botToken, '***'),
+            payload: telegramPayload
+          });
+          
           const telegramResponse = await fetch(telegramApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message,
-              parse_mode: 'HTML'
-            })
+            body: JSON.stringify(telegramPayload)
           });
           
           const telegramResult = await telegramResponse.json();
