@@ -1,0 +1,112 @@
+❌ [REFRESH-USE-CASE] JWT verification failed: {
+  message: 'invalid signature',
+  name: 'JsonWebTokenError',
+  tokenProvided: true
+}
+❌ [REFRESH-USE-CASE] Error during token refresh: {
+  message: 'Refresh token is malformed',
+  stack: 'Error: Refresh token is malformed\n' +
+    '    at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:51:17)\n' +
+    '    at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:53)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)\n' +
+    '    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)\n' +
+    '    at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/routes.ts:487:14)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at ensureJSONResponse (/home/runner/workspace/server/routes.ts:131:3)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/services/featureFlagService.ts:435:5)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/services/redisRateLimitService.ts:176:5)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/routes.ts:284:74)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/middleware/cspMiddleware.ts:291:5)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)\n' +
+    '    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9\n' +
+    '    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)\n' +
+    '    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)\n' +
+    '    at <anonymous> (/home/runner/workspace/server/routes.ts:155:5)\n' +
+    '    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)\n' +
+    '    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)',
+  errorObject: Error: Refresh token is malformed
+      at RefreshTokenUseCase.execute (/home/runner/workspace/server/modules/auth/application/use-cases/RefreshTokenUseCase.ts:51:17)
+      at AuthController.refreshToken (/home/runner/workspace/server/modules/auth/application/controllers/AuthController.ts:94:53)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+      at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+      at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at <anonymous> (/home/runner/workspace/server/routes.ts:487:14)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at ensureJSONResponse (/home/runner/workspace/server/routes.ts:131:3)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at <anonymous> (/home/runner/workspace/server/services/featureFlagService.ts:435:5)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at <anonymous> (/home/runner/workspace/server/services/redisRateLimitService.ts:176:5)
+      at <anonymous> (/home/runner/workspace/server/routes.ts:284:74)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at <anonymous> (/home/runner/workspace/server/middleware/cspMiddleware.ts:291:5)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+      at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+      at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+      at <anonymous> (/home/runner/workspace/server/routes.ts:155:5)
+      at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+}
+8:16:19 PM [express] POST /api/auth/refresh 401 in 27ms :: {"success":false,"message":"Refresh token…
+[ViteStability] Stale connection cleanup completed
