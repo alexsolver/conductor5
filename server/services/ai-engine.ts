@@ -3,14 +3,11 @@
 // ========================================
 // Core AI processing service for the conversational agent
 // Uses OpenAI for intent detection, entity extraction, and sentiment analysis
+// CONTEXT-AWARE: Uses SaaS Admin global AI keys for all AI operations
 
 import OpenAI from 'openai';
 import type { AiAgent, AiAction } from '@shared/schema';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || ''
-});
+import { SaaSAdminAIConfigService } from './saas-admin-ai-config';
 
 // ========================================
 // TYPES
@@ -53,6 +50,29 @@ export interface ConversationContext {
 export class AIEngine {
   
   /**
+   * Get OpenAI client using SaaS Admin global AI keys
+   * AI Engine uses global keys for all operations (not tenant-specific)
+   */
+  private async getOpenAIClient(): Promise<OpenAI> {
+    console.log('🔑 [AI-ENGINE] Getting OpenAI client from SaaS Admin integrations');
+    
+    const saasAdminService = new SaaSAdminAIConfigService();
+    const preferredConfig = await saasAdminService.getPreferredAIProvider();
+    
+    if (!preferredConfig) {
+      console.error('❌ [AI-ENGINE] No AI provider configured in SaaS Admin integrations');
+      throw new Error('AI provider not configured. Please configure AI keys in SaaS Admin → Integrations');
+    }
+    
+    console.log(`✅ [AI-ENGINE] Using AI provider: ${preferredConfig.provider} (from SaaS Admin)`);
+    
+    return new OpenAI({
+      apiKey: preferredConfig.apiKey,
+      baseURL: preferredConfig.baseURL
+    });
+  }
+  
+  /**
    * Detect user intent from message
    */
   async detectIntent(
@@ -82,6 +102,7 @@ Return your analysis in JSON format:
 
       const contextStr = context ? `\nConversation context: ${JSON.stringify(context, null, 2)}` : '';
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: agent.aiConfig.temperature,
@@ -143,6 +164,7 @@ Return extracted data in JSON format:
 
 Only include parameters you can confidently extract. Leave out uncertain extractions.`;
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: 0.3, // Lower temperature for more consistent extraction
@@ -192,6 +214,7 @@ Return analysis in JSON format:
   "escalationKeywords": ["detected", "keywords"]
 }`;
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: 0.3,
@@ -249,6 +272,7 @@ Be helpful, clear, and match the configured tone.`;
         }))
       ];
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: agent.aiConfig.temperature,
@@ -296,6 +320,7 @@ Create a clear confirmation message that:
 3. Asks for confirmation
 4. Matches the agent's personality`;
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: 0.7,
@@ -349,6 +374,7 @@ Parameter to collect:
 
 Create a friendly, clear question that asks for this information.`;
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: agent.aiConfig.model,
         temperature: 0.7,

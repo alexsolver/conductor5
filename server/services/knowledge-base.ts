@@ -2,13 +2,11 @@
 // KNOWLEDGE BASE SERVICE
 // ========================================
 // RAG (Retrieval-Augmented Generation) service for knowledge base search
+// CONTEXT-AWARE: Uses SaaS Admin global AI keys for all AI operations
 
 import OpenAI from 'openai';
 import { unifiedStorage } from '../storage-master';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || ''
-});
+import { SaaSAdminAIConfigService } from './saas-admin-ai-config';
 
 // ========================================
 // TYPES
@@ -35,6 +33,29 @@ export interface SearchResult {
 // ========================================
 
 export class KnowledgeBaseService {
+  
+  /**
+   * Get OpenAI client using SaaS Admin global AI keys
+   * Knowledge Base uses global keys for all operations (not tenant-specific)
+   */
+  private async getOpenAIClient(): Promise<OpenAI> {
+    console.log('🔑 [KB-SERVICE] Getting OpenAI client from SaaS Admin integrations');
+    
+    const saasAdminService = new SaaSAdminAIConfigService();
+    const preferredConfig = await saasAdminService.getPreferredAIProvider();
+    
+    if (!preferredConfig) {
+      console.error('❌ [KB-SERVICE] No AI provider configured in SaaS Admin integrations');
+      throw new Error('AI provider not configured. Please configure AI keys in SaaS Admin → Integrations');
+    }
+    
+    console.log(`✅ [KB-SERVICE] Using AI provider: ${preferredConfig.provider} (from SaaS Admin)`);
+    
+    return new OpenAI({
+      apiKey: preferredConfig.apiKey,
+      baseURL: preferredConfig.baseURL
+    });
+  }
   
   /**
    * Search knowledge base using semantic search with embeddings
@@ -262,6 +283,7 @@ Always cite which article(s) you used.
 Knowledge Base Context:
 ${context}`;
 
+      const openai = await this.getOpenAIClient();
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         temperature: 0.7,
@@ -293,6 +315,7 @@ ${context}`;
    */
   private async getEmbedding(text: string): Promise<number[]> {
     try {
+      const openai = await this.getOpenAIClient();
       const response = await openai.embeddings.create({
         model: 'text-embedding-3-small',
         input: text,
