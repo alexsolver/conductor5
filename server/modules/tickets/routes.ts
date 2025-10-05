@@ -1892,6 +1892,35 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       });
     }
 
+    // 🎯 CONVERSATION ID: Gerar/obter conversationId único para esta thread
+    let conversationId: string;
+    try {
+      const ticketQuery = `SELECT metadata FROM "${schemaName}".tickets WHERE id = $1`;
+      const ticketResult = await pool.query(ticketQuery, [id]);
+      const ticketMetadata = ticketResult.rows[0]?.metadata || {};
+      
+      // Se já existe conversationId, reutilizar; senão, gerar novo
+      if (ticketMetadata.conversationId) {
+        conversationId = ticketMetadata.conversationId;
+        console.log(`📧 [EMAIL-CONVERSATION] Reusing existing conversationId: ${conversationId}`);
+      } else {
+        conversationId = crypto.randomUUID();
+        console.log(`📧 [EMAIL-CONVERSATION] Generated NEW conversationId: ${conversationId}`);
+        
+        // Salvar conversationId no ticket
+        const updateQuery = `
+          UPDATE "${schemaName}".tickets 
+          SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{conversationId}', $1)
+          WHERE id = $2
+        `;
+        await pool.query(updateQuery, [JSON.stringify(conversationId), id]);
+        console.log(`✅ [EMAIL-CONVERSATION] Saved conversationId to ticket metadata`);
+      }
+    } catch (err) {
+      console.error('❌ [EMAIL-CONVERSATION] Error managing conversationId:', err);
+      conversationId = crypto.randomUUID(); // Fallback
+    }
+
     // Remove duplicate emails between to, cc, and bcc (SendGrid requirement)
     const allEmails = new Set([to]);
     const cleanCc = cc && !allEmails.has(cc) ? cc : undefined;
@@ -1905,7 +1934,7 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       type: file.mimetype,
     })) || [];
 
-    // Send email using SendGrid
+    // Send email using SendGrid with conversationId header
     const emailSent = await SendGridService.sendEmail({
       to,
       from: 'acesso@lansolver.com',
@@ -1914,6 +1943,10 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       cc: cleanCc,
       bcc: cleanBcc,
       attachments,
+      customHeaders: {
+        'X-Conversation-ID': conversationId,
+        'X-Ticket-ID': id
+      }
     });
 
     // Save communication record (regardless of email send status)

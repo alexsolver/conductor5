@@ -21,6 +21,7 @@ interface EmailParams {
     type?: string;
     disposition?: string;
   }>;
+  customHeaders?: Record<string, string>;
 }
 
 export class SendGridService {
@@ -40,6 +41,12 @@ export class SendGridService {
       }
       if (params.bcc) {
         emailData.bcc = params.bcc;
+      }
+
+      // Add custom headers if provided (for conversation tracking)
+      if (params.customHeaders) {
+        emailData.headers = params.customHeaders;
+        console.log('📧 [SENDGRID] Adding custom headers:', params.customHeaders);
       }
 
       // Add attachments if provided
