@@ -177,11 +177,27 @@ export class ActionExecutor implements IActionExecutorPort {
         case 'search_knowledge_base':
           return await this.searchKnowledgeBaseAction(action, context);
 
+        case 'get_article':
+          return await this.getArticleAction(action, context);
+
         case 'suggest_kb_article':
           return await this.suggestKBArticleAction(action, context);
 
         case 'create_kb_from_ticket':
           return await this.createKBFromTicketAction(action, context);
+
+        // 🆕 AÇÕES DE BUSCA E CONSULTA
+        case 'search_customer':
+          return await this.searchCustomerAction(action, context);
+
+        case 'search_tickets':
+          return await this.searchTicketsAction(action, context);
+
+        case 'get_business_hours':
+          return await this.getBusinessHoursAction(action, context);
+
+        case 'get_location_info':
+          return await this.getLocationInfoAction(action, context);
 
         // 🆕 AÇÕES DE AGENDAMENTO
         case 'schedule_appointment':
@@ -2741,13 +2757,638 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     }
   }
 
+  /**
+   * 📚 SEARCH_KNOWLEDGE_BASE - Busca artigos na base de conhecimento
+   * Usa busca textual (ILIKE) e pode ser expandido para usar embeddings/RAG
+   */
   private async searchKnowledgeBaseAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      const { query } = action.config || {};
-      console.log(`📚 KB Search - Query: ${query}`);
-      return { success: true, message: 'KB searched', data: { query, results: [] } };
+      const { query, category, maxResults = 5 } = action.config || {};
+      const { tenantId } = context;
+      
+      if (!query) {
+        return { success: false, message: 'Search query is required' };
+      }
+      
+      console.log(`📚 [SEARCH-KB] Searching knowledge base for: "${query}" in tenant ${tenantId}`);
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Buscar artigos publicados que correspondam à query
+      let searchQuery = `
+        SELECT 
+          id, 
+          title, 
+          excerpt, 
+          content,
+          category,
+          tags,
+          view_count,
+          helpful_count,
+          not_helpful_count,
+          created_at,
+          updated_at,
+          published_at
+        FROM "${schemaName}".knowledge_base_articles
+        WHERE status = 'published'
+          AND visibility IN ('public', 'internal')
+          AND (
+            title ILIKE $1 
+            OR content ILIKE $1 
+            OR excerpt ILIKE $1
+            OR $2 = ANY(tags)
+          )
+      `;
+      
+      const params: any[] = [`%${query}%`, query];
+      
+      // Filtrar por categoria se especificado
+      if (category) {
+        searchQuery += ` AND category = $${params.length + 1}`;
+        params.push(category);
+      }
+      
+      searchQuery += ` ORDER BY helpful_count DESC, view_count DESC LIMIT $${params.length + 1}`;
+      params.push(maxResults);
+      
+      const result = await pool.query(searchQuery, params);
+      
+      const articles = result.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        excerpt: row.excerpt,
+        content: row.content?.substring(0, 500) + '...', // Resumo do conteúdo
+        category: row.category,
+        tags: row.tags,
+        viewCount: row.view_count,
+        helpfulCount: row.helpful_count,
+        notHelpfulCount: row.not_helpful_count,
+        relevanceScore: row.helpful_count / Math.max(row.view_count, 1), // Score básico de relevância
+        publishedAt: row.published_at
+      }));
+      
+      console.log(`✅ [SEARCH-KB] Found ${articles.length} articles matching "${query}"`);
+      
+      return { 
+        success: true, 
+        message: `Found ${articles.length} articles`, 
+        data: { 
+          query, 
+          category,
+          totalResults: articles.length,
+          articles,
+          searchedAt: new Date().toISOString()
+        } 
+      };
     } catch (error: any) {
-      return { success: false, message: 'Failed to search KB', error: error.message };
+      console.error('❌ [SEARCH-KB] Error:', error);
+      return { success: false, message: 'Failed to search knowledge base', error: error.message };
+    }
+  }
+
+  /**
+   * 📖 GET_ARTICLE - Obtém um artigo específico por ID
+   */
+  private async getArticleAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { articleId } = action.config || {};
+      const { tenantId } = context;
+      
+      if (!articleId) {
+        return { success: false, message: 'Article ID is required' };
+      }
+      
+      console.log(`📖 [GET-ARTICLE] Fetching article ${articleId} for tenant ${tenantId}`);
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Buscar artigo por ID
+      const result = await pool.query(`
+        SELECT 
+          id, 
+          title, 
+          content,
+          excerpt,
+          category,
+          status,
+          visibility,
+          tags,
+          view_count,
+          helpful_count,
+          not_helpful_count,
+          author_id,
+          created_at,
+          updated_at,
+          published_at
+        FROM "${schemaName}".knowledge_base_articles
+        WHERE id = $1
+          AND status = 'published'
+      `, [articleId]);
+      
+      if (result.rows.length === 0) {
+        return { 
+          success: false, 
+          message: 'Article not found or not published',
+          data: { articleId }
+        };
+      }
+      
+      const article = result.rows[0];
+      
+      // Incrementar contador de visualizações
+      await pool.query(`
+        UPDATE "${schemaName}".knowledge_base_articles
+        SET view_count = view_count + 1
+        WHERE id = $1
+      `, [articleId]);
+      
+      console.log(`✅ [GET-ARTICLE] Retrieved article: "${article.title}"`);
+      
+      return { 
+        success: true, 
+        message: 'Article retrieved successfully', 
+        data: { 
+          id: article.id,
+          title: article.title,
+          content: article.content,
+          excerpt: article.excerpt,
+          category: article.category,
+          tags: article.tags,
+          viewCount: article.view_count + 1,
+          helpfulCount: article.helpful_count,
+          notHelpfulCount: article.not_helpful_count,
+          publishedAt: article.published_at,
+          retrievedAt: new Date().toISOString()
+        } 
+      };
+    } catch (error: any) {
+      console.error('❌ [GET-ARTICLE] Error:', error);
+      return { success: false, message: 'Failed to retrieve article', error: error.message };
+    }
+  }
+
+  /**
+   * 👤 SEARCH_CUSTOMER - Busca clientes por nome, email ou CPF
+   */
+  private async searchCustomerAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { searchTerm, searchType = 'all', maxResults = 10 } = action.config || {};
+      const { tenantId } = context;
+      
+      if (!searchTerm) {
+        return { success: false, message: 'Search term is required' };
+      }
+      
+      console.log(`👤 [SEARCH-CUSTOMER] Searching for: "${searchTerm}" (type: ${searchType}) in tenant ${tenantId}`);
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Construir query baseado no tipo de busca
+      let searchQuery = `
+        SELECT 
+          c.id,
+          c.first_name,
+          c.last_name,
+          c.email,
+          c.phone,
+          c.mobile_phone,
+          c.cpf,
+          c.cnpj,
+          c.customer_type,
+          c.company_name,
+          c.is_active,
+          c.verified,
+          c.created_at,
+          comp.name as company_name_ref
+        FROM "${schemaName}".customers c
+        LEFT JOIN "${schemaName}".companies comp ON c.company_id = comp.id
+        WHERE c.is_active = true
+      `;
+      
+      const params: any[] = [];
+      
+      if (searchType === 'email') {
+        searchQuery += ` AND c.email ILIKE $1`;
+        params.push(`%${searchTerm}%`);
+      } else if (searchType === 'cpf') {
+        // Remover formatação do CPF para busca
+        const cleanCPF = searchTerm.replace(/\D/g, '');
+        searchQuery += ` AND c.cpf = $1`;
+        params.push(cleanCPF);
+      } else if (searchType === 'name') {
+        searchQuery += ` AND (c.first_name ILIKE $1 OR c.last_name ILIKE $1 OR c.company_name ILIKE $1)`;
+        params.push(`%${searchTerm}%`);
+      } else {
+        // Busca em todos os campos
+        const cleanTerm = searchTerm.replace(/\D/g, '');
+        searchQuery += ` AND (
+          c.first_name ILIKE $1 
+          OR c.last_name ILIKE $1 
+          OR c.email ILIKE $1
+          OR c.company_name ILIKE $1
+          OR c.cpf = $2
+          OR c.cnpj = $2
+        )`;
+        params.push(`%${searchTerm}%`, cleanTerm);
+      }
+      
+      searchQuery += ` ORDER BY c.created_at DESC LIMIT $${params.length + 1}`;
+      params.push(maxResults);
+      
+      const result = await pool.query(searchQuery, params);
+      
+      const customers = result.rows.map((row: any) => ({
+        id: row.id,
+        name: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.company_name,
+        email: row.email,
+        phone: row.phone || row.mobile_phone,
+        cpf: row.cpf,
+        cnpj: row.cnpj,
+        customerType: row.customer_type,
+        companyName: row.company_name_ref,
+        isActive: row.is_active,
+        verified: row.verified,
+        createdAt: row.created_at
+      }));
+      
+      console.log(`✅ [SEARCH-CUSTOMER] Found ${customers.length} customers matching "${searchTerm}"`);
+      
+      return { 
+        success: true, 
+        message: `Found ${customers.length} customers`, 
+        data: { 
+          searchTerm, 
+          searchType,
+          totalResults: customers.length,
+          customers,
+          searchedAt: new Date().toISOString()
+        } 
+      };
+    } catch (error: any) {
+      console.error('❌ [SEARCH-CUSTOMER] Error:', error);
+      return { success: false, message: 'Failed to search customers', error: error.message };
+    }
+  }
+
+  /**
+   * 🎫 SEARCH_TICKETS - Consulta tickets por número, status ou cliente
+   */
+  private async searchTicketsAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { searchTerm, status, customerId, maxResults = 10 } = action.config || {};
+      const { tenantId } = context;
+      
+      console.log(`🎫 [SEARCH-TICKETS] Searching tickets in tenant ${tenantId}`, { searchTerm, status, customerId });
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Construir query dinâmica
+      let searchQuery = `
+        SELECT 
+          t.id,
+          t.ticket_number,
+          t.title,
+          t.description,
+          t.status,
+          t.priority,
+          t.category,
+          t.subcategory,
+          t.created_at,
+          t.updated_at,
+          t.due_date,
+          t.resolution_date,
+          c.first_name as customer_first_name,
+          c.last_name as customer_last_name,
+          c.email as customer_email,
+          u.first_name as assigned_first_name,
+          u.last_name as assigned_last_name
+        FROM "${schemaName}".tickets t
+        LEFT JOIN "${schemaName}".customers c ON t.customer_id = c.id
+        LEFT JOIN public.users u ON t.assigned_to = u.id AND u.tenant_id = t.tenant_id
+        WHERE t.is_active = true
+      `;
+      
+      const params: any[] = [];
+      let paramIndex = 1;
+      
+      // Filtros opcionais
+      if (searchTerm) {
+        searchQuery += ` AND (
+          t.ticket_number ILIKE $${paramIndex} 
+          OR t.title ILIKE $${paramIndex} 
+          OR t.description ILIKE $${paramIndex}
+        )`;
+        params.push(`%${searchTerm}%`);
+        paramIndex++;
+      }
+      
+      if (status) {
+        searchQuery += ` AND t.status = $${paramIndex}`;
+        params.push(status);
+        paramIndex++;
+      }
+      
+      if (customerId) {
+        searchQuery += ` AND t.customer_id = $${paramIndex}`;
+        params.push(customerId);
+        paramIndex++;
+      }
+      
+      searchQuery += ` ORDER BY t.created_at DESC LIMIT $${paramIndex}`;
+      params.push(maxResults);
+      
+      const result = await pool.query(searchQuery, params);
+      
+      const tickets = result.rows.map((row: any) => ({
+        id: row.id,
+        ticketNumber: row.ticket_number,
+        title: row.title,
+        description: row.description?.substring(0, 200) + '...',
+        status: row.status,
+        priority: row.priority,
+        category: row.category,
+        subcategory: row.subcategory,
+        customer: {
+          name: `${row.customer_first_name || ''} ${row.customer_last_name || ''}`.trim(),
+          email: row.customer_email
+        },
+        assignedTo: row.assigned_first_name 
+          ? `${row.assigned_first_name} ${row.assigned_last_name}` 
+          : null,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        dueDate: row.due_date,
+        resolutionDate: row.resolution_date
+      }));
+      
+      console.log(`✅ [SEARCH-TICKETS] Found ${tickets.length} tickets`);
+      
+      return { 
+        success: true, 
+        message: `Found ${tickets.length} tickets`, 
+        data: { 
+          totalResults: tickets.length,
+          tickets,
+          filters: { searchTerm, status, customerId },
+          searchedAt: new Date().toISOString()
+        } 
+      };
+    } catch (error: any) {
+      console.error('❌ [SEARCH-TICKETS] Error:', error);
+      return { success: false, message: 'Failed to search tickets', error: error.message };
+    }
+  }
+
+  /**
+   * 🕐 GET_BUSINESS_HOURS - Retorna horário de funcionamento
+   */
+  private async getBusinessHoursAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { locationId } = action.config || {};
+      const { tenantId } = context;
+      
+      console.log(`🕐 [GET-BUSINESS-HOURS] Fetching business hours for tenant ${tenantId}`, { locationId });
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Buscar horários de trabalho (work_schedules)
+      let scheduleQuery = `
+        SELECT 
+          id,
+          name,
+          description,
+          monday_start,
+          monday_end,
+          tuesday_start,
+          tuesday_end,
+          wednesday_start,
+          wednesday_end,
+          thursday_start,
+          thursday_end,
+          friday_start,
+          friday_end,
+          saturday_start,
+          saturday_end,
+          sunday_start,
+          sunday_end,
+          holidays_off,
+          timezone,
+          is_active
+        FROM "${schemaName}".work_schedules
+        WHERE is_active = true
+      `;
+      
+      if (locationId) {
+        scheduleQuery += ` AND location_id = $1`;
+      }
+      
+      scheduleQuery += ` LIMIT 1`; // Pegar o primeiro horário ativo
+      
+      const result = await pool.query(
+        scheduleQuery, 
+        locationId ? [locationId] : []
+      );
+      
+      if (result.rows.length === 0) {
+        // Retornar horário padrão se não houver configuração
+        return { 
+          success: true, 
+          message: 'Using default business hours', 
+          data: { 
+            name: 'Horário Comercial Padrão',
+            schedule: {
+              monday: { start: '09:00', end: '18:00', isOpen: true },
+              tuesday: { start: '09:00', end: '18:00', isOpen: true },
+              wednesday: { start: '09:00', end: '18:00', isOpen: true },
+              thursday: { start: '09:00', end: '18:00', isOpen: true },
+              friday: { start: '09:00', end: '18:00', isOpen: true },
+              saturday: { start: null, end: null, isOpen: false },
+              sunday: { start: null, end: null, isOpen: false }
+            },
+            timezone: 'America/Sao_Paulo',
+            holidaysOff: true,
+            isDefault: true
+          } 
+        };
+      }
+      
+      const schedule = result.rows[0];
+      
+      const businessHours = {
+        id: schedule.id,
+        name: schedule.name,
+        description: schedule.description,
+        schedule: {
+          monday: { 
+            start: schedule.monday_start, 
+            end: schedule.monday_end, 
+            isOpen: !!(schedule.monday_start && schedule.monday_end) 
+          },
+          tuesday: { 
+            start: schedule.tuesday_start, 
+            end: schedule.tuesday_end, 
+            isOpen: !!(schedule.tuesday_start && schedule.tuesday_end) 
+          },
+          wednesday: { 
+            start: schedule.wednesday_start, 
+            end: schedule.wednesday_end, 
+            isOpen: !!(schedule.wednesday_start && schedule.wednesday_end) 
+          },
+          thursday: { 
+            start: schedule.thursday_start, 
+            end: schedule.thursday_end, 
+            isOpen: !!(schedule.thursday_start && schedule.thursday_end) 
+          },
+          friday: { 
+            start: schedule.friday_start, 
+            end: schedule.friday_end, 
+            isOpen: !!(schedule.friday_start && schedule.friday_end) 
+          },
+          saturday: { 
+            start: schedule.saturday_start, 
+            end: schedule.saturday_end, 
+            isOpen: !!(schedule.saturday_start && schedule.saturday_end) 
+          },
+          sunday: { 
+            start: schedule.sunday_start, 
+            end: schedule.sunday_end, 
+            isOpen: !!(schedule.sunday_start && schedule.sunday_end) 
+          }
+        },
+        timezone: schedule.timezone,
+        holidaysOff: schedule.holidays_off,
+        isDefault: false
+      };
+      
+      console.log(`✅ [GET-BUSINESS-HOURS] Retrieved schedule: "${schedule.name}"`);
+      
+      return { 
+        success: true, 
+        message: 'Business hours retrieved successfully', 
+        data: businessHours
+      };
+    } catch (error: any) {
+      console.error('❌ [GET-BUSINESS-HOURS] Error:', error);
+      return { success: false, message: 'Failed to retrieve business hours', error: error.message };
+    }
+  }
+
+  /**
+   * 📍 GET_LOCATION_INFO - Retorna informações de localização
+   */
+  private async getLocationInfoAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { locationId, locationType } = action.config || {};
+      const { tenantId } = context;
+      
+      console.log(`📍 [GET-LOCATION-INFO] Fetching location info for tenant ${tenantId}`, { locationId, locationType });
+      
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Buscar informações de localização
+      let locationQuery = `
+        SELECT 
+          id,
+          name,
+          type,
+          code,
+          description,
+          address_street,
+          address_number,
+          address_complement,
+          address_neighborhood,
+          address_city,
+          address_state,
+          address_zip_code,
+          latitude,
+          longitude,
+          parent_location_id,
+          is_active,
+          metadata
+        FROM "${schemaName}".locations
+        WHERE is_active = true
+      `;
+      
+      const params: any[] = [];
+      let paramIndex = 1;
+      
+      if (locationId) {
+        locationQuery += ` AND id = $${paramIndex}`;
+        params.push(locationId);
+        paramIndex++;
+      }
+      
+      if (locationType) {
+        locationQuery += ` AND type = $${paramIndex}`;
+        params.push(locationType);
+        paramIndex++;
+      }
+      
+      locationQuery += ` ORDER BY name LIMIT 10`;
+      
+      const result = await pool.query(locationQuery, params);
+      
+      if (result.rows.length === 0) {
+        return { 
+          success: false, 
+          message: 'No locations found with the specified criteria',
+          data: { locationId, locationType }
+        };
+      }
+      
+      const locations = result.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        code: row.code,
+        description: row.description,
+        address: {
+          street: row.address_street,
+          number: row.address_number,
+          complement: row.address_complement,
+          neighborhood: row.address_neighborhood,
+          city: row.address_city,
+          state: row.address_state,
+          zipCode: row.address_zip_code,
+          fullAddress: [
+            row.address_street,
+            row.address_number,
+            row.address_complement,
+            row.address_neighborhood,
+            row.address_city,
+            row.address_state,
+            row.address_zip_code
+          ].filter(Boolean).join(', ')
+        },
+        coordinates: row.latitude && row.longitude ? {
+          latitude: parseFloat(row.latitude),
+          longitude: parseFloat(row.longitude)
+        } : null,
+        parentLocationId: row.parent_location_id,
+        metadata: row.metadata
+      }));
+      
+      console.log(`✅ [GET-LOCATION-INFO] Found ${locations.length} locations`);
+      
+      return { 
+        success: true, 
+        message: `Found ${locations.length} location(s)`, 
+        data: { 
+          totalResults: locations.length,
+          locations,
+          filters: { locationId, locationType },
+          retrievedAt: new Date().toISOString()
+        } 
+      };
+    } catch (error: any) {
+      console.error('❌ [GET-LOCATION-INFO] Error:', error);
+      return { success: false, message: 'Failed to retrieve location info', error: error.message };
     }
   }
 
