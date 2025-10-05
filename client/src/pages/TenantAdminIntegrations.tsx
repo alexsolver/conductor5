@@ -107,6 +107,13 @@ const integrationConfigSchema = z.object({
   dropboxAppSecret: z.string().optional(),
   dropboxAccessToken: z.string().optional(),
   backupFolder: z.string().optional(),
+  // AI Provider specific fields
+  openaiApiKey: z.string().optional(),
+  openaiModel: z.string().optional(),
+  deepseekApiKey: z.string().optional(),
+  deepseekModel: z.string().optional(),
+  googleaiApiKey: z.string().optional(),
+  googleaiModel: z.string().optional(),
   // Telegram specific fields
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
@@ -155,6 +162,13 @@ export default function TenantAdminIntegrations() {
       dropboxAppSecret: '',
       dropboxAccessToken: '',
       backupFolder: '/Backups/Conductor',
+      // AI Provider default values
+      openaiApiKey: '',
+      openaiModel: 'gpt-4o-mini',
+      deepseekApiKey: '',
+      deepseekModel: 'deepseek-chat',
+      googleaiApiKey: '',
+      googleaiModel: 'gemini-2.0-flash-exp',
       // Telegram default values
       telegramBotToken: '',
       telegramChatId: '',
@@ -1408,9 +1422,12 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
+        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 2}`}>
           <TabsTrigger value="certificados">
             Certificados
+          </TabsTrigger>
+          <TabsTrigger value="ia">
+            IA
           </TabsTrigger>
           {Object.keys(groupedIntegrations).map((category) => (
             <TabsTrigger key={category} value={category}>
@@ -1435,6 +1452,149 @@ export default function TenantAdminIntegrations() {
               <CertificateManager />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Aba de IA */}
+        <TabsContent value="ia" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+            {/* OpenAI */}
+            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg flex-shrink-0">
+                      <Bot className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base md:text-lg">OpenAI</CardTitle>
+                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
+                        IA
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div className="space-y-2 mb-4">
+                  <p className="text-sm text-gray-600">
+                    Configure as chaves de API do OpenAI (GPT-4, GPT-3.5, etc.)
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setSelectedIntegration({
+                      id: 'openai',
+                      name: 'OpenAI',
+                      category: 'IA',
+                      description: 'Provedor de IA OpenAI (GPT-4, GPT-3.5, etc.)',
+                      icon: Bot,
+                      status: 'disconnected',
+                      configured: false,
+                      features: []
+                    });
+                    setIsConfigDialogOpen(true);
+                  }}
+                  className="w-full"
+                  data-testid="button-configure-openai"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurar
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* DeepSeek */}
+            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
+                      <Bot className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base md:text-lg">DeepSeek</CardTitle>
+                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
+                        IA
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div className="space-y-2 mb-4">
+                  <p className="text-sm text-gray-600">
+                    Configure as chaves de API do DeepSeek
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setSelectedIntegration({
+                      id: 'deepseek',
+                      name: 'DeepSeek',
+                      category: 'IA',
+                      description: 'Provedor de IA DeepSeek',
+                      icon: Bot,
+                      status: 'disconnected',
+                      configured: false,
+                      features: []
+                    });
+                    setIsConfigDialogOpen(true);
+                  }}
+                  className="w-full"
+                  data-testid="button-configure-deepseek"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurar
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Google AI */}
+            <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="p-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg flex-shrink-0">
+                      <Bot className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base md:text-lg">Google AI</CardTitle>
+                      <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-xs mt-1">
+                        IA
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div className="space-y-2 mb-4">
+                  <p className="text-sm text-gray-600">
+                    Configure as chaves de API do Google AI (Gemini)
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setSelectedIntegration({
+                      id: 'googleai',
+                      name: 'Google AI',
+                      category: 'IA',
+                      description: 'Provedor de IA Google (Gemini)',
+                      icon: Bot,
+                      status: 'disconnected',
+                      configured: false,
+                      features: []
+                    });
+                    setIsConfigDialogOpen(true);
+                  }}
+                  className="w-full"
+                  data-testid="button-configure-googleai"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurar
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
@@ -1812,6 +1972,146 @@ export default function TenantAdminIntegrations() {
                       )}
                     />
                   </>
+                )}
+
+                {/* Campos para OpenAI */}
+                {selectedIntegration.id === 'openai' && (
+                  <div className="space-y-4">
+                    <FormField
+                      control={configForm.control}
+                      name="openaiApiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>OpenAI API Key</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="sk-..." {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Sua chave de API do OpenAI
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="openaiModel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modelo</FormLabel>
+                          <FormControl>
+                            <select 
+                              {...field} 
+                              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                            >
+                              <option value="gpt-4o">GPT-4 Omni</option>
+                              <option value="gpt-4o-mini">GPT-4 Omni Mini</option>
+                              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                              <option value="gpt-4">GPT-4</option>
+                              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </select>
+                          </FormControl>
+                          <FormDescription>
+                            Modelo a ser utilizado nas requisições
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Campos para DeepSeek */}
+                {selectedIntegration.id === 'deepseek' && (
+                  <div className="space-y-4">
+                    <FormField
+                      control={configForm.control}
+                      name="deepseekApiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>DeepSeek API Key</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="sk-..." {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Sua chave de API do DeepSeek
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="deepseekModel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modelo</FormLabel>
+                          <FormControl>
+                            <select 
+                              {...field} 
+                              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                            >
+                              <option value="deepseek-chat">DeepSeek Chat</option>
+                              <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                            </select>
+                          </FormControl>
+                          <FormDescription>
+                            Modelo a ser utilizado nas requisições
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Campos para Google AI */}
+                {selectedIntegration.id === 'googleai' && (
+                  <div className="space-y-4">
+                    <FormField
+                      control={configForm.control}
+                      name="googleaiApiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Google AI API Key</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="AIza..." {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Sua chave de API do Google AI
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={configForm.control}
+                      name="googleaiModel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modelo</FormLabel>
+                          <FormControl>
+                            <select 
+                              {...field} 
+                              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                            >
+                              <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
+                              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                              <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                            </select>
+                          </FormControl>
+                          <FormDescription>
+                            Modelo a ser utilizado nas requisições
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 )}
 
                 {/* Campos para IMAP Email */}
