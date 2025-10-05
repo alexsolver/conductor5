@@ -89,7 +89,7 @@ export class AutomationRule {
         subject: messageData.subject,
         channel: messageData.channel || messageData.channelType,
         timestamp: messageData.timestamp
-      });
+      }, undefined, messageData.tenantId);
     }
 
     // Avaliar trigger principal
