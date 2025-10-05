@@ -125,6 +125,7 @@ export default function TicketDetail() {
     queryKey: [`/api/tickets/${id}/communications`],
     enabled: !!id,
     select: (data: any) => data?.data || [],
+    refetchInterval: 5000, // Auto-refresh every 5 seconds for real-time Telegram/email messages
   });
 
   // Fetch notes
