@@ -295,6 +295,7 @@ export class ProcessMessageUseCase {
   /**
    * 🎯 TICKET CONTEXT TRACKING: Adiciona mensagem diretamente a um ticket existente
    * Usado quando mensagem é resposta de um ticket (bypass de automação)
+   * 😊 SENTIMENT DETECTION: Detecta sentimento automaticamente em todas as mensagens
    */
   private async addMessageToTicket(ticketId: string, message: any, tenantId: string): Promise<void> {
     try {
@@ -312,10 +313,45 @@ export class ProcessMessageUseCase {
       // Formatar conteúdo da mensagem
       const messageContent = `**[${message.channelType?.toUpperCase() || 'SYSTEM'}]** ${message.subject ? `${message.subject}\n\n` : ''}${message.content || message.body || ''}`;
 
+      // 😊 SENTIMENT DETECTION: Detectar sentimento da mensagem
+      let sentimentData = null;
+      try {
+        const { getSentimentService } = await import('../../infrastructure/services/SentimentDetectionService');
+        const sentimentService = getSentimentService();
+        const sentiment = await sentimentService.detectSentiment(
+          message.content || message.body || '',
+          {
+            subject: message.subject,
+            previousMessages: [] // TODO: Buscar histórico de mensagens do ticket
+          }
+        );
+        
+        sentimentData = sentiment;
+        console.log(`😊 [SENTIMENT] Detected: ${sentiment.sentiment} (score: ${sentiment.score}, emotion: ${sentiment.emotion})`);
+        
+        // Verificar se deve disparar alerta
+        if (sentimentService.shouldTriggerAlert(sentiment)) {
+          console.log(`⚠️ [SENTIMENT-ALERT] Negative sentiment detected (score: ${sentiment.score}) - should notify team`);
+          // TODO: Disparar notificação para equipe
+        }
+      } catch (sentimentError) {
+        console.error(`❌ [SENTIMENT] Error detecting sentiment:`, sentimentError);
+        // Não falhar por causa de erro no sentimento
+      }
+
+      // Preparar metadata com sentimento
+      const metadata = {
+        ...(message.metadata || {}),
+        sentiment: sentimentData,
+        channelType: message.channelType,
+        originalFrom: message.fromAddress,
+        detectedAt: new Date().toISOString()
+      };
+
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_messages 
-        (id, tenant_id, ticket_id, sender_id, message, message_type, is_internal, attachments, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        (id, tenant_id, ticket_id, sender_id, message, message_type, is_internal, attachments, metadata, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
       `, [
         `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         tenantId,
@@ -324,10 +360,11 @@ export class ProcessMessageUseCase {
         messageContent,
         messageType,
         false, // is_internal
-        JSON.stringify(message.metadata?.attachments || [])
+        JSON.stringify(message.metadata?.attachments || []),
+        JSON.stringify(metadata)
       ]);
 
-      console.log(`✅ [TICKET-CONTEXT] Message successfully added to ticket ${ticketId}`);
+      console.log(`✅ [TICKET-CONTEXT] Message successfully added to ticket ${ticketId} with sentiment analysis`);
     } catch (error) {
       console.error(`❌ [TICKET-CONTEXT] Error adding message to ticket:`, error);
       throw error;

@@ -565,6 +565,7 @@ export const ticketMessages = pgTable("ticket_messages", {
   messageType: varchar("message_type", { length: 20 }).default("comment"), // comment, system, email
   isInternal: boolean("is_internal").default(false),
   attachments: jsonb("attachments").default([]),
+  metadata: jsonb("metadata").default({}), // Armazena sentiment analysis, channel info, etc
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [

@@ -82,6 +82,23 @@ export class MessageIngestionService {
 
       console.log(`📨 [TELEGRAM-INGESTION] Message found:`, JSON.stringify(message, null, 2));
 
+      // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem tem contexto de ticket
+      const metadata = {
+        telegramMessageId: message.message_id,
+        chatId: message.chat.id,
+        fromUser: message.from,
+        chatType: message.chat.type,
+        timestamp: message.date,
+        conversationId: `telegram-${message.chat.id}`, // Usar chatId como conversationId
+        threadId: message.reply_to_message?.message_id ? `telegram-thread-${message.reply_to_message.message_id}` : undefined
+      };
+
+      const ticketId = await this.extractTicketIdFromChatMetadata(metadata, tenantId);
+      if (ticketId) {
+        metadata.ticketId = ticketId;
+        console.log(`🎫 [TELEGRAM-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
+      }
+
       // Extrair dados da mensagem do Telegram
       const incomingMessage: IncomingMessage = {
         channelId: 'telegram',
@@ -90,13 +107,7 @@ export class MessageIngestionService {
         to: `bot:${webhookData.bot?.id || 'unknown'}`,
         subject: `Telegram - ${message.from.first_name || message.from.username || 'Unknown'}`,
         content: message.text || message.caption || '[Mensagem não textual]',
-        metadata: {
-          telegramMessageId: message.message_id,
-          chatId: message.chat.id,
-          fromUser: message.from,
-          chatType: message.chat.type,
-          timestamp: message.date
-        },
+        metadata,
         priority: 'medium',
         tenantId
       };
@@ -264,10 +275,126 @@ export class MessageIngestionService {
         }
       }
 
+      // 4. Verificar subject para padrão [Ticket #12345]
+      if (emailData.subject) {
+        const subjectMatch = emailData.subject.match(/\[Ticket\s+#?([a-f0-9-]+)\]/i);
+        if (subjectMatch) {
+          console.log(`🎫 [TICKET-TRACKING] Extracted ticket_id from Subject: ${subjectMatch[1]}`);
+          return subjectMatch[1];
+        }
+      }
+
       console.log(`📭 [TICKET-TRACKING] No ticket context found in email headers`);
       return null;
     } catch (error) {
       console.error(`❌ [TICKET-TRACKING] Error extracting ticket_id:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 🎯 TICKET CONTEXT TRACKING: Extrai ticket_id de metadata de chat
+   * Verifica threadId, conversationId e replyTo para WhatsApp, Telegram, Slack
+   */
+  private async extractTicketIdFromChatMetadata(metadata: any, tenantId: string): Promise<string | null> {
+    try {
+      // 1. Verificar se há threadId/conversationId vinculado a um ticket
+      if (metadata?.threadId) {
+        console.log(`🎫 [TICKET-TRACKING] Checking threadId: ${metadata.threadId}`);
+        const ticketId = await this.findTicketByThreadId(metadata.threadId, tenantId);
+        if (ticketId) {
+          console.log(`🎫 [TICKET-TRACKING] Found ticket via threadId: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      // 2. Verificar conversationId
+      if (metadata?.conversationId) {
+        console.log(`🎫 [TICKET-TRACKING] Checking conversationId: ${metadata.conversationId}`);
+        const ticketId = await this.findTicketByConversationId(metadata.conversationId, tenantId);
+        if (ticketId) {
+          console.log(`🎫 [TICKET-TRACKING] Found ticket via conversationId: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      // 3. Verificar se há chatId para Telegram
+      if (metadata?.chatId) {
+        console.log(`🎫 [TICKET-TRACKING] Checking chatId: ${metadata.chatId}`);
+        const ticketId = await this.findTicketByChatId(metadata.chatId, tenantId);
+        if (ticketId) {
+          console.log(`🎫 [TICKET-TRACKING] Found ticket via chatId: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      console.log(`📭 [TICKET-TRACKING] No ticket context found in chat metadata`);
+      return null;
+    } catch (error) {
+      console.error(`❌ [TICKET-TRACKING] Error extracting ticket_id from chat:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Busca ticket por threadId em metadata
+   */
+  private async findTicketByThreadId(threadId: string, tenantId: string): Promise<string | null> {
+    try {
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(`
+        SELECT id FROM "${schemaName}".tickets 
+        WHERE metadata->>'threadId' = $1
+        LIMIT 1
+      `, [threadId]);
+
+      return result.rows[0]?.id || null;
+    } catch (error) {
+      console.error(`❌ [TICKET-TRACKING] Error finding ticket by threadId:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Busca ticket por conversationId em metadata
+   */
+  private async findTicketByConversationId(conversationId: string, tenantId: string): Promise<string | null> {
+    try {
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(`
+        SELECT id FROM "${schemaName}".tickets 
+        WHERE metadata->>'conversationId' = $1
+        LIMIT 1
+      `, [conversationId]);
+
+      return result.rows[0]?.id || null;
+    } catch (error) {
+      console.error(`❌ [TICKET-TRACKING] Error finding ticket by conversationId:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Busca ticket por chatId (Telegram) em metadata
+   */
+  private async findTicketByChatId(chatId: string, tenantId: string): Promise<string | null> {
+    try {
+      const { pool } = await import('../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const result = await pool.query(`
+        SELECT id FROM "${schemaName}".tickets 
+        WHERE metadata->>'chatId' = $1
+        LIMIT 1
+      `, [chatId]);
+
+      return result.rows[0]?.id || null;
+    } catch (error) {
+      console.error(`❌ [TICKET-TRACKING] Error finding ticket by chatId:`, error);
       return null;
     }
   }
