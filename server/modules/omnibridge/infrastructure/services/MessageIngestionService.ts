@@ -83,7 +83,7 @@ export class MessageIngestionService {
       console.log(`📨 [TELEGRAM-INGESTION] Message found:`, JSON.stringify(message, null, 2));
 
       // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem tem contexto de ticket
-      const metadata = {
+      const metadata: Record<string, any> = {
         telegramMessageId: message.message_id,
         chatId: message.chat.id,
         fromUser: message.from,
@@ -169,7 +169,7 @@ export class MessageIngestionService {
       }
 
       // 🎯 TICKET CONTEXT TRACKING: Criar metadata com chatId para link automático
-      const metadata = {
+      const metadata: Record<string, any> = {
         whatsappMessageId: message.id,
         chatId: message.from, // WhatsApp usa 'from' como identificador único do chat
         fromUser: message.profile?.name || message.from,
@@ -259,7 +259,7 @@ export class MessageIngestionService {
     const toEmail = extractEmail(emailData.to);
 
     // 🎯 TICKET CONTEXT TRACKING: Extrair ticket_id de headers de email
-    const ticketId = this.extractTicketIdFromEmailHeaders(emailData);
+    const ticketId = await this.extractTicketIdFromEmailHeaders(emailData, tenantId);
     if (ticketId) {
       console.log(`🎫 [IMAP-INGESTION] Detected ticket context: ${ticketId} - will bypass automation`);
     }
@@ -323,20 +323,31 @@ export class MessageIngestionService {
 
   /**
    * 🎯 TICKET CONTEXT TRACKING: Extrai ticket_id de headers de email
-   * Verifica os headers: X-Ticket-ID, In-Reply-To, References
+   * Verifica os headers: X-Ticket-ID, In-Reply-To, References, X-Conversation-ID
    */
-  private extractTicketIdFromEmailHeaders(emailData: any): string | null {
+  private async extractTicketIdFromEmailHeaders(emailData: any, tenantId: string): Promise<string | null> {
     try {
       const headers = emailData.headers || {};
       
-      // 1. Verificar header customizado X-Ticket-ID (mais confiável)
+      // 1. PRIORIDADE MÁXIMA: Verificar header X-Conversation-ID (mais preciso)
+      const conversationId = headers['x-conversation-id']?.[0] || headers['X-Conversation-ID']?.[0];
+      if (conversationId) {
+        console.log(`🎯 [CONVERSATION-TRACKING] Found X-Conversation-ID header: ${conversationId}`);
+        const ticketId = await this.findTicketByConversationId(conversationId, tenantId);
+        if (ticketId) {
+          console.log(`✅ [CONVERSATION-TRACKING] Found ticket via X-Conversation-ID: ${ticketId}`);
+          return ticketId;
+        }
+      }
+
+      // 2. Verificar header customizado X-Ticket-ID (muito confiável)
       const xTicketId = headers['x-ticket-id']?.[0] || headers['X-Ticket-ID']?.[0];
       if (xTicketId) {
         console.log(`🎫 [TICKET-TRACKING] Found X-Ticket-ID: ${xTicketId}`);
         return xTicketId;
       }
 
-      // 2. Verificar In-Reply-To para extrair ticket_id do Message-ID anterior
+      // 3. Verificar In-Reply-To para extrair ticket_id do Message-ID anterior
       const inReplyTo = headers['in-reply-to']?.[0];
       if (inReplyTo) {
         // Message-ID format: <ticket-{ticketId}.{timestamp}@conductor.system>
@@ -347,7 +358,7 @@ export class MessageIngestionService {
         }
       }
 
-      // 3. Verificar References (último Message-ID na thread)
+      // 4. Verificar References (último Message-ID na thread)
       const references = headers['references']?.[0] || headers['References']?.[0];
       if (references) {
         const refArray = references.split(/\s+/);
@@ -357,17 +368,6 @@ export class MessageIngestionService {
             console.log(`🎫 [TICKET-TRACKING] Extracted ticket_id from References: ${ticketMatch[1]}`);
             return ticketMatch[1];
           }
-        }
-      }
-
-      // 4. Verificar header X-Conversation-ID (novo sistema de conversationId único)
-      if (emailData.headers?.['x-conversation-id']) {
-        const conversationId = emailData.headers['x-conversation-id'];
-        console.log(`🎯 [CONVERSATION-TRACKING] Found X-Conversation-ID header: ${conversationId}`);
-        const ticketId = await this.findTicketByConversationId(conversationId, tenantId);
-        if (ticketId) {
-          console.log(`✅ [CONVERSATION-TRACKING] Found ticket via X-Conversation-ID: ${ticketId}`);
-          return ticketId;
         }
       }
 
