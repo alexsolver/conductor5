@@ -434,10 +434,10 @@ export default function SaasAdminIntegrations() {
   // If there are saved configs, use them to populate integrations
   const savedConfigs = integrationsData?.savedConfigs;
 
-  // If there are API data and saved configs, use them
-  if (apiIntegrations.length > 0 && savedConfigs) {
+  // If there are API data, use them
+  if (apiIntegrations.length > 0) {
     const baseIntegrations: Integration[] = apiIntegrations.map(baseIntegration => {
-      const savedConfig = savedConfigs.rows.find(row => row.integration_id === baseIntegration.id);
+      const savedConfig = savedConfigs?.rows?.find((row: any) => row.integration_id === baseIntegration.id);
 
       console.log(`[INTEGRATION-REPO] Processing ${baseIntegration.id}:`, {
         hasSavedConfig: !!savedConfig,
