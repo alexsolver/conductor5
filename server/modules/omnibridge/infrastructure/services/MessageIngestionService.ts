@@ -444,19 +444,41 @@ export class MessageIngestionService {
 
   /**
    * Busca ticket por conversationId em metadata
+   * CRITICAL FIX: Busca o ticket ABERTO mais recente, não qualquer ticket
    */
   private async findTicketByConversationId(conversationId: string, tenantId: string): Promise<string | null> {
     try {
       const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await pool.query(`
+      // 1. Primeiro: buscar ticket ABERTO mais recente
+      const openResult = await pool.query(`
         SELECT id FROM "${schemaName}".tickets 
         WHERE metadata->>'conversationId' = $1
+          AND status IN ('open', 'pending', 'in_progress')
+        ORDER BY created_at DESC
         LIMIT 1
       `, [conversationId]);
 
-      return result.rows[0]?.id || null;
+      if (openResult.rows[0]) {
+        console.log(`🎫 [TICKET-TRACKING] Found OPEN ticket for conversationId ${conversationId}: ${openResult.rows[0].id}`);
+        return openResult.rows[0].id;
+      }
+
+      // 2. Se não houver aberto: buscar qualquer ticket mais recente
+      const anyResult = await pool.query(`
+        SELECT id FROM "${schemaName}".tickets 
+        WHERE metadata->>'conversationId' = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [conversationId]);
+
+      if (anyResult.rows[0]) {
+        console.log(`🎫 [TICKET-TRACKING] Found MOST RECENT ticket for conversationId ${conversationId}: ${anyResult.rows[0].id}`);
+        return anyResult.rows[0].id;
+      }
+
+      return null;
     } catch (error) {
       console.error(`❌ [TICKET-TRACKING] Error finding ticket by conversationId:`, error);
       return null;
@@ -464,20 +486,42 @@ export class MessageIngestionService {
   }
 
   /**
-   * Busca ticket por chatId (Telegram) em metadata
+   * Busca ticket por chatId (Telegram/WhatsApp) em metadata
+   * CRITICAL FIX: Busca o ticket ABERTO mais recente, não qualquer ticket
    */
   private async findTicketByChatId(chatId: string, tenantId: string): Promise<string | null> {
     try {
       const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      const result = await pool.query(`
+      // 1. Primeiro: buscar ticket ABERTO mais recente
+      const openResult = await pool.query(`
         SELECT id FROM "${schemaName}".tickets 
         WHERE metadata->>'chatId' = $1
+          AND status IN ('open', 'pending', 'in_progress')
+        ORDER BY created_at DESC
         LIMIT 1
       `, [chatId]);
 
-      return result.rows[0]?.id || null;
+      if (openResult.rows[0]) {
+        console.log(`🎫 [TICKET-TRACKING] Found OPEN ticket for chatId ${chatId}: ${openResult.rows[0].id}`);
+        return openResult.rows[0].id;
+      }
+
+      // 2. Se não houver aberto: buscar qualquer ticket mais recente
+      const anyResult = await pool.query(`
+        SELECT id FROM "${schemaName}".tickets 
+        WHERE metadata->>'chatId' = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [chatId]);
+
+      if (anyResult.rows[0]) {
+        console.log(`🎫 [TICKET-TRACKING] Found MOST RECENT ticket for chatId ${chatId}: ${anyResult.rows[0].id}`);
+        return anyResult.rows[0].id;
+      }
+
+      return null;
     } catch (error) {
       console.error(`❌ [TICKET-TRACKING] Error finding ticket by chatId:`, error);
       return null;
