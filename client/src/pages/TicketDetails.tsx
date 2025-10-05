@@ -419,10 +419,8 @@ const TicketDetails = React.memo(() => {
       return data;
     },
     enabled: !!id,
-    staleTime: 3 * 60 * 1000, // 3 minutes - communications change moderately
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchInterval: 2000, // Auto-refresh every 2 seconds for real-time Telegram/email messages
+    refetchOnWindowFocus: true,
   });
 
   const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
