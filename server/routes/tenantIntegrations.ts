@@ -512,6 +512,12 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
     let configResult;
     try {
       configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+      console.log(`🔍 [TEST-INTEGRATION] Config retrieved:`, configResult ? 'Found' : 'Not found');
+      console.log(`🔍 [TEST-INTEGRATION] Config type:`, typeof configResult);
+      if (configResult) {
+        console.log(`🔍 [TEST-INTEGRATION] Config keys:`, Object.keys(configResult));
+        console.log(`🔍 [TEST-INTEGRATION] Has apiKey:`, Boolean(configResult.apiKey));
+      }
     } catch (configError) {
       console.error('❌ [TEST-INTEGRATION] Config retrieval error:', configError);
       return res.status(500).json({
@@ -522,6 +528,7 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
 
     // ✅ CRITICAL FIX: getTenantIntegrationConfig returns config directly, not wrapped
     if (!configResult || typeof configResult !== 'object') {
+      console.log(`❌ [TEST-INTEGRATION] Config validation failed - returning 404`);
       return res.status(404).json({
         success: false,
         message: 'Integração não configurada. Configure a integração antes de testá-la.'
