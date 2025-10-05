@@ -20,8 +20,10 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
-  Wand2
+  Wand2,
+  ArrowRightLeft
 } from 'lucide-react';
+import FieldMappingConfig, { FieldMapping } from './FieldMappingConfig';
 
 // Simplified AI Agent Configuration Component
 // Integrates with new AI Agent backend
@@ -88,6 +90,7 @@ export interface AiAgentConfig {
     maxTokens: number;
     systemPrompt: string;
   };
+  fieldMappings?: FieldMapping[];
 }
 
 interface AiAgentActionConfigProps {
@@ -363,10 +366,14 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
         {/* Configuration Tabs */}
         {(localConfig.agentId === 'new' || selectedAgent) && (
           <Tabs defaultValue="actions" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="actions">Ações</TabsTrigger>
               <TabsTrigger value="personality">Personalidade</TabsTrigger>
               <TabsTrigger value="behavior">Comportamento</TabsTrigger>
+              <TabsTrigger value="mapping" data-testid="tab-mapping">
+                <ArrowRightLeft className="h-4 w-4 mr-1" />
+                Mapeamento
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="actions" className="space-y-4">
@@ -561,6 +568,13 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="mapping" className="space-y-4">
+              <FieldMappingConfig
+                mappings={localConfig.fieldMappings || []}
+                onChange={(fieldMappings) => setLocalConfig({ ...localConfig, fieldMappings })}
+              />
             </TabsContent>
           </Tabs>
         )}
