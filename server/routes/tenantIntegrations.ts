@@ -320,6 +320,14 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
       webhookUrl: req.body.webhookUrl || '',
       accessToken: req.body.accessToken || '',
       refreshToken: req.body.refreshToken || '',
+      // AI Provider specific fields (OpenAI, DeepSeek, Google AI)
+      baseUrl: req.body.baseUrl || '',
+      model: req.body.model || '',
+      maxTokens: req.body.maxTokens ? Number(req.body.maxTokens) : undefined,
+      temperature: req.body.temperature !== undefined ? Number(req.body.temperature) : undefined,
+      topP: req.body.topP !== undefined ? Number(req.body.topP) : undefined,
+      frequencyPenalty: req.body.frequencyPenalty !== undefined ? Number(req.body.frequencyPenalty) : undefined,
+      presencePenalty: req.body.presencePenalty !== undefined ? Number(req.body.presencePenalty) : undefined,
       // IMAP specific fields
       imapServer: req.body.imapServer || 'imap.gmail.com',
       imapPort: parseInt(req.body.imapPort || '993') || 993,
