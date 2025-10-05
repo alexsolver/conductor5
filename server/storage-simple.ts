@@ -2420,7 +2420,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, type, enabled, config, created_at, updated_at
+        SELECT id, name, description, enabled, config, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.integrations
         WHERE tenant_id = ${validatedTenantId}
         ORDER BY name
@@ -2462,7 +2462,7 @@ export class DatabaseStorage implements IStorage {
     tenantId: string,
     integrationId: string,
     config: any,
-  ): Promise<void> {
+  ): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2470,16 +2470,19 @@ export class DatabaseStorage implements IStorage {
 
       const configJson = JSON.stringify(config);
 
-      await tenantDb.execute(sql`
+      const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.integrations
         SET config = ${configJson}::jsonb, updated_at = NOW()
         WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        RETURNING *
       `);
 
       logInfo("Tenant integration config saved", {
         tenantId: validatedTenantId,
         integrationId,
       });
+
+      return result.rows?.[0] || { updatedAt: new Date().toISOString() };
     } catch (error) {
       logError("Error saving tenant integration config", error, {
         tenantId,

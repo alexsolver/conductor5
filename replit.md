@@ -62,10 +62,18 @@ The platform supports per-tenant AI provider configuration. Each tenant can conf
 - **DeepSeek**: DeepSeek Chat, DeepSeek Reasoner
 - **Google AI**: Gemini 2.0 Flash, Gemini 1.5 Flash/Pro, Gemini 1.0 Pro
 
-Configuration is managed through the Tenant Admin → Integrations → IA tab. The `TenantAIConfigService` provides methods to retrieve tenant-specific API keys:
+Configuration is managed through the Tenant Admin → Integrations page. AI providers are fully integrated into the main integrations system, displayed alongside other integrations with standardized cards. The `TenantAIConfigService` provides methods to retrieve tenant-specific API keys:
 - `getTenantAIConfig(tenantId)`: Get all AI configurations for a tenant
 - `getPreferredAIProvider(tenantId)`: Get the preferred provider (OpenAI > DeepSeek > Google AI > env fallback)
 - `getProviderConfig(tenantId, provider)`: Get specific provider configuration
+
+### Integration Management UI
+Both Tenant Admin and SaaS Admin integration pages feature a standardized card system with:
+- **Visual Badges**: Green badge with Key icon for configured integrations, status badges (connected/disconnected/error) with appropriate icons
+- **Responsive Layout**: Cards with hover animations, responsive text truncation, mobile-optimized badges
+- **Consistent Actions**: All integrations include Configure and Test buttons with loading states
+- **Categorization**: Integrations organized by category (Comunicação, IA, Analytics, etc.) with tab-based navigation
+- **AI Integration**: AI providers (OpenAI, DeepSeek, Google AI) fully integrated into main integrations array, no separate hard-coded IA tab
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL.
