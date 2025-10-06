@@ -346,7 +346,15 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
 
   async updateIntegrationConfig(integrationId: string, config: IntegrationConfig): Promise<void> {
     try {
-      console.log(`[INTEGRATION-REPO] Updating configuration for integration: ${integrationId}`);
+      console.log(`🔧 [INTEGRATION-REPO] Updating configuration for integration: ${integrationId}`);
+      console.log(`🔧 [INTEGRATION-REPO] Config to save:`, {
+        integrationId,
+        hasApiKey: !!config.apiKey,
+        apiKeyLength: config.apiKey?.length,
+        apiKeyPreview: config.apiKey?.substring(0, 25),
+        configKeys: Object.keys(config)
+      });
+      
       const pool = await this.getPool();
 
       // Create table if not exists
@@ -379,9 +387,14 @@ export class DrizzleIntegrationRepository implements IIntegrationRepository {
         JSON.stringify(config)
       ]);
 
-      console.log(`[INTEGRATION-REPO] Configuration updated successfully for ${integrationId}`);
+      console.log(`✅ [INTEGRATION-REPO] Configuration saved successfully for ${integrationId}`);
+      console.log(`✅ [INTEGRATION-REPO] Saved data:`, {
+        integration_id: result.rows[0]?.integration_id,
+        configApiKeyPreview: result.rows[0]?.config?.apiKey?.substring(0, 25),
+        updatedAt: result.rows[0]?.updated_at
+      });
     } catch (error) {
-      console.error(`[INTEGRATION-REPO] Error updating integration config for ${integrationId}:`, error);
+      console.error(`❌ [INTEGRATION-REPO] Error updating integration config for ${integrationId}:`, error);
       throw new Error('Failed to update integration configuration');
     }
   }
