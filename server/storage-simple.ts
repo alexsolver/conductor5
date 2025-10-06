@@ -2423,7 +2423,7 @@ export class DatabaseStorage implements IStorage {
       console.log('🔍 [GET-INTEGRATIONS] Schema:', schemaName);
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, config, created_at, updated_at
+        SELECT id, name, description, category, config, status, configured, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.integrations
         WHERE tenant_id = ${validatedTenantId}
         ORDER BY name
@@ -2477,7 +2477,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.integrations
-        SET config = ${configJson}::jsonb, updated_at = NOW()
+        SET config = ${configJson}::jsonb, configured = true, updated_at = NOW()
         WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
         RETURNING *
       `);
@@ -2495,6 +2495,70 @@ export class DatabaseStorage implements IStorage {
       });
       throw error;
     }
+  }
+
+  async updateTenantIntegrationStatus(
+    tenantId: string,
+    integrationId: string,
+    status: string,
+  ): Promise<void> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.integrations
+        SET status = ${status}, updated_at = NOW()
+        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+      `);
+
+      logInfo("Tenant integration status updated", {
+        tenantId: validatedTenantId,
+        integrationId,
+        status,
+      });
+    } catch (error) {
+      logError("Error updating tenant integration status", error, {
+        tenantId,
+        integrationId,
+        status,
+      });
+      throw error;
+    }
+  }
+
+  async getIntegrationByType(
+    tenantId: string,
+    typeName: string,
+  ): Promise<any | undefined> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT id, name, description, category, config, status, configured, created_at, updated_at
+        FROM ${sql.identifier(schemaName)}.integrations
+        WHERE tenant_id = ${validatedTenantId} AND id = ${typeName}
+      `);
+
+      return result.rows?.[0] || undefined;
+    } catch (error) {
+      logError("Error fetching integration by type", error, {
+        tenantId,
+        typeName,
+      });
+      return undefined;
+    }
+  }
+
+  async initializeTenantIntegrations(tenantId: string): Promise<void> {
+    console.log(`[initializeTenantIntegrations] Placeholder for ${tenantId}`);
+  }
+
+  async deleteTenantIntegrations(tenantId: string): Promise<void> {
+    console.log(`[deleteTenantIntegrations] Placeholder for ${tenantId}`);
   }
 }
 

@@ -644,6 +644,9 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
 
           console.log(`✅ [TELEGRAM-TEST] Mensagem enviada com sucesso:`, telegramResult);
 
+          // Update integration status to 'connected' after successful test
+          await storage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
+
           return res.status(200).json({ 
             success: true, 
             message: '✅ Teste do Telegram realizado com sucesso! Mensagem enviada para o chat configurado.',
@@ -2193,6 +2196,10 @@ async function testOpenAI(config: any, res: any, tenantId: string) {
       const result = await response.json();
       const aiResponse = result.choices?.[0]?.message?.content || 'No response';
       
+      // Update integration status to 'connected' after successful test
+      const { storage } = await import('../storage-simple');
+      await storage.updateTenantIntegrationStatus(tenantId, 'openai', 'connected');
+      
       return res.json({
         success: true,
         message: '✅ Teste do OpenAI realizado com sucesso!',
@@ -2275,6 +2282,10 @@ async function testDeepSeek(config: any, res: any, tenantId: string) {
     if (response.ok) {
       const result = await response.json();
       const aiResponse = result.choices?.[0]?.message?.content || 'No response';
+      
+      // Update integration status to 'connected' after successful test
+      const { storage } = await import('../storage-simple');
+      await storage.updateTenantIntegrationStatus(tenantId, 'deepseek', 'connected');
       
       return res.json({
         success: true,
@@ -2359,6 +2370,10 @@ async function testGoogleAI(config: any, res: any, tenantId: string) {
     if (response.ok) {
       const result = await response.json();
       const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+      
+      // Update integration status to 'connected' after successful test
+      const { storage } = await import('../storage-simple');
+      await storage.updateTenantIntegrationStatus(tenantId, 'googleai', 'connected');
       
       return res.json({
         success: true,
