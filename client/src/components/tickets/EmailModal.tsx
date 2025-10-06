@@ -150,7 +150,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue('message', data.correctedText);
+      // Só atualiza o texto se houver um texto corrigido válido
+      if (data.correctedText && data.correctedText.trim()) {
+        form.setValue('message', data.correctedText);
+      }
+      
       if (data.suggestions && data.suggestions.length > 0) {
         toast({
           title: "Correções Aplicadas",
