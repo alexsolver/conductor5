@@ -1974,68 +1974,37 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       console.error('❌ [EMAIL-SENTIMENT] Error detecting sentiment:', sentError);
     }
 
-    // Save communication record (regardless of email send status)
+    // 💾 Save message in ticket_messages with sentiment analysis (not in ticket_communications to avoid duplication)
     const emailStatus = emailSent ? 'sent' : 'failed';
     try {
-      const communicationId = crypto.randomUUID();
-      const insertQuery = `
-        INSERT INTO "${schemaName}".ticket_communications (
-          id, ticket_id, tenant_id, communication_type, direction,
-          from_address, to_address, cc_address, bcc_address,
-          subject, content, is_public, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
-      `;
+      const messageMetadata = {
+        sentiment: sentimentData?.sentiment || 'neutral',
+        sentimentScore: sentimentData?.score,
+        sentimentEmotion: sentimentData?.emotion,
+        confidence: sentimentData?.confidence,
+        urgency: sentimentData?.urgency,
+        channelType: 'email',
+        direction: 'outbound',
+        agentMessage: true,
+        detectedAt: new Date().toISOString()
+      };
 
-      await pool.query(insertQuery, [
-        communicationId,
-        id,
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_messages 
+        (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
+      `, [
         tenantId,
-        'email',
-        'outbound',
-        'acesso@lansolver.com',
-        to,
-        cleanCc || null,
-        cleanBcc || null,
-        subject,
+        id,
+        req.user.id, // sender_id (agente que enviou)
         message,
-        true
+        false, // is_internal
+        JSON.stringify(messageMetadata)
       ]);
 
-      console.log('✅ [EMAIL] Communication record saved:', communicationId);
-      
-      // 💾 Também salvar em ticket_messages com análise de sentimento
-      try {
-        const messageMetadata = {
-          sentiment: sentimentData?.sentiment || 'neutral',
-          sentimentScore: sentimentData?.score,
-          sentimentEmotion: sentimentData?.emotion,
-          confidence: sentimentData?.confidence,
-          urgency: sentimentData?.urgency,
-          channelType: 'email',
-          direction: 'outbound',
-          agentMessage: true,
-          detectedAt: new Date().toISOString()
-        };
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".ticket_messages 
-          (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
-          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
-        `, [
-          tenantId,
-          id,
-          req.user.id, // sender_id (agente que enviou)
-          message,
-          false, // is_internal
-          JSON.stringify(messageMetadata)
-        ]);
-
-        console.log(`✅ [EMAIL-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
-      } catch (msgError) {
-        console.error('❌ [EMAIL-SENTIMENT] Failed to save message with sentiment:', msgError);
-      }
-    } catch (dbError) {
-      console.error('❌ [EMAIL] Failed to save communication record:', dbError);
+      console.log(`✅ [EMAIL-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
+    } catch (msgError) {
+      console.error('❌ [EMAIL-SENTIMENT] Failed to save message with sentiment:', msgError);
       // Don't fail the request if we can't save to DB
     }
 
@@ -2291,63 +2260,36 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       console.error(`❌ [${channel.toUpperCase()}-SENTIMENT] Error detecting sentiment:`, sentError);
     }
 
-    // Save communication record
+    // 💾 Save message in ticket_messages with sentiment analysis (not in ticket_communications to avoid duplication)
     try {
-      const communicationId = crypto.randomUUID();
-      const insertQuery = `
-        INSERT INTO "${schemaName}".ticket_communications (
-          id, ticket_id, tenant_id, communication_type, direction,
-          from_address, to_address, content, is_public, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-      `;
+      const messageMetadata = {
+        sentiment: sentimentData?.sentiment || 'neutral',
+        sentimentScore: sentimentData?.score,
+        sentimentEmotion: sentimentData?.emotion,
+        confidence: sentimentData?.confidence,
+        urgency: sentimentData?.urgency,
+        channelType: channel,
+        direction: 'outbound',
+        agentMessage: true,
+        detectedAt: new Date().toISOString()
+      };
 
-      await pool.query(insertQuery, [
-        communicationId,
-        id,
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_messages 
+        (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
+      `, [
         tenantId,
-        channel,
-        'outbound',
-        'system',
-        recipient,
+        id,
+        req.user.id, // sender_id (agente que enviou)
         message,
-        true
+        false, // is_internal
+        JSON.stringify(messageMetadata)
       ]);
 
-      console.log('✅ [MESSAGE] Communication record saved:', communicationId);
-      
-      // 💾 Também salvar em ticket_messages com análise de sentimento
-      try {
-        const messageMetadata = {
-          sentiment: sentimentData?.sentiment || 'neutral',
-          sentimentScore: sentimentData?.score,
-          sentimentEmotion: sentimentData?.emotion,
-          confidence: sentimentData?.confidence,
-          urgency: sentimentData?.urgency,
-          channelType: channel,
-          direction: 'outbound',
-          agentMessage: true,
-          detectedAt: new Date().toISOString()
-        };
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".ticket_messages 
-          (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
-          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
-        `, [
-          tenantId,
-          id,
-          req.user.id, // sender_id (agente que enviou)
-          message,
-          false, // is_internal
-          JSON.stringify(messageMetadata)
-        ]);
-
-        console.log(`✅ [${channel.toUpperCase()}-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
-      } catch (msgError) {
-        console.error(`❌ [${channel.toUpperCase()}-SENTIMENT] Failed to save message with sentiment:`, msgError);
-      }
-    } catch (dbError) {
-      console.error('❌ [MESSAGE] Failed to save communication record:', dbError);
+      console.log(`✅ [${channel.toUpperCase()}-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
+    } catch (msgError) {
+      console.error(`❌ [${channel.toUpperCase()}-SENTIMENT] Failed to save message with sentiment:`, msgError);
       // Don't fail the request if we can't save to DB
     }
 
