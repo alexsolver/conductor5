@@ -2106,10 +2106,12 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
           const botToken = config.telegramBotToken;
           
           console.log('🔍 [TELEGRAM-DEBUG] Bot token configured:', botToken ? 'Yes' : 'No');
-          console.log('🔍 [TELEGRAM-DEBUG] Using configured chatId from config:', config.telegramChatId);
+          console.log('🔍 [TELEGRAM-DEBUG] User-specified recipient:', recipient);
+          console.log('🔍 [TELEGRAM-DEBUG] Extracted chatId:', chatId);
           
-          // Use configured chat ID instead of recipient if available
-          const targetChatId = config.telegramChatId || chatId;
+          // ALWAYS use the user-specified recipient (chatId from form)
+          // Only fallback to config if recipient is empty/invalid
+          const targetChatId = chatId || config.telegramChatId;
           
           console.log('🔍 [TELEGRAM-DEBUG] Final target chatId:', targetChatId);
           
