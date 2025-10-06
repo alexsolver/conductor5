@@ -904,6 +904,12 @@ export default function SaasAdminIntegrations() {
   };
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
+    console.log('🚀 [FORM-SUBMIT] onSubmitConfig called with:', {
+      hasSelectedIntegration: !!selectedIntegration,
+      integrationId: selectedIntegration?.id,
+      data
+    });
+
     if (selectedIntegration) {
       // Limpar baseUrl se for string vazia
       const cleanedData = {
@@ -911,10 +917,17 @@ export default function SaasAdminIntegrations() {
         baseUrl: data.baseUrl === "" ? undefined : data.baseUrl
       };
 
+      console.log('✅ [FORM-SUBMIT] Calling saveConfigMutation.mutate with:', {
+        integrationId: selectedIntegration.id,
+        cleanedData
+      });
+
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: cleanedData
       });
+    } else {
+      console.error('❌ [FORM-SUBMIT] No selected integration!');
     }
   };
 
