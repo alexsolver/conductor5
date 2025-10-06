@@ -94,25 +94,59 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
             {icon}
             <span className="text-xs font-medium text-gray-500">{label}</span>
           </div>
-          <div className="h-3 bg-gray-100 rounded-full"></div>
+          <div className="h-8 bg-gray-100 rounded-lg"></div>
         </div>
       );
     }
 
+    // Calculate sentiment distribution
+    const sentimentCounts = {
+      positive: trackMessages.filter(m => m.metadata?.sentiment === 'positive').length,
+      negative: trackMessages.filter(m => m.metadata?.sentiment === 'negative').length,
+      neutral: trackMessages.filter(m => m.metadata?.sentiment === 'neutral').length,
+    };
+
+    // Use scroll for many messages (min 3px per message)
+    const minWidthPerMessage = 3; // pixels
+    const totalWidth = trackMessages.length * minWidthPerMessage;
+    const needsScroll = totalWidth > 800; // Container width threshold
+
     return (
       <div className="flex-1">
-        <div className="flex items-center gap-2 mb-2">
-          {icon}
-          <span className="text-xs font-medium text-gray-700">{label}</span>
-          <Badge variant="secondary" className="text-xs">
-            {trackMessages.length}
-          </Badge>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            {icon}
+            <span className="text-xs font-medium text-gray-700">{label}</span>
+            <Badge variant="secondary" className="text-xs">
+              {trackMessages.length}
+            </Badge>
+          </div>
+          {/* Sentiment distribution stats */}
+          <div className="flex items-center gap-2 text-[10px]">
+            {sentimentCounts.positive > 0 && (
+              <span className="text-green-600 font-medium">
+                🟢 {((sentimentCounts.positive / trackMessages.length) * 100).toFixed(0)}%
+              </span>
+            )}
+            {sentimentCounts.neutral > 0 && (
+              <span className="text-yellow-600 font-medium">
+                🟡 {((sentimentCounts.neutral / trackMessages.length) * 100).toFixed(0)}%
+              </span>
+            )}
+            {sentimentCounts.negative > 0 && (
+              <span className="text-red-600 font-medium">
+                🔴 {((sentimentCounts.negative / trackMessages.length) * 100).toFixed(0)}%
+              </span>
+            )}
+          </div>
         </div>
-        <div className="relative">
-          <div className="relative h-4 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`relative ${needsScroll ? 'overflow-x-auto' : ''}`}>
+          <div 
+            className="relative h-10 bg-gray-100 rounded-lg overflow-hidden"
+            style={needsScroll ? { minWidth: `${totalWidth}px` } : {}}
+          >
             <div className="absolute inset-0 flex">
               {trackMessages.map((msg, index) => {
-                const widthPercent = 100 / trackMessages.length;
                 const sentiment = msg.metadata?.sentiment;
                 const score = msg.metadata?.sentimentScore;
                 const color = getSentimentColor(sentiment, score);
@@ -121,18 +155,20 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
                 return (
                   <div
                     key={msg.id}
-                    className={`${color} ${intensity} transition-all hover:scale-y-125 hover:opacity-100 cursor-pointer border-r border-white relative group`}
-                    style={{
-                      width: `${widthPercent}%`,
-                    }}
+                    className={`${color} ${intensity} transition-all hover:scale-y-110 hover:opacity-100 cursor-pointer border-r border-white/30 relative group`}
+                    style={
+                      needsScroll 
+                        ? { minWidth: `${minWidthPerMessage}px`, flex: '0 0 auto' }
+                        : { width: `${100 / trackMessages.length}%` }
+                    }
                     onMouseEnter={() => setHoveredSegment(msg.id)}
                     onMouseLeave={() => setHoveredSegment(null)}
                     data-testid={`timeline-segment-${msg.id}`}
                   >
                     {hoveredSegment === msg.id && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg whitespace-nowrap">
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-20 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg whitespace-nowrap">
                         <div className="space-y-1">
-                          <p className="font-medium">Mensagem #{index + 1}</p>
+                          <p className="font-medium">Mensagem #{index + 1} de {trackMessages.length}</p>
                           <p>Sentimento: <strong className="capitalize">{sentiment}</strong></p>
                           {score !== undefined && (
                             <p>Score: <strong>{score.toFixed(2)}</strong></p>
@@ -155,6 +191,11 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
             </div>
           </div>
         </div>
+        {needsScroll && (
+          <p className="text-[10px] text-gray-500 mt-1 italic">
+            ↔️ Role horizontalmente para ver todas as mensagens
+          </p>
+        )}
       </div>
     );
   };
