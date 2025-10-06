@@ -37,15 +37,11 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Spell check mutation
   const spellCheckMutation = useMutation({
     mutationFn: async () => {
-      console.log('🔍 [SPELL-CHECK-FRONTEND] Current message:', message);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: message });
       const data = await response.json();
-      console.log('📦 [SPELL-CHECK-FRONTEND] API response:', data);
       return data;
     },
     onSuccess: (data: any) => {
-      console.log('✅ [SPELL-CHECK-FRONTEND] Success data:', data);
-      console.log('📝 [SPELL-CHECK-FRONTEND] Corrected text:', data.correctedText);
       
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
@@ -108,27 +104,22 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Translate mutation
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
-      console.log('🌍 [TRANSLATE-MUTATION] Starting:', { targetLanguage, messageLength: message?.length });
       const response = await apiRequest('POST', '/api/message-ai/translate', { 
         text: message, 
         targetLanguage 
       });
       const data = await response.json();
-      console.log('🌍 [TRANSLATE-MUTATION] Response:', data);
       return data;
     },
     onSuccess: (data: any) => {
-      console.log('✅ [TRANSLATE-SUCCESS] Data received:', data);
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
-        console.log('📝 [TRANSLATE-SUCCESS] Updating field with:', data.translatedText.substring(0, 50));
         setMessage(data.translatedText);
         toast({
           title: "Texto Traduzido",
           description: `Traduzido para ${data.targetLanguage}`,
         });
       } else {
-        console.warn('⚠️ [TRANSLATE-SUCCESS] No translatedText in response');
         toast({
           title: "Aviso",
           description: "Não foi possível traduzir o texto",
@@ -136,8 +127,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
         });
       }
     },
-    onError: (error: any) => {
-      console.error('❌ [TRANSLATE-ERROR]:', error);
+    onError: () => {
       toast({
         title: "Erro",
         description: "Falha ao traduzir texto",
@@ -269,13 +259,10 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log('🔧 [REPLY-MODAL] Spell Check clicked! Message:', message);
                 if (!message || !message.trim()) {
-                  console.warn('⚠️ [REPLY-MODAL] No message to check');
                   toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
                   return;
                 }
-                console.log('✅ [REPLY-MODAL] Starting spell check mutation');
                 spellCheckMutation.mutate();
               }}
               disabled={spellCheckMutation.isPending}

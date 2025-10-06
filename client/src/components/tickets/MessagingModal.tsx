@@ -92,6 +92,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
 
   const form = useForm<MessagingFormData>({
     resolver: zodResolver(messagingSchema),
+    mode: "onBlur", // Valida apenas ao sair do campo, não a cada tecla
     defaultValues: {
       channel: "whatsapp",
       recipient: "",

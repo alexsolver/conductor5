@@ -71,6 +71,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
 
   const form = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
+    mode: "onBlur", // Valida apenas ao sair do campo, não a cada tecla
     defaultValues: {
       to: "",
       cc: "",
