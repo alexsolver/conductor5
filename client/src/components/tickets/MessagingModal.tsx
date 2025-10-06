@@ -235,12 +235,17 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
       const currentMessage = form.getValues('message');
+      console.log('🌍 [TRANSLATE-MUTATION] Starting:', { targetLanguage, messageLength: currentMessage?.length });
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
-      return await response.json();
+      const data = await response.json();
+      console.log('🌍 [TRANSLATE-MUTATION] Response:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('✅ [TRANSLATE-SUCCESS] Data received:', data);
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
+        console.log('📝 [TRANSLATE-SUCCESS] Updating field with:', data.translatedText.substring(0, 50));
         form.setValue('message', data.translatedText, {
           shouldValidate: true,
           shouldDirty: true,
@@ -251,6 +256,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
           description: `Mensagem traduzida para ${data.targetLanguage}`,
         });
       } else {
+        console.warn('⚠️ [TRANSLATE-SUCCESS] No translatedText in response');
         toast({
           title: "Aviso",
           description: "Não foi possível traduzir o texto",
@@ -258,7 +264,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
         });
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('❌ [TRANSLATE-ERROR]:', error);
       toast({
         title: "Erro",
         description: "Falha ao traduzir texto",
