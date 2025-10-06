@@ -677,9 +677,11 @@ router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) =
     }
 
     console.log('🔧 [SAAS-ADMIN-OPENAI] Updating OpenAI API key');
+    console.log('🔧 [SAAS-ADMIN-OPENAI] API Key preview:', apiKey.toString().substring(0, 25));
 
     const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
     const integrationRepository = new DrizzleIntegrationRepository();
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Repository instantiated');
 
     // Update OpenAI configuration and reset status
     const config = {
@@ -691,6 +693,12 @@ router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) =
       lastUpdated: new Date().toISOString(),
       lastTested: null // Clear last test when key changes
     };
+
+    console.log('🔧 [SAAS-ADMIN-OPENAI] Calling updateIntegrationConfig with config:', {
+      hasApiKey: !!config.apiKey,
+      apiKeyLength: config.apiKey.length,
+      apiKeyPreview: config.apiKey.substring(0, 25)
+    });
 
     await integrationRepository.updateIntegrationConfig('openai', config);
 
