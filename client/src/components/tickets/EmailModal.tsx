@@ -457,7 +457,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                   <FormLabel>Mensagem *</FormLabel>
                   <FormControl>
                     <Textarea
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        field.onBlur();
+                      }}
                       placeholder="Digite sua mensagem aqui..."
                       rows={6}
                       data-testid="textarea-email-message"
