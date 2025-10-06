@@ -152,15 +152,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
-        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
-        if (textarea) {
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(textarea, data.correctedText);
-            const event = new Event('input', { bubbles: true });
-            textarea.dispatchEvent(event);
-          }
-        }
+        form.setValue('message', data.correctedText, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
       }
       
       if (data.suggestions && data.suggestions.length > 0) {
@@ -193,15 +189,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto reescrito válido
       if (data.rewrittenText && data.rewrittenText.trim()) {
-        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
-        if (textarea) {
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(textarea, data.rewrittenText);
-            const event = new Event('input', { bubbles: true });
-            textarea.dispatchEvent(event);
-          }
-        }
+        form.setValue('message', data.rewrittenText, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         toast({
           title: "Texto Reescrito",
           description: `Mensagem reescrita com tom ${data.tone}`,
@@ -232,15 +224,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
-        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
-        if (textarea) {
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(textarea, data.translatedText);
-            const event = new Event('input', { bubbles: true });
-            textarea.dispatchEvent(event);
-          }
-        }
+        form.setValue('message', data.translatedText, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         toast({
           title: "Texto Traduzido",
           description: `Mensagem traduzida para ${data.targetLanguage}`,
@@ -271,15 +259,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um resumo válido
       if (data.summary && data.summary.trim()) {
-        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
-        if (textarea) {
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(textarea, data.summary);
-            const event = new Event('input', { bubbles: true });
-            textarea.dispatchEvent(event);
-          }
-        }
+        form.setValue('message', data.summary, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         toast({
           title: "Texto Resumido",
           description: "Mensagem resumida com sucesso",
@@ -309,15 +293,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     },
     onSuccess: (data: any) => {
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
-        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
-        if (textarea) {
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-          if (nativeInputValueSetter) {
-            nativeInputValueSetter.call(textarea, data.suggestions[0]);
-            const event = new Event('input', { bubbles: true });
-            textarea.dispatchEvent(event);
-          }
-        }
+        form.setValue('message', data.suggestions[0], {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         toast({
           title: "Sugestão Aplicada",
           description: "Resposta rápida gerada com IA",
