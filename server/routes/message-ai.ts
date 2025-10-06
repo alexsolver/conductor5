@@ -47,19 +47,11 @@ const messageAIService = new MessageAIService(storage);
  */
 router.post('/spell-check', async (req: AuthenticatedRequest, res) => {
   try {
-    console.log('🔍 [SPELL-CHECK] Request received:', {
-      user: req.user,
-      userTenantId: req.user?.tenantId,
-      hasUser: !!req.user
-    });
-    
     const tenantId = req.user.tenantId;
     if (!tenantId) {
-      console.error('❌ [SPELL-CHECK] No tenantId found!', { user: req.user });
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    console.log('✅ [SPELL-CHECK] TenantId found:', tenantId);
     const validation = spellCheckSchema.safeParse(req.body);
     if (!validation.success) {
       return res.status(400).json({ error: validation.error.errors[0].message });

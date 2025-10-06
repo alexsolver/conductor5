@@ -3,7 +3,7 @@
 // ========================================
 // AI-powered message assistance features
 
-import { TenantAIConfigService } from './tenant-ai-config';
+import { getSaaSAdminAIConfigService } from './saas-admin-ai-config';
 import type { IStorage } from '../storage-simple';
 
 export interface SpellCheckResult {
@@ -36,10 +36,8 @@ export interface QuickReplyResult {
 }
 
 export class MessageAIService {
-  private aiConfigService: TenantAIConfigService;
-
   constructor(storage: IStorage) {
-    this.aiConfigService = new TenantAIConfigService(storage);
+    // No longer storing aiConfigService - will use SaaS Admin service directly
   }
 
   /**
@@ -48,10 +46,12 @@ export class MessageAIService {
   async spellCheck(tenantId: string, text: string): Promise<SpellCheckResult> {
     console.log('🔍 [SPELL-CHECK] Input text:', text);
     
-    const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
+    // Use SaaS Admin AI configuration (global)
+    const aiConfigService = getSaaSAdminAIConfigService();
+    const providerConfig = await aiConfigService.getPreferredAIProvider();
     
     if (!providerConfig) {
-      throw new Error('No AI provider configured');
+      throw new Error('No AI provider configured in SaaS Admin');
     }
 
     const prompt = `Analyze the following text for spelling and grammar errors. Return a JSON object with:
@@ -84,10 +84,12 @@ Return ONLY the JSON object, no additional text.`;
    * Rewrite text with specific tone
    */
   async rewriteWithTone(tenantId: string, text: string, tone: 'professional' | 'friendly' | 'empathetic' | 'technical' | 'concise'): Promise<RewriteResult> {
-    const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
+    // Use SaaS Admin AI configuration (global)
+    const aiConfigService = getSaaSAdminAIConfigService();
+    const providerConfig = await aiConfigService.getPreferredAIProvider();
     
     if (!providerConfig) {
-      throw new Error('No AI provider configured');
+      throw new Error('No AI provider configured in SaaS Admin');
     }
 
     const toneInstructions = {
@@ -117,10 +119,12 @@ Original text:
    * Translate text to target language
    */
   async translate(tenantId: string, text: string, targetLanguage: string): Promise<TranslationResult> {
-    const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
+    // Use SaaS Admin AI configuration (global)
+    const aiConfigService = getSaaSAdminAIConfigService();
+    const providerConfig = await aiConfigService.getPreferredAIProvider();
     
     if (!providerConfig) {
-      throw new Error('No AI provider configured');
+      throw new Error('No AI provider configured in SaaS Admin');
     }
 
     const prompt = `Translate the following text to ${targetLanguage}. 
@@ -152,10 +156,12 @@ Return ONLY the JSON object.`;
    * Create summary or expand text
    */
   async summarize(tenantId: string, text: string, type: 'short' | 'expanded'): Promise<SummaryResult> {
-    const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
+    // Use SaaS Admin AI configuration (global)
+    const aiConfigService = getSaaSAdminAIConfigService();
+    const providerConfig = await aiConfigService.getPreferredAIProvider();
     
     if (!providerConfig) {
-      throw new Error('No AI provider configured');
+      throw new Error('No AI provider configured in SaaS Admin');
     }
 
     const instructions = type === 'short' 
@@ -180,10 +186,12 @@ Text:
    * Generate quick reply suggestions
    */
   async generateQuickReplies(tenantId: string, conversationContext: string): Promise<QuickReplyResult> {
-    const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
+    // Use SaaS Admin AI configuration (global)
+    const aiConfigService = getSaaSAdminAIConfigService();
+    const providerConfig = await aiConfigService.getPreferredAIProvider();
     
     if (!providerConfig) {
-      throw new Error('No AI provider configured');
+      throw new Error('No AI provider configured in SaaS Admin');
     }
 
     const prompt = `Based on the following conversation context, generate 3 appropriate quick reply suggestions.
