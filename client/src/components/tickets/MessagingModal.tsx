@@ -527,10 +527,14 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    console.log('🔧 [AI-BUTTON] Spell Check clicked!', { message: form.watch('message') });
+                    const msg = form.getValues('message');
+                    if (!msg || !msg.trim()) {
+                      toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                      return;
+                    }
                     spellCheckMutation.mutate();
                   }}
-                  disabled={!form.watch('message') || spellCheckMutation.isPending}
+                  disabled={spellCheckMutation.isPending}
                   data-testid="button-spell-check-messaging"
                 >
                   {spellCheckMutation.isPending ? (
@@ -557,7 +561,11 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
 
                 {/* Translate */}
                 <Select onValueChange={(lang) => {
-                  console.log('🌍 [AI-TRANSLATE] Language selected:', lang);
+                  const msg = form.getValues('message');
+                  if (!msg || !msg.trim()) {
+                    toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                    return;
+                  }
                   translateMutation.mutate(lang);
                 }}>
                   <SelectTrigger className="w-[150px] h-9" data-testid="select-translate-messaging">
@@ -577,8 +585,15 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => summarizeMutation.mutate('short')}
-                  disabled={!form.watch('message') || summarizeMutation.isPending}
+                  onClick={() => {
+                    const msg = form.getValues('message');
+                    if (!msg || !msg.trim()) {
+                      toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                      return;
+                    }
+                    summarizeMutation.mutate('short');
+                  }}
+                  disabled={summarizeMutation.isPending}
                   data-testid="button-summarize-messaging"
                 >
                   {summarizeMutation.isPending ? (
