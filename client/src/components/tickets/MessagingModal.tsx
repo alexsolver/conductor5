@@ -526,7 +526,10 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => spellCheckMutation.mutate()}
+                  onClick={() => {
+                    console.log('🔧 [AI-BUTTON] Spell Check clicked!', { message: form.watch('message') });
+                    spellCheckMutation.mutate();
+                  }}
                   disabled={!form.watch('message') || spellCheckMutation.isPending}
                   data-testid="button-spell-check-messaging"
                 >
@@ -553,7 +556,10 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                 </Select>
 
                 {/* Translate */}
-                <Select onValueChange={(lang) => translateMutation.mutate(lang)}>
+                <Select onValueChange={(lang) => {
+                  console.log('🌍 [AI-TRANSLATE] Language selected:', lang);
+                  translateMutation.mutate(lang);
+                }}>
                   <SelectTrigger className="w-[150px] h-9" data-testid="select-translate-messaging">
                     <SelectValue placeholder="Traduzir" />
                   </SelectTrigger>
