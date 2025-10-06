@@ -197,9 +197,14 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
     mutationFn: async (tone: string) => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
+      console.log('🔍 [REWRITE-DEBUG] Response from API:', response);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText:', response?.rewrittenText);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText type:', typeof response?.rewrittenText);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText length:', response?.rewrittenText?.length);
       return response;
     },
     onSuccess: (data: any) => {
+      console.log('🔍 [REWRITE-DEBUG] onSuccess data:', data);
       // Só atualiza o texto se houver um texto reescrito válido
       if (data.rewrittenText && data.rewrittenText.trim()) {
         form.setValue('message', data.rewrittenText);
@@ -208,6 +213,11 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
           description: `Mensagem reescrita com tom ${data.tone}`,
         });
       } else {
+        console.log('❌ [REWRITE-DEBUG] Validation failed:', {
+          hasRewrittenText: !!data.rewrittenText,
+          trimmedText: data.rewrittenText?.trim(),
+          fullData: data
+        });
         toast({
           title: "Aviso",
           description: "Não foi possível reescrever o texto",
