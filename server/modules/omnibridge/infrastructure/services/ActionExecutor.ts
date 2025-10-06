@@ -2604,6 +2604,9 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const { messageData, tenantId } = context;
       const { to, subject, body, template, ticketId } = action.config || {};
       
+      console.log(`📧 [REPLY-EMAIL-ACTION] Config:`, JSON.stringify(action.config));
+      console.log(`🎫 [REPLY-EMAIL-ACTION] TicketId extracted:`, ticketId);
+      
       // Import SendGrid dynamically to avoid circular deps
       const { SendGridService } = await import('../../../../services/sendgridService');
       
@@ -2627,6 +2630,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
         console.log(`✅ [REPLY-EMAIL-ACTION] Email sent successfully to ${recipientEmail}`);
         
         if (ticketId) {
+          console.log(`💾 [REPLY-EMAIL-ACTION] Saving agent message to ticket ${ticketId}`);
           await this.saveAgentMessageWithSentiment(
             ticketId,
             emailBody,
@@ -2634,6 +2638,8 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
             tenantId,
             'agent'
           );
+        } else {
+          console.warn(`⚠️ [REPLY-EMAIL-ACTION] No ticketId provided - agent message will NOT be saved`);
         }
         
         return { 

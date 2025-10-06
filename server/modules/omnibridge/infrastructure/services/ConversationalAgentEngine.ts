@@ -351,7 +351,10 @@ export class ConversationalAgentEngine {
     }
 
     try {
+      const ticketId = context.metadata?.ticketId;
       console.log(`🚀 [ConversationalAgent] Executing action: ${conversation.intendedAction}`);
+      console.log(`🎫 [ConversationalAgent] TicketId from context:`, ticketId);
+      console.log(`📦 [ConversationalAgent] Full context.metadata:`, JSON.stringify(context.metadata));
 
       // Executar ação através do ActionExecutor existente
       const actionResult = await this.actionExecutor.execute(
@@ -361,7 +364,7 @@ export class ConversationalAgentEngine {
           params: conversation.actionParams,
           config: {
             ...conversation.actionParams,
-            ticketId: context.metadata?.ticketId
+            ticketId: ticketId
           },
           priority: 1
         },
