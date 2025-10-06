@@ -1949,6 +1949,17 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       }
     });
 
+    // 😊 SENTIMENT ANALYSIS: Detectar sentimento da mensagem do agente
+    let sentimentData = null;
+    try {
+      const { SentimentDetectionService } = await import('../omnibridge/infrastructure/services/SentimentDetectionService');
+      const sentimentService = new SentimentDetectionService();
+      sentimentData = await sentimentService.detectSentiment(message, tenantId);
+      console.log(`😊 [EMAIL-SENTIMENT] Sentiment detected for agent message:`, sentimentData?.sentiment);
+    } catch (sentError) {
+      console.error('❌ [EMAIL-SENTIMENT] Error detecting sentiment:', sentError);
+    }
+
     // Save communication record (regardless of email send status)
     const emailStatus = emailSent ? 'sent' : 'failed';
     try {
@@ -1977,6 +1988,38 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       ]);
 
       console.log('✅ [EMAIL] Communication record saved:', communicationId);
+      
+      // 💾 Também salvar em ticket_messages com análise de sentimento
+      try {
+        const messageMetadata = {
+          sentiment: sentimentData?.sentiment || 'neutral',
+          sentimentScore: sentimentData?.score,
+          sentimentEmotion: sentimentData?.emotion,
+          confidence: sentimentData?.confidence,
+          urgency: sentimentData?.urgency,
+          channelType: 'email',
+          direction: 'outbound',
+          agentMessage: true,
+          detectedAt: new Date().toISOString()
+        };
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_messages 
+          (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
+        `, [
+          tenantId,
+          id,
+          req.user.id, // sender_id (agente que enviou)
+          message,
+          false, // is_internal
+          JSON.stringify(messageMetadata)
+        ]);
+
+        console.log(`✅ [EMAIL-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
+      } catch (msgError) {
+        console.error('❌ [EMAIL-SENTIMENT] Failed to save message with sentiment:', msgError);
+      }
     } catch (dbError) {
       console.error('❌ [EMAIL] Failed to save communication record:', dbError);
       // Don't fail the request if we can't save to DB
@@ -2223,6 +2266,17 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       console.error(`❌ [${channel.toUpperCase()}] Error sending message:`, sendingError);
     }
     
+    // 😊 SENTIMENT ANALYSIS: Detectar sentimento da mensagem do agente
+    let sentimentData = null;
+    try {
+      const { SentimentDetectionService } = await import('../omnibridge/infrastructure/services/SentimentDetectionService');
+      const sentimentService = new SentimentDetectionService();
+      sentimentData = await sentimentService.detectSentiment(message, tenantId);
+      console.log(`😊 [${channel.toUpperCase()}-SENTIMENT] Sentiment detected for agent message:`, sentimentData?.sentiment);
+    } catch (sentError) {
+      console.error(`❌ [${channel.toUpperCase()}-SENTIMENT] Error detecting sentiment:`, sentError);
+    }
+
     // Save communication record
     try {
       const communicationId = crypto.randomUUID();
@@ -2246,6 +2300,38 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
       ]);
 
       console.log('✅ [MESSAGE] Communication record saved:', communicationId);
+      
+      // 💾 Também salvar em ticket_messages com análise de sentimento
+      try {
+        const messageMetadata = {
+          sentiment: sentimentData?.sentiment || 'neutral',
+          sentimentScore: sentimentData?.score,
+          sentimentEmotion: sentimentData?.emotion,
+          confidence: sentimentData?.confidence,
+          urgency: sentimentData?.urgency,
+          channelType: channel,
+          direction: 'outbound',
+          agentMessage: true,
+          detectedAt: new Date().toISOString()
+        };
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_messages 
+          (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+          VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
+        `, [
+          tenantId,
+          id,
+          req.user.id, // sender_id (agente que enviou)
+          message,
+          false, // is_internal
+          JSON.stringify(messageMetadata)
+        ]);
+
+        console.log(`✅ [${channel.toUpperCase()}-SENTIMENT] Message saved with sentiment analysis: ${sentimentData?.sentiment || 'neutral'}`);
+      } catch (msgError) {
+        console.error(`❌ [${channel.toUpperCase()}-SENTIMENT] Failed to save message with sentiment:`, msgError);
+      }
     } catch (dbError) {
       console.error('❌ [MESSAGE] Failed to save communication record:', dbError);
       // Don't fail the request if we can't save to DB
