@@ -239,7 +239,11 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
         console.log('✅ [TRANSLATE] Updating field with:', data.translatedText);
-        form.setValue('message', data.translatedText);
+        form.setValue('message', data.translatedText, { 
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true
+        });
         toast({
           title: "Texto Traduzido",
           description: `Mensagem traduzida para ${data.targetLanguage}`,
