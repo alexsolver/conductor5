@@ -3,10 +3,11 @@
 // ========================================
 // API routes for AI-powered message assistance
 
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { MessageAIService } from '../services/message-ai-service';
 import { storage } from '../storage-simple';
 import { z } from 'zod';
+import { AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = Router();
 
@@ -41,7 +42,7 @@ const messageAIService = new MessageAIService(storage);
  * POST /api/message-ai/spell-check
  * Check spelling and grammar
  */
-router.post('/spell-check', async (req, res) => {
+router.post('/spell-check', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId;
     if (!tenantId) {
@@ -67,7 +68,7 @@ router.post('/spell-check', async (req, res) => {
  * POST /api/message-ai/rewrite
  * Rewrite text with specific tone
  */
-router.post('/rewrite', async (req, res) => {
+router.post('/rewrite', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId;
     if (!tenantId) {
@@ -93,7 +94,7 @@ router.post('/rewrite', async (req, res) => {
  * POST /api/message-ai/translate
  * Translate text to target language
  */
-router.post('/translate', async (req, res) => {
+router.post('/translate', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId;
     if (!tenantId) {
@@ -119,7 +120,7 @@ router.post('/translate', async (req, res) => {
  * POST /api/message-ai/summarize
  * Summarize or expand text
  */
-router.post('/summarize', async (req, res) => {
+router.post('/summarize', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId;
     if (!tenantId) {
@@ -145,7 +146,7 @@ router.post('/summarize', async (req, res) => {
  * POST /api/message-ai/quick-replies
  * Generate quick reply suggestions
  */
-router.post('/quick-replies', async (req, res) => {
+router.post('/quick-replies', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId;
     if (!tenantId) {

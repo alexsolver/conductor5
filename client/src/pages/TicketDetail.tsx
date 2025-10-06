@@ -10,10 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
-import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip } from "lucide-react";
+import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip, Reply } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLocalization } from "@/hooks/useLocalization";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
+import { MessageReplyModal } from "@/components/MessageReplyModal";
 
 interface Ticket {
   id: string;
@@ -88,6 +89,8 @@ export default function TicketDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getFieldLabel } = useFieldColors();
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<Communication | null>(null);
 
   // Fetch ticket details
   const { data: ticket, isLoading: isTicketLoading, error: ticketError } = useQuery<Ticket>({
@@ -229,6 +232,23 @@ export default function TicketDetail() {
       title: 'Upload successful',
       description: 'Files uploaded successfully.',
     });
+  };
+
+  const handleReplyClick = (message: Communication) => {
+    setSelectedMessage(message);
+    setReplyModalOpen(true);
+  };
+
+  const handleSendReply = async (replyText: string) => {
+    // TODO: Implement API call to send reply via appropriate channel (email, WhatsApp, etc.)
+    console.log('Sending reply:', replyText);
+    // This will be implemented based on the message type (email, whatsapp, etc.)
+    // For now, we'll just show a toast
+    toast({
+      title: 'Resposta enviada',
+      description: 'A mensagem foi enviada com sucesso',
+    });
+    queryClient.invalidateQueries({ queryKey: [`/api/tickets/${id}/communications`] });
   };
 
   if (isTicketLoading) {
@@ -438,11 +458,24 @@ export default function TicketDetail() {
                             <Badge variant={comm.direction === 'inbound' ? 'default' : 'secondary'}>
                               {comm.type} - {comm.direction}
                             </Badge>
-                            <span className="text-sm text-gray-500">
-                              {formatDate(comm.createdAt)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {comm.direction === 'inbound' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleReplyClick(comm)}
+                                  data-testid={`button-reply-${comm.id}`}
+                                >
+                                  <Reply className="h-4 w-4 mr-1" />
+                                  Responder
+                                </Button>
+                              )}
+                              <span className="text-sm text-gray-500">
+                                {formatDate(comm.createdAt)}
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-gray-700">{comm.content}</p>
+                          <p className="text-gray-700 dark:text-gray-300">{comm.content}</p>
                           <p className="text-sm text-gray-500 mt-1">{t('common.by')}: {comm.authorName}</p>
                         </div>
                       ))}
@@ -588,6 +621,19 @@ export default function TicketDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Message Reply Modal */}
+      {selectedMessage && (
+        <MessageReplyModal
+          open={replyModalOpen}
+          onClose={() => {
+            setReplyModalOpen(false);
+            setSelectedMessage(null);
+          }}
+          originalMessage={selectedMessage}
+          onSend={handleSendReply}
+        />
+      )}
     </div>
   );
 }
