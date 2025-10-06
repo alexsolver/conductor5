@@ -227,10 +227,16 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
       const currentMessage = form.getValues('message');
+      console.log('🔍 [TRANSLATE-DEBUG] Input text:', currentMessage);
+      console.log('🔍 [TRANSLATE-DEBUG] Target language:', targetLanguage);
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
-      return await response.json();
+      console.log('🔍 [TRANSLATE-DEBUG] Raw response:', response);
+      const data = await response.json();
+      console.log('🔍 [TRANSLATE-DEBUG] Parsed data:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('🔍 [TRANSLATE-DEBUG] onSuccess data:', data);
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
         form.setValue('message', data.translatedText);
@@ -239,6 +245,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
           description: `Mensagem traduzida para ${data.targetLanguage}`,
         });
       } else {
+        console.log('❌ [TRANSLATE-DEBUG] Validation failed:', data);
         toast({
           title: "Aviso",
           description: "Não foi possível traduzir o texto",
@@ -246,7 +253,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ [TRANSLATE-DEBUG] Error:', error);
       toast({
         title: "Erro",
         description: "Falha ao traduzir texto",
@@ -258,10 +266,16 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
   const summarizeMutation = useMutation({
     mutationFn: async (length: 'short' | 'long') => {
       const currentMessage = form.getValues('message');
+      console.log('🔍 [SUMMARIZE-DEBUG] Input text:', currentMessage);
+      console.log('🔍 [SUMMARIZE-DEBUG] Length:', length);
       const response = await apiRequest('POST', '/api/message-ai/summarize', { text: currentMessage, length });
-      return await response.json();
+      console.log('🔍 [SUMMARIZE-DEBUG] Raw response:', response);
+      const data = await response.json();
+      console.log('🔍 [SUMMARIZE-DEBUG] Parsed data:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('🔍 [SUMMARIZE-DEBUG] onSuccess data:', data);
       // Só atualiza o texto se houver um resumo válido
       if (data.summary && data.summary.trim()) {
         form.setValue('message', data.summary);
@@ -270,6 +284,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
           description: "Mensagem resumida com sucesso",
         });
       } else {
+        console.log('❌ [SUMMARIZE-DEBUG] Validation failed:', data);
         toast({
           title: "Aviso",
           description: "Não foi possível resumir o texto",
@@ -277,7 +292,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ [SUMMARIZE-DEBUG] Error:', error);
       toast({
         title: "Erro",
         description: "Falha ao resumir texto",
@@ -289,10 +305,15 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
   const quickReplyMutation = useMutation({
     mutationFn: async () => {
       const currentMessage = form.getValues('message');
+      console.log('🔍 [QUICK-REPLY-DEBUG] Input text:', currentMessage);
       const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
-      return await response.json();
+      console.log('🔍 [QUICK-REPLY-DEBUG] Raw response:', response);
+      const data = await response.json();
+      console.log('🔍 [QUICK-REPLY-DEBUG] Parsed data:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('🔍 [QUICK-REPLY-DEBUG] onSuccess data:', data);
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
         form.setValue('message', data.suggestions[0]);
         toast({
@@ -300,6 +321,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
           description: "Resposta rápida gerada com IA",
         });
       } else {
+        console.log('❌ [QUICK-REPLY-DEBUG] Validation failed:', data);
         toast({
           title: "Aviso",
           description: "Não foi possível gerar uma sugestão",
@@ -307,7 +329,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ [QUICK-REPLY-DEBUG] Error:', error);
       toast({
         title: "Erro",
         description: "Falha ao gerar sugestão",
