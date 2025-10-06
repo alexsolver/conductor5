@@ -189,6 +189,11 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
     }
   };
 
+  // Don't render if no original message
+  if (!originalMessage) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

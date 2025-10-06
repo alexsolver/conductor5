@@ -4539,14 +4539,31 @@ const TicketDetails = React.memo(() => {
       {/* Message Reply Modal with AI Assistance */}
       {selectedMessage && (
         <MessageReplyModal
-          isOpen={replyModalOpen}
+          open={replyModalOpen}
           onClose={() => {
             setReplyModalOpen(false);
             setSelectedMessage(null);
           }}
-          message={selectedMessage}
-          ticketId={id}
-          ticketNumber={ticket?.number}
+          originalMessage={selectedMessage}
+          onSend={async (replyText: string) => {
+            // Send reply via the appropriate channel
+            const channel = selectedMessage.channel;
+            const response = await apiRequest("POST", `/api/tickets/${id}/communications`, {
+              channel,
+              content: replyText,
+              to_address: selectedMessage.from_address || selectedMessage.from,
+              status: 'sent',
+              direction: 'outbound',
+              metadata: {
+                replyTo: selectedMessage.id,
+                conversationId: selectedMessage.metadata?.conversationId
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error('Failed to send reply');
+            }
+          }}
         />
       )}
 
