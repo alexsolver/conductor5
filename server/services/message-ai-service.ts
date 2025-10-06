@@ -235,6 +235,12 @@ Return ONLY the JSON object with format: {"suggestions": ["reply1", "reply2", "r
   }
 
   private async callOpenAI(apiKey: string, model: string, prompt: string): Promise<string> {
+    console.log('🔑 [OPENAI-CALL] Making request with:', {
+      apiKeyLength: apiKey?.length,
+      apiKeyPreview: apiKey?.substring(0, 20),
+      model: model
+    });
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -252,10 +258,15 @@ Return ONLY the JSON object with format: {"suggestions": ["reply1", "reply2", "r
     });
 
     if (!response.ok) {
+      console.error('❌ [OPENAI-CALL] Error response:', {
+        status: response.status,
+        statusText: response.statusText
+      });
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('✅ [OPENAI-CALL] Success');
     return data.choices[0].message.content;
   }
 

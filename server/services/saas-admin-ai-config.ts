@@ -39,15 +39,30 @@ export class SaaSAdminAIConfigService {
         WHERE integration_id IN ('openai', 'deepseek', 'googleai')
       `);
 
+      console.log('🔍 [SAAS-ADMIN-AI] Query result rows:', result.rows.length);
+
       const config: SaaSAdminAIConfig = {};
 
       result.rows.forEach(row => {
         const integrationConfig = row.config || {};
         
+        console.log(`🔍 [SAAS-ADMIN-AI] Processing ${row.integration_id}:`, {
+          hasConfig: !!row.config,
+          hasApiKey: !!integrationConfig.apiKey,
+          apiKeyLength: integrationConfig.apiKey?.length,
+          apiKeyPreview: integrationConfig.apiKey?.substring(0, 20)
+        });
+        
         switch (row.integration_id) {
           case 'openai':
             config.openaiApiKey = integrationConfig.apiKey || integrationConfig.openaiApiKey;
             config.openaiModel = integrationConfig.openaiModel || integrationConfig.model || 'gpt-4o-mini';
+            console.log('✅ [SAAS-ADMIN-AI] OpenAI config set:', {
+              hasApiKey: !!config.openaiApiKey,
+              apiKeyLength: config.openaiApiKey?.length,
+              apiKeyPreview: config.openaiApiKey?.substring(0, 20),
+              model: config.openaiModel
+            });
             break;
           case 'deepseek':
             config.deepseekApiKey = integrationConfig.apiKey || integrationConfig.deepseekApiKey;
@@ -60,9 +75,15 @@ export class SaaSAdminAIConfigService {
         }
       });
 
+      console.log('✅ [SAAS-ADMIN-AI] Final config:', {
+        hasOpenAI: !!config.openaiApiKey,
+        hasDeepSeek: !!config.deepseekApiKey,
+        hasGoogleAI: !!config.googleaiApiKey
+      });
+
       return config;
     } catch (error) {
-      console.error('Error fetching SaaS Admin AI config:', error);
+      console.error('❌ [SAAS-ADMIN-AI] Error fetching SaaS Admin AI config:', error);
       return {};
     }
   }
