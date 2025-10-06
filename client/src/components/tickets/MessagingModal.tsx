@@ -508,10 +508,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                   <FormLabel>Mensagem *</FormLabel>
                   <FormControl>
                     <Textarea
-                      key={`msg-${field.value?.substring(0, 20)}`}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
+                      {...field}
                       placeholder={`Digite sua mensagem para ${config.name}...`}
                       rows={5}
                       className="resize-none"
