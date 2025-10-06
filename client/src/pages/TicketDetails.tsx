@@ -1497,8 +1497,6 @@ const TicketDetails = React.memo(() => {
 
             {/* Classificação */}
             <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-semibold text-gray-600 mb-4">{t('tickets.fields.classification').toUpperCase()}</h3>
-
               <div className="grid grid-cols-4 gap-4 mb-4">
                 <FormField
                   control={form.control as any}
