@@ -37,7 +37,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Spell check mutation
   const spellCheckMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/message-ai/spell-check', 'POST', { text: message });
+      const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: message });
       return response;
     },
     onSuccess: (data: any) => {
@@ -66,7 +66,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Rewrite mutation
   const rewriteMutation = useMutation({
     mutationFn: async (tone: string) => {
-      const response = await apiRequest('/api/message-ai/rewrite', 'POST', { text: message, tone });
+      const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: message, tone });
       return response;
     },
     onSuccess: (data: any) => {
@@ -88,7 +88,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Translate mutation
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
-      const response = await apiRequest('/api/message-ai/translate', 'POST', { 
+      const response = await apiRequest('POST', '/api/message-ai/translate', { 
         text: message, 
         targetLanguage 
       });
@@ -113,7 +113,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Summarize mutation
   const summarizeMutation = useMutation({
     mutationFn: async (type: 'short' | 'expanded') => {
-      const response = await apiRequest('/api/message-ai/summarize', 'POST', { text: message, type });
+      const response = await apiRequest('POST', '/api/message-ai/summarize', { text: message, type });
       return response;
     },
     onSuccess: (data: any) => {
@@ -135,7 +135,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Quick replies mutation
   const quickRepliesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/message-ai/quick-replies', 'POST', { 
+      const response = await apiRequest('POST', '/api/message-ai/quick-replies', { 
         conversationContext: originalMessage.content 
       });
       return response;

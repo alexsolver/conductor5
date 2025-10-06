@@ -28,6 +28,12 @@ import {
   Image,
   FileText,
   AlertCircle,
+  Wand2,
+  Languages,
+  Sparkles,
+  MessageSquarePlus,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -148,6 +154,126 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       toast({
         title: "Erro ao enviar mensagem",
         description: error.message || "Ocorreu um erro ao enviar a mensagem.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // AI mutations for message assistance
+  const spellCheckMutation = useMutation({
+    mutationFn: async () => {
+      const currentMessage = form.getValues('message');
+      const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      form.setValue('message', data.correctedText);
+      if (data.suggestions && data.suggestions.length > 0) {
+        toast({
+          title: "Correções Aplicadas",
+          description: `${data.suggestions.length} sugestões de correção aplicadas`,
+        });
+      } else {
+        toast({
+          title: "Texto Verificado",
+          description: "Nenhuma correção necessária",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao verificar ortografia",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rewriteMutation = useMutation({
+    mutationFn: async (tone: string) => {
+      const currentMessage = form.getValues('message');
+      const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      form.setValue('message', data.rewrittenText);
+      toast({
+        title: "Texto Reescrito",
+        description: `Mensagem reescrita com tom ${data.tone}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao reescrever texto",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const translateMutation = useMutation({
+    mutationFn: async (targetLanguage: string) => {
+      const currentMessage = form.getValues('message');
+      const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      form.setValue('message', data.translatedText);
+      toast({
+        title: "Texto Traduzido",
+        description: `Mensagem traduzida para ${data.targetLanguage}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao traduzir texto",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const summarizeMutation = useMutation({
+    mutationFn: async (length: 'short' | 'long') => {
+      const currentMessage = form.getValues('message');
+      const response = await apiRequest('POST', '/api/message-ai/summarize', { text: currentMessage, length });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      form.setValue('message', data.summary);
+      toast({
+        title: "Texto Resumido",
+        description: "Mensagem resumida com sucesso",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao resumir texto",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const quickReplyMutation = useMutation({
+    mutationFn: async () => {
+      const currentMessage = form.getValues('message');
+      const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      if (data.suggestions && data.suggestions.length > 0) {
+        form.setValue('message', data.suggestions[0]);
+        toast({
+          title: "Sugestão Aplicada",
+          description: "Resposta rápida gerada com IA",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao gerar sugestão",
         variant: "destructive",
       });
     },
@@ -330,6 +456,91 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                 </FormItem>
               )}
             />
+
+            {/* AI Tools */}
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">🤖 Ferramentas de IA</Label>
+              <div className="flex flex-wrap gap-2">
+                {/* Spell Check */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => spellCheckMutation.mutate()}
+                  disabled={!form.watch('message') || spellCheckMutation.isPending}
+                  data-testid="button-spell-check-messaging"
+                >
+                  {spellCheckMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Corrigir Ortografia
+                </Button>
+
+                {/* Rewrite Tone */}
+                <Select onValueChange={(tone) => rewriteMutation.mutate(tone)}>
+                  <SelectTrigger className="w-[180px] h-9" data-testid="select-tone-messaging">
+                    <SelectValue placeholder="Reescrever Tom" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Profissional</SelectItem>
+                    <SelectItem value="friendly">Amigável</SelectItem>
+                    <SelectItem value="empathetic">Empático</SelectItem>
+                    <SelectItem value="technical">Técnico</SelectItem>
+                    <SelectItem value="concise">Conciso</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Translate */}
+                <Select onValueChange={(lang) => translateMutation.mutate(lang)}>
+                  <SelectTrigger className="w-[150px] h-9" data-testid="select-translate-messaging">
+                    <SelectValue placeholder="Traduzir" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Portuguese">Português</SelectItem>
+                    <SelectItem value="English">Inglês</SelectItem>
+                    <SelectItem value="Spanish">Espanhol</SelectItem>
+                    <SelectItem value="French">Francês</SelectItem>
+                    <SelectItem value="German">Alemão</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Summarize */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => summarizeMutation.mutate('short')}
+                  disabled={!form.watch('message') || summarizeMutation.isPending}
+                  data-testid="button-summarize-messaging"
+                >
+                  {summarizeMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 mr-2" />
+                  )}
+                  Resumir
+                </Button>
+
+                {/* Quick Reply */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => quickReplyMutation.mutate()}
+                  disabled={quickReplyMutation.isPending}
+                  data-testid="button-quick-reply-messaging"
+                >
+                  {quickReplyMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Sugestão IA
+                </Button>
+              </div>
+            </div>
 
             {/* Seção de Mídia (apenas para WhatsApp e Telegram) */}
             {selectedChannel !== 'sms' && (
