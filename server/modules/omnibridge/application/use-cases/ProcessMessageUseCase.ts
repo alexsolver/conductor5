@@ -340,10 +340,14 @@ export class ProcessMessageUseCase {
         // Não falhar por causa de erro no sentimento
       }
 
-      // Preparar metadata com sentimento
+      // Preparar metadata com sentimento no formato esperado pelo frontend
       const metadata = {
         ...(message.metadata || {}),
-        sentiment: sentimentData,
+        sentiment: sentimentData?.sentiment, // 'positive', 'negative', 'neutral'
+        sentimentScore: sentimentData?.score, // número entre -1 e 1
+        sentimentEmotion: sentimentData?.emotion, // emoção detectada
+        sentimentConfidence: sentimentData?.confidence, // confiança da análise
+        sentimentUrgency: sentimentData?.urgency, // urgência detectada
         channelType: message.channelType,
         originalFrom: message.fromAddress,
         detectedAt: new Date().toISOString()
@@ -351,14 +355,15 @@ export class ProcessMessageUseCase {
 
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_messages 
-        (id, tenant_id, ticket_id, sender_id, content, is_internal, created_at, updated_at)
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
+        (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
       `, [
         tenantId,
         ticketId,
         senderId,
         messageContent,
-        false // is_internal
+        false, // is_internal
+        JSON.stringify(metadata) // metadata com análise de sentimento
       ]);
 
       console.log(`✅ [TICKET-CONTEXT] Message successfully added to ticket ${ticketId} with sentiment analysis`);

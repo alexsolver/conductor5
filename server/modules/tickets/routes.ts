@@ -1796,7 +1796,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         NULL::text as cc_address,
         NULL::text as bcc_address,
         NOT tm.is_internal as is_public,
-        '{}'::jsonb as metadata,
+        COALESCE(tm.metadata, '{}'::jsonb) as metadata,
         tm.created_at as timestamp,
         tm.updated_at
       FROM "${schemaName}".ticket_messages tm
