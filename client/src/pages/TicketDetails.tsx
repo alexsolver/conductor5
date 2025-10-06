@@ -2126,29 +2126,28 @@ const TicketDetails = React.memo(() => {
                         {comm.metadata?.sentiment && (
                           <div className="flex items-center gap-2 mb-2">
                             <Badge
-                              variant="outline"
-                              className={`text-xs flex items-center gap-1 ${
+                              className={`text-xs font-semibold flex items-center gap-1.5 px-3 py-1 ${
                                 comm.metadata.sentiment === 'positive' 
-                                  ? 'bg-green-50 text-green-700 border-green-300' 
+                                  ? 'bg-green-500 text-white border-green-600 shadow-sm hover:bg-green-600' 
                                   : comm.metadata.sentiment === 'negative'
-                                  ? 'bg-red-50 text-red-700 border-red-300'
-                                  : 'bg-gray-50 text-gray-700 border-gray-300'
+                                  ? 'bg-red-500 text-white border-red-600 shadow-sm hover:bg-red-600'
+                                  : 'bg-yellow-500 text-white border-yellow-600 shadow-sm hover:bg-yellow-600'
                               }`}
                               data-testid={`sentiment-badge-${comm.id}`}
                             >
                               {comm.metadata.sentiment === 'positive' ? (
                                 <>
-                                  <Smile className="h-3 w-3" />
+                                  <Smile className="h-3.5 w-3.5" />
                                   Positivo
                                 </>
                               ) : comm.metadata.sentiment === 'negative' ? (
                                 <>
-                                  <Frown className="h-3 w-3" />
+                                  <Frown className="h-3.5 w-3.5" />
                                   Negativo
                                 </>
                               ) : (
                                 <>
-                                  <Meh className="h-3 w-3" />
+                                  <Meh className="h-3.5 w-3.5" />
                                   Neutro
                                 </>
                               )}
