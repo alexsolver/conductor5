@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Wand2, Languages, FileText, Sparkles, MessageSquarePlus, 
+  Wand2, Languages, FileText, MessageSquarePlus, 
   CheckCircle, Loader2 
 } from "lucide-react";
 import {
@@ -329,7 +329,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
               </SelectContent>
             </Select>
 
-            {/* Summarize/Expand */}
+            {/* Summarize */}
             <Button
               variant="outline"
               size="sm"
@@ -349,27 +349,6 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
                 <FileText className="h-4 w-4 mr-2" />
               )}
               Resumir
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (!message || !message.trim()) {
-                  toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
-                  return;
-                }
-                summarizeMutation.mutate('expanded');
-              }}
-              disabled={summarizeMutation.isPending}
-              data-testid="button-expand"
-            >
-              {summarizeMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-2" />
-              )}
-              Expandir
             </Button>
 
             {/* Quick Reply */}
