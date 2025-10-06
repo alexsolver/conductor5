@@ -133,23 +133,29 @@ Original text:
       throw new Error('No AI provider configured in SaaS Admin');
     }
 
-    const prompt = `Translate the following text to ${targetLanguage}. 
-Maintain technical terms and context appropriately.
-Return a JSON object with:
-1. "translatedText": The translated text
-2. "detectedLanguage": The detected source language (ISO code)
-3. "targetLanguage": "${targetLanguage}"
+    const prompt = `You are a professional translator. Translate the following text from its current language to ${targetLanguage}.
+
+IMPORTANT: The translated text MUST be in ${targetLanguage}. Do NOT return the original text.
+
+Return ONLY a JSON object in this exact format:
+{
+  "translatedText": "the text translated to ${targetLanguage}",
+  "detectedLanguage": "ISO code of source language",
+  "targetLanguage": "${targetLanguage}"
+}
 
 Text to translate:
-"${text}"
-
-Return ONLY the JSON object.`;
+"${text}"`;
 
     const result = await this.callAI(providerConfig, prompt);
+    console.log('🌍 [TRANSLATE] AI raw response:', result?.substring(0, 200));
     
     try {
-      return JSON.parse(result);
-    } catch {
+      const parsed = JSON.parse(result);
+      console.log('✅ [TRANSLATE] Parsed result:', parsed);
+      return parsed;
+    } catch (error) {
+      console.error('❌ [TRANSLATE] JSON parse failed:', error);
       return {
         translatedText: text,
         detectedLanguage: 'unknown',
