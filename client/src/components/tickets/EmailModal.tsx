@@ -146,33 +146,21 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
   const spellCheckMutation = useMutation({
     mutationFn: async () => {
       const currentMessage = form.getValues('message');
-      console.log('🔍 [EMAIL-SPELL-CHECK] Input text:', currentMessage);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
-      const data = await response.json();
-      console.log('🔍 [EMAIL-SPELL-CHECK] Response from API:', data);
-      console.log('🔍 [EMAIL-SPELL-CHECK] correctedText:', data?.correctedText);
-      console.log('🔍 [EMAIL-SPELL-CHECK] suggestions:', data?.suggestions);
-      return data;
+      return await response.json();
     },
     onSuccess: (data: any) => {
-      console.log('🔍 [EMAIL-SPELL-CHECK] onSuccess data:', data);
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
         form.setValue('message', data.correctedText);
       }
       
       if (data.suggestions && data.suggestions.length > 0) {
-        console.log('✅ [EMAIL-SPELL-CHECK] Applying corrections:', data.suggestions.length);
         toast({
           title: "Correções Aplicadas",
           description: `${data.suggestions.length} sugestões de correção aplicadas`,
         });
       } else {
-        console.log('⚠️ [EMAIL-SPELL-CHECK] No corrections needed:', {
-          hasSuggestions: !!data.suggestions,
-          suggestionsLength: data.suggestions?.length,
-          fullData: data
-        });
         toast({
           title: "Texto Verificado",
           description: "Nenhuma correção necessária",
@@ -223,7 +211,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     mutationFn: async (targetLanguage: string) => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto traduzido válido
@@ -254,7 +242,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     mutationFn: async (length: 'short' | 'long') => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/summarize', { text: currentMessage, length });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um resumo válido
@@ -285,7 +273,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     mutationFn: async () => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
