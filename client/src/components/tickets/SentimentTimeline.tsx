@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { User, UserCheck } from 'lucide-react';
+import { User, Headset } from 'lucide-react';
 
 interface SenderInfo {
   id: string;
@@ -40,16 +40,8 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
   const messagesBySender = useMemo(() => {
     const grouped = new Map<string, { sender: SenderInfo; messages: Message[] }>();
     
-    console.log('🎯 [SENTIMENT-TIMELINE] Processing messages:', sortedMessages.length);
-    
     sortedMessages.forEach(msg => {
       const senderInfo = msg.metadata?.senderInfo;
-      console.log('🔍 [SENTIMENT-TIMELINE] Message senderInfo:', {
-        id: msg.id,
-        hasSenderInfo: !!senderInfo,
-        senderInfo: senderInfo
-      });
-      
       if (!senderInfo) return;
       
       const senderId = senderInfo.id;
@@ -61,13 +53,6 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
       }
       grouped.get(senderId)!.messages.push(msg);
     });
-    
-    console.log('📊 [SENTIMENT-TIMELINE] Grouped by sender:', Array.from(grouped.values()).map(g => ({
-      senderId: g.sender.id,
-      senderName: g.sender.name,
-      senderType: g.sender.type,
-      messageCount: g.messages.length
-    })));
     
     // Sort by type (agents first, then customers) and then by name
     return Array.from(grouped.values()).sort((a, b) => {
@@ -215,7 +200,7 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
             {messagesBySender.map((group, index) => {
               const isAgent = group.sender.type === 'agent';
               const icon = isAgent 
-                ? <UserCheck className="h-4 w-4 text-blue-600" /> 
+                ? <Headset className="h-4 w-4 text-blue-600" /> 
                 : <User className="h-4 w-4 text-purple-600" />;
               
               return (
