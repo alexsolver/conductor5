@@ -31,6 +31,11 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
   const agentMessages = sortedMessages.filter(m => m.status === 'sent');
   const userMessages = sortedMessages.filter(m => m.status === 'received');
 
+  console.log('🔍 [SentimentTimeline] Messages received:', messages.length);
+  console.log('🔍 [SentimentTimeline] With sentiment:', sortedMessages.length);
+  console.log('🔍 [SentimentTimeline] Agent messages:', agentMessages.length, agentMessages.map(m => ({id: m.id, status: m.status, sentiment: m.metadata?.sentiment})));
+  console.log('🔍 [SentimentTimeline] User messages:', userMessages.length);
+
   const getSentimentColor = (sentiment?: string, score?: number) => {
     if (!sentiment) return 'bg-gray-300';
     
