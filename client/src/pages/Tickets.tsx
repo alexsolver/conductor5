@@ -538,16 +538,8 @@ export default function Tickets() {
       return [];
     }
 
-    // Apply filters
-    return rawList.filter((ticket: any) => {
-      if (filterNumber && !ticket.number?.toLowerCase().includes(filterNumber.toLowerCase())) return false;
-      if (filterSubject && !ticket.subject?.toLowerCase().includes(filterSubject.toLowerCase())) return false;
-      if (filterStatus && ticket.status?.toLowerCase() !== filterStatus.toLowerCase()) return false;
-      if (filterPriority && ticket.priority?.toLowerCase() !== filterPriority.toLowerCase()) return false;
-      if (filterCategory && !ticket.category?.toLowerCase().includes(filterCategory.toLowerCase())) return false;
-      if (filterCaller && !ticket.caller_name?.toLowerCase().includes(filterCaller.toLowerCase())) return false;
-      return true;
-    });
+    // Return raw list (filters are now applied in the table rendering)
+    return rawList;
   })();
 
   const ticketsCount = ticketsList.length;
@@ -1110,18 +1102,19 @@ export default function Tickets() {
       </div>
 
       {/* Sistema de Visualizações de Tickets */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <TicketViewSelector 
           currentViewId={currentViewId}
           onViewChange={handleViewChange}
         />
-        
-        {/* Botão para ativar/desativar filtros por coluna */}
+      </div>
+
+      {/* Botão de Pesquisa */}
+      <div className="mb-4 flex justify-end">
         <Button
           variant={showColumnFilters ? "default" : "outline"}
           size="sm"
           onClick={() => setShowColumnFilters(!showColumnFilters)}
-          className="ml-auto"
           data-testid="button-toggle-column-filters"
         >
           <Filter className="h-4 w-4 mr-2" />
