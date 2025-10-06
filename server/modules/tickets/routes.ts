@@ -1784,10 +1784,19 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
       
       SELECT 
         tm.id::text,
-        'telegram' as channel,
-        'inbound' as direction,
-        'received' as status,
-        COALESCE(u.email, 'customer') as "from",
+        COALESCE(tm.metadata->>'channelType', 'telegram') as channel,
+        CASE 
+          WHEN tm.metadata->>'agentMessage' = 'true' THEN 'outbound'
+          ELSE 'inbound'
+        END as direction,
+        CASE 
+          WHEN tm.metadata->>'agentMessage' = 'true' THEN 'sent'
+          ELSE 'received'
+        END as status,
+        CASE 
+          WHEN tm.metadata->>'agentMessage' = 'true' THEN COALESCE(u.email, 'agent')
+          ELSE 'customer'
+        END as "from",
         '' as "to",
         NULL::text as subject,
         tm.content,
