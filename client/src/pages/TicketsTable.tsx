@@ -232,6 +232,9 @@ const TicketsTable = React.memo(() => {
   const [activeTemplateType, setActiveTemplateType] = useState<'creation' | 'edit' | string>('creation');
   const [activeCustomFields, setActiveCustomFields] = useState<any[]>([]);
 
+  // Estados para pesquisa local por coluna
+  const [showColumnSearch, setShowColumnSearch] = useState(false);
+  const [columnSearchValues, setColumnSearchValues] = useState<Record<string, string>>({});
 
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
@@ -738,15 +741,87 @@ const TicketsTable = React.memo(() => {
     return [];
   }, [ticketsData]);
 
+  // Filtrar tickets localmente baseado nos valores de pesquisa por coluna
+  const filteredTickets = useMemo(() => {
+    if (!showColumnSearch || Object.keys(columnSearchValues).length === 0) {
+      return tickets;
+    }
+
+    return tickets.filter((ticket: any) => {
+      return Object.entries(columnSearchValues).every(([columnId, searchValue]) => {
+        if (!searchValue || searchValue.trim() === '') return true;
+
+        const searchLower = searchValue.toLowerCase();
+
+        switch (columnId) {
+          case 'number':
+            const ticketNumber = ticket.number || `#${ticket.id.slice(-8)}`;
+            return ticketNumber.toLowerCase().includes(searchLower);
+          
+          case 'subject':
+            return ticket.subject?.toLowerCase().includes(searchLower);
+          
+          case 'description':
+            return ticket.description?.toLowerCase().includes(searchLower);
+          
+          case 'customer':
+            const customerName = ticket.caller_name || ticket.customer_name || 
+              `${ticket.caller_first_name || ''} ${ticket.caller_last_name || ''}`.trim() ||
+              `${ticket.customer_first_name || ''} ${ticket.customer_last_name || ''}`.trim() ||
+              ticket.caller?.fullName || ticket.customer?.fullName || '';
+            return customerName.toLowerCase().includes(searchLower);
+          
+          case 'company':
+            const companyName = ticket.company_name || ticket.caller_company_name || '';
+            return companyName.toLowerCase().includes(searchLower);
+          
+          case 'category':
+            return ticket.category?.toLowerCase().includes(searchLower);
+          
+          case 'subcategory':
+            return ticket.subcategory?.toLowerCase().includes(searchLower);
+          
+          case 'status':
+            return ticket.status?.toLowerCase().includes(searchLower);
+          
+          case 'priority':
+            return ticket.priority?.toLowerCase().includes(searchLower);
+          
+          case 'impact':
+            return ticket.impact?.toLowerCase().includes(searchLower);
+          
+          case 'urgency':
+            return ticket.urgency?.toLowerCase().includes(searchLower);
+          
+          case 'assigned_to':
+            const assignedName = ticket.assignedTo?.firstName && ticket.assignedTo?.lastName
+              ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()
+              : '';
+            return assignedName.toLowerCase().includes(searchLower);
+          
+          case 'location':
+            return ticket.location?.toLowerCase().includes(searchLower);
+          
+          case 'tags':
+            const tags = Array.isArray(ticket.tags) ? ticket.tags.join(' ') : '';
+            return tags.toLowerCase().includes(searchLower);
+          
+          default:
+            return true;
+        }
+      });
+    });
+  }, [tickets, columnSearchValues, showColumnSearch]);
+
   // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
   const pagination = useMemo(() => {
     if (!ticketsData) return { total: 0, totalPages: 0 };
 
-    const total = ticketsData.total || ticketsData.pagination?.total || tickets.length;
+    const total = ticketsData.total || ticketsData.pagination?.total || filteredTickets.length;
     const totalPages = Math.ceil(total / itemsPerPage);
 
     return { total, totalPages };
-  }, [ticketsData, tickets.length, itemsPerPage]);
+  }, [ticketsData, filteredTickets.length, itemsPerPage]);
 
 
 
@@ -3055,14 +3130,50 @@ const TicketsTable = React.memo(() => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>{t('tickets.title')} ({pagination.total})</span>
-            <span className="text-sm font-normal text-gray-500">
-              {t('pagination.page')} {currentPage} {t('pagination.of')} {pagination.totalPages}
-            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowColumnSearch(!showColumnSearch);
+                  if (showColumnSearch) {
+                    setColumnSearchValues({});
+                  }
+                }}
+                data-testid="button-toggle-column-search"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                {showColumnSearch ? 'Ocultar Pesquisa' : 'Pesquisar'}
+              </Button>
+              <span className="text-sm font-normal text-gray-500">
+                {t('pagination.page')} {currentPage} {t('pagination.of')} {pagination.totalPages}
+              </span>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {showColumnSearch && (
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
+              {visibleColumns.map((column: any) => (
+                <div key={column.id} className="flex-shrink-0" style={{ width: getColumnWidth(column.id) }}>
+                  <Input
+                    placeholder={`Filtrar ${column.label}`}
+                    value={columnSearchValues[column.id] || ''}
+                    onChange={(e) => {
+                      setColumnSearchValues(prev => ({
+                        ...prev,
+                        [column.id]: e.target.value
+                      }));
+                    }}
+                    className="h-8 text-sm"
+                    data-testid={`input-column-search-${column.id}`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
           <ResponsiveTicketsTable
-            tickets={tickets}
+            tickets={filteredTickets}
             isLoading={isLoading || !isFieldColorsReady}
             onEdit={handleEdit}
             onDelete={handleDelete}
