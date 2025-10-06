@@ -1170,7 +1170,7 @@ export default function TenantAdminIntegrations() {
                 errors.push('Bot Token é obrigatório para ativar o Telegram');
               }
               if (!formData.telegramChatId) {
-                errors.push('Chat ID é obrigatório para ativar o Telegram');
+                errors.push('Chat ID ou @username é obrigatório para ativar o Telegram');
               }
               // Optional: Validate webhook URL if it's intended to be used
               if (formData.telegramWebhookUrl && !formData.telegramWebhookUrl.startsWith('https://')) {
@@ -2204,12 +2204,12 @@ export default function TenantAdminIntegrations() {
                         name="telegramChatId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Chat ID</FormLabel>
+                            <FormLabel>Chat ID ou @username</FormLabel>
                             <FormControl>
-                              <Input placeholder="ID do chat (ex: @meucanal ou 123456789)" {...field} />
+                              <Input placeholder="ex: @meucanal ou 123456789" {...field} />
                             </FormControl>
                             <FormDescription>
-                              Para descobrir seu Chat ID, envie uma mensagem para @userinfobot
+                              Use @username para canais/grupos públicos ou ID numérico para chats privados. Para descobrir seu Chat ID, envie /start para @userinfobot
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

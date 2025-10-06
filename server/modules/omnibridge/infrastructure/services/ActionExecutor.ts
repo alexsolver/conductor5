@@ -1388,13 +1388,21 @@ export class ActionExecutor implements IActionExecutorPort {
 
   /**
    * Send message via Telegram Bot API
+   * Supports both chatId (numeric) and @username
    */
   private async sendTelegramMessage(message: string, recipient: string, tenantId: string): Promise<boolean> {
     try {
       console.log(`📱 [ActionExecutor] Sending Telegram message to ${recipient}`);
 
-      // Extract chat ID from recipient (format: telegram:chatId)
-      const chatId = recipient.replace('telegram:', '');
+      // Extract chat ID/username from recipient (format: telegram:chatId or telegram:@username)
+      let chatIdentifier = recipient.replace('telegram:', '');
+      
+      // ✅ TELEGRAM USERNAME SUPPORT: Accept both numeric chatId and @username
+      // If it's not a number and doesn't start with @, add @ prefix
+      if (chatIdentifier && !chatIdentifier.startsWith('@') && isNaN(Number(chatIdentifier))) {
+        chatIdentifier = '@' + chatIdentifier;
+        console.log(`📱 [ActionExecutor] Added @ prefix to username: ${chatIdentifier}`);
+      }
 
       // Get Telegram bot token from tenant integrations or environment
       const botToken = await this.getTelegramBotToken(tenantId);
@@ -1407,13 +1415,15 @@ export class ActionExecutor implements IActionExecutorPort {
       // Send message using Telegram Bot API
       const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
+      console.log(`📱 [ActionExecutor] Sending to chat_id/username: ${chatIdentifier}`);
+
       const response = await fetch(telegramApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          chat_id: chatId,
+          chat_id: chatIdentifier, // Can be numeric chatId or @username
           text: message,
           parse_mode: 'HTML'
         })
@@ -1422,7 +1432,7 @@ export class ActionExecutor implements IActionExecutorPort {
       const result = await response.json();
 
       if (response.ok && result.ok) {
-        console.log(`✅ [ActionExecutor] Telegram message sent successfully to ${chatId}`);
+        console.log(`✅ [ActionExecutor] Telegram message sent successfully to ${chatIdentifier}`);
         
         // Log the assistant message to conversation history
         await this.logAssistantMessage(tenantId, 'telegram', message);

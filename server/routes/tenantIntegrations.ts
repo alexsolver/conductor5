@@ -324,7 +324,7 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
       if (!telegramChatId || telegramChatId.trim() === '') {
         return res.status(400).json({
           success: false,
-          message: 'Chat ID é obrigatório para o Telegram'
+          message: 'Chat ID ou @username é obrigatório para o Telegram'
         });
       }
 
@@ -336,11 +336,15 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
         });
       }
 
-      // Validate Chat ID format (should be numeric or start with -)
-      if (!/^-?\d+$/.test(telegramChatId.trim())) {
+      // ✅ TELEGRAM USERNAME SUPPORT: Validate Chat ID format (numeric, @username, or username)
+      const chatIdValue = telegramChatId.trim();
+      const isNumericChatId = /^-?\d+$/.test(chatIdValue);
+      const isUsername = chatIdValue.startsWith('@') || /^[a-zA-Z0-9_]{5,}$/.test(chatIdValue);
+
+      if (!isNumericChatId && !isUsername) {
         return res.status(400).json({
           success: false,
-          message: 'Formato do Chat ID inválido. O Chat ID deve ser numérico (ex: 123456789 ou -123456789)'
+          message: 'Formato do Chat ID/Username inválido. Use um ID numérico (ex: 123456789) ou username (ex: @meucanal ou meucanal)'
         });
       }
     }
