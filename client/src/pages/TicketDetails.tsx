@@ -26,7 +26,7 @@ import {
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
   Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen,
-  FormInput, Smile, Meh, Frown, Heart
+  FormInput, Smile, Meh, Frown, Heart, Reply
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 import EmailModal from "@/components/tickets/EmailModal";
 import MessagingModal from "@/components/tickets/MessagingModal";
+import { MessageReplyModal } from "@/components/MessageReplyModal";
 import { SentimentTimeline } from "@/components/tickets/SentimentTimeline";
 
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
@@ -135,6 +136,8 @@ const TicketDetails = React.memo(() => {
   // Estados dos modais de comunicação
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isMessagingModalOpen, setIsMessagingModalOpen] = useState(false);
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
 
   // 🚨 CRÍTICO: Form declaration must be BEFORE its first use
   const form = useForm<TicketFormData>({
@@ -2175,6 +2178,21 @@ const TicketDetails = React.memo(() => {
                               <Badge variant="secondary" className="text-xs">
                                 {comm.cc_address && 'CC'} {comm.bcc_address && 'BCC'}
                               </Badge>
+                            )}
+                            {comm.status === 'received' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedMessage(comm);
+                                  setReplyModalOpen(true);
+                                }}
+                                className="ml-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                data-testid={`button-reply-${comm.id}`}
+                              >
+                                <Reply className="h-4 w-4 mr-1" />
+                                Responder
+                              </Button>
                             )}
                           </div>
                           <Button variant="ghost" size="sm" data-testid={`button-view-details-${comm.id}`}>
@@ -4517,6 +4535,20 @@ const TicketDetails = React.memo(() => {
         ticketId={id}
         ticketNumber={ticket?.number}
       />
+
+      {/* Message Reply Modal with AI Assistance */}
+      {selectedMessage && (
+        <MessageReplyModal
+          isOpen={replyModalOpen}
+          onClose={() => {
+            setReplyModalOpen(false);
+            setSelectedMessage(null);
+          }}
+          message={selectedMessage}
+          ticketId={id}
+          ticketNumber={ticket?.number}
+        />
+      )}
 
     </div>
   );
