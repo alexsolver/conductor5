@@ -1110,11 +1110,12 @@ export default function Tickets() {
       </div>
 
       {/* Botão de Pesquisa */}
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end relative z-10">
         <Button
           variant={showColumnFilters ? "default" : "outline"}
           size="sm"
           onClick={() => setShowColumnFilters(!showColumnFilters)}
+          className="shadow-md"
           data-testid="button-toggle-column-filters"
         >
           <Filter className="h-4 w-4 mr-2" />
