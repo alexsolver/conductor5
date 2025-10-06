@@ -37,23 +37,6 @@ export class DrizzleUserRepository implements IUserRepository {
     return this.toDomainEntity(result[0]);
   }
 
-  async findByIdAndTenant(id: string, tenantId: string): Promise<User | null> {
-    const result = await db
-      .select()
-      .from(users)
-      .where(and(
-        eq(users.id, id),
-        eq(users.tenantId, tenantId)
-      ))
-      .limit(1);
-
-    if (result.length === 0) {
-      return null;
-    }
-
-    return this.toDomainEntity(result[0]);
-  }
-
   async findByEmail(email: string): Promise<User | null> {
     const result = await db
       .select()

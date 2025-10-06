@@ -17,7 +17,6 @@ export interface UserFilter {
 
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
-  findByIdAndTenant(id: string, tenantId: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   findMany(filter: UserFilter): Promise<User[]>;
   save(user: User): Promise<User>;
