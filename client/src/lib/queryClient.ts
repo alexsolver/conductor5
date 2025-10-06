@@ -43,7 +43,7 @@ export const apiRequest = async (
   url: string,
   data?: any,
   options: RequestInit = {}
-): Promise<Response> => {
+): Promise<any> => {
   console.log(`🌐 [API-REQUEST] ${method} ${url}`);
 
   // 🔍 Debug for all requests to catch issues
@@ -106,7 +106,20 @@ export const apiRequest = async (
 
   console.log(`🔍 [API-REQUEST-FINAL] Making request with credentials: ${config.credentials}`);
 
-  return fetch(url, config);
+  const res = await fetch(url, config);
+  
+  // Check if response is ok
+  await throwIfResNotOk(res);
+  
+  // Parse JSON response
+  const contentType = res.headers.get('content-type');
+  const contentLength = res.headers.get('content-length');
+  
+  if (res.status === 204 || contentLength === '0' || !contentType?.includes('application/json')) {
+    return null; // Return null for responses without content
+  }
+  
+  return await res.json();
 };
 
 type UnauthorizedBehavior = "returnNull" | "throwError";
