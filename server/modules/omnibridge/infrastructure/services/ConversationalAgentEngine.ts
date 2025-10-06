@@ -359,6 +359,10 @@ export class ConversationalAgentEngine {
           id: `action_${Date.now()}`,
           type: conversation.intendedAction as any,
           params: conversation.actionParams,
+          config: {
+            ...conversation.actionParams,
+            ticketId: context.metadata?.ticketId
+          },
           priority: 1
         },
         {
@@ -367,7 +371,8 @@ export class ConversationalAgentEngine {
             content: context.content,
             sender: context.userId,
             channel: context.channelType,
-            timestamp: new Date()
+            timestamp: new Date(),
+            metadata: context.metadata
           },
           ruleId: agent.id,
           ruleName: agent.name

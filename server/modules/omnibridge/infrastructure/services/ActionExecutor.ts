@@ -2552,10 +2552,57 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
   // ==================== 🆕 NOVAS AÇÕES DE COMUNICAÇÃO ====================
 
+  private async saveAgentMessageWithSentiment(
+    ticketId: string,
+    content: string,
+    channelType: string,
+    tenantId: string,
+    senderId: string = 'agent'
+  ): Promise<void> {
+    try {
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId}`;
+
+      console.log(`💾 [SAVE-AGENT-MESSAGE] Saving agent message to ticket ${ticketId} with sentiment analysis`);
+
+      const { SentimentDetectionService } = await import('./SentimentDetectionService');
+      const sentimentService = new SentimentDetectionService();
+      const sentimentData = await sentimentService.detectSentiment(content, tenantId);
+
+      const metadata = {
+        sentiment: sentimentData?.sentiment || 'neutral',
+        sentimentScore: sentimentData?.score,
+        sentimentEmotion: sentimentData?.emotion,
+        confidence: sentimentData?.confidence,
+        urgency: sentimentData?.urgency,
+        channelType,
+        agentMessage: true,
+        detectedAt: new Date().toISOString()
+      };
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_messages 
+        (id, tenant_id, ticket_id, sender_id, content, is_internal, metadata, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW(), NOW())
+      `, [
+        tenantId,
+        ticketId,
+        senderId,
+        content,
+        false,
+        JSON.stringify(metadata)
+      ]);
+
+      console.log(`✅ [SAVE-AGENT-MESSAGE] Agent message saved with sentiment: ${sentimentData?.sentiment || 'neutral'}`);
+    } catch (error) {
+      console.error(`❌ [SAVE-AGENT-MESSAGE] Error saving agent message:`, error);
+    }
+  }
+
   private async replyEmailAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
       const { messageData, tenantId } = context;
-      const { to, subject, body, template } = action.config || {};
+      const { to, subject, body, template, ticketId } = action.config || {};
       
       // Import SendGrid dynamically to avoid circular deps
       const { SendGridService } = await import('../../../../services/sendgridService');
@@ -2578,6 +2625,17 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       
       if (sent) {
         console.log(`✅ [REPLY-EMAIL-ACTION] Email sent successfully to ${recipientEmail}`);
+        
+        if (ticketId) {
+          await this.saveAgentMessageWithSentiment(
+            ticketId,
+            emailBody,
+            'email',
+            tenantId,
+            'agent'
+          );
+        }
+        
         return { 
           success: true, 
           message: 'Email reply sent successfully via SendGrid', 
@@ -2605,8 +2663,21 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
   private async sendWhatsAppAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      const { to, message } = action.config || {};
+      const { to, message, ticketId } = action.config || {};
+      const { tenantId } = context;
+      
       console.log(`💬 WhatsApp - To: ${to}`);
+      
+      if (ticketId && message) {
+        await this.saveAgentMessageWithSentiment(
+          ticketId,
+          message,
+          'whatsapp',
+          tenantId,
+          'agent'
+        );
+      }
+      
       return { success: true, message: 'WhatsApp sent', data: { to, sentAt: new Date().toISOString() } };
     } catch (error: any) {
       return { success: false, message: 'Failed to send WhatsApp', error: error.message };
@@ -2615,8 +2686,21 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
   private async sendSlackAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      const { channel } = action.config || {};
+      const { channel, message, ticketId } = action.config || {};
+      const { tenantId } = context;
+      
       console.log(`💬 Slack - Channel: ${channel}`);
+      
+      if (ticketId && message) {
+        await this.saveAgentMessageWithSentiment(
+          ticketId,
+          message,
+          'slack',
+          tenantId,
+          'agent'
+        );
+      }
+      
       return { success: true, message: 'Slack sent', data: { channel, sentAt: new Date().toISOString() } };
     } catch (error: any) {
       return { success: false, message: 'Failed to send Slack', error: error.message };
@@ -2625,8 +2709,21 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
   private async sendTelegramAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
     try {
-      const { chatId } = action.config || {};
+      const { chatId, message, ticketId } = action.config || {};
+      const { tenantId } = context;
+      
       console.log(`💬 Telegram - Chat: ${chatId}`);
+      
+      if (ticketId && message) {
+        await this.saveAgentMessageWithSentiment(
+          ticketId,
+          message,
+          'telegram',
+          tenantId,
+          'agent'
+        );
+      }
+      
       return { success: true, message: 'Telegram sent', data: { chatId, sentAt: new Date().toISOString() } };
     } catch (error: any) {
       return { success: false, message: 'Failed to send Telegram', error: error.message };
