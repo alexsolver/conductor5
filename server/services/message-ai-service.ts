@@ -46,6 +46,8 @@ export class MessageAIService {
    * Spell check and grammar correction
    */
   async spellCheck(tenantId: string, text: string): Promise<SpellCheckResult> {
+    console.log('🔍 [SPELL-CHECK] Input text:', text);
+    
     const providerConfig = await this.aiConfigService.getPreferredAIProvider(tenantId);
     
     if (!providerConfig) {
@@ -62,10 +64,15 @@ Text to analyze:
 Return ONLY the JSON object, no additional text.`;
 
     const result = await this.callAI(providerConfig, prompt);
+    console.log('🤖 [SPELL-CHECK] AI raw response:', result);
     
     try {
-      return JSON.parse(result);
-    } catch {
+      const parsed = JSON.parse(result);
+      console.log('✅ [SPELL-CHECK] Parsed result:', parsed);
+      return parsed;
+    } catch (error) {
+      console.error('❌ [SPELL-CHECK] JSON parse failed:', error);
+      console.log('🔄 [SPELL-CHECK] Returning original text');
       return {
         correctedText: text,
         suggestions: []

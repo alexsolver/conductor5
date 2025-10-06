@@ -37,10 +37,14 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Spell check mutation
   const spellCheckMutation = useMutation({
     mutationFn: async () => {
+      console.log('🔍 [SPELL-CHECK-FRONTEND] Current message:', message);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: message });
+      console.log('📦 [SPELL-CHECK-FRONTEND] API response:', response);
       return response;
     },
     onSuccess: (data: any) => {
+      console.log('✅ [SPELL-CHECK-FRONTEND] Success data:', data);
+      console.log('📝 [SPELL-CHECK-FRONTEND] Corrected text:', data.correctedText);
       setMessage(data.correctedText);
       if (data.suggestions && data.suggestions.length > 0) {
         toast({
@@ -55,6 +59,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
       }
     },
     onError: () => {
+      console.error('❌ [SPELL-CHECK-FRONTEND] Error in spell check');
       toast({
         title: "Erro",
         description: "Falha ao verificar ortografia",

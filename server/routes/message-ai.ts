@@ -7,9 +7,12 @@ import { Router } from 'express';
 import { MessageAIService } from '../services/message-ai-service';
 import { storage } from '../storage-simple';
 import { z } from 'zod';
-import { AuthenticatedRequest } from '../middleware/jwtAuth';
+import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 
 const router = Router();
+
+// Apply JWT authentication to all routes
+router.use(jwtAuth);
 
 // Validation schemas
 const spellCheckSchema = z.object({
