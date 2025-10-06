@@ -102,6 +102,7 @@ import { TenantTemplateService } from "./services/TenantTemplateService";
 import internalFormsRoutes from './modules/internal-forms/routes';
 
 // Import user groups routes
+import telegramWebhookRoutes from "./routes/telegramWebhook";
 import userGroupsRoutes from './routes/userGroups';
 
 // Import user notification preferences routes
@@ -479,6 +480,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const webhooksRoutes = await import("./routes/webhooks");
   app.use("/api/webhooks", webhooksRoutes.default);
   console.log('🔧 [ROUTES] Webhook routes registered BEFORE authentication middleware');
+
+  // ✅ Telegram Webhook (unauthenticated - must be before auth middleware)
+  app.use("/api/telegram", telegramWebhookRoutes);
+  console.log('🤖 [ROUTES] Telegram webhook routes registered BEFORE authentication middleware');
 
   // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
   app.use("/api", (req, res, next) => {
