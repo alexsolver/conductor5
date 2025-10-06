@@ -1839,16 +1839,6 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
     `;
 
     const result = await pool.query(query, [id, tenantId]);
-    
-    // 🔍 DEBUG: Log sample message to verify senderInfo
-    if (result.rows.length > 0) {
-      console.log('📊 [COMMUNICATIONS-DEBUG] Sample message with senderInfo:', {
-        id: result.rows[0].id,
-        hasSenderInfo: !!result.rows[0].metadata?.senderInfo,
-        senderInfo: result.rows[0].metadata?.senderInfo,
-        sentiment: result.rows[0].metadata?.sentiment
-      });
-    }
 
     res.json({
       success: true,
