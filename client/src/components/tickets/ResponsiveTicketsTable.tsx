@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +95,9 @@ interface ResponsiveTicketsTableProps {
   renderCell?: (ticket: any, key: string) => React.ReactNode;
   TableCellComponent?: React.ComponentType<any>;
   ResizeHandle?: React.ComponentType<any>;
+  showColumnSearch?: boolean;
+  columnSearchValues?: Record<string, string>;
+  onColumnSearchChange?: (columnId: string, value: string) => void;
 }
 
 // Loading Skeleton Component
@@ -120,6 +124,9 @@ export const ResponsiveTicketsTable = ({
   expandedTickets = new Set(),
   ticketsWithRelationships = new Set(),
   ticketRelationships = {},
+  showColumnSearch = false,
+  columnSearchValues = {},
+  onColumnSearchChange,
 }: ResponsiveTicketsTableProps) => {
   const { t } = useTranslation();
   // Component loading state
@@ -161,6 +168,76 @@ export const ResponsiveTicketsTable = ({
               <span className="sr-only">Ações</span>
             </TableHead>
           </TableRow>
+          {showColumnSearch && (
+            <TableRow role="row" className="bg-gray-50">
+              <TableHead className="w-20 py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['number'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('number', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-number"
+                />
+              </TableHead>
+              <TableHead className="py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['subject'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('subject', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-subject"
+                />
+              </TableHead>
+              <TableHead className="hidden lg:table-cell py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['company'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('company', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-company"
+                />
+              </TableHead>
+              <TableHead className="hidden md:table-cell py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['customer'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('customer', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-customer"
+                />
+              </TableHead>
+              <TableHead className="hidden lg:table-cell py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['category'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('category', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-category"
+                />
+              </TableHead>
+              <TableHead className="hidden lg:table-cell py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['status'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('status', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-status"
+                />
+              </TableHead>
+              <TableHead className="hidden sm:table-cell py-2">
+                <Input
+                  placeholder="Filtrar"
+                  value={columnSearchValues['priority'] || ''}
+                  onChange={(e) => onColumnSearchChange?.('priority', e.target.value)}
+                  className="h-8 text-sm"
+                  data-testid="input-column-search-priority"
+                />
+              </TableHead>
+              <TableHead className="w-12 py-2">
+                {/* Empty cell for actions column */}
+              </TableHead>
+            </TableRow>
+          )}
         </TableHeader>
         <TableBody>
           {isComponentLoading ? (

@@ -3152,26 +3152,6 @@ const TicketsTable = React.memo(() => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {showColumnSearch && (
-            <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-              {visibleColumns.map((column: any) => (
-                <div key={column.id} className="flex-shrink-0" style={{ width: getColumnWidth(column.id) }}>
-                  <Input
-                    placeholder={`Filtrar ${column.label}`}
-                    value={columnSearchValues[column.id] || ''}
-                    onChange={(e) => {
-                      setColumnSearchValues(prev => ({
-                        ...prev,
-                        [column.id]: e.target.value
-                      }));
-                    }}
-                    className="h-8 text-sm"
-                    data-testid={`input-column-search-${column.id}`}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
           <ResponsiveTicketsTable
             tickets={filteredTickets}
             isLoading={isLoading || !isFieldColorsReady}
@@ -3185,6 +3165,14 @@ const TicketsTable = React.memo(() => {
             renderCell={renderCell}
             TableCellComponent={OptimizedTableCell}
             ResizeHandle={ResizeHandle}
+            showColumnSearch={showColumnSearch}
+            columnSearchValues={columnSearchValues}
+            onColumnSearchChange={(columnId: string, value: string) => {
+              setColumnSearchValues(prev => ({
+                ...prev,
+                [columnId]: value
+              }));
+            }}
           />
         </CardContent>
       </Card>
