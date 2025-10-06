@@ -167,7 +167,11 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue('message', data.correctedText);
+      // Só atualiza o texto se houver um texto corrigido válido
+      if (data.correctedText && data.correctedText.trim()) {
+        form.setValue('message', data.correctedText);
+      }
+      
       if (data.suggestions && data.suggestions.length > 0) {
         toast({
           title: "Correções Aplicadas",
@@ -196,11 +200,20 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue('message', data.rewrittenText);
-      toast({
-        title: "Texto Reescrito",
-        description: `Mensagem reescrita com tom ${data.tone}`,
-      });
+      // Só atualiza o texto se houver um texto reescrito válido
+      if (data.rewrittenText && data.rewrittenText.trim()) {
+        form.setValue('message', data.rewrittenText);
+        toast({
+          title: "Texto Reescrito",
+          description: `Mensagem reescrita com tom ${data.tone}`,
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "Não foi possível reescrever o texto",
+          variant: "destructive",
+        });
+      }
     },
     onError: () => {
       toast({
@@ -218,11 +231,20 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue('message', data.translatedText);
-      toast({
-        title: "Texto Traduzido",
-        description: `Mensagem traduzida para ${data.targetLanguage}`,
-      });
+      // Só atualiza o texto se houver um texto traduzido válido
+      if (data.translatedText && data.translatedText.trim()) {
+        form.setValue('message', data.translatedText);
+        toast({
+          title: "Texto Traduzido",
+          description: `Mensagem traduzida para ${data.targetLanguage}`,
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "Não foi possível traduzir o texto",
+          variant: "destructive",
+        });
+      }
     },
     onError: () => {
       toast({
@@ -240,11 +262,20 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue('message', data.summary);
-      toast({
-        title: "Texto Resumido",
-        description: "Mensagem resumida com sucesso",
-      });
+      // Só atualiza o texto se houver um resumo válido
+      if (data.summary && data.summary.trim()) {
+        form.setValue('message', data.summary);
+        toast({
+          title: "Texto Resumido",
+          description: "Mensagem resumida com sucesso",
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "Não foi possível resumir o texto",
+          variant: "destructive",
+        });
+      }
     },
     onError: () => {
       toast({
@@ -262,11 +293,17 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       return response;
     },
     onSuccess: (data: any) => {
-      if (data.suggestions && data.suggestions.length > 0) {
+      if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
         form.setValue('message', data.suggestions[0]);
         toast({
           title: "Sugestão Aplicada",
           description: "Resposta rápida gerada com IA",
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "Não foi possível gerar uma sugestão",
+          variant: "destructive",
         });
       }
     },
