@@ -47,7 +47,7 @@ const messageAIService = new MessageAIService(storage);
  */
 router.post('/spell-check', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenant?.id;
+    const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -73,7 +73,7 @@ router.post('/spell-check', async (req: AuthenticatedRequest, res) => {
  */
 router.post('/rewrite', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenant?.id;
+    const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -99,7 +99,7 @@ router.post('/rewrite', async (req: AuthenticatedRequest, res) => {
  */
 router.post('/translate', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenant?.id;
+    const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -125,7 +125,7 @@ router.post('/translate', async (req: AuthenticatedRequest, res) => {
  */
 router.post('/summarize', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenant?.id;
+    const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -151,7 +151,7 @@ router.post('/summarize', async (req: AuthenticatedRequest, res) => {
  */
 router.post('/quick-replies', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenant?.id;
+    const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
