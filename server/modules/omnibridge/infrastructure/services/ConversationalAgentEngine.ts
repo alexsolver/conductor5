@@ -153,7 +153,7 @@ export class ConversationalAgentEngine {
       content: context.content,
       sender: context.userId,
       channel: context.channelType,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     });
 
     // Determinar se conseguimos identificar uma intenção clara
@@ -212,7 +212,7 @@ export class ConversationalAgentEngine {
       content: context.content,
       sender: context.userId,
       channel: context.channelType,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     });
 
     if (analysis.intent && this.isActionableIntent(analysis.intent, agent)) {
@@ -555,6 +555,20 @@ export class ConversationalAgentEngine {
 
     console.log(`🔍 [ConversationalAgent] Extracted parameters:`, params);
     return params;
+  }
+
+  private getRequiredParameters(actionType: string): string[] {
+    const requiredParamsByAction: Record<string, string[]> = {
+      'create_ticket': ['description'],
+      'send_notification': ['email', 'subject'],
+      'send_auto_reply': ['message'],
+      'forward_message': ['recipient'],
+      'assign_agent': ['agentId'],
+      'add_tags': ['tags'],
+      'schedule_meeting': ['date', 'time']
+    };
+
+    return requiredParamsByAction[actionType] || [];
   }
 
   // ✅ ANTI-LOOP: Melhorar geração de perguntas com contexto do que já foi coletado
