@@ -2170,7 +2170,21 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
               // Don't fail the request if metadata update fails
             }
           } else {
-            sendError = telegramResult.description || 'Unknown Telegram API error';
+            // Enhanced error handling for Telegram
+            const isUsernameError = telegramResult.description?.includes('chat not found') && 
+                                   targetChatId?.startsWith('@');
+            
+            if (isUsernameError) {
+              sendError = `❌ Telegram: @username não funciona para mensagens diretas (DMs).\n\n` +
+                         `📝 Para enviar DMs:\n` +
+                         `1. O usuário deve enviar /start para o bot primeiro\n` +
+                         `2. Use o chat_id numérico (ex: 123456789) em vez de @username\n\n` +
+                         `💡 @username funciona apenas para canais/grupos públicos.\n\n` +
+                         `Para obter o chat_id numérico, acesse: https://api.telegram.org/bot<SEU_TOKEN>/getUpdates`;
+            } else {
+              sendError = telegramResult.description || 'Unknown Telegram API error';
+            }
+            
             console.error('❌ [TELEGRAM] Failed to send message:', telegramResult);
           }
         }
