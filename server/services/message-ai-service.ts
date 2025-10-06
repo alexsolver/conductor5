@@ -28,7 +28,7 @@ export interface TranslationResult {
 
 export interface SummaryResult {
   summary: string;
-  type: 'short' | 'expanded';
+  length: 'short' | 'long';
 }
 
 export interface QuickReplyResult {
@@ -161,7 +161,7 @@ Return ONLY the JSON object.`;
   /**
    * Create summary or expand text
    */
-  async summarize(tenantId: string, text: string, type: 'short' | 'expanded'): Promise<SummaryResult> {
+  async summarize(tenantId: string, text: string, length: 'short' | 'long'): Promise<SummaryResult> {
     // Use SaaS Admin AI configuration (global)
     const aiConfigService = getSaaSAdminAIConfigService();
     const providerConfig = await aiConfigService.getPreferredAIProvider();
@@ -170,12 +170,12 @@ Return ONLY the JSON object.`;
       throw new Error('No AI provider configured in SaaS Admin');
     }
 
-    const instructions = type === 'short' 
+    const instructions = length === 'short' 
       ? 'Create a concise summary of the following text, capturing only the key points'
       : 'Expand the following text with more details and context while maintaining the core message';
 
     const prompt = `${instructions}.
-Return ONLY the ${type === 'short' ? 'summary' : 'expanded version'}, no additional commentary.
+Return ONLY the ${length === 'short' ? 'summary' : 'expanded version'}, no additional commentary.
 
 Text:
 "${text}"`;
@@ -184,14 +184,14 @@ Text:
     
     return {
       summary: summary.trim().replace(/^["']|["']$/g, ''),
-      type
+      length
     };
   }
 
   /**
    * Generate quick reply suggestions
    */
-  async generateQuickReplies(tenantId: string, conversationContext: string): Promise<QuickReplyResult> {
+  async generateQuickReplies(tenantId: string, text: string): Promise<QuickReplyResult> {
     // Use SaaS Admin AI configuration (global)
     const aiConfigService = getSaaSAdminAIConfigService();
     const providerConfig = await aiConfigService.getPreferredAIProvider();
@@ -204,7 +204,7 @@ Text:
 Return a JSON object with a "suggestions" array containing the 3 reply options as strings.
 
 Conversation context:
-"${conversationContext}"
+"${text}"
 
 Return ONLY the JSON object with format: {"suggestions": ["reply1", "reply2", "reply3"]}`;
 

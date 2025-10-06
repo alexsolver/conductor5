@@ -31,11 +31,11 @@ const translateSchema = z.object({
 
 const summarizeSchema = z.object({
   text: z.string().min(1, 'Text is required'),
-  type: z.enum(['short', 'expanded'])
+  length: z.enum(['short', 'long'])
 });
 
-const quickRepliesSchema = z.object({
-  conversationContext: z.string().min(1, 'Conversation context is required')
+const quickReplySchema = z.object({
+  text: z.string().min(1, 'Text is required')
 });
 
 // Initialize service
@@ -135,8 +135,8 @@ router.post('/summarize', async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: validation.error.errors[0].message });
     }
 
-    const { text, type } = validation.data;
-    const result = await messageAIService.summarize(tenantId, text, type);
+    const { text, length } = validation.data;
+    const result = await messageAIService.summarize(tenantId, text, length);
 
     res.json(result);
   } catch (error: any) {
@@ -146,28 +146,28 @@ router.post('/summarize', async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * POST /api/message-ai/quick-replies
+ * POST /api/message-ai/quick-reply
  * Generate quick reply suggestions
  */
-router.post('/quick-replies', async (req: AuthenticatedRequest, res) => {
+router.post('/quick-reply', async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user.tenantId;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const validation = quickRepliesSchema.safeParse(req.body);
+    const validation = quickReplySchema.safeParse(req.body);
     if (!validation.success) {
       return res.status(400).json({ error: validation.error.errors[0].message });
     }
 
-    const { conversationContext } = validation.data;
-    const result = await messageAIService.generateQuickReplies(tenantId, conversationContext);
+    const { text } = validation.data;
+    const result = await messageAIService.generateQuickReplies(tenantId, text);
 
     res.json(result);
   } catch (error: any) {
-    console.error('❌ [MESSAGE-AI] Quick replies error:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate quick replies' });
+    console.error('❌ [MESSAGE-AI] Quick reply error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate quick reply' });
   }
 });
 
