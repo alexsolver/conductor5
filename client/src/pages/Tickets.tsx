@@ -1113,8 +1113,13 @@ export default function Tickets() {
         />
       </div>
 
+      {/* ⭐ TESTE: Se você vê este texto, o arquivo está atualizado ⭐ */}
+      <div className="mb-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded text-center font-bold">
+        ⭐ FILTROS ABAIXO ⭐
+      </div>
+
       {/* Filtros por Coluna */}
-      <Card className="mb-6" data-testid="search-filters-card">
+      <Card className="mb-6 border-4 border-red-500" data-testid="search-filters-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4" />
