@@ -8,6 +8,7 @@ import { useLocalization } from "@/hooks/useLocalization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -57,13 +58,16 @@ export default function Tickets() {
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
   
-  // Filter states
-  const [filterNumber, setFilterNumber] = useState("");
-  const [filterSubject, setFilterSubject] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
-  const [filterPriority, setFilterPriority] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterCaller, setFilterCaller] = useState("");
+  // Column filters toggle and states
+  const [showColumnFilters, setShowColumnFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState({
+    number: "",
+    subject: "",
+    status: "",
+    priority: "",
+    category: "",
+    caller: ""
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1106,214 +1110,213 @@ export default function Tickets() {
       </div>
 
       {/* Sistema de Visualizações de Tickets */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <TicketViewSelector 
           currentViewId={currentViewId}
           onViewChange={handleViewChange}
         />
+        
+        {/* Botão para ativar/desativar filtros por coluna */}
+        <Button
+          variant={showColumnFilters ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowColumnFilters(!showColumnFilters)}
+          className="ml-auto"
+          data-testid="button-toggle-column-filters"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          {showColumnFilters ? "Ocultar Pesquisa" : "Pesquisar"}
+        </Button>
       </div>
 
-      {/* ⭐ TESTE: Se você vê este texto, o arquivo está atualizado ⭐ */}
-      <div className="mb-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded text-center font-bold">
-        ⭐ FILTROS ABAIXO ⭐
-      </div>
-
-      {/* Filtros por Coluna */}
-      <Card className="mb-6 border-4 border-red-500" data-testid="search-filters-card">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filtros de Pesquisa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* Filtro: Número */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Número</label>
-              <Input
-                placeholder="Ex: 123"
-                value={filterNumber}
-                onChange={(e) => setFilterNumber(e.target.value)}
-                className="h-9 text-sm"
-              />
-            </div>
-
-            {/* Filtro: Assunto */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Assunto</label>
-              <Input
-                placeholder="Pesquisar..."
-                value={filterSubject}
-                onChange={(e) => setFilterSubject(e.target.value)}
-                className="h-9 text-sm"
-              />
-            </div>
-
-            {/* Filtro: Status */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Status</label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="new">Novo</SelectItem>
-                  <SelectItem value="open">Aberto</SelectItem>
-                  <SelectItem value="in_progress">Em Progresso</SelectItem>
-                  <SelectItem value="resolved">Resolvido</SelectItem>
-                  <SelectItem value="closed">Fechado</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro: Prioridade */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Prioridade</label>
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="critical">Crítica</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtro: Categoria */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Categoria</label>
-              <Input
-                placeholder="Pesquisar..."
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="h-9 text-sm"
-              />
-            </div>
-
-            {/* Filtro: Solicitante */}
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Solicitante</label>
-              <Input
-                placeholder="Pesquisar..."
-                value={filterCaller}
-                onChange={(e) => setFilterCaller(e.target.value)}
-                className="h-9 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Botão Limpar Filtros */}
-          {(filterNumber || filterSubject || filterStatus || filterPriority || filterCategory || filterCaller) && (
-            <div className="mt-3 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setFilterNumber("");
-                  setFilterSubject("");
-                  setFilterStatus("");
-                  setFilterPriority("");
-                  setFilterCategory("");
-                  setFilterCaller("");
-                }}
-                className="text-xs"
-              >
-                Limpar Filtros
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
-          ticketsList.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
-                      #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
-                    </h3>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      <DynamicBadge 
-                        fieldName="priority" 
-                        value={mapPriorityValue(ticket.priority)}
-                        showIcon={true}
-                        className="font-medium"
-                        size="sm"
-                      >
-                        {getFieldLabel('priority', ticket.priority || 'medium')}
-                      </DynamicBadge>
-                      <DynamicBadge 
-                        fieldName="status" 
-                        value={mapStatusValue(ticket.status)}
-                        showIcon={true}
-                        className="font-medium"
-                        size="sm"
-                      >
-                        {getFieldLabel('status', ticket.status || 'open')}
-                      </DynamicBadge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 mb-3">
-                    <DynamicBadge 
-                      fieldName="category" 
-                      value={mapCategoryValue(ticket.category)}
-                      showIcon={false}
-                      className="font-medium text-xs"
-                      size="sm"
-                    >
-                      {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
-                    </DynamicBadge>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    {ticket.description ? 
-                      (ticket.description.length > 150 ? 
-                        ticket.description.substring(0, 150) + '...' : 
-                        ticket.description
-                      ).replace(/<[^>]*>/g, '') : 
-                      'Sem descrição disponível'
-                    }
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>ID: {ticket.id}</span>
-                    <span>•</span>
-                    <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
-                    {ticket.assigned_to_id && (
-                      <>
-                        <span>•</span>
-                        <span>Atribuído</span>
-                      </>
+      {/* Tabela de Tickets */}
+      <Card>
+        <CardContent className="p-0">
+          {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">
+                    <div className="font-semibold">Número</div>
+                    {showColumnFilters && (
+                      <Input
+                        placeholder="Filtrar..."
+                        value={columnFilters.number}
+                        onChange={(e) => setColumnFilters({...columnFilters, number: e.target.value})}
+                        className="h-8 mt-2"
+                        data-testid="filter-number"
+                      />
                     )}
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/tickets/${ticket.id}`);
-                  }}
-                >
-                  Ver Detalhes
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
+                  </TableHead>
+                  <TableHead>
+                    <div className="font-semibold">Assunto</div>
+                    {showColumnFilters && (
+                      <Input
+                        placeholder="Filtrar..."
+                        value={columnFilters.subject}
+                        onChange={(e) => setColumnFilters({...columnFilters, subject: e.target.value})}
+                        className="h-8 mt-2"
+                        data-testid="filter-subject"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead className="w-[150px]">
+                    <div className="font-semibold">Empresa</div>
+                  </TableHead>
+                  <TableHead className="w-[130px]">
+                    <div className="font-semibold">Status</div>
+                    {showColumnFilters && (
+                      <Select 
+                        value={columnFilters.status} 
+                        onValueChange={(value) => setColumnFilters({...columnFilters, status: value})}
+                      >
+                        <SelectTrigger className="h-8 mt-2" data-testid="filter-status">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Todos</SelectItem>
+                          <SelectItem value="new">Novo</SelectItem>
+                          <SelectItem value="open">Aberto</SelectItem>
+                          <SelectItem value="in_progress">Em Progresso</SelectItem>
+                          <SelectItem value="resolved">Resolvido</SelectItem>
+                          <SelectItem value="closed">Fechado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </TableHead>
+                  <TableHead className="w-[130px]">
+                    <div className="font-semibold">Prioridade</div>
+                    {showColumnFilters && (
+                      <Select 
+                        value={columnFilters.priority} 
+                        onValueChange={(value) => setColumnFilters({...columnFilters, priority: value})}
+                      >
+                        <SelectTrigger className="h-8 mt-2" data-testid="filter-priority">
+                          <SelectValue placeholder="Todas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Todas</SelectItem>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="critical">Crítica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </TableHead>
+                  <TableHead className="w-[150px]">
+                    <div className="font-semibold">Categoria</div>
+                    {showColumnFilters && (
+                      <Input
+                        placeholder="Filtrar..."
+                        value={columnFilters.category}
+                        onChange={(e) => setColumnFilters({...columnFilters, category: e.target.value})}
+                        className="h-8 mt-2"
+                        data-testid="filter-category"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead className="w-[150px]">
+                    <div className="font-semibold">Solicitante</div>
+                    {showColumnFilters && (
+                      <Input
+                        placeholder="Filtrar..."
+                        value={columnFilters.caller}
+                        onChange={(e) => setColumnFilters({...columnFilters, caller: e.target.value})}
+                        className="h-8 mt-2"
+                        data-testid="filter-caller"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead className="w-[100px] text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ticketsList
+                  .filter((ticket: any) => {
+                    const matchesNumber = !columnFilters.number || 
+                      (ticket.number && ticket.number.toString().toLowerCase().includes(columnFilters.number.toLowerCase())) ||
+                      ticket.id.toLowerCase().includes(columnFilters.number.toLowerCase());
+                    const matchesSubject = !columnFilters.subject || 
+                      (ticket.subject && ticket.subject.toLowerCase().includes(columnFilters.subject.toLowerCase()));
+                    const matchesStatus = !columnFilters.status || 
+                      ticket.status === columnFilters.status;
+                    const matchesPriority = !columnFilters.priority || 
+                      ticket.priority === columnFilters.priority;
+                    const matchesCategory = !columnFilters.category || 
+                      (getFieldLabel('category', ticket.category).toLowerCase().includes(columnFilters.category.toLowerCase()));
+                    const matchesCaller = !columnFilters.caller || 
+                      (ticket.caller_name && ticket.caller_name.toLowerCase().includes(columnFilters.caller.toLowerCase())) ||
+                      (ticket.customer_name && ticket.customer_name.toLowerCase().includes(columnFilters.caller.toLowerCase()));
+                    
+                    return matchesNumber && matchesSubject && matchesStatus && matchesPriority && matchesCategory && matchesCaller;
+                  })
+                  .map((ticket: any) => (
+                    <TableRow 
+                      key={ticket.id} 
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      data-testid={`ticket-row-${ticket.id}`}
+                    >
+                      <TableCell className="font-medium">
+                        #{ticket.number || ticket.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell>{ticket.subject || 'Sem título'}</TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {ticket.company_name || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <DynamicBadge 
+                          fieldName="status" 
+                          value={mapStatusValue(ticket.status)}
+                          showIcon={true}
+                          size="sm"
+                        >
+                          {getFieldLabel('status', ticket.status || 'open')}
+                        </DynamicBadge>
+                      </TableCell>
+                      <TableCell>
+                        <DynamicBadge 
+                          fieldName="priority" 
+                          value={mapPriorityValue(ticket.priority)}
+                          showIcon={true}
+                          size="sm"
+                        >
+                          {getFieldLabel('priority', ticket.priority || 'medium')}
+                        </DynamicBadge>
+                      </TableCell>
+                      <TableCell>
+                        <DynamicBadge 
+                          fieldName="category" 
+                          value={mapCategoryValue(ticket.category)}
+                          showIcon={false}
+                          size="sm"
+                        >
+                          {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
+                        </DynamicBadge>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {ticket.caller_name || ticket.customer_name || '-'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/tickets/${ticket.id}`);
+                          }}
+                          data-testid={`button-view-${ticket.id}`}
+                        >
+                          Ver
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-12 text-center">
               <div className="text-gray-500">
                 <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
                 <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
@@ -1325,10 +1328,10 @@ export default function Tickets() {
                   Criar Primeiro Ticket
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
