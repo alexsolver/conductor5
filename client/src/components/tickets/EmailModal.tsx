@@ -218,12 +218,17 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
       const currentMessage = form.getValues('message');
+      console.log('🌍 [TRANSLATE-MUTATION] Starting:', { targetLanguage, messageLength: currentMessage?.length });
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
-      return await response.json();
+      const data = await response.json();
+      console.log('🌍 [TRANSLATE-MUTATION] Response:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('✅ [TRANSLATE-SUCCESS] Data received:', data);
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
+        console.log('📝 [TRANSLATE-SUCCESS] Updating field with:', data.translatedText.substring(0, 50));
         form.setValue('message', data.translatedText, {
           shouldValidate: true,
           shouldDirty: true,
@@ -234,6 +239,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
           description: `Mensagem traduzida para ${data.targetLanguage}`,
         });
       } else {
+        console.warn('⚠️ [TRANSLATE-SUCCESS] No translatedText in response');
         toast({
           title: "Aviso",
           description: "Não foi possível traduzir o texto",
@@ -241,7 +247,8 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
         });
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('❌ [TRANSLATE-ERROR]:', error);
       toast({
         title: "Erro",
         description: "Falha ao traduzir texto",
@@ -480,8 +487,15 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => spellCheckMutation.mutate()}
-                  disabled={!form.watch('message') || spellCheckMutation.isPending}
+                  onClick={() => {
+                    const msg = form.getValues('message');
+                    if (!msg || !msg.trim()) {
+                      toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                      return;
+                    }
+                    spellCheckMutation.mutate();
+                  }}
+                  disabled={spellCheckMutation.isPending}
                   data-testid="button-spell-check-email"
                 >
                   {spellCheckMutation.isPending ? (
@@ -493,7 +507,14 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                 </Button>
 
                 {/* Rewrite Tone */}
-                <Select onValueChange={(tone) => rewriteMutation.mutate(tone)}>
+                <Select onValueChange={(tone) => {
+                  const msg = form.getValues('message');
+                  if (!msg || !msg.trim()) {
+                    toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                    return;
+                  }
+                  rewriteMutation.mutate(tone);
+                }}>
                   <SelectTrigger className="w-[180px] h-9" data-testid="select-tone-email">
                     <SelectValue placeholder="Reescrever Tom" />
                   </SelectTrigger>
@@ -507,7 +528,14 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                 </Select>
 
                 {/* Translate */}
-                <Select onValueChange={(lang) => translateMutation.mutate(lang)}>
+                <Select onValueChange={(lang) => {
+                  const msg = form.getValues('message');
+                  if (!msg || !msg.trim()) {
+                    toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                    return;
+                  }
+                  translateMutation.mutate(lang);
+                }}>
                   <SelectTrigger className="w-[150px] h-9" data-testid="select-translate-email">
                     <SelectValue placeholder="Traduzir" />
                   </SelectTrigger>
@@ -525,8 +553,15 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => summarizeMutation.mutate('short')}
-                  disabled={!form.watch('message') || summarizeMutation.isPending}
+                  onClick={() => {
+                    const msg = form.getValues('message');
+                    if (!msg || !msg.trim()) {
+                      toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                      return;
+                    }
+                    summarizeMutation.mutate('short');
+                  }}
+                  disabled={summarizeMutation.isPending}
                   data-testid="button-summarize-email"
                 >
                   {summarizeMutation.isPending ? (
@@ -542,7 +577,14 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => quickReplyMutation.mutate()}
+                  onClick={() => {
+                    const msg = form.getValues('message');
+                    if (!msg || !msg.trim()) {
+                      toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                      return;
+                    }
+                    quickReplyMutation.mutate();
+                  }}
                   disabled={quickReplyMutation.isPending}
                   data-testid="button-quick-reply-email"
                 >

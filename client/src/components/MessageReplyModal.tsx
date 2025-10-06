@@ -39,8 +39,9 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
     mutationFn: async () => {
       console.log('🔍 [SPELL-CHECK-FRONTEND] Current message:', message);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: message });
-      console.log('📦 [SPELL-CHECK-FRONTEND] API response:', response);
-      return response;
+      const data = await response.json();
+      console.log('📦 [SPELL-CHECK-FRONTEND] API response:', data);
+      return data;
     },
     onSuccess: (data: any) => {
       console.log('✅ [SPELL-CHECK-FRONTEND] Success data:', data);
@@ -77,7 +78,7 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   const rewriteMutation = useMutation({
     mutationFn: async (tone: string) => {
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: message, tone });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto reescrito válido
@@ -107,21 +108,27 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Translate mutation
   const translateMutation = useMutation({
     mutationFn: async (targetLanguage: string) => {
+      console.log('🌍 [TRANSLATE-MUTATION] Starting:', { targetLanguage, messageLength: message?.length });
       const response = await apiRequest('POST', '/api/message-ai/translate', { 
         text: message, 
         targetLanguage 
       });
-      return response;
+      const data = await response.json();
+      console.log('🌍 [TRANSLATE-MUTATION] Response:', data);
+      return data;
     },
     onSuccess: (data: any) => {
+      console.log('✅ [TRANSLATE-SUCCESS] Data received:', data);
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
+        console.log('📝 [TRANSLATE-SUCCESS] Updating field with:', data.translatedText.substring(0, 50));
         setMessage(data.translatedText);
         toast({
           title: "Texto Traduzido",
           description: `Traduzido para ${data.targetLanguage}`,
         });
       } else {
+        console.warn('⚠️ [TRANSLATE-SUCCESS] No translatedText in response');
         toast({
           title: "Aviso",
           description: "Não foi possível traduzir o texto",
@@ -129,7 +136,8 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
         });
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('❌ [TRANSLATE-ERROR]:', error);
       toast({
         title: "Erro",
         description: "Falha ao traduzir texto",
@@ -141,8 +149,8 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Summarize mutation
   const summarizeMutation = useMutation({
     mutationFn: async (type: 'short' | 'expanded') => {
-      const response = await apiRequest('POST', '/api/message-ai/summarize', { text: message, type });
-      return response;
+      const response = await apiRequest('POST', '/api/message-ai/summarize', { text: message, length: type === 'short' ? 'short' : 'long' });
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um resumo válido
@@ -172,10 +180,10 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
   // Quick replies mutation
   const quickRepliesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/message-ai/quick-replies', { 
-        conversationContext: originalMessage.content 
+      const response = await apiRequest('POST', '/api/message-ai/quick-reply', { 
+        text: originalMessage.content 
       });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
@@ -260,8 +268,14 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
             <Button
               variant="outline"
               size="sm"
-              onClick={() => spellCheckMutation.mutate()}
-              disabled={!message || spellCheckMutation.isPending}
+              onClick={() => {
+                if (!message || !message.trim()) {
+                  toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                  return;
+                }
+                spellCheckMutation.mutate();
+              }}
+              disabled={spellCheckMutation.isPending}
               data-testid="button-spell-check"
             >
               {spellCheckMutation.isPending ? (
@@ -273,7 +287,13 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
             </Button>
 
             {/* Rewrite Tone */}
-            <Select onValueChange={(tone) => rewriteMutation.mutate(tone)}>
+            <Select onValueChange={(tone) => {
+              if (!message || !message.trim()) {
+                toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                return;
+              }
+              rewriteMutation.mutate(tone);
+            }}>
               <SelectTrigger className="w-[180px]" data-testid="select-tone">
                 <SelectValue placeholder="Reescrever Tom" />
               </SelectTrigger>
@@ -287,7 +307,13 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
             </Select>
 
             {/* Translate */}
-            <Select onValueChange={(lang) => translateMutation.mutate(lang)}>
+            <Select onValueChange={(lang) => {
+              if (!message || !message.trim()) {
+                toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                return;
+              }
+              translateMutation.mutate(lang);
+            }}>
               <SelectTrigger className="w-[150px]" data-testid="select-translate">
                 <SelectValue placeholder="Traduzir" />
               </SelectTrigger>
@@ -304,8 +330,14 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
             <Button
               variant="outline"
               size="sm"
-              onClick={() => summarizeMutation.mutate('short')}
-              disabled={!message || summarizeMutation.isPending}
+              onClick={() => {
+                if (!message || !message.trim()) {
+                  toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                  return;
+                }
+                summarizeMutation.mutate('short');
+              }}
+              disabled={summarizeMutation.isPending}
               data-testid="button-summarize"
             >
               {summarizeMutation.isPending ? (
@@ -319,8 +351,14 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
             <Button
               variant="outline"
               size="sm"
-              onClick={() => summarizeMutation.mutate('expanded')}
-              disabled={!message || summarizeMutation.isPending}
+              onClick={() => {
+                if (!message || !message.trim()) {
+                  toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
+                  return;
+                }
+                summarizeMutation.mutate('expanded');
+              }}
+              disabled={summarizeMutation.isPending}
               data-testid="button-expand"
             >
               {summarizeMutation.isPending ? (
