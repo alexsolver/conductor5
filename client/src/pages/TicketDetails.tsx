@@ -1499,33 +1499,7 @@ const TicketDetails = React.memo(() => {
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">{t('tickets.fields.classification').toUpperCase()}</h3>
 
-              <div className="grid grid-cols-4 gap-4 mb-4">
-                <FormField
-                  control={form.control as any}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('tickets.fields.priority')} *</FormLabel>
-                      <FormControl>
-                        {isEditMode ? (
-                          <DynamicSelect
-                            fieldName="priority"
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            placeholder="Selecione a prioridade"
-                            disabled={!isEditMode}
-                            customerId={ticket?.companyId || ticket?.company_id}
-                          />
-                        ) : (
-                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge
-                              fieldName="priority"
-                              value={field.value}
-                              colorHex={getFieldColor('priority', field.value)}
-                              isLoading={isFieldColorsLoading}
-                            >
-                              {getFieldLabel('priority', field.value)}
-                            </DynamicBadge>
+adge>
                           </div>
                         )}
                       </FormControl>
