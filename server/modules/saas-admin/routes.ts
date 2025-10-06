@@ -666,10 +666,14 @@ router.post('/integrations/openai/test', async (req: AuthorizedRequest, res) => 
  * Atualizar chave da API OpenAI
  */
 router.put('/integrations/openai/api-key', async (req: AuthorizedRequest, res) => {
+  console.log('🎯 [ROUTE-DEBUG] PUT /integrations/openai/api-key ENTERED - LINE 668');
   try {
+    console.log('🎯 [ROUTE-DEBUG] Inside try block - LINE 669');
     const { apiKey, enabled = true, maxTokens = 4000, temperature = 0.7 } = req.body;
+    console.log('🎯 [ROUTE-DEBUG] Body destructured - LINE 670');
 
     if (!apiKey) {
+      console.log('🎯 [ROUTE-DEBUG] No API key provided - LINE 672');
       return res.status(400).json({
         success: false,
         message: 'API key é obrigatória'
