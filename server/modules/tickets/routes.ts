@@ -1778,7 +1778,12 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         tc.created_at as timestamp,
         tc.updated_at
       FROM "${schemaName}".ticket_communications tc
-      WHERE tc.ticket_id = $1::uuid AND tc.tenant_id = $2::uuid
+      WHERE tc.ticket_id = $1::uuid 
+        AND tc.tenant_id = $2::uuid
+        AND NOT EXISTS (
+          SELECT 1 FROM "${schemaName}".ticket_messages tm
+          WHERE tm.id::text = tc.id::text
+        )
       
       UNION ALL
       
