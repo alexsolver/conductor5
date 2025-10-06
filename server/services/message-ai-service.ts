@@ -87,6 +87,8 @@ Return ONLY the JSON object, no additional text.`;
    * Rewrite text with specific tone
    */
   async rewriteWithTone(tenantId: string, text: string, tone: 'professional' | 'friendly' | 'empathetic' | 'technical' | 'concise'): Promise<RewriteResult> {
+    console.log('🔍 [REWRITE] Input:', { textLength: text?.length || 0, text: text?.substring(0, 100), tone });
+    
     // Use SaaS Admin AI configuration (global)
     const aiConfigService = getSaaSAdminAIConfigService();
     const providerConfig = await aiConfigService.getPreferredAIProvider();
@@ -111,6 +113,7 @@ Original text:
 "${text}"`;
 
     const rewrittenText = await this.callAI(providerConfig, prompt);
+    console.log('🤖 [REWRITE] AI raw response:', rewrittenText?.substring(0, 100));
     
     return {
       rewrittenText: rewrittenText.trim().replace(/^["']|["']$/g, ''),
