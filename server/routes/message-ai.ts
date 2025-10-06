@@ -3,7 +3,7 @@
 // ========================================
 // API routes for AI-powered message assistance
 
-import { Router, Response } from 'express';
+import { Router } from 'express';
 import { MessageAIService } from '../services/message-ai-service';
 import { storage } from '../storage-simple';
 import { z } from 'zod';
@@ -42,9 +42,9 @@ const messageAIService = new MessageAIService(storage);
  * POST /api/message-ai/spell-check
  * Check spelling and grammar
  */
-router.post('/spell-check', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/spell-check', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenant?.id;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -68,9 +68,9 @@ router.post('/spell-check', async (req: AuthenticatedRequest, res: Response) => 
  * POST /api/message-ai/rewrite
  * Rewrite text with specific tone
  */
-router.post('/rewrite', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/rewrite', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenant?.id;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -94,9 +94,9 @@ router.post('/rewrite', async (req: AuthenticatedRequest, res: Response) => {
  * POST /api/message-ai/translate
  * Translate text to target language
  */
-router.post('/translate', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/translate', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenant?.id;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -120,9 +120,9 @@ router.post('/translate', async (req: AuthenticatedRequest, res: Response) => {
  * POST /api/message-ai/summarize
  * Summarize or expand text
  */
-router.post('/summarize', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/summarize', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenant?.id;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -146,9 +146,9 @@ router.post('/summarize', async (req: AuthenticatedRequest, res: Response) => {
  * POST /api/message-ai/quick-replies
  * Generate quick reply suggestions
  */
-router.post('/quick-replies', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/quick-replies', async (req: AuthenticatedRequest, res) => {
   try {
-    const tenantId = req.tenantId;
+    const tenantId = req.tenant?.id;
     if (!tenantId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
