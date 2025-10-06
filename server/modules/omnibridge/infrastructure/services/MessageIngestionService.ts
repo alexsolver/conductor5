@@ -570,12 +570,12 @@ export class MessageIngestionService {
       const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
-      // 1. Primeiro: buscar ticket ABERTO mais recente
+      // 1. Primeiro: buscar ticket ABERTO mais recente (por última atualização)
       const openResult = await pool.query(`
         SELECT id FROM "${schemaName}".tickets 
         WHERE metadata->>'chatId' = $1
           AND status IN ('open', 'pending', 'in_progress')
-        ORDER BY created_at DESC
+        ORDER BY updated_at DESC
         LIMIT 1
       `, [chatId]);
 
@@ -584,11 +584,11 @@ export class MessageIngestionService {
         return openResult.rows[0].id;
       }
 
-      // 2. Se não houver aberto: buscar qualquer ticket mais recente
+      // 2. Se não houver aberto: buscar qualquer ticket mais recente (por última atualização)
       const anyResult = await pool.query(`
         SELECT id FROM "${schemaName}".tickets 
         WHERE metadata->>'chatId' = $1
-        ORDER BY created_at DESC
+        ORDER BY updated_at DESC
         LIMIT 1
       `, [chatId]);
 
