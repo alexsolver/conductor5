@@ -1114,7 +1114,7 @@ export default function Tickets() {
       </div>
 
       {/* Filtros por Coluna */}
-      <Card className="mb-6">
+      <Card className="mb-6" data-testid="search-filters-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4" />
