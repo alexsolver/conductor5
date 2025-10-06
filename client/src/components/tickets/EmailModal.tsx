@@ -146,21 +146,32 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
   const spellCheckMutation = useMutation({
     mutationFn: async () => {
       const currentMessage = form.getValues('message');
+      console.log('🔍 [EMAIL-SPELL-CHECK] Input text:', currentMessage);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
+      console.log('🔍 [EMAIL-SPELL-CHECK] Response from API:', response);
+      console.log('🔍 [EMAIL-SPELL-CHECK] correctedText:', response?.correctedText);
+      console.log('🔍 [EMAIL-SPELL-CHECK] suggestions:', response?.suggestions);
       return response;
     },
     onSuccess: (data: any) => {
+      console.log('🔍 [EMAIL-SPELL-CHECK] onSuccess data:', data);
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
         form.setValue('message', data.correctedText);
       }
       
       if (data.suggestions && data.suggestions.length > 0) {
+        console.log('✅ [EMAIL-SPELL-CHECK] Applying corrections:', data.suggestions.length);
         toast({
           title: "Correções Aplicadas",
           description: `${data.suggestions.length} sugestões de correção aplicadas`,
         });
       } else {
+        console.log('⚠️ [EMAIL-SPELL-CHECK] No corrections needed:', {
+          hasSuggestions: !!data.suggestions,
+          suggestionsLength: data.suggestions?.length,
+          fullData: data
+        });
         toast({
           title: "Texto Verificado",
           description: "Nenhuma correção necessária",
