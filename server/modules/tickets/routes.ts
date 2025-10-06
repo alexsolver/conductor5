@@ -2088,12 +2088,11 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
 
     try {
       if (channel === 'telegram') {
-        // Extract chat ID from recipient (format: "telegram:123456789")
-        const chatId = recipient.replace(/^telegram:/, '');
+        // Extract chat ID from recipient (format: "telegram:123456789" or "telegram:@username")
+        let rawChatId = recipient.replace(/^telegram:/, '');
         
         console.log('🔍 [TELEGRAM-DEBUG] Original recipient:', recipient);
-        console.log('🔍 [TELEGRAM-DEBUG] Extracted chatId:', chatId);
-        console.log('🔍 [TELEGRAM-DEBUG] chatId type:', typeof chatId);
+        console.log('🔍 [TELEGRAM-DEBUG] Extracted rawChatId:', rawChatId);
         
         // Get Telegram integration config using storage service
         const { storage } = await import('../../storage-simple');
@@ -2106,12 +2105,21 @@ ticketsRouter.post('/:id/send-message', jwtAuth, upload.array('media'), async (r
           const botToken = config.telegramBotToken;
           
           console.log('🔍 [TELEGRAM-DEBUG] Bot token configured:', botToken ? 'Yes' : 'No');
-          console.log('🔍 [TELEGRAM-DEBUG] User-specified recipient:', recipient);
-          console.log('🔍 [TELEGRAM-DEBUG] Extracted chatId:', chatId);
           
-          // ALWAYS use the user-specified recipient (chatId from form)
-          // Only fallback to config if recipient is empty/invalid
-          const targetChatId = chatId || config.telegramChatId;
+          // 🎯 USERNAME SUPPORT: Accept @username, username, or numeric chatId
+          let targetChatId = rawChatId;
+          
+          // Normalize @username: add @ if missing (but only if not numeric)
+          if (targetChatId && !/^\d+$/.test(targetChatId) && !targetChatId.startsWith('@')) {
+            targetChatId = '@' + targetChatId;
+            console.log('🔧 [TELEGRAM] Normalized username:', targetChatId);
+          }
+          
+          // If still empty, fallback to config
+          if (!targetChatId) {
+            targetChatId = config.telegramChatId;
+            console.log('🔄 [TELEGRAM] Using fallback chatId from config:', targetChatId);
+          }
           
           console.log('🔍 [TELEGRAM-DEBUG] Final target chatId:', targetChatId);
           
