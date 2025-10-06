@@ -57,6 +57,14 @@ export default function Tickets() {
   const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
   
+  // Filter states
+  const [filterNumber, setFilterNumber] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterCaller, setFilterCaller] = useState("");
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
@@ -498,33 +506,44 @@ export default function Tickets() {
       return [];
     }
 
+    let rawList: any[] = [];
+
     // Standard Clean Architecture response structure
     if (tickets?.success && tickets.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using standard Clean Architecture structure');
-      return tickets.data.tickets;
+      rawList = tickets.data.tickets;
     }
-
     // Legacy support for direct data property
-    if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
+    else if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
       console.log('🎫 [Tickets] Using legacy data.tickets structure');
-      return tickets.data.tickets;
+      rawList = tickets.data.tickets;
     }
-
     // Direct tickets array (fallback)
-    if ((tickets as any)?.tickets && Array.isArray((tickets as any).tickets)) {
+    else if ((tickets as any)?.tickets && Array.isArray((tickets as any).tickets)) {
       console.log('🎫 [Tickets] Using direct tickets array');
-      return (tickets as any).tickets;
+      rawList = (tickets as any).tickets;
     }
-
     // Raw array (ultimate fallback)
-    if (Array.isArray(tickets)) {
+    else if (Array.isArray(tickets)) {
       console.log('🎫 [Tickets] Using raw array');
-      return tickets;
+      rawList = tickets;
+    }
+    else {
+      console.warn('⚠️ [Tickets] Unexpected response structure:', tickets);
+      console.warn('⚠️ [Tickets] Available keys:', Object.keys(tickets || {}));
+      return [];
     }
 
-    console.warn('⚠️ [Tickets] Unexpected response structure:', tickets);
-    console.warn('⚠️ [Tickets] Available keys:', Object.keys(tickets || {}));
-    return [];
+    // Apply filters
+    return rawList.filter((ticket: any) => {
+      if (filterNumber && !ticket.number?.toLowerCase().includes(filterNumber.toLowerCase())) return false;
+      if (filterSubject && !ticket.subject?.toLowerCase().includes(filterSubject.toLowerCase())) return false;
+      if (filterStatus && ticket.status?.toLowerCase() !== filterStatus.toLowerCase()) return false;
+      if (filterPriority && ticket.priority?.toLowerCase() !== filterPriority.toLowerCase()) return false;
+      if (filterCategory && !ticket.category?.toLowerCase().includes(filterCategory.toLowerCase())) return false;
+      if (filterCaller && !ticket.caller_name?.toLowerCase().includes(filterCaller.toLowerCase())) return false;
+      return true;
+    });
   })();
 
   const ticketsCount = ticketsList.length;
@@ -1093,6 +1112,120 @@ export default function Tickets() {
           onViewChange={handleViewChange}
         />
       </div>
+
+      {/* Filtros por Coluna */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            Filtros de Pesquisa
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Filtro: Número */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Número</label>
+              <Input
+                placeholder="Ex: 123"
+                value={filterNumber}
+                onChange={(e) => setFilterNumber(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            {/* Filtro: Assunto */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Assunto</label>
+              <Input
+                placeholder="Pesquisar..."
+                value={filterSubject}
+                onChange={(e) => setFilterSubject(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            {/* Filtro: Status */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Status</label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="new">Novo</SelectItem>
+                  <SelectItem value="open">Aberto</SelectItem>
+                  <SelectItem value="in_progress">Em Progresso</SelectItem>
+                  <SelectItem value="resolved">Resolvido</SelectItem>
+                  <SelectItem value="closed">Fechado</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro: Prioridade */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Prioridade</label>
+              <Select value={filterPriority} onValueChange={setFilterPriority}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro: Categoria */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Categoria</label>
+              <Input
+                placeholder="Pesquisar..."
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            {/* Filtro: Solicitante */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 mb-1 block">Solicitante</label>
+              <Input
+                placeholder="Pesquisar..."
+                value={filterCaller}
+                onChange={(e) => setFilterCaller(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Botão Limpar Filtros */}
+          {(filterNumber || filterSubject || filterStatus || filterPriority || filterCategory || filterCaller) && (
+            <div className="mt-3 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFilterNumber("");
+                  setFilterSubject("");
+                  setFilterStatus("");
+                  setFilterPriority("");
+                  setFilterCategory("");
+                  setFilterCaller("");
+                }}
+                className="text-xs"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
