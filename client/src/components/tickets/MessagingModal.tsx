@@ -164,7 +164,7 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
     mutationFn: async () => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto corrigido válido
@@ -197,11 +197,12 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
     mutationFn: async (tone: string) => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
-      console.log('🔍 [REWRITE-DEBUG] Response from API:', response);
-      console.log('🔍 [REWRITE-DEBUG] rewrittenText:', response?.rewrittenText);
-      console.log('🔍 [REWRITE-DEBUG] rewrittenText type:', typeof response?.rewrittenText);
-      console.log('🔍 [REWRITE-DEBUG] rewrittenText length:', response?.rewrittenText?.length);
-      return response;
+      const data = await response.json();
+      console.log('🔍 [REWRITE-DEBUG] Response from API:', data);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText:', data?.rewrittenText);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText type:', typeof data?.rewrittenText);
+      console.log('🔍 [REWRITE-DEBUG] rewrittenText length:', data?.rewrittenText?.length);
+      return data;
     },
     onSuccess: (data: any) => {
       console.log('🔍 [REWRITE-DEBUG] onSuccess data:', data);

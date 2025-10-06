@@ -148,10 +148,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const currentMessage = form.getValues('message');
       console.log('🔍 [EMAIL-SPELL-CHECK] Input text:', currentMessage);
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
-      console.log('🔍 [EMAIL-SPELL-CHECK] Response from API:', response);
-      console.log('🔍 [EMAIL-SPELL-CHECK] correctedText:', response?.correctedText);
-      console.log('🔍 [EMAIL-SPELL-CHECK] suggestions:', response?.suggestions);
-      return response;
+      const data = await response.json();
+      console.log('🔍 [EMAIL-SPELL-CHECK] Response from API:', data);
+      console.log('🔍 [EMAIL-SPELL-CHECK] correctedText:', data?.correctedText);
+      console.log('🔍 [EMAIL-SPELL-CHECK] suggestions:', data?.suggestions);
+      return data;
     },
     onSuccess: (data: any) => {
       console.log('🔍 [EMAIL-SPELL-CHECK] onSuccess data:', data);
@@ -191,7 +192,7 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
     mutationFn: async (tone: string) => {
       const currentMessage = form.getValues('message');
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
-      return response;
+      return await response.json();
     },
     onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto reescrito válido
