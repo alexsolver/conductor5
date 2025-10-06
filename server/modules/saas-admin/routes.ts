@@ -764,6 +764,62 @@ router.put('/integrations/openai/config', async (req: AuthorizedRequest, res) =>
 });
 
 /**
+ * PUT /api/saas-admin/integrations/:integrationId/config
+ * Atualizar configuração genérica de qualquer integração (DeepSeek, Google AI, etc)
+ */
+router.put('/integrations/:integrationId/config', async (req: AuthorizedRequest, res) => {
+  try {
+    const { integrationId } = req.params;
+    const { apiKey, enabled = true, maxTokens = 4000, temperature = 0.7, baseUrl = '', model = '' } = req.body;
+
+    if (!apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'API key é obrigatória'
+      });
+    }
+
+    console.log(`🔧 [SAAS-ADMIN-GENERIC-CONFIG] Updating ${integrationId} configuration`);
+
+    const { DrizzleIntegrationRepository } = await import('./infrastructure/repositories/DrizzleIntegrationRepository');
+    const integrationRepository = new DrizzleIntegrationRepository();
+
+    // Build configuration object
+    const config: any = {
+      apiKey: apiKey.toString().trim(),
+      enabled: Boolean(enabled),
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Add optional fields only if provided
+    if (maxTokens) config.maxTokens = Number(maxTokens);
+    if (temperature !== undefined) config.temperature = Number(temperature);
+    if (baseUrl) config.baseUrl = baseUrl.toString().trim();
+    if (model) config.model = model.toString().trim();
+
+    // Update integration configuration
+    await integrationRepository.updateIntegrationConfig(integrationId, config);
+    await integrationRepository.updateIntegrationStatus(integrationId, 'disconnected');
+
+    console.log(`✅ [SAAS-ADMIN-GENERIC-CONFIG] ${integrationId} configuration updated successfully`);
+
+    res.json({
+      success: true,
+      message: `Configuração ${integrationId} atualizada com sucesso. Clique em "Testar Integração" para verificar a conexão.`,
+      status: 'disconnected'
+    });
+
+  } catch (error) {
+    console.error(`❌ [SAAS-ADMIN-GENERIC-CONFIG] Error updating ${req.params.integrationId} configuration:`, error);
+    res.status(500).json({
+      success: false,
+      message: `Erro interno ao atualizar configuração ${req.params.integrationId}`,
+      error: error.message
+    });
+  }
+});
+
+/**
  * POST /api/saas-admin/integrations/openweather/test
  * Testar integração OpenWeather
  */
