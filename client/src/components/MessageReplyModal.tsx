@@ -269,10 +269,13 @@ export function MessageReplyModal({ open, onClose, originalMessage, onSend }: Me
               variant="outline"
               size="sm"
               onClick={() => {
+                console.log('🔧 [REPLY-MODAL] Spell Check clicked! Message:', message);
                 if (!message || !message.trim()) {
+                  console.warn('⚠️ [REPLY-MODAL] No message to check');
                   toast({ title: "Digite uma mensagem primeiro", variant: "destructive" });
                   return;
                 }
+                console.log('✅ [REPLY-MODAL] Starting spell check mutation');
                 spellCheckMutation.mutate();
               }}
               disabled={spellCheckMutation.isPending}
