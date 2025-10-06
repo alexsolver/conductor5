@@ -149,14 +149,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.correctedText
-        });
+        form.setValue('message', data.correctedText);
+        await form.trigger('message');
       }
       
       if (data.suggestions && data.suggestions.length > 0) {
@@ -186,14 +183,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       // Só atualiza o texto se houver um texto reescrito válido
       if (data.rewrittenText && data.rewrittenText.trim()) {
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.rewrittenText
-        });
+        form.setValue('message', data.rewrittenText);
+        await form.trigger('message');
         toast({
           title: "Texto Reescrito",
           description: `Mensagem reescrita com tom ${data.tone}`,
@@ -221,14 +215,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.translatedText
-        });
+        form.setValue('message', data.translatedText);
+        await form.trigger('message');
         toast({
           title: "Texto Traduzido",
           description: `Mensagem traduzida para ${data.targetLanguage}`,
@@ -256,14 +247,11 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/summarize', { text: currentMessage, length });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       // Só atualiza o texto se houver um resumo válido
       if (data.summary && data.summary.trim()) {
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.summary
-        });
+        form.setValue('message', data.summary);
+        await form.trigger('message');
         toast({
           title: "Texto Resumido",
           description: "Mensagem resumida com sucesso",
@@ -291,13 +279,10 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.suggestions[0]
-        });
+        form.setValue('message', data.suggestions[0]);
+        await form.trigger('message');
         toast({
           title: "Sugestão Aplicada",
           description: "Resposta rápida gerada com IA",

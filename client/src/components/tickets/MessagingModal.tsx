@@ -230,15 +230,12 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
-        // Usa reset para forçar re-renderização completa
-        const currentValues = form.getValues();
-        form.reset({
-          ...currentValues,
-          message: data.translatedText
-        });
+        // Usa setValue com trigger para forçar re-renderização
+        form.setValue('message', data.translatedText);
+        await form.trigger('message');
         toast({
           title: "Texto Traduzido",
           description: `Mensagem traduzida para ${data.targetLanguage}`,
