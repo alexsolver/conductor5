@@ -127,6 +127,10 @@ export class MessageIngestionService {
         }
       }
       
+      // 🎯 Extract customer name from Telegram user
+      const customerName = message.from.first_name || message.from.username || message.from.last_name || 'Unknown';
+      const customerId = customerName; // Use name as ID for customer identification
+      
       const metadata: Record<string, any> = {
         telegramMessageId: message.message_id,
         chatId: chatId,
@@ -135,7 +139,10 @@ export class MessageIngestionService {
         timestamp: message.date,
         conversationId: conversationId, // Usar conversationId UUID do ticket
         threadId: message.reply_to_message?.message_id ? `telegram-thread-${message.reply_to_message.message_id}` : undefined,
-        ticketId: ticketId // Já temos o ticketId
+        ticketId: ticketId, // Já temos o ticketId
+        customerId: customerId, // 🆕 Customer identification
+        customerName: customerName, // 🆕 Customer name for sentiment tracking
+        from: `telegram:${message.from.id}` // Telegram user ID
       };
 
       // Extrair dados da mensagem do Telegram
@@ -252,6 +259,10 @@ export class MessageIngestionService {
         }
       }
       
+      // 🎯 Extract customer name from WhatsApp user
+      const customerName = message.profile?.name || message.from || 'Unknown';
+      const customerId = customerName; // Use name as ID for customer identification
+      
       const metadata: Record<string, any> = {
         whatsappMessageId: message.id,
         chatId: chatId, // WhatsApp usa 'from' como identificador único do chat
@@ -259,7 +270,10 @@ export class MessageIngestionService {
         messageType: message.type,
         timestamp: message.timestamp,
         conversationId: conversationId, // Usar conversationId UUID do ticket
-        ticketId: ticketId // Já temos o ticketId
+        ticketId: ticketId, // Já temos o ticketId
+        customerId: customerId, // 🆕 Customer identification
+        customerName: customerName, // 🆕 Customer name for sentiment tracking
+        from: `whatsapp:${message.from}` // WhatsApp phone number
       };
 
       // Extrair dados da mensagem do WhatsApp
@@ -335,6 +349,18 @@ export class MessageIngestionService {
 
     const fromEmail = extractEmail(emailData.from);
     const toEmail = extractEmail(emailData.to);
+    
+    // 🎯 Extract customer name from email sender (name part before email)
+    const extractNameFromEmail = (emailField: any): string => {
+      if (typeof emailField === 'string') {
+        const nameMatch = emailField.match(/^(.+?)\s*</) || [null, emailField.split('@')[0]];
+        return nameMatch[1]?.trim() || emailField.split('@')[0] || 'Unknown';
+      }
+      return emailField?.value?.[0]?.name || emailField || 'Unknown';
+    };
+    
+    const customerName = extractNameFromEmail(emailData.from);
+    const customerId = fromEmail; // Use email address as unique customer ID
 
     // 🎯 TICKET CONTEXT TRACKING: Extrair ticket_id de headers de email
     const ticketId = await this.extractTicketIdFromEmailHeaders(emailData, tenantId);
@@ -363,7 +389,10 @@ export class MessageIngestionService {
         ingestionSource: 'message-ingestion-service-imap',
         originalFrom: emailData.from,
         priority: emailData.priority,
-        gmailServiceSource: emailData.metadata?.gmailServiceSource || false
+        gmailServiceSource: emailData.metadata?.gmailServiceSource || false,
+        customerId: customerId, // 🆕 Customer identification (email address)
+        customerName: customerName, // 🆕 Customer name for sentiment tracking
+        from: fromEmail // Email address
       },
       priority: emailData.priority || 'medium',
       tenantId
