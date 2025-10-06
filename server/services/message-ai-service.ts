@@ -45,10 +45,13 @@ export class MessageAIService {
    */
   async spellCheck(tenantId: string, text: string): Promise<SpellCheckResult> {
     console.log('🔍 [SPELL-CHECK] Input text:', text);
+    console.log('🔍 [SPELL-CHECK] Using SAAS ADMIN AI config service');
     
     // Use SaaS Admin AI configuration (global)
     const aiConfigService = getSaaSAdminAIConfigService();
     const providerConfig = await aiConfigService.getPreferredAIProvider();
+    
+    console.log('🔍 [SPELL-CHECK] Provider config:', providerConfig);
     
     if (!providerConfig) {
       throw new Error('No AI provider configured in SaaS Admin');
