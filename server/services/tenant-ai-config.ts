@@ -3,7 +3,7 @@
 // ========================================
 // Manages AI provider API keys per tenant
 
-import type { StorageSimple } from '../storage-simple';
+import type { IStorage } from '../storage-simple';
 
 export interface TenantAIConfig {
   openaiApiKey?: string;
@@ -21,9 +21,9 @@ export interface AIProviderConfig {
 }
 
 export class TenantAIConfigService {
-  private storage: StorageSimple;
+  private storage: IStorage;
 
-  constructor(storage: StorageSimple) {
+  constructor(storage: IStorage) {
     this.storage = storage;
   }
 
@@ -159,7 +159,7 @@ export class TenantAIConfigService {
 // Export singleton instance
 let tenantAIConfigService: TenantAIConfigService | null = null;
 
-export function getTenantAIConfigService(storage: StorageSimple): TenantAIConfigService {
+export function getTenantAIConfigService(storage: IStorage): TenantAIConfigService {
   if (!tenantAIConfigService) {
     tenantAIConfigService = new TenantAIConfigService(storage);
   }

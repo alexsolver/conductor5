@@ -320,6 +320,7 @@ export class ProcessMessageUseCase {
         const sentimentService = getSentimentService();
         const sentiment = await sentimentService.detectSentiment(
           message.content || message.body || '',
+          tenantId,
           {
             subject: message.subject,
             previousMessages: [] // TODO: Buscar histórico de mensagens do ticket

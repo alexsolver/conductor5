@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { getTenantAIConfigService } from '../../../../services/tenant-ai-config';
+import { storageSimple } from '../../../../storage-simple';
 
 export interface SentimentAnalysis {
   sentiment: 'positive' | 'neutral' | 'negative';
@@ -14,33 +16,34 @@ export interface SentimentAnalysis {
  * Analisa mensagens e retorna sentimento, emoção e urgência
  */
 export class SentimentDetectionService {
-  private openai: OpenAI | null = null;
-
-  constructor() {
-    // Inicializar OpenAI se API key estiver disponível
-    if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-    } else {
-      console.warn(`⚠️ [SENTIMENT] OpenAI API key not found - sentiment detection will use fallback`);
-    }
-  }
-
   /**
-   * Detecta sentimento em uma mensagem
+   * Detecta sentimento em uma mensagem usando AI configurada por tenant
    */
-  async detectSentiment(messageContent: string, context?: {
-    subject?: string;
-    previousMessages?: string[];
-  }): Promise<SentimentAnalysis> {
+  async detectSentiment(
+    messageContent: string, 
+    tenantId: string,
+    context?: {
+      subject?: string;
+      previousMessages?: string[];
+    }
+  ): Promise<SentimentAnalysis> {
     try {
-      // Se não houver OpenAI configurado, usar detecção básica por palavras-chave
-      if (!this.openai) {
+      // Buscar configuração de AI do tenant
+      const aiConfigService = getTenantAIConfigService(storageSimple as any);
+      const aiProvider = await aiConfigService.getPreferredAIProvider(tenantId);
+
+      // Se não houver configuração de AI, usar detecção básica por palavras-chave
+      if (!aiProvider) {
+        console.warn(`⚠️ [SENTIMENT] No AI provider configured for tenant ${tenantId} - using fallback`);
         return this.fallbackSentimentDetection(messageContent);
       }
 
-      console.log(`😊 [SENTIMENT] Analyzing sentiment for message (${messageContent.length} chars)`);
+      console.log(`😊 [SENTIMENT] Using ${aiProvider.provider} for tenant ${tenantId} - Analyzing sentiment for message (${messageContent.length} chars)`);
+
+      // Criar cliente OpenAI com configuração do tenant
+      const openai = new OpenAI({
+        apiKey: aiProvider.apiKey,
+      });
 
       // Preparar contexto adicional
       const contextInfo = context?.subject ? `Assunto: ${context.subject}\n` : '';
@@ -49,8 +52,8 @@ export class SentimentDetectionService {
         : '';
 
       // Chamar OpenAI para análise de sentimento
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const response = await openai.chat.completions.create({
+        model: aiProvider.model,
         messages: [
           {
             role: 'system',
@@ -186,11 +189,14 @@ Considere:
   /**
    * Detecta sentimento em batch (múltiplas mensagens)
    */
-  async detectSentimentBatch(messages: Array<{
-    id: string;
-    content: string;
-    subject?: string;
-  }>): Promise<Map<string, SentimentAnalysis>> {
+  async detectSentimentBatch(
+    messages: Array<{
+      id: string;
+      content: string;
+      subject?: string;
+    }>,
+    tenantId: string
+  ): Promise<Map<string, SentimentAnalysis>> {
     const results = new Map<string, SentimentAnalysis>();
     
     // Processar em paralelo (máximo 5 por vez para não sobrecarregar API)
@@ -198,7 +204,7 @@ Considere:
     for (let i = 0; i < messages.length; i += batchSize) {
       const batch = messages.slice(i, i + batchSize);
       const analyses = await Promise.all(
-        batch.map(msg => this.detectSentiment(msg.content, { subject: msg.subject }))
+        batch.map(msg => this.detectSentiment(msg.content, tenantId, { subject: msg.subject }))
       );
       
       batch.forEach((msg, index) => {
