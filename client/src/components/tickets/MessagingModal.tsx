@@ -30,7 +30,6 @@ import {
   AlertCircle,
   Wand2,
   Languages,
-  Sparkles,
   MessageSquarePlus,
   CheckCircle,
   Loader2,
@@ -311,40 +310,6 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
     },
   });
 
-  const quickReplyMutation = useMutation({
-    mutationFn: async () => {
-      const currentMessage = form.getValues('message');
-      const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
-      return await response.json();
-    },
-    onSuccess: (data: any) => {
-      if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
-        form.setValue('message', data.suggestions[0], {
-          shouldValidate: true,
-          shouldDirty: true,
-          shouldTouch: true,
-        });
-        toast({
-          title: "Sugestão Aplicada",
-          description: "Resposta rápida gerada com IA",
-        });
-      } else {
-        toast({
-          title: "Aviso",
-          description: "Não foi possível gerar uma sugestão",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Falha ao gerar sugestão",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -610,22 +575,6 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
                   Resumir
                 </Button>
 
-                {/* Quick Reply */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => quickReplyMutation.mutate()}
-                  disabled={quickReplyMutation.isPending}
-                  data-testid="button-quick-reply-messaging"
-                >
-                  {quickReplyMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4 mr-2" />
-                  )}
-                  Sugestão IA
-                </Button>
               </div>
             </div>
 
