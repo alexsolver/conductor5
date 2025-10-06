@@ -149,11 +149,18 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/spell-check', { text: currentMessage });
       return await response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto corrigido válido
       if (data.correctedText && data.correctedText.trim()) {
-        form.setValue('message', data.correctedText);
-        await form.trigger('message');
+        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, data.correctedText);
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+          }
+        }
       }
       
       if (data.suggestions && data.suggestions.length > 0) {
@@ -183,11 +190,18 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/rewrite', { text: currentMessage, tone });
       return await response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto reescrito válido
       if (data.rewrittenText && data.rewrittenText.trim()) {
-        form.setValue('message', data.rewrittenText);
-        await form.trigger('message');
+        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, data.rewrittenText);
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+          }
+        }
         toast({
           title: "Texto Reescrito",
           description: `Mensagem reescrita com tom ${data.tone}`,
@@ -215,11 +229,18 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/translate', { text: currentMessage, targetLanguage });
       return await response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       // Só atualiza o texto se houver um texto traduzido válido
       if (data.translatedText && data.translatedText.trim()) {
-        form.setValue('message', data.translatedText);
-        await form.trigger('message');
+        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, data.translatedText);
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+          }
+        }
         toast({
           title: "Texto Traduzido",
           description: `Mensagem traduzida para ${data.targetLanguage}`,
@@ -247,11 +268,18 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/summarize', { text: currentMessage, length });
       return await response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       // Só atualiza o texto se houver um resumo válido
       if (data.summary && data.summary.trim()) {
-        form.setValue('message', data.summary);
-        await form.trigger('message');
+        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, data.summary);
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+          }
+        }
         toast({
           title: "Texto Resumido",
           description: "Mensagem resumida com sucesso",
@@ -279,10 +307,17 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       const response = await apiRequest('POST', '/api/message-ai/quick-reply', { text: currentMessage });
       return await response.json();
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       if (data.suggestions && data.suggestions.length > 0 && data.suggestions[0].trim()) {
-        form.setValue('message', data.suggestions[0]);
-        await form.trigger('message');
+        const textarea = document.querySelector('[data-testid="textarea-email-message"]') as HTMLTextAreaElement;
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, data.suggestions[0]);
+            const event = new Event('input', { bubbles: true });
+            textarea.dispatchEvent(event);
+          }
+        }
         toast({
           title: "Sugestão Aplicada",
           description: "Resposta rápida gerada com IA",
