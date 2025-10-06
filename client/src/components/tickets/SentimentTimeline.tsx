@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { User, UserCheck } from 'lucide-react';
 
+interface SenderInfo {
+  id: string;
+  name: string;
+  type: 'agent' | 'customer';
+  email?: string;
+}
+
 interface Message {
   id: string;
   status: string;
@@ -10,6 +17,7 @@ interface Message {
   metadata?: {
     sentiment?: 'positive' | 'negative' | 'neutral';
     sentimentScore?: number;
+    senderInfo?: SenderInfo;
   };
 }
 
@@ -28,8 +36,32 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
       });
   }, [messages]);
 
-  const agentMessages = sortedMessages.filter(m => m.status === 'sent');
-  const userMessages = sortedMessages.filter(m => m.status === 'received');
+  // Group messages by sender (each person gets their own timeline) 
+  const messagesBySender = useMemo(() => {
+    const grouped = new Map<string, { sender: SenderInfo; messages: Message[] }>();
+    
+    sortedMessages.forEach(msg => {
+      const senderInfo = msg.metadata?.senderInfo;
+      if (!senderInfo) return;
+      
+      const senderId = senderInfo.id;
+      if (!grouped.has(senderId)) {
+        grouped.set(senderId, {
+          sender: senderInfo,
+          messages: []
+        });
+      }
+      grouped.get(senderId)!.messages.push(msg);
+    });
+    
+    // Sort by type (agents first, then customers) and then by name
+    return Array.from(grouped.values()).sort((a, b) => {
+      if (a.sender.type !== b.sender.type) {
+        return a.sender.type === 'agent' ? -1 : 1;
+      }
+      return a.sender.name.localeCompare(b.sender.name);
+    });
+  }, [sortedMessages]);
 
   const getSentimentColor = (sentiment?: string, score?: number) => {
     if (!sentiment) return 'bg-gray-300';
@@ -164,29 +196,32 @@ export function SentimentTimeline({ messages }: SentimentTimelineProps) {
         </div>
       ) : (
         <>
-          <div className="space-y-4">
-            {renderTimelineTrack(
-              agentMessages,
-              'Agente',
-              <UserCheck className="h-4 w-4 text-blue-600" />,
-              'bg-blue-50'
-            )}
-            
-            <div className="border-t border-gray-200"></div>
-
-            {renderTimelineTrack(
-              userMessages,
-              'Usuário',
-              <User className="h-4 w-4 text-purple-600" />,
-              'bg-purple-50'
-            )}
+          <div className="space-y-3">
+            {messagesBySender.map((group, index) => {
+              const isAgent = group.sender.type === 'agent';
+              const icon = isAgent 
+                ? <UserCheck className="h-4 w-4 text-blue-600" /> 
+                : <User className="h-4 w-4 text-purple-600" />;
+              
+              return (
+                <div key={group.sender.id}>
+                  {index > 0 && <div className="border-t border-gray-200 my-2"></div>}
+                  {renderTimelineTrack(
+                    group.messages,
+                    group.sender.name,
+                    icon,
+                    isAgent ? 'bg-blue-50' : 'bg-purple-50'
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-200">
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>Total de mensagens: {sortedMessages.length}</span>
               <span>
-                Agente: {agentMessages.length} | Usuário: {userMessages.length}
+                {messagesBySender.length} {messagesBySender.length === 1 ? 'pessoa' : 'pessoas'}
               </span>
             </div>
           </div>

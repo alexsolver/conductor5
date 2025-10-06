@@ -1810,7 +1810,25 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
         NULL::text as cc_address,
         NULL::text as bcc_address,
         NOT tm.is_internal as is_public,
-        COALESCE(tm.metadata, '{}'::jsonb) as metadata,
+        jsonb_set(
+          COALESCE(tm.metadata, '{}'::jsonb),
+          '{senderInfo}',
+          CASE 
+            WHEN tm.metadata->>'agentMessage' = 'true' THEN 
+              jsonb_build_object(
+                'id', tm.sender_id::text,
+                'name', COALESCE(u.name, u.email, 'Agente'),
+                'type', 'agent',
+                'email', u.email
+              )
+            ELSE 
+              jsonb_build_object(
+                'id', COALESCE(tm.metadata->>'customerId', tm.metadata->>'from', 'unknown'),
+                'name', COALESCE(tm.metadata->>'customerName', tm.metadata->>'from', 'Cliente'),
+                'type', 'customer'
+              )
+          END
+        ) as metadata,
         tm.created_at as timestamp,
         tm.updated_at
       FROM "${schemaName}".ticket_messages tm
