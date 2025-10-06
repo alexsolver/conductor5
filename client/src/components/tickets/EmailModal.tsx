@@ -95,7 +95,8 @@ export default function EmailModal({ isOpen, onClose, ticketId, ticketSubject }:
       });
       setAttachments([]);
     }
-  }, [isOpen, form, ticketSubject]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, ticketSubject]);
 
   // Mutation para enviar email
   const sendEmailMutation = useMutation({

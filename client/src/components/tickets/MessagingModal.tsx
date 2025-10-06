@@ -115,7 +115,8 @@ export default function MessagingModal({ isOpen, onClose, ticketId, ticketNumber
       });
       setMediaFiles([]);
     }
-  }, [isOpen, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Mutation para enviar mensagem
   const sendMessageMutation = useMutation({
