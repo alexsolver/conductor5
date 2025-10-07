@@ -49,9 +49,23 @@ export class LoginUseCase {
       throw new Error('Invalid email or password');
     }
 
-    // Check concurrent session limits
+    // Clean expired sessions before counting (prevents false positives)
+    await this.authRepository.cleanExpiredSessions();
+    
+    // Manage concurrent session limits - auto-remove oldest session if needed
+    const maxSessions = 5;
     const activeSessionCount = await this.authRepository.countUserActiveSessions(user.id);
-    this.authDomainService.validateConcurrentSessions(activeSessionCount);
+    
+    // If user has reached the maximum sessions, remove the oldest one automatically
+    if (activeSessionCount >= maxSessions) {
+      const userSessions = await this.authRepository.findUserActiveSessions(user.id);
+      
+      if (userSessions.length > 0) {
+        // Sessions are ordered by lastUsedAt desc, so the last one is the oldest
+        const oldestSession = userSessions[userSessions.length - 1];
+        await this.authRepository.invalidateSession(oldestSession.id);
+      }
+    }
 
     // Create token expiry dates
     const { accessTokenExpiry, refreshTokenExpiry } = this.authDomainService.createTokenExpiry(dto.rememberMe);

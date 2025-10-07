@@ -148,12 +148,14 @@ export class DrizzleAuthRepository implements IAuthRepository {
   }
 
   async findUserActiveSessions(userId: string): Promise<AuthSession[]> {
+    const now = new Date();
     const sessions = await db
       .select()
       .from(authSessions)
       .where(and(
         eq(authSessions.userId, userId),
-        eq(authSessions.isActive, true)
+        eq(authSessions.isActive, true),
+        gte(authSessions.refreshExpiresAt, now)
       ))
       .orderBy(desc(authSessions.updatedAt));
 
@@ -231,12 +233,14 @@ export class DrizzleAuthRepository implements IAuthRepository {
   }
 
   async countUserActiveSessions(userId: string): Promise<number> {
+    const now = new Date();
     const [result] = await db
       .select({ count: count() })
       .from(authSessions)
       .where(and(
         eq(authSessions.userId, userId),
-        eq(authSessions.isActive, true)
+        eq(authSessions.isActive, true),
+        gte(authSessions.refreshExpiresAt, now)
       ));
 
     return result?.count ?? 0;
