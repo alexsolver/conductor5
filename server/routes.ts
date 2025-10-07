@@ -5668,9 +5668,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const approvalRoutes = approvalRoutesModule.default;
     
     if (approvalRoutes) {
-      app.use("/api/approvals", jwtAuth, approvalRoutes);
+      // Conditional auth middleware: skip auth for public routes
+      const conditionalAuth = (req: any, res: any, next: any) => {
+        // Skip authentication for public approval endpoints
+        if (req.path.startsWith('/public/')) {
+          console.log('🔓 [APPROVAL-PUBLIC] Skipping auth for public route:', req.path);
+          return next();
+        }
+        // Apply authentication for all other routes
+        return jwtAuth(req, res, next);
+      };
+      
+      app.use("/api/approvals", conditionalAuth, approvalRoutes);
+      
       console.log(
-        "✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals",
+        "✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals (including public endpoints)",
       );
     } else {
       console.warn(
