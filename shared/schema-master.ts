@@ -155,6 +155,9 @@ export const approvalInstances = pgTable("approval_instances", {
   status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected, expired
   requestedById: uuid("requested_by_id").notNull(),
   slaDeadline: timestamp("sla_deadline"),
+  approvalToken: varchar("approval_token", { length: 255 }),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  approvedViaEmail: boolean("approved_via_email").default(false),
   metadata: jsonb("metadata").default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
