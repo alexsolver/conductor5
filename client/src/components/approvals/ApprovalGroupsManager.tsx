@@ -89,15 +89,30 @@ export function ApprovalGroupsManager() {
       console.log('🔧 [CREATE-GROUP] Tentando criar grupo:', groupData);
       const response = await apiRequest('POST', '/api/approvals/groups', groupData);
       
+      console.log('📡 [CREATE-GROUP] Response status:', response.status, response.statusText);
+      console.log('📡 [CREATE-GROUP] Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ [CREATE-GROUP] Erro na resposta:', errorText);
         throw new Error(errorText || 'Erro ao criar grupo');
       }
       
-      const result = await response.json();
-      console.log('✅ [CREATE-GROUP] Grupo criado com sucesso:', result);
-      return result;
+      const contentType = response.headers.get('content-type');
+      console.log('📡 [CREATE-GROUP] Content-Type:', contentType);
+      
+      const responseText = await response.text();
+      console.log('📡 [CREATE-GROUP] Response body:', responseText.substring(0, 200));
+      
+      try {
+        const result = JSON.parse(responseText);
+        console.log('✅ [CREATE-GROUP] Grupo criado com sucesso:', result);
+        return result;
+      } catch (e) {
+        console.error('❌ [CREATE-GROUP] Erro ao fazer parse do JSON:', e);
+        console.error('❌ [CREATE-GROUP] Response recebido:', responseText);
+        throw new Error('Resposta inválida do servidor');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/groups'] });
