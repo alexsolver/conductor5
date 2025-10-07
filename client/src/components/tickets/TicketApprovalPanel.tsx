@@ -36,7 +36,6 @@ interface ApprovalInstance {
   requestedById: string;
   requestedByName?: string;
   requestReason?: string;
-  urgencyLevel: number;
   slaDeadline?: string;
   completedAt?: string;
   completedById?: string;
@@ -157,24 +156,6 @@ export function TicketApprovalPanel({ ticketId }: TicketApprovalPanelProps) {
     );
   };
 
-  const getUrgencyBadge = (level: number) => {
-    const configs = [
-      { variant: 'outline', label: 'Baixa', color: 'text-green-600' },
-      { variant: 'secondary', label: 'Normal', color: 'text-blue-600' },
-      { variant: 'default', label: 'Alta', color: 'text-orange-600' },
-      { variant: 'destructive', label: 'Crítica', color: 'text-red-600' },
-      { variant: 'destructive', label: 'Urgente', color: 'text-red-700' },
-    ];
-    
-    const config = configs[Math.min(level - 1, 4)] || configs[1];
-    
-    return (
-      <Badge variant={config.variant as any} className={config.color}>
-        {config.label}
-      </Badge>
-    );
-  };
-
   const getSlaProgress = (instance: ApprovalInstance) => {
     if (!instance.slaDeadline) return null;
     
@@ -246,7 +227,6 @@ export function TicketApprovalPanel({ ticketId }: TicketApprovalPanelProps) {
                       {instance.ruleName || 'Aprovação necessária'}
                     </CardTitle>
                     {getStatusBadge(instance.status)}
-                    {getUrgencyBadge(instance.urgencyLevel)}
                   </div>
                   
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
