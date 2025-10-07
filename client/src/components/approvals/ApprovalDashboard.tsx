@@ -34,12 +34,12 @@ export function ApprovalDashboard() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="dashboard-loading">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="animate-pulse" data-testid={`skeleton-card-${i}`}>
+          <Card key={i} className="animate-pulse border-none bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900" data-testid={`skeleton-card-${i}`}>
             <CardHeader className="pb-2">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
             </CardContent>
           </Card>
         ))}
@@ -53,99 +53,109 @@ export function ApprovalDashboard() {
       value: metrics?.activeRules || 0,
       total: metrics?.totalRules || 0,
       icon: FileText,
-      color: 'blue',
+      gradient: 'from-blue-500 to-cyan-500',
+      bgGradient: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
+      iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
       testId: 'metric-active-rules'
     },
     {
       title: 'Pendentes',
       value: metrics?.pendingInstances || 0,
       icon: Clock,
-      color: 'yellow',
+      gradient: 'from-amber-500 to-orange-500',
+      bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
+      iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
       testId: 'metric-pending'
     },
     {
       title: 'Aprovadas',
       value: metrics?.approvedInstances || 0,
       icon: CheckCircle,
-      color: 'green',
+      gradient: 'from-emerald-500 to-green-500',
+      bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
+      iconBg: 'bg-gradient-to-br from-emerald-500 to-green-500',
       testId: 'metric-approved'
     },
     {
       title: 'Rejeitadas',
       value: metrics?.rejectedInstances || 0,
       icon: XCircle,
-      color: 'red',
+      gradient: 'from-rose-500 to-red-500',
+      bgGradient: 'from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30',
+      iconBg: 'bg-gradient-to-br from-rose-500 to-red-500',
       testId: 'metric-rejected'
     },
     {
       title: 'Em Atraso',
       value: metrics?.overdueInstances || 0,
       icon: AlertTriangle,
-      color: 'orange',
+      gradient: 'from-orange-500 to-red-500',
+      bgGradient: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
+      iconBg: 'bg-gradient-to-br from-orange-500 to-red-500',
       testId: 'metric-overdue'
     },
     {
       title: 'Tempo Médio',
       value: `${Math.round((metrics?.averageResponseTime || 0) / 3600)}h`,
       icon: Timer,
-      color: 'purple',
+      gradient: 'from-purple-500 to-pink-500',
+      bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
+      iconBg: 'bg-gradient-to-br from-purple-500 to-pink-500',
       testId: 'metric-avg-time'
     },
     {
       title: 'SLA Compliance',
       value: `${Math.round(metrics?.slaCompliance || 0)}%`,
       icon: TrendingUp,
-      color: 'cyan',
+      gradient: 'from-cyan-500 to-blue-500',
+      bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
+      iconBg: 'bg-gradient-to-br from-cyan-500 to-blue-500',
       testId: 'metric-sla'
     },
     {
       title: 'Aprovadores',
-      value: '12', // This would come from user stats
+      value: '12',
       icon: Users,
-      color: 'indigo',
+      gradient: 'from-indigo-500 to-purple-500',
+      bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
+      iconBg: 'bg-gradient-to-br from-indigo-500 to-purple-500',
       testId: 'metric-approvers'
     }
   ];
-
-  const getColorClasses = (color: string) => {
-    const colors = {
-      blue: 'text-blue-600 bg-blue-100 dark:bg-blue-900/20',
-      yellow: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20',
-      green: 'text-green-600 bg-green-100 dark:bg-green-900/20',
-      red: 'text-red-600 bg-red-100 dark:bg-red-900/20',
-      orange: 'text-orange-600 bg-orange-100 dark:bg-orange-900/20',
-      purple: 'text-purple-600 bg-purple-100 dark:bg-purple-900/20',
-      cyan: 'text-cyan-600 bg-cyan-100 dark:bg-cyan-900/20',
-      indigo: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/20'
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
-  };
 
   return (
     <div className="space-y-6" data-testid="approval-dashboard">
       {/* Main Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="metrics-grid">
         {stats.map((stat, index) => (
-          <Card key={index} data-testid={stat.testId}>
+          <Card 
+            key={index} 
+            className={`border-none bg-gradient-to-br ${stat.bgGradient} hover:shadow-lg transition-all duration-300 hover:scale-105`}
+            data-testid={stat.testId}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${getColorClasses(stat.color)}`}>
-                <stat.icon className="h-4 w-4" />
+              <div className={`p-2 rounded-lg ${stat.iconBg} shadow-md`}>
+                <stat.icon className="h-4 w-4 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid={`value-${stat.testId}`}>
+              <div className="text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent" style={{
+                backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))`,
+                '--tw-gradient-from': stat.gradient.split(' ')[0].replace('from-', ''),
+                '--tw-gradient-to': stat.gradient.split(' ')[2].replace('to-', '')
+              } as React.CSSProperties} data-testid={`value-${stat.testId}`}>
                 {stat.value}
                 {stat.total && (
-                  <span className="text-sm text-gray-500 ml-1">/ {stat.total}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/ {stat.total}</span>
                 )}
               </div>
               {stat.title === 'Regras Ativas' && stat.total && (
                 <Progress 
                   value={(stat.value / stat.total) * 100} 
-                  className="mt-2" 
+                  className="mt-3 h-2" 
                   data-testid="rules-progress"
                 />
               )}
@@ -156,90 +166,88 @@ export function ApprovalDashboard() {
 
       {/* SLA Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="performance-section">
-        <Card data-testid="sla-performance-card">
+        <Card className="border-none bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30" data-testid="sla-performance-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 shadow-md">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
               Performance SLA
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center" data-testid="sla-compliance">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Compliance Geral</span>
-                <Badge variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive"}>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Compliance Geral</span>
+                <Badge 
+                  variant={metrics?.slaCompliance && metrics.slaCompliance > 90 ? "default" : "destructive"}
+                  className="text-sm px-3 py-1"
+                >
                   {Math.round(metrics?.slaCompliance || 0)}%
                 </Badge>
               </div>
-              <Progress value={metrics?.slaCompliance || 0} className="h-2" />
+              <Progress value={metrics?.slaCompliance || 0} className="h-3" />
               
-              <div className="text-xs text-gray-500 dark:text-gray-400" data-testid="sla-details">
-                Baseado nas últimas 30 aprovações completadas
+              <div className="pt-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Meta de Compliance</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">95%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Tempo Médio de Resposta</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {Math.round((metrics?.averageResponseTime || 0) / 3600)}h
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card data-testid="recent-activity-card">
+        <Card className="border-none bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30" data-testid="recent-activity-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 shadow-md">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
               Atividade Recente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3" data-testid="activity-list">
-              <div className="flex items-center justify-between text-sm">
-                <span>Ticket #TK-2024-001 aprovado</span>
-                <Badge variant="secondary">2h atrás</Badge>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-full bg-green-500">
+                    <CheckCircle className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Aprovação concedida</span>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">há 5min</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Material #MT-2024-005 rejeitado</span>
-                <Badge variant="destructive">4h atrás</Badge>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-full bg-amber-500">
+                    <Clock className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Aguardando aprovação</span>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">há 15min</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Regra "Alto Valor" criada</span>
-                <Badge variant="secondary">1d atrás</Badge>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-full bg-red-500">
+                    <XCircle className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Aprovação rejeitada</span>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">há 1h</span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card data-testid="quick-actions-card">
-        <CardHeader>
-          <CardTitle>Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3" data-testid="quick-actions">
-            <button 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              data-testid="button-create-rule"
-            >
-              Nova Regra
-            </button>
-            <button 
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              data-testid="button-bulk-approve"
-            >
-              Aprovação em Lote
-            </button>
-            <button 
-              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-              data-testid="button-overdue-report"
-            >
-              Relatório Atrasos
-            </button>
-            <button 
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              data-testid="button-export-metrics"
-            >
-              Exportar Métricas
-            </button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
