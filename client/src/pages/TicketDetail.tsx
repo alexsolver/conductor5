@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
-import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip, Reply } from "lucide-react";
+import { ArrowLeft, Calendar, User, Building, MapPin, FileText, MessageSquare, History, Paperclip, Reply, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLocalization } from "@/hooks/useLocalization";
 import { SlaLedSimple } from "@/components/SlaLedSimple";
 import { MessageReplyModal } from "@/components/MessageReplyModal";
+import { TicketApprovalPanel } from "@/components/tickets/TicketApprovalPanel";
 
 interface Ticket {
   id: string;
@@ -363,7 +364,7 @@ export default function TicketDetail() {
 
           {/* Tabs for detailed content */}
           <Tabs defaultValue="attachments" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="attachments" className="flex items-center">
                 <Paperclip className="h-4 w-4 mr-2" />
                 {t('tickets.attachments')} ({attachments?.length || 0})
@@ -374,6 +375,10 @@ export default function TicketDetail() {
               </TabsTrigger>
               <TabsTrigger value="notes">
                 {t('tickets.notes')} ({notes?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger value="approvals" className="flex items-center">
+                <Shield className="h-4 w-4 mr-2" />
+                Aprovações
               </TabsTrigger>
               <TabsTrigger value="history" className="flex items-center">
                 <History className="h-4 w-4 mr-2" />
@@ -521,6 +526,10 @@ export default function TicketDetail() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="approvals">
+              <TicketApprovalPanel ticketId={ticket.id} />
             </TabsContent>
 
             <TabsContent value="history">
