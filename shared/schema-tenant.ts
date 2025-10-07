@@ -28,7 +28,6 @@ import { sql } from "drizzle-orm";
 // ENUMS DEFINITION
 // ========================================
 
-export const customerTypeEnum = pgEnum("customer_type_enum", ["PF", "PJ"]);
 export const ticketStatusEnum = pgEnum("ticket_status_enum", ["open", "in_progress", "resolved", "closed", "cancelled"]);
 export const ticketPriorityEnum = pgEnum("ticket_priority_enum", ["low", "medium", "high", "urgent"]);
 export const itemTypeEnum = pgEnum("item_type_enum", ["material", "service", "tool", "equipment"]);
@@ -63,11 +62,7 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }),
   mobilePhone: varchar("mobile_phone", { length: 20 }),
-  customerType: customerTypeEnum("customer_type").default("PF"),
   cpf: varchar("cpf", { length: 14 }),
-  cnpj: varchar("cnpj", { length: 18 }),
-  companyName: varchar("company_name", { length: 255 }),
-  contactPerson: varchar("contact_person", { length: 255 }),
   addressStreet: varchar("address_street", { length: 255 }),
   addressNumber: varchar("address_number", { length: 20 }),
   addressComplement: varchar("address_complement", { length: 100 }),
@@ -88,7 +83,6 @@ export const customers = pgTable("customers", {
   uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
   tenantEmailIdx: index("customers_tenant_email_idx").on(table.tenantId, table.email),
   tenantActiveIdx: index("customers_tenant_active_idx").on(table.tenantId, table.isActive),
-  tenantTypeIdx: index("customers_tenant_type_idx").on(table.tenantId, table.customerType),
 }));
 
 // Companies table
