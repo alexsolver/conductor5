@@ -3463,7 +3463,8 @@ const TicketDetails = React.memo(() => {
                   variant="ghost"
                   size="sm"
                   className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-100"
-                  onClick={() => console.log('Open locations management')}
+                  onClick={() => window.open('/locations', '_blank')}
+                  data-testid="button-manage-locations"
                 >
                   <ExternalLink className="h-3 w-3 mr-1" />
                   Gerenciar
