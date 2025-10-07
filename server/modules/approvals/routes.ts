@@ -79,15 +79,53 @@ router.get('/tickets/:ticketId', async (req, res) => {
   try {
     const { ticketId } = req.params;
     
+    // Mock data para demonstração
+    const mockInstances = [
+      {
+        id: 'approval-instance-1',
+        ruleId: 'rule-1',
+        ruleName: 'Aprovação de Mudança Crítica',
+        currentStepIndex: 0,
+        status: 'pending',
+        requestedById: '550e8400-e29b-41d4-a716-446655440001',
+        requestedByName: 'Alex Marchetti',
+        requestReason: 'Solicitação de mudança em sistema crítico que requer aprovação gerencial',
+        urgencyLevel: 3,
+        slaDeadline: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        slaViolated: false,
+        createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        steps: [
+          {
+            stepIndex: 0,
+            stepName: 'Aprovação Gerencial',
+            status: 'pending',
+            approvers: [
+              { type: 'user', name: 'Gerente de TI', id: 'user-1' },
+              { type: 'user', name: 'Diretor de Operações', id: 'user-2' }
+            ],
+            decisions: []
+          },
+          {
+            stepIndex: 1,
+            stepName: 'Aprovação Executiva',
+            status: 'pending',
+            approvers: [
+              { type: 'user', name: 'CEO', id: 'user-3' }
+            ]
+          }
+        ]
+      }
+    ];
+    
     res.json({ 
       success: true, 
       message: 'Ticket approval instances retrieved successfully',
       data: {
-        instances: [],
+        instances: mockInstances,
         ticket: {
           id: ticketId,
-          hasActiveApprovals: false,
-          requiresApproval: false
+          hasActiveApprovals: true,
+          requiresApproval: true
         }
       }
     });
