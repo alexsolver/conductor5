@@ -3476,31 +3476,55 @@ const TicketDetails = React.memo(() => {
                   value={form.getValues('location') || ticket.location || ''}
                   disabled={!isEditMode}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-8 text-xs" data-testid="select-location">
                     <SelectValue placeholder="Selecione o local">
                       {(() => {
                         const currentValue = form.getValues('location') || ticket.location;
-                        const location = locationsData?.data?.locations?.find((l: any) => l.id === currentValue);
+                        const locations = locationsData?.data || [];
+                        const location = locations.find((l: any) => l.id === currentValue);
                         return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Selecione o local');
                       })()}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unspecified">Não especificado</SelectItem>
-                    {locationsData?.data?.locations?.map((location: any) => (
+                    {(locationsData?.data || []).map((location: any) => (
                       <SelectItem key={location.id} value={location.id}>
                         {location.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {(ticket.locationDetails || locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)) && (
-                  <div className="text-xs text-green-600">
-                    📍 {ticket.locationDetails?.address ||
-                        locationsData?.data?.locations?.find((l: any) => l.id === ticket.location)?.address ||
-                        'Endereço não informado'}
-                  </div>
-                )}
+                {(() => {
+                  const locations = locationsData?.data || [];
+                  const selectedLocation = locations.find((l: any) => l.id === ticket.location);
+                  
+                  // Format address from location data
+                  let displayAddress = ticket.locationDetails?.address;
+                  
+                  if (!displayAddress && selectedLocation) {
+                    const parts = [
+                      selectedLocation.addressStreet || selectedLocation.address_street,
+                      selectedLocation.addressNumber || selectedLocation.address_number,
+                      selectedLocation.addressCity || selectedLocation.address_city,
+                      selectedLocation.addressState || selectedLocation.address_state
+                    ].filter(Boolean);
+                    
+                    if (parts.length > 0) {
+                      displayAddress = parts.join(', ');
+                    }
+                  }
+                  
+                  if (displayAddress) {
+                    return (
+                      <div className="text-xs text-green-600 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {displayAddress}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           </div>
