@@ -7,6 +7,7 @@ import { Ticket } from '../../domain/entities/Ticket';
 import { TicketDomainService } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { CreateTicketDTO } from '../dto/CreateTicketDTO';
+import { ticketNumberGenerator } from '../../../../utils/ticketNumberGenerator';
 
 export class CreateTicketUseCase {
   constructor(
@@ -24,10 +25,14 @@ export class CreateTicketUseCase {
       throw new Error('Created by user ID is required');
     }
 
+    // Gerar número do ticket conforme configuração de numeração
+    const companyId = dto.companyId || '';
+    const ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, companyId);
+
     // Preparar dados do ticket
     const ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'> = {
       tenantId,
-      number: this.ticketDomainService.generateTicketNumber(),
+      number: ticketNumber,
       subject: dto.subject?.trim() || '',
       description: dto.description?.trim() || '',
       status: dto.status || 'new',
@@ -58,27 +63,6 @@ export class CreateTicketUseCase {
 
     // Validação de regras de negócio
     this.ticketDomainService.validate(ticketData);
-
-    // Verificar se o número do ticket é único (fallback de segurança)
-    let attempts = 0;
-    while (attempts < 5) {
-      const existingTicket = await this.ticketRepository.findByNumber(
-        ticketData.number, 
-        tenantId
-      );
-      
-      if (!existingTicket) {
-        break;
-      }
-      
-      // Regenerar número se já existir
-      ticketData.number = this.ticketDomainService.generateTicketNumber();
-      attempts++;
-    }
-
-    if (attempts >= 5) {
-      throw new Error('Unable to generate unique ticket number');
-    }
 
     // Aplicar regras de negócio específicas
     if (ticketData.status === 'new' && ticketData.assignedToId) {
