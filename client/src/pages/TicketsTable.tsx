@@ -1650,14 +1650,20 @@ const TicketsTable = React.memo(() => {
     }
 
     // Mapear todas as colunas disponíveis (incluindo campos customizados)
-    const columnsData = availableColumns.map((column, index) => ({
-      id: column.id,
-      label: column.label,
-      visible: selectedColumns.includes(column.id),
-      order: index + 1,
-      width: column.id === 'subject' ? 300 : column.id === 'description' ? 250 : 150,
-      isCustom: (column as any).isCustom || false
-    }));
+    // IMPORTANTE: A ordem deve refletir a posição em selectedColumns
+    const columnsData = availableColumns.map((column) => {
+      const isVisible = selectedColumns.includes(column.id);
+      const orderIndex = isVisible ? selectedColumns.indexOf(column.id) : 999; // Colunas não visíveis vão para o final
+      
+      return {
+        id: column.id,
+        label: column.label,
+        visible: isVisible,
+        order: orderIndex + 1, // order começa em 1
+        width: column.id === 'subject' ? 300 : column.id === 'description' ? 250 : 150,
+        isCustom: (column as any).isCustom || false
+      };
+    });
 
     const viewData = {
       name: newViewName,
@@ -1693,10 +1699,15 @@ const TicketsTable = React.memo(() => {
     setNewViewName(view.name);
     console.log('✏️ [EDIT-VIEW] Set name to:', view.name);
     setNewViewDescription(view.description || "");
-    // Pegar apenas as colunas VISÍVEIS
-    const columnIds = view.columns?.filter((col: any) => col.visible).map((col: any) => col.id) || [];
-    console.log('✏️ [EDIT-VIEW] Setting selected columns (visible only):', columnIds);
-    setSelectedColumns(columnIds);
+    
+    // Pegar apenas as colunas VISÍVEIS e ordenar pela propriedade 'order'
+    const visibleColumns = view.columns?.filter((col: any) => col.visible) || [];
+    const sortedColumnIds = visibleColumns
+      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+      .map((col: any) => col.id);
+    
+    console.log('✏️ [EDIT-VIEW] Setting selected columns (visible only, sorted by order):', sortedColumnIds);
+    setSelectedColumns(sortedColumnIds);
     setIsPublicView(view.isPublic || false);
   };
 
