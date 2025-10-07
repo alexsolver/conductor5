@@ -88,6 +88,14 @@ const TicketDetails = React.memo(() => {
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const openActionId = urlParams.get('openAction');
+  const shouldEdit = urlParams.get('edit') === 'true';
+  
+  // Activate edit mode if requested via URL parameter
+  useEffect(() => {
+    if (shouldEdit && !isEditMode) {
+      setIsEditMode(true);
+    }
+  }, [shouldEdit]);
 
   // Fetch user groups for displaying names
   const { data: userGroupsData } = useQuery({

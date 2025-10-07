@@ -2085,7 +2085,7 @@ const TicketsTable = React.memo(() => {
 
   const handleEdit = (ticket: any) => {
     console.log('Edit ticket:', ticket.id);
-    navigate(`/tickets/${ticket.id}`);
+    navigate(`/tickets/${ticket.id}?edit=true`);
   };
 
   const handleDelete = (ticketId: string) => {
