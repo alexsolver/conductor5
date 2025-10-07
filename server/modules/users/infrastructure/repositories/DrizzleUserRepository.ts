@@ -35,7 +35,7 @@ export class DrizzleUserRepository implements IUserRepository {
           employment_type as "employmentType",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt"
         FROM ${sql.identifier(tenantSchema)}.users
-        WHERE id = ${id} AND tenant_id = ${tenantId} AND is_active = true
+        WHERE id = ${id} AND tenant_id = ${tenantId}
         LIMIT 1
       `);
 
@@ -87,7 +87,7 @@ export class DrizzleUserRepository implements IUserRepository {
           department, phone, avatar_url as "avatarUrl", is_active as "isActive",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt"
         FROM ${sql.identifier(tenantSchema)}.users
-        WHERE email = ${email} AND tenant_id = ${tenantId} AND is_active = true
+        WHERE email = ${email} AND tenant_id = ${tenantId}
         LIMIT 1
       `);
 
