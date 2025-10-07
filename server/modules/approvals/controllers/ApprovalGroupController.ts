@@ -107,11 +107,16 @@ export class ApprovalGroupController {
    * Create new approval group
    */
   async createGroup(req: Request, res: Response): Promise<void> {
+    console.log('🎯 [ApprovalGroupController] createGroup called');
+    console.log('🎯 [ApprovalGroupController] req.body:', req.body);
+    console.log('🎯 [ApprovalGroupController] req.user:', req.user);
+    
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
+        console.error('❌ [ApprovalGroupController] No tenant or user ID');
         res.status(401).json({ error: 'Usuário não autenticado' });
         return;
       }
