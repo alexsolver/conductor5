@@ -65,6 +65,7 @@ export class LoginUseCase {
 
     // Create session
     const sessionData = {
+      tenantId: user.tenantId,
       userId: user.id,
       accessToken,
       refreshToken,
