@@ -238,10 +238,18 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         LEFT JOIN ${schemaName}.customers customer
           ON t.customer_id = customer.id
         LEFT JOIN ${schemaName}.ticket_categories cat
-          ON (CASE WHEN t.category ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
-                   THEN t.category::uuid 
-                   ELSE NULL 
-              END) = cat.id
+          ON cat.id = (
+            CASE 
+              WHEN t.category IS NOT NULL AND t.category != '' 
+              THEN 
+                CASE 
+                  WHEN t.category ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+                  THEN t.category::uuid
+                  ELSE NULL
+                END
+              ELSE NULL
+            END
+          )
         WHERE t.is_active = true
           ${whereClause}
         ORDER BY t.created_at DESC
