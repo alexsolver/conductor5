@@ -706,6 +706,11 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       delete backendUpdates.linkComment;
     }
 
+    // Tags field - array for categorization
+    if (frontendUpdates.tags !== undefined) {
+      backendUpdates.tags = frontendUpdates.tags;
+    }
+
     // CORREÇÃO CRÍTICA 3: Campo location é texto livre, não FK
     if (frontendUpdates.locationId) {
       backendUpdates.location = frontendUpdates.locationId;
