@@ -132,6 +132,13 @@ const TicketDetails = React.memo(() => {
   // Followers state removed - using direct computation with currentFollowers
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+
+  // Carregar tags do ticket quando ele for carregado
+  useEffect(() => {
+    if (ticket?.tags && Array.isArray(ticket.tags)) {
+      setTags(ticket.tags);
+    }
+  }, [ticket?.tags]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1408,7 +1415,8 @@ const TicketDetails = React.memo(() => {
       // ✅ Company relationship - usar estado atualizado com fallback
       company_id: selectedCompany || data.companyId || ticket?.companyId || ticket?.company_id || null,
 
-      // Fields removed - not present in current schema: followers, tags
+      // ✅ Tags - campo array para categorização
+      tags: tags,
 
       // ✅ Metadata
       tenantId: ticket?.tenantId
@@ -1422,7 +1430,7 @@ const TicketDetails = React.memo(() => {
     });
 
     updateTicketMutation.mutate(mappedData);
-  }, [selectedCompany, form, updateTicketMutation]);
+  }, [selectedCompany, form, updateTicketMutation, tags]);
 
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {
