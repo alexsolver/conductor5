@@ -1,0 +1,21 @@
+
+queryClient.ts:47 🌐 [API-REQUEST] GET /api/schedule-notifications/count
+queryClient.ts:50 🔍 [API-REQUEST-DEBUG] Request details: {method: 'GET', url: '/api/schedule-notifications/count', hasData: false, credentials: 'include', dataType: 'undefined'}
+queryClient.ts:81 🔧 [API-REQUEST] Including tenant ID header: f2e9abbe-efa0-4653-a65a-d9533bfac894
+queryClient.ts:107 🔍 [API-REQUEST-FINAL] Making request with credentials: include
+queryClient.ts:47 🌐 [API-REQUEST] GET /api/schedule-notifications/count
+queryClient.ts:50 🔍 [API-REQUEST-DEBUG] Request details: {method: 'GET', url: '/api/schedule-notifications/count', hasData: false, credentials: 'include', dataType: 'undefined'}
+queryClient.ts:81 🔧 [API-REQUEST] Including tenant ID header: f2e9abbe-efa0-4653-a65a-d9533bfac894
+queryClient.ts:107 🔍 [API-REQUEST-FINAL] Making request with credentials: include
+queryClient.ts:47 🌐 [API-REQUEST] GET /api/schedule-notifications/count
+queryClient.ts:50 🔍 [API-REQUEST-DEBUG] Request details: {method: 'GET', url: '/api/schedule-notifications/count', hasData: false, credentials: 'include', dataType: 'undefined'}
+queryClient.ts:81 🔧 [API-REQUEST] Including tenant ID header: f2e9abbe-efa0-4653-a65a-d9533bfac894
+queryClient.ts:107 🔍 [API-REQUEST-FINAL] Making request with credentials: include
+queryClient.ts:47 🌐 [API-REQUEST] GET /api/timecard/current-status
+queryClient.ts:50 🔍 [API-REQUEST-DEBUG] Request details: {method: 'GET', url: '/api/timecard/current-status', hasData: false, credentials: 'include', dataType: 'undefined'}
+queryClient.ts:81 🔧 [API-REQUEST] Including tenant ID header: f2e9abbe-efa0-4653-a65a-d9533bfac894
+queryClient.ts:107 🔍 [API-REQUEST-FINAL] Making request with credentials: include
+queryClient.ts:47 🌐 [API-REQUEST] GET /api/schedule-notifications/count
+queryClient.ts:50 🔍 [API-REQUEST-DEBUG] Request details: {method: 'GET', url: '/api/schedule-notifications/count', hasData: false, credentials: 'include', dataType: 'undefined'}
+queryClient.ts:81 🔧 [API-REQUEST] Including tenant ID header: f2e9abbe-efa0-4653-a65a-d9533bfac894
+queryClient.ts:107 🔍 [API-REQUEST-FINAL] Making request with credentials: include
