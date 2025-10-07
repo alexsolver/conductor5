@@ -181,19 +181,19 @@ router.post('/instances/:instanceId/decision', async (req, res) => {
 // ============ APPROVAL GROUPS ROUTES ============
 
 // GET /api/approvals/groups - List approval groups
-router.get('/groups', (req, res) => approvalGroupController.listGroups(req, res));
+router.get('/groups', approvalGroupController.listGroups.bind(approvalGroupController));
 
 // GET /api/approvals/groups/:id - Get approval group by ID
-router.get('/groups/:id', (req, res) => approvalGroupController.getGroup(req, res));
+router.get('/groups/:id', approvalGroupController.getGroup.bind(approvalGroupController));
 
 // POST /api/approvals/groups - Create approval group
-router.post('/groups', (req, res) => approvalGroupController.createGroup(req, res));
+router.post('/groups', approvalGroupController.createGroup.bind(approvalGroupController));
 
 // PUT /api/approvals/groups/:id - Update approval group
-router.put('/groups/:id', (req, res) => approvalGroupController.updateGroup(req, res));
+router.put('/groups/:id', approvalGroupController.updateGroup.bind(approvalGroupController));
 
 // DELETE /api/approvals/groups/:id - Delete approval group
-router.delete('/groups/:id', (req, res) => approvalGroupController.deleteGroup(req, res));
+router.delete('/groups/:id', approvalGroupController.deleteGroup.bind(approvalGroupController));
 
 console.log('✅ [APPROVAL-ROUTES] All routes registered successfully (including groups)');
 
