@@ -200,10 +200,10 @@ export class TicketViewsController {
   // ========================================
   async deleteView(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, id: userId } = req.user!;
+      const { tenantId, id: userId, role } = req.user!;
       const { id } = req.params;
 
-      const success = await this.ticketViewsRepository.deleteView(tenantId, id, userId);
+      const success = await this.ticketViewsRepository.deleteView(tenantId, id, userId, role);
       
       if (!success) {
         return res.status(404).json({

@@ -133,16 +133,24 @@ export class TicketViewsRepository {
     return rows[0] || null;
   }
 
-  async deleteView(tenantId: string, viewId: string, userId: string): Promise<boolean> {
-    // Verificar se o usuário pode deletar (criador ou tenant admin)
-    const sql = `
-      UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
-      SET is_active = false
-      WHERE tenant_id = $1 AND id = $2 AND created_by_id = $3
-      RETURNING id
-    `;
+  async deleteView(tenantId: string, viewId: string, userId: string, role?: string): Promise<boolean> {
+    // Tenant admins podem deletar qualquer view, outros usuários apenas suas próprias
+    const sql = role === 'tenant_admin' 
+      ? `
+        UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
+        SET is_active = false
+        WHERE tenant_id = $1 AND id = $2
+        RETURNING id
+      `
+      : `
+        UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
+        SET is_active = false
+        WHERE tenant_id = $1 AND id = $2 AND created_by_id = $3
+        RETURNING id
+      `;
 
-    const rows = await this.query(sql, [tenantId, viewId, userId]);
+    const params = role === 'tenant_admin' ? [tenantId, viewId] : [tenantId, viewId, userId];
+    const rows = await this.query(sql, params);
     return rows.length > 0;
   }
 
