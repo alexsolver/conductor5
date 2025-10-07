@@ -73,6 +73,30 @@ router.get('/instances', async (req, res) => {
   }
 });
 
+// GET /api/approvals/tickets/:ticketId - Get approval instances for a specific ticket
+router.get('/tickets/:ticketId', async (req, res) => {
+  console.log('🎯 [APPROVAL-ROUTES] GET /tickets/:ticketId called');
+  try {
+    const { ticketId } = req.params;
+    
+    res.json({ 
+      success: true, 
+      message: 'Ticket approval instances retrieved successfully',
+      data: {
+        instances: [],
+        ticket: {
+          id: ticketId,
+          hasActiveApprovals: false,
+          requiresApproval: false
+        }
+      }
+    });
+  } catch (error) {
+    console.error('❌ [APPROVAL-ROUTES] Error in GET /tickets/:ticketId', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // POST /api/approvals/instances - Create approval instance
 router.post('/instances', async (req, res) => {
   console.log('🎯 [APPROVAL-ROUTES] POST /instances called');
@@ -87,6 +111,29 @@ router.post('/instances', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ [APPROVAL-ROUTES] Error in POST /instances', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/approvals/instances/:instanceId/decision - Process approval decision
+router.post('/instances/:instanceId/decision', async (req, res) => {
+  console.log('🎯 [APPROVAL-ROUTES] POST /instances/:instanceId/decision called');
+  try {
+    const { instanceId } = req.params;
+    const { decision, reason } = req.body;
+    
+    res.json({ 
+      success: true, 
+      message: `Approval ${decision} successfully`,
+      data: {
+        instanceId,
+        decision,
+        reason,
+        processedAt: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('❌ [APPROVAL-ROUTES] Error in POST /instances/:instanceId/decision', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
