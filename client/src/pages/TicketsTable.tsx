@@ -993,10 +993,17 @@ const TicketsTable = React.memo(() => {
     { id: "created", label: t("tickets.fields.created") || "Criado", visible: true, order: 9, width: 150 }
   ];
 
+  console.log('🔍 [ACTIVE-VIEW] Selected view ID:', selectedViewId);
+  console.log('🔍 [ACTIVE-VIEW] Active view:', activeView);
+  console.log('🔍 [ACTIVE-VIEW] Active columns:', activeColumns);
+
   // Filtrar apenas colunas visíveis e ordenar
   const visibleColumns = activeColumns
     .filter((col: any) => col.visible)
     .sort((a: any, b: any) => a.order - b.order);
+  
+  console.log('🔍 [VISIBLE-COLUMNS] Visible columns count:', visibleColumns.length);
+  console.log('🔍 [VISIBLE-COLUMNS] Visible columns:', visibleColumns.map((c: any) => c.id));
 
   // Componente de célula otimizado com useMemo
   const TableCellComponent = ({ column, ticket }: { column: any, ticket: Ticket }) => {
@@ -1392,6 +1399,22 @@ const TicketsTable = React.memo(() => {
           );
 
         default:
+          // Renderizar campos customizados
+          if (column.id.startsWith('custom_')) {
+            const fieldName = column.id.replace('custom_', '');
+            const customValue = (ticket as any).customFieldsData?.[fieldName] || 
+                               (ticket as any).metadata?.[fieldName] || 
+                               (ticket as any)[fieldName];
+            
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="truncate" title={customValue?.toString() || ''}>
+                  {customValue?.toString() || '-'}
+                </div>
+              </TableCell>
+            );
+          }
+          
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div className="truncate">-</div>
@@ -1549,12 +1572,16 @@ const TicketsTable = React.memo(() => {
 
   // Handle edit existing view
   const handleEditView = (view: any) => {
+    console.log('✏️ [EDIT-VIEW] Editing view:', view);
+    console.log('✏️ [EDIT-VIEW] View columns:', view.columns);
     setEditingView(view);
     setIsManageViewsOpen(false);
     setIsNewViewDialogOpen(true);
     setNewViewName(view.name);
     setNewViewDescription(view.description || "");
-    setSelectedColumns(view.columns?.map((col: any) => col.id) || []);
+    const columnIds = view.columns?.map((col: any) => col.id) || [];
+    console.log('✏️ [EDIT-VIEW] Setting selected columns:', columnIds);
+    setSelectedColumns(columnIds);
     setIsPublicView(view.isPublic || false);
   };
 
@@ -3098,7 +3125,10 @@ const TicketsTable = React.memo(() => {
               <select
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
                 value={selectedViewId}
-                onChange={(e) => setSelectedViewId(e.target.value)}
+                onChange={(e) => {
+                  console.log('📋 [VIEW-CHANGE] Changing view from', selectedViewId, 'to', e.target.value);
+                  setSelectedViewId(e.target.value);
+                }}
               >
                 <option value="default">{t('tickets.views.defaultView')}</option>
                 {ticketViews.map((view: any) => (
