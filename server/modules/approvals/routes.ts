@@ -21,6 +21,25 @@ console.log('✅ [APPROVAL-ROUTES] ApprovalGroupController initialized');
 
 // ✅ 1QA.MD: Define routes following REST standards
 
+// ============ APPROVAL GROUPS ROUTES (MUST BE FIRST) ============
+
+// GET /api/approvals/groups - List approval groups
+router.get('/groups', approvalGroupController.listGroups.bind(approvalGroupController));
+
+// GET /api/approvals/groups/:id - Get approval group by ID
+router.get('/groups/:id', approvalGroupController.getGroup.bind(approvalGroupController));
+
+// POST /api/approvals/groups - Create approval group
+router.post('/groups', approvalGroupController.createGroup.bind(approvalGroupController));
+
+// PUT /api/approvals/groups/:id - Update approval group
+router.put('/groups/:id', approvalGroupController.updateGroup.bind(approvalGroupController));
+
+// DELETE /api/approvals/groups/:id - Delete approval group
+router.delete('/groups/:id', approvalGroupController.deleteGroup.bind(approvalGroupController));
+
+// ============ GENERAL APPROVAL ROUTES ============
+
 // GET /api/approvals - List approval rules
 router.get('/', async (req, res) => {
   console.log('🎯 [APPROVAL-ROUTES] GET / called - Getting approval rules');
@@ -177,23 +196,6 @@ router.post('/instances/:instanceId/decision', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
-// ============ APPROVAL GROUPS ROUTES ============
-
-// GET /api/approvals/groups - List approval groups
-router.get('/groups', approvalGroupController.listGroups.bind(approvalGroupController));
-
-// GET /api/approvals/groups/:id - Get approval group by ID
-router.get('/groups/:id', approvalGroupController.getGroup.bind(approvalGroupController));
-
-// POST /api/approvals/groups - Create approval group
-router.post('/groups', approvalGroupController.createGroup.bind(approvalGroupController));
-
-// PUT /api/approvals/groups/:id - Update approval group
-router.put('/groups/:id', approvalGroupController.updateGroup.bind(approvalGroupController));
-
-// DELETE /api/approvals/groups/:id - Delete approval group
-router.delete('/groups/:id', approvalGroupController.deleteGroup.bind(approvalGroupController));
 
 console.log('✅ [APPROVAL-ROUTES] All routes registered successfully (including groups)');
 
