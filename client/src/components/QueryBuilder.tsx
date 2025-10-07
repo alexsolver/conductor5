@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Filter } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 // SLA Schema imports - following 1qa.md
 import type {
@@ -60,6 +62,57 @@ const fieldOptions = [
   { value: 'updatedAt', label: 'Data de Atualização' }
 ];
 
+// Opções predefinidas para campos específicos
+const fieldValueOptions: Record<string, Array<{ value: string; label: string }>> = {
+  status: [
+    { value: 'new', label: 'Novo' },
+    { value: 'open', label: 'Aberto' },
+    { value: 'pending', label: 'Pendente' },
+    { value: 'in_progress', label: 'Em Progresso' },
+    { value: 'on_hold', label: 'Em Espera' },
+    { value: 'resolved', label: 'Resolvido' },
+    { value: 'closed', label: 'Fechado' },
+    { value: 'cancelled', label: 'Cancelado' }
+  ],
+  priority: [
+    { value: 'low', label: 'Baixa' },
+    { value: 'medium', label: 'Média' },
+    { value: 'high', label: 'Alta' },
+    { value: 'critical', label: 'Crítica' }
+  ],
+  impact: [
+    { value: 'low', label: 'Baixo' },
+    { value: 'medium', label: 'Médio' },
+    { value: 'high', label: 'Alto' },
+    { value: 'critical', label: 'Crítico' }
+  ],
+  urgency: [
+    { value: 'low', label: 'Baixa' },
+    { value: 'medium', label: 'Média' },
+    { value: 'high', label: 'Alta' },
+    { value: 'critical', label: 'Crítica' }
+  ],
+  environment: [
+    { value: 'production', label: 'Produção' },
+    { value: 'staging', label: 'Homologação' },
+    { value: 'development', label: 'Desenvolvimento' },
+    { value: 'testing', label: 'Testes' }
+  ],
+  callerType: [
+    { value: 'employee', label: 'Funcionário' },
+    { value: 'customer', label: 'Cliente' },
+    { value: 'partner', label: 'Parceiro' },
+    { value: 'vendor', label: 'Fornecedor' }
+  ],
+  contactType: [
+    { value: 'phone', label: 'Telefone' },
+    { value: 'email', label: 'E-mail' },
+    { value: 'chat', label: 'Chat' },
+    { value: 'portal', label: 'Portal' },
+    { value: 'whatsapp', label: 'WhatsApp' }
+  ]
+};
+
 // ======================================
 // COMPONENT INTERFACE
 // ======================================
@@ -86,6 +139,57 @@ export function QueryBuilderComponent({
   // Use os campos customizados se fornecidos, senão use os padrões
   const fields = customFieldOptions || fieldOptions;
   const operators = customOperatorOptions || operatorOptions;
+
+  // Buscar empresas para o campo companyId
+  const { data: companiesData } = useQuery({
+    queryKey: ['/api/companies'],
+    queryFn: () => apiRequest('GET', '/api/companies').then(res => res.json()),
+  });
+
+  // Buscar categorias para o campo category
+  const { data: categoriesData } = useQuery({
+    queryKey: ['/api/ticket-configuration/categories'],
+    queryFn: () => apiRequest('GET', '/api/ticket-configuration/categories').then(res => res.json()),
+  });
+
+  // Buscar usuários para campos de solicitante/responsável
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/users'],
+    queryFn: () => apiRequest('GET', '/api/users').then(res => res.json()),
+  });
+
+  // Função para obter opções de valor baseado no campo
+  const getValueOptions = (fieldName: string): Array<{ value: string; label: string }> | null => {
+    // Opções estáticas predefinidas
+    if (fieldValueOptions[fieldName]) {
+      return fieldValueOptions[fieldName];
+    }
+
+    // Opções dinâmicas
+    if (fieldName === 'companyId' && companiesData?.data) {
+      return companiesData.data.map((company: any) => ({
+        value: company.id,
+        label: company.name
+      }));
+    }
+
+    if (fieldName === 'category' && categoriesData?.data) {
+      return categoriesData.data.map((category: any) => ({
+        value: category.id,
+        label: category.name
+      }));
+    }
+
+    if ((fieldName === 'callerId' || fieldName === 'responsibleId') && usersData?.data) {
+      return usersData.data.map((user: any) => ({
+        value: user.id,
+        label: user.name || user.email
+      }));
+    }
+
+    return null;
+  };
+
   const addRule = () => {
     const newRule: QueryRule = {
       field: 'status' as TicketField,
@@ -202,12 +306,40 @@ export function QueryBuilderComponent({
 
                 {/* Valor */}
                 <div className="col-span-4">
-                  <Input
-                    value={typeof rule.value === 'string' ? rule.value : ''}
-                    onChange={(e) => updateRule(index, { ...rule, value: e.target.value })}
-                    placeholder="Valor"
-                    data-testid={`input-value-${index}`}
-                  />
+                  {(() => {
+                    const valueOptions = getValueOptions(rule.field);
+                    
+                    if (valueOptions) {
+                      // Renderizar Select com opções predefinidas
+                      return (
+                        <Select
+                          value={typeof rule.value === 'string' ? rule.value : ''}
+                          onValueChange={(val) => updateRule(index, { ...rule, value: val })}
+                        >
+                          <SelectTrigger data-testid={`select-value-${index}`}>
+                            <SelectValue placeholder="Selecione o valor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {valueOptions.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    } else {
+                      // Renderizar Input para campos de texto livre
+                      return (
+                        <Input
+                          value={typeof rule.value === 'string' ? rule.value : ''}
+                          onChange={(e) => updateRule(index, { ...rule, value: e.target.value })}
+                          placeholder="Digite o valor"
+                          data-testid={`input-value-${index}`}
+                        />
+                      );
+                    }
+                  })()}
                 </div>
 
                 {/* Botão remover */}
