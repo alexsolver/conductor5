@@ -773,13 +773,51 @@ const TicketsTable = React.memo(() => {
     return [];
   }, [ticketsData]);
 
-  // Filtrar tickets localmente baseado nos valores de pesquisa por coluna
+  // Filtrar tickets localmente baseado nos valores de pesquisa por coluna E filtros da visualização ativa
   const filteredTickets = useMemo(() => {
-    if (!showColumnSearch || Object.keys(columnSearchValues).length === 0) {
-      return tickets;
+    let filtered = tickets;
+
+    // 1. Aplicar filtros da visualização ativa
+    if (activeView?.filters && Array.isArray(activeView.filters) && activeView.filters.length > 0) {
+      filtered = filtered.filter((ticket: any) => {
+        return activeView.filters.every((filter: any) => {
+          const { field, operator, value } = filter;
+          const ticketValue = ticket[field];
+
+          switch (operator) {
+            case 'equals':
+            case 'eq':
+              return ticketValue === value;
+            
+            case 'in':
+              return Array.isArray(value) && value.includes(ticketValue);
+            
+            case 'contains':
+              return String(ticketValue).toLowerCase().includes(String(value).toLowerCase());
+            
+            case 'not_equals':
+            case 'ne':
+              return ticketValue !== value;
+            
+            case 'gt':
+              return ticketValue > value;
+            
+            case 'lt':
+              return ticketValue < value;
+            
+            default:
+              return true;
+          }
+        });
+      });
     }
 
-    return tickets.filter((ticket: any) => {
+    // 2. Aplicar pesquisa por coluna (se ativa)
+    if (!showColumnSearch || Object.keys(columnSearchValues).length === 0) {
+      return filtered;
+    }
+
+    return filtered.filter((ticket: any) => {
       return Object.entries(columnSearchValues).every(([columnId, searchValue]) => {
         if (!searchValue || searchValue.trim() === '') return true;
 
@@ -843,7 +881,7 @@ const TicketsTable = React.memo(() => {
         }
       });
     });
-  }, [tickets, columnSearchValues, showColumnSearch]);
+  }, [tickets, columnSearchValues, showColumnSearch, activeView]);
 
   // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
   const pagination = useMemo(() => {
