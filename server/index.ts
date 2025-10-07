@@ -551,29 +551,8 @@ app.use((req, res, next) => {
   console.log('🗺️ [SERVER] Interactive Map routes registered at /api/interactive-map');
   console.log('🌤️ [SERVER] Weather integration using SaaS Admin OpenWeather config');
 
-  // Approval routes registration
-  try {
-    console.log('✅ [APPROVAL-MANAGEMENT] Registering approval routes...');
-    const approvalRoutes = (await import('./modules/approvals/routes')).default;
-
-    // ✅ 1QA.MD: Validate router before using it
-    if (!approvalRoutes) {
-      console.error('❌ [APPROVAL-MANAGEMENT] Approval routes returned undefined');
-      throw new Error('Approval routes module returned undefined');
-    }
-
-    if (typeof approvalRoutes !== 'function') {
-      console.error('❌ [APPROVAL-MANAGEMENT] Approval routes is not a function:', typeof approvalRoutes);
-      throw new Error('Approval routes is not a valid Express Router');
-    }
-
-    app.use('/api/approvals', approvalRoutes);
-    console.log('✅ [APPROVAL-MANAGEMENT] Routes registered successfully at /api/approvals');
-
-  } catch (approvalError) {
-    console.error('❌ [APPROVAL-MANAGEMENT] Failed to load approval routes:', approvalError);
-    console.log('⚠️ [APPROVAL-MANAGEMENT] Continuing without approval routes for now');
-  }
+  // ✅ Approval routes are registered in server/routes.ts with JWT middleware
+  // No duplicate registration needed here
 
   // SaaS Admin routes
   app.use('/api/saas-admin', (await import('./routes/saasAdminRoutes')).default);
