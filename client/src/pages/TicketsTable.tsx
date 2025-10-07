@@ -1550,7 +1550,9 @@ const TicketsTable = React.memo(() => {
         description: "Visualização editada com sucesso"
       });
       refetchViews();
+      setIsNewViewDialogOpen(false);
       setEditingView(null);
+      resetNewViewForm();
     },
     onError: (error: any) => {
       toast({
