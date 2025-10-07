@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Clock, 
   CheckCircle, 
@@ -17,9 +18,11 @@ import {
   ThumbsUp,
   ThumbsDown,
   Forward,
-  Filter
+  Filter,
+  ArrowRight
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface ApprovalInstance {
   id: string;
@@ -59,6 +62,7 @@ export function ApprovalInstances() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: instancesData, isLoading } = useQuery<PaginatedResponse>({
     queryKey: ['/api/approvals/instances', filters, currentPage],
@@ -85,6 +89,17 @@ export function ApprovalInstances() {
       setDecisionDialog(null);
       setComments('');
       setDelegateTo('');
+      toast({
+        title: "Decisão processada",
+        description: "A decisão de aprovação foi registrada com sucesso."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao processar decisão",
+        description: "Não foi possível processar a decisão. Tente novamente.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -103,37 +118,40 @@ export function ApprovalInstances() {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20';
-      case 'approved': return 'bg-green-100 text-green-800 dark:bg-green-900/20';
-      case 'rejected': return 'bg-red-100 text-red-800 dark:bg-red-900/20';
-      case 'expired': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20';
-      case 'escalated': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Clock className="h-4 w-4" />;
-      case 'approved': return <CheckCircle className="h-4 w-4" />;
-      case 'rejected': return <XCircle className="h-4 w-4" />;
-      case 'expired': return <AlertTriangle className="h-4 w-4" />;
-      case 'escalated': return <Forward className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Pendente';
-      case 'approved': return 'Aprovado';
-      case 'rejected': return 'Rejeitado';
-      case 'expired': return 'Expirado';
-      case 'escalated': return 'Escalado';
-      default: return status;
-    }
+  const getStatusConfig = (status: string) => {
+    const configs = {
+      pending: { 
+        gradient: 'from-amber-500 to-orange-500',
+        bgGradient: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
+        icon: Clock,
+        text: 'Pendente'
+      },
+      approved: { 
+        gradient: 'from-emerald-500 to-green-500',
+        bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
+        icon: CheckCircle,
+        text: 'Aprovado'
+      },
+      rejected: { 
+        gradient: 'from-rose-500 to-red-500',
+        bgGradient: 'from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/30',
+        icon: XCircle,
+        text: 'Rejeitado'
+      },
+      expired: { 
+        gradient: 'from-gray-500 to-slate-500',
+        bgGradient: 'from-gray-50 to-slate-50 dark:from-gray-950/30 dark:to-slate-950/30',
+        icon: AlertTriangle,
+        text: 'Expirado'
+      },
+      escalated: { 
+        gradient: 'from-purple-500 to-pink-500',
+        bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
+        icon: Forward,
+        text: 'Escalado'
+      }
+    };
+    return configs[status as keyof typeof configs] || configs.pending;
   };
 
   const isOverdue = (slaDeadline: string) => {
@@ -156,11 +174,11 @@ export function ApprovalInstances() {
 
   if (isLoading) {
     return (
-      <Card data-testid="instances-loading">
+      <Card className="border-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900" data-testid="instances-loading">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div key={i} className="h-16 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded"></div>
             ))}
           </div>
         </CardContent>
@@ -171,23 +189,25 @@ export function ApprovalInstances() {
   return (
     <div className="space-y-6" data-testid="approval-instances">
       {/* Filters */}
-      <Card data-testid="instances-filters">
+      <Card className="border-none bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30" data-testid="instances-filters">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
+              <Filter className="h-5 w-5 text-white" />
+            </div>
             Filtros
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium">Status</label>
+              <Label className="text-gray-700 dark:text-gray-300">Status</Label>
               <Select
                 value={filters.status}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
                 data-testid="filter-status"
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,13 +222,13 @@ export function ApprovalInstances() {
             </div>
             
             <div>
-              <label className="text-sm font-medium">Módulo</label>
+              <Label className="text-gray-700 dark:text-gray-300">Módulo</Label>
               <Select
                 value={filters.moduleType}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, moduleType: value }))}
                 data-testid="filter-module"
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
                   <SelectValue placeholder="Todos os módulos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -223,11 +243,12 @@ export function ApprovalInstances() {
             </div>
             
             <div>
-              <label className="text-sm font-medium">Buscar</label>
+              <Label className="text-gray-700 dark:text-gray-300">Pesquisar</Label>
               <Input
-                placeholder="ID da entidade ou regra..."
+                placeholder="Buscar instâncias..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                className="mt-1.5 bg-white dark:bg-gray-950"
                 data-testid="filter-search"
               />
             </div>
@@ -236,247 +257,152 @@ export function ApprovalInstances() {
       </Card>
 
       {/* Instances Table */}
-      <Card data-testid="instances-table-card">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Instâncias de Aprovação</CardTitle>
-            <Badge variant="secondary" data-testid="instances-count">
-              {instancesData?.total || 0} instâncias
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table data-testid="instances-table">
+      <Card className="border-none bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950" data-testid="instances-table">
+        <CardContent className="p-6">
+          <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Entidade</TableHead>
-                <TableHead>Regra</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>SLA</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">Regra</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">Módulo</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">Status</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">SLA</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">Criado em</TableHead>
+                <TableHead className="text-gray-700 dark:text-gray-300">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {instancesData?.data?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500" data-testid="no-instances-message">
-                    Nenhuma instância de aprovação encontrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                instancesData?.data?.map((instance) => (
-                  <TableRow key={instance.id} data-testid={`instance-row-${instance.id}`}>
-                    <TableCell data-testid={`instance-entity-${instance.id}`}>
-                      <div>
-                        <div className="font-medium">{instance.entityType}</div>
-                        <div className="text-sm text-gray-500">{instance.entityId}</div>
-                      </div>
+              {instancesData?.data?.map((instance) => {
+                const statusConfig = getStatusConfig(instance.status);
+                const Icon = statusConfig.icon;
+                
+                return (
+                  <TableRow key={instance.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-900">
+                    <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                      {instance.rule?.name || 'Regra não especificada'}
                     </TableCell>
-                    <TableCell data-testid={`instance-rule-${instance.id}`}>
-                      <div>
-                        <div className="font-medium">{instance.rule?.name || 'N/A'}</div>
-                        <Badge variant="outline" className="text-xs">
-                          {instance.rule?.moduleType || instance.entityType}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell data-testid={`instance-status-${instance.id}`}>
-                      <Badge className={getStatusColor(instance.status)}>
-                        <span className="flex items-center gap-1">
-                          {getStatusIcon(instance.status)}
-                          {getStatusText(instance.status)}
-                        </span>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {instance.rule?.moduleType || instance.entityType}
                       </Badge>
                     </TableCell>
-                    <TableCell data-testid={`instance-sla-${instance.id}`}>
-                      <div className={`text-sm ${isOverdue(instance.slaDeadline) ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
-                        {formatTimeRemaining(instance.slaDeadline)}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(instance.slaDeadline).toLocaleDateString('pt-BR')}
+                    <TableCell>
+                      <Badge className={`bg-gradient-to-r ${statusConfig.gradient} text-white border-none`}>
+                        <Icon className="h-3 w-3 mr-1" />
+                        {statusConfig.text}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {isOverdue(instance.slaDeadline) ? (
+                          <Badge variant="destructive" className="bg-gradient-to-r from-red-500 to-rose-500">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            {formatTimeRemaining(instance.slaDeadline)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatTimeRemaining(instance.slaDeadline)}
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell data-testid={`instance-created-${instance.id}`}>
+                    <TableCell className="text-gray-600 dark:text-gray-400">
                       {new Date(instance.createdAt).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2" data-testid={`instance-actions-${instance.id}`}>
+                      <div className="flex items-center gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => setSelectedInstance(instance)}
-                          data-testid={`button-view-${instance.id}`}
+                          className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/30"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         {instance.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDecisionDialog(instance)}
-                              className="text-green-600 hover:text-green-700"
-                              data-testid={`button-approve-${instance.id}`}
-                            >
-                              <ThumbsUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setDecisionDialog(instance);
-                                setDecision('rejected');
-                              }}
-                              className="text-red-600 hover:text-red-700"
-                              data-testid={`button-reject-${instance.id}`}
-                            >
-                              <ThumbsDown className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setDecisionDialog(instance)}
+                                className="hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/30"
+                              >
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                  Processar Decisão
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label className="text-gray-700 dark:text-gray-300">Decisão</Label>
+                                  <Select value={decision} onValueChange={(value: any) => setDecision(value)}>
+                                    <SelectTrigger className="mt-1.5">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="approved">Aprovar</SelectItem>
+                                      <SelectItem value="rejected">Rejeitar</SelectItem>
+                                      <SelectItem value="delegated">Delegar</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                {decision === 'delegated' && (
+                                  <div>
+                                    <Label className="text-gray-700 dark:text-gray-300">Delegar para</Label>
+                                    <Input
+                                      placeholder="ID do aprovador"
+                                      value={delegateTo}
+                                      onChange={(e) => setDelegateTo(e.target.value)}
+                                      className="mt-1.5"
+                                    />
+                                  </div>
+                                )}
+
+                                <div>
+                                  <Label className="text-gray-700 dark:text-gray-300">Comentários</Label>
+                                  <Textarea
+                                    placeholder="Adicione observações sobre esta decisão..."
+                                    value={comments}
+                                    onChange={(e) => setComments(e.target.value)}
+                                    rows={4}
+                                    className="mt-1.5"
+                                  />
+                                </div>
+
+                                <Button
+                                  onClick={handleProcessDecision}
+                                  disabled={processDecisionMutation.isPending}
+                                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                >
+                                  {processDecisionMutation.isPending ? 'Processando...' : 'Confirmar Decisão'}
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         )}
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                );
+              })}
             </TableBody>
           </Table>
+
+          {instancesData?.data?.length === 0 && (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Clock className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p className="font-medium">Nenhuma instância encontrada</p>
+              <p className="text-sm mt-1">Ajuste os filtros ou aguarde novas aprovações</p>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Pagination */}
-      {instancesData && instancesData.totalPages > 1 && (
-        <div className="flex justify-center gap-2" data-testid="pagination">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            data-testid="button-prev-page"
-          >
-            Anterior
-          </Button>
-          <span className="flex items-center px-4 text-sm text-gray-600" data-testid="page-info">
-            Página {currentPage} de {instancesData.totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(instancesData.totalPages, prev + 1))}
-            disabled={currentPage === instancesData.totalPages}
-            data-testid="button-next-page"
-          >
-            Próxima
-          </Button>
-        </div>
-      )}
-
-      {/* Decision Dialog */}
-      {decisionDialog && (
-        <Dialog open={!!decisionDialog} onOpenChange={() => setDecisionDialog(null)}>
-          <DialogContent data-testid="decision-dialog">
-            <DialogHeader>
-              <DialogTitle>Processar Aprovação</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="text-sm font-medium">Decisão</label>
-                <Select value={decision} onValueChange={(value: any) => setDecision(value)} data-testid="select-decision">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="approved">Aprovar</SelectItem>
-                    <SelectItem value="rejected">Rejeitar</SelectItem>
-                    <SelectItem value="delegated">Delegar</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {decision === 'delegated' && (
-                <div>
-                  <label className="text-sm font-medium">Delegar para</label>
-                  <Input
-                    placeholder="ID do usuário para delegação"
-                    value={delegateTo}
-                    onChange={(e) => setDelegateTo(e.target.value)}
-                    data-testid="input-delegate-to"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium">Comentários</label>
-                <Textarea
-                  placeholder="Adicione comentários sobre sua decisão..."
-                  value={comments}
-                  onChange={(e) => setComments(e.target.value)}
-                  data-testid="textarea-comments"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDecisionDialog(null)}
-                  data-testid="button-cancel-decision"
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleProcessDecision}
-                  disabled={processDecisionMutation.isPending || (decision === 'delegated' && !delegateTo)}
-                  data-testid="button-confirm-decision"
-                >
-                  {processDecisionMutation.isPending ? 'Processando...' : 'Confirmar'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* View Instance Dialog */}
-      {selectedInstance && (
-        <Dialog open={!!selectedInstance} onOpenChange={() => setSelectedInstance(null)}>
-          <DialogContent className="max-w-2xl" data-testid="view-instance-dialog">
-            <DialogHeader>
-              <DialogTitle>Detalhes da Instância</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">ID</label>
-                  <p className="font-mono text-sm" data-testid="view-instance-id">{selectedInstance.id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Status</label>
-                  <Badge className={getStatusColor(selectedInstance.status)} data-testid="view-instance-status">
-                    {getStatusText(selectedInstance.status)}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Entidade</label>
-                  <p data-testid="view-instance-entity">{selectedInstance.entityType}: {selectedInstance.entityId}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">SLA</label>
-                  <p className={isOverdue(selectedInstance.slaDeadline) ? 'text-red-600 font-medium' : ''} data-testid="view-instance-sla">
-                    {formatTimeRemaining(selectedInstance.slaDeadline)}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500">Regra</label>
-                <p data-testid="view-instance-rule">{selectedInstance.rule?.name || 'N/A'}</p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
