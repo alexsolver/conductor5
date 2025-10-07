@@ -1,0 +1,31 @@
+📡 [CREATE-GROUP] Response headers: {cache-control: 'no-cache, no-store, must-revalidate', content-length: '36', content-security-policy: "default-src 'self'; script-src 'self' 'unsafe-inli…; manifest-src 'self'; report-uri /api/csp-report", content-type: 'application/json; charset=utf-8', date: 'Tue, 07 Oct 2025 15:20:00 GMT', …}
+main.tsx:18 ❌ [CREATE-GROUP] Erro na resposta: {"error":"Erro interno do servidor"}
+console.error @ main.tsx:18
+mutationFn @ ApprovalGroupsManager.tsx:97
+await in mutationFn
+fn @ @tanstack_react-query.js?v=956032ee:1189
+run @ @tanstack_react-query.js?v=956032ee:494
+start @ @tanstack_react-query.js?v=956032ee:536
+execute @ @tanstack_react-query.js?v=956032ee:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=956032ee:2630
+(anonymous) @ @tanstack_react-query.js?v=956032ee:3295
+handleCreateGroup @ ApprovalGroupsManager.tsx:179
+callCallback2 @ chunk-SXRIVT2P.js?v=ef13ba61:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=ef13ba61:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=ef13ba61:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=ef13ba61:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=ef13ba61:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=ef13ba61:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=ef13ba61:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=ef13ba61:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=ef13ba61:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=ef13ba61:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=ef13ba61:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=ef13ba61:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=ef13ba61:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=ef13ba61:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=ef13ba61:5455Understand this error
+employmentTerminology.ts:98 [EMPLOYMENT-DETECTION] Input user: {email: 'alex@lansolver.com', role: 'saas_admin', employmentType: 'autonomo', position: undefined}
+employmentTerminology.ts:108 [EMPLOYMENT-DETECTION] Using employmentType field: autonomo
+useEmploymentDetection.ts:27 [EMPLOYMENT-DEBUG] User data: {email: 'alex@lansolver.com', role: 'saas_admin', employmentType: 'autonomo', detectedType: 'autonomo'}
