@@ -3273,6 +3273,7 @@ const TicketsTable = React.memo(() => {
             expandedTickets={expandedTickets}
             ticketRelationships={ticketRelationships}
             ticketsWithRelationships={ticketsWithRelationships}
+            visibleColumns={visibleColumns}
             columnWidths={columnWidths}
             renderCell={renderCell}
             TableCellComponent={OptimizedTableCell}
