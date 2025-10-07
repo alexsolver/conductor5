@@ -3081,46 +3081,6 @@ const TicketsTable = React.memo(() => {
           </div>
         </CardContent>
       </Card>
-      {/* Filters */}
-      <Card>
-        <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[0px] pb-[0px]">
-          <CardTitle className="text-lg">{t('common.filter')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={t('tickets.search_placeholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <DynamicSelect
-              fieldName="status"
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-              placeholder={t('tickets.filter_by_status')}
-              showAllOption={true}
-            />
-            <DynamicSelect
-              fieldName="priority"
-              value={priorityFilter}
-              onValueChange={setPriorityFilter}
-              placeholder={t('tickets.filter_by_priority')}
-              showAllOption={true}
-            />
-            <Button variant="outline" onClick={() => {
-              setSearchTerm("");
-              setStatusFilter("all");
-              setPriorityFilter("all");
-            }}>
-              {t('tickets.clear_filters')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
       {/* Tickets Table */}
       <Card>
         <CardHeader>
