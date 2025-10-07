@@ -1021,45 +1021,53 @@ const TicketsTable = React.memo(() => {
   }, [tickets]);
 
   // Processar colunas - aceitar tanto array de strings quanto array de objetos
-  let activeColumns = activeView?.columns || [
-    { id: "number", label: t("tickets.fields.ticket_number") || "Número", visible: true, order: 1, width: 120 },
-    { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: true, order: 2, width: 300 },
-    { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: true, order: 3, width: 150 },
-    { id: "company", label: t("tickets.fields.company") || "Empresa", visible: true, order: 4, width: 150 },
-    { id: "category", label: t("tickets.fields.category") || "Categoria", visible: true, order: 5, width: 120 },
-    { id: "status", label: t("tickets.fields.status") || "Status", visible: true, order: 6, width: 120 },
-    { id: "priority", label: t("tickets.fields.priority") || "Prioridade", visible: true, order: 7, width: 120 },
-    { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: true, order: 8, width: 120 },
-    { id: "created", label: t("tickets.fields.created") || "Criado", visible: true, order: 9, width: 150 }
-  ];
+  const activeColumns = useMemo(() => {
+    let columns = activeView?.columns || [
+      { id: "number", label: t("tickets.fields.ticket_number") || "Número", visible: true, order: 1, width: 120 },
+      { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: true, order: 2, width: 300 },
+      { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: true, order: 3, width: 150 },
+      { id: "company", label: t("tickets.fields.company") || "Empresa", visible: true, order: 4, width: 150 },
+      { id: "category", label: t("tickets.fields.category") || "Categoria", visible: true, order: 5, width: 120 },
+      { id: "status", label: t("tickets.fields.status") || "Status", visible: true, order: 6, width: 120 },
+      { id: "priority", label: t("tickets.fields.priority") || "Prioridade", visible: true, order: 7, width: 120 },
+      { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: true, order: 8, width: 120 },
+      { id: "created", label: t("tickets.fields.created") || "Criado", visible: true, order: 9, width: 150 }
+    ];
 
-  // Se as colunas são strings (formato antigo), converter para objetos
-  if (activeColumns.length > 0 && typeof activeColumns[0] === 'string') {
-    console.log('🔄 [COLUMNS-CONVERSION] Converting string array to objects:', activeColumns);
-    activeColumns = activeColumns.map((colId: string, index: number) => {
-      const colDef = availableColumns.find(c => c.id === colId);
-      return {
-        id: colId,
-        label: colDef?.label || colId,
-        visible: true,
-        order: index + 1,
-        width: colId === 'subject' ? 300 : colId === 'description' ? 250 : 150
-      };
-    });
-    console.log('✅ [COLUMNS-CONVERSION] Converted columns:', activeColumns);
-  }
+    // Se as colunas são strings (formato antigo), converter para objetos
+    if (columns.length > 0 && typeof columns[0] === 'string') {
+      console.log('🔄 [COLUMNS-CONVERSION] Converting string array to objects:', columns);
+      columns = columns.map((colId: string, index: number) => {
+        const colDef = availableColumns.find(c => c.id === colId);
+        return {
+          id: colId,
+          label: colDef?.label || colId,
+          visible: true,
+          order: index + 1,
+          width: colId === 'subject' ? 300 : colId === 'description' ? 250 : 150
+        };
+      });
+      console.log('✅ [COLUMNS-CONVERSION] Converted columns:', columns);
+    }
 
-  console.log('🔍 [ACTIVE-VIEW] Selected view ID:', selectedViewId);
-  console.log('🔍 [ACTIVE-VIEW] Active view:', activeView);
-  console.log('🔍 [ACTIVE-VIEW] Active columns:', activeColumns);
+    console.log('🔍 [ACTIVE-VIEW] Selected view ID:', selectedViewId);
+    console.log('🔍 [ACTIVE-VIEW] Active view:', activeView);
+    console.log('🔍 [ACTIVE-VIEW] Active columns:', columns);
+
+    return columns;
+  }, [activeView, availableColumns, selectedViewId, t]);
 
   // Filtrar apenas colunas visíveis e ordenar
-  const visibleColumns = activeColumns
-    .filter((col: any) => col.visible)
-    .sort((a: any, b: any) => a.order - b.order);
-  
-  console.log('🔍 [VISIBLE-COLUMNS] Visible columns count:', visibleColumns.length);
-  console.log('🔍 [VISIBLE-COLUMNS] Visible columns:', visibleColumns.map((c: any) => c.id));
+  const visibleColumns = useMemo(() => {
+    const visible = activeColumns
+      .filter((col: any) => col.visible)
+      .sort((a: any, b: any) => a.order - b.order);
+    
+    console.log('🔍 [VISIBLE-COLUMNS] Visible columns count:', visible.length);
+    console.log('🔍 [VISIBLE-COLUMNS] Visible columns:', visible.map((c: any) => c.id));
+    
+    return visible;
+  }, [activeColumns]);
 
   // Componente de célula otimizado com useMemo
   const TableCellComponent = ({ column, ticket }: { column: any, ticket: Ticket }) => {
