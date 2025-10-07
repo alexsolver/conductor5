@@ -1370,6 +1370,8 @@ const TicketDetails = React.memo(() => {
   // Não há mais necessidade de mapeamento hard-coded
 
   const onSubmit = useCallback((data: TicketFormData) => {
+    console.log('🚀 [SAVE-TICKET] onSubmit called with tags:', tags);
+    
     // CORREÇÃO CRÍTICA: Aplicar mapeamento completo Frontend→Backend seguindo 1qa.md
     const mappedData = {
       // ✅ Core fields - mapeamento direto
@@ -3559,14 +3561,16 @@ const TicketDetails = React.memo(() => {
                   tags.map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {tag}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 ml-1"
-                        onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                      >
-                        <X className="h-2 w-2" />
-                      </Button>
+                      {isEditMode && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 ml-1"
+                          onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                        >
+                          <X className="h-2 w-2" />
+                        </Button>
+                      )}
                     </Badge>
                   ))
                 ) : (
@@ -3574,33 +3578,35 @@ const TicketDetails = React.memo(() => {
                 )}
               </div>
 
-              <div className="flex gap-1">
-                <Input
-                  type="text"
-                  placeholder="Nova tag"
-                  className="h-7 text-xs"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
-                      setTags([...tags, newTag.trim()]);
-                      setNewTag('');
-                    }
-                  }}
-                />
-                <Button
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => {
-                    if (newTag.trim() && !tags.includes(newTag.trim())) {
-                      setTags([...tags, newTag.trim()]);
-                      setNewTag('');
-                    }
-                  }}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
+              {isEditMode && (
+                <div className="flex gap-1">
+                  <Input
+                    type="text"
+                    placeholder="Nova tag"
+                    className="h-7 text-xs"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
+                        setTags([...tags, newTag.trim()]);
+                        setNewTag('');
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      if (newTag.trim() && !tags.includes(newTag.trim())) {
+                        setTags([...tags, newTag.trim()]);
+                        setNewTag('');
+                      }
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -3676,15 +3682,17 @@ const TicketDetails = React.memo(() => {
                     variant="default"
                     size="sm"
                     onClick={() => {
+                      console.log('💾 [SAVE-BUTTON] Clicked! isEditMode:', isEditMode, 'tags:', tags);
                       const formData = form.getValues();
                       form.trigger().then((isValid) => {
+                        console.log('✅ [VALIDATION] Form valid:', isValid);
                         if (isValid) {
                           onSubmit(formData);
                         } else {
                           const errorMessages = Object.entries(form.formState.errors)
                             .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
                             .join('\n');
-
+                          console.error('❌ [VALIDATION] Errors:', form.formState.errors);
                           toast({
                             title: "Erro de Validação",
                             description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages}` : "Dados do formulário são inválidos. Verifique todos os campos.",
