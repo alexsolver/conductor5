@@ -24,32 +24,9 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
     retry: false,
   });
 
-  // Fetch MANAGEABLE ticket views for settings tab (excludes system default)
-  const { data: manageableViewsData } = useQuery({
-    queryKey: ["/api/ticket-views", "manageable"],
-    queryFn: async () => {
-      console.log("🔍 [MANAGEABLE-VIEWS] Fetching manageable views with ?manageable=true");
-      const response = await fetch("/api/ticket-views?manageable=true", {
-        credentials: "include",
-        headers: {
-          "x-tenant-id": localStorage.getItem("tenantId") || "",
-        },
-      });
-      const data = await response.json();
-      console.log("✅ [MANAGEABLE-VIEWS] Response:", data);
-      return data;
-    },
-    enabled: isManageViewsOpen, // Only fetch when dialog is open
-    retry: false,
-    staleTime: 0, // Always fetch fresh data when dialog opens
-  });
-
   const ticketViews = (viewsData as any)?.data || [];
-  const manageableViews = (manageableViewsData as any)?.data || [];
-  
-  console.log("🔍 [VIEW-SELECTOR] Dialog open:", isManageViewsOpen);
-  console.log("🔍 [VIEW-SELECTOR] All views:", ticketViews.length);
-  console.log("🔍 [VIEW-SELECTOR] Manageable views:", manageableViews.length);
+  // Filter out system default views for management (frontend filter as backup)
+  const manageableViews = ticketViews.filter((view: any) => !view.is_default);
 
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 
