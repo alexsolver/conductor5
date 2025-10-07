@@ -135,18 +135,31 @@ export const ResponsiveTicketsTable = ({
   };
 
 
+  // Use visibleColumns if provided, otherwise use default columns
+  const columnsToRender = visibleColumns && visibleColumns.length > 0 
+    ? visibleColumns 
+    : [
+        { id: 'number', label: 'Número' },
+        { id: 'subject', label: 'Assunto' },
+        { id: 'company', label: 'Empresa' },
+        { id: 'customer', label: 'Cliente' },
+        { id: 'category', label: t('tickets.category') },
+        { id: 'status', label: 'Status' },
+        { id: 'priority', label: 'Prioridade' }
+      ];
+
+  console.log('📊 [ResponsiveTicketsTable] Rendering columns:', columnsToRender.map((c: any) => c.id || c.label));
+
   return (
     <div className="rounded-md border overflow-hidden" role="region" aria-label="Tabela de tickets">
       <Table>
         <TableHeader>
           <TableRow role="row">
-            <TableHead className="w-20" scope="col">Número</TableHead>
-            <TableHead scope="col">Assunto</TableHead>
-            <TableHead className="hidden lg:table-cell" scope="col">Empresa</TableHead>
-            <TableHead className="hidden md:table-cell" scope="col">Cliente</TableHead>
-            <TableHead className="hidden lg:table-cell" scope="col">{t('tickets.category')}</TableHead>
-            <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
-            <TableHead className="hidden sm:table-cell" scope="col">Prioridade</TableHead>
+            {columnsToRender.map((column: any) => (
+              <TableHead key={column.id} className={column.id === 'number' ? 'w-20' : ''} scope="col">
+                {column.label}
+              </TableHead>
+            ))}
             <TableHead className="w-12" scope="col">
               <span className="sr-only">Ações</span>
             </TableHead>
