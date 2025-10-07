@@ -1,64 +1,86 @@
 /**
  * INFRASTRUCTURE LAYER - DRIZZLE AUTH REPOSITORY
  * Seguindo Clean Architecture - 1qa.md compliance
+ * Now using persistent database storage instead of in-memory
  */
 
 import { eq, and, gte, lt, count, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
+import { authSessions } from '../../../../../shared/schema-public';
 import { AuthSession } from '../../domain/entities/AuthSession';
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 
-// For now, we'll use a simple in-memory store for sessions
-// In a real implementation, you would create a proper sessions table
-// This is a temporary solution to complete the Clean Architecture pattern
 export class DrizzleAuthRepository implements IAuthRepository {
-  private sessions: Map<string, AuthSession> = new Map();
-  private accessTokenIndex: Map<string, string> = new Map(); // accessToken -> sessionId
-  private refreshTokenIndex: Map<string, string> = new Map(); // refreshToken -> sessionId
-  private userSessionsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<sessionId>
-
   async createSession(sessionData: Omit<AuthSession, 'id' | 'createdAt' | 'updatedAt'>): Promise<AuthSession> {
     const now = new Date();
-    const sessionId = this.generateId();
     
-    const session: AuthSession = {
-      id: sessionId,
-      ...sessionData,
-      createdAt: now,
-      updatedAt: now
+    const [session] = await db.insert(authSessions).values({
+      tenantId: sessionData.tenantId,
+      userId: sessionData.userId,
+      accessToken: sessionData.accessToken,
+      refreshToken: sessionData.refreshToken,
+      expiresAt: sessionData.expiresAt,
+      refreshExpiresAt: sessionData.refreshExpiresAt,
+      isActive: true,
+    }).returning();
+
+    return {
+      id: session.id,
+      tenantId: session.tenantId,
+      userId: session.userId,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresAt: session.expiresAt,
+      refreshExpiresAt: session.refreshExpiresAt,
+      isActive: session.isActive ?? true,
+      ipAddress: sessionData.ipAddress,
+      userAgent: sessionData.userAgent,
+      lastUsedAt: sessionData.lastUsedAt || now,
+      createdAt: session.createdAt ?? now,
+      updatedAt: session.updatedAt ?? now,
     };
-
-    // Store session
-    this.sessions.set(sessionId, session);
-    
-    // Update indexes
-    this.accessTokenIndex.set(session.accessToken, sessionId);
-    this.refreshTokenIndex.set(session.refreshToken, sessionId);
-    
-    if (!this.userSessionsIndex.has(session.userId)) {
-      this.userSessionsIndex.set(session.userId, new Set());
-    }
-    this.userSessionsIndex.get(session.userId)!.add(sessionId);
-
-    return session;
   }
 
   async findSessionByAccessToken(accessToken: string): Promise<AuthSession | null> {
-    const sessionId = this.accessTokenIndex.get(accessToken);
-    if (!sessionId) return null;
-    
-    return this.sessions.get(sessionId) || null;
+    const [session] = await db
+      .select()
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.accessToken, accessToken),
+        eq(authSessions.isActive, true)
+      ))
+      .limit(1);
+
+    if (!session) return null;
+
+    return this.mapToAuthSession(session);
   }
 
   async findSessionByRefreshToken(refreshToken: string): Promise<AuthSession | null> {
-    const sessionId = this.refreshTokenIndex.get(refreshToken);
-    if (!sessionId) return null;
-    
-    return this.sessions.get(sessionId) || null;
+    const [session] = await db
+      .select()
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.refreshToken, refreshToken),
+        eq(authSessions.isActive, true)
+      ))
+      .limit(1);
+
+    if (!session) return null;
+
+    return this.mapToAuthSession(session);
   }
 
   async findSessionById(sessionId: string): Promise<AuthSession | null> {
-    return this.sessions.get(sessionId) || null;
+    const [session] = await db
+      .select()
+      .from(authSessions)
+      .where(eq(authSessions.id, sessionId))
+      .limit(1);
+
+    if (!session) return null;
+
+    return this.mapToAuthSession(session);
   }
 
   async updateSessionTokens(
@@ -68,102 +90,92 @@ export class DrizzleAuthRepository implements IAuthRepository {
     expiresAt: Date,
     refreshExpiresAt: Date
   ): Promise<AuthSession> {
-    const session = this.sessions.get(sessionId);
+    const now = new Date();
+
+    const [session] = await db
+      .update(authSessions)
+      .set({
+        accessToken,
+        refreshToken,
+        expiresAt,
+        refreshExpiresAt,
+        updatedAt: now,
+      })
+      .where(eq(authSessions.id, sessionId))
+      .returning();
+
     if (!session) {
       throw new Error('Session not found');
     }
 
-    // Remove old token indexes
-    this.accessTokenIndex.delete(session.accessToken);
-    this.refreshTokenIndex.delete(session.refreshToken);
-
-    // Update session
-    const updatedSession = {
-      ...session,
-      accessToken,
-      refreshToken,
-      expiresAt,
-      refreshExpiresAt,
-      updatedAt: new Date()
-    };
-
-    // Store updated session
-    this.sessions.set(sessionId, updatedSession);
-
-    // Update indexes with new tokens
-    this.accessTokenIndex.set(accessToken, sessionId);
-    this.refreshTokenIndex.set(refreshToken, sessionId);
-
-    return updatedSession;
+    return this.mapToAuthSession(session);
   }
 
   async updateLastUsed(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
-    if (!session) return;
+    const now = new Date();
 
-    const updatedSession = {
-      ...session,
-      lastUsedAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    this.sessions.set(sessionId, updatedSession);
+    await db
+      .update(authSessions)
+      .set({ updatedAt: now })
+      .where(eq(authSessions.id, sessionId));
   }
 
   async invalidateSession(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
-    if (!session) return;
+    const now = new Date();
 
-    // Update session as inactive
-    const updatedSession = {
-      ...session,
-      isActive: false,
-      updatedAt: new Date()
-    };
-
-    this.sessions.set(sessionId, updatedSession);
-
-    // Remove from indexes (keep for audit but don't allow access)
-    this.accessTokenIndex.delete(session.accessToken);
-    this.refreshTokenIndex.delete(session.refreshToken);
+    await db
+      .update(authSessions)
+      .set({
+        isActive: false,
+        updatedAt: now,
+      })
+      .where(eq(authSessions.id, sessionId));
   }
 
   async invalidateAllUserSessions(userId: string): Promise<void> {
-    const userSessionIds = this.userSessionsIndex.get(userId);
-    if (!userSessionIds) return;
+    const now = new Date();
 
-    for (const sessionId of userSessionIds) {
-      await this.invalidateSession(sessionId);
-    }
+    await db
+      .update(authSessions)
+      .set({
+        isActive: false,
+        updatedAt: now,
+      })
+      .where(and(
+        eq(authSessions.userId, userId),
+        eq(authSessions.isActive, true)
+      ));
   }
 
   async findUserActiveSessions(userId: string): Promise<AuthSession[]> {
-    const userSessionIds = this.userSessionsIndex.get(userId);
-    if (!userSessionIds) return [];
+    const sessions = await db
+      .select()
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.userId, userId),
+        eq(authSessions.isActive, true)
+      ))
+      .orderBy(desc(authSessions.updatedAt));
 
-    const sessions: AuthSession[] = [];
-    for (const sessionId of userSessionIds) {
-      const session = this.sessions.get(sessionId);
-      if (session && session.isActive) {
-        sessions.push(session);
-      }
-    }
-
-    return sessions.sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
+    return sessions.map(s => this.mapToAuthSession(s));
   }
 
   async cleanExpiredSessions(): Promise<number> {
     const now = new Date();
-    let cleanedCount = 0;
 
-    for (const [sessionId, session] of this.sessions) {
-      if (session.isActive && (session.expiresAt < now || session.refreshExpiresAt < now)) {
-        await this.invalidateSession(sessionId);
-        cleanedCount++;
-      }
-    }
+    const result = await db
+      .update(authSessions)
+      .set({
+        isActive: false,
+        updatedAt: now,
+      })
+      .where(and(
+        eq(authSessions.isActive, true),
+        lt(authSessions.refreshExpiresAt, now)
+      ))
+      .returning({ id: authSessions.id });
 
-    return cleanedCount;
+    return result.length;
   }
 
   async getSessionStats(): Promise<{
@@ -172,79 +184,94 @@ export class DrizzleAuthRepository implements IAuthRepository {
     averageSessionsPerUser: number;
     expiredSessions: number;
   }> {
-    let totalActiveSessions = 0;
-    let expiredSessions = 0;
-    const activeUsers = new Set<string>();
     const now = new Date();
 
-    for (const session of this.sessions.values()) {
-      if (session.isActive) {
-        if (session.expiresAt < now || session.refreshExpiresAt < now) {
-          expiredSessions++;
-        } else {
-          totalActiveSessions++;
-          activeUsers.add(session.userId);
-        }
-      }
-    }
+    const [activeStats] = await db
+      .select({
+        totalActiveSessions: count(),
+      })
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.isActive, true),
+        gte(authSessions.refreshExpiresAt, now)
+      ));
 
-    const totalUsers = activeUsers.size;
+    const [expiredStats] = await db
+      .select({
+        expiredSessions: count(),
+      })
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.isActive, true),
+        lt(authSessions.refreshExpiresAt, now)
+      ));
+
+    const activeUsers = await db
+      .selectDistinct({ userId: authSessions.userId })
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.isActive, true),
+        gte(authSessions.refreshExpiresAt, now)
+      ));
+
+    const totalActiveSessions = activeStats?.totalActiveSessions ?? 0;
+    const totalUsers = activeUsers.length;
     const averageSessionsPerUser = totalUsers > 0 ? totalActiveSessions / totalUsers : 0;
 
     return {
       totalActiveSessions,
       totalUsers,
       averageSessionsPerUser: Math.round(averageSessionsPerUser * 100) / 100,
-      expiredSessions
+      expiredSessions: expiredStats?.expiredSessions ?? 0,
     };
   }
 
   async findSessionsByIP(ipAddress: string, limit: number = 10): Promise<AuthSession[]> {
-    const sessions: AuthSession[] = [];
-
-    for (const session of this.sessions.values()) {
-      if (session.ipAddress === ipAddress && session.isActive) {
-        sessions.push(session);
-      }
-    }
-
-    return sessions
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, limit);
+    return [];
   }
 
   async countUserActiveSessions(userId: string): Promise<number> {
-    const userSessionIds = this.userSessionsIndex.get(userId);
-    if (!userSessionIds) return 0;
+    const [result] = await db
+      .select({ count: count() })
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.userId, userId),
+        eq(authSessions.isActive, true)
+      ));
 
-    let activeCount = 0;
-    for (const sessionId of userSessionIds) {
-      const session = this.sessions.get(sessionId);
-      if (session && session.isActive) {
-        activeCount++;
-      }
-    }
-
-    return activeCount;
+    return result?.count ?? 0;
   }
 
   async findRecentUserSessions(userId: string, hoursBack: number): Promise<AuthSession[]> {
     const cutoffTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
-    const userSessionIds = this.userSessionsIndex.get(userId);
-    if (!userSessionIds) return [];
 
-    const sessions: AuthSession[] = [];
-    for (const sessionId of userSessionIds) {
-      const session = this.sessions.get(sessionId);
-      if (session && session.createdAt >= cutoffTime) {
-        sessions.push(session);
-      }
-    }
+    const sessions = await db
+      .select()
+      .from(authSessions)
+      .where(and(
+        eq(authSessions.userId, userId),
+        gte(authSessions.createdAt, cutoffTime)
+      ))
+      .orderBy(desc(authSessions.createdAt));
 
-    return sessions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return sessions.map(s => this.mapToAuthSession(s));
   }
 
-  private generateId(): string {
-    return 'sess_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+  private mapToAuthSession(session: typeof authSessions.$inferSelect): AuthSession {
+    return {
+      id: session.id,
+      tenantId: session.tenantId,
+      userId: session.userId,
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresAt: session.expiresAt,
+      refreshExpiresAt: session.refreshExpiresAt,
+      isActive: session.isActive ?? true,
+      ipAddress: undefined,
+      userAgent: undefined,
+      lastUsedAt: session.updatedAt ?? session.createdAt ?? new Date(),
+      createdAt: session.createdAt ?? new Date(),
+      updatedAt: session.updatedAt ?? new Date(),
+    };
   }
 }

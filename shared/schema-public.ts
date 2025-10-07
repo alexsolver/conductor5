@@ -132,6 +132,27 @@ export const userSessions = pgTable("user_sessions", {
   index("user_sessions_active_idx").on(table.isActive, table.lastActivity),
 ]);
 
+// Auth Sessions table for JWT token management (public schema)
+export const authSessions = pgTable("auth_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  refreshExpiresAt: timestamp("refresh_expires_at").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Indexes for quick token lookup
+  index("auth_sessions_access_token_idx").on(table.accessToken),
+  index("auth_sessions_refresh_token_idx").on(table.refreshToken),
+  index("auth_sessions_user_idx").on(table.userId),
+  index("auth_sessions_tenant_idx").on(table.tenantId),
+  index("auth_sessions_active_idx").on(table.isActive),
+]);
+
 // ========================================
 // SCHEMA VALIDATION & TYPES
 // ========================================
@@ -140,6 +161,7 @@ export const userSessions = pgTable("user_sessions", {
 export const insertTenantSchema = createInsertSchema(tenants);
 export const insertUserSchema = createInsertSchema(users);
 export const insertUserSessionSchema = createInsertSchema(userSessions);
+export const insertAuthSessionSchema = createInsertSchema(authSessions);
 
 // Update schema - Only allow updating specific fields, exclude system fields
 export const updateUserSchema = createInsertSchema(users).omit({
