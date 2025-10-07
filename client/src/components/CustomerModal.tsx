@@ -21,8 +21,7 @@ import DynamicCustomFields from '@/components/DynamicCustomFields';
 import { useCompanyFilter } from '@/hooks/useCompanyFilter';
 
 const customerSchema = z.object({
-  // Tipo e status
-  customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
+  // Status
   status: z.enum(['Ativo', 'Inativo', 'active', 'inactive']).transform((val) => {
     // Normalize status values to Portuguese
     if (val === 'active') return 'Ativo';
@@ -35,17 +34,12 @@ const customerSchema = z.object({
   description: z.string().optional(),
   internalCode: z.string().optional(),
 
-  // Dados pessoa física
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  // Dados pessoa física (todos os clientes são PF)
+  firstName: z.string().min(1, 'Nome é obrigatório'),
+  lastName: z.string().min(1, 'Sobrenome é obrigatório'),
   cpf: z.string().optional(),
 
-  // Dados pessoa jurídica
-  companyName: z.string().optional(),
-  cnpj: z.string().optional(),
-
   // Contatos
-  contactPerson: z.string().optional(),
   responsible: z.string().optional(),
   phone: z.string().optional(),
   mobilePhone: z.string().optional(),
@@ -68,17 +62,6 @@ const customerSchema = z.object({
   notes: z.string().optional(),
   avatar: z.string().optional(),
   signature: z.string().optional(),
-}).refine((data) => {
-  // Validação condicional baseada no tipo de cliente
-  if (data.customerType === 'PF') {
-    return data.firstName && data.lastName;
-  } else if (data.customerType === 'PJ') {
-    return data.companyName && data.cnpj;
-  }
-  return true;
-}, {
-  message: "Campos obrigatórios: PF precisa de Nome e Sobrenome; PJ precisa de Razão Social e CNPJ",
-  path: ["customerType"]
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
@@ -103,7 +86,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
-      customerType: "PF",
       status: "Ativo",
       email: "",
       description: "",
@@ -111,9 +93,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       firstName: "",
       lastName: "",
       cpf: "",
-      companyName: "",
-      cnpj: "",
-      contactPerson: "",
       responsible: "",
       phone: "",
       mobilePhone: "",
@@ -243,7 +222,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   useEffect(() => {
     if (customer && isOpen) {
       form.reset({
-        customerType: customer.customerType || customer.customer_type || "PF",
         status: customer.status || "Ativo",
         email: customer.email || "",
         description: customer.description || "",
@@ -251,9 +229,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         firstName: customer.firstName || customer.first_name || "",
         lastName: customer.lastName || customer.last_name || "",
         cpf: customer.cpf || "",
-        companyName: customer.companyName || customer.company_name || "",
-        cnpj: customer.cnpj || "",
-        contactPerson: customer.contactPerson || customer.contact_person || "",
         responsible: customer.responsible || "",
         phone: customer.phone || "",
         mobilePhone: customer.mobilePhone || customer.mobile_phone || "",
@@ -276,7 +251,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     } else if (!customer && isOpen) {
       // Reset to empty form for new customer
       form.reset({
-        customerType: "PF",
         status: "Ativo",
         email: "",
         description: "",
@@ -284,9 +258,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         firstName: "",
         lastName: "",
         cpf: "",
-        companyName: "",
-        cnpj: "",
-        contactPerson: "",
         responsible: "",
         phone: "",
         mobilePhone: "",
@@ -516,129 +487,71 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                 </TabsList>
 
                 <TabsContent value="dados-basicos" className="space-y-4">
-                  {/* Tipo de Cliente e Status */}
+                  {/* Status */}
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Ativo">Ativo</SelectItem>
+                            <SelectItem value="Inativo">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Campos de Pessoa Física (todos os clientes são PF) */}
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="customerType"
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tipo de Cliente *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
-                              <SelectItem value="PJ">Pessoa Jurídica (PJ)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Nome *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do cliente" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="status"
+                      name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o status" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Ativo">Ativo</SelectItem>
-                              <SelectItem value="Inativo">Inativo</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Sobrenome *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Sobrenome do cliente" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-
-                  {/* Campos condicionais baseados no tipo */}
-                  {form.watch('customerType') === 'PF' && (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nome *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Nome do cliente" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Sobrenome *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Sobrenome do cliente" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="cpf"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CPF</FormLabel>
-                            <FormControl>
-                              <Input placeholder="000.000.000-00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </>
-                  )}
-
-                  {form.watch('customerType') === 'PJ' && (
-                    <>
-                      <FormField
-                        control={form.control}
-                        name="companyName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Razão Social *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nome da empresa" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="cnpj"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CNPJ *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="00.000.000/0000-00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </>
-                  )}
+                  <FormField
+                    control={form.control}
+                    name="cpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF</FormLabel>
+                        <FormControl>
+                          <Input placeholder="000.000.000-00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {/* Campos comuns */}
                   <FormField
