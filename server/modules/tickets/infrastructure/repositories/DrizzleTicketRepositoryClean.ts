@@ -238,7 +238,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         LEFT JOIN ${schemaName}.customers customer
           ON t.customer_id = customer.id
         LEFT JOIN ${schemaName}.ticket_categories cat
-          ON t.category = cat.id::text
+          ON t.category::uuid = cat.id
         WHERE t.is_active = true
           ${whereClause}
         ORDER BY t.created_at DESC
