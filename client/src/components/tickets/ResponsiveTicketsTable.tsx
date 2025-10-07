@@ -117,6 +117,9 @@ export const ResponsiveTicketsTable = ({
 
   // Use a local state to manage expanded rows if not provided via props
   const [localExpandedTickets, setLocalExpandedTickets] = useState<Set<string>>(new Set());
+  
+  // Estado local temporário para valores de pesquisa (atualiza visualmente)
+  const [tempSearchValues, setTempSearchValues] = useState<Record<string, string>>({});
   const currentExpandedTickets = expandedTickets.size > 0 ? expandedTickets : localExpandedTickets;
   const handleToggleExpand = (ticketId: string) => {
     if (onToggleExpand) {
@@ -171,9 +174,26 @@ export const ResponsiveTicketsTable = ({
                 return (
                   <TableHead key={`search-${columnId}`} className="py-2">
                     <Input
-                      placeholder="Filtrar"
-                      value={columnSearchValues[columnId] || ''}
-                      onChange={(e) => onColumnSearchChange?.(columnId, e.target.value)}
+                      placeholder="Filtrar (pressione Enter)"
+                      value={tempSearchValues[columnId] ?? columnSearchValues[columnId] ?? ''}
+                      onChange={(e) => {
+                        setTempSearchValues(prev => ({
+                          ...prev,
+                          [columnId]: e.target.value
+                        }));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const value = e.currentTarget.value;
+                          onColumnSearchChange?.(columnId, value);
+                          // Limpa o valor temporário após executar a pesquisa
+                          setTempSearchValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[columnId];
+                            return newValues;
+                          });
+                        }
+                      }}
                       className="h-8 text-sm"
                       data-testid={`input-column-search-${columnId}`}
                     />
