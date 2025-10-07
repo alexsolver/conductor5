@@ -1155,11 +1155,15 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Informações Básicas</h3>
-
+        
+        {/* 📋 SEÇÃO 1: INFORMAÇÕES BÁSICAS */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+          <div className="flex items-center gap-2 mb-4">
+            <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="name"
@@ -1171,28 +1175,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Digite o nome do SLA" 
-                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-1">
-                    Descrição 
-                    <span className="text-gray-500 text-sm">(opcional)</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descreva o SLA" 
+                      placeholder="Ex: SLA Premium - Resposta Rápida" 
                       className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
                       {...field} 
                     />
@@ -1230,6 +1213,28 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
 
             <FormField
               control={form.control}
+              name="description"
+              render={({ field, fieldState }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel className="flex items-center gap-1">
+                    Descrição 
+                    <span className="text-gray-500 text-sm">(opcional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Descreva o objetivo e escopo deste SLA" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      rows={3}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="priority"
               render={({ field, fieldState }) => (
                 <FormItem>
@@ -1244,10 +1249,10 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="critical">Crítica</SelectItem>
+                      <SelectItem value="low">🟢 Baixa</SelectItem>
+                      <SelectItem value="medium">🟡 Média</SelectItem>
+                      <SelectItem value="high">🟠 Alta</SelectItem>
+                      <SelectItem value="critical">🔴 Crítica</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-red-500" />
@@ -1255,45 +1260,48 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
               )}
             />
           </div>
+        </div>
 
-          {/* Time Targets Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-medium flex items-center gap-1">
-                Metas de Tempo 
-                <span className="text-red-500">*</span>
-                <span className="text-sm text-gray-500">(pelo menos uma meta é obrigatória)</span>
-              </Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const currentTargets = form.getValues('timeTargets') || [];
-                  const usedMetrics = currentTargets.map((t: any) => t.metric);
-                  const availableMetrics = ['response_time', 'resolution_time', 'update_time', 'idle_time']
-                    .filter(m => !usedMetrics.includes(m));
-                  
-                  if (availableMetrics.length === 0) {
-                    toast({
-                      title: "Todas as métricas já foram adicionadas",
-                      description: "Você já criou metas para todos os tipos de tempo disponíveis.",
-                      variant: "destructive"
-                    });
-                    return;
-                  }
-                  
-                  form.setValue('timeTargets', [
-                    ...currentTargets,
-                    { metric: availableMetrics[0], target: 30, unit: 'minutes', priority: 'medium' }
-                  ]);
-                }}
-                data-testid="button-add-time-target"
-              >
-                Adicionar Meta
-              </Button>
+        {/* ⏱️ SEÇÃO 2: METAS DE TEMPO */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950 dark:to-teal-950">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Timer className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Metas de Tempo</h3>
+              <span className="text-sm text-gray-500">(pelo menos uma meta é obrigatória)</span>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentTargets = form.getValues('timeTargets') || [];
+                const usedMetrics = currentTargets.map((t: any) => t.metric);
+                const availableMetrics = ['response_time', 'resolution_time', 'update_time', 'idle_time']
+                  .filter(m => !usedMetrics.includes(m));
+                
+                if (availableMetrics.length === 0) {
+                  toast({
+                    title: "Todas as métricas já foram adicionadas",
+                    description: "Você já criou metas para todos os tipos de tempo disponíveis.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                form.setValue('timeTargets', [
+                  ...currentTargets,
+                  { metric: availableMetrics[0], target: 30, unit: 'minutes', priority: 'medium' }
+                ]);
+              }}
+              data-testid="button-add-time-target"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Adicionar Meta
+            </Button>
+          </div>
 
+          <div className="space-y-3">
             {form.watch('timeTargets')?.map((target: any, index: number) => {
               const currentTargets = form.getValues('timeTargets') || [];
               const usedMetrics = currentTargets
@@ -1301,7 +1309,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                 .filter(Boolean);
               
               return (
-                <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                <div key={index} className="flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border rounded-lg shadow-sm">
                   <div className="flex-1">
                     <Select
                       value={target.metric}
@@ -1328,15 +1336,15 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                         <SelectValue placeholder="Métrica" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="response_time" disabled={usedMetrics.includes('response_time')}>Tempo de Resposta</SelectItem>
-                        <SelectItem value="resolution_time" disabled={usedMetrics.includes('resolution_time')}>Tempo de Resolução</SelectItem>
-                        <SelectItem value="update_time" disabled={usedMetrics.includes('update_time')}>Tempo de Atualização</SelectItem>
-                        <SelectItem value="idle_time" disabled={usedMetrics.includes('idle_time')}>Tempo Inativo</SelectItem>
+                        <SelectItem value="response_time" disabled={usedMetrics.includes('response_time')}>⚡ Tempo de Resposta</SelectItem>
+                        <SelectItem value="resolution_time" disabled={usedMetrics.includes('resolution_time')}>✅ Tempo de Resolução</SelectItem>
+                        <SelectItem value="update_time" disabled={usedMetrics.includes('update_time')}>🔄 Tempo de Atualização</SelectItem>
+                        <SelectItem value="idle_time" disabled={usedMetrics.includes('idle_time')}>⏸️ Tempo Inativo</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="w-20">
+                  <div className="w-24">
                     <Input
                       type="number"
                       value={target.target}
@@ -1349,7 +1357,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                     />
                   </div>
 
-                  <div className="w-24">
+                  <div className="w-28">
                     <Select
                       value={target.unit}
                       onValueChange={(value) => {
@@ -1371,7 +1379,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
 
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => {
                       const targets = form.getValues('timeTargets');
@@ -1379,68 +1387,85 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                       form.setValue('timeTargets', targets);
                     }}
                   >
-                    Remover
+                    <X className="w-4 h-4 text-red-500" />
                   </Button>
                 </div>
               );
             })}
+            
+            {(!form.watch('timeTargets') || form.watch('timeTargets').length === 0) && (
+              <div className="text-center py-6 text-gray-500">
+                <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nenhuma meta de tempo definida. Clique em "Adicionar Meta" para começar.</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Date Range */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="validFrom"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Data de Início 
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage className="text-red-500" />
-              </FormItem>
-            )}
-          />
+        {/* 📅 SEÇÃO 3: PERÍODO DE VALIDADE */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950 dark:to-yellow-950">
+          <div className="flex items-center gap-2 mb-4">
+            <Flag className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Período de Validade</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="validFrom"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Data de Início 
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="validUntil"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Data de Fim 
-                  <span className="text-gray-500 text-sm">(opcional)</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage className="text-red-500" />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="validUntil"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Data de Fim 
+                    <span className="text-gray-500 text-sm">(opcional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date" 
+                      className={fieldState.error ? "border-red-500 focus:border-red-500" : ""}
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
-        {/* Working Hours */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Horário de Funcionamento</h3>
+        {/* 🕐 SEÇÃO 4: HORÁRIO DE FUNCIONAMENTO */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Horário de Funcionamento</h3>
+          </div>
 
           <FormField
             control={form.control}
             name="businessHoursOnly"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-800">
                 <div className="space-y-0.5">
                   <FormLabel className="text-base">Apenas Horário Comercial</FormLabel>
                   <div className="text-sm text-gray-600">
@@ -1458,13 +1483,13 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mt-4">
             <FormField
               control={form.control}
               name="workingHours.start"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Início</FormLabel>
+                  <FormLabel>Horário de Início</FormLabel>
                   <FormControl>
                     <Input 
                       type="time" 
@@ -1483,7 +1508,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
               name="workingHours.end"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Fim</FormLabel>
+                  <FormLabel>Horário de Fim</FormLabel>
                   <FormControl>
                     <Input 
                       type="time" 
@@ -1499,17 +1524,20 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
           </div>
         </div>
 
-        {/* Escalation */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Configurações de Escalonamento</h3>
+        {/* 🚨 SEÇÃO 5: ESCALONAMENTO */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Configurações de Escalonamento</h3>
+          </div>
 
           <FormField
             control={form.control}
             name="escalationEnabled"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-800">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Habilitar Escalonamento</FormLabel>
+                  <FormLabel className="text-base">Habilitar Escalonamento Automático</FormLabel>
                   <div className="text-sm text-gray-600">
                     Escalonar automaticamente quando próximo ao vencimento
                   </div>
@@ -1530,7 +1558,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
               control={form.control}
               name="escalationThresholdPercent"
               render={({ field, fieldState }) => (
-                <FormItem>
+                <FormItem className="mt-4">
                   <FormLabel className="flex items-center gap-1">
                     Limite de Escalonamento (%)
                     <span className="text-red-500">*</span>
@@ -1544,6 +1572,7 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
                       {...field} 
                       onChange={(e) => field.onChange(parseInt(e.target.value))}
                       data-testid="input-escalation-threshold"
+                      placeholder="Ex: 80 (escala quando atingir 80% do tempo)"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500" />
@@ -1553,9 +1582,14 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
           )}
         </div>
 
-        {/* Application Rules */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Regras de Aplicação</h3>
+        {/* 🎯 SEÇÃO 6: REGRAS DE APLICAÇÃO */}
+        <div className="border rounded-lg p-5 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Regras de Aplicação</h3>
+            <span className="text-sm text-gray-500">(quando este SLA deve ser aplicado)</span>
+          </div>
+          
           <FormField
             control={form.control}
             name="applicationRules"
@@ -1574,9 +1608,9 @@ function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormP
           />
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end space-x-2">
-          <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla">
+        {/* BOTÃO DE AÇÃO */}
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          <Button type="submit" disabled={isSubmitting} data-testid="button-save-sla" className="min-w-[150px]">
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
