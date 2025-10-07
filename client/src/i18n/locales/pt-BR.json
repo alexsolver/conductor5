@@ -1783,7 +1783,7 @@
   "tickets.messages.created_success": "tickets.messages.criado_com_sucesso",
   "tickets.messages.error_creating": "tickets.messages.erro_ao_criar",
   "tickets.messages.error_loading": "tickets.messages.erro_ao_carregar",
-  "tickets.new_ticket": "tickets.novo_ticket",
+  "tickets.new_ticket": "Novo Ticket",
   "tickets.forms.create.title": "tickets.forms.criar.título",
   "tickets.forms.create.select_company": "tickets.forms.criar.selecionar_empresa",
   "tickets.forms.create.no_companies": "tickets.forms.criar.nenhuma_empresa",
