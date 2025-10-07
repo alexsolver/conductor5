@@ -194,7 +194,7 @@ export class DrizzleApprovalGroupRepository implements IApprovalGroupRepository 
         id: approvalGroupMembers.id,
         tenantId: approvalGroupMembers.tenantId,
         groupId: approvalGroupMembers.groupId,
-        memberType: approvalGroupMembers.memberType,
+        memberType: sql<string>`${approvalGroupMembers}.member_type`,
         memberId: approvalGroupMembers.memberId,
         role: approvalGroupMembers.role,
         isActive: approvalGroupMembers.isActive,
@@ -208,11 +208,11 @@ export class DrizzleApprovalGroupRepository implements IApprovalGroupRepository 
       })
       .from(approvalGroupMembers)
       .leftJoin(users, and(
-        eq(approvalGroupMembers.memberType, 'user'),
+        sql`${approvalGroupMembers}.member_type = 'user'`,
         eq(approvalGroupMembers.memberId, users.id)
       ))
       .leftJoin(customers, and(
-        eq(approvalGroupMembers.memberType, 'customer'),
+        sql`${approvalGroupMembers}.member_type = 'customer'`,
         eq(approvalGroupMembers.memberId, customers.id)
       ))
       .where(and(
@@ -252,7 +252,7 @@ export class DrizzleApprovalGroupRepository implements IApprovalGroupRepository 
       id: member.id,
       tenantId: member.tenantId,
       groupId: member.groupId,
-      memberType: member.memberType as any,
+      memberType: sql<string>`${member}.member_type` as any,
       memberId: member.memberId,
       role: member.role || 'member',
       isActive: member.isActive,
@@ -291,7 +291,7 @@ export class DrizzleApprovalGroupRepository implements IApprovalGroupRepository 
       .innerJoin(approvalGroupMembers, eq(approvalGroups.id, approvalGroupMembers.groupId))
       .where(and(
         eq(approvalGroupMembers.memberId, memberId),
-        eq(approvalGroupMembers.memberType, memberType),
+        sql`${approvalGroupMembers}.member_type = ${memberType}`,
         eq(approvalGroups.tenantId, tenantId),
         eq(approvalGroups.isActive, true)
       ));
