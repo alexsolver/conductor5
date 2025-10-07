@@ -91,18 +91,15 @@ export default function KnowledgeBase() {
     },
   });
 
-  // Extract articles safely from response
+  // Extract articles safely from response - API returns { success, data: { articles: [...] } }
   const articles = Array.isArray(articlesData?.data?.articles) 
     ? articlesData.data.articles 
-    : Array.isArray(articlesData?.articles) 
-    ? articlesData.articles 
-    : Array.isArray(articlesData?.data) 
-    ? articlesData.data 
     : [];
 
   console.log('🔍 [KB-DEBUG] Articles data structure:', { 
     articlesData, 
     extractedArticles: articles,
+    articleCount: articles.length,
     isArray: Array.isArray(articles)
   });
 

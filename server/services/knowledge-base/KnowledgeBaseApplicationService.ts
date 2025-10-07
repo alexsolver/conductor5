@@ -66,45 +66,39 @@ export class KnowledgeBaseApplicationService {
       this.logger.log(`[KB-SERVICE] Query params: limit=${limit}, offset=${offset}`);
       this.logger.log(`[KB-SERVICE] Conditions count: ${conditions.length}`);
 
-      const articles = await db
-        .select({
-          id: knowledgeBaseArticles.id,
-          tenantId: knowledgeBaseArticles.tenantId,
-          title: knowledgeBaseArticles.title,
-          content: knowledgeBaseArticles.content,
-          excerpt: knowledgeBaseArticles.excerpt,
-          authorId: knowledgeBaseArticles.authorId,
-          category: knowledgeBaseArticles.categoryId, // Corrected to categoryId
-          status: knowledgeBaseArticles.status,
-          visibility: knowledgeBaseArticles.visibility,
-          approvalStatus: knowledgeBaseArticles.approvalStatus,
-          tags: knowledgeBaseArticles.tags,
-          viewCount: knowledgeBaseArticles.viewCount,
-          helpfulCount: knowledgeBaseArticles.helpfulCount,
-          notHelpfulCount: knowledgeBaseArticles.notHelpfulCount,
-          featured: knowledgeBaseArticles.featured,
-          seoTitle: knowledgeBaseArticles.seoTitle,
-          seoDescription: knowledgeBaseArticles.seoDescription,
-          slug: knowledgeBaseArticles.slug,
-          publishedAt: knowledgeBaseArticles.publishedAt,
-          archivedAt: knowledgeBaseArticles.archivedAt,
-          metadata: knowledgeBaseArticles.metadata,
-          createdAt: knowledgeBaseArticles.createdAt,
-          updatedAt: knowledgeBaseArticles.updatedAt
-        })
-        .from(knowledgeBaseArticles)
-        .where(and(...conditions))
-        .limit(limit + 1) // +1 to check if there are more
-        .offset(offset)
-        .orderBy(desc(knowledgeBaseArticles.createdAt));
+      // Use raw SQL to query the actual database structure
+      const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
+      const articlesResult = await db.execute(sql.raw(`
+        SELECT 
+          id, tenant_id as "tenantId", title, content, excerpt, summary,
+          category, tags, access_level as visibility, author_id as "authorId",
+          created_at as "createdAt", updated_at as "updatedAt",
+          published, published_at as "published_at", view_count, helpful_count,
+          status, version, approval_status
+        FROM ${schemaName}.knowledge_base_articles
+        WHERE tenant_id = '${this.tenantId}'
+        ${params.query ? `AND (title ILIKE '%${params.query}%' OR content ILIKE '%${params.query}%')` : ''}
+        ${params.category ? `AND category = '${params.category}'` : ''}
+        ${params.status ? `AND status = '${params.status}'` : ''}
+        ORDER BY created_at DESC
+        LIMIT ${limit + 1}
+        OFFSET ${offset}
+      `));
+
+      const articles = articlesResult.rows || [];
 
       this.logger.log(`[KB-SERVICE] Raw articles found: ${articles.length}`);
 
       // Count total for pagination
-      const [{ count }] = await db
-        .select({ count: sql`count(*)` })
-        .from(knowledgeBaseArticles)
-        .where(and(...conditions));
+      const countResult = await db.execute(sql.raw(`
+        SELECT COUNT(*) as count
+        FROM ${schemaName}.knowledge_base_articles
+        WHERE tenant_id = '${this.tenantId}'
+        ${params.query ? `AND (title ILIKE '%${params.query}%' OR content ILIKE '%${params.query}%')` : ''}
+        ${params.category ? `AND category = '${params.category}'` : ''}
+        ${params.status ? `AND status = '${params.status}'` : ''}
+      `));
+      const count = countResult.rows?.[0]?.count || 0;
 
       const hasMore = articles.length > limit;
       if (hasMore) articles.pop(); // Remove the extra item
@@ -159,33 +153,49 @@ export class KnowledgeBaseApplicationService {
         'other': 'other'
       };
 
-      // Prepare article for insertion with correct field mapping - matching database structure
-      // Use category field to match schema
-      const newArticle = {
-        title: articleData.title,
-        content: articleData.content,
-        category: categoryMapping[articleData.category] || 'other',
-        tenantId: this.tenantId,
-        authorId,
-        status: articleData.status || 'draft',
-        tags: articleData.tags || [],
-        visibility: articleData.access_level || 'public',
-        viewCount: 0,
-        helpfulCount: 0,
-        notHelpfulCount: 0,
-        featured: false
-      };
+      // Prepare data for insertion matching actual database structure
+      const category = categoryMapping[articleData.category] || 'other';
+      const status = articleData.status || 'draft';
+      const accessLevel = articleData.access_level || 'public';
+      const tags = articleData.tags || [];
+      const summary = articleData.summary || '';
 
       // Debug: Log exactly what we're trying to insert
-      this.logger.log('[KB-DEBUG] Attempting to insert:', JSON.stringify(newArticle, null, 2));
+      this.logger.log('[KB-DEBUG] Attempting to insert article with data:', {
+        title: articleData.title,
+        category,
+        status,
+        accessLevel,
+        tags
+      });
 
-      // Insert article
-      const [createdArticle] = await db
-        .insert(knowledgeBaseArticles)
-        .values(newArticle)
-        .returning();
+      // Insert article using raw SQL to match actual database structure
+      const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
+      const insertResult = await db.execute(sql.raw(`
+        INSERT INTO ${schemaName}.knowledge_base_articles (
+          tenant_id, title, content, category, tags, access_level, author_id,
+          status, published, view_count, helpful_count, summary, version, approval_status
+        ) VALUES (
+          '${this.tenantId}',
+          '${articleData.title.replace(/'/g, "''")}',
+          '${articleData.content.replace(/'/g, "''")}',
+          '${category}',
+          ARRAY[${tags.map((t: string) => `'${t.replace(/'/g, "''")}'`).join(',')}]::text[],
+          '${accessLevel}',
+          '${authorId}',
+          '${status}',
+          false,
+          0,
+          0,
+          '${summary.replace(/'/g, "''")}',
+          1,
+          'pending'
+        )
+        RETURNING *
+      `));
 
-      this.logger.log(`[KB-SERVICE] Article created successfully: ${createdArticle.id}`);
+      const createdArticle = insertResult.rows?.[0];
+      this.logger.log(`[KB-SERVICE] Article created successfully: ${createdArticle?.id}`);
 
       return {
         success: true,
