@@ -1025,7 +1025,79 @@ export default function SlaManagement() {
             <DialogTitle>
               {selectedSla ? 'Editar SLA' : 'Criar Novo SLA'}
             </DialogTitle>
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+            
+            {/* Info Panel for Editing */}
+            {selectedSla && (
+              <Card className="mt-4 border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-blue-900 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Datas e Horários
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <Label className="text-blue-800 font-medium">Criação:</Label>
+                    <p className="text-blue-900 mt-1">
+                      {new Date(selectedSla.createdAt).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-blue-800 font-medium">Vencimento:</Label>
+                    <p className="text-blue-900 mt-1">
+                      {selectedSla.validUntil 
+                        ? new Date(selectedSla.validUntil).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'Sem vencimento'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-blue-800 font-medium">Status</Label>
+                    <div className="mt-1">
+                      <Badge 
+                        variant={selectedSla.status === 'active' ? 'default' : 'secondary'}
+                        className={
+                          selectedSla.status === 'active' 
+                            ? 'bg-blue-600' 
+                            : selectedSla.status === 'inactive'
+                            ? 'bg-gray-500'
+                            : selectedSla.status === 'expired'
+                            ? 'bg-red-500'
+                            : 'bg-yellow-500'
+                        }
+                      >
+                        {selectedSla.status === 'active' ? 'Aberto' : 
+                         selectedSla.status === 'inactive' ? 'Inativo' :
+                         selectedSla.status === 'expired' ? 'Expirado' : 'Rascunho'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-blue-800 font-medium">SLA Decorrido</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      <span className="text-blue-900">
+                        {selectedSla.status === 'active' ? 'SLA Decorrido' : 'Inativo'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800 mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-red-500">*</span>
                 <span>Campos obrigatórios</span>
@@ -1036,7 +1108,8 @@ export default function SlaManagement() {
             form={form} 
             onSubmit={onSubmit} 
             isSubmitting={updateSlaMutation.isPending}
-            isEdit={true}
+            isEdit={!!selectedSla}
+            selectedSla={selectedSla}
           />
         </DialogContent>
       </Dialog>
@@ -1073,9 +1146,10 @@ interface SlaFormProps {
   onSubmit: (values: any) => void;
   isSubmitting: boolean;
   isEdit?: boolean;
+  selectedSla?: SlaDefinition | null;
 }
 
-function SlaForm({ form, onSubmit, isSubmitting, isEdit }: SlaFormProps) {
+function SlaForm({ form, onSubmit, isSubmitting, isEdit, selectedSla }: SlaFormProps) {
   const { toast } = useToast();
   
   return (
