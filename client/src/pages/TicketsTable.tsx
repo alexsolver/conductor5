@@ -1656,9 +1656,11 @@ const TicketsTable = React.memo(() => {
     setIsManageViewsOpen(false);
     setIsNewViewDialogOpen(true);
     setNewViewName(view.name);
+    console.log('✏️ [EDIT-VIEW] Set name to:', view.name);
     setNewViewDescription(view.description || "");
-    const columnIds = view.columns?.map((col: any) => col.id) || [];
-    console.log('✏️ [EDIT-VIEW] Setting selected columns:', columnIds);
+    // Pegar apenas as colunas VISÍVEIS
+    const columnIds = view.columns?.filter((col: any) => col.visible).map((col: any) => col.id) || [];
+    console.log('✏️ [EDIT-VIEW] Setting selected columns (visible only):', columnIds);
     setSelectedColumns(columnIds);
     setIsPublicView(view.isPublic || false);
   };
