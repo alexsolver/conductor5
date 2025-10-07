@@ -41,6 +41,30 @@ export class TicketViewsRepository {
     return await this.query(sql, params);
   }
 
+  async getManageableViewsForUser(tenantId: string, userId: string, userRole: string): Promise<TicketListView[]> {
+    // Retorna apenas visualizações que podem ser gerenciadas (exclui is_default = true)
+    // Usuários comuns veem: suas próprias views + views públicas (exceto padrão)
+    // Admins veem: todas as views do tenant (exceto padrão)
+    const isAdmin = userRole === 'tenant_admin' || userRole === 'saas_admin';
+    const sql = isAdmin ? `
+      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views v
+      WHERE v.tenant_id = $1 
+        AND v.is_active = true 
+        AND v.is_default = false
+      ORDER BY v.name ASC
+    ` : `
+      SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views v
+      WHERE v.tenant_id = $1 
+        AND v.is_active = true
+        AND v.is_default = false
+        AND (v.created_by_id = $2 OR v.is_public = true)
+      ORDER BY v.name ASC
+    `;
+
+    const params = isAdmin ? [tenantId] : [tenantId, userId];
+    return await this.query(sql, params);
+  }
+
   async getViewById(tenantId: string, viewId: string): Promise<TicketListView | null> {
     const sql = `
       SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views

@@ -18,13 +18,30 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
   const [isNewViewModalOpen, setIsNewViewModalOpen] = useState(false);
   const [isManageViewsOpen, setIsManageViewsOpen] = useState(false);
 
-  // Fetch ticket views from API
+  // Fetch ALL ticket views for dropdown (includes system default)
   const { data: viewsData, isLoading } = useQuery({
     queryKey: ["/api/ticket-views"],
     retry: false,
   });
 
+  // Fetch MANAGEABLE ticket views for settings tab (excludes system default)
+  const { data: manageableViewsData } = useQuery({
+    queryKey: ["/api/ticket-views", { manageable: true }],
+    queryFn: async () => {
+      const response = await fetch("/api/ticket-views?manageable=true", {
+        credentials: "include",
+        headers: {
+          "x-tenant-id": localStorage.getItem("tenantId") || "",
+        },
+      });
+      return response.json();
+    },
+    enabled: isManageViewsOpen, // Only fetch when dialog is open
+    retry: false,
+  });
+
   const ticketViews = (viewsData as any)?.data || [];
+  const manageableViews = (manageableViewsData as any)?.data || [];
 
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 
@@ -147,7 +164,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {ticketViews.length === 0 ? (
+              {manageableViews.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>{t('tickets.views.noViewsAvailable')}</p>
@@ -155,7 +172,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {ticketViews.map((view: any) => (
+                  {manageableViews.map((view: any) => (
                     <div key={view.id} className="border rounded-lg p-4 flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">

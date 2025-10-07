@@ -27,13 +27,22 @@ export class TicketViewsController {
   async getViews(req: AuthenticatedRequest, res: Response) {
     try {
       const { tenantId, id: userId, role = 'user' } = req.user!;
+      const { manageable } = req.query; // ?manageable=true para aba de gerenciamento
       
-      const views = await this.ticketViewsRepository.getViewsForUser(tenantId, userId, role);
+      let views;
       
-      // Se não há views, criar visualização padrão
-      if (views.length === 0) {
-        const defaultView = await this.ticketViewsRepository.createDefaultView(tenantId, userId);
-        views.push(defaultView);
+      if (manageable === 'true') {
+        // Para aba de gerenciamento: exclui visualizações padrão
+        views = await this.ticketViewsRepository.getManageableViewsForUser(tenantId, userId, role);
+      } else {
+        // Para dropdown de seleção: inclui visualizações padrão
+        views = await this.ticketViewsRepository.getViewsForUser(tenantId, userId, role);
+        
+        // Se não há views, criar visualização padrão
+        if (views.length === 0) {
+          const defaultView = await this.ticketViewsRepository.createDefaultView(tenantId, userId);
+          views.push(defaultView);
+        }
       }
 
       res.json({
@@ -156,6 +165,15 @@ export class TicketViewsController {
         });
       }
 
+      // ⛔ Visualizações padrão não podem ser editadas
+      const isDefaultView = (existingView as any).is_default;
+      if (isDefaultView) {
+        return res.status(403).json({
+          success: false,
+          message: 'Visualizações padrão do sistema não podem ser editadas'
+        });
+      }
+
       // Verificar permissões (o banco retorna created_by_id em snake_case)
       const viewCreatorId = (existingView as any).created_by_id;
       const isAdmin = role === 'tenant_admin' || role === 'saas_admin';
@@ -224,7 +242,8 @@ export class TicketViewsController {
         id: existingView.id,
         name: existingView.name,
         createdById: (existingView as any).created_by_id,
-        isPublic: (existingView as any).is_public
+        isPublic: (existingView as any).is_public,
+        isDefault: (existingView as any).is_default
       } : 'NOT FOUND');
 
       if (!existingView) {
@@ -232,6 +251,16 @@ export class TicketViewsController {
         return res.status(404).json({
           success: false,
           message: 'Visualização não encontrada'
+        });
+      }
+
+      // ⛔ Visualizações padrão não podem ser deletadas
+      const isDefaultView = (existingView as any).is_default;
+      if (isDefaultView) {
+        console.log('🗑️ [DELETE-VIEW] Rejected: cannot delete default view');
+        return res.status(403).json({
+          success: false,
+          message: 'Visualizações padrão do sistema não podem ser deletadas'
         });
       }
 
