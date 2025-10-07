@@ -3539,7 +3539,7 @@ const TicketDetails = React.memo(() => {
 
           {/* Seguidores Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">SEGUIDORES</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">Seguidores</h3>
             <div className="mb-4">
               <UserMultiSelect
                 value={ticket?.followers || []}
