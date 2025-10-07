@@ -467,7 +467,8 @@ const TicketsTable = React.memo(() => {
   // liga/desliga visibleFields conforme template
   function buildVisibleFlags(requiredKeys: string[], optionalKeys: string[]) {
     const flags: Record<string, boolean> = {};
-    const allKeys = [...new Set([...requiredKeys, ...optionalKeys])];
+    const uniqueSet = new Set([...requiredKeys, ...optionalKeys]);
+    const allKeys = Array.from(uniqueSet);
     allKeys.forEach((k) => {
       if (!TEMPLATE_UI_EXCLUDE.has(k)) {
         flags[k] = true; // mostra só o que não está excluído
@@ -1822,7 +1823,7 @@ const TicketsTable = React.memo(() => {
 
     // Use subject field directly
     const subject = data.subject || data.description?.substring(0, 100) || "";
-    const customFieldsValues = form.getValues().customFields || {};
+    const customFieldsValues = (form.getValues() as any).customFields || {};
 
     const submitData = {
       // Core ticket fields (using ServiceNow-style naming)
@@ -3448,16 +3449,6 @@ const TicketsTable = React.memo(() => {
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
               Cancelar
-            </Button>
-            <Button variant="outline" onClick={() => {
-              setStatusFilter("all");
-              setPriorityFilter("all");
-              setSelectedCompanyId("");
-              setSearchTerm("");
-              // Refrescar dados
-              queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
-            }}>
-              Limpar Filtros
             </Button>
             <Button onClick={() => {
               // Aplicar filtros (em implementação futura)
