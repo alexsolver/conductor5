@@ -235,7 +235,7 @@ export const ResponsiveTicketsTable = ({
                       return (
                         <TableCell key={columnId} className="font-mono text-sm">
                           <div className="flex items-center gap-2">
-                            {idx === 0 && ticketsWithRelationships.has(ticket.id) && (
+                            {columnId === 'number' && ticketsWithRelationships.has(ticket.id) && (
                               <Button
                                 variant="ghost"
                                 size="sm"
