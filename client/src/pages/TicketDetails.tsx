@@ -494,7 +494,8 @@ const TicketDetails = React.memo(() => {
       if (!ticket?.templateId) return null;
       try {
         const response = await apiRequest('GET', `/api/ticket-templates/${ticket.templateId}`);
-        return response.data || response;
+        const data = await response.json();
+        return data.data || data;
       } catch (error) {
         console.error('Erro ao buscar template:', error);
         return null;
@@ -510,7 +511,8 @@ const TicketDetails = React.memo(() => {
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', '/api/custom-fields/fields/tickets');
-        return { success: true, data: response.data }; // 👈 pega só o array
+        const data = await response.json();
+        return { success: true, data: data.data || data };
       } catch (error) {
         return { success: false, data: [] };
       }
@@ -529,7 +531,7 @@ const TicketDetails = React.memo(() => {
       const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
       return response.json();
     },
-    cacheTime: 0,      // não guarda cache em memória
+    gcTime: 0,      // não guarda cache em memória
     staleTime: 0,      // nunca considera "fresco"
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -915,13 +917,13 @@ const TicketDetails = React.memo(() => {
       });
 
       // 🔧 [1QA-COMPLIANCE] Debug dos dados mapeados para note_deleted
-      const noteDeletedItems = mappedHistory.filter(item => item.action_type === 'note_deleted');
+      const noteDeletedItems = mappedHistory.filter((item: any) => item.action_type === 'note_deleted');
       if (noteDeletedItems.length > 0) {
         console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
           totalItems: mappedHistory.length,
-          itemsWithIP: mappedHistory.filter(item => item.ip_address && item.ip_address !== 'N/A').length,
-          itemsWithSession: mappedHistory.filter(item => item.session_id && item.session_id !== 'N/A').length,
-          sampleData: noteDeletedItems.slice(0, 3).map(item => ({
+          itemsWithIP: mappedHistory.filter((item: any) => item.ip_address && item.ip_address !== 'N/A').length,
+          itemsWithSession: mappedHistory.filter((item: any) => item.session_id && item.session_id !== 'N/A').length,
+          sampleData: noteDeletedItems.slice(0, 3).map((item: any) => ({
             id: item.id,
             ip_address: item.ip_address,
             user_agent: item.user_agent,
@@ -933,9 +935,9 @@ const TicketDetails = React.memo(() => {
 
       console.log('🔍 [TICKET-HISTORY] Dados de sessão mapeados:', {
         totalItems: mappedHistory.length,
-        itemsWithIP: mappedHistory.filter(h => h.ip_address && h.ip_address !== 'N/A').length,
-        itemsWithSession: mappedHistory.filter(h => h.session_id && h.session_id !== 'N/A').length,
-        sampleData: mappedHistory.slice(0, 3).map(h => ({
+        itemsWithIP: mappedHistory.filter((h: any) => h.ip_address && h.ip_address !== 'N/A').length,
+        itemsWithSession: mappedHistory.filter((h: any) => h.session_id && h.session_id !== 'N/A').length,
+        sampleData: mappedHistory.slice(0, 3).map((h: any) => ({
           id: h.id,
           ip_address: h.ip_address,
           user_agent: h.user_agent?.substring(0, 30),
@@ -1405,9 +1407,9 @@ const TicketDetails = React.memo(() => {
     };
 
     // Remove campos undefined para evitar problemas no backend
-    Object.keys(mappedData).forEach(key => {
-      if (mappedData[key] === undefined) {
-        delete mappedData[key];
+    Object.keys(mappedData).forEach((key) => {
+      if ((mappedData as any)[key] === undefined) {
+        delete (mappedData as any)[key];
       }
     });
 
@@ -3029,7 +3031,7 @@ const TicketDetails = React.memo(() => {
                   values={ticket?.custom_fields || ticket?.customFields || {}}
                   onChange={(fieldKey, value) => {
                     // Handle custom field changes
-                    form.setValue(`customFields.${fieldKey}`, value);
+                    form.setValue(`customFields.${fieldKey}` as any, value);
                   }}
                   readOnly={!isEditMode}
                 />
@@ -4016,12 +4018,13 @@ const TicketDetails = React.memo(() => {
                         const created = new Date(createdDate);
                         if (isNaN(created.getTime())) return "N/A";
 
-                        const hoursToAdd = {
+                        const priorityMap: Record<string, number> = {
                           'critical': 1,
                           'high': 4,
                           'medium': 24,
                           'low': 72
-                        }[ticket?.priority] || 24;
+                        };
+                        const hoursToAdd = priorityMap[ticket?.priority as string] || 24;
 
                         const due = new Date(created.getTime() + (hoursToAdd * 60 * 60 * 1000));
                         return due.toLocaleDateString('pt-BR') + ' ' + due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
