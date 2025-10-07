@@ -142,11 +142,7 @@ export function ApprovalDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent" style={{
-                backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))`,
-                '--tw-gradient-from': stat.gradient.split(' ')[0].replace('from-', ''),
-                '--tw-gradient-to': stat.gradient.split(' ')[2].replace('to-', '')
-              } as React.CSSProperties} data-testid={`value-${stat.testId}`}>
+              <div className={`text-3xl font-bold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`} data-testid={`value-${stat.testId}`}>
                 {stat.value}
                 {stat.total && (
                   <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/ {stat.total}</span>
