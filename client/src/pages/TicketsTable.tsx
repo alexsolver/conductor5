@@ -52,7 +52,7 @@ const ticketSchema = z.object({
   callerId: z.string().min(1, "Cliente é obrigatório"),
   callerType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de cliente inválido").default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
-  beneficiaryType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de beneficiário inválido").optional(),
+  beneficiaryType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de favorecido inválido").optional(),
 
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
