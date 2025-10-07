@@ -132,13 +132,6 @@ const TicketDetails = React.memo(() => {
   // Followers state removed - using direct computation with currentFollowers
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-
-  // Carregar tags do ticket quando ele for carregado
-  useEffect(() => {
-    if (ticket?.tags && Array.isArray(ticket.tags)) {
-      setTags(ticket.tags);
-    }
-  }, [ticket?.tags]);
   const [showPasswordDialog, setShowPasswordDialog] = useState<{open: boolean, field: string, type: 'rg' | 'cpf'}>({open: false, field: '', type: 'rg'});
   const [agentPassword, setAgentPassword] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -238,6 +231,13 @@ const TicketDetails = React.memo(() => {
 
   // Extract ticket from response data
   const ticket = ticketResponse?.success ? ticketResponse.data : null;
+
+  // Carregar tags do ticket quando ele for carregado
+  useEffect(() => {
+    if (ticket?.tags && Array.isArray(ticket.tags)) {
+      setTags(ticket.tags);
+    }
+  }, [ticket?.tags]);
 
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
@@ -1429,7 +1429,7 @@ const TicketDetails = React.memo(() => {
       }
     });
 
-    updateTicketMutation.mutate(mappedData);
+    updateTicketMutation.mutate(mappedData as any);
   }, [selectedCompany, form, updateTicketMutation, tags]);
 
   const handleDelete = () => {
