@@ -4,7 +4,7 @@
  * Seguindo rigorosamente padrões 1qa.md
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Plus, Save, Settings, Users, Filter, Workflow, 
   Play, Trash2, Eye, Clock, AlertTriangle, Check,
-  ArrowRight, ArrowDown, Move, X 
+  ArrowRight, ArrowDown, Move, X, Sparkles
 } from 'lucide-react';
 import { CompanySelector } from './CompanySelector';
 import { apiRequest } from '@/lib/queryClient';
@@ -71,12 +71,108 @@ interface ApprovalRule {
   priority: number;
 }
 
+interface FieldDefinition {
+  value: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'boolean' | 'date';
+  options?: { value: string; label: string; }[];
+}
+
 const moduleTypes = [
-  { value: 'tickets', label: 'Tickets', fields: ['priority', 'category', 'estimatedCost', 'location', 'customerId', 'assignedTo'] },
-  { value: 'materials', label: 'Materiais/Serviços', fields: ['itemValue', 'supplierId', 'category', 'stockImpact', 'urgencyLevel'] },
-  { value: 'knowledge_base', label: 'Knowledge Base', fields: ['articleType', 'visibilityLevel', 'contentSensitivity', 'authorId'] },
-  { value: 'timecard', label: 'Timecard', fields: ['overtimeHours', 'approvalAmount', 'employeeLevel'] },
-  { value: 'contracts', label: 'Contratos', fields: ['contractValue', 'duration', 'contractType', 'supplierId'] }
+  { 
+    value: 'tickets', 
+    label: 'Tickets', 
+    fields: [
+      { value: 'priority', label: 'Prioridade', type: 'select' as const, options: [
+        { value: 'low', label: 'Baixa' },
+        { value: 'medium', label: 'Média' },
+        { value: 'high', label: 'Alta' },
+        { value: 'critical', label: 'Crítica' }
+      ]},
+      { value: 'status', label: 'Status', type: 'select' as const, options: [
+        { value: 'open', label: 'Aberto' },
+        { value: 'in_progress', label: 'Em Andamento' },
+        { value: 'resolved', label: 'Resolvido' },
+        { value: 'closed', label: 'Fechado' }
+      ]},
+      { value: 'category', label: 'Categoria', type: 'text' as const },
+      { value: 'estimatedCost', label: 'Custo Estimado', type: 'number' as const },
+      { value: 'location', label: 'Localização', type: 'text' as const },
+      { value: 'customerId', label: 'ID do Cliente', type: 'text' as const },
+      { value: 'assignedTo', label: 'Atribuído a', type: 'text' as const }
+    ] 
+  },
+  { 
+    value: 'materials', 
+    label: 'Materiais/Serviços', 
+    fields: [
+      { value: 'itemValue', label: 'Valor do Item', type: 'number' as const },
+      { value: 'supplierId', label: 'ID do Fornecedor', type: 'text' as const },
+      { value: 'category', label: 'Categoria', type: 'text' as const },
+      { value: 'stockImpact', label: 'Impacto no Estoque', type: 'select' as const, options: [
+        { value: 'positive', label: 'Positivo' },
+        { value: 'negative', label: 'Negativo' },
+        { value: 'neutral', label: 'Neutro' }
+      ]},
+      { value: 'urgencyLevel', label: 'Nível de Urgência', type: 'select' as const, options: [
+        { value: 'low', label: 'Baixa' },
+        { value: 'medium', label: 'Média' },
+        { value: 'high', label: 'Alta' }
+      ]}
+    ] 
+  },
+  { 
+    value: 'knowledge_base', 
+    label: 'Knowledge Base', 
+    fields: [
+      { value: 'articleType', label: 'Tipo de Artigo', type: 'select' as const, options: [
+        { value: 'faq', label: 'FAQ' },
+        { value: 'tutorial', label: 'Tutorial' },
+        { value: 'guide', label: 'Guia' },
+        { value: 'troubleshooting', label: 'Troubleshooting' }
+      ]},
+      { value: 'visibilityLevel', label: 'Nível de Visibilidade', type: 'select' as const, options: [
+        { value: 'public', label: 'Público' },
+        { value: 'internal', label: 'Interno' },
+        { value: 'restricted', label: 'Restrito' }
+      ]},
+      { value: 'contentSensitivity', label: 'Sensibilidade', type: 'select' as const, options: [
+        { value: 'low', label: 'Baixa' },
+        { value: 'medium', label: 'Média' },
+        { value: 'high', label: 'Alta' }
+      ]},
+      { value: 'authorId', label: 'ID do Autor', type: 'text' as const }
+    ] 
+  },
+  { 
+    value: 'timecard', 
+    label: 'Timecard', 
+    fields: [
+      { value: 'overtimeHours', label: 'Horas Extras', type: 'number' as const },
+      { value: 'approvalAmount', label: 'Valor para Aprovação', type: 'number' as const },
+      { value: 'employeeLevel', label: 'Nível do Funcionário', type: 'select' as const, options: [
+        { value: 'junior', label: 'Júnior' },
+        { value: 'pleno', label: 'Pleno' },
+        { value: 'senior', label: 'Sênior' },
+        { value: 'manager', label: 'Gerente' }
+      ]}
+    ] 
+  },
+  { 
+    value: 'contracts', 
+    label: 'Contratos', 
+    fields: [
+      { value: 'contractValue', label: 'Valor do Contrato', type: 'number' as const },
+      { value: 'duration', label: 'Duração (meses)', type: 'number' as const },
+      { value: 'contractType', label: 'Tipo de Contrato', type: 'select' as const, options: [
+        { value: 'service', label: 'Serviço' },
+        { value: 'purchase', label: 'Compra' },
+        { value: 'lease', label: 'Aluguel' },
+        { value: 'maintenance', label: 'Manutenção' }
+      ]},
+      { value: 'supplierId', label: 'ID do Fornecedor', type: 'text' as const }
+    ] 
+  }
 ];
 
 const operators = [
@@ -123,7 +219,6 @@ export function UnifiedApprovalConfigurator() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch existing rules
   const { data: rulesData, isLoading } = useQuery({
     queryKey: ['/api/approvals/rules'],
     queryFn: async () => {
@@ -139,7 +234,6 @@ export function UnifiedApprovalConfigurator() {
     }
   });
 
-  // Save rule mutation
   const saveRuleMutation = useMutation({
     mutationFn: async (ruleData: ApprovalRule) => {
       console.log('🚀 [SAVE-MUTATION] Enviando dados:', ruleData);
@@ -292,14 +386,21 @@ export function UnifiedApprovalConfigurator() {
     saveRuleMutation.mutate(currentRule);
   }, [currentRule, validateRule, saveRuleMutation, toast]);
 
-  const selectedModuleType = moduleTypes.find(m => m.value === currentRule.moduleType);
+  const selectedModuleType = useMemo(() => 
+    moduleTypes.find(m => m.value === currentRule.moduleType),
+    [currentRule.moduleType]
+  );
+
+  const getFieldDefinition = useCallback((fieldValue: string): FieldDefinition | null => {
+    return selectedModuleType?.fields.find(f => f.value === fieldValue) || null;
+  }, [selectedModuleType]);
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6" data-testid="unified-approval-configurator">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Configurador Universal de Aprovações
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -310,6 +411,7 @@ export function UnifiedApprovalConfigurator() {
           <Button
             variant="outline"
             onClick={() => setIsPreviewMode(!isPreviewMode)}
+            className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/30 dark:hover:to-purple-950/30"
             data-testid="button-preview-toggle"
           >
             <Eye className="h-4 w-4 mr-2" />
@@ -321,13 +423,16 @@ export function UnifiedApprovalConfigurator() {
               resetRule();
             }}
             variant="outline"
+            className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-950/30 dark:hover:to-pink-950/30"
             data-testid="button-reset"
           >
+            <Sparkles className="h-4 w-4 mr-2" />
             Nova Regra
           </Button>
           <Button
             onClick={handleSave}
             disabled={saveRuleMutation.isPending}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             data-testid="button-save-rule"
           >
             <Save className="h-4 w-4 mr-2" />
@@ -340,10 +445,12 @@ export function UnifiedApprovalConfigurator() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Sidebar - Existing Rules */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="border-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Settings className="h-5 w-5" />
+                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
                 Regras Existentes
               </CardTitle>
             </CardHeader>
@@ -352,7 +459,7 @@ export function UnifiedApprovalConfigurator() {
                 {isLoading ? (
                   <div className="space-y-2">
                     {[...Array(3)].map((_, i) => (
-                      <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div key={i} className="h-16 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded animate-pulse" />
                     ))}
                   </div>
                 ) : (
@@ -360,15 +467,18 @@ export function UnifiedApprovalConfigurator() {
                     {rulesData?.data?.map((rule: any) => (
                       <div
                         key={`rule-${rule.id}`}
-                        className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                        className="p-3 border rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-950/30 dark:hover:to-pink-950/30 cursor-pointer transition-all duration-200 hover:shadow-md"
                         onClick={() => setCurrentRule(rule)}
                       >
-                        <div className="font-medium truncate">{rule.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-2">
+                        <div className="font-medium truncate text-gray-900 dark:text-gray-100">{rule.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1">
                           <Badge variant="outline" className="text-xs">
                             {moduleTypes.find(m => m.value === rule.moduleType)?.label}
                           </Badge>
-                          <Badge variant={rule.isActive ? "default" : "secondary"} className="text-xs">
+                          <Badge 
+                            variant={rule.isActive ? "default" : "secondary"} 
+                            className={rule.isActive ? "text-xs bg-gradient-to-r from-green-500 to-emerald-500" : "text-xs"}
+                          >
                             {rule.isActive ? 'Ativa' : 'Inativa'}
                           </Badge>
                         </div>
@@ -383,62 +493,64 @@ export function UnifiedApprovalConfigurator() {
 
         {/* Main Configuration Area */}
         <div className="lg:col-span-3">
-          <Card>
+          <Card className="border-none bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
             <CardContent className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="basic">
+                <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <TabsTrigger value="basic" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
                     <Settings className="h-4 w-4 mr-2" />
                     Básico
                   </TabsTrigger>
-                  <TabsTrigger value="conditions">
+                  <TabsTrigger value="conditions" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
                     <Filter className="h-4 w-4 mr-2" />
                     Condições
                   </TabsTrigger>
-                  <TabsTrigger value="workflow">
+                  <TabsTrigger value="workflow" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white">
                     <Workflow className="h-4 w-4 mr-2" />
                     Fluxo
                   </TabsTrigger>
-                  <TabsTrigger value="advanced">
+                  <TabsTrigger value="advanced" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
                     <AlertTriangle className="h-4 w-4 mr-2" />
                     Avançado
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Basic Configuration */}
-                <TabsContent value="basic" className="space-y-6">
+                <TabsContent value="basic" className="space-y-6 mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="rule-name">Nome da Regra</Label>
+                        <Label htmlFor="rule-name" className="text-gray-700 dark:text-gray-300">Nome da Regra</Label>
                         <Input
                           id="rule-name"
                           value={currentRule.name}
                           onChange={(e) => setCurrentRule(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Ex: Aprovação Alto Valor Tickets"
+                          className="mt-1.5 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                           data-testid="input-rule-name"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="rule-description">Descrição</Label>
+                        <Label htmlFor="rule-description" className="text-gray-700 dark:text-gray-300">Descrição</Label>
                         <Textarea
                           id="rule-description"
                           value={currentRule.description}
                           onChange={(e) => setCurrentRule(prev => ({ ...prev, description: e.target.value }))}
                           placeholder="Descreva o propósito desta regra..."
                           rows={3}
+                          className="mt-1.5 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                           data-testid="textarea-rule-description"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="module-type">Módulo</Label>
+                        <Label htmlFor="module-type" className="text-gray-700 dark:text-gray-300">Módulo</Label>
                         <Select
                           value={currentRule.moduleType}
                           onValueChange={(value) => setCurrentRule(prev => ({ ...prev, moduleType: value }))}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="mt-1.5">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -461,7 +573,7 @@ export function UnifiedApprovalConfigurator() {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="priority">Prioridade</Label>
+                          <Label htmlFor="priority" className="text-gray-700 dark:text-gray-300">Prioridade</Label>
                           <Input
                             id="priority"
                             type="number"
@@ -469,148 +581,202 @@ export function UnifiedApprovalConfigurator() {
                             onChange={(e) => setCurrentRule(prev => ({ ...prev, priority: parseInt(e.target.value) || 100 }))}
                             min="1"
                             max="999"
+                            className="mt-1.5"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="sla-hours">SLA (horas)</Label>
+                          <Label htmlFor="sla-hours" className="text-gray-700 dark:text-gray-300">SLA (horas)</Label>
                           <Input
                             id="sla-hours"
                             type="number"
                             value={currentRule.slaHours}
                             onChange={(e) => setCurrentRule(prev => ({ ...prev, slaHours: parseInt(e.target.value) || 24 }))}
                             min="1"
+                            className="mt-1.5"
                           />
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
                         <Switch
                           checked={currentRule.businessHoursOnly}
                           onCheckedChange={(checked) => setCurrentRule(prev => ({ ...prev, businessHoursOnly: checked }))}
                         />
-                        <Label>Apenas horário comercial</Label>
+                        <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Apenas horário comercial</Label>
                       </div>
 
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
                         <Switch
                           checked={currentRule.isActive}
                           onCheckedChange={(checked) => setCurrentRule(prev => ({ ...prev, isActive: checked }))}
                         />
-                        <Label>Regra ativa</Label>
+                        <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Regra ativa</Label>
                       </div>
                     </div>
                   </div>
                 </TabsContent>
 
-                {/* Query Conditions */}
-                <TabsContent value="conditions" className="space-y-6">
+                {/* Query Conditions - IMPROVED */}
+                <TabsContent value="conditions" className="space-y-6 mt-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Query Builder - Condições de Ativação</h3>
-                    <Button onClick={addCondition} size="sm">
+                    <div>
+                      <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        Query Builder - Condições de Ativação
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Defina quando esta regra deve ser ativada
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={addCondition} 
+                      size="sm"
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Condição
                     </Button>
                   </div>
 
                   {selectedModuleType && (
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Campos disponíveis para {selectedModuleType.label}: {selectedModuleType.fields.join(', ')}
+                    <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+                      <AlertTriangle className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-gray-700 dark:text-gray-300">
+                        <strong>Módulo {selectedModuleType.label}:</strong> {selectedModuleType.fields.length} campos disponíveis
                       </AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-4">
-                    {currentRule.queryConditions.map((condition, index) => (
-                      <Card key={condition.id} className="p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                          {index > 0 && (
-                            <Select
-                              value={condition.logicalOperator}
-                              onValueChange={(value: 'AND' | 'OR') => updateCondition(condition.id, { logicalOperator: value })}
+                    {currentRule.queryConditions.map((condition, index) => {
+                      const fieldDef = getFieldDefinition(condition.field);
+                      
+                      return (
+                        <Card 
+                          key={condition.id} 
+                          className="p-4 border-none bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 hover:shadow-md transition-shadow"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            {index > 0 && (
+                              <Select
+                                value={condition.logicalOperator}
+                                onValueChange={(value: 'AND' | 'OR') => updateCondition(condition.id, { logicalOperator: value })}
+                              >
+                                <SelectTrigger className="bg-white dark:bg-gray-950">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="AND">E (AND)</SelectItem>
+                                  <SelectItem value="OR">OU (OR)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+
+                            <div className={index === 0 ? "col-span-1" : ""}>
+                              <Label className="text-gray-700 dark:text-gray-300">Campo</Label>
+                              <Select
+                                value={condition.field}
+                                onValueChange={(value) => updateCondition(condition.id, { field: value, value: '' })}
+                              >
+                                <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
+                                  <SelectValue placeholder="Selecionar campo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {selectedModuleType?.fields.map(field => (
+                                    <SelectItem key={field.value} value={field.value}>
+                                      {field.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label className="text-gray-700 dark:text-gray-300">Operador</Label>
+                              <Select
+                                value={condition.operator}
+                                onValueChange={(value: any) => updateCondition(condition.id, { operator: value })}
+                              >
+                                <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {operators.map(op => (
+                                    <SelectItem key={op.value} value={op.value}>
+                                      {op.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label className="text-gray-700 dark:text-gray-300">Valor</Label>
+                              {fieldDef?.options ? (
+                                <Select
+                                  value={condition.value}
+                                  onValueChange={(value) => updateCondition(condition.id, { value })}
+                                >
+                                  <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
+                                    <SelectValue placeholder="Selecionar valor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {fieldDef.options.map(opt => (
+                                      <SelectItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Input
+                                  type={fieldDef?.type === 'number' ? 'number' : 'text'}
+                                  value={condition.value}
+                                  onChange={(e) => updateCondition(condition.id, { value: e.target.value })}
+                                  placeholder="Valor da condição"
+                                  className="mt-1.5 bg-white dark:bg-gray-950"
+                                />
+                              )}
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeCondition(condition.id)}
+                              className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 dark:hover:bg-red-950/30"
                             >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="AND">E (AND)</SelectItem>
-                                <SelectItem value="OR">OU (OR)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-
-                          <div className={index === 0 ? "col-span-1" : ""}>
-                            <Label>Campo</Label>
-                            <Select
-                              value={condition.field}
-                              onValueChange={(value) => updateCondition(condition.id, { field: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecionar campo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {selectedModuleType?.fields.map(field => (
-                                  <SelectItem key={field} value={field}>
-                                    {field}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-
-                          <div>
-                            <Label>Operador</Label>
-                            <Select
-                              value={condition.operator}
-                              onValueChange={(value: any) => updateCondition(condition.id, { operator: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {operators.map(op => (
-                                  <SelectItem key={op.value} value={op.value}>
-                                    {op.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div>
-                            <Label>Valor</Label>
-                            <Input
-                              value={condition.value}
-                              onChange={(e) => updateCondition(condition.id, { value: e.target.value })}
-                              placeholder="Valor da condição"
-                            />
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeCondition(condition.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
 
                     {currentRule.queryConditions.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        Nenhuma condição definida. Adicione condições para ativar a regra.
+                      <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-dashed">
+                        <Filter className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                        <p className="font-medium">Nenhuma condição definida</p>
+                        <p className="text-sm mt-1">Adicione condições para ativar a regra</p>
                       </div>
                     )}
                   </div>
                 </TabsContent>
 
                 {/* Workflow Pipeline */}
-                <TabsContent value="workflow" className="space-y-6">
+                <TabsContent value="workflow" className="space-y-6 mt-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Pipeline Designer - Fluxo de Aprovação</h3>
-                    <Button onClick={addApprovalStep} size="sm">
+                    <div>
+                      <h3 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                        Pipeline Designer - Fluxo de Aprovação
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Configure as etapas sequenciais de aprovação
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={addApprovalStep} 
+                      size="sm"
+                      className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Etapa
                     </Button>
@@ -618,23 +784,24 @@ export function UnifiedApprovalConfigurator() {
 
                   <div className="space-y-6">
                     {currentRule.approvalSteps.map((step, index) => (
-                      <Card key={step.id} className="p-6">
+                      <Card key={step.id} className="p-6 border-none bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white text-sm font-bold shadow-lg">
                               {index + 1}
                             </div>
                             <Input
                               value={step.name}
                               onChange={(e) => updateApprovalStep(step.id, { name: e.target.value })}
                               placeholder="Nome da etapa"
-                              className="font-medium"
+                              className="font-medium bg-white dark:bg-gray-950"
                             />
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => removeApprovalStep(step.id)}
+                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 dark:hover:bg-red-950/30"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -642,12 +809,12 @@ export function UnifiedApprovalConfigurator() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label>Modo de Decisão</Label>
+                            <Label className="text-gray-700 dark:text-gray-300">Modo de Decisão</Label>
                             <Select
                               value={step.decisionMode}
                               onValueChange={(value: any) => updateApprovalStep(step.id, { decisionMode: value })}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className="mt-1.5 bg-white dark:bg-gray-950">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -662,40 +829,42 @@ export function UnifiedApprovalConfigurator() {
 
                           {step.decisionMode === 'QUORUM' && (
                             <div>
-                              <Label>Quórum (quantos aprovadores)</Label>
+                              <Label className="text-gray-700 dark:text-gray-300">Quórum (quantos aprovadores)</Label>
                               <Input
                                 type="number"
                                 value={step.quorumCount || 1}
                                 onChange={(e) => updateApprovalStep(step.id, { quorumCount: parseInt(e.target.value) || 1 })}
                                 min="1"
+                                className="mt-1.5 bg-white dark:bg-gray-950"
                               />
                             </div>
                           )}
 
                           <div>
-                            <Label>SLA da Etapa (horas)</Label>
+                            <Label className="text-gray-700 dark:text-gray-300">SLA da Etapa (horas)</Label>
                             <Input
                               type="number"
                               value={step.slaHours}
                               onChange={(e) => updateApprovalStep(step.id, { slaHours: parseInt(e.target.value) || 24 })}
                               min="1"
+                              className="mt-1.5 bg-white dark:bg-gray-950"
                             />
                           </div>
                         </div>
 
                         <div className="mt-4">
-                          <div className="flex items-center space-x-2 mb-2">
+                          <div className="flex items-center space-x-2 mb-2 p-3 rounded-lg bg-white/50 dark:bg-gray-900/50">
                             <Switch
                               checked={step.autoApproval}
                               onCheckedChange={(checked) => updateApprovalStep(step.id, { autoApproval: checked })}
                             />
-                            <Label>Auto-aprovação habilitada</Label>
+                            <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Auto-aprovação habilitada</Label>
                           </div>
 
                           {step.autoApproval && (
-                            <Alert className="mt-2">
-                              <Check className="h-4 w-4" />
-                              <AlertDescription>
+                            <Alert className="mt-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+                              <Check className="h-4 w-4 text-green-600" />
+                              <AlertDescription className="text-gray-700 dark:text-gray-300">
                                 Esta etapa será aprovada automaticamente quando as condições forem atendidas
                               </AlertDescription>
                             </Alert>
@@ -704,168 +873,83 @@ export function UnifiedApprovalConfigurator() {
 
                         {index < currentRule.approvalSteps.length - 1 && (
                           <div className="flex justify-center mt-4">
-                            <ArrowDown className="h-6 w-6 text-gray-400" />
+                            <div className="p-2 rounded-full bg-gradient-to-br from-emerald-200 to-green-200 dark:from-emerald-800 dark:to-green-800">
+                              <ArrowDown className="h-6 w-6 text-emerald-700 dark:text-emerald-300" />
+                            </div>
                           </div>
                         )}
                       </Card>
                     ))}
 
                     {currentRule.approvalSteps.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        Nenhuma etapa de aprovação definida. Adicione etapas para criar o fluxo.
+                      <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border-2 border-dashed">
+                        <Workflow className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                        <p className="font-medium">Nenhuma etapa de aprovação definida</p>
+                        <p className="text-sm mt-1">Adicione etapas para criar o fluxo</p>
                       </div>
                     )}
                   </div>
                 </TabsContent>
 
                 {/* Advanced Settings */}
-                <TabsContent value="advanced" className="space-y-6">
+                <TabsContent value="advanced" className="space-y-6 mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="p-4">
-                      <h4 className="font-medium mb-4">Configurações de Escalação</h4>
+                    <Card className="p-4 border-none bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30">
+                      <h4 className="font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
+                          <Clock className="h-4 w-4 text-white" />
+                        </div>
+                        Configurações de Escalação
+                      </h4>
                       <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch />
-                          <Label>Escalação automática por timeout</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Escalação automática por timeout</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch />
-                          <Label>Lembretes automáticos</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Lembretes automáticos</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch />
-                          <Label>Delegação automática</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Delegação automática</Label>
                         </div>
                       </div>
                     </Card>
 
-                    <Card className="p-4">
-                      <h4 className="font-medium mb-4">Notificações</h4>
+                    <Card className="p-4 border-none bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+                      <h4 className="font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+                          <Users className="h-4 w-4 text-white" />
+                        </div>
+                        Notificações
+                      </h4>
                       <div className="space-y-3">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch defaultChecked />
-                          <Label>Email</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Email</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch defaultChecked />
-                          <Label>In-app</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">In-app</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch />
-                          <Label>WhatsApp</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">WhatsApp</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded-lg bg-white/50 dark:bg-gray-900/50">
                           <Switch />
-                          <Label>Slack</Label>
+                          <Label className="cursor-pointer text-gray-700 dark:text-gray-300">Slack</Label>
                         </div>
                       </div>
                     </Card>
                   </div>
-
-                  <Card className="p-4">
-                    <h4 className="font-medium mb-4">Auditoria e Compliance</h4>
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Todas as aprovações serão automaticamente registradas no sistema de auditoria global conforme 1qa.md.
-                        Incluindo snapshots completos, timestamps e rastreabilidade completa.
-                      </AlertDescription>
-                    </Alert>
-                  </Card>
                 </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Preview Mode */}
-      {isPreviewMode && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview da Regra</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-lg">{currentRule.name || 'Nome da Regra'}</h4>
-                <p className="text-gray-600 dark:text-gray-400">{currentRule.description || 'Descrição não informada'}</p>
-              </div>
-              
-              <Separator />
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Módulo:</span>
-                  <div className="mt-1">
-                    <Badge>{moduleTypes.find(m => m.value === currentRule.moduleType)?.label}</Badge>
-                  </div>
-                </div>
-                <div>
-                  <span className="font-medium">Prioridade:</span>
-                  <div className="mt-1">{currentRule.priority}</div>
-                </div>
-                <div>
-                  <span className="font-medium">SLA:</span>
-                  <div className="mt-1">{currentRule.slaHours}h</div>
-                </div>
-                <div>
-                  <span className="font-medium">Status:</span>
-                  <div className="mt-1">
-                    <Badge variant={currentRule.isActive ? "default" : "secondary"}>
-                      {currentRule.isActive ? 'Ativa' : 'Inativa'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h5 className="font-medium mb-2">Condições ({currentRule.queryConditions.length})</h5>
-                {currentRule.queryConditions.length > 0 ? (
-                  <div className="space-y-1 text-sm font-mono bg-gray-50 dark:bg-gray-900 p-3 rounded">
-                    {currentRule.queryConditions.map((cond, index) => (
-                      <div key={cond.id}>
-                        {index > 0 && <span className="text-blue-600 dark:text-blue-400">{cond.logicalOperator} </span>}
-                        <span className="text-green-600 dark:text-green-400">{cond.field}</span>
-                        <span className="mx-2 text-orange-600 dark:text-orange-400">{cond.operator}</span>
-                        <span className="text-purple-600 dark:text-purple-400">"{cond.value}"</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm">Nenhuma condição definida</div>
-                )}
-              </div>
-
-              <div>
-                <h5 className="font-medium mb-2">Fluxo de Aprovação ({currentRule.approvalSteps.length} etapas)</h5>
-                {currentRule.approvalSteps.length > 0 ? (
-                  <div className="space-y-2">
-                    {currentRule.approvalSteps.map((step, index) => (
-                      <div key={step.id} className="flex items-center gap-3 text-sm">
-                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-xs font-medium">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <span className="font-medium">{step.name}</span>
-                          <div className="text-gray-500">
-                            {decisionModes.find(m => m.value === step.decisionMode)?.label} • SLA: {step.slaHours}h
-                            {step.autoApproval && ' • Auto-aprovação'}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm">Nenhuma etapa definida</div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
