@@ -453,6 +453,18 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch approval instances for badge counter
+  const { data: approvalsData } = useQuery({
+    queryKey: ['/api/approvals/tickets', id],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/approvals/tickets/${id}`);
+      return response.json();
+    },
+    enabled: !!id,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
     queryKey: ["/api/user-management/users"],
@@ -3817,23 +3829,7 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
           </button>
 
-          {/* 7. Aprovações */}
-          <button
-            onClick={() => setActiveTab("approvals")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-              activeTab === "approvals"
-                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
-                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
-            }`}
-            role="tab"
-            aria-selected={activeTab === "approvals"}
-            aria-controls="tab-content"
-          >
-            <Shield className="h-4 w-4" />
-            <span className="text-sm font-medium">Aprovações</span>
-          </button>
-
-          {/* 8. Ações Internas */}
+          {/* 7. Ações Internas */}
           <button
             onClick={() => setActiveTab("internal-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3877,7 +3873,29 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 10. Base de Conhecimento */}
+          {/* 10. Aprovações */}
+          <button
+            onClick={() => setActiveTab("approvals")}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "approvals"
+                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "approvals"}
+            aria-controls="tab-content"
+            aria-label={`Aprovações - ${approvalsData?.data?.instances?.length || 0} itens`}
+          >
+            <div className="flex items-center gap-3">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">Aprovações</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+              {approvalsData?.data?.instances?.length || 0}
+            </Badge>
+          </button>
+
+          {/* 11. Base de Conhecimento */}
           <button
             onClick={() => setActiveTab("knowledge-base")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3894,7 +3912,7 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.knowledgeBase')}</span>
           </button>
 
-          {/* 10. Vínculos */}
+          {/* 12. Vínculos */}
           <button
             onClick={() => setActiveTab("links")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3916,7 +3934,7 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 11. Interações Recentes */}
+          {/* 13. Interações Recentes */}
           <button
             onClick={() => setActiveTab("latest-interactions")}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
@@ -3929,7 +3947,7 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.latestInteractions')}</span>
           </button>
 
-          {/* 12. Histórico */}
+          {/* 14. Histórico */}
           <button
             onClick={() => setActiveTab("history")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
