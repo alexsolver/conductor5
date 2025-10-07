@@ -119,12 +119,11 @@ router.get('/tickets/:ticketId', async (req, res) => {
         status: approvalInstances.status,
         requestedById: approvalInstances.requestedById,
         requestedByName: users.firstName,
-        requestReason: approvalInstances.metadata,
-        urgencyLevel: approvalInstances.metadata,
+        requestComments: approvalInstances.requestComments,
         slaDeadline: approvalInstances.slaDeadline,
-        slaViolated: approvalInstances.metadata,
+        slaStatus: approvalInstances.slaStatus,
         createdAt: approvalInstances.createdAt,
-        metadata: approvalInstances.metadata,
+        entityData: approvalInstances.entityData,
         approvedViaEmail: approvalInstances.approvedViaEmail
       })
       .from(approvalInstances)
@@ -137,22 +136,25 @@ router.get('/tickets/:ticketId', async (req, res) => {
       ));
 
     // Formatar dados para o frontend
-    const formattedInstances = instances.map(instance => ({
-      id: instance.id,
-      ruleId: instance.ruleId,
-      ruleName: instance.ruleName || 'Regra de Aprovação',
-      currentStepIndex: instance.currentStepIndex || 0,
-      status: instance.status,
-      requestedById: instance.requestedById,
-      requestedByName: instance.requestedByName || 'Usuário',
-      requestReason: (instance.requestReason as any)?.requestReason || 'Solicitação de aprovação',
-      urgencyLevel: (instance.urgencyLevel as any)?.urgencyLevel || 3,
-      slaDeadline: instance.slaDeadline,
-      slaViolated: (instance.slaViolated as any)?.slaViolated || false,
-      createdAt: instance.createdAt,
-      approvedViaEmail: instance.approvedViaEmail || false,
-      steps: [] // TODO: Buscar steps relacionadas
-    }));
+    const formattedInstances = instances.map(instance => {
+      const entityData = (instance.entityData as any) || {};
+      return {
+        id: instance.id,
+        ruleId: instance.ruleId,
+        ruleName: instance.ruleName || 'Regra de Aprovação',
+        currentStepIndex: instance.currentStepIndex || 0,
+        status: instance.status,
+        requestedById: instance.requestedById,
+        requestedByName: instance.requestedByName || 'Usuário',
+        requestReason: instance.requestComments || 'Solicitação de aprovação',
+        urgencyLevel: entityData.urgencyLevel || 3,
+        slaDeadline: instance.slaDeadline,
+        slaViolated: instance.slaStatus === 'violated',
+        createdAt: instance.createdAt,
+        approvedViaEmail: instance.approvedViaEmail || false,
+        steps: [] // TODO: Buscar steps relacionadas
+      };
+    });
 
     const hasActiveApprovals = formattedInstances.some(i => i.status === 'pending');
 
