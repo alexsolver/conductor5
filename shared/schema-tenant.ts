@@ -701,7 +701,22 @@ export const holidays = pgTable("holidays", {
 // Adding remaining tables with minimal structure to resolve all type references
 export const complianceReports = pgTable("compliance_reports", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const timecardBackups = pgTable("timecard_backups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const ticketListViews = pgTable("ticket_list_views", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const ticketListViews = pgTable("ticket_list_views", { 
+  id: uuid("id").primaryKey().defaultRandom(), 
+  tenantId: uuid("tenant_id").notNull(), 
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdById: uuid("created_by_id"),
+  isPublic: boolean("is_public").default(false),
+  isDefault: boolean("is_default").default(false),
+  columns: jsonb("columns").default([]).notNull(),
+  filters: jsonb("filters").default([]).notNull(),
+  sorting: jsonb("sorting").default([]),
+  pageSize: integer("page_size").default(25),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
 export const digitalSignatureKeys = pgTable("digital_signature_keys", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const auditLogs = pgTable("audit_logs", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const roles = pgTable("roles", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
