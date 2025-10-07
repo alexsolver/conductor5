@@ -9,13 +9,15 @@
  */
 
 import { Router } from 'express';
+import { ApprovalGroupController } from './controllers/ApprovalGroupController';
 
 // ✅ 1QA.MD: Create router instance
 const router = Router();
 console.log('✅ [APPROVAL-ROUTES] Router initialized');
 
-// ✅ 1QA.MD: Simplified controller initialization to avoid circular dependencies
-console.log('✅ [APPROVAL-ROUTES] Controller logic will be inline for stability');
+// ✅ Initialize ApprovalGroupController
+const approvalGroupController = new ApprovalGroupController();
+console.log('✅ [APPROVAL-ROUTES] ApprovalGroupController initialized');
 
 // ✅ 1QA.MD: Define routes following REST standards
 
@@ -176,7 +178,24 @@ router.post('/instances/:instanceId/decision', async (req, res) => {
   }
 });
 
-console.log('✅ [APPROVAL-ROUTES] All routes registered successfully');
+// ============ APPROVAL GROUPS ROUTES ============
+
+// GET /api/approvals/groups - List approval groups
+router.get('/groups', (req, res) => approvalGroupController.listGroups(req, res));
+
+// GET /api/approvals/groups/:id - Get approval group by ID
+router.get('/groups/:id', (req, res) => approvalGroupController.getGroup(req, res));
+
+// POST /api/approvals/groups - Create approval group
+router.post('/groups', (req, res) => approvalGroupController.createGroup(req, res));
+
+// PUT /api/approvals/groups/:id - Update approval group
+router.put('/groups/:id', (req, res) => approvalGroupController.updateGroup(req, res));
+
+// DELETE /api/approvals/groups/:id - Delete approval group
+router.delete('/groups/:id', (req, res) => approvalGroupController.deleteGroup(req, res));
+
+console.log('✅ [APPROVAL-ROUTES] All routes registered successfully (including groups)');
 
 // ✅ 1QA.MD: Export router as default - ensuring it's properly exported
 export default router;
