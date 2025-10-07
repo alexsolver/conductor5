@@ -3,6 +3,7 @@
 
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { pool } from '../../../db';
 
 // Import repositories
 import { DrizzleApprovalRuleRepository } from '../infrastructure/repositories/DrizzleApprovalRuleRepository';
@@ -465,6 +466,73 @@ export class ApprovalController {
           validationErrors: response.validationErrors,
         });
         return;
+      }
+
+      // Create ticket history entry if this approval is for a ticket
+      try {
+        if (response.data?.instance) {
+          const instance = response.data.instance;
+          
+          // Only create history for ticket approvals
+          if (instance.entityType === 'tickets' && instance.entityId) {
+            const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+            const decisionText = validation.data.decision === 'approved' ? 'aprovada' : 
+                                validation.data.decision === 'rejected' ? 'rejeitada' : 
+                                validation.data.decision === 'delegated' ? 'delegada' : 'escalada';
+            
+            // Get user info for history
+            let userName = 'Sistema';
+            try {
+              const userQuery = `
+                SELECT COALESCE(first_name || ' ' || last_name, email) as full_name
+                FROM public.users 
+                WHERE id = $1
+              `;
+              const userResult = await pool.query(userQuery, [userId]);
+              if (userResult.rows[0]) {
+                userName = userResult.rows[0].full_name;
+              }
+            } catch (err) {
+              console.warn('Could not fetch user name for history:', err);
+            }
+
+            // Create history entry
+            const historyQuery = `
+              INSERT INTO "${schemaName}".ticket_history (
+                ticket_id, tenant_id, action, actor_type, actor_id, actor_name,
+                description, old_value, new_value, metadata, created_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+            `;
+
+            const metadata = {
+              approval_instance_id: instance.id,
+              decision: validation.data.decision,
+              comments: validation.data.comments,
+              reason_code: validation.data.reasonCode,
+              rule_id: instance.ruleId,
+              ip_address: req.ip,
+              user_agent: req.get('User-Agent')
+            };
+
+            await pool.query(historyQuery, [
+              instance.entityId,
+              tenantId,
+              'approval_decision',
+              'user',
+              userId,
+              userName,
+              `Aprovação ${decisionText}${validation.data.comments ? ': ' + validation.data.comments : ''}`,
+              'pending',
+              instance.status,
+              JSON.stringify(metadata)
+            ]);
+
+            console.log(`✅ [APPROVAL-HISTORY] Created history entry for ticket ${instance.entityId}`);
+          }
+        }
+      } catch (historyError) {
+        console.error('❌ [APPROVAL-HISTORY] Error creating history entry:', historyError);
+        // Don't fail the request if history creation fails
       }
 
       res.json({
