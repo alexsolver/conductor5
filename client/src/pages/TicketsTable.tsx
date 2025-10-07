@@ -216,7 +216,12 @@ const TicketsTable = React.memo(() => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedViewId, setSelectedViewId] = useState("default");
+  // Carregar última visualização selecionada do localStorage
+  const [selectedViewId, setSelectedViewId] = useState(() => {
+    const tenantId = localStorage.getItem("tenantId");
+    const savedViewId = localStorage.getItem(`lastTicketView_${tenantId}`);
+    return savedViewId || "default";
+  });
   const [isNewViewDialogOpen, setIsNewViewDialogOpen] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
@@ -3236,8 +3241,16 @@ const TicketsTable = React.memo(() => {
                 className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800"
                 value={selectedViewId}
                 onChange={(e) => {
-                  console.log('📋 [VIEW-CHANGE] Changing view from', selectedViewId, 'to', e.target.value);
-                  setSelectedViewId(e.target.value);
+                  const newViewId = e.target.value;
+                  console.log('📋 [VIEW-CHANGE] Changing view from', selectedViewId, 'to', newViewId);
+                  setSelectedViewId(newViewId);
+                  
+                  // Salvar no localStorage para persistir a última visualização
+                  const tenantId = localStorage.getItem("tenantId");
+                  if (tenantId) {
+                    localStorage.setItem(`lastTicketView_${tenantId}`, newViewId);
+                    console.log('💾 [VIEW-PERSIST] Saved last view:', newViewId, 'for tenant:', tenantId);
+                  }
                 }}
               >
                 <option value="default">{t('tickets.views.defaultView')}</option>
