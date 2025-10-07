@@ -42,10 +42,12 @@ interface ApprovalInstance {
 }
 
 interface PaginatedResponse {
-  data: ApprovalInstance[];
-  total: number;
-  page: number;
-  totalPages: number;
+  success: boolean;
+  message?: string;
+  data: {
+    instances: ApprovalInstance[];
+    total: number;
+  };
 }
 
 export function ApprovalInstances() {
@@ -271,7 +273,7 @@ export function ApprovalInstances() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {instancesData?.data?.map((instance) => {
+              {instancesData?.data?.instances?.map((instance) => {
                 const statusConfig = getStatusConfig(instance.status);
                 const Icon = statusConfig.icon;
                 
@@ -394,7 +396,7 @@ export function ApprovalInstances() {
             </TableBody>
           </Table>
 
-          {instancesData?.data?.length === 0 && (
+          {instancesData?.data?.instances?.length === 0 && (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <Clock className="h-12 w-12 mx-auto mb-3 text-gray-400" />
               <p className="font-medium">Nenhuma instância encontrada</p>
