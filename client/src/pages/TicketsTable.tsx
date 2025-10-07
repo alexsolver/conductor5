@@ -981,7 +981,9 @@ const TicketsTable = React.memo(() => {
 
   // Obter visualização ativa
   const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
-  const activeColumns = activeView?.columns || [
+  
+  // Processar colunas - aceitar tanto array de strings quanto array de objetos
+  let activeColumns = activeView?.columns || [
     { id: "number", label: t("tickets.fields.ticket_number") || "Número", visible: true, order: 1, width: 120 },
     { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: true, order: 2, width: 300 },
     { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: true, order: 3, width: 150 },
@@ -992,6 +994,22 @@ const TicketsTable = React.memo(() => {
     { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: true, order: 8, width: 120 },
     { id: "created", label: t("tickets.fields.created") || "Criado", visible: true, order: 9, width: 150 }
   ];
+
+  // Se as colunas são strings (formato antigo), converter para objetos
+  if (activeColumns.length > 0 && typeof activeColumns[0] === 'string') {
+    console.log('🔄 [COLUMNS-CONVERSION] Converting string array to objects:', activeColumns);
+    activeColumns = activeColumns.map((colId: string, index: number) => {
+      const colDef = availableColumns.find(c => c.id === colId);
+      return {
+        id: colId,
+        label: colDef?.label || colId,
+        visible: true,
+        order: index + 1,
+        width: colId === 'subject' ? 300 : colId === 'description' ? 250 : 150
+      };
+    });
+    console.log('✅ [COLUMNS-CONVERSION] Converted columns:', activeColumns);
+  }
 
   console.log('🔍 [ACTIVE-VIEW] Selected view ID:', selectedViewId);
   console.log('🔍 [ACTIVE-VIEW] Active view:', activeView);
