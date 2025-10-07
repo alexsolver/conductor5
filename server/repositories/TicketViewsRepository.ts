@@ -1,12 +1,13 @@
-import { Pool } from '@neondatabase/serverless';
-import {
-  TicketListView,
-  InsertTicketListView,
-  TicketViewShare,
-  InsertTicketViewShare,
-  UserViewPreference,
-  InsertUserViewPreference
-} from '@shared/schema';
+import { Pool } from 'pg';
+import { ticketListViews, insertTicketListViewSchema } from '@shared/schema';
+import { z } from 'zod';
+
+// Infer types from schema
+type TicketListView = typeof ticketListViews.$inferSelect;
+type InsertTicketListView = z.infer<typeof insertTicketListViewSchema>;
+
+// User view preferences types (table doesn't exist yet, using any for now)
+type UserViewPreference = any;
 
 export class TicketViewsRepository {
   constructor(private pool: Pool) {}
@@ -21,9 +22,10 @@ export class TicketViewsRepository {
   // ========================================
 
   async getViewsForUser(tenantId: string, userId: string, userRole: string): Promise<TicketListView[]> {
-    // Usuários comuns veem: suas próprias views + views públicas de tenant admins
-    // Tenant admins veem: todas as views do tenant
-    const sql = userRole === 'tenant_admin' ? `
+    // Usuários comuns veem: suas próprias views + views públicas
+    // Admins (tenant_admin/saas_admin) veem: todas as views do tenant
+    const isAdmin = userRole === 'tenant_admin' || userRole === 'saas_admin';
+    const sql = isAdmin ? `
       SELECT v.* FROM tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views v
       WHERE v.tenant_id = $1 AND v.is_active = true
       ORDER BY v.is_default DESC, v.name ASC
@@ -35,7 +37,7 @@ export class TicketViewsRepository {
       ORDER BY v.is_default DESC, v.name ASC
     `;
 
-    const params = userRole === 'tenant_admin' ? [tenantId] : [tenantId, userId];
+    const params = isAdmin ? [tenantId] : [tenantId, userId];
     return await this.query(sql, params);
   }
 
@@ -134,23 +136,45 @@ export class TicketViewsRepository {
   }
 
   async deleteView(tenantId: string, viewId: string, userId: string, role?: string): Promise<boolean> {
-    // Tenant admins podem deletar qualquer view, outros usuários apenas suas próprias
-    const sql = role === 'tenant_admin' 
+    const isAdmin = role === 'tenant_admin' || role === 'saas_admin';
+    
+    console.log('🗑️ [REPO-DELETE] Delete view request:', {
+      tenantId,
+      viewId,
+      userId,
+      role,
+      isAdmin
+    });
+
+    // Admins podem deletar qualquer view, outros usuários apenas suas próprias
+    const sql = isAdmin 
       ? `
         UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
-        SET is_active = false
+        SET is_active = false, updated_at = NOW()
         WHERE tenant_id = $1 AND id = $2
-        RETURNING id
+        RETURNING id, name, created_by_id
       `
       : `
         UPDATE tenant_${tenantId.replace(/-/g, '_')}.ticket_list_views 
-        SET is_active = false
+        SET is_active = false, updated_at = NOW()
         WHERE tenant_id = $1 AND id = $2 AND created_by_id = $3
-        RETURNING id
+        RETURNING id, name, created_by_id
       `;
 
-    const params = role === 'tenant_admin' ? [tenantId, viewId] : [tenantId, viewId, userId];
+    const params = isAdmin ? [tenantId, viewId] : [tenantId, viewId, userId];
+    
+    console.log('🗑️ [REPO-DELETE] Executing SQL:', {
+      sql: sql.split('\n').map(l => l.trim()).join(' '),
+      params
+    });
+
     const rows = await this.query(sql, params);
+    
+    console.log('🗑️ [REPO-DELETE] Query result:', {
+      rowsAffected: rows.length,
+      deletedView: rows[0] || null
+    });
+
     return rows.length > 0;
   }
 

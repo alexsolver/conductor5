@@ -5413,6 +5413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deletar visualização
   app.delete(
     "/api/ticket-views/:id",
+    jwtAuth,
     ticketViewsController.deleteView.bind(ticketViewsController),
   );
 

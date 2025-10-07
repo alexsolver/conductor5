@@ -8,7 +8,9 @@ interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     tenantId: string;
-    role: string;
+    email?: string;
+    role?: string;
+    roles?: string[];
   };
 }
 
@@ -24,7 +26,7 @@ export class TicketViewsController {
   // ========================================
   async getViews(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, id: userId, role } = req.user!;
+      const { tenantId, id: userId, role = 'user' } = req.user!;
       
       const views = await this.ticketViewsRepository.getViewsForUser(tenantId, userId, role);
       
@@ -82,7 +84,7 @@ export class TicketViewsController {
   // ========================================
   async createView(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, id: userId, role } = req.user!;
+      const { tenantId, id: userId, role = 'user' } = req.user!;
       
       // Validar dados de entrada
       const validationResult = insertTicketListViewSchema.safeParse({
@@ -102,10 +104,11 @@ export class TicketViewsController {
       const viewData = validationResult.data;
 
       // Verificar permissões para views públicas
-      if (viewData.isPublic && role !== 'tenant_admin') {
+      const isAdmin = role === 'tenant_admin' || role === 'saas_admin';
+      if (viewData.isPublic && !isAdmin) {
         return res.status(403).json({
           success: false,
-          message: 'Apenas tenant admins podem criar visualizações públicas'
+          message: 'Apenas administradores podem criar visualizações públicas'
         });
       }
 
@@ -130,7 +133,7 @@ export class TicketViewsController {
   // ========================================
   async updateView(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, id: userId, role } = req.user!;
+      const { tenantId, id: userId, role = 'user' } = req.user!;
       const { id } = req.params;
 
       console.log('🔧 [UPDATE-VIEW] Request details:', {
@@ -154,12 +157,15 @@ export class TicketViewsController {
       }
 
       // Verificar permissões (o banco retorna created_by_id em snake_case)
-      const canEdit = (existingView as any).created_by_id === userId || role === 'tenant_admin';
+      const viewCreatorId = (existingView as any).created_by_id;
+      const isAdmin = role === 'tenant_admin' || role === 'saas_admin';
+      const canEdit = viewCreatorId === userId || isAdmin;
       
       console.log('🔧 [UPDATE-VIEW] Permission check:', {
-        existingViewCreatedById: existingView.createdById,
+        viewCreatorId,
         currentUserId: userId,
         role,
+        isAdmin,
         canEdit
       });
       
@@ -171,11 +177,11 @@ export class TicketViewsController {
       }
 
       // Verificar permissões para tornar públicas
-      if (req.body.isPublic && role !== 'tenant_admin') {
-        console.log('🔧 [UPDATE-VIEW] Rejected: trying to make public without tenant_admin role');
+      if (req.body.isPublic && !isAdmin) {
+        console.log('🔧 [UPDATE-VIEW] Rejected: trying to make public without admin role');
         return res.status(403).json({
           success: false,
-          message: 'Apenas tenant admins podem criar visualizações públicas'
+          message: 'Apenas administradores podem criar visualizações públicas'
         });
       }
 
@@ -200,24 +206,75 @@ export class TicketViewsController {
   // ========================================
   async deleteView(req: AuthenticatedRequest, res: Response) {
     try {
-      const { tenantId, id: userId, role } = req.user!;
+      const { tenantId, id: userId, role = 'user' } = req.user!;
       const { id } = req.params;
+
+      console.log('🗑️ [DELETE-VIEW] Delete request:', {
+        tenantId,
+        userId,
+        role,
+        viewId: id,
+        timestamp: new Date().toISOString()
+      });
+
+      // First, check if view exists and get its details
+      const existingView = await this.ticketViewsRepository.getViewById(tenantId, id);
+      
+      console.log('🗑️ [DELETE-VIEW] View found:', existingView ? {
+        id: existingView.id,
+        name: existingView.name,
+        createdById: (existingView as any).created_by_id,
+        isPublic: (existingView as any).is_public
+      } : 'NOT FOUND');
+
+      if (!existingView) {
+        console.log('🗑️ [DELETE-VIEW] View not found:', id);
+        return res.status(404).json({
+          success: false,
+          message: 'Visualização não encontrada'
+        });
+      }
+
+      // Check permissions before attempting delete
+      const viewCreatorId = (existingView as any).created_by_id;
+      const isAdmin = role === 'tenant_admin' || role === 'saas_admin';
+      const canDelete = viewCreatorId === userId || isAdmin;
+      
+      console.log('🗑️ [DELETE-VIEW] Permission check:', {
+        viewCreatorId,
+        currentUserId: userId,
+        userRole: role,
+        isAdmin,
+        canDelete
+      });
+
+      if (!canDelete) {
+        console.log('🗑️ [DELETE-VIEW] Permission denied');
+        return res.status(403).json({
+          success: false,
+          message: 'Sem permissão para deletar esta visualização'
+        });
+      }
 
       const success = await this.ticketViewsRepository.deleteView(tenantId, id, userId, role);
       
+      console.log('🗑️ [DELETE-VIEW] Delete result:', { success });
+
       if (!success) {
+        console.log('🗑️ [DELETE-VIEW] Delete failed');
         return res.status(404).json({
           success: false,
           message: 'Visualização não encontrada ou sem permissão'
         });
       }
 
+      console.log('🗑️ [DELETE-VIEW] View deleted successfully:', id);
       res.json({
         success: true,
         message: 'Visualização removida com sucesso'
       });
     } catch (error) {
-      console.error('Error deleting ticket view:', error);
+      console.error('❌ [DELETE-VIEW] Error deleting ticket view:', error);
       res.status(500).json({
         success: false,
         message: 'Erro ao remover visualização'
