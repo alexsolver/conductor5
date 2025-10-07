@@ -43,6 +43,7 @@ interface TicketSLA {
   slaLevel: 'L1' | 'L2' | 'L3';
   isActive: boolean;
   metadata: {
+    priority?: string[];
     category?: string[];
     impact?: string[];
     urgency?: string[];
@@ -90,6 +91,7 @@ const slaFormSchema = z.object({
   slaLevel: z.enum(['L1', 'L2', 'L3']),
   isActive: z.boolean().default(true),
   metadata: z.object({
+    priority: z.array(z.string()).optional(),
     category: z.array(z.string()).optional(),
     impact: z.array(z.string()).optional(),
     urgency: z.array(z.string()).optional(),
@@ -358,8 +360,11 @@ export default function TenantAdminSLAs() {
                       <p className="text-sm text-muted-foreground mb-2">{sla.description}</p>
                     )}
                     <div className="flex gap-2 text-xs text-muted-foreground">
+                      {sla.metadata?.priority && (
+                        <span>Prioridades: {sla.metadata.priority.join(', ')}</span>
+                      )}
                       {sla.metadata?.category && (
-                        <span>Categorias: {sla.metadata.category.join(', ')}</span>
+                        <span>| Categorias: {sla.metadata.category.join(', ')}</span>
                       )}
                     </div>
                   </div>
