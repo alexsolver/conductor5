@@ -21,7 +21,7 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
 - **Schema Validation**: Comprehensive multi-layer system for data isolation and GDPR compliance.
 - **Employment Type System**: Supports dual employment types (CLT/Autonomous) with automatic detection.
 - **Key Features**:
-    - **Ticket Management**: ServiceNow-style fields, hierarchical configurations, dynamic metadata, audit trails, rich text editor, templates, automation, workflow engine, analytics.
+    - **Ticket Management**: ServiceNow-style fields, hierarchical configurations, dynamic metadata, audit trails, rich text editor, templates, automation, workflow engine, analytics. **Extended Fields**: Includes symptoms tracking (text), workaround documentation (text), followers system (JSONB array linking to customers table), and tags (JSONB array) for enhanced ticket categorization and collaboration.
     - **Customer & Beneficiary Management**: Flexible person management with sensitive data protection.
     - **Location Management**: Comprehensive system with address auto-fill and map integration.
     - **User & Team Management**: Consolidated system with HR database expansion and group memberships.
