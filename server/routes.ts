@@ -5664,9 +5664,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ 1QA.MD COMPLIANCE: CLEAN ARCHITECTURE - APPROVAL MANAGEMENT MODULE
   // Approval Management Routes - Comprehensive approval workflow system
   try {
-    const { approvalRoutes } = await import(
-      "./modules/approvals/routes/approvalRoutes"
-    );
+    const approvalRoutesModule = await import("./modules/approvals/routes");
+    const approvalRoutes = approvalRoutesModule.default;
+    
     if (approvalRoutes) {
       app.use("/api/approvals", jwtAuth, approvalRoutes);
       console.log(
