@@ -773,6 +773,9 @@ const TicketsTable = React.memo(() => {
     return [];
   }, [ticketsData]);
 
+  // Obter visualização ativa (precisa estar antes de filteredTickets)
+  const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
+
   // Filtrar tickets localmente baseado nos valores de pesquisa por coluna E filtros da visualização ativa
   const filteredTickets = useMemo(() => {
     let filtered = tickets;
@@ -1017,9 +1020,6 @@ const TicketsTable = React.memo(() => {
     }
   }, [tickets]);
 
-  // Obter visualização ativa
-  const activeView = ticketViews.find((view: any) => view.id === selectedViewId);
-  
   // Processar colunas - aceitar tanto array de strings quanto array de objetos
   let activeColumns = activeView?.columns || [
     { id: "number", label: t("tickets.fields.ticket_number") || "Número", visible: true, order: 1, width: 120 },
