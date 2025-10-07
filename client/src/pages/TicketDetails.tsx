@@ -67,6 +67,7 @@ import { KnowledgeBaseTicketTab } from "@/components/KnowledgeBaseTicketTab";
 import { SlaLedSimple, SlaRealTimeMonitor } from "@/components/SlaLed";
 import DynamicCustomFields from "@/components/DynamicCustomFields";
 import { useSlaData } from "@/hooks/useSlaData";
+import { TicketApprovalPanel } from "@/components/tickets/TicketApprovalPanel";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -3565,13 +3566,9 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
-          {/* Status Section */}
+          {/* Approval Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Status de aprovação</h3>
-            <div className="text-sm text-gray-700">Normal</div>
-            <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-700">
-              ✓ Configurado em 2 minutos
-            </div>
+            <TicketApprovalPanel ticketId={ticket.id} />
           </div>
 
           {/* Custom Information */}
