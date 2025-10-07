@@ -151,7 +151,7 @@ export class DrizzleApprovalRuleRepository implements IApprovalRuleRepository {
       );
     }
 
-    const tenantDb = await this.getTenantDb(tenantId);
+    const tenantDb = await this.getTenantDb(filters.tenantId);
     const results = await tenantDb
       .select()
       .from(approvalRules)
