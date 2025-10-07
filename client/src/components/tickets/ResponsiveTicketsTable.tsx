@@ -166,69 +166,20 @@ export const ResponsiveTicketsTable = ({
           </TableRow>
           {showColumnSearch && (
             <TableRow role="row" className="bg-gray-50">
-              <TableHead className="w-20 py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['number'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('number', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-number"
-                />
-              </TableHead>
-              <TableHead className="py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['subject'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('subject', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-subject"
-                />
-              </TableHead>
-              <TableHead className="hidden lg:table-cell py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['company'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('company', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-company"
-                />
-              </TableHead>
-              <TableHead className="hidden md:table-cell py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['customer'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('customer', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-customer"
-                />
-              </TableHead>
-              <TableHead className="hidden lg:table-cell py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['category'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('category', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-category"
-                />
-              </TableHead>
-              <TableHead className="hidden lg:table-cell py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['status'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('status', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-status"
-                />
-              </TableHead>
-              <TableHead className="hidden sm:table-cell py-2">
-                <Input
-                  placeholder="Filtrar"
-                  value={columnSearchValues['priority'] || ''}
-                  onChange={(e) => onColumnSearchChange?.('priority', e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid="input-column-search-priority"
-                />
-              </TableHead>
+              {columnsToRender.map((column: any) => {
+                const columnId = column.id || column.label?.toLowerCase().replace(/\s+/g, '_');
+                return (
+                  <TableHead key={`search-${columnId}`} className="py-2">
+                    <Input
+                      placeholder="Filtrar"
+                      value={columnSearchValues[columnId] || ''}
+                      onChange={(e) => onColumnSearchChange?.(columnId, e.target.value)}
+                      className="h-8 text-sm"
+                      data-testid={`input-column-search-${columnId}`}
+                    />
+                  </TableHead>
+                );
+              })}
               <TableHead className="w-12 py-2">
                 {/* Empty cell for actions column */}
               </TableHead>
@@ -255,112 +206,187 @@ export const ResponsiveTicketsTable = ({
                 role="row"
                 aria-label={`Ticket ${ticket.number}: ${ticket.subject}`}
               >
-                  <TableCell className="font-mono text-sm">
-                    <div className="flex items-center gap-2">
-                      {ticketsWithRelationships.has(ticket.id) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleExpand(ticket.id)}
-                          className="p-1 h-6 w-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
-                          aria-label={`${currentExpandedTickets.has(ticket.id) ? "Recolher" : "Expandir"} relacionamentos do ticket ${ticket.number}`}
-                          title="Expandir/Recolher tickets vinculados"
-                        >
-                          {currentExpandedTickets.has(ticket.id) ?
-                            <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" /> :
-                            <ChevronRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          }
-                        </Button>
-                      )}
-                      <Link
-                        href={`/tickets/${ticket.id}`}
-                        className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
-                        aria-label={`Ver detalhes do ticket ${ticket.number}`}
+                {columnsToRender.map((column: any, idx: number) => {
+                  const columnId = column.id || column.label?.toLowerCase().replace(/\s+/g, '_');
+                  
+                  // Render cell based on column type
+                  switch (columnId) {
+                    case 'number':
+                      return (
+                        <TableCell key={columnId} className="font-mono text-sm">
+                          <div className="flex items-center gap-2">
+                            {idx === 0 && ticketsWithRelationships.has(ticket.id) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleExpand(ticket.id)}
+                                className="p-1 h-6 w-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                                aria-label={`${currentExpandedTickets.has(ticket.id) ? "Recolher" : "Expandir"} relacionamentos do ticket ${ticket.number}`}
+                                title="Expandir/Recolher tickets vinculados"
+                              >
+                                {currentExpandedTickets.has(ticket.id) ?
+                                  <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" /> :
+                                  <ChevronRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                }
+                              </Button>
+                            )}
+                            <Link
+                              href={`/tickets/${ticket.id}`}
+                              className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
+                              aria-label={`Ver detalhes do ticket ${ticket.number}`}
+                            >
+                              {ticket.number || `#${ticket.id.slice(-8)}`}
+                            </Link>
+                          </div>
+                        </TableCell>
+                      );
+
+                    case 'subject':
+                      return (
+                        <TableCell key={columnId} className="max-w-0">
+                          <div className="truncate">
+                            <Link
+                              href={`/tickets/${ticket.id}`}
+                              className="font-medium text-gray-900 hover:text-blue-600 transition-colors block"
+                              title={ticket.subject || (ticket as any).description || 'Sem título'}
+                            >
+                              {ticket.subject || (ticket as any).description?.substring(0, 60) + (((ticket as any).description?.length > 60) ? '...' : '') || 'Sem título'}
+                            </Link>
+                          </div>
+                        </TableCell>
+                      );
+
+                    case 'company':
+                      return (
+                        <TableCell key={columnId} className="text-sm text-gray-600">
+                          {ticket.company_name || (ticket as any).company_display_name || 'N/A'}
+                        </TableCell>
+                      );
+
+                    case 'customer':
+                    case 'caller':
+                      return (
+                        <TableCell key={columnId} className="text-sm text-gray-600">
+                          {ticket.caller_name || (ticket as any).customer_name || 'N/A'}
+                        </TableCell>
+                      );
+
+                    case 'category':
+                      return (
+                        <TableCell key={columnId}>
+                          <OptimizedBadge
+                            fieldName="category"
+                            value={ticket.category || ''}
+                            aria-label={`Categoria: ${ticket.category}`}
+                          />
+                        </TableCell>
+                      );
+
+                    case 'status':
+                      return (
+                        <TableCell key={columnId}>
+                          <OptimizedBadge
+                            fieldName="status"
+                            value={ticket.status}
+                            aria-label={`Status: ${ticket.status}`}
+                          />
+                        </TableCell>
+                      );
+
+                    case 'priority':
+                      return (
+                        <TableCell key={columnId}>
+                          <OptimizedBadge
+                            fieldName="priority"
+                            value={ticket.priority}
+                            aria-label={`Prioridade: ${ticket.priority}`}
+                          />
+                        </TableCell>
+                      );
+
+                    case 'created':
+                    case 'created_at':
+                      return (
+                        <TableCell key={columnId} className="text-sm">
+                          {(ticket.created_at || (ticket as any).createdAt)
+                            ? new Date(ticket.created_at || (ticket as any).createdAt).toLocaleDateString('pt-BR')
+                            : 'N/A'}
+                        </TableCell>
+                      );
+
+                    case 'updated':
+                    case 'updated_at':
+                      return (
+                        <TableCell key={columnId} className="text-sm">
+                          {(ticket.updated_at || (ticket as any).updatedAt)
+                            ? new Date(ticket.updated_at || (ticket as any).updatedAt).toLocaleDateString('pt-BR')
+                            : 'N/A'}
+                        </TableCell>
+                      );
+
+                    case 'description':
+                      return (
+                        <TableCell key={columnId} className="max-w-xs">
+                          <div className="truncate" title={(ticket as any).description}>
+                            {(ticket as any).description?.substring(0, 50) || '-'}
+                          </div>
+                        </TableCell>
+                      );
+
+                    case 'assigned_to':
+                      return (
+                        <TableCell key={columnId} className="text-sm">
+                          {(ticket as any).assigned_to_name || 'Não atribuído'}
+                        </TableCell>
+                      );
+
+                    default:
+                      // For any other column, try to display the value
+                      const value = (ticket as any)[columnId] || (ticket as any)[column.id] || '-';
+                      return (
+                        <TableCell key={columnId} className="text-sm">
+                          {value?.toString() || '-'}
+                        </TableCell>
+                      );
+                  }
+                })}
+
+                {/* Actions column - always shown */}
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        aria-label={`Ações para ticket ${ticket.number}`}
                       >
-                        {ticket.number}
-                      </Link>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="max-w-0">
-                    <div className="truncate">
-                      <Link
-                        href={`/tickets/${ticket.id}`}
-                        className="font-medium text-gray-900 hover:text-blue-600 transition-colors block"
-                        title={ticket.subject || (ticket as any).description || 'Sem título'}
-                      >
-                        {ticket.subject || (ticket as any).description?.substring(0, 60) + (((ticket as any).description?.length > 60) ? '...' : '') || 'Sem título'}
-                      </Link>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="hidden lg:table-cell text-sm text-gray-600">
-                    {ticket.company_name || 'N/A'}
-                  </TableCell>
-
-                  <TableCell className="hidden md:table-cell text-sm text-gray-600">
-                    {ticket.caller_name || 'N/A'}
-                  </TableCell>
-
-                  <TableCell className="hidden lg:table-cell">
-                    <OptimizedBadge
-                      fieldName="category"
-                      value={ticket.category || ''}
-                      aria-label={`Categoria: ${ticket.category}`}
-                    />
-                  </TableCell>
-
-                  <TableCell className="hidden lg:table-cell">
-                    <OptimizedBadge
-                      fieldName="status"
-                      value={ticket.status}
-                      aria-label={`Status: ${ticket.status}`}
-                    />
-                  </TableCell>
-
-                  <TableCell className="hidden sm:table-cell">
-                    <OptimizedBadge
-                      fieldName="priority"
-                      value={ticket.priority}
-                      aria-label={`Prioridade: ${ticket.priority}`}
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          aria-label={`Ações para ticket ${ticket.number}`}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/tickets/${ticket.id}`} className="flex items-center gap-2">
-                            <Eye className="h-4 w-4" />
-                            Ver Detalhes
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2">
-                          <Edit className="h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/tickets/${ticket.id}`} className="flex items-center gap-2">
+                          <Eye className="h-4 w-4" />
+                          Ver Detalhes
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2">
+                        <Edit className="h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>,
 
               /* Expanded relationships - using RelatedTicketsExpansion component for real data */
               currentExpandedTickets.has(ticket.id) && (
                 <TableRow key={`relationships-${ticket.id}`} className="bg-blue-50">
-                  <TableCell colSpan={9} className="p-0">
+                  <TableCell colSpan={columnsToRender.length + 1} className="p-0">
                     <RelatedTicketsExpansion ticketId={ticket.id} />
                   </TableCell>
                 </TableRow>

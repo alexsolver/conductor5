@@ -670,6 +670,15 @@ const TicketsTable = React.memo(() => {
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
+  // Initialize selectedViewId to first view when views load
+  useEffect(() => {
+    if (ticketViews.length > 0 && selectedViewId === "default") {
+      const firstViewId = ticketViews[0].id;
+      console.log('🎯 [VIEW-INIT] Initializing selectedViewId to first view:', firstViewId, ticketViews[0].name);
+      setSelectedViewId(firstViewId);
+    }
+  }, [ticketViews, selectedViewId]);
+
   // 🔧 [1QA-COMPLIANCE] Query para usuários seguindo Clean Architecture
   const {
     data: users = []
@@ -777,7 +786,11 @@ const TicketsTable = React.memo(() => {
   const activeView = useMemo(() => {
     const view = ticketViews.find((v: any) => v.id === selectedViewId);
     console.log('🔍 [ACTIVE-VIEW-MEMO] Recalculating activeView for selectedViewId:', selectedViewId);
+    console.log('🔍 [ACTIVE-VIEW-MEMO] Available views:', ticketViews.map((v: any) => ({ id: v.id, name: v.name })));
     console.log('🔍 [ACTIVE-VIEW-MEMO] Found view:', view);
+    if (view) {
+      console.log('🔍 [ACTIVE-VIEW-MEMO] View columns:', view.columns);
+    }
     return view;
   }, [ticketViews, selectedViewId]);
 
@@ -1068,8 +1081,9 @@ const TicketsTable = React.memo(() => {
       .filter((col: any) => col.visible)
       .sort((a: any, b: any) => a.order - b.order);
     
-    console.log('🔍 [VISIBLE-COLUMNS] Visible columns count:', visible.length);
-    console.log('🔍 [VISIBLE-COLUMNS] Visible columns:', visible.map((c: any) => c.id));
+    console.log('✅ [VISIBLE-COLUMNS] Updated! Count:', visible.length);
+    console.log('✅ [VISIBLE-COLUMNS] Column IDs:', visible.map((c: any) => c.id));
+    console.log('✅ [VISIBLE-COLUMNS] Full columns:', visible);
     
     return visible;
   }, [activeColumns]);
