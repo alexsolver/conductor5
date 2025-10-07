@@ -71,6 +71,7 @@ interface ResponsiveTicketsTableProps {
   expandedTickets?: Set<string>;
   ticketsWithRelationships?: Set<string>;
   ticketRelationships?: Record<string, TicketRelationship[]>;
+  visibleColumns?: any[];
   columnWidths?: Record<string, number>;
   renderCell?: (ticket: any, key: string) => React.ReactNode;
   TableCellComponent?: React.ComponentType<any>;
@@ -104,10 +105,12 @@ export const ResponsiveTicketsTable = ({
   expandedTickets = new Set(),
   ticketsWithRelationships = new Set(),
   ticketRelationships = {},
+  visibleColumns = [],
   showColumnSearch = false,
   columnSearchValues = {},
   onColumnSearchChange,
 }: ResponsiveTicketsTableProps) => {
+  console.log('🎯 [ResponsiveTicketsTable] Received visibleColumns:', visibleColumns.length, 'columns');
   const { t } = useTranslation();
   // Component loading state
   const isComponentLoading = isLoading || !tickets;
