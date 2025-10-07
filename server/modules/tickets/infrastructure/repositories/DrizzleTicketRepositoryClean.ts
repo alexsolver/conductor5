@@ -224,7 +224,11 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           customer.first_name AS "customer_first_name",
           customer.last_name  AS "customer_last_name",
           customer.email      AS "customer_email",
-          CONCAT(customer.first_name, ' ', customer.last_name) AS "customer_name"
+          CONCAT(customer.first_name, ' ', customer.last_name) AS "customer_name",
+
+          -- Dados da categoria
+          cat.name            AS "category_name",
+          cat.color           AS "category_color"
 
         FROM ${schemaName}.tickets t
         LEFT JOIN ${schemaName}.companies c
@@ -233,6 +237,8 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
           ON t.caller_id = caller.id
         LEFT JOIN ${schemaName}.customers customer
           ON t.customer_id = customer.id
+        LEFT JOIN ${schemaName}.ticket_categories cat
+          ON t.category = cat.id::text
         WHERE t.is_active = true
           ${whereClause}
         ORDER BY t.created_at DESC

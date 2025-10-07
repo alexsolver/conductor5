@@ -1200,6 +1200,10 @@ const TicketsTable = React.memo(() => {
           );
         case 'category':
           const rawCategoryValue = (ticket as any).category;
+          
+          // ✅ CORREÇÃO: Usar dados da categoria vindos do backend (JOIN)
+          const categoryName = (ticket as any).category_name || rawCategoryValue;
+          const categoryColorFromDB = (ticket as any).category_color;
 
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas (não apenas loading)
           if (!isFieldColorsReady) {
@@ -1210,23 +1214,11 @@ const TicketsTable = React.memo(() => {
             );
           }
 
-          const categoryValue = mapCategoryValue(rawCategoryValue);
-
-          // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
-          const categoryColor = getFieldColor('category', rawCategoryValue) ||
-                               getFieldColor('category', categoryValue) ||
+          // Tentar buscar cor do banco de dados primeiro, depois do field options, senão usar fallback
+          const categoryColor = categoryColorFromDB || 
+                               getFieldColor('category', categoryName) ||
+                               getFieldColor('category', rawCategoryValue) ||
                                '#3b82f6';
-
-          // Debug log para verificar se a cor está sendo encontrada
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`🔍 Category color lookup: ${rawCategoryValue} = ${categoryColor}`);
-          }
-
-          const categoryLabel = getFieldLabel('category', rawCategoryValue) ||
-                               getFieldLabel('category', categoryValue) ||
-                               rawCategoryValue;
-
-
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -1236,7 +1228,7 @@ const TicketsTable = React.memo(() => {
                 colorHex={categoryColor}
                 isLoading={isFieldColorsLoading}
               >
-                {categoryLabel}
+                {categoryName}
               </DynamicBadge>
             </TableCell>
           );
