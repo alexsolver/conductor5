@@ -711,8 +711,31 @@ export const userRoleAssignments = pgTable("user_role_assignments", { id: uuid("
 export const assignmentGroups = pgTable("assignment_groups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const customFields = pgTable("custom_fields", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const timecardAuditLog = pgTable("timecard_audit_log", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const approvalGroupMembers = pgTable("approval_group_members", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const approvalGroups = pgTable("approval_groups", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const approvalGroups = pgTable("approval_groups", { 
+  id: uuid("id").primaryKey().defaultRandom(), 
+  tenantId: uuid("tenant_id").notNull(), 
+  name: varchar("name", { length: 255 }).notNull(), 
+  description: text("description"),
+  groupType: varchar("group_type", { length: 50 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdById: uuid("created_by_id"),
+  updatedById: uuid("updated_by_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const approvalGroupMembers = pgTable("approval_group_members", { 
+  id: uuid("id").primaryKey().defaultRandom(), 
+  tenantId: uuid("tenant_id").notNull(), 
+  groupId: uuid("group_id").notNull(),
+  memberType: varchar("member_type", { length: 50 }).notNull(),
+  memberId: uuid("member_id").notNull(),
+  role: varchar("role", { length: 50 }).default('member'),
+  isActive: boolean("is_active").default(true),
+  addedById: uuid("added_by_id"),
+  addedAt: timestamp("added_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+});
 export const approvalWorkflows = pgTable("approval_workflows", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const timecardApprovalHistory = pgTable("timecard_approval_history", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const templateFields = pgTable("template_fields", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });

@@ -6,7 +6,9 @@
 import { db } from '../../../../db';
 import { 
   approvalGroups, 
-  approvalGroupMembers,
+  approvalGroupMembers
+} from '@shared/schema-tenant';
+import { 
   users,
   customers 
 } from '@shared/schema-master';
