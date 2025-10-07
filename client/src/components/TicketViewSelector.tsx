@@ -28,13 +28,16 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
   const { data: manageableViewsData } = useQuery({
     queryKey: ["/api/ticket-views", "manageable"],
     queryFn: async () => {
+      console.log("🔍 [MANAGEABLE-VIEWS] Fetching manageable views with ?manageable=true");
       const response = await fetch("/api/ticket-views?manageable=true", {
         credentials: "include",
         headers: {
           "x-tenant-id": localStorage.getItem("tenantId") || "",
         },
       });
-      return response.json();
+      const data = await response.json();
+      console.log("✅ [MANAGEABLE-VIEWS] Response:", data);
+      return data;
     },
     enabled: isManageViewsOpen, // Only fetch when dialog is open
     retry: false,
@@ -43,6 +46,10 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
 
   const ticketViews = (viewsData as any)?.data || [];
   const manageableViews = (manageableViewsData as any)?.data || [];
+  
+  console.log("🔍 [VIEW-SELECTOR] Dialog open:", isManageViewsOpen);
+  console.log("🔍 [VIEW-SELECTOR] All views:", ticketViews.length);
+  console.log("🔍 [VIEW-SELECTOR] Manageable views:", manageableViews.length);
 
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 
