@@ -218,7 +218,6 @@ const TicketsTable = React.memo(() => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedViewId, setSelectedViewId] = useState("default");
   const [isNewViewDialogOpen, setIsNewViewDialogOpen] = useState(false);
-  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
@@ -3079,10 +3078,6 @@ const TicketsTable = React.memo(() => {
                 ))}
               </select>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setIsAdvancedFiltersOpen(true)}>
-              <Filter className="h-4 w-4 mr-2" />
-              {t('tickets.views.advancedFilters')}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -3328,136 +3323,6 @@ const TicketsTable = React.memo(() => {
                 </div>
               </div>
             ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Filtros Avançados */}
-      <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('tickets.views.advancedFilters')}</DialogTitle>
-            <DialogDescription>
-              Configure filtros detalhados para refinar sua busca de tickets
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Filtro por Status */}
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="open">Aberto</SelectItem>
-                    <SelectItem value="in_progress">Em Andamento</SelectItem>
-                    <SelectItem value="resolved">Resolvido</SelectItem>
-                    <SelectItem value="closed">Fechado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtro por Prioridade */}
-              <div className="space-y-2">
-                <Label>Prioridade</Label>
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a prioridade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="critical">Crítica</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtro por Empresa */}
-              <div className="space-y-2">
-                <Label>Empresa</Label>
-                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as empresas</SelectItem>
-                    {companies.map((company: any) => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name || company.displayName || 'Empresa sem nome'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtro por Categoria */}
-              <div className="space-y-2">
-                <Label>Categoria</Label>
-                <Select value="" onValueChange={() => {}}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    <SelectItem value="Suporte Técnico">Suporte Técnico</SelectItem>
-                    <SelectItem value="Atendimento ao Cliente">Atendimento ao Cliente</SelectItem>
-                    <SelectItem value="Financeiro">Financeiro</SelectItem>
-                    <SelectItem value="Administrativo">Administrativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtro por Responsável */}
-              <div className="space-y-2">
-                <Label>Responsável</Label>
-                <Select value="" onValueChange={() => {}}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um responsável" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os responsáveis</SelectItem>
-                    <SelectItem value="alex">Alex Silva</SelectItem>
-                    <SelectItem value="ana">Ana Santos</SelectItem>
-                    <SelectItem value="joao">João Oliveira</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filtro por Data de Criação */}
-              <div className="space-y-2">
-                <Label>Data de Criação</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="date"
-                    placeholder="De"
-                    className="text-sm"
-                  />
-                  <Input
-                    type="date"
-                    placeholder="Até"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => {
-              // Aplicar filtros (em implementação futura)
-              setIsAdvancedFiltersOpen(false);
-              // Refrescar dados dos tickets
-              queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
-            }}>
-              Aplicar Filtros
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
