@@ -153,8 +153,8 @@ export class TicketViewsController {
         });
       }
 
-      // Verificar permissões
-      const canEdit = existingView.createdById === userId || role === 'tenant_admin';
+      // Verificar permissões (o banco retorna created_by_id em snake_case)
+      const canEdit = (existingView as any).created_by_id === userId || role === 'tenant_admin';
       
       console.log('🔧 [UPDATE-VIEW] Permission check:', {
         existingViewCreatedById: existingView.createdById,
