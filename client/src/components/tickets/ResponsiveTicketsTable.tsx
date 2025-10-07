@@ -390,9 +390,11 @@ export const ResponsiveTicketsTable = ({
                           Ver Detalhes
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit(ticket)} className="flex items-center gap-2">
-                        <Edit className="h-4 w-4" />
-                        Editar
+                      <DropdownMenuItem asChild>
+                        <Link href={`/tickets/${ticket.id}?edit=true`} className="flex items-center gap-2">
+                          <Edit className="h-4 w-4" />
+                          Editar
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onDelete(ticket.id)} className="flex items-center gap-2 text-red-600">
                         <Trash2 className="h-4 w-4" />
