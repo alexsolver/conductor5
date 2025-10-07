@@ -88,6 +88,13 @@ export function ApprovalGroupsManager() {
     mutationFn: async (groupData: typeof createForm) => {
       console.log('🔧 [CREATE-GROUP] Tentando criar grupo:', groupData);
       const response = await apiRequest('POST', '/api/approvals/groups', groupData);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [CREATE-GROUP] Erro na resposta:', errorText);
+        throw new Error(errorText || 'Erro ao criar grupo');
+      }
+      
       const result = await response.json();
       console.log('✅ [CREATE-GROUP] Grupo criado com sucesso:', result);
       return result;
@@ -114,6 +121,13 @@ export function ApprovalGroupsManager() {
     mutationFn: async (groupId: string) => {
       console.log('🗑️ [DELETE-GROUP] Tentando excluir grupo:', groupId);
       const response = await apiRequest('DELETE', `/api/approvals/groups/${groupId}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [DELETE-GROUP] Erro na resposta:', errorText);
+        throw new Error(errorText || 'Erro ao excluir grupo');
+      }
+      
       const result = await response.json();
       console.log('✅ [DELETE-GROUP] Grupo excluído:', result);
       return result;
