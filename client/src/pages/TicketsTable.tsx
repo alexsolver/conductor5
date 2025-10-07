@@ -561,36 +561,68 @@ const TicketsTable = React.memo(() => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
 
-  // Campos disponíveis para seleção em visualizações (expandido)
-  const availableColumns = [
-    { id: "number", label: t("tickets.fields.number") || "Número" },
-    { id: "subject", label: t("tickets.fields.subject") || "Assunto" },
-    { id: "description", label: t("tickets.fields.description") || "Descrição" },
-    { id: "customer", label: t("tickets.fields.customer") || "Cliente" },
-    { id: "company", label: t("tickets.fields.company") || "Empresa" },
-    { id: "category", label: t("tickets.fields.category") || "Categoria" },
-    { id: "subcategory", label: t("tickets.fields.subcategory") || "Subcategoria" },
-    { id: "status", label: t("tickets.fields.status") || "Status" },
-    { id: "priority", label: t("tickets.fields.priority") || "Prioridade" },
-    { id: "impact", label: t("tickets.fields.impact") || "Impacto" },
-    { id: "urgency", label: t("tickets.fields.urgency") || "Urgência" },
-    { id: "assigned_to", label: t("tickets.fields.assignedTo") || "Responsável" },
-    { id: "created_by", label: t("tickets.fields.createdBy") || "Criado por" },
-    { id: "created", label: t("tickets.fields.created") || "Criado em" },
-    { id: "updated", label: t("tickets.fields.updated") || "Atualizado em" },
-    { id: "due_date", label: t("tickets.fields.dueDate") || "Prazo" },
-    { id: "resolution_time", label: t("tickets.fields.resolutionTime") || "Tempo de Resolução" },
-    { id: "sla_status", label: t("tickets.fields.slaStatus") || "Status SLA" },
-    { id: "tags", label: t("tickets.fields.tags") || "Tags" },
-    { id: "location", label: t("tickets.fields.location") || "Localização" },
-    { id: "source", label: t("tickets.fields.source") || "Origem" },
-    { id: "satisfaction", label: t("tickets.fields.satisfaction") || "Satisfação" }
-  ];
   const itemsPerPage = 20;
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+
+  // 🔧 Query para campos customizados do módulo tickets
+  const { data: customFieldsData = [] } = useOptimizedQuery({
+    queryKey: ['/api/custom-fields/fields/tickets'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/custom-fields/fields/tickets');
+        if (!response.ok) return [];
+        const data = await response.json();
+        const fields = data.data || data || [];
+        console.log('🔍 [CUSTOM-FIELDS] Fetched custom fields:', fields);
+        return Array.isArray(fields) ? fields : [];
+      } catch (error) {
+        console.error('❌ [CUSTOM-FIELDS] Error fetching:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Campos disponíveis para seleção em visualizações (incluindo campos customizados)
+  const availableColumns = useMemo(() => {
+    const standardColumns = [
+      { id: "number", label: t("tickets.fields.number") || "Número" },
+      { id: "subject", label: t("tickets.fields.subject") || "Assunto" },
+      { id: "description", label: t("tickets.fields.description") || "Descrição" },
+      { id: "customer", label: t("tickets.fields.customer") || "Cliente" },
+      { id: "company", label: t("tickets.fields.company") || "Empresa" },
+      { id: "category", label: t("tickets.fields.category") || "Categoria" },
+      { id: "subcategory", label: t("tickets.fields.subcategory") || "Subcategoria" },
+      { id: "status", label: t("tickets.fields.status") || "Status" },
+      { id: "priority", label: t("tickets.fields.priority") || "Prioridade" },
+      { id: "impact", label: t("tickets.fields.impact") || "Impacto" },
+      { id: "urgency", label: t("tickets.fields.urgency") || "Urgência" },
+      { id: "assigned_to", label: t("tickets.fields.assignedTo") || "Responsável" },
+      { id: "created_by", label: t("tickets.fields.createdBy") || "Criado por" },
+      { id: "created", label: t("tickets.fields.created") || "Criado em" },
+      { id: "updated", label: t("tickets.fields.updated") || "Atualizado em" },
+      { id: "due_date", label: t("tickets.fields.dueDate") || "Prazo" },
+      { id: "resolution_time", label: t("tickets.fields.resolutionTime") || "Tempo de Resolução" },
+      { id: "sla_status", label: t("tickets.fields.slaStatus") || "Status SLA" },
+      { id: "tags", label: t("tickets.fields.tags") || "Tags" },
+      { id: "location", label: t("tickets.fields.location") || "Localização" },
+      { id: "source", label: t("tickets.fields.source") || "Origem" },
+      { id: "satisfaction", label: t("tickets.fields.satisfaction") || "Satisfação" }
+    ];
+
+    // Adicionar campos customizados
+    const customColumns = customFieldsData.map((field: any) => ({
+      id: `custom_${field.name}`,
+      label: field.label || field.name,
+      isCustom: true
+    }));
+
+    console.log('🔍 [AVAILABLE-COLUMNS] Standard:', standardColumns.length, 'Custom:', customColumns.length);
+    return [...standardColumns, ...customColumns];
+  }, [customFieldsData, t]);
 
   // 🔧 [1QA-COMPLIANCE] Queries seguindo Clean Architecture
   const {
@@ -1485,19 +1517,15 @@ const TicketsTable = React.memo(() => {
       return;
     }
 
-    // Mapear colunas selecionadas para o formato esperado pelo schema
-    const columnsData = [
-      { id: "number", label: t("tickets.fields.number") || "Número", visible: selectedColumns.includes("number"), order: 1, width: 120 },
-      { id: "subject", label: t("tickets.fields.subject") || "Assunto", visible: selectedColumns.includes("subject"), order: 2, width: 300 },
-      { id: "customer", label: t("tickets.fields.customer") || "Cliente", visible: selectedColumns.includes("customer"), order: 3, width: 150 },
-      { id: "category", label: t("tickets.fields.category") || "Categoria", visible: selectedColumns.includes("category"), order: 4, width: 120 },
-      { id: "status", label: t("tickets.fields.status") || "Status", visible: selectedColumns.includes("status"), order: 5, width: 120 },
-      { id: "priority", label: t("tickets.fields.priority") || "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
-      { id: "urgency", label: t("tickets.fields.urgency") || "Urgência", visible: selectedColumns.includes("urgency"), order: 7, width: 120 },
-      { id: "impact", label: t("tickets.fields.impact") || "Impacto", visible: selectedColumns.includes("impact"), order: 8, width: 120 },
-      { id: "assigned_to", label: t("tickets.fields.assignedTo") || "Responsável", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
-      { id: "created", label: t("tickets.fields.created") || "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
-    ];
+    // Mapear todas as colunas disponíveis (incluindo campos customizados)
+    const columnsData = availableColumns.map((column, index) => ({
+      id: column.id,
+      label: column.label,
+      visible: selectedColumns.includes(column.id),
+      order: index + 1,
+      width: column.id === 'subject' ? 300 : column.id === 'description' ? 250 : 150,
+      isCustom: (column as any).isCustom || false
+    }));
 
     const viewData = {
       name: newViewName,
@@ -1509,6 +1537,8 @@ const TicketsTable = React.memo(() => {
       isDefault: false,
       pageSize: 25
     };
+
+    console.log('💾 [SAVE-VIEW] Saving view with columns:', columnsData.filter(c => c.visible));
 
     if (editingView) {
       updateViewMutation.mutate({ id: editingView.id, viewData });
