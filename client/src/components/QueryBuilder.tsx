@@ -110,6 +110,53 @@ const fieldValueOptions: Record<string, Array<{ value: string; label: string }>>
     { value: 'chat', label: 'Chat' },
     { value: 'portal', label: 'Portal' },
     { value: 'whatsapp', label: 'WhatsApp' }
+  ],
+  // Campos do OmniBridge
+  channelType: [
+    { value: 'email', label: 'E-mail' },
+    { value: 'whatsapp', label: 'WhatsApp' },
+    { value: 'telegram', label: 'Telegram' },
+    { value: 'slack', label: 'Slack' }
+  ],
+  messageType: [
+    { value: 'inbound', label: 'Entrada' },
+    { value: 'outbound', label: 'Saída' }
+  ],
+  senderType: [
+    { value: 'customer', label: 'Cliente' },
+    { value: 'agent', label: 'Agente' },
+    { value: 'system', label: 'Sistema' }
+  ],
+  businessHours: [
+    { value: 'yes', label: 'Sim' },
+    { value: 'no', label: 'Não' }
+  ],
+  sentiment: [
+    { value: 'positive', label: 'Positivo' },
+    { value: 'negative', label: 'Negativo' },
+    { value: 'neutral', label: 'Neutro' }
+  ],
+  intent: [
+    { value: 'question', label: 'Pergunta' },
+    { value: 'complaint', label: 'Reclamação' },
+    { value: 'request', label: 'Solicitação' },
+    { value: 'feedback', label: 'Feedback' },
+    { value: 'other', label: 'Outro' }
+  ],
+  isRead: [
+    { value: 'true', label: 'Sim' },
+    { value: 'false', label: 'Não' }
+  ],
+  attachments: [
+    { value: 'true', label: 'Sim' },
+    { value: 'false', label: 'Não' }
+  ],
+  language: [
+    { value: 'pt', label: 'Português' },
+    { value: 'en', label: 'Inglês' },
+    { value: 'es', label: 'Espanhol' },
+    { value: 'fr', label: 'Francês' },
+    { value: 'de', label: 'Alemão' }
   ]
 };
 
