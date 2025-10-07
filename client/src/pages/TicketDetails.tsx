@@ -3248,6 +3248,7 @@ const TicketDetails = React.memo(() => {
             {isEditMode ? (
               <div className="space-y-2">
                 <Select
+                  disabled={true}
                   onValueChange={(value) => {
                     handleCompanyChange(value);
                     // Limpar cliente e favorecido quando empresa muda
@@ -3258,7 +3259,7 @@ const TicketDetails = React.memo(() => {
                   }}
                   value={selectedCompany || ''}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-8 text-xs" disabled={true}>
                     <SelectValue placeholder="Selecione a empresa">
                       {(() => {
                         const currentValue = selectedCompany;
@@ -3276,6 +3277,10 @@ const TicketDetails = React.memo(() => {
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded p-2 mt-2 flex items-start gap-2">
+                  <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <span>Campo bloqueado para preservar regras de negócio</span>
+                </div>
                 {(() => {
                   const companyId = ticket.company_id || ticket.companyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
