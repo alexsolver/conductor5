@@ -836,7 +836,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                   <div className="text-center py-8">
                     <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-600 mb-2">
-                      Gerenciar Localizações
+                      Gerenciar Locais
                     </h3>
                     <p className="text-gray-500 mb-6">
                       Associe este cliente a uma ou mais localizações do sistema.
@@ -849,7 +849,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         className="flex items-center gap-2"
                       >
                         <MapPin className="h-4 w-4" />
-                        Gerenciar Localizações
+                        Gerenciar Locais
                       </Button>
                       <Button
                         type="button"

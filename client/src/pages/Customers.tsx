@@ -456,7 +456,7 @@ export default function Customers() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
                           <MapPin className="h-3 w-3 mr-2" />
-                          Localizações
+                          Locais
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

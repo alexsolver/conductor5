@@ -194,7 +194,7 @@ export function CustomerLocationManager({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Gerenciar Localizações do Cliente
+            Gerenciar Locais do Cliente
           </DialogTitle>
           <DialogDescription>
             Adicione ou remova localizações associadas a este cliente favorecido.
@@ -253,7 +253,7 @@ export function CustomerLocationManager({
           {/* Current Locations Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">
-              Localizações Associadas ({customerLocations.length})
+              Locais Associadas ({customerLocations.length})
             </h3>
 
             {isLoadingCustomerLocations ? (

@@ -556,7 +556,7 @@ function LocationsNewContent() {
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Localizações</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Gerenciamento de Locais</h1>
             <p className="text-muted-foreground">Sistema completo para gestão de 7 tipos de registros geográficos</p>
           </div>
           <div className="flex space-x-2">

@@ -464,7 +464,7 @@ export default function ReportEdit() {
                                   <SelectItem value="users">Usuários</SelectItem>
                                   <SelectItem value="timecard">Controle de Ponto</SelectItem>
                                   <SelectItem value="materials">Materiais e Serviços</SelectItem>
-                                  <SelectItem value="locations">Localizações</SelectItem>
+                                  <SelectItem value="locations">Locais</SelectItem>
                                   <SelectItem value="omnibridge">OmniBridge</SelectItem>
                                 </SelectContent>
                               </Select>

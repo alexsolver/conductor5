@@ -740,7 +740,7 @@ export default function Locations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.point_locations || 0}</div>
-            <p className="text-xs text-muted-foreground">Localizações pontuais</p>
+            <p className="text-xs text-muted-foreground">Locais pontuais</p>
           </CardContent>
         </Card>
 
