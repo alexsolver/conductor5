@@ -3328,7 +3328,18 @@ const TicketsTable = React.memo(() => {
             <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
             </Button>
-            <Button type="button" onClick={handleCreateView} disabled={!newViewName.trim()}>
+            <Button 
+              type="button" 
+              onClick={() => {
+                console.log('🔘 [BUTTON-CLICKED] Save button clicked!', {
+                  newViewName,
+                  isDisabled: !newViewName.trim(),
+                  editingView: editingView?.id
+                });
+                handleCreateView();
+              }} 
+              disabled={!newViewName.trim()}
+            >
               {editingView ? "Salvar Alterações" : "Criar Visualização"}
             </Button>
           </div>
