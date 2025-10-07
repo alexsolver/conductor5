@@ -238,7 +238,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         LEFT JOIN ${schemaName}.customers customer
           ON t.customer_id = customer.id
         LEFT JOIN ${schemaName}.ticket_categories cat
-          ON NULLIF(t.category, '')::uuid = cat.id
+          ON (CASE WHEN t.category ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' 
+                   THEN t.category::uuid 
+                   ELSE NULL 
+              END) = cat.id
         WHERE t.is_active = true
           ${whereClause}
         ORDER BY t.created_at DESC
