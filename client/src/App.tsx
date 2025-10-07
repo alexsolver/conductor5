@@ -173,6 +173,12 @@ function AppRouter() {
     <AppShell>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/auth">
+          {() => {
+            window.location.href = "/";
+            return null;
+          }}
+        </Route>
         <Route path="/tickets" component={TicketsTable} />
         <Route path="/tickets/:id" component={TicketDetails} />
         <Route path="/customers" component={Customers} />
