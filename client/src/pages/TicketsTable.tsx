@@ -3447,7 +3447,9 @@ const TicketsTable = React.memo(() => {
             </DialogDescription>
           </DialogHeader>
           <div className="divide-y divide-gray-200">
-            {ticketViews.map((view: any) => (
+            {ticketViews
+              .filter((view: any) => !view.is_default)
+              .map((view: any) => (
               <div key={view.id} className="py-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium">{view.name}</h3>

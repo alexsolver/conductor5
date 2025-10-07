@@ -25,16 +25,8 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
   });
 
   const ticketViews = (viewsData as any)?.data || [];
-  
-  // Debug: check what we're getting
-  console.log("🔍 [TICKET-VIEWS] All views:", ticketViews);
-  console.log("🔍 [TICKET-VIEWS] First view structure:", ticketViews[0]);
-  
   // Filter out system default views for management (frontend filter as backup)
-  const manageableViews = ticketViews.filter((view: any) => {
-    console.log(`🔍 [FILTER] View "${view.name}": is_default=${view.is_default}, filtered=${view.is_default}`);
-    return !view.is_default;
-  });
+  const manageableViews = ticketViews.filter((view: any) => !view.is_default);
 
   // Find current view
   const currentView = ticketViews.find((view: any) => view.id === currentViewId) || 

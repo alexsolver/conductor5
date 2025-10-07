@@ -1,0 +1,72 @@
+🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+TicketsTable.tsx:297   new: #f59e0b (Novo)
+TicketsTable.tsx:297   resolved: #10b981 (Resolvido)
+apiInterceptor.ts:44  DELETE https://8fec1d5e-57dc-42c5-9fd4-1a437e1f4401-00-3b80zz4ek4chk.worf.replit.dev/api/ticket-views/59dc42b6-a141-47a3-94d9-e8a8c934f3bb 403 (Forbidden)
+window.fetch @ apiInterceptor.ts:44
+apiRequest @ queryClient.ts:109
+mutationFn @ TicketsTable.tsx:1597
+fn @ @tanstack_react-query.js?v=7684af64:1189
+run @ @tanstack_react-query.js?v=7684af64:494
+start @ @tanstack_react-query.js?v=7684af64:536
+execute @ @tanstack_react-query.js?v=7684af64:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=7684af64:2630
+(anonymous) @ @tanstack_react-query.js?v=7684af64:3295
+handleDeleteView @ TicketsTable.tsx:1701
+onClick @ TicketsTable.tsx:3461
+callCallback2 @ chunk-SXRIVT2P.js?v=f0cca104:3680
+invokeGuardedCallbackDev @ chunk-SXRIVT2P.js?v=f0cca104:3705
+invokeGuardedCallback @ chunk-SXRIVT2P.js?v=f0cca104:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-SXRIVT2P.js?v=f0cca104:3742
+executeDispatch @ chunk-SXRIVT2P.js?v=f0cca104:7046
+processDispatchQueueItemsInOrder @ chunk-SXRIVT2P.js?v=f0cca104:7066
+processDispatchQueue @ chunk-SXRIVT2P.js?v=f0cca104:7075
+dispatchEventsForPlugins @ chunk-SXRIVT2P.js?v=f0cca104:7083
+(anonymous) @ chunk-SXRIVT2P.js?v=f0cca104:7206
+batchedUpdates$1 @ chunk-SXRIVT2P.js?v=f0cca104:18966
+batchedUpdates @ chunk-SXRIVT2P.js?v=f0cca104:3585
+dispatchEventForPluginEventSystem @ chunk-SXRIVT2P.js?v=f0cca104:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SXRIVT2P.js?v=f0cca104:5484
+dispatchEvent @ chunk-SXRIVT2P.js?v=f0cca104:5478
+dispatchDiscreteEvent @ chunk-SXRIVT2P.js?v=f0cca104:5455Understand this error
+TicketsTable.tsx:663 🔍 [TICKET-VIEWS] Fetching ticket views...
+TicketsTable.tsx:788 🔍 [ACTIVE-VIEW-MEMO] Recalculating activeView for selectedViewId: default
+TicketsTable.tsx:789 🔍 [ACTIVE-VIEW-MEMO] Available views: (2) [{…}, {…}]
+TicketsTable.tsx:790 🔍 [ACTIVE-VIEW-MEMO] Found view: undefined
+TicketsTable.tsx:1071 🔍 [ACTIVE-VIEW] Selected view ID: default
+TicketsTable.tsx:1072 🔍 [ACTIVE-VIEW] Active view: undefined
+TicketsTable.tsx:1073 🔍 [ACTIVE-VIEW] Active columns: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+TicketsTable.tsx:1084 ✅ [VISIBLE-COLUMNS] Updated! Count: 9
+TicketsTable.tsx:1085 ✅ [VISIBLE-COLUMNS] Column IDs: (9) ['number', 'subject', 'customer', 'company', 'category', 'status', 'priority', 'urgency', 'created']
+TicketsTable.tsx:1086 ✅ [VISIBLE-COLUMNS] Full columns: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ResponsiveTicketsTable.tsx:113 🎯 [ResponsiveTicketsTable] Received visibleColumns: 9 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (9) ['number', 'subject', 'customer', 'company', 'category', 'status', 'priority', 'urgency', 'created']
+TicketsTable.tsx:297   new: #f59e0b (Novo)
+TicketsTable.tsx:297   resolved: #10b981 (Resolvido)
+TicketsTable.tsx:677 🎯 [VIEW-INIT] Initializing selectedViewId to first view: 59dc42b6-a141-47a3-94d9-e8a8c934f3bb Visualização Padrão
+TicketsTable.tsx:788 🔍 [ACTIVE-VIEW-MEMO] Recalculating activeView for selectedViewId: 59dc42b6-a141-47a3-94d9-e8a8c934f3bb
+TicketsTable.tsx:789 🔍 [ACTIVE-VIEW-MEMO] Available views: (2) [{…}, {…}]
+TicketsTable.tsx:790 🔍 [ACTIVE-VIEW-MEMO] Found view: {id: '59dc42b6-a141-47a3-94d9-e8a8c934f3bb', tenant_id: 'f2e9abbe-efa0-4653-a65a-d9533bfac894', name: 'Visualização Padrão', description: 'Visualização padrão do sistema para lista de tickets', created_by_id: '9a0e85bd-0130-449b-be8c-1970e1eaa7b8', …}
+TicketsTable.tsx:792 🔍 [ACTIVE-VIEW-MEMO] View columns: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+TicketsTable.tsx:1071 🔍 [ACTIVE-VIEW] Selected view ID: 59dc42b6-a141-47a3-94d9-e8a8c934f3bb
+TicketsTable.tsx:1072 🔍 [ACTIVE-VIEW] Active view: {id: '59dc42b6-a141-47a3-94d9-e8a8c934f3bb', tenant_id: 'f2e9abbe-efa0-4653-a65a-d9533bfac894', name: 'Visualização Padrão', description: 'Visualização padrão do sistema para lista de tickets', created_by_id: '9a0e85bd-0130-449b-be8c-1970e1eaa7b8', …}
+TicketsTable.tsx:1073 🔍 [ACTIVE-VIEW] Active columns: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+TicketsTable.tsx:1084 ✅ [VISIBLE-COLUMNS] Updated! Count: 8
+TicketsTable.tsx:1085 ✅ [VISIBLE-COLUMNS] Column IDs: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+TicketsTable.tsx:1086 ✅ [VISIBLE-COLUMNS] Full columns: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+ResponsiveTicketsTable.tsx:113 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+TicketsTable.tsx:297   new: #f59e0b (Novo)
+TicketsTable.tsx:297   resolved: #10b981 (Resolvido)
+TicketsTable.tsx:667 🔍 [TICKET-VIEWS] Response: {success: true, data: Array(2)}
+ResponsiveTicketsTable.tsx:113 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+TicketsTable.tsx:297   new: #f59e0b (Novo)
+TicketsTable.tsx:297   resolved: #10b981 (Resolvido)
+ResponsiveTicketsTable.tsx:113 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+TicketsTable.tsx:297   new: #f59e0b (Novo)
+TicketsTable.tsx:297   resolved: #10b981 (Resolvido)
+ResponsiveTicketsTable.tsx:113 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+ResponsiveTicketsTable.tsx:151 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
