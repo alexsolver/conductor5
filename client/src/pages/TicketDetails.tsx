@@ -26,7 +26,7 @@ import {
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
   Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink, Loader2, BookOpen,
-  FormInput, Smile, Meh, Frown, Heart, Reply
+  FormInput, Smile, Meh, Frown, Heart, Reply, Shield
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -104,7 +104,7 @@ const TicketDetails = React.memo(() => {
   // Handle hash-based navigation for direct tab access
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions', 'knowledge-base', 'custom-fields'].includes(hash)) {
+    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'approvals', 'latest-interactions', 'knowledge-base', 'custom-fields'].includes(hash)) {
       setActiveTab(hash);
     }
   }, []);
@@ -2975,6 +2975,9 @@ const TicketDetails = React.memo(() => {
       case "materials":
         return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
 
+      case "approvals":
+        return <TicketApprovalPanel ticketId={id} />;
+
       case "knowledge-base":
         return <KnowledgeBaseTicketTab ticketId={id} />;
 
@@ -3566,11 +3569,6 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
-          {/* Approval Section */}
-          <div className="mb-6">
-            <TicketApprovalPanel ticketId={ticket.id} />
-          </div>
-
           {/* Custom Information */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
@@ -3819,7 +3817,23 @@ const TicketDetails = React.memo(() => {
             <span className="text-sm font-medium">{t('tickets.materialsServices')}</span>
           </button>
 
-          {/* 7. Ações Internas */}
+          {/* 7. Aprovações */}
+          <button
+            onClick={() => setActiveTab("approvals")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+              activeTab === "approvals"
+                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
+            }`}
+            role="tab"
+            aria-selected={activeTab === "approvals"}
+            aria-controls="tab-content"
+          >
+            <Shield className="h-4 w-4" />
+            <span className="text-sm font-medium">Aprovações</span>
+          </button>
+
+          {/* 8. Ações Internas */}
           <button
             onClick={() => setActiveTab("internal-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3841,7 +3855,7 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 8. Ações Externas */}
+          {/* 9. Ações Externas */}
           <button
             onClick={() => setActiveTab("external-actions")}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -3863,7 +3877,7 @@ const TicketDetails = React.memo(() => {
             </Badge>
           </button>
 
-          {/* 9. Base de Conhecimento */}
+          {/* 10. Base de Conhecimento */}
           <button
             onClick={() => setActiveTab("knowledge-base")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
