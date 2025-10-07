@@ -9,11 +9,7 @@ export interface CreateCustomerDTO {
   email: string;
   phone?: string;
   mobilePhone?: string;
-  customerType: 'PF' | 'PJ';
   cpf?: string;
-  cnpj?: string;
-  companyName?: string;
-  contactPerson?: string;
   
   // Address information
   state?: string;
@@ -35,11 +31,7 @@ export interface UpdateCustomerDTO {
   email?: string;
   phone?: string;
   mobilePhone?: string;
-  customerType?: 'PF' | 'PJ';
   cpf?: string;
-  cnpj?: string;
-  companyName?: string;
-  contactPerson?: string;
   
   // Address information
   state?: string;
@@ -56,7 +48,6 @@ export interface UpdateCustomerDTO {
 }
 
 export interface CustomerFiltersDTO {
-  customerType?: ('PF' | 'PJ')[];
   isActive?: boolean;
   state?: string;
   city?: string;
@@ -74,11 +65,7 @@ export interface CustomerResponseDTO {
   email: string;
   phone?: string;
   mobilePhone?: string;
-  customerType: 'PF' | 'PJ';
   cpf?: string;
-  cnpj?: string;
-  companyName?: string;
-  contactPerson?: string;
   
   // Address information
   state?: string;
@@ -93,7 +80,6 @@ export interface CustomerResponseDTO {
   formattedPhone?: string;
   formattedMobilePhone?: string;
   formattedCPF?: string;
-  formattedCNPJ?: string;
   
   // System fields
   isActive: boolean;
@@ -117,10 +103,6 @@ export interface CustomerStatsDTO {
   total: number;
   active: number;
   inactive: number;
-  byType: {
-    PF: number;
-    PJ: number;
-  };
   byState: Record<string, number>;
   recentCustomers: number;
   topStates: Array<{
@@ -136,7 +118,6 @@ export interface CustomerStatsDTO {
 
 export interface CustomerSearchDTO {
   q: string; // Search query
-  customerType?: 'PF' | 'PJ';
   state?: string;
   city?: string;
   page?: number;
@@ -157,7 +138,7 @@ export interface CustomerSearchResponseDTO {
 }
 
 export interface CustomerValidationDTO {
-  field: 'email' | 'cpf' | 'cnpj';
+  field: 'email' | 'cpf';
   value: string;
   tenantId: string;
   excludeId?: string;
@@ -173,7 +154,6 @@ export interface BulkUpdateCustomersDTO {
   customerIds: string[];
   updates: {
     isActive?: boolean;
-    customerType?: 'PF' | 'PJ';
     state?: string;
     city?: string;
   };

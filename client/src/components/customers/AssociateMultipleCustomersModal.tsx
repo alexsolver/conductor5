@@ -40,8 +40,6 @@ interface Customer {
   firstName: string;
   lastName: string;
   email: string;
-  customerType: "PF" | "PJ";
-  companyName?: string;
   status: string;
   isAssociated?: boolean;
 }
@@ -190,11 +188,9 @@ const AssociateMultipleCustomersModal: React.FC<
       const searchLower = searchTerm.toLowerCase();
       const fullName =
         `${customer.firstName || ""} ${customer.lastName || ""}`.trim();
-      const displayName =
-        customer.customerType === "PJ" ? customer.companyName : fullName;
 
       return (
-        displayName?.toLowerCase().includes(searchLower) ||
+        fullName.toLowerCase().includes(searchLower) ||
         customer.email.toLowerCase().includes(searchLower)
       );
     });
@@ -366,10 +362,7 @@ const AssociateMultipleCustomersModal: React.FC<
                     const isSelected = selectedCustomerIds.includes(
                       customer.id,
                     );
-                    const displayName =
-                      customer.customerType === "PJ"
-                        ? customer.companyName
-                        : `${customer.firstName || ""} ${customer.lastName || ""}`.trim();
+                    const displayName = `${customer.firstName || ""} ${customer.lastName || ""}`.trim();
 
                     return (
                       <div
@@ -417,17 +410,6 @@ const AssociateMultipleCustomersModal: React.FC<
                                 Associado
                               </Badge>
                             )}
-
-                            <Badge
-                              variant={
-                                customer.customerType === "PJ"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className="text-xs"
-                            >
-                              {customer.customerType}
-                            </Badge>
 
                             {customer.status !== "Ativo" && (
                               <Badge variant="destructive" className="text-xs">
