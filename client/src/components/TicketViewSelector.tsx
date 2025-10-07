@@ -25,8 +25,8 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
   });
 
   // Fetch MANAGEABLE ticket views for settings tab (excludes system default)
-  const { data: manageableViewsData, refetch: refetchManageableViews } = useQuery({
-    queryKey: ["/api/ticket-views?manageable=true"],
+  const { data: manageableViewsData } = useQuery({
+    queryKey: ["/api/ticket-views", "manageable"],
     queryFn: async () => {
       const response = await fetch("/api/ticket-views?manageable=true", {
         credentials: "include",
@@ -38,14 +38,8 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
     },
     enabled: isManageViewsOpen, // Only fetch when dialog is open
     retry: false,
+    staleTime: 0, // Always fetch fresh data when dialog opens
   });
-
-  // Refetch manageable views when dialog opens
-  useEffect(() => {
-    if (isManageViewsOpen) {
-      refetchManageableViews();
-    }
-  }, [isManageViewsOpen, refetchManageableViews]);
 
   const ticketViews = (viewsData as any)?.data || [];
   const manageableViews = (manageableViewsData as any)?.data || [];
