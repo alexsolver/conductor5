@@ -41,7 +41,7 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
     - **Dashboard Module**: Real-time statistics, activity tracking, customizable widgets, multi-module analytics.
     - **Dashboard Governance System**: 4-layer architecture (Source → KPI → Presentation → Rules) with data source catalog, KPI management, dynamic card generation, and multi-tenant isolation.
     - **SaaS Admin Module**: Global administration, tenant lifecycle, billing, audit compliance.
-    - **Approval Management Module**: Comprehensive workflow system with hierarchical and conditional rules, using CQRS pattern.
+    - **Approval Management Module**: Comprehensive workflow system with hierarchical and conditional rules, using CQRS pattern. **Ticket Integration**: Fully integrated approval panel in ticket details sidebar showing real-time approval status with visual indicators, SLA tracking, multi-step workflow visualization, and inline approve/reject actions. Features color-coded status badges, urgency levels, step progression UI, and approval history with timestamped decisions.
     - **Contract Management Module**: Enterprise system with CRUD, workflow, automated billing, and SLA monitoring.
     - **Activity Planner Module**: Advanced maintenance management for asset and work order scheduling.
     - **Corporate Expense Management Module**: Expense management with OCR, multi-currency, and fraud detection.
