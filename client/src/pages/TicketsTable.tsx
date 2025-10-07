@@ -619,11 +619,13 @@ const TicketsTable = React.memo(() => {
     ];
 
     // Adicionar campos customizados
-    const customColumns = customFieldsData.map((field: any) => ({
-      id: `custom_${field.name}`,
-      label: field.label || field.name,
-      isCustom: true
-    }));
+    const customColumns = Array.isArray(customFieldsData) 
+      ? customFieldsData.map((field: any) => ({
+          id: `custom_${field.name}`,
+          label: field.label || field.name,
+          isCustom: true
+        }))
+      : [];
 
     console.log('🔍 [AVAILABLE-COLUMNS] Standard:', standardColumns.length, 'Custom:', customColumns.length);
     return [...standardColumns, ...customColumns];
