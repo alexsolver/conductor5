@@ -336,11 +336,15 @@ export class DrizzleTicketRepository implements ITicketRepository {
           caller.first_name as "caller_first_name",
           caller.last_name as "caller_last_name",
           caller.email as "caller_email",
-          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name"
+          CONCAT(caller.first_name, ' ', caller.last_name) as "caller_full_name",
+
+          -- Category name for display
+          cat.name as "category_name"
 
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.companies c ON t.company_id = c.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON t.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.ticket_categories cat ON t.category = cat.id
         WHERE ${sql.join(dataConditions, sql` AND `)}
         ORDER BY t.created_at DESC
         LIMIT ${pagination.limit} OFFSET ${offset}
@@ -571,7 +575,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       priority: row.priority || 'medium',
       urgency: row.urgency || 'medium',
       impact: row.impact || 'medium',
-      category: row.category || null,
+      category: row.category_name || row.category || null,
       subcategory: row.subcategory || null,
       action: row.action || null,
       callerId: row.callerId || null,
@@ -582,7 +586,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
       createdById: row.createdById || null,
       updatedById: row.updatedById || null,
       companyId: row.companyId || null,
-      isActive: row.isActive !== false
+      isActive: row.isActive !== false,
+      company_name: row.company_name || row.company_display_name || null,
+      caller_name: row.caller_full_name || null
     } as Ticket;
   }
 }
