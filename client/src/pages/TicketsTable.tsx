@@ -1530,7 +1530,8 @@ const TicketsTable = React.memo(() => {
         title: "Visualização criada",
         description: "Nova visualização criada com sucesso"
       });
-      refetchViews();
+      // Invalidar o cache para forçar uma nova busca
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-views'] });
       setIsNewViewDialogOpen(false);
       resetNewViewForm();
     },
@@ -1557,7 +1558,8 @@ const TicketsTable = React.memo(() => {
         title: "Visualização atualizada",
         description: "Visualização editada com sucesso"
       });
-      refetchViews();
+      // Invalidar o cache para forçar uma nova busca
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-views'] });
       setIsNewViewDialogOpen(false);
       setEditingView(null);
       resetNewViewForm();
@@ -1580,7 +1582,8 @@ const TicketsTable = React.memo(() => {
         title: "Visualização excluída",
         description: "Visualização removida com sucesso"
       });
-      refetchViews();
+      // Invalidar o cache para forçar uma nova busca
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-views'] });
       if (selectedViewId !== "default") {
         setSelectedViewId("default");
       }
