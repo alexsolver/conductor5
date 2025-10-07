@@ -1455,9 +1455,13 @@ const TicketsTable = React.memo(() => {
   // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
-      return apiRequest('POST', '/api/ticket-views', viewData);
+      console.log('📡 [CREATE-MUTATION] Sending POST request with data:', viewData);
+      const result = await apiRequest('POST', '/api/ticket-views', viewData);
+      console.log('✅ [CREATE-MUTATION] Response received:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('🎉 [CREATE-MUTATION] Success callback triggered');
       toast({
         title: "Visualização criada",
         description: "Nova visualização criada com sucesso"
@@ -1477,9 +1481,14 @@ const TicketsTable = React.memo(() => {
 
   const updateViewMutation = useMutation({
     mutationFn: async ({ id, viewData }: { id: string, viewData: any }) => {
-      return apiRequest('PUT', `/api/ticket-views/${id}`, viewData);
+      console.log('📡 [UPDATE-MUTATION] Sending PUT request to:', `/api/ticket-views/${id}`);
+      console.log('📡 [UPDATE-MUTATION] With data:', viewData);
+      const result = await apiRequest('PUT', `/api/ticket-views/${id}`, viewData);
+      console.log('✅ [UPDATE-MUTATION] Response received:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('🎉 [UPDATE-MUTATION] Success callback triggered');
       toast({
         title: "Visualização atualizada",
         description: "Visualização editada com sucesso"
@@ -1531,6 +1540,13 @@ const TicketsTable = React.memo(() => {
 
   // Handle create new view
   const handleCreateView = () => {
+    console.log('🔘 [HANDLE-CREATE-VIEW] Function called', { 
+      newViewName, 
+      newViewDescription, 
+      selectedColumns, 
+      editingView: editingView?.id 
+    });
+
     if (!newViewName.trim()) {
       toast({
         title: "Erro",
@@ -1562,10 +1578,14 @@ const TicketsTable = React.memo(() => {
     };
 
     console.log('💾 [SAVE-VIEW] Saving view with columns:', columnsData.filter(c => c.visible));
+    console.log('💾 [SAVE-VIEW] Is editing?', !!editingView);
+    console.log('💾 [SAVE-VIEW] View data:', viewData);
 
     if (editingView) {
+      console.log('🔄 [UPDATE-MUTATION] Calling update mutation for ID:', editingView.id);
       updateViewMutation.mutate({ id: editingView.id, viewData });
     } else {
+      console.log('➕ [CREATE-MUTATION] Calling create mutation');
       createViewMutation.mutate(viewData);
     }
   };
