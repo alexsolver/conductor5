@@ -3372,8 +3372,8 @@ const TicketsTable = React.memo(() => {
 
             {/* Seleção de colunas */}
             <div className="space-y-3">
-              <Label>Colunas Visíveis</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+              <Label>Colunas Disponíveis</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4 bg-gray-50">
                 {availableColumns.map((column) => (
                   <div key={column.id} className="flex items-center space-x-2">
                     <input
@@ -3396,6 +3396,68 @@ const TicketsTable = React.memo(() => {
                 ))}
               </div>
             </div>
+
+            {/* Ordenação de colunas selecionadas */}
+            {selectedColumns.length > 0 && (
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  Ordem das Colunas
+                  <span className="text-xs text-gray-500 font-normal">(Arraste para reordenar)</span>
+                </Label>
+                <div className="border rounded-lg p-3 bg-gray-50 max-h-60 overflow-y-auto">
+                  {selectedColumns.map((columnId, index) => {
+                    const column = availableColumns.find((c) => c.id === columnId);
+                    if (!column) return null;
+                    
+                    return (
+                      <div
+                        key={columnId}
+                        className="flex items-center justify-between p-2 mb-2 bg-white border rounded-md hover:border-blue-400 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col gap-0.5 cursor-move opacity-40 group-hover:opacity-100 transition-opacity">
+                            <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+                            <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+                            <div className="w-4 h-0.5 bg-gray-400 rounded"></div>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">{column.label}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            disabled={index === 0}
+                            onClick={() => {
+                              const newOrder = [...selectedColumns];
+                              [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+                              setSelectedColumns(newOrder);
+                            }}
+                          >
+                            ↑
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            disabled={index === selectedColumns.length - 1}
+                            onClick={() => {
+                              const newOrder = [...selectedColumns];
+                              [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+                              setSelectedColumns(newOrder);
+                            }}
+                          >
+                            ↓
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Opções adicionais */}
             <div className="space-y-3">
