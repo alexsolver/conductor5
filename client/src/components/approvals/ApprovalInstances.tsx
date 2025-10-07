@@ -66,7 +66,7 @@ export function ApprovalInstances() {
 
   const { data: instancesData, isLoading } = useQuery<PaginatedResponse>({
     queryKey: ['/api/approvals/instances', filters, currentPage],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
       if (filters.moduleType) params.append('moduleType', filters.moduleType);
@@ -74,16 +74,16 @@ export function ApprovalInstances() {
       params.append('page', currentPage.toString());
       params.append('limit', '20');
       
-      return apiRequest(`/api/approvals/instances?${params}`);
+      const response = await apiRequest('GET', `/api/approvals/instances?${params}`);
+      return response.json();
     }
   });
 
   const processDecisionMutation = useMutation({
-    mutationFn: ({ instanceId, data }: { instanceId: string, data: any }) => 
-      apiRequest(`/api/approvals/instances/${instanceId}/decision`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      }),
+    mutationFn: async ({ instanceId, data }: { instanceId: string, data: any }) => {
+      const response = await apiRequest('POST', `/api/approvals/instances/${instanceId}/decision`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/approvals/instances'] });
       setDecisionDialog(null);
