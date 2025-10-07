@@ -133,8 +133,19 @@ export class TicketViewsController {
       const { tenantId, id: userId, role } = req.user!;
       const { id } = req.params;
 
+      console.log('🔧 [UPDATE-VIEW] Request details:', {
+        tenantId,
+        userId,
+        role,
+        viewId: id,
+        body: req.body
+      });
+
       // Buscar visualização existente
       const existingView = await this.ticketViewsRepository.getViewById(tenantId, id);
+      
+      console.log('🔧 [UPDATE-VIEW] Existing view:', existingView);
+      
       if (!existingView) {
         return res.status(404).json({
           success: false,
@@ -144,6 +155,14 @@ export class TicketViewsController {
 
       // Verificar permissões
       const canEdit = existingView.createdById === userId || role === 'tenant_admin';
+      
+      console.log('🔧 [UPDATE-VIEW] Permission check:', {
+        existingViewCreatedById: existingView.createdById,
+        currentUserId: userId,
+        role,
+        canEdit
+      });
+      
       if (!canEdit) {
         return res.status(403).json({
           success: false,
@@ -153,6 +172,7 @@ export class TicketViewsController {
 
       // Verificar permissões para tornar públicas
       if (req.body.isPublic && role !== 'tenant_admin') {
+        console.log('🔧 [UPDATE-VIEW] Rejected: trying to make public without tenant_admin role');
         return res.status(403).json({
           success: false,
           message: 'Apenas tenant admins podem criar visualizações públicas'
