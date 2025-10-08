@@ -39,18 +39,18 @@ export default function AIFlowBuilder() {
   const nodeCategories = nodeTypesData?.data?.categories || [];
   const availableNodes = nodeTypesData?.data?.nodes || [];
 
-  // Fetch internal forms when needed
-  const { data: formsData } = useQuery({
+  // Fetch internal forms when interview node is selected
+  const { data: formsData, isLoading: isLoadingForms } = useQuery({
     queryKey: ['/api/internal-forms/forms'],
     enabled: selectedNode?.type === 'interview_internal_form',
   });
 
   // Update forms list when data changes
   useEffect(() => {
-    if (formsData?.data) {
-      setInternalForms(formsData.data);
+    if (Array.isArray(formsData)) {
+      setInternalForms(formsData);
     }
-  }, [formsData]);
+  }, [formsData, selectedNode?.type]);
 
   // Save flow mutation
   const saveFlowMutation = useMutation({
@@ -203,7 +203,8 @@ export default function AIFlowBuilder() {
 
       case 'select':
         // Use dynamic options for internal forms field
-        const options = (field.name === 'formId' && selectedNode?.type === 'interview_internal_form')
+        const isFormField = field.name === 'formId' && selectedNode?.type === 'interview_internal_form';
+        const options = isFormField
           ? internalForms.map((form: any) => ({
               value: form.id,
               label: form.name
