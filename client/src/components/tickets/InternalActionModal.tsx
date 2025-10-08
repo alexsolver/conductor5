@@ -393,7 +393,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     const now = new Date().toISOString().slice(0, 16);
     const formDataWithTimer = {
       ...formData,
-      start_time: now
+      start_time: now,
+      status: 'in_progress' // Sempre define status como "Em Andamento" ao criar e iniciar
     };
 
     setFormData(formDataWithTimer);
@@ -425,7 +426,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       const updatedFormData = {
         ...formData,
         end_time: now,
-        actual_minutes: diffMinutes.toString()
+        actual_minutes: diffMinutes.toString(),
+        status: 'completed' // Define status como "Concluída" ao finalizar
       };
 
       setFormData(updatedFormData);
@@ -458,28 +460,33 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Timer Control Buttons - Show in both create and edit modes */}
-          <div className="flex gap-2 p-4 border rounded-lg bg-blue-50 mb-6">
-            <Button
-              type="button"
-              onClick={handleStartTimer}
-              disabled={(editAction ? updateActionMutation.isPending : createActionMutation.isPending)}
-              className="bg-green-600 hover:bg-green-700"
-              data-testid="button-start-timer"
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              {editAction ? "Iniciar" : "Marcar Início"}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleFinishTimer}
-              disabled={(editAction ? updateActionMutation.isPending : createActionMutation.isPending) || !formData.start_time}
-              className="bg-red-600 hover:bg-red-700"
-              data-testid="button-finish-timer"
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Finalizar
-            </Button>
+          {/* Timer Control Buttons - Different buttons for create vs edit modes */}
+          <div className="flex gap-2 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 mb-6">
+            {!editAction ? (
+              // Modo Criação: Apenas botão "Criar e Iniciar"
+              <Button
+                type="button"
+                onClick={handleCreateAndStart}
+                disabled={createActionMutation.isPending}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+                data-testid="button-create-and-start"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Criar e Iniciar
+              </Button>
+            ) : editAction.status === 'in_progress' ? (
+              // Modo Edição com status "Em Andamento": Apenas botão "Finalizar"
+              <Button
+                type="button"
+                onClick={handleFinishTimer}
+                disabled={updateActionMutation.isPending}
+                className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
+                data-testid="button-finish"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Finalizar
+              </Button>
+            ) : null}
           </div>
 
           <Card>
@@ -517,7 +524,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     </Label>
                     <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                       <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{currentUser?.name || currentUser?.email || 'Usuário Logado'}</span>
+                      <span className="font-medium">
+                        {currentUser?.firstName && currentUser?.lastName 
+                          ? `${currentUser.firstName} ${currentUser.lastName}`
+                          : currentUser?.email || 'Usuário Logado'}
+                      </span>
                       <span className="text-xs text-muted-foreground ml-auto">(Você)</span>
                     </div>
                     <p className="text-xs text-muted-foreground">

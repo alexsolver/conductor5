@@ -2565,7 +2565,7 @@ const TicketDetails = React.memo(() => {
                                 action.status === 'in_progress' ? 'default' : 'secondary'
                               }
                               className={`text-xs ${
-                                action.status === 'in_progress' ? 'bg-green-100 text-green-800 border-green-300' :
+                                action.status === 'in_progress' ? 'bg-red-100 text-red-800 border-red-300' :
                                 action.status === 'completed' ? 'bg-gray-100 text-gray-800 border-gray-300' :
                                 'bg-yellow-100 text-yellow-800 border-yellow-300'
                               }`}
@@ -3901,6 +3901,13 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">{t('tickets.internalActions')}</span>
+              {/* Ícone piscando quando houver ações em andamento */}
+              {internalActionsData?.some((action: any) => action.status === 'in_progress') && (
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              )}
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
               {internalActionsData?.length || 0}
