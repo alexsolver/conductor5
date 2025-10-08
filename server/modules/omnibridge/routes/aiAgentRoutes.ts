@@ -37,6 +37,7 @@ export function createAiAgentRoutes(): Router {
 
   // Frontend compatibility routes (alias for frontend)
   router.get('/', (req, res) => aiAgentController.getAgents(req, res));
+  router.post('/', (req, res) => aiAgentController.createAgent(req, res));
   router.post('/generate-config', (req, res) => {
     // Auto-generate configuration from natural language
     const { prompt } = req.body;
