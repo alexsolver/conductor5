@@ -13,7 +13,6 @@
 import { Router } from 'express';
 import { InternalFormController } from './application/controllers/InternalFormController';
 import { DrizzleInternalFormRepository } from './infrastructure/repositories/DrizzleInternalFormRepository';
-import { authenticateToken } from '../../middleware/jwtAuth';
 import { enhancedTenantValidator } from '../../middleware/tenantValidator';
 
 const router = Router();
@@ -22,8 +21,7 @@ const router = Router();
 const internalFormRepository = new DrizzleInternalFormRepository();
 const internalFormController = new InternalFormController(internalFormRepository);
 
-// ✅ Apply authentication and tenant validation middleware to all routes
-router.use(authenticateToken);
+// ✅ Apply tenant validation middleware (authentication is already handled globally)
 router.use(enhancedTenantValidator());
 
 // ===== FORM ROUTES =====
