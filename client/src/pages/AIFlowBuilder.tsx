@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +19,8 @@ import {
   Trash2,
   Copy,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Info
 } from 'lucide-react';
 
 export default function AIFlowBuilder() {
@@ -98,6 +102,139 @@ export default function AIFlowBuilder() {
     };
 
     setEdges([...edges, newEdge]);
+  };
+
+  const updateNodeConfig = (nodeId: string, fieldName: string, value: any) => {
+    const updated = nodes.map(n => 
+      n.id === nodeId 
+        ? { 
+            ...n, 
+            data: { 
+              ...n.data, 
+              config: { ...n.data.config, [fieldName]: value }
+            }
+          }
+        : n
+    );
+    setNodes(updated);
+    
+    if (selectedNode?.id === nodeId) {
+      setSelectedNode({
+        ...selectedNode,
+        data: {
+          ...selectedNode.data,
+          config: { ...selectedNode.data.config, [fieldName]: value }
+        }
+      });
+    }
+  };
+
+  const getNodeDefinition = (nodeType: string) => {
+    return availableNodes.find((n: any) => n.type === nodeType);
+  };
+
+  const renderConfigField = (field: any, nodeId: string, currentValue: any) => {
+    const commonProps = {
+      id: `config-${field.name}`,
+      'data-testid': `input-config-${field.name}`
+    };
+
+    switch (field.type) {
+      case 'text':
+        return (
+          <Input
+            {...commonProps}
+            type="text"
+            value={currentValue || field.defaultValue || ''}
+            onChange={(e) => updateNodeConfig(nodeId, field.name, e.target.value)}
+            placeholder={field.placeholder}
+          />
+        );
+
+      case 'textarea':
+        return (
+          <Textarea
+            {...commonProps}
+            value={currentValue || field.defaultValue || ''}
+            onChange={(e) => updateNodeConfig(nodeId, field.name, e.target.value)}
+            placeholder={field.placeholder}
+            rows={4}
+          />
+        );
+
+      case 'number':
+        return (
+          <Input
+            {...commonProps}
+            type="number"
+            value={currentValue || field.defaultValue || ''}
+            onChange={(e) => updateNodeConfig(nodeId, field.name, parseFloat(e.target.value))}
+            placeholder={field.placeholder}
+          />
+        );
+
+      case 'boolean':
+        return (
+          <div className="flex items-center space-x-2">
+            <Switch
+              {...commonProps}
+              checked={currentValue !== undefined ? currentValue : field.defaultValue || false}
+              onCheckedChange={(checked) => updateNodeConfig(nodeId, field.name, checked)}
+            />
+            <Label htmlFor={commonProps.id} className="text-sm font-normal cursor-pointer">
+              {field.label}
+            </Label>
+          </div>
+        );
+
+      case 'select':
+        return (
+          <Select
+            value={currentValue || field.defaultValue || ''}
+            onValueChange={(value) => updateNodeConfig(nodeId, field.name, value)}
+          >
+            <SelectTrigger {...commonProps}>
+              <SelectValue placeholder={field.placeholder || 'Selecione...'} />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((opt: any) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'json':
+        return (
+          <Textarea
+            {...commonProps}
+            value={typeof currentValue === 'object' ? JSON.stringify(currentValue, null, 2) : currentValue || '{}'}
+            onChange={(e) => {
+              try {
+                const parsed = JSON.parse(e.target.value);
+                updateNodeConfig(nodeId, field.name, parsed);
+              } catch {
+                updateNodeConfig(nodeId, field.name, e.target.value);
+              }
+            }}
+            placeholder={field.placeholder}
+            rows={6}
+            className="font-mono text-xs"
+          />
+        );
+
+      default:
+        return (
+          <Input
+            {...commonProps}
+            value={currentValue || field.defaultValue || ''}
+            onChange={(e) => updateNodeConfig(nodeId, field.name, e.target.value)}
+            placeholder={field.placeholder}
+          />
+        );
+    }
   };
 
   return (
@@ -278,10 +415,12 @@ export default function AIFlowBuilder() {
             </div>
 
             <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
-                <div>
-                  <Label>Nome do Nó</Label>
+              <div className="space-y-6">
+                {/* Nome do Nó */}
+                <div className="space-y-2">
+                  <Label htmlFor="node-label">Nome do Nó</Label>
                   <Input 
+                    id="node-label"
                     value={selectedNode.data.label}
                     onChange={(e) => {
                       const updated = nodes.map(n => 
@@ -296,8 +435,67 @@ export default function AIFlowBuilder() {
                   />
                 </div>
 
-                <div className="text-sm text-muted-foreground">
-                  Configurações específicas do nó virão aqui baseado no tipo
+                {/* Configurações Específicas do Nó */}
+                {(() => {
+                  const nodeDef = getNodeDefinition(selectedNode.type);
+                  if (!nodeDef?.configSchema?.fields || nodeDef.configSchema.fields.length === 0) {
+                    return (
+                      <div className="text-sm text-muted-foreground border rounded-lg p-4 bg-muted/50">
+                        <Info className="h-4 w-4 inline mr-2" />
+                        Este nó não possui configurações adicionais
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="border-t pt-4">
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          Configurações do Nó
+                        </h4>
+                        
+                        {nodeDef.configSchema.fields.map((field: any) => (
+                          <div key={field.name} className="space-y-2 mb-4">
+                            {field.type !== 'boolean' && (
+                              <Label htmlFor={`config-${field.name}`}>
+                                {field.label}
+                                {field.required && <span className="text-destructive ml-1">*</span>}
+                              </Label>
+                            )}
+                            
+                            {renderConfigField(
+                              field, 
+                              selectedNode.id, 
+                              selectedNode.data.config?.[field.name]
+                            )}
+                            
+                            {field.helpText && (
+                              <p className="text-xs text-muted-foreground flex items-start gap-1">
+                                <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                {field.helpText}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Informações do Nó */}
+                <div className="border-t pt-4 space-y-3">
+                  <h4 className="font-semibold text-sm">Informações</h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Tipo:</span>
+                      <code className="ml-2 bg-muted px-2 py-0.5 rounded text-xs">{selectedNode.type}</code>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">ID:</span>
+                      <code className="ml-2 bg-muted px-2 py-0.5 rounded text-xs">{selectedNode.id}</code>
+                    </div>
+                  </div>
                 </div>
               </div>
             </ScrollArea>
