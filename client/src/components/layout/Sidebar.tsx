@@ -179,6 +179,7 @@ const adminNavigation = [
       { name: "clientes", href: "/customers", icon: Users },
       { name: "beneficiaries", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "internalForms", href: "/internal-forms", icon: FileText },
+      { name: "omnibridge", href: "/omnibridge", icon: MessageSquare },
       { name: "companies", href: "/companies", icon: Building2 },
       { name: "branding", href: "/tenant-admin/branding", icon: Palette },
       { name: "reportsAndDashboards", href: "/reports", icon: BarChart3 },
