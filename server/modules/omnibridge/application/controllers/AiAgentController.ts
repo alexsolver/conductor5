@@ -20,10 +20,16 @@ export class AiAgentController {
   }
 
   async createAgent(req: Request, res: Response): Promise<void> {
+    console.log('🤖 [CreateAgent] Starting agent creation');
+    console.log('🤖 [CreateAgent] Request body:', JSON.stringify(req.body, null, 2));
+    
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       
+      console.log('🤖 [CreateAgent] Tenant ID:', tenantId);
+      
       if (!tenantId) {
+        console.log('❌ [CreateAgent] Missing tenant ID');
         res.status(400).json({
           success: false,
           error: 'Tenant ID is required'

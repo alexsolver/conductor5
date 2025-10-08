@@ -36,8 +36,14 @@ export function createAiAgentRoutes(): Router {
   router.post('/agents/conversation', (req, res) => aiAgentController.processMessage(req, res));
 
   // Frontend compatibility routes (alias for frontend)
-  router.get('/', (req, res) => aiAgentController.getAgents(req, res));
-  router.post('/', (req, res) => aiAgentController.createAgent(req, res));
+  router.get('/', (req, res) => {
+    console.log('🤖 [AI-AGENT-ROUTE] GET / called');
+    aiAgentController.getAgents(req, res);
+  });
+  router.post('/', (req, res) => {
+    console.log('🤖 [AI-AGENT-ROUTE] POST / called - before controller');
+    aiAgentController.createAgent(req, res);
+  });
   router.post('/generate-config', (req, res) => {
     // Auto-generate configuration from natural language
     const { prompt } = req.body;
