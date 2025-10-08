@@ -77,6 +77,7 @@ export function ActionConfigModal({
       try {
         const agentData = {
           name: config.name || 'Novo Agente IA',
+          description: config.description || 'Agente conversacional criado automaticamente',
           configPrompt: config.configPrompt || '',
           personality: config.personality || {
             tone: 'professional',
@@ -85,7 +86,10 @@ export function ActionConfigModal({
             fallbackMessage: 'Desculpe, não entendi. Pode reformular?',
             confirmationStyle: 'polite'
           },
-          enabledActions: config.enabledActions || [],
+          channels: config.channels || ['email', 'whatsapp', 'telegram', 'slack'],
+          enabledActions: config.enabledActions && config.enabledActions.length > 0 
+            ? config.enabledActions 
+            : ['create_ticket'],
           behaviorRules: config.behaviorRules || {
             requireConfirmation: [],
             autoEscalateKeywords: [],
