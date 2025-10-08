@@ -19,6 +19,9 @@ import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 import type { ActionDefinition } from './ActionGrid';
 import AiAgentActionConfig from './AiAgentActionConfig';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface ActionConfigModalProps {
   isOpen: boolean;
@@ -36,14 +39,85 @@ export function ActionConfigModal({
   onSave
 }: ActionConfigModalProps) {
   const [config, setConfig] = useState<Record<string, any>>(initialConfig);
+  const { toast } = useToast();
 
   useEffect(() => {
     setConfig(initialConfig);
   }, [initialConfig, action]);
 
-  const handleSave = () => {
-    onSave(config);
-    onClose();
+  // Mutation to create AI agent
+  const createAgentMutation = useMutation({
+    mutationFn: async (agentData: any) => {
+      const response = await apiRequest('POST', '/api/omnibridge/ai-agents', agentData);
+      if (!response.ok) {
+        throw new Error('Failed to create AI agent');
+      }
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.data) {
+        toast({
+          title: 'Agente criado com sucesso!',
+          description: `Agente "${data.data.name}" foi criado.`
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao criar agente',
+        description: error.message || 'Tente novamente',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleSave = async () => {
+    // If AI Agent action and agentId is 'new', create the agent first
+    if (action?.type === 'ai_agent' && config.agentId === 'new') {
+      try {
+        const agentData = {
+          name: config.name || 'Novo Agente IA',
+          configPrompt: config.configPrompt || '',
+          personality: config.personality || {
+            tone: 'professional',
+            language: 'pt-BR',
+            greeting: 'Olá! Como posso ajudar?',
+            fallbackMessage: 'Desculpe, não entendi. Pode reformular?',
+            confirmationStyle: 'polite'
+          },
+          enabledActions: config.enabledActions || [],
+          behaviorRules: config.behaviorRules || {
+            requireConfirmation: [],
+            autoEscalateKeywords: [],
+            maxConversationTurns: 10,
+            collectionStrategy: 'conversational',
+            errorHandling: 'retry'
+          },
+          aiConfig: config.aiConfig || {
+            model: 'gpt-4o',
+            temperature: 0.7,
+            maxTokens: 500,
+            systemPrompt: ''
+          },
+          status: 'active'
+        };
+
+        const result = await createAgentMutation.mutateAsync(agentData);
+        
+        if (result.success && result.data) {
+          // Update config with the new agent ID
+          const updatedConfig = { ...config, agentId: result.data.id };
+          onSave(updatedConfig);
+          onClose();
+        }
+      } catch (error) {
+        // Error is handled by mutation onError
+        return;
+      }
+    } else {
+      onSave(config);
+      onClose();
+    }
   };
 
   const updateConfig = (key: string, value: any) => {
@@ -442,13 +516,13 @@ export function ActionConfigModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} data-testid="button-cancel">
+          <Button variant="outline" onClick={onClose} disabled={createAgentMutation.isPending} data-testid="button-cancel">
             <X className="h-4 w-4 mr-2" />
             Cancelar
           </Button>
-          <Button onClick={handleSave} data-testid="button-save">
+          <Button onClick={handleSave} disabled={createAgentMutation.isPending} data-testid="button-save">
             <Save className="h-4 w-4 mr-2" />
-            Salvar Configuração
+            {createAgentMutation.isPending ? 'Criando agente...' : 'Salvar Configuração'}
           </Button>
         </DialogFooter>
       </DialogContent>
