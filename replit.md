@@ -4,6 +4,15 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
+### Visual AI Flow Builder - n8n-Style Interface (October 2025)
+- **Visual Flow Builder**: Redesigned from wizard to n8n-style visual flow builder for intuitive non-technical user experience
+- **Comprehensive Node Library**: 45+ node types across 8 categories (Triggers, Conversation/AI, Data, Logic, System Actions, Communication, Integrations, Finalization)
+- **Backend Infrastructure**: Complete flow execution engine with node registry system, graph processing with conditional logic and loops
+- **Database Schema**: New tables (ai_action_flows, ai_flow_nodes, ai_node_definitions, ai_flow_executions) for flow persistence
+- **REST API**: Full CRUD endpoints at `/api/ai-flows` for flow management, node listing, and execution
+- **Frontend Interface**: Visual canvas at `/ai-agent/flow-builder` with drag & drop node creation and real-time validation
+- **Execution Engine**: FlowExecutor processes node graphs with variable management, error handling, and execution history
+
 ### AI Action Builder UX Improvements (October 2025)
 - **Innovative 5-Step Wizard**: Replaced traditional action builder with progressive disclosure wizard (Objetivo → Prompt → Mapping → Interaction → Response)
 - **Template Gallery**: Pre-configured action templates for quick setup (Create Ticket, Register Customer, Schedule Appointment, etc.)
