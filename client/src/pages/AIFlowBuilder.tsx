@@ -288,15 +288,15 @@ export default function AIFlowBuilder() {
 
           <ScrollArea className="flex-1">
             <Tabs defaultValue={nodeCategories[0]?.value} className="p-4">
-              <TabsList className="grid grid-cols-2 gap-1 w-full h-auto">
-                {nodeCategories.slice(0, 8).map((cat: any) => (
+              <TabsList className="grid grid-cols-1 gap-1 w-full h-auto">
+                {nodeCategories.map((cat: any) => (
                   <TabsTrigger 
                     key={cat.value} 
                     value={cat.value}
-                    className="text-xs"
+                    className="text-sm justify-start h-10"
                     data-testid={`tab-${cat.value}`}
                   >
-                    {cat.label.split(' ')[0]}
+                    {cat.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
