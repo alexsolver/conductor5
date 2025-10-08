@@ -115,6 +115,83 @@ const ACTION_TEMPLATES: ActionTemplate[] = [
     }
   },
   {
+    id: 'create_ticket_auto_register',
+    name: 'Abrir Ticket (Auto-cadastro)',
+    description: 'Criar ticket e cadastrar cliente automaticamente se não existir',
+    category: 'Tickets',
+    icon: '🎫✨',
+    prefilledData: {
+      actionKey: 'create_ticket_auto_register',
+      name: 'Abrir Ticket com Auto-cadastro',
+      description: 'Cria um ticket e, se o cliente não existir, faz o cadastro automático antes',
+      category: 'Tickets',
+      targetModule: 'tickets',
+      targetEndpoint: '/api/tickets/with-auto-register',
+      mappingType: 'internal_module',
+      endpointMethod: 'POST',
+      aiTone: 'friendly',
+      aiStyle: 'step_by_step',
+      requiresConfirmation: true,
+      defaultCollectionStrategy: 'adaptive',
+      selectedFields: [
+        {
+          key: 'customerName',
+          label: 'Nome do Cliente',
+          type: 'text',
+          required: true,
+          collectionStrategy: 'conversational',
+          widgetConfig: { type: 'text' }
+        },
+        {
+          key: 'customerEmail',
+          label: 'Email do Cliente',
+          type: 'email',
+          required: true,
+          collectionStrategy: 'conversational',
+          widgetConfig: { type: 'email_input' }
+        },
+        {
+          key: 'customerPhone',
+          label: 'Telefone do Cliente',
+          type: 'phone',
+          required: false,
+          collectionStrategy: 'conversational',
+          widgetConfig: { type: 'phone_input' }
+        },
+        {
+          key: 'title',
+          label: 'Título do Ticket',
+          type: 'text',
+          required: true,
+          collectionStrategy: 'conversational',
+          widgetConfig: { type: 'text' }
+        },
+        {
+          key: 'description',
+          label: 'Descrição do Problema',
+          type: 'textarea',
+          required: true,
+          collectionStrategy: 'conversational',
+          widgetConfig: { type: 'rich_text_editor' }
+        },
+        {
+          key: 'priority',
+          label: 'Prioridade',
+          type: 'select',
+          required: true,
+          collectionStrategy: 'interactive',
+          widgetConfig: { 
+            type: 'priority_picker',
+            options: ['Baixa', 'Média', 'Alta', 'Crítica']
+          }
+        }
+      ],
+      successTemplate: '✅ Ticket #{ticketNumber} criado com sucesso!\n👤 Cliente: {customerName}\n📧 Email: {customerEmail}\n🎯 Prioridade: {priority}',
+      errorTemplate: '❌ Erro ao criar ticket: {error}',
+      confirmationTemplate: '🔍 Confirmar abertura do ticket?\n\n📋 Título: {title}\n👤 Cliente: {customerName}\n📧 Email: {customerEmail}\n🎯 Prioridade: {priority}'
+    }
+  },
+  {
     id: 'search_customer',
     name: 'Buscar Cliente',
     description: 'Permitir que o agente busque informações de clientes',
