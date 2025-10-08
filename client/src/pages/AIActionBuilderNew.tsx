@@ -31,6 +31,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import FieldMapper, { MappedField } from '@/components/action-builder/FieldMapper';
+import LivePreview from '@/components/action-builder/LivePreview';
 
 // ========================================
 // TYPES & INTERFACES
@@ -788,15 +789,31 @@ export default function AIActionBuilderNew() {
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
-        <div className="max-w-5xl mx-auto p-6">
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-          {currentStep === 4 && renderStep4()}
-          {currentStep === 5 && renderStep5()}
+      <div className="flex-1 flex min-h-0">
+        {/* Main Content */}
+        <ScrollArea className="flex-1">
+          <div className="max-w-4xl mx-auto p-6">
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+            {currentStep === 5 && renderStep5()}
+          </div>
+        </ScrollArea>
+
+        {/* Live Preview Sidebar */}
+        <div className="w-96 border-l bg-card p-4">
+          <LivePreview
+            actionName={wizardData.name || 'Esta Ação'}
+            aiTone={wizardData.aiTone}
+            aiStyle={wizardData.aiStyle}
+            selectedFields={wizardData.selectedFields}
+            defaultCollectionStrategy={wizardData.defaultCollectionStrategy}
+            successTemplate={wizardData.successTemplate}
+            errorTemplate={wizardData.errorTemplate}
+          />
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Footer Navigation */}
       <div className="border-t bg-card p-4">
