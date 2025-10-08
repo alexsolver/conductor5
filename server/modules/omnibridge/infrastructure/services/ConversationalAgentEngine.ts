@@ -1,4 +1,3 @@
-replit_final_file>
 import { IAiAgentRepository } from '../../domain/repositories/IAiAgentRepository';
 import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
@@ -119,12 +118,14 @@ export class ConversationalAgentEngine {
     console.log(`🌊 [ConversationalAgent] Agent has ${agentData.flowIds.length} flows assigned, attempting execution...`);
 
     // Buscar todos os fluxos atribuídos
+    const { aiActionFlows } = await import('../../../../../shared/schema-ai-flows');
+    const { inArray, eq, and } = await import('drizzle-orm');
+    
     const flows = await db.query.aiActionFlows.findMany({
-      where: (flows, { inArray, eq, and }) => 
-        and(
-          inArray(flows.id, agentData.flowIds),
-          eq(flows.isActive, true)
-        )
+      where: and(
+        inArray(aiActionFlows.id, agentData.flowIds),
+        eq(aiActionFlows.flowStatus, 'active')
+      )
     });
 
     if (flows.length === 0) {
@@ -138,24 +139,24 @@ export class ConversationalAgentEngine {
     console.log(`▶️ [ConversationalAgent] Executing flow: ${flow.name}`);
 
     try {
-      const executionResult = await executeFlow({
-        flowId: flow.id!,
-        tenantId: context.tenantId,
-        userId: context.userId,
-        initialVariables: {
+      const executionResult = await executeFlow(
+        flow.id!,
+        context.tenantId,
+        context.userId,
+        {
           userMessage: context.content,
           userId: context.userId,
           channelType: context.channelType,
           conversationId: conversation.id
         }
-      });
+      );
 
       if (executionResult.success) {
         console.log(`✅ [ConversationalAgent] Flow executed successfully`);
         
         // Retornar resultado do fluxo como resposta
-        const responseMessage = executionResult.result?.message || 
-          executionResult.result?.response || 
+        const responseMessage = executionResult.output?.message || 
+          executionResult.output?.response || 
           'Fluxo executado com sucesso!';
 
         conversation.addMessage('assistant', responseMessage);

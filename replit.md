@@ -16,6 +16,7 @@ Conductor is a modern SaaS customer support platform designed for omnichannel cu
 - **Frontend Interface**: Visual canvas at `/ai-agent/flow-builder` with drag & drop node creation, real-time validation, and text-based category menu
 - **Execution Engine**: FlowExecutor processes node graphs with variable management, error handling, and execution history
 - **Navigation**: Flow Builder accessible via OmniBridge menu → "Criar Fluxos" which opens the flow management page
+- **Agent-Flow Integration**: AI agents can execute assigned flows automatically - flowIds field in ai_agents schema, UI for flow selection in agent configuration, automatic flow execution in ConversationalAgentEngine when agent receives messages
 
 ### AI Action Builder UX Improvements (October 2025)
 - **Innovative 5-Step Wizard**: Replaced traditional action builder with progressive disclosure wizard (Objetivo → Prompt → Mapping → Interaction → Response)
