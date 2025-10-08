@@ -11,6 +11,7 @@ Conductor is a modern SaaS customer support platform designed for omnichannel cu
 - **Live Preview Component**: Real-time conversation simulation showing agent-user interaction based on wizard configuration
 - **API/Webhook Support**: Full configuration for external APIs with authentication (Bearer, API Key, Basic), custom headers, and multiple HTTP methods
 - **Backend Integration**: Bulk field creation endpoint (`POST /api/ai-configurable-actions/fields/bulk`) for efficient multi-field saving
+- **Auto-Customer Registration**: New "Abrir Ticket (Auto-cadastro)" template enables AI to automatically register customers when they don't exist, using endpoint `/api/tickets/with-auto-register` that checks customer existence by email, creates if needed, and then creates the ticket with comprehensive audit trail
 - **Route**: New wizard accessible at `/ai-agent/action-builder-new` for SaaS admins
 
 ## User Preferences
