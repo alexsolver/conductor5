@@ -40,6 +40,9 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth";
+import { FormTemplateSelector } from "@/components/internal-forms/FormTemplateSelector";
+import { DynamicFormField } from "@/components/internal-forms/FormFieldComponents";
+import type { InternalForm, FormField } from "@shared/schema-internal-forms";
 
 
 interface InternalActionModalProps {
@@ -78,14 +81,27 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     actual_minutes: "0",
     status: "pending",
     priority: "medium",
+    form_template_id: null as string | null,
 
     // Campos auxiliares
     attachments: [] as File[]
   });
 
   const [isPublic, setIsPublic] = useState(false);
+  const [formTemplateData, setFormTemplateData] = useState<Record<string, any>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch selected form template
+  const { data: selectedFormTemplate } = useQuery<InternalForm>({
+    queryKey: ['internal-form', formData.form_template_id],
+    queryFn: async () => {
+      if (!formData.form_template_id) return null;
+      const response = await apiRequest('GET', `/api/internal-forms/forms/${formData.form_template_id}`);
+      return response.json();
+    },
+    enabled: !!formData.form_template_id && isOpen,
+  });
 
   // Reset form function
   const resetForm = () => {
@@ -102,9 +118,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       actual_minutes: "0",
       status: "pending",
       priority: "medium",
+      form_template_id: null,
       attachments: []
     });
     setIsPublic(false);
+    setFormTemplateData({});
   };
 
 
@@ -128,9 +146,16 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           actual_minutes: editAction.actual_minutes || editAction.actualMinutes || "0",
           status: editAction.status || "pending",
           priority: editAction.priority || "medium",
+          form_template_id: editAction.form_template_id || null,
           attachments: []
         });
         setIsPublic(editAction.is_public || false);
+        // Load form data if exists
+        if (editAction.form_data && typeof editAction.form_data === 'object') {
+          setFormTemplateData(editAction.form_data);
+        } else {
+          setFormTemplateData({});
+        }
       } else {
         // Modo de criação - resetar form
         resetForm();
@@ -182,6 +207,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
         // Visibility flag
         is_public: isPublic,
+
+        // Form template fields
+        form_template_id: data.form_template_id || null,
+        form_data: data.form_template_id ? formTemplateData : null,
       };
 
       // Debug log to verify all fields are properly mapped
@@ -190,6 +219,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         cleanedData,
         hasPlannedStartTime: !!cleanedData.planned_start_time,
         hasPlannedEndTime: !!cleanedData.planned_end_time,
+        hasFormTemplate: !!cleanedData.form_template_id,
+        formTemplateData: formTemplateData,
         allFields: Object.keys(cleanedData)
       });
 
@@ -239,9 +270,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         status: data.status || 'pending',
         priority: data.priority || 'medium',
         is_public: isPublic,
+        form_template_id: data.form_template_id || null,
+        form_data: data.form_template_id ? formTemplateData : null,
       };
 
-      console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData);
+      console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData, 'formTemplateData:', formTemplateData);
 
       const response = await apiRequest("PATCH", `/api/tickets/${ticketId}/actions/${editAction.id}`, cleanedData);
 
@@ -622,6 +655,47 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     <p className="text-sm text-red-600 mt-1">{t('tickets.internal_actions.description_too_long')}</p>
                   )}
                 </div>
+
+                {/* Form Template Selector */}
+                <FormTemplateSelector
+                  value={formData.form_template_id}
+                  onChange={(formId) => {
+                    setFormData(prev => ({ ...prev, form_template_id: formId }));
+                    if (!formId) {
+                      setFormTemplateData({});
+                    }
+                  }}
+                  actionType={formData.action_type}
+                />
+
+                {/* Custom Form Fields */}
+                {formData.form_template_id && selectedFormTemplate && selectedFormTemplate.fields && (
+                  <Card className="border-2 border-blue-500">
+                    <CardContent className="pt-6 space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-semibold text-blue-900">
+                          Formulário: {selectedFormTemplate.name}
+                        </h4>
+                      </div>
+                      {Array.isArray(selectedFormTemplate.fields) && selectedFormTemplate.fields
+                        .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
+                        .map((field: FormField) => (
+                          <DynamicFormField
+                            key={field.id}
+                            field={field}
+                            value={formTemplateData[field.name]}
+                            onChange={(value) => {
+                              setFormTemplateData(prev => ({
+                                ...prev,
+                                [field.name]: value
+                              }));
+                            }}
+                          />
+                        ))}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Tempo Estimado e Tempo Realizado */}
                 <div className="grid grid-cols-2 gap-4">
