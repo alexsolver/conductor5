@@ -575,6 +575,12 @@ app.use((req, res, next) => {
   app.use('/api/ai-agent', aiAgentConfigRouter);
   console.log('✅ [SERVER] AI agent config routes registered at /api/ai-agent');
 
+  // AI Visual Flow Builder routes (n8n-style flow builder)
+  console.log('🎨 [SERVER] Registering AI flow builder routes...');
+  const aiFlowsRouter = (await import('./modules/ai-flows/routes')).default;
+  app.use('/api/ai-flows', aiFlowsRouter);
+  console.log('✅ [SERVER] AI flow builder routes registered at /api/ai-flows');
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
