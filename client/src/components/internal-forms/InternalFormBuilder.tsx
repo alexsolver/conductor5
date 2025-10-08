@@ -318,8 +318,7 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
       fields: fields,
       conditionalLogic: {},
       isActive,
-      tenantId: 'default',
-      createdBy: 'current-user',
+      actions: selectedActionTypes,
     };
 
     saveFormMutation.mutate(formData);
