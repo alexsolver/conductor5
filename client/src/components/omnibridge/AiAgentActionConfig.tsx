@@ -276,7 +276,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="new">+ Criar Novo Agente</SelectItem>
-                  {agents.map((agent) => (
+                  {(agents || []).map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.name} {agent.status === 'active' && '✓'}
                     </SelectItem>
