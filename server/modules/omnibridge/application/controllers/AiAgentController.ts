@@ -188,7 +188,10 @@ export class AiAgentController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const agentId = req.params.id;
       
+      console.log('🤖 [GetAgent] Called with:', { tenantId, agentId });
+      
       if (!tenantId) {
+        console.log('❌ [GetAgent] Missing tenant ID');
         res.status(400).json({
           success: false,
           error: 'Tenant ID is required'
@@ -197,6 +200,7 @@ export class AiAgentController {
       }
 
       if (!agentId) {
+        console.log('❌ [GetAgent] Missing agent ID');
         res.status(400).json({
           success: false,
           error: 'Agent ID is required'
@@ -205,9 +209,13 @@ export class AiAgentController {
       }
 
       const agentRepository = this.createAiAgentUseCase['agentRepository'] as IAiAgentRepository;
+      console.log('🤖 [GetAgent] Finding agent...');
       const agent = await agentRepository.findById(agentId, tenantId);
+      console.log('🤖 [GetAgent] Agent found:', agent ? 'Yes' : 'No');
+      console.log('🤖 [GetAgent] Agent data:', JSON.stringify(agent, null, 2));
 
       if (!agent) {
+        console.log('❌ [GetAgent] Agent not found, returning 404');
         res.status(404).json({
           success: false,
           error: 'Agent not found'
@@ -215,7 +223,7 @@ export class AiAgentController {
         return;
       }
 
-      console.log('🤖 [GetAgent] Returning agent data:', JSON.stringify(agent, null, 2));
+      console.log('✅ [GetAgent] Returning agent data to client');
       
       res.json({
         success: true,
