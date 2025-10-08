@@ -30,10 +30,20 @@ router.get('/config', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    // Buscar agente padrão do tenant (ou criar se não existir)
-    let agent = await db.query.aiAgents.findFirst({
-      where: eq(aiAgents.tenantId, tenantId)
-    });
+    // Buscar agente padrão do tenant (com tratamento para schema desatualizado)
+    let agent;
+    try {
+      agent = await db.query.aiAgents.findFirst({
+        where: eq(aiAgents.tenantId, tenantId)
+      });
+    } catch (agentError: any) {
+      // Se erro de coluna inexistente, tentar criar novo agente
+      if (agentError.code === '42703') {
+        agent = null; // Forçar criação de novo agente
+      } else {
+        throw agentError;
+      }
+    }
 
     // Se não existe, criar agente padrão
     if (!agent) {
@@ -191,10 +201,25 @@ router.get('/available-actions', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    // Buscar agente
-    const agent = await db.query.aiAgents.findFirst({
-      where: eq(aiAgents.tenantId, tenantId)
-    });
+    // Buscar agente (com tratamento para schema desatualizado)
+    let agent;
+    try {
+      agent = await db.query.aiAgents.findFirst({
+        where: eq(aiAgents.tenantId, tenantId)
+      });
+    } catch (agentError: any) {
+      // Se erro de coluna inexistente, buscar com SELECT explícito
+      if (agentError.code === '42703') {
+        const result = await db.select({
+          id: aiAgents.id,
+          tenantId: aiAgents.tenantId,
+          name: aiAgents.name
+        }).from(aiAgents).where(eq(aiAgents.tenantId, tenantId)).limit(1);
+        agent = result[0];
+      } else {
+        throw agentError;
+      }
+    }
 
     if (!agent) {
       return res.json({ success: true, data: [] });
