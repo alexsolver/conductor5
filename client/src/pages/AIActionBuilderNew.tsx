@@ -379,10 +379,8 @@ export default function AIActionBuilderNew() {
       };
 
       // Save action
-      const actionResponse = await apiRequest('/api/ai-configurable-actions', {
-        method: 'POST',
-        body: JSON.stringify(actionData)
-      });
+      const response = await apiRequest('POST', '/api/ai-configurable-actions', actionData);
+      const actionResponse = await response.json();
 
       // Save fields
       const fieldsData = wizardData.selectedFields.map((field, index) => ({
@@ -397,10 +395,7 @@ export default function AIActionBuilderNew() {
       }));
 
       if (fieldsData.length > 0) {
-        await apiRequest('/api/ai-configurable-actions/fields/bulk', {
-          method: 'POST',
-          body: JSON.stringify({ fields: fieldsData })
-        });
+        await apiRequest('POST', '/api/ai-configurable-actions/fields/bulk', { fields: fieldsData });
       }
 
       toast({
