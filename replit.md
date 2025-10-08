@@ -4,28 +4,12 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
-### Visual AI Flow Builder - n8n-Style Interface (October 2025)
-- **Visual Flow Builder**: Redesigned from wizard to n8n-style visual flow builder for intuitive non-technical user experience
-- **Comprehensive Node Library**: 46+ node types across 8 categories including new "Entrevista para Formulário Interno" node
-- **Interview Internal Form Node**: AI-driven form interviewer that conducts field-by-field interviews to fill internal forms with configurable AI behavior prompts
-- **Dynamic Form Loading**: Automatically fetches and populates internal forms list from `/api/internal-forms/forms` when configuring interview node
-- **Flow Management Interface**: Complete CRUD interface at `/ai-agent/flows` for listing, editing, duplicating, and deleting saved flows
-- **Backend Infrastructure**: Complete flow execution engine with node registry system, graph processing with conditional logic and loops
-- **Database Schema**: New tables (ai_action_flows, ai_flow_nodes, ai_node_definitions, ai_flow_executions) for flow persistence, with icon and is_active columns
-- **REST API**: Full CRUD endpoints at `/api/ai-flows` for flow management, node listing, execution, and duplicate endpoint at `POST /api/ai-flows/:id/duplicate`
-- **Frontend Interface**: Visual canvas at `/ai-agent/flow-builder` with drag & drop node creation, real-time validation, and text-based category menu
-- **Execution Engine**: FlowExecutor processes node graphs with variable management, error handling, and execution history
-- **Navigation**: Flow Builder accessible via OmniBridge menu → "Criar Fluxos" which opens the flow management page
-
-### AI Action Builder UX Improvements (October 2025)
-- **Innovative 5-Step Wizard**: Replaced traditional action builder with progressive disclosure wizard (Objetivo → Prompt → Mapping → Interaction → Response)
-- **Template Gallery**: Pre-configured action templates for quick setup (Create Ticket, Register Customer, Schedule Appointment, etc.)
-- **Visual Field Mapper**: Drag & drop interface using @dnd-kit for mapping module fields to AI actions
-- **Live Preview Component**: Real-time conversation simulation showing agent-user interaction based on wizard configuration
-- **API/Webhook Support**: Full configuration for external APIs with authentication (Bearer, API Key, Basic), custom headers, and multiple HTTP methods
-- **Backend Integration**: Bulk field creation endpoint (`POST /api/ai-configurable-actions/fields/bulk`) for efficient multi-field saving
-- **Auto-Customer Registration**: New "Abrir Ticket (Auto-cadastro)" template enables AI to automatically register customers when they don't exist, using endpoint `/api/tickets/with-auto-register` that checks customer existence by email, creates if needed, and then creates the ticket with comprehensive audit trail
-- **Route**: New wizard accessible at `/ai-agent/action-builder-new` for SaaS admins
+### OmniBridge Route Fix (October 2025)
+- **Critical Bug Fixed**: Resolved OmniBridge routes registration failure caused by Node.js import path conflict
+- **Root Cause**: Directory `server/modules/omnibridge/routes/` existed without `index.ts`, causing dynamic import to fail silently
+- **Solution**: Created `routes/index.ts` to properly export `omniBridgeRoutes` from parent file
+- **Impact**: All OmniBridge API endpoints now functioning correctly (`/api/omnibridge/*`)
+- **Database Import Fix**: Corrected Drizzle import path from `'../../../../database/drizzle'` to `'../../../../db'` following codebase patterns
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

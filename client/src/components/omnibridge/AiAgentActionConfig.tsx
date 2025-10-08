@@ -244,7 +244,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
     );
   }
 
-  const groupedActions = availableActions.reduce((acc: Record<string, AIAction[]>, action: AIAction) => {
+  const groupedActions = (availableActions || []).reduce((acc: Record<string, AIAction[]>, action: AIAction) => {
     if (!acc[action.category]) {
       acc[action.category] = [];
     }
