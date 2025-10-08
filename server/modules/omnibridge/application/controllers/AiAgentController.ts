@@ -215,6 +215,8 @@ export class AiAgentController {
         return;
       }
 
+      console.log('🤖 [GetAgent] Returning agent data:', JSON.stringify(agent, null, 2));
+      
       res.json({
         success: true,
         data: agent
