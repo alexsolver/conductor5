@@ -356,54 +356,51 @@ export const requireTenantAccess = (req: AuthenticatedRequest, res: Response, ne
 // This block adds a separate `authenticateToken` function with its own verification logic,
 // and an alias `verifyToken` for compatibility, as per the `changes` provided.
 
-export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
+export const authenticateToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    // Try to get token from cookies (HttpOnly)
+    const token = req.cookies?.accessToken;
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'Access token required',
-      needsRefresh: false
-    });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-    if (err) {
-      console.error('Token verification failed:', err.message);
-
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          success: false,
-          message: 'Access token expired',
-          needsRefresh: true
-        });
-      }
-
-      return res.status(403).json({
+    if (!token) {
+      return res.status(401).json({
         success: false,
-        message: 'Invalid access token',
-        needsRefresh: true
+        message: 'Access token required',
+        needsRefresh: false
       });
     }
 
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+
     // Attach user info to request
-    // This part assumes a different structure for `req.user` than `jwtAuth`
-    // and might need to be aligned if both are used for the same purpose.
     req.user = {
       id: decoded.userId,
       tenantId: decoded.tenantId,
       email: decoded.email,
       role: decoded.role,
-      // These fields are present in jwtAuth but not in this authenticateToken's decoded payload assumption.
-      // They would need to be fetched or decoded if required.
-      roles: [],
-      permissions: [],
-      attributes: {}
+      roles: decoded.roles || [],
+      permissions: decoded.permissions || [],
+      attributes: decoded.attributes || {}
     };
 
     next();
-  });
+  } catch (err: any) {
+    console.error('Token verification failed:', err.message);
+
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Access token expired',
+        needsRefresh: true
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: 'Invalid access token',
+      needsRefresh: true
+    });
+  }
 };
 
 // Export alias for backward compatibility
