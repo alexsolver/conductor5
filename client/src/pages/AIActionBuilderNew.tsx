@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import FieldMapper, { MappedField } from '@/components/action-builder/FieldMapper';
 
 // ========================================
 // TYPES & INTERFACES
@@ -55,7 +56,7 @@ interface ActionWizardData {
   targetEndpoint: string;
   mappingType: 'internal_module' | 'internal_form' | 'external_api';
   linkedFormId?: string;
-  selectedFields: ActionField[];
+  selectedFields: MappedField[];
   
   // Step 4: Interaction
   defaultCollectionStrategy: 'conversational' | 'interactive' | 'hybrid' | 'adaptive';
@@ -67,16 +68,6 @@ interface ActionWizardData {
   confirmationTemplate: string;
 }
 
-interface ActionField {
-  id?: string;
-  fieldKey: string;
-  fieldLabel: string;
-  fieldType: string;
-  isRequired: boolean;
-  collectionStrategy: 'conversational' | 'interactive' | 'hybrid';
-  widgetConfig?: any;
-  displayOrder: number;
-}
 
 interface ActionTemplate {
   id: string;
@@ -507,16 +498,14 @@ export default function AIActionBuilderNew() {
         </Card>
       )}
 
-      {/* Placeholder for drag & drop field mapper - será implementado na próxima tarefa */}
-      <Card className="border-dashed">
-        <CardContent className="pt-6">
-          <div className="text-center text-muted-foreground py-8">
-            <Layers className="mx-auto w-12 h-12 mb-3 opacity-50" />
-            <p data-testid="text-field-mapper-placeholder">Drag & Drop Field Mapper</p>
-            <p className="text-sm">(Será implementado em breve)</p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Field Mapper with Drag & Drop */}
+      {wizardData.mappingType === 'internal_module' && wizardData.targetModule && (
+        <FieldMapper
+          moduleId={wizardData.targetModule}
+          selectedFields={wizardData.selectedFields}
+          onFieldsChange={(fields) => updateWizardData({ selectedFields: fields })}
+        />
+      )}
     </div>
   );
 
