@@ -6,12 +6,16 @@ Conductor is a modern SaaS customer support platform designed for omnichannel cu
 ## Recent Changes
 ### Visual AI Flow Builder - n8n-Style Interface (October 2025)
 - **Visual Flow Builder**: Redesigned from wizard to n8n-style visual flow builder for intuitive non-technical user experience
-- **Comprehensive Node Library**: 45+ node types across 8 categories (Triggers, Conversation/AI, Data, Logic, System Actions, Communication, Integrations, Finalization)
+- **Comprehensive Node Library**: 46+ node types across 8 categories including new "Entrevista para Formulário Interno" node
+- **Interview Internal Form Node**: AI-driven form interviewer that conducts field-by-field interviews to fill internal forms with configurable AI behavior prompts
+- **Dynamic Form Loading**: Automatically fetches and populates internal forms list from `/api/internal-forms/forms` when configuring interview node
+- **Flow Management Interface**: Complete CRUD interface at `/ai-agent/flows` for listing, editing, duplicating, and deleting saved flows
 - **Backend Infrastructure**: Complete flow execution engine with node registry system, graph processing with conditional logic and loops
-- **Database Schema**: New tables (ai_action_flows, ai_flow_nodes, ai_node_definitions, ai_flow_executions) for flow persistence
-- **REST API**: Full CRUD endpoints at `/api/ai-flows` for flow management, node listing, and execution
-- **Frontend Interface**: Visual canvas at `/ai-agent/flow-builder` with drag & drop node creation and real-time validation
+- **Database Schema**: New tables (ai_action_flows, ai_flow_nodes, ai_node_definitions, ai_flow_executions) for flow persistence, with icon and is_active columns
+- **REST API**: Full CRUD endpoints at `/api/ai-flows` for flow management, node listing, execution, and duplicate endpoint at `POST /api/ai-flows/:id/duplicate`
+- **Frontend Interface**: Visual canvas at `/ai-agent/flow-builder` with drag & drop node creation, real-time validation, and text-based category menu
 - **Execution Engine**: FlowExecutor processes node graphs with variable management, error handling, and execution history
+- **Navigation**: Flow Builder accessible via OmniBridge menu → "Criar Fluxos" which opens the flow management page
 
 ### AI Action Builder UX Improvements (October 2025)
 - **Innovative 5-Step Wizard**: Replaced traditional action builder with progressive disclosure wizard (Objetivo → Prompt → Mapping → Interaction → Response)

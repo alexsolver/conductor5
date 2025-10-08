@@ -187,6 +187,42 @@ export async function handleSentimentAnalysis(
   };
 }
 
+export async function handleInternalFormInterview(
+  config: any,
+  context: ExecutionContext
+): Promise<Record<string, any>> {
+  // This handler manages AI-driven form interviews
+  // 1. Fetch the form structure
+  // 2. Conduct field-by-field interview using AI
+  // 3. Validate and save the submission
+  
+  try {
+    // Note: Full implementation requires:
+    // - Integration with AI provider (OpenAI/DeepSeek)
+    // - Conversation state management
+    // - Field-by-field data collection
+    // - Validation per field type
+    // - Final confirmation step
+    
+    // For now, return placeholder structure
+    const formData = context.variables.collectedFormData || {};
+    
+    return {
+      submissionId: 'placeholder-submission-id',
+      formData,
+      completed: false // Will be true when interview is complete
+    };
+  } catch (error) {
+    console.error('[handleInternalFormInterview] Error:', error);
+    return {
+      submissionId: null,
+      formData: {},
+      completed: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
 // ========================================
 // DATA HANDLERS
 // ========================================

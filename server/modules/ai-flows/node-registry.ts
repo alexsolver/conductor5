@@ -143,7 +143,7 @@ export const NODE_DEFINITIONS: Omit<InsertAiNodeDefinition, 'id' | 'createdAt' |
   },
   
   // ========================================
-  // 2. 💬 CONVERSA & IA (8 nós)
+  // 2. 💬 CONVERSA & IA (9 nós)
   // ========================================
   {
     type: 'ask_question',
@@ -451,6 +451,63 @@ export const NODE_DEFINITIONS: Omit<InsertAiNodeDefinition, 'id' | 'createdAt' |
     ],
     handlerType: 'builtin',
     handlerConfig: { function: 'handleSentimentAnalysis' },
+    isSystemNode: true,
+    isActive: true,
+    version: '1.0.0'
+  },
+  
+  {
+    type: 'interview_internal_form',
+    name: 'Entrevista para Formulário Interno',
+    description: 'IA entrevista usuário para preencher formulário',
+    category: 'conversation',
+    icon: 'ClipboardList',
+    color: '#3b82f6',
+    configSchema: {
+      fields: [
+        {
+          name: 'formId',
+          label: 'Formulário Interno',
+          type: 'select',
+          required: true,
+          helpText: 'Selecione o formulário que será preenchido',
+          options: [] // Will be populated dynamically from /api/internal-forms/forms
+        },
+        {
+          name: 'aiPrompt',
+          label: 'Prompt de Comportamento da IA',
+          type: 'textarea',
+          required: true,
+          placeholder: 'Você é um assistente profissional e amigável. Conduza a conversa de forma natural, explicando cada campo claramente. Seja paciente e confirme as informações antes de prosseguir.',
+          helpText: 'Defina como a IA deve se comportar durante a entrevista'
+        },
+        {
+          name: 'confirmBeforeSave',
+          label: 'Confirmar antes de salvar',
+          type: 'boolean',
+          defaultValue: true,
+          helpText: 'Mostrar resumo e pedir confirmação antes de salvar'
+        },
+        {
+          name: 'saveAs',
+          label: 'Salvar resultado como',
+          type: 'text',
+          required: true,
+          placeholder: 'formSubmission',
+          helpText: 'Nome da variável para armazenar o ID da submissão criada'
+        }
+      ]
+    },
+    inputs: [
+      { name: 'conversationId', type: 'string', required: true }
+    ],
+    outputs: [
+      { name: 'submissionId', type: 'string', description: 'ID da submissão criada' },
+      { name: 'formData', type: 'json', description: 'Dados coletados do formulário' },
+      { name: 'completed', type: 'boolean', description: 'Se completou a entrevista' }
+    ],
+    handlerType: 'builtin',
+    handlerConfig: { function: 'handleInternalFormInterview' },
     isSystemNode: true,
     isActive: true,
     version: '1.0.0'

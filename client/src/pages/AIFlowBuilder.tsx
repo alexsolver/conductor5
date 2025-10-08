@@ -28,6 +28,7 @@ export default function AIFlowBuilder() {
   const [flowName, setFlowName] = useState('Novo Fluxo');
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
+  const [internalForms, setInternalForms] = useState<any[]>([]);
   const { toast } = useToast();
 
   // Fetch available node types
@@ -37,6 +38,19 @@ export default function AIFlowBuilder() {
 
   const nodeCategories = nodeTypesData?.data?.categories || [];
   const availableNodes = nodeTypesData?.data?.nodes || [];
+
+  // Fetch internal forms when needed
+  const { data: formsData } = useQuery({
+    queryKey: ['/api/internal-forms/forms'],
+    enabled: selectedNode?.type === 'interview_internal_form',
+  });
+
+  // Update forms list when data changes
+  useEffect(() => {
+    if (formsData?.data) {
+      setInternalForms(formsData.data);
+    }
+  }, [formsData]);
 
   // Save flow mutation
   const saveFlowMutation = useMutation({
@@ -188,6 +202,14 @@ export default function AIFlowBuilder() {
         );
 
       case 'select':
+        // Use dynamic options for internal forms field
+        const options = (field.name === 'formId' && selectedNode?.type === 'interview_internal_form')
+          ? internalForms.map((form: any) => ({
+              value: form.id,
+              label: form.name
+            }))
+          : field.options || [];
+
         return (
           <Select
             value={currentValue || field.defaultValue || ''}
@@ -197,11 +219,17 @@ export default function AIFlowBuilder() {
               <SelectValue placeholder={field.placeholder || 'Selecione...'} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((opt: any) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {options.length === 0 && field.name === 'formId' ? (
+                <SelectItem value="no-forms" disabled>
+                  Nenhum formulário disponível
                 </SelectItem>
-              ))}
+              ) : (
+                options.map((opt: any) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         );
