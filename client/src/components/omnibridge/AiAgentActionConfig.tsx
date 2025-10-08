@@ -105,9 +105,11 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   const { toast } = useToast();
 
   // Fetch available AI agents
-  const { data: agents = [], isLoading: loadingAgents } = useQuery<AIAgent[]>({
+  const { data: agentsResponse, isLoading: loadingAgents } = useQuery<{ success: boolean; data: AIAgent[] }>({
     queryKey: ['/api/omnibridge/ai-agents'],
   });
+  
+  const agents = agentsResponse?.data ?? [];
 
   // Auto-generate configuration mutation
   const generateConfigMutation = useMutation({
