@@ -19,8 +19,7 @@ const visualAgentConfigSchema = z.object({
   escalationKeywords: z.array(z.string()),
   escalationQueue: z.string(),
   autoLearn: z.boolean(),
-  uncertainBehavior: z.enum(['ask_again', 'use_widget', 'use_profile']),
-  flowIds: z.array(z.string()).optional() // IDs dos fluxos atribuídos ao agente
+  uncertainBehavior: z.enum(['ask_again', 'use_widget', 'use_profile'])
 });
 
 // GET /api/ai-agent/config - Obter configuração do agente
@@ -102,8 +101,7 @@ router.get('/config', async (req, res) => {
       escalationKeywords: agent.behaviorRules?.autoEscalateKeywords || ['urgente', 'emergência', 'crítico'],
       escalationQueue: agent.behaviorRules?.escalationQueue || 'support',
       autoLearn: agent.learningEnabled || true,
-      uncertainBehavior: agent.behaviorRules?.uncertainBehavior || 'ask_again',
-      flowIds: agent.flowIds || [] // IDs dos fluxos atribuídos
+      uncertainBehavior: agent.behaviorRules?.uncertainBehavior || 'ask_again'
     };
 
     res.json({ success: true, data: visualConfig });
@@ -160,7 +158,6 @@ router.post('/config', async (req, res) => {
         confidence: validated.confidence
       },
       learningEnabled: validated.autoLearn,
-      flowIds: validated.flowIds || [], // Salvar IDs dos fluxos atribuídos
       updatedAt: new Date()
     };
 
