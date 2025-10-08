@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +34,11 @@ export default function AIAgentConfig() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('identity');
   
-  // Mock data - integrar com API depois
+  // Buscar configuração do agente
+  const { data: configData, isLoading: configLoading } = useQuery({
+    queryKey: ['/api/ai-agent/config'],
+  });
+
   const [agentConfig, setAgentConfig] = useState({
     name: 'Ana',
     avatar: '😊',
@@ -49,7 +53,19 @@ export default function AIAgentConfig() {
     uncertainBehavior: 'ask_again'
   });
 
-  const availableActions = [
+  // Atualizar estado quando dados chegarem
+  useEffect(() => {
+    if (configData?.data) {
+      setAgentConfig(configData.data);
+    }
+  }, [configData]);
+
+  // Buscar ações disponíveis
+  const { data: actionsData, isLoading: actionsLoading } = useQuery({
+    queryKey: ['/api/ai-agent/available-actions'],
+  });
+
+  const availableActions = actionsData?.data || [
     {
       id: '1',
       name: 'Criar Ticket',
@@ -92,11 +108,60 @@ export default function AIAgentConfig() {
     }
   ];
 
-  const toggleAction = (actionId: string) => {
-    toast({
-      title: "Ação atualizada",
-      description: "As alterações foram salvas com sucesso"
-    });
+  // Mutation para salvar configuração
+  const saveConfigMutation = useMutation({
+    mutationFn: async (config: typeof agentConfig) => {
+      return apiRequest('/api/ai-agent/config', {
+        method: 'POST',
+        data: config
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agent/config'] });
+      toast({
+        title: "Configuração salva",
+        description: "As alterações foram salvas com sucesso"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a configuração",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation para toggle de ação
+  const toggleActionMutation = useMutation({
+    mutationFn: async ({ actionId, enabled }: { actionId: string, enabled: boolean }) => {
+      return apiRequest(`/api/ai-agent/toggle-action/${actionId}`, {
+        method: 'POST',
+        data: { enabled }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-agent/available-actions'] });
+      toast({
+        title: "Ação atualizada",
+        description: "As alterações foram salvas com sucesso"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a ação",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const toggleAction = (actionId: string, currentState: boolean) => {
+    toggleActionMutation.mutate({ actionId, enabled: !currentState });
+  };
+
+  const handleSave = () => {
+    saveConfigMutation.mutate(agentConfig);
   };
 
   return (
@@ -121,9 +186,13 @@ export default function AIAgentConfig() {
                 <Play className="h-4 w-4 mr-2" />
                 Testar Agente
               </Button>
-              <Button size="sm">
+              <Button 
+                size="sm" 
+                onClick={handleSave}
+                disabled={saveConfigMutation.isPending}
+              >
                 <Check className="h-4 w-4 mr-2" />
-                Salvar
+                {saveConfigMutation.isPending ? 'Salvando...' : 'Salvar'}
               </Button>
             </div>
           </div>
@@ -250,7 +319,8 @@ export default function AIAgentConfig() {
                               <h3 className="font-semibold text-lg">{action.name}</h3>
                               <Switch
                                 checked={action.enabled}
-                                onCheckedChange={() => toggleAction(action.id)}
+                                onCheckedChange={() => toggleAction(action.id, action.enabled)}
+                                disabled={toggleActionMutation.isPending}
                               />
                             </div>
                             <p className="text-sm text-muted-foreground mb-3">{action.description}</p>

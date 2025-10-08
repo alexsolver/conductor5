@@ -569,6 +569,12 @@ app.use((req, res, next) => {
   app.use('/api/message-ai', messageAIRouter);
   console.log('✅ [SERVER] Message AI routes registered at /api/message-ai');
 
+  // AI Agent Config routes (Visual configuration)
+  console.log('🤖 [SERVER] Registering AI agent config routes...');
+  const aiAgentConfigRouter = (await import('./modules/ai-agent/routes')).default;
+  app.use('/api/ai-agent', aiAgentConfigRouter);
+  console.log('✅ [SERVER] AI agent config routes registered at /api/ai-agent');
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
