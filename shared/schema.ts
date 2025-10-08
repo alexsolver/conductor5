@@ -69,6 +69,9 @@ export * from "./schema-ai-agent";
 // SaaS Admin Module Schema - Clean Architecture
 export * from "./schema-saas-admin";
 
+// Internal Forms Module Schema - Clean Architecture v2.0
+export * from "./schema-internal-forms";
+
 // Selective export from contracts to avoid conflicts - Export only enums
 export {
   contractTypeEnum,
