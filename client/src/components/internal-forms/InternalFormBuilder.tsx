@@ -318,7 +318,7 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
       fields: fields,
       conditionalLogic: {},
       isActive,
-      actions: selectedActionTypes,
+      actions: [],
     };
 
     saveFormMutation.mutate(formData);
