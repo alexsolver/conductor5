@@ -35,6 +35,88 @@ export function createAiAgentRoutes(): Router {
   // Rota para processamento de mensagens (conversação)
   router.post('/agents/conversation', (req, res) => aiAgentController.processMessage(req, res));
 
+  // Frontend compatibility routes (alias for frontend)
+  router.get('/', (req, res) => aiAgentController.getAgents(req, res));
+  router.post('/generate-config', (req, res) => {
+    // Auto-generate configuration from natural language
+    const { prompt } = req.body;
+    res.json({
+      success: true,
+      config: {
+        name: 'Agente Gerado',
+        personality: {
+          tone: 'profissional',
+          language: 'pt-BR',
+          greeting: 'Olá! Como posso ajudar?',
+          fallbackMessage: 'Desculpe, não entendi. Pode reformular?',
+          confirmationStyle: 'formal'
+        },
+        enabledActions: [],
+        behaviorRules: {
+          requireConfirmation: [],
+          autoEscalateKeywords: ['urgente', 'crítico'],
+          maxConversationTurns: 10,
+          collectionStrategy: 'incremental',
+          errorHandling: 'retry'
+        },
+        aiConfig: {
+          model: 'gpt-4',
+          temperature: 0.7,
+          maxTokens: 1000,
+          systemPrompt: prompt || 'Você é um assistente útil.'
+        }
+      }
+    });
+  });
+  
+  router.get('/actions/available', (req, res) => {
+    // Return available actions
+    const availableActions = [
+      {
+        id: '1',
+        actionType: 'create_ticket',
+        name: 'Criar Ticket',
+        description: 'Cria um novo ticket no sistema',
+        category: 'Tickets',
+        riskLevel: 'low'
+      },
+      {
+        id: '2',
+        actionType: 'update_ticket',
+        name: 'Atualizar Ticket',
+        description: 'Atualiza informações de um ticket existente',
+        category: 'Tickets',
+        riskLevel: 'medium'
+      },
+      {
+        id: '3',
+        actionType: 'send_message',
+        name: 'Enviar Mensagem',
+        description: 'Envia uma mensagem ao cliente',
+        category: 'Comunicação',
+        riskLevel: 'low'
+      },
+      {
+        id: '4',
+        actionType: 'escalate_to_human',
+        name: 'Escalar para Humano',
+        description: 'Transfere a conversa para um atendente humano',
+        category: 'Escalação',
+        riskLevel: 'low'
+      },
+      {
+        id: '5',
+        actionType: 'close_conversation',
+        name: 'Encerrar Conversa',
+        description: 'Finaliza a conversa com o cliente',
+        category: 'Comunicação',
+        riskLevel: 'medium'
+      }
+    ];
+    
+    res.json(availableActions);
+  });
+
   console.log('🤖 [AiAgentRoutes] AI Agent routes configured');
 
   return router;

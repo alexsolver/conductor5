@@ -106,13 +106,13 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   // Fetch available AI agents
   const { data: agents = [], isLoading: loadingAgents } = useQuery<AIAgent[]>({
-    queryKey: ['/api/ai-agents'],
+    queryKey: ['/api/omnibridge/ai-agents'],
   });
 
   // Auto-generate configuration mutation
   const generateConfigMutation = useMutation({
     mutationFn: async (prompt: string) => {
-      const response = await apiRequest('POST', '/api/ai-agents/generate-config', { prompt });
+      const response = await apiRequest('POST', '/api/omnibridge/ai-agents/generate-config', { prompt });
       if (!response.ok) {
         throw new Error('Failed to generate configuration');
       }
@@ -145,7 +145,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   // Fetch available actions
   const { data: availableActions = [], isLoading: loadingActions, error: actionsError } = useQuery<AIAction[]>({
-    queryKey: ['/api/ai-agents/actions/available'],
+    queryKey: ['/api/omnibridge/ai-agents/actions/available'],
   });
 
   // Debug logs
@@ -166,7 +166,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   // Fetch selected agent details if agentId is provided
   const { data: selectedAgent, isLoading: loadingAgent } = useQuery<AIAgent>({
-    queryKey: ['/api/ai-agents', localConfig.agentId],
+    queryKey: ['/api/omnibridge/ai-agents', localConfig.agentId],
     enabled: !!localConfig.agentId && localConfig.agentId !== 'new',
   });
 
