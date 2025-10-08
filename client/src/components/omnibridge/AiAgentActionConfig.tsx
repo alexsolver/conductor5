@@ -114,12 +114,12 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
   });
 
   // Fetch selected agent details
-  const { data: selectedAgentResponse, isLoading: loadingAgent } = useQuery<{ success: boolean; data: AIAgent }>({
+  const { data: selectedAgentResponse, isLoading: loadingAgent } = useQuery<AIAgent>({
     queryKey: ['/api/omnibridge/ai-agents', selectedAgentId],
     enabled: !!selectedAgentId && selectedAgentId !== 'new',
   });
 
-  const selectedAgent = selectedAgentResponse?.data;
+  const selectedAgent = selectedAgentResponse;
 
   // Debug response
   useEffect(() => {
