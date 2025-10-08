@@ -59,6 +59,13 @@ interface ActionWizardData {
   linkedFormId?: string;
   selectedFields: MappedField[];
   
+  // API/Webhook configs
+  apiUrl?: string;
+  apiMethod?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  apiHeaders?: Record<string, string>;
+  apiAuthType?: 'none' | 'bearer' | 'api_key' | 'basic';
+  apiAuthValue?: string;
+  
   // Step 4: Interaction
   defaultCollectionStrategy: 'conversational' | 'interactive' | 'hybrid' | 'adaptive';
   
@@ -506,6 +513,124 @@ export default function AIActionBuilderNew() {
           selectedFields={wizardData.selectedFields}
           onFieldsChange={(fields) => updateWizardData({ selectedFields: fields })}
         />
+      )}
+
+      {/* API/Webhook Configuration */}
+      {wizardData.mappingType === 'external_api' && (
+        <Card data-testid="card-api-config">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Configuração de API/Webhook
+            </CardTitle>
+            <CardDescription>
+              Configure a API externa que será executada por esta ação
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* URL */}
+            <div className="space-y-2">
+              <Label htmlFor="api-url">URL do Endpoint *</Label>
+              <Input
+                id="api-url"
+                placeholder="https://api.exemplo.com/v1/action"
+                value={wizardData.apiUrl || ''}
+                onChange={(e) => updateWizardData({ apiUrl: e.target.value })}
+                data-testid="input-api-url"
+              />
+            </div>
+
+            {/* Method */}
+            <div className="space-y-2">
+              <Label htmlFor="api-method">Método HTTP *</Label>
+              <Select
+                value={wizardData.apiMethod || 'POST'}
+                onValueChange={(value) => updateWizardData({ apiMethod: value as any })}
+              >
+                <SelectTrigger id="api-method" data-testid="select-api-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                  <SelectItem value="PUT">PUT</SelectItem>
+                  <SelectItem value="PATCH">PATCH</SelectItem>
+                  <SelectItem value="DELETE">DELETE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Auth Type */}
+            <div className="space-y-2">
+              <Label htmlFor="api-auth">Tipo de Autenticação</Label>
+              <Select
+                value={wizardData.apiAuthType || 'none'}
+                onValueChange={(value) => updateWizardData({ apiAuthType: value as any })}
+              >
+                <SelectTrigger id="api-auth" data-testid="select-api-auth">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  <SelectItem value="bearer">Bearer Token</SelectItem>
+                  <SelectItem value="api_key">API Key</SelectItem>
+                  <SelectItem value="basic">Basic Auth</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Auth Value */}
+            {wizardData.apiAuthType && wizardData.apiAuthType !== 'none' && (
+              <div className="space-y-2">
+                <Label htmlFor="api-auth-value">Credenciais *</Label>
+                <Input
+                  id="api-auth-value"
+                  type="password"
+                  placeholder={
+                    wizardData.apiAuthType === 'bearer' ? 'Token de autenticação' :
+                    wizardData.apiAuthType === 'api_key' ? 'Sua API Key' :
+                    'username:password'
+                  }
+                  value={wizardData.apiAuthValue || ''}
+                  onChange={(e) => updateWizardData({ apiAuthValue: e.target.value })}
+                  data-testid="input-api-auth-value"
+                />
+              </div>
+            )}
+
+            {/* Headers (Advanced) */}
+            <div className="pt-4 border-t">
+              <Label className="text-sm text-muted-foreground">Headers Customizados (Opcional)</Label>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">
+                Adicione headers HTTP personalizados em formato JSON
+              </p>
+              <textarea
+                className="w-full min-h-[100px] p-3 rounded-md border bg-background font-mono text-sm"
+                placeholder='{\n  "Content-Type": "application/json",\n  "X-Custom-Header": "value"\n}'
+                value={wizardData.apiHeaders ? JSON.stringify(wizardData.apiHeaders, null, 2) : ''}
+                onChange={(e) => {
+                  try {
+                    const headers = e.target.value ? JSON.parse(e.target.value) : undefined;
+                    updateWizardData({ apiHeaders: headers });
+                  } catch {
+                    // Invalid JSON, ignore
+                  }
+                }}
+                data-testid="textarea-api-headers"
+              />
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800 dark:text-blue-200">
+                  <p className="font-medium mb-1">Dica: Mapeamento de Campos</p>
+                  <p>O sistema enviará os dados coletados no corpo da requisição. Configure os campos na próxima etapa para definir quais informações serão enviadas.</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
