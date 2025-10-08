@@ -341,6 +341,42 @@ router.post('/:actionId/fields', jwtAuth, async (req: AuthenticatedRequest, res:
 });
 
 /**
+ * POST /api/ai-configurable-actions/fields/bulk
+ * Cria múltiplos campos em uma ação (bulk insert)
+ */
+router.post('/fields/bulk', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { fields } = req.body;
+    
+    if (!Array.isArray(fields) || fields.length === 0) {
+      return res.status(400).json({ error: 'Array de fields é obrigatório' });
+    }
+
+    // Criar todos os campos
+    const createdFields = await db
+      .insert(aiActionFields)
+      .values(fields)
+      .returning();
+
+    return res.status(201).json({ fields: createdFields });
+  } catch (error: any) {
+    console.error('[AI-CONFIG-ACTIONS] Error creating fields in bulk:', error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: 'Dados inválidos', 
+        details: error.errors 
+      });
+    }
+    
+    return res.status(500).json({ 
+      error: 'Erro ao criar campos', 
+      details: error.message 
+    });
+  }
+});
+
+/**
  * PUT /api/ai-configurable-actions/:actionId/fields/:fieldId
  * Atualiza um campo existente
  */

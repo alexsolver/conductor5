@@ -229,15 +229,100 @@ export default function AIActionBuilderNew() {
 
   const handleSave = async () => {
     try {
-      // Salvar ação (implementar API call)
+      // Validate required fields
+      if (!wizardData.name || !wizardData.targetModule || !wizardData.targetEndpoint) {
+        toast({
+          title: 'Campos obrigatórios',
+          description: 'Preencha todos os campos obrigatórios',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Build endpoint config based on mapping type
+      const endpointConfig: any = {
+        method: wizardData.mappingType === 'external_api' 
+          ? (wizardData.apiMethod || 'POST')
+          : 'POST',
+        url: wizardData.mappingType === 'external_api'
+          ? wizardData.apiUrl
+          : wizardData.targetEndpoint
+      };
+
+      if (wizardData.mappingType === 'external_api') {
+        if (wizardData.apiHeaders) {
+          endpointConfig.headers = wizardData.apiHeaders;
+        }
+        if (wizardData.apiAuthType && wizardData.apiAuthType !== 'none') {
+          endpointConfig.authentication = {
+            type: wizardData.apiAuthType,
+            credentials: wizardData.apiAuthValue
+          };
+        }
+      }
+
+      // Build response templates
+      const responseTemplates = {
+        success: wizardData.successTemplate,
+        error: wizardData.errorTemplate,
+        confirmation: wizardData.confirmationTemplate
+      };
+
+      // Prepare action data
+      const actionData = {
+        actionKey: wizardData.actionKey || wizardData.name.toLowerCase().replace(/\s+/g, '_'),
+        name: wizardData.name,
+        description: wizardData.description,
+        category: wizardData.category,
+        targetModule: wizardData.targetModule,
+        targetEndpoint: wizardData.targetEndpoint,
+        endpointConfig,
+        collectionStrategy: wizardData.defaultCollectionStrategy,
+        linkedFormId: wizardData.linkedFormId || null,
+        requiresConfirmation: wizardData.requiresConfirmation,
+        confirmationTemplate: wizardData.confirmationTemplate,
+        responseTemplates,
+        isActive: true
+      };
+
+      // Save action
+      const actionResponse = await apiRequest('/api/ai-configurable-actions', {
+        method: 'POST',
+        body: JSON.stringify(actionData)
+      });
+
+      // Save fields
+      const fieldsData = wizardData.selectedFields.map((field, index) => ({
+        actionId: actionResponse.id,
+        fieldKey: field.key,
+        fieldLabel: field.label,
+        fieldType: field.type,
+        isRequired: field.required,
+        collectionStrategy: field.collectionStrategy,
+        widgetConfig: field.widgetConfig,
+        displayOrder: index
+      }));
+
+      if (fieldsData.length > 0) {
+        await apiRequest('/api/ai-configurable-actions/fields/bulk', {
+          method: 'POST',
+          body: JSON.stringify({ fields: fieldsData })
+        });
+      }
+
       toast({
         title: '🎉 Ação criada com sucesso!',
         description: `${wizardData.name} está pronta para uso.`
       });
+
+      // Invalidate cache
+      queryClient.invalidateQueries({ queryKey: ['/api/ai-configurable-actions'] });
+
+      // TODO: Navigate back or reset wizard
     } catch (error: any) {
       toast({
         title: 'Erro ao salvar',
-        description: error.message,
+        description: error.message || 'Ocorreu um erro inesperado',
         variant: 'destructive'
       });
     }
