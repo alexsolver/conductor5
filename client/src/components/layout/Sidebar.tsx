@@ -123,6 +123,14 @@ const baseNavigation: Array<{
       { name: "systemAnalytics", href: "/system-analytics", icon: BarChart3 },
     ]
   },
+  {
+    name: "omniBridge",
+    icon: MessageSquare,
+    children: [
+      { name: "aiChat", href: "/ai-agent/chat", icon: MessageCircle },
+      { name: "actionBuilder", href: "/ai-agent/action-builder", icon: Bot },
+    ]
+  },
 
 ];
 
@@ -169,14 +177,6 @@ const adminNavigation = [
       { name: "clientes", href: "/customers", icon: Users },
       { name: "beneficiaries", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "internalForms", href: "/internal-forms", icon: FileText },
-      {
-        name: "omniBridge",
-        icon: MessageSquare,
-        children: [
-          { name: "aiChat", href: "/ai-agent/chat", icon: MessageCircle },
-          { name: "actionBuilder", href: "/ai-agent/action-builder", icon: Bot },
-        ]
-      },
       { name: "companies", href: "/companies", icon: Building2 },
       { name: "branding", href: "/tenant-admin/branding", icon: Palette },
       { name: "reportsAndDashboards", href: "/reports", icon: BarChart3 },
