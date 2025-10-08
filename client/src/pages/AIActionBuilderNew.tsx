@@ -26,7 +26,8 @@ import {
   CheckCircle2,
   Rocket,
   Play,
-  Save
+  Save,
+  Lightbulb
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
