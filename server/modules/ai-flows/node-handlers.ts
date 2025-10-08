@@ -4,8 +4,10 @@
 // Individual handlers for each node type
 // Each handler receives node config and execution context
 
-import { db, eq } from '@/shared/schema';
-import { customers, tickets } from '@/shared/schema';
+import { db } from '../../db';
+import { eq } from 'drizzle-orm';
+import { customers } from '../../../shared/schema-master';
+import { tickets } from '../../../shared/schema-master';
 
 interface ExecutionContext {
   variables: Record<string, any>;

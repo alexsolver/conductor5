@@ -4,9 +4,9 @@
 // Executes visual flows by processing node graphs
 // Handles conditional logic, loops, error handling, and variable management
 
-import { AiActionFlow, AiFlowExecution } from '@/shared/schema';
-import { db } from '@/shared/schema';
-import { aiFlowExecutions } from '@/shared/schema';
+import { AiActionFlow, AiFlowExecution } from '../../../shared/schema-ai-flows';
+import { db } from '../../db';
+import { aiFlowExecutions } from '../../../shared/schema-ai-flows';
 
 // ========================================
 // TYPES

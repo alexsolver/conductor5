@@ -4,7 +4,7 @@
 // Central registry for all available node types
 // Each node type defines its configuration schema and execution logic
 
-import { AiNodeDefinition, InsertAiNodeDefinition } from '@/shared/schema';
+import { AiNodeDefinition, InsertAiNodeDefinition } from '../../../shared/schema-ai-flows';
 
 // ========================================
 // NODE DEFINITIONS

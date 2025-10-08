@@ -4,14 +4,15 @@
 // RESTful API for managing visual AI flows
 
 import { Router } from 'express';
-import { db, eq, and, desc, sql } from '@/shared/schema';
+import { db } from '../../db';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import {
   aiActionFlows,
   aiNodeDefinitions,
   aiFlowExecutions,
   insertAiActionFlowSchema,
   insertAiNodeDefinitionSchema
-} from '@/shared/schema';
+} from '../../../shared/schema-ai-flows';
 import { NODE_DEFINITIONS, getAllCategories, getNodeByType } from './node-registry';
 import { executeFlow } from './flow-executor';
 
