@@ -587,6 +587,161 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
   }
 });
 
+// ✨ NEW: Create ticket with auto-customer registration
+ticketsRouter.post('/with-auto-register', jwtAuth, trackTicketCreate, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "User not associated with a tenant" 
+      });
+    }
+
+    const { customerName, customerEmail, customerPhone, ...ticketFields } = req.body;
+
+    console.log('🎫✨ [AUTO-REGISTER] Creating ticket with auto-customer registration');
+    console.log('📧 Customer data:', { customerName, customerEmail, customerPhone });
+
+    if (!customerEmail) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Customer email is required" 
+      });
+    }
+
+    const { pool } = await import('../../db');
+    const tenantId = req.user.tenantId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Step 1: Check if customer exists
+    const checkCustomerQuery = `
+      SELECT id, first_name, last_name, email, phone
+      FROM "${schemaName}".customers
+      WHERE LOWER(email) = LOWER($1) AND tenant_id = $2 AND is_active = true
+      LIMIT 1
+    `;
+
+    const customerResult = await pool.query(checkCustomerQuery, [customerEmail, tenantId]);
+    
+    let customerId: string;
+    let customerCreated = false;
+
+    if (customerResult.rows.length > 0) {
+      // Customer exists
+      customerId = customerResult.rows[0].id;
+      console.log('✅ [AUTO-REGISTER] Customer found:', customerId);
+    } else {
+      // Create new customer
+      console.log('🆕 [AUTO-REGISTER] Customer not found, creating new...');
+      
+      const nameParts = customerName ? customerName.split(' ') : ['', ''];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const createCustomerQuery = `
+        INSERT INTO "${schemaName}".customers (
+          tenant_id, first_name, last_name, email, phone, 
+          type, status, created_at, updated_at, is_active
+        ) VALUES (
+          $1, $2, $3, $4, $5, 
+          'individual', 'active', NOW(), NOW(), true
+        )
+        RETURNING id, first_name, last_name, email
+      `;
+
+      const newCustomerResult = await pool.query(createCustomerQuery, [
+        tenantId,
+        firstName,
+        lastName,
+        customerEmail,
+        customerPhone || null
+      ]);
+
+      customerId = newCustomerResult.rows[0].id;
+      customerCreated = true;
+      console.log('✅ [AUTO-REGISTER] Customer created:', newCustomerResult.rows[0]);
+    }
+
+    // Step 2: Create ticket with customerId
+    const ticketData = {
+      ...ticketFields,
+      tenantId,
+      caller_id: customerId,
+      status: ticketFields.status || 'new'
+    };
+
+    console.log('🎫 [AUTO-REGISTER] Creating ticket with data:', ticketData);
+
+    const ticket = await storageSimple.createTicket(tenantId, ticketData);
+
+    // Step 3: Create comprehensive audit trail
+    try {
+      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+      const ipAddress = getClientIP(req);
+      const userAgent = getUserAgent(req);
+      const sessionId = getSessionId(req);
+
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+      const userResult = await pool.query(userQuery, [req.user.id]);
+      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+      `, [
+        tenantId,
+        ticket.id,
+        customerCreated ? 'ticket_created_with_auto_register' : 'ticket_created',
+        customerCreated 
+          ? `Ticket criado com auto-cadastro de cliente: ${customerEmail}` 
+          : `Ticket criado: ${ticketData.subject}`,
+        req.user.id,
+        userName,
+        ipAddress,
+        userAgent,
+        sessionId,
+        JSON.stringify({
+          subject: ticketData.subject,
+          priority: ticketData.priority,
+          category: ticketData.category,
+          status: ticketData.status || 'open',
+          customer_auto_created: customerCreated,
+          customer_id: customerId,
+          customer_email: customerEmail,
+          customer_name: customerName
+        })
+      ]);
+    } catch (historyError) {
+      console.log('⚠️ [AUTO-REGISTER] Could not create history entry:', historyError.message);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: customerCreated 
+        ? "Ticket created successfully with new customer" 
+        : "Ticket created successfully",
+      data: {
+        ticket,
+        customer: {
+          id: customerId,
+          email: customerEmail,
+          name: customerName,
+          wasCreated: customerCreated
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [AUTO-REGISTER] Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create ticket with auto-registration",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
 // ✅ CORREÇÃO: Update ticket com validação completa e auditoria robusta
 ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
