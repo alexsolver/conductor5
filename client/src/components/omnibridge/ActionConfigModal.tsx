@@ -37,6 +37,12 @@ export function ActionConfigModal({
 }: ActionConfigModalProps) {
   const [config, setConfig] = useState<Record<string, any>>(initialConfig);
 
+  // Fetch AI agents at top level (hooks must be at top level)
+  const { data: agents = [] } = useQuery<any[]>({
+    queryKey: ['/api/ai-agents'],
+    enabled: isOpen && action?.type === 'ai_agent'
+  });
+
   useEffect(() => {
     setConfig(initialConfig);
   }, [initialConfig, action]);
@@ -372,86 +378,79 @@ export function ActionConfigModal({
     </div>
   );
 
-  const renderAIAgentConfig = () => {
-    const { data: agents = [] } = useQuery<any[]>({
-      queryKey: ['/api/ai-agents'],
-      enabled: isOpen && action?.type === 'ai_agent'
-    });
-
-    return (
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="agentId">Agente de IA *</Label>
-          <Select value={config.agentId || ''} onValueChange={(val) => updateConfig('agentId', val)}>
-            <SelectTrigger data-testid="select-agent">
-              <SelectValue placeholder="Selecione um agente de IA" />
-            </SelectTrigger>
-            <SelectContent>
-              {agents.length === 0 ? (
-                <SelectItem value="" disabled>Nenhum agente disponível</SelectItem>
-              ) : (
-                agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="initialMessage">Mensagem Inicial</Label>
-          <Textarea
-            id="initialMessage"
-            placeholder="Olá! Como posso ajudá-lo hoje?"
-            rows={3}
-            value={config.initialMessage || ''}
-            onChange={(e) => updateConfig('initialMessage', e.target.value)}
-            data-testid="textarea-initial-message"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="maxTurns">Máximo de Turnos de Conversa</Label>
-          <Input
-            id="maxTurns"
-            type="number"
-            placeholder="10"
-            value={config.maxTurns || ''}
-            onChange={(e) => updateConfig('maxTurns', e.target.value)}
-            data-testid="input-max-turns"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="escalationKeywords">Palavras-chave para Escalação</Label>
-          <Input
-            id="escalationKeywords"
-            placeholder="urgente, emergência, crítico"
-            value={config.escalationKeywords || ''}
-            onChange={(e) => updateConfig('escalationKeywords', e.target.value)}
-            data-testid="input-escalation-keywords"
-          />
-          <p className="text-xs text-gray-500 mt-1">Separe múltiplas palavras com vírgula</p>
-        </div>
-
-        <div>
-          <Label htmlFor="fallbackAction">Ação de Fallback</Label>
-          <Select value={config.fallbackAction || 'transfer_to_human'} onValueChange={(val) => updateConfig('fallbackAction', val)}>
-            <SelectTrigger data-testid="select-fallback-action">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="transfer_to_human">Transferir para Humano</SelectItem>
-              <SelectItem value="create_ticket">Criar Ticket</SelectItem>
-              <SelectItem value="send_email">Enviar Email</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+  const renderAIAgentConfig = () => (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="agentId">Agente de IA *</Label>
+        <Select value={config.agentId || ''} onValueChange={(val) => updateConfig('agentId', val)}>
+          <SelectTrigger data-testid="select-agent">
+            <SelectValue placeholder="Selecione um agente de IA" />
+          </SelectTrigger>
+          <SelectContent>
+            {agents.length === 0 ? (
+              <SelectItem value="" disabled>Nenhum agente disponível</SelectItem>
+            ) : (
+              agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
       </div>
-    );
-  };
+
+      <div>
+        <Label htmlFor="initialMessage">Mensagem Inicial</Label>
+        <Textarea
+          id="initialMessage"
+          placeholder="Olá! Como posso ajudá-lo hoje?"
+          rows={3}
+          value={config.initialMessage || ''}
+          onChange={(e) => updateConfig('initialMessage', e.target.value)}
+          data-testid="textarea-initial-message"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="maxTurns">Máximo de Turnos de Conversa</Label>
+        <Input
+          id="maxTurns"
+          type="number"
+          placeholder="10"
+          value={config.maxTurns || ''}
+          onChange={(e) => updateConfig('maxTurns', e.target.value)}
+          data-testid="input-max-turns"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="escalationKeywords">Palavras-chave para Escalação</Label>
+        <Input
+          id="escalationKeywords"
+          placeholder="urgente, emergência, crítico"
+          value={config.escalationKeywords || ''}
+          onChange={(e) => updateConfig('escalationKeywords', e.target.value)}
+          data-testid="input-escalation-keywords"
+        />
+        <p className="text-xs text-gray-500 mt-1">Separe múltiplas palavras com vírgula</p>
+      </div>
+
+      <div>
+        <Label htmlFor="fallbackAction">Ação de Fallback</Label>
+        <Select value={config.fallbackAction || 'transfer_to_human'} onValueChange={(val) => updateConfig('fallbackAction', val)}>
+          <SelectTrigger data-testid="select-fallback-action">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="transfer_to_human">Transferir para Humano</SelectItem>
+            <SelectItem value="create_ticket">Criar Ticket</SelectItem>
+            <SelectItem value="send_email">Enviar Email</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
 
   const renderConfigForm = () => {
     if (!action) return null;
