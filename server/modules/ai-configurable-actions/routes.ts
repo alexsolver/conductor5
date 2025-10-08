@@ -818,4 +818,46 @@ router.post('/:actionId/validate', jwtAuth, async (req: AuthenticatedRequest, re
   }
 });
 
+/**
+ * POST /api/ai-configurable-actions/:actionId/extract
+ * Extrai entidades da conversa usando OpenAI Function Calling
+ */
+router.post('/:actionId/extract', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { actionId } = req.params;
+    const { userMessage, conversationHistory, previouslyExtractedData } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID não encontrado' });
+    }
+
+    if (!userMessage) {
+      return res.status(400).json({ error: 'Mensagem do usuário não fornecida' });
+    }
+
+    // Import entity extractor
+    const { entityExtractor } = await import('./entity-extractor');
+
+    // Extract entities
+    const result = await entityExtractor.extractForAction(
+      actionId,
+      {
+        userMessage,
+        conversationHistory,
+        previouslyExtractedData
+      },
+      tenantId
+    );
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error('[AI-CONFIG-ACTIONS] Error extracting entities:', error);
+    return res.status(500).json({ 
+      error: 'Erro ao extrair entidades', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;

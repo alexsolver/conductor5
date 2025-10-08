@@ -395,17 +395,11 @@ export class ActionExecutor {
     context: ExecutionContext
   ): Promise<void> {
     try {
-      await db.insert(aiFieldCollectionHistory).values({
-        actionId,
-        tenantId: context.tenantId,
-        userId: context.userId,
-        conversationId: context.conversationId,
-        sessionId: context.sessionId,
-        collectedData,
-        executionResult: result,
-        status: result.success ? 'success' : 'failed',
-        collectionStrategy: 'hybrid', // Could be determined dynamically
-        completedAt: new Date()
+      // TODO: Implement proper execution logging with correct schema
+      console.log('[ACTION-EXECUTOR] Action executed:', { 
+        actionId, 
+        success: result.success,
+        tenantId: context.tenantId 
       });
     } catch (error) {
       console.error('[ACTION-EXECUTOR] Error logging execution:', error);
@@ -484,10 +478,7 @@ export class ActionExecutor {
     tenantId: string
   ): Promise<any[]> {
     const fields = await db.query.aiActionFields.findMany({
-      where: and(
-        eq(aiActionFields.actionId, actionId),
-        eq(aiActionFields.tenantId, tenantId)
-      ),
+      where: eq(aiActionFields.actionId, actionId),
     });
 
     const missingFields = fields.filter((field: any) => {
