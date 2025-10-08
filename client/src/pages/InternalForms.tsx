@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Settings, BarChart3, Users, Search } from "lucide-react";
+import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
@@ -19,6 +19,8 @@ export default function InternalForms() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingForm, setEditingForm] = useState<any>(null);
+  const [viewingForm, setViewingForm] = useState<any>(null);
 
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['internal-forms'],
@@ -35,6 +37,51 @@ export default function InternalForms() {
       return response.json();
     }
   });
+
+  const deleteFormMutation = useMutation({
+    mutationFn: async (formId: string) => {
+      const response = await apiRequest('DELETE', `/api/internal-forms/forms/${formId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao excluir formulário');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Formulário excluído com sucesso!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['internal-forms'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir formulário",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleEditForm = (form: any) => {
+    setEditingForm(form);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleViewForm = (form: any) => {
+    setViewingForm(form);
+  };
+
+  const handleDeleteForm = async (formId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este formulário?')) {
+      deleteFormMutation.mutate(formId);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false);
+    setEditingForm(null);
+  };
 
   const filteredForms = (Array.isArray(forms) ? forms : []).filter((form: any) => {
     const matchesSearch = form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,9 +121,12 @@ export default function InternalForms() {
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Criar Novo Formulário</DialogTitle>
+              <DialogTitle>{editingForm ? 'Editar Formulário' : 'Criar Novo Formulário'}</DialogTitle>
             </DialogHeader>
-            <InternalFormBuilder onClose={() => setIsCreateDialogOpen(false)} />
+            <InternalFormBuilder 
+              formId={editingForm?.id} 
+              onClose={handleCloseDialog} 
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -185,14 +235,32 @@ export default function InternalForms() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleEditForm(form)}
+                  data-testid={`button-edit-form-${form.id}`}
+                >
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleViewForm(form)}
+                  data-testid={`button-view-form-${form.id}`}
+                >
                   Visualizar
                 </Button>
-                <Button variant="outline" size="sm">
-                  <BarChart3 className="h-4 w-4" />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDeleteForm(form.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  data-testid={`button-delete-form-${form.id}`}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -222,6 +290,54 @@ export default function InternalForms() {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog de Visualização */}
+      <Dialog open={!!viewingForm} onOpenChange={() => setViewingForm(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Visualizar Formulário</DialogTitle>
+          </DialogHeader>
+          {viewingForm && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{viewingForm.name}</h3>
+                {viewingForm.description && (
+                  <p className="text-gray-600 dark:text-gray-400">{viewingForm.description}</p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Badge>{viewingForm.category}</Badge>
+                <Badge variant={viewingForm.isActive ? "default" : "secondary"}>
+                  {viewingForm.isActive ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-3">Campos do Formulário ({viewingForm.fields?.length || 0})</h4>
+                <div className="space-y-2">
+                  {Array.isArray(viewingForm.fields) && viewingForm.fields.map((field: any, index: number) => (
+                    <div key={field.id || index} className="border rounded p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{field.label}</p>
+                          <p className="text-sm text-gray-500">
+                            {field.name} • {field.type}
+                            {field.required && " • Obrigatório"}
+                          </p>
+                        </div>
+                      </div>
+                      {field.helpText && (
+                        <p className="text-sm text-gray-500 mt-2">{field.helpText}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
