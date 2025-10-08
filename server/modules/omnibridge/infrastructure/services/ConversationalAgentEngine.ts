@@ -4,6 +4,8 @@ import { IActionExecutorPort } from '../../domain/ports/IActionExecutorPort';
 import { IAIAnalysisPort } from '../../domain/ports/IAIAnalysisPort';
 import { AiAgent } from '../../domain/entities/AiAgent';
 import { AiConversation, ConversationMessage } from '../../domain/entities/AiConversation';
+import { executeFlow } from '../../../ai-flows/flow-executor';
+import { db } from '../../../../db';
 
 export interface ConversationResponse {
   message: string;
@@ -96,6 +98,84 @@ export class ConversationalAgentEngine {
     return agents.sort((a, b) => b.priority - a.priority)[0];
   }
 
+  /**
+   * Verifica se o agente tem fluxos atribuídos e tenta executá-los
+   */
+  private async tryExecuteFlow(
+    agent: AiAgent, 
+    conversation: AiConversation,
+    context: MessageContext
+  ): Promise<ConversationResponse | null> {
+    // Verificar se agente tem fluxos atribuídos
+    const agentData = await db.query.aiAgents.findFirst({
+      where: (agents, { eq }) => eq(agents.id, agent.id)
+    });
+
+    if (!agentData?.flowIds || agentData.flowIds.length === 0) {
+      console.log(`🔄 [ConversationalAgent] Agent ${agent.id} has no flows assigned`);
+      return null;
+    }
+
+    console.log(`🌊 [ConversationalAgent] Agent has ${agentData.flowIds.length} flows assigned, attempting execution...`);
+
+    // Buscar todos os fluxos atribuídos
+    const flows = await db.query.aiActionFlows.findMany({
+      where: (flows, { inArray, eq, and }) => 
+        and(
+          inArray(flows.id, agentData.flowIds),
+          eq(flows.isActive, true)
+        )
+    });
+
+    if (flows.length === 0) {
+      console.log(`⚠️ [ConversationalAgent] No active flows found`);
+      return null;
+    }
+
+    // Por enquanto, executar o primeiro fluxo ativo
+    // TODO: Implementar lógica de seleção de fluxo baseada em intenção
+    const flow = flows[0];
+    console.log(`▶️ [ConversationalAgent] Executing flow: ${flow.name}`);
+
+    try {
+      const executionResult = await executeFlow({
+        flowId: flow.id!,
+        tenantId: context.tenantId,
+        userId: context.userId,
+        initialVariables: {
+          userMessage: context.content,
+          userId: context.userId,
+          channelType: context.channelType,
+          conversationId: conversation.id
+        }
+      });
+
+      if (executionResult.success) {
+        console.log(`✅ [ConversationalAgent] Flow executed successfully`);
+        
+        // Retornar resultado do fluxo como resposta
+        const responseMessage = executionResult.result?.message || 
+          executionResult.result?.response || 
+          'Fluxo executado com sucesso!';
+
+        conversation.addMessage('assistant', responseMessage);
+        conversation.updateStep('conversation_complete');
+
+        return {
+          message: responseMessage,
+          actionExecuted: true,
+          conversationComplete: true
+        };
+      } else {
+        console.log(`❌ [ConversationalAgent] Flow execution failed: ${executionResult.error}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`❌ [ConversationalAgent] Error executing flow:`, error);
+      return null;
+    }
+  }
+
   private async startNewConversation(context: MessageContext, agent: AiAgent): Promise<AiConversation> {
     const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -147,6 +227,13 @@ export class ConversationalAgentEngine {
     agent: AiAgent, 
     context: MessageContext
   ): Promise<ConversationResponse> {
+
+    // 🌊 FLUXOS: Tentar executar fluxo atribuído ao agente
+    const flowResponse = await this.tryExecuteFlow(agent, conversation, context);
+    if (flowResponse) {
+      console.log(`✅ [ConversationalAgent] Flow executed, returning response`);
+      return flowResponse;
+    }
 
     // Analisar intenção da mensagem
     const analysis = await this.aiService.analyzeMessage({
