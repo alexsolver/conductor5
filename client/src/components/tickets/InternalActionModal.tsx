@@ -372,9 +372,20 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     }));
   };
 
+  // Função auxiliar para obter horário local no formato correto para datetime-local
+  const getLocalDateTimeString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   // Timer control functions
   const handleStartTimer = () => {
-    const now = new Date().toISOString().slice(0, 16);
+    const now = getLocalDateTimeString();
     const updatedFormData = {
       ...formData,
       start_time: now
@@ -390,7 +401,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   // Função para criar a ação e iniciar o timer em uma única operação
   const handleCreateAndStart = () => {
-    const now = new Date().toISOString().slice(0, 16);
+    const now = getLocalDateTimeString();
     const formDataWithTimer = {
       ...formData,
       start_time: now,
@@ -414,7 +425,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   };
 
   const handleFinishTimer = () => {
-    const now = new Date().toISOString().slice(0, 16);
+    const now = getLocalDateTimeString();
 
     // Calcular minutos decorridos
     if (formData.start_time) {
