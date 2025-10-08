@@ -23,7 +23,6 @@ import {
   Plus,
   Settings,
   Users,
-  ChevronRight,
   Play,
   BarChart3
 } from 'lucide-react';
@@ -50,8 +49,7 @@ export default function AIAgentConfig() {
     escalationKeywords: ['urgente', 'emergência', 'crítico'],
     escalationQueue: 'support',
     autoLearn: true,
-    uncertainBehavior: 'ask_again',
-    flowIds: [] as string[]
+    uncertainBehavior: 'ask_again'
   });
 
   // Atualizar estado quando dados chegarem
@@ -65,13 +63,6 @@ export default function AIAgentConfig() {
   const { data: actionsData, isLoading: actionsLoading } = useQuery({
     queryKey: ['/api/ai-agent/available-actions'],
   });
-
-  // Buscar fluxos disponíveis
-  const { data: flowsData, isLoading: flowsLoading } = useQuery({
-    queryKey: ['/api/ai-flows'],
-  });
-
-  const availableFlows = flowsData?.data || [];
 
   const availableActions = actionsData?.data || [
     {
@@ -209,7 +200,7 @@ export default function AIAgentConfig() {
 
       {/* Configuration Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="identity" className="gap-2">
             <Bot className="h-4 w-4" />
             Identidade
@@ -217,10 +208,6 @@ export default function AIAgentConfig() {
           <TabsTrigger value="actions" className="gap-2">
             <Zap className="h-4 w-4" />
             Ações
-          </TabsTrigger>
-          <TabsTrigger value="flows" className="gap-2">
-            <ChevronRight className="h-4 w-4" />
-            Fluxos
           </TabsTrigger>
           <TabsTrigger value="escalation" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -370,97 +357,7 @@ export default function AIAgentConfig() {
           </Card>
         </TabsContent>
 
-        {/* Tab 3: Fluxos */}
-        <TabsContent value="flows" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Fluxos Visuais</CardTitle>
-              <CardDescription>Selecione os fluxos que o agente pode executar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-4">
-                  {flowsLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Carregando fluxos...
-                    </div>
-                  ) : availableFlows.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p className="mb-4">Nenhum fluxo criado ainda</p>
-                      <Button variant="outline" onClick={() => window.location.href = '/ai-agent/flows'}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Primeiro Fluxo
-                      </Button>
-                    </div>
-                  ) : (
-                    availableFlows.map((flow: any) => (
-                      <Card 
-                        key={flow.id} 
-                        className={`border-2 transition-colors cursor-pointer ${
-                          agentConfig.flowIds.includes(flow.id) 
-                            ? 'border-primary bg-primary/5' 
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                        onClick={() => {
-                          const newFlowIds = agentConfig.flowIds.includes(flow.id)
-                            ? agentConfig.flowIds.filter((id: string) => id !== flow.id)
-                            : [...agentConfig.flowIds, flow.id];
-                          setAgentConfig({...agentConfig, flowIds: newFlowIds});
-                        }}
-                        data-testid={`flow-card-${flow.id}`}
-                      >
-                        <CardContent className="pt-6">
-                          <div className="flex items-start gap-4">
-                            <div className="text-4xl">{flow.icon || '⚡'}</div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold text-lg">{flow.name}</h3>
-                                <Switch
-                                  checked={agentConfig.flowIds.includes(flow.id)}
-                                  onCheckedChange={() => {
-                                    const newFlowIds = agentConfig.flowIds.includes(flow.id)
-                                      ? agentConfig.flowIds.filter((id: string) => id !== flow.id)
-                                      : [...agentConfig.flowIds, flow.id];
-                                    setAgentConfig({...agentConfig, flowIds: newFlowIds});
-                                  }}
-                                  data-testid={`flow-toggle-${flow.id}`}
-                                />
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-3">{flow.description || 'Sem descrição'}</p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <Badge variant={flow.is_active ? 'default' : 'secondary'} className="text-xs">
-                                  {flow.is_active ? 'Ativo' : 'Inativo'}
-                                </Badge>
-                                <span>{flow.nodes?.length || 0} nós</span>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
-
-              <Separator className="my-4" />
-
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  {agentConfig.flowIds.length === 0 
-                    ? 'Nenhum fluxo selecionado' 
-                    : `${agentConfig.flowIds.length} fluxo${agentConfig.flowIds.length > 1 ? 's' : ''} selecionado${agentConfig.flowIds.length > 1 ? 's' : ''}`
-                  }
-                </div>
-                <Button variant="outline" onClick={() => window.location.href = '/ai-agent/flows'}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Gerenciar Fluxos
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Tab 4: Escalação */}
+        {/* Tab 3: Escalação */}
         <TabsContent value="escalation" className="space-y-6">
           <Card>
             <CardHeader>
