@@ -133,6 +133,43 @@ export class InternalFormController {
     }
   }
 
+  async getFormsByActionType(req: AuthenticatedRequest, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'application/json');
+
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const { actionType } = req.params;
+      const tenantId = req.user.tenantId;
+
+      console.log(`[InternalFormController] Getting forms for action type: ${actionType} and tenant: ${tenantId}`);
+
+      const forms = await this.internalFormRepository.findByActionType(actionType, tenantId);
+
+      console.log(`✅ [InternalFormController] Found ${forms.length} forms for action type: ${actionType}`);
+
+      res.status(200).json({
+        success: true,
+        data: forms
+      });
+    } catch (error) {
+      console.error('❌ [InternalFormController] Error in getFormsByActionType:', error);
+      
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Erro interno do servidor',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  }
+
   async createForm(req: AuthenticatedRequest, res: Response): Promise<void> {
     res.setHeader('Content-Type', 'application/json');
 
@@ -382,6 +419,72 @@ export class InternalFormController {
         res.status(500).json({
           success: false,
           message: 'Erro interno do servidor ao buscar submissões',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  }
+
+  async createSubmission(req: AuthenticatedRequest, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'application/json');
+
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const tenantId = req.user.tenantId;
+      const userId = req.user.id;
+
+      console.log(`[InternalFormController] Creating submission for tenant: ${tenantId}`);
+      console.log(`[InternalFormController] Request body:`, JSON.stringify(req.body, null, 2));
+
+      // Validação básica
+      if (!req.body.formId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Form ID é obrigatório'
+        });
+      }
+
+      if (!req.body.data || typeof req.body.data !== 'object') {
+        return res.status(400).json({
+          success: false,
+          message: 'Dados do formulário são obrigatórios'
+        });
+      }
+
+      const submissionData: FormSubmission = {
+        id: uuidv4(),
+        tenantId,
+        formId: req.body.formId,
+        submittedBy: userId,
+        data: req.body.data,
+        submittedAt: new Date(),
+        status: req.body.status || 'submitted'
+      };
+
+      console.log(`[InternalFormController] Submission data to be created:`, JSON.stringify(submissionData, null, 2));
+
+      const submission = await this.internalFormRepository.createSubmission(submissionData);
+
+      console.log(`✅ [InternalFormController] Submission created successfully: ${submission.id}`);
+
+      res.status(201).json({
+        success: true,
+        data: submission,
+        message: 'Submissão criada com sucesso'
+      });
+    } catch (error) {
+      console.error('❌ [InternalFormController] Error in createSubmission:', error);
+      
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Erro interno do servidor ao criar submissão',
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }

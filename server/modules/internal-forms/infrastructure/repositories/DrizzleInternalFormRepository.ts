@@ -192,6 +192,43 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     }));
   }
 
+  async findByActionType(actionType: string, tenantId: string): Promise<InternalForm[]> {
+    console.log(`🔍 [InternalFormRepository] Finding forms by action type: ${actionType} for tenant: ${tenantId}`);
+    
+    const schemaName = this.getSchemaName(tenantId);
+    
+    // Query forms where the actions array contains the specific action type
+    const query = `
+      SELECT * FROM "${schemaName}".internal_forms
+      WHERE tenant_id = $1
+        AND is_active = true
+        AND actions @> $2::jsonb
+      ORDER BY created_at DESC
+    `;
+
+    // Convert actionType to JSONB array format for comparison
+    const actionTypeJson = JSON.stringify([actionType]);
+    
+    const result = await this.pool.query(query, [tenantId, actionTypeJson]);
+
+    console.log(`✅ [InternalFormRepository] Found ${result.rows.length} forms for action type: ${actionType}`);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      fields: JSON.parse(row.fields || '[]'),
+      actions: JSON.parse(row.actions || '[]'),
+      isActive: row.is_active,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      createdBy: row.created_by,
+      updatedBy: row.updated_by
+    }));
+  }
+
   async update(id: string, tenantId: string, updateData: Partial<InternalForm>): Promise<InternalForm | null> {
     console.log(`🔄 [InternalFormRepository] Updating form: ${id} for tenant: ${tenantId}`);
     

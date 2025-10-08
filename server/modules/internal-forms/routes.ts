@@ -35,6 +35,12 @@ router.use(enhancedTenantValidator());
 router.get('/forms', (req, res) => internalFormController.getForms(req, res));
 
 /**
+ * GET /api/internal-forms/forms/by-action-type/:actionType
+ * Get forms associated with a specific action type
+ */
+router.get('/forms/by-action-type/:actionType', (req, res) => internalFormController.getFormsByActionType(req, res));
+
+/**
  * GET /api/internal-forms/forms/:id
  * Get a specific form by ID
  */
@@ -73,5 +79,11 @@ router.get('/categories', (req, res) => internalFormController.getCategories(req
  * Get all submissions (optionally filtered by formId)
  */
 router.get('/submissions', (req, res) => internalFormController.getSubmissions(req, res));
+
+/**
+ * POST /api/internal-forms/submissions
+ * Create a new form submission
+ */
+router.post('/submissions', (req, res) => internalFormController.createSubmission(req, res));
 
 export default router;

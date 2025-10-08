@@ -37,6 +37,11 @@ export interface IInternalFormRepository {
    * Find all forms with optional filtering
    */
   findAll(filters: InternalFormFilters): Promise<InternalForm[]>;
+
+  /**
+   * Find forms by action type
+   */
+  findByActionType(actionType: string, tenantId: string): Promise<InternalForm[]>;
   
   /**
    * Update form by ID
