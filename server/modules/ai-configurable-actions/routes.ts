@@ -729,4 +729,93 @@ router.get('/:actionId/collection-history', jwtAuth, async (req: AuthenticatedRe
   }
 });
 
+// ========================================
+// EXECUÇÃO DE AÇÕES
+// ========================================
+
+/**
+ * POST /api/ai-configurable-actions/:actionId/execute
+ * Executa uma ação configurável com os dados coletados
+ */
+router.post('/:actionId/execute', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { actionId } = req.params;
+    const { collectedData, conversationId, sessionId } = req.body;
+    const tenantId = req.user?.tenantId;
+    const userId = req.user?.id;
+
+    if (!tenantId || !userId) {
+      return res.status(400).json({ error: 'Usuário não autenticado' });
+    }
+
+    if (!collectedData) {
+      return res.status(400).json({ error: 'Dados de coleta não fornecidos' });
+    }
+
+    // Import action executor
+    const { actionExecutor } = await import('./action-executor');
+
+    // Execute action
+    const result = await actionExecutor.executeAction(
+      actionId,
+      collectedData,
+      {
+        tenantId,
+        userId,
+        conversationId,
+        sessionId
+      }
+    );
+
+    return res.json(result);
+  } catch (error: any) {
+    console.error('[AI-CONFIG-ACTIONS] Error executing action:', error);
+    return res.status(500).json({ 
+      error: 'Erro ao executar ação', 
+      details: error.message 
+    });
+  }
+});
+
+/**
+ * POST /api/ai-configurable-actions/:actionId/validate
+ * Valida dados coletados e retorna campos faltantes
+ */
+router.post('/:actionId/validate', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { actionId } = req.params;
+    const { collectedData } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID não encontrado' });
+    }
+
+    if (!collectedData) {
+      return res.status(400).json({ error: 'Dados de coleta não fornecidos' });
+    }
+
+    // Import action executor
+    const { actionExecutor } = await import('./action-executor');
+
+    // Get missing fields
+    const missingFields = await actionExecutor.getMissingFields(
+      actionId,
+      collectedData,
+      tenantId
+    );
+
+    return res.json({ 
+      isValid: missingFields.length === 0,
+      missingFields 
+    });
+  } catch (error: any) {
+    console.error('[AI-CONFIG-ACTIONS] Error validating action:', error);
+    return res.status(500).json({ 
+      error: 'Erro ao validar ação', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;
