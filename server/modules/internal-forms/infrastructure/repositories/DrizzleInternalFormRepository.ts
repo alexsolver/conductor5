@@ -28,6 +28,27 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
+  // Helper function to safely parse JSON fields
+  // PostgreSQL returns JSONB as objects, not strings
+  private safeJSONParse(value: any, fallback: any = []): any {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+    // If it's already an object/array, return it as-is
+    if (typeof value === 'object') {
+      return value;
+    }
+    // If it's a string, try to parse it
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return fallback;
+      }
+    }
+    return fallback;
+  }
+
   // ===== CRUD OPERATIONS =====
   
   async create(form: InternalForm): Promise<InternalForm> {
@@ -84,8 +105,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
         name: row.name,
         description: row.description,
         category: row.category,
-        fields: JSON.parse(row.fields || '[]'),
-        actions: JSON.parse(row.actions || '[]'),
+        fields: this.safeJSONParse(row.fields, []),
+        actions: this.safeJSONParse(row.actions, []),
         isActive: row.is_active,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
@@ -122,8 +143,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       name: row.name,
       description: row.description,
       category: row.category,
-      fields: JSON.parse(row.fields || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
+      fields: this.safeJSONParse(row.fields, []),
+      actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -182,8 +203,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       name: row.name,
       description: row.description,
       category: row.category,
-      fields: JSON.parse(row.fields || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
+      fields: this.safeJSONParse(row.fields, []),
+      actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -219,8 +240,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       name: row.name,
       description: row.description,
       category: row.category,
-      fields: JSON.parse(row.fields || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
+      fields: this.safeJSONParse(row.fields, []),
+      actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -304,8 +325,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       name: row.name,
       description: row.description,
       category: row.category,
-      fields: JSON.parse(row.fields || '[]'),
-      actions: JSON.parse(row.actions || '[]'),
+      fields: this.safeJSONParse(row.fields, []),
+      actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -358,7 +379,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
 
     return {
       ...row,
-      data: JSON.parse(row.data || '{}'),
+      data: this.safeJSONParse(row.data, {}),
       submittedAt: new Date(row.submitted_at),
       approvedAt: row.approved_at ? new Date(row.approved_at) : undefined,
       rejectedAt: row.rejected_at ? new Date(row.rejected_at) : undefined
@@ -384,7 +405,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       tenantId: row.tenant_id,
       submittedBy: row.submitted_by,
       submittedAt: new Date(row.submitted_at),
-      data: JSON.parse(row.data || '{}'),
+      data: this.safeJSONParse(row.data, {}),
       status: row.status,
       approvedBy: row.approved_by,
       approvedAt: row.approved_at ? new Date(row.approved_at) : undefined,
@@ -413,7 +434,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       tenantId: row.tenant_id,
       submittedBy: row.submitted_by,
       submittedAt: new Date(row.submitted_at),
-      data: JSON.parse(row.data || '{}'),
+      data: this.safeJSONParse(row.data, {}),
       status: row.status,
       approvedBy: row.approved_by,
       approvedAt: row.approved_at ? new Date(row.approved_at) : undefined,
