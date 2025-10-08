@@ -388,7 +388,7 @@ export function ActionConfigModal({
           </SelectTrigger>
           <SelectContent>
             {agents.length === 0 ? (
-              <SelectItem value="" disabled>Nenhum agente disponível</SelectItem>
+              <SelectItem value="no-agents" disabled>Nenhum agente disponível</SelectItem>
             ) : (
               agents.map((agent) => (
                 <SelectItem key={agent.id} value={agent.id}>
