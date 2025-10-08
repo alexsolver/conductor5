@@ -135,9 +135,6 @@ export const aiAgents = pgTable('ai_agents', {
   // Channels where agent operates
   channels: jsonb('channels').$type<string[]>().default([]), // ['email', 'whatsapp', 'chat', 'telegram']
   
-  // AI Flows - Fluxos visuais que o agente pode executar
-  flowIds: jsonb('flow_ids').$type<string[]>().default([]), // Array de IDs de fluxos do ai_action_flows
-  
   // Statistics
   stats: jsonb('stats').$type<{
     totalConversations: number;
