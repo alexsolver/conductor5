@@ -287,13 +287,28 @@ export default function AIActionBuilderNew() {
   };
 
   const handleTemplateSelect = (template: ActionTemplate) => {
-    updateWizardData(template.prefilledData);
+    updateWizardData({ 
+      ...template.prefilledData,
+      templateId: template.id 
+    });
     if (template.id !== 'custom') {
       setCurrentStep(2); // Pula para step 2 se usar template
     }
   };
 
   const nextStep = () => {
+    // Validação do Step 1 para template custom
+    if (currentStep === 1 && wizardData.templateId === 'custom') {
+      if (!wizardData.name || !wizardData.actionKey) {
+        toast({
+          title: 'Campos obrigatórios',
+          description: 'Preencha o nome e a chave da ação para continuar',
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -491,6 +506,28 @@ export default function AIActionBuilderNew() {
                   value={wizardData.name}
                   onChange={(e) => updateWizardData({ name: e.target.value })}
                   data-testid="input-name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Categoria</Label>
+                <Input
+                  id="category"
+                  placeholder="Ex: Tickets, Clientes, Agendamentos"
+                  value={wizardData.category}
+                  onChange={(e) => updateWizardData({ category: e.target.value })}
+                  data-testid="input-category"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Descrição</Label>
+                <Input
+                  id="description"
+                  placeholder="Breve descrição da ação"
+                  value={wizardData.description}
+                  onChange={(e) => updateWizardData({ description: e.target.value })}
+                  data-testid="input-description"
                 />
               </div>
             </div>
