@@ -23,6 +23,29 @@ interface ConversationLog {
   timestamp: Date;
 }
 
+interface ProcessMessageResult {
+  conversationId: string;
+  agentResponse: string;
+  status: string;
+  nextStep: string;
+  actionExecuted?: {
+    actionType: string;
+    result: any;
+  };
+}
+
+interface ConversationDetails {
+  conversation: any;
+  messages: any[];
+  logs: ConversationLog[];
+  executions: any[];
+}
+
+interface Agent {
+  id: string;
+  name: string;
+}
+
 export default function AIChat() {
   const { toast } = useToast();
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
@@ -33,14 +56,16 @@ export default function AIChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fetch AI agents
-  const { data: agents = [], isLoading: loadingAgents } = useQuery({
+  const { data: agents = [], isLoading: loadingAgents } = useQuery<Agent[]>({
     queryKey: ['/api/ai-agents'],
   });
 
   // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: (data: { agentId: string; message: string }) =>
-      apiRequest('/api/ai/chat', 'POST', data),
+  const sendMessageMutation = useMutation<ProcessMessageResult, Error, { agentId: string; message: string }>({
+    mutationFn: async (data: { agentId: string; message: string }) => {
+      const response = await apiRequest('POST', '/api/ai/chat', data);
+      return await response.json();
+    },
     onSuccess: (data) => {
       // Add agent response to messages
       setMessages(prev => [...prev, {
@@ -63,7 +88,8 @@ export default function AIChat() {
   // Load conversation details (messages and logs)
   const loadConversationDetails = async (convId: string) => {
     try {
-      const data = await apiRequest(`/api/ai/conversations/${convId}`, 'GET');
+      const response = await apiRequest('GET', `/api/ai/conversations/${convId}`);
+      const data: ConversationDetails = await response.json();
       setLogs(data.logs || []);
     } catch (error) {
       console.error('Error loading conversation details:', error);
