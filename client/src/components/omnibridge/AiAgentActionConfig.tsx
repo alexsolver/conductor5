@@ -390,7 +390,7 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {availableActions.length === 0 ? (
+                  {(availableActions || []).length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhuma ação disponível no momento.</p>
