@@ -121,6 +121,13 @@ export default function AiAgentActionConfig({ config, onChange }: AiAgentActionC
 
   const selectedAgent = selectedAgentResponse?.data;
 
+  // Debug response
+  useEffect(() => {
+    if (selectedAgentResponse) {
+      console.log('🤖 [AI-AGENT-CONFIG] Agent response received:', selectedAgentResponse);
+    }
+  }, [selectedAgentResponse]);
+
   // Update config when agent is selected or loaded
   useEffect(() => {
     if (selectedAgentId === 'new') {
