@@ -20,7 +20,7 @@ import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 import type { ActionDefinition } from './ActionGrid';
 import AiAgentActionConfig from './AiAgentActionConfig';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface ActionConfigModalProps {
@@ -56,6 +56,9 @@ export function ActionConfigModal({
     },
     onSuccess: (data) => {
       if (data.success && data.data) {
+        // Invalidate agents query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents'] });
+        
         toast({
           title: 'Agente criado com sucesso!',
           description: `Agente "${data.data.name}" foi criado.`
