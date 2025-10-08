@@ -149,6 +149,16 @@ interface Template {
 }
 
 
+// Helper function to safely parse JSON responses
+async function safeJsonParse(response: Response): Promise<any | null> {
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    console.warn('[OMNIBRIDGE] Received non-JSON response, skipping parse');
+    return null;
+  }
+  return await response.json();
+}
+
 // Helper functions for channel mapping
 function getChannelType(integrationId: string): 'email' | 'whatsapp' | 'telegram' | 'sms' | 'chat' {
   if (integrationId.includes('email') || integrationId.includes('gmail') || integrationId.includes('outlook') || integrationId.includes('imap')) {
@@ -232,7 +242,7 @@ export default function OmniBridge() {
         console.log('📨 [OmniBridge-DEBUG] Response received:', response.status, response.ok);
 
         if (response.ok) {
-          const result = await response.json();
+          const result = await safeJsonParse(response);
           console.log('📋 [OmniBridge-DEBUG] Response data:', result);
 
           if (result.success) {
@@ -262,7 +272,13 @@ export default function OmniBridge() {
         console.log(`🔄 [OMNIBRIDGE-AUTO-REFRESH] Refreshing messages for tenant: ${user.tenantId}`);
 
         const response = await apiRequest('GET', '/api/omnibridge/messages');
-        console.log('🔍 [OmniBridge-AUTO-REFRESH] API Response for inbox:', response);
+        
+        // ✅ CRITICAL FIX: Check Content-Type before parsing as JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.warn('[OmniBridge-AUTO-REFRESH] Received non-JSON response, skipping parse');
+          return;
+        }
 
         const data = await response.json();
         if (data.success) {
@@ -305,8 +321,8 @@ export default function OmniBridge() {
         });
 
         if (refreshResponse.ok) {
-          const result = await refreshResponse.json();
-          if (result.success) {
+          const result = await safeJsonParse(refreshResponse);
+          if (result && result.success) {
             setAutomationRules(result.data);
           }
         }
@@ -339,10 +355,10 @@ export default function OmniBridge() {
           description: `A regra "${ruleName}" foi excluída com sucesso.`
         });
       } else {
-        const error = await response.json();
+        const error = await safeJsonParse(response);
         toast({
           title: "Erro ao excluir regra",
-          description: error.message || "Ocorreu um erro ao excluir a regra",
+          description: error?.message || "Ocorreu um erro ao excluir a regra",
           variant: "destructive"
         });
       }
@@ -376,8 +392,8 @@ export default function OmniBridge() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
+        const result = await safeJsonParse(response);
+        if (result && result.success) {
           setAutomationRules(prev => [result.data, ...prev]);
           setShowCreateRuleModal(false);
           setNewRuleData({
@@ -398,14 +414,14 @@ export default function OmniBridge() {
           });
 
           if (refreshResponse.ok) {
-            const refreshResult = await refreshResponse.json();
-            if (refreshResult.success) {
+            const refreshResult = await safeJsonParse(refreshResponse);
+            if (refreshResult && refreshResult.success) {
               setAutomationRules(refreshResult.data);
             }
           }
         }
       } else {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeJsonParse(response) || {};
         console.error('❌ [OmniBridge] Failed to create automation rule:', errorData);
         alert(`Erro ao criar regra: ${errorData.error || response.statusText}`);
       }
@@ -464,7 +480,7 @@ export default function OmniBridge() {
         let messagesData = [];
 
         if (channelsResponse.ok) {
-          const channelsResult = await channelsResponse.json();
+          const channelsResult = await safeJsonParse(channelsResponse);
           console.log('🔍 [OmniBridge] Channels data:', channelsResult);
 
           if (channelsResult.success) {
@@ -493,7 +509,7 @@ export default function OmniBridge() {
           });
 
           if (integrationsResponse.ok) {
-            const integrationsResult = await integrationsResponse.json();
+            const integrationsResult = await safeJsonParse(integrationsResponse);
             console.log('🔍 [OmniBridge] Raw integrations data:', integrationsResult?.data || integrationsResult);
 
             if (integrationsResult?.data && Array.isArray(integrationsResult.data)) {
@@ -525,7 +541,7 @@ export default function OmniBridge() {
 
         let inboxResult = null;
         if (inboxResponse.ok) {
-          inboxResult = await inboxResponse.json();
+          inboxResult = await safeJsonParse(inboxResponse);
           console.log('🔍 [OmniBridge] API Response for inbox:', inboxResult);
         } else {
           console.log('⚠️ [OmniBridge] Failed to fetch inbox, status:', inboxResponse.status);
