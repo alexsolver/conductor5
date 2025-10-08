@@ -52,7 +52,7 @@ export function SmartLocationPicker({
     queryKey: ['/api/locations'],
   });
 
-  const locations = locationsData?.locations || [];
+  const locations = (locationsData as any)?.locations || [];
 
   // Fuzzy search function
   const fuzzyMatch = (text: string, query: string): number => {
@@ -122,11 +122,11 @@ export function SmartLocationPicker({
 
     // Filter out zero scores and sort
     results = results
-      .filter(r => r.score > 0 || !searchQuery)
-      .sort((a, b) => b.score - a.score)
+      .filter((r: any) => r.score > 0 || !searchQuery)
+      .sort((a: any, b: any) => b.score - a.score)
       .slice(0, 50);
 
-    return results.map(r => r.location);
+    return results.map((r: any) => r.location);
   }, [locations, searchQuery, customerId, conversationContext]);
 
   const selectedLocation = locations.find((l: Location) => l.id === value);

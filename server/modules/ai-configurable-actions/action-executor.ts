@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { aiConfigurableActions, actionFields, actionFieldMappings, actionCollectionHistory } from '../../../shared/schema-ai-configurable-actions';
+import { aiConfigurableActions, aiActionFields, aiActionFieldMappings, aiFieldCollectionHistory } from '../../../shared/schema-ai-configurable-actions';
 import { eq, and } from 'drizzle-orm';
 import axios from 'axios';
 
@@ -55,8 +55,8 @@ export class ActionExecutor {
       }
 
       // 2. Load field definitions
-      const fields = await db.query.actionFields.findMany({
-        where: eq(actionFields.actionId, actionId),
+      const fields = await db.query.aiActionFields.findMany({
+        where: eq(aiActionFields.actionId, actionId),
       });
 
       // 3. Validate collected data
@@ -74,8 +74,8 @@ export class ActionExecutor {
       }
 
       // 4. Load field mappings
-      const mappings = await db.query.actionFieldMappings.findMany({
-        where: eq(actionFieldMappings.actionId, actionId),
+      const mappings = await db.query.aiActionFieldMappings.findMany({
+        where: eq(aiActionFieldMappings.actionId, actionId),
       });
 
       // 5. Map collected data to API parameters
@@ -395,7 +395,7 @@ export class ActionExecutor {
     context: ExecutionContext
   ): Promise<void> {
     try {
-      await db.insert(actionCollectionHistory).values({
+      await db.insert(aiFieldCollectionHistory).values({
         actionId,
         tenantId: context.tenantId,
         userId: context.userId,
@@ -483,14 +483,14 @@ export class ActionExecutor {
     collectedData: CollectedData,
     tenantId: string
   ): Promise<any[]> {
-    const fields = await db.query.actionFields.findMany({
+    const fields = await db.query.aiActionFields.findMany({
       where: and(
-        eq(actionFields.actionId, actionId),
-        eq(actionFields.tenantId, tenantId)
+        eq(aiActionFields.actionId, actionId),
+        eq(aiActionFields.tenantId, tenantId)
       ),
     });
 
-    const missingFields = fields.filter(field => {
+    const missingFields = fields.filter((field: any) => {
       if (!field.isRequired) return false;
       
       const value = collectedData[field.fieldKey];

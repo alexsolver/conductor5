@@ -49,7 +49,7 @@ export function SmartClientSelector({
     queryKey: ['/api/customers'],
   });
 
-  const customers = customersData?.customers || [];
+  const customers = (customersData as any)?.customers || [];
 
   // Fuzzy search function
   const fuzzyMatch = (text: string, query: string): number => {
@@ -131,11 +131,11 @@ export function SmartClientSelector({
 
     // Filter out zero scores and sort
     results = results
-      .filter(r => r.score > 0 || !searchQuery)
-      .sort((a, b) => b.score - a.score)
+      .filter((r: any) => r.score > 0 || !searchQuery)
+      .sort((a: any, b: any) => b.score - a.score)
       .slice(0, 50);
 
-    return results.map(r => r.customer);
+    return results.map((r: any) => r.customer);
   }, [customers, searchQuery, conversationContext]);
 
   const selectedCustomer = customers.find((c: Customer) => c.id === value);
