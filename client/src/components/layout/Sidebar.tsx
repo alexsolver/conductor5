@@ -54,7 +54,6 @@ import {
   Wrench,
   Bell,
   CheckCircle,
-  MessageCircle, // Import MessageCircle for OmniBridge
   MessageSquare, // Import MessageSquare for OmniBridge
   UserX // Import UserX for Absence Management
 } from "lucide-react";
@@ -121,16 +120,6 @@ const baseNavigation: Array<{
       { name: "productivityReports", href: "/productivity-reports", icon: PieChart },
       { name: "teamPerformance", href: "/team-performance", icon: TrendingUp },
       { name: "systemAnalytics", href: "/system-analytics", icon: BarChart3 },
-    ]
-  },
-  {
-    name: "omniBridge",
-    icon: MessageSquare,
-    children: [
-      { name: "messageCenter", href: "/omnibridge", icon: MessageSquare },
-      { name: "aiChat", href: "/ai-agent/chat", icon: MessageCircle },
-      { name: "actionBuilder", href: "/ai-agent/action-builder", icon: Bot },
-      { name: "flowBuilder", href: "/ai-agent/flows", icon: Workflow },
     ]
   },
 
