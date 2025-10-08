@@ -127,6 +127,7 @@ const baseNavigation: Array<{
     name: "omniBridge",
     icon: MessageSquare,
     children: [
+      { name: "messageCenter", href: "/omnibridge", icon: MessageSquare },
       { name: "aiChat", href: "/ai-agent/chat", icon: MessageCircle },
       { name: "actionBuilder", href: "/ai-agent/action-builder", icon: Bot },
     ]
