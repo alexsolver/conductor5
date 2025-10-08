@@ -130,6 +130,7 @@ const baseNavigation: Array<{
       { name: "messageCenter", href: "/omnibridge", icon: MessageSquare },
       { name: "aiChat", href: "/ai-agent/chat", icon: MessageCircle },
       { name: "actionBuilder", href: "/ai-agent/action-builder", icon: Bot },
+      { name: "flowBuilder", href: "/ai-agent/flows", icon: Workflow },
     ]
   },
 

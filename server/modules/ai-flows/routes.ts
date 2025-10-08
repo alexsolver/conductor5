@@ -386,8 +386,8 @@ router.get('/templates', async (req, res) => {
   }
 });
 
-// POST /api/ai-flows/:id/clone - Clone a flow
-router.post('/:id/clone', async (req, res) => {
+// POST /api/ai-flows/:id/duplicate - Duplicate a flow (alias for clone)
+router.post('/:id/duplicate', async (req, res) => {
   try {
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
