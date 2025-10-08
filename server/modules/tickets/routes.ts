@@ -1421,10 +1421,11 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const finalAgentId = agent_id || assignedToId;
     const finalTitle = title;
     const finalDescription = description || workLog;
-    const finalPlannedStartTime = planned_start_time ? new Date(planned_start_time) : null;
-    const finalPlannedEndTime = planned_end_time ? new Date(planned_end_time) : null;
-    const finalStartTime = start_time ? new Date(start_time) : (startDateTime ? new Date(startDateTime) : null);
-    const finalEndTime = end_time ? new Date(end_time) : (endDateTime ? new Date(endDateTime) : null);
+    // Manter timestamps como string - não converter para Date para evitar problemas de timezone
+    const finalPlannedStartTime = planned_start_time || null;
+    const finalPlannedEndTime = planned_end_time || null;
+    const finalStartTime = start_time || startDateTime || null;
+    const finalEndTime = end_time || endDateTime || null;
     const finalEstimatedHours = estimated_hours ? parseFloat(estimated_hours) : 0;
     const finalStatus = status;
     const finalPriority = priority;
@@ -3686,19 +3687,19 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     }
     if (planned_start_time !== undefined) {
       updateFields.push(`planned_start_time = $${paramIndex++}`);
-      values.push(planned_start_time ? new Date(planned_start_time).toISOString() : null);
+      values.push(planned_start_time || null);
     }
     if (planned_end_time !== undefined) {
       updateFields.push(`planned_end_time = $${paramIndex++}`);
-      values.push(planned_end_time ? new Date(planned_end_time).toISOString() : null);
+      values.push(planned_end_time || null);
     }
     if (start_time !== undefined) {
       updateFields.push(`start_time = $${paramIndex++}`);
-      values.push(start_time ? new Date(start_time).toISOString() : null);
+      values.push(start_time || null);
     }
     if (end_time !== undefined) {
       updateFields.push(`end_time = $${paramIndex++}`);
-      values.push(end_time ? new Date(end_time).toISOString() : null);
+      values.push(end_time || null);
     }
     if (estimated_hours !== undefined) {
       updateFields.push(`estimated_hours = $${paramIndex++}`);

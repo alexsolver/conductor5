@@ -164,13 +164,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
 
-        // NEW: Planned date fields (testing the new database columns)
-        planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
-        planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
+        // NEW: Planned date fields - enviar como string sem conversão UTC
+        planned_start_time: data.planned_start_time || null,
+        planned_end_time: data.planned_end_time || null,
 
-        // Actual execution date fields
-        start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
-        end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+        // Actual execution date fields - enviar como string sem conversão UTC
+        start_time: data.start_time || null,
+        end_time: data.end_time || null,
 
         // Numeric fields with proper validation
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
