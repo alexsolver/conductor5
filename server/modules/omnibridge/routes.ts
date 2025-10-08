@@ -8,8 +8,7 @@ import { GetMessagesUseCase } from './application/use-cases/GetMessagesUseCase';
 import { ProcessMessageUseCase } from './application/use-cases/ProcessMessageUseCase';
 import { DrizzleChannelRepository } from './infrastructure/repositories/DrizzleChannelRepository';
 import { DrizzleMessageRepository } from './infrastructure/repositories/DrizzleMessageRepository';
-// Temporarily disabled AI agent routes due to type conflicts
-// import { createAiAgentRoutes } from './routes/aiAgentRoutes';
+import { createAiAgentRoutes } from './routes/aiAgentRoutes';
 
 const router = Router();
 
@@ -1132,8 +1131,8 @@ router.post('/ai-prompts/test', jwtAuth, async (req, res) => {
   }
 });
 
-// AI Agent routes - temporarily disabled due to type conflicts
-// router.use('/ai', jwtAuth, createAiAgentRoutes());
+// AI Agent routes
+router.use('/ai-agents', jwtAuth, createAiAgentRoutes());
 
 // Conversation Logging & Learning System routes
 import conversationLogRoutes from './routes/conversationLogRoutes';
