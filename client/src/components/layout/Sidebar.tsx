@@ -635,6 +635,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                       </CollapsibleTrigger>
                       <CollapsibleContent className="ml-4 mt-1 space-y-1">
                         {item.children?.map((child) => {
+                          if (!child.href) return null;
                           const isActive = location === child.href;
                           return (
                             <Link key={child.name} href={child.href}>
