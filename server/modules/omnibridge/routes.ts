@@ -541,6 +541,21 @@ router.put('/automation-rules/:ruleId', jwtAuth, (req, res) => automationControl
 router.delete('/automation-rules/:ruleId', jwtAuth, (req, res) => automationController.deleteRule(req, res));
 router.post('/automation-rules/:ruleId/toggle', jwtAuth, (req, res) => automationController.toggleRule(req, res));
 
+// Temporary reload endpoint
+router.post('/automation-rules/reload', jwtAuth, async (req, res) => {
+  try {
+    const { GlobalAutomationManager } = await import('./infrastructure/services/GlobalAutomationManager');
+    const tenantId = req.user.tenantId;
+    
+    await GlobalAutomationManager.getInstance().reloadEngineRules(tenantId);
+    
+    res.json({ success: true, message: 'Automation rules reloaded from database' });
+  } catch (error) {
+    console.error('❌ [RELOAD-RULES] Error:', error);
+    res.status(500).json({ success: false, error: 'Failed to reload rules' });
+  }
+});
+
 
 // Template CRUD operations
 import { DrizzleTemplateRepository } from './infrastructure/repositories/DrizzleTemplateRepository';
