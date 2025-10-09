@@ -457,7 +457,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     createActionMutation.mutate(formDataWithTimer);
   };
 
-  const handleFinishTimer = () => {
+  const handleFinishTimer = async () => {
     const now = getLocalDateTimeString();
 
     // Calcular minutos decorridos
@@ -471,10 +471,38 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         ...formData,
         end_time: now,
         actual_minutes: diffMinutes.toString(),
-        status: 'completed' // Define status como "Concluída" ao finalizar
+        status: 'completed', // Define status como "Concluída" ao finalizar
+        form_data: formTemplateData // Salvar dados do formulário
       };
 
       setFormData(updatedFormData);
+
+      // Submeter formulário automaticamente se houver um form_id e dados
+      if (formData.form_id && Object.keys(formTemplateData).length > 0) {
+        try {
+          const submissionResponse = await apiRequest('POST', '/api/internal-forms/submissions', {
+            form_id: formData.form_id,
+            submitted_by: currentUser?.id,
+            form_data: formTemplateData,
+            ticket_id: ticketId
+          });
+
+          if (!submissionResponse.ok) {
+            toast({
+              title: "Aviso",
+              description: "Ação finalizada, mas houve erro ao submeter o formulário",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Error submitting form on finish:', error);
+          toast({
+            title: "Aviso",
+            description: "Ação finalizada, mas houve erro ao submeter o formulário",
+            variant: "destructive",
+          });
+        }
+      }
 
       // Salvar automaticamente se estiver em modo de edição
       if (editAction) {
@@ -670,6 +698,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   onFormDataChange={setFormTemplateData}
                   ticketId={ticketId}
                   userId={currentUser?.id}
+                  isReadOnly={formData.status === 'completed'}
                 />
 
                 {/* Custom Form Fields */}
