@@ -5,13 +5,79 @@
 import { db } from "./db";
 import { 
   users, tenants, customers, tickets, ticketMessages,
-  aiAgents, aiConversations, aiConversationMessages, aiConversationLogs,
   type User, type Tenant, type Customer, type Ticket, type TicketMessage,
-  type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage,
-  type AiAgent, type AiConversation, type AiConversationMessage, type AiConversationLog,
-  type InsertAiAgent, type InsertAiConversation, type InsertAiConversationMessage,
-  type InsertAiConversationLog
+  type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage
 } from "@shared/schema";
+
+// AI Agent types are now in tenant schemas via OmniBridge module
+// These interfaces are kept for compatibility but implementations should use tenant-specific repositories
+interface AiAgent {
+  id: string;
+  tenantId: string;
+  name: string;
+  configPrompt?: string;
+  allowedFormIds?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface InsertAiAgent {
+  id?: string;
+  tenantId: string;
+  name: string;
+  configPrompt?: string;
+  allowedFormIds?: string[];
+}
+
+interface AiConversation {
+  id: string;
+  tenantId: string;
+  agentId: string;
+  userId?: string;
+  status?: string;
+  lastMessageAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface InsertAiConversation {
+  id?: string;
+  tenantId: string;
+  agentId: string;
+  userId?: string;
+  status?: string;
+}
+
+interface AiConversationMessage {
+  id: string;
+  conversationId: string;
+  role: string;
+  content: string;
+  timestamp: Date;
+}
+
+interface InsertAiConversationMessage {
+  id?: string;
+  conversationId: string;
+  role: string;
+  content: string;
+}
+
+interface AiConversationLog {
+  id: string;
+  conversationId: string;
+  level: string;
+  message: string;
+  timestamp: Date;
+}
+
+interface InsertAiConversationLog {
+  id?: string;
+  conversationId: string;
+  level: string;
+  message: string;
+}
+
 import { eq, and, sql, desc } from "drizzle-orm";
 
 // ========================================
@@ -418,49 +484,33 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
 
   // ========================================
   // AI AGENT OPERATIONS IMPLEMENTATION
+  // NOTE: These methods are deprecated. Use OmniBridge module repositories instead.
+  // AI Agent tables are now in tenant schemas, not shared schema.
   // ========================================
   
   async getAiAgents(tenantId: string): Promise<AiAgent[]> {
-    const result = await db.select()
-      .from(aiAgents)
-      .where(eq(aiAgents.tenantId, tenantId))
-      .orderBy(desc(aiAgents.createdAt));
-    return result;
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiAgents() - Use OmniBridge AiAgentRepository instead');
+    return [];
   }
 
   async getAiAgent(tenantId: string, id: string): Promise<AiAgent | undefined> {
-    const result = await db.select()
-      .from(aiAgents)
-      .where(and(
-        eq(aiAgents.tenantId, tenantId),
-        eq(aiAgents.id, id)
-      ));
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiAgent() - Use OmniBridge AiAgentRepository instead');
+    return undefined;
   }
 
   async createAiAgent(agent: InsertAiAgent): Promise<AiAgent> {
-    const result = await db.insert(aiAgents).values(agent as any).returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.createAiAgent() - Use OmniBridge AiAgentRepository instead');
+    throw new Error('Use OmniBridge AiAgentRepository instead');
   }
 
   async updateAiAgent(tenantId: string, id: string, updates: Partial<InsertAiAgent>): Promise<AiAgent> {
-    const result = await db
-      .update(aiAgents)
-      .set({ ...updates, updatedAt: new Date() } as any)
-      .where(and(
-        eq(aiAgents.tenantId, tenantId),
-        eq(aiAgents.id, id)
-      ))
-      .returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.updateAiAgent() - Use OmniBridge AiAgentRepository instead');
+    throw new Error('Use OmniBridge AiAgentRepository instead');
   }
 
   async deleteAiAgent(tenantId: string, id: string): Promise<void> {
-    await db.delete(aiAgents)
-      .where(and(
-        eq(aiAgents.tenantId, tenantId),
-        eq(aiAgents.id, id)
-      ));
+    console.warn('⚠️ [DEPRECATED] storage-master.deleteAiAgent() - Use OmniBridge AiAgentRepository instead');
+    throw new Error('Use OmniBridge AiAgentRepository instead');
   }
 
   async getAiConversations(tenantId: string, filters?: {
@@ -469,81 +519,43 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
     status?: string;
     limit?: number;
   }): Promise<AiConversation[]> {
-    const conditions = [eq(aiConversations.tenantId, tenantId)];
-    
-    if (filters?.agentId) {
-      conditions.push(eq(aiConversations.agentId, filters.agentId));
-    }
-    if (filters?.userId) {
-      conditions.push(eq(aiConversations.userId, filters.userId));
-    }
-    if (filters?.status) {
-      conditions.push(sql`${aiConversations.status} = ${filters.status}`);
-    }
-
-    let query = db.select()
-      .from(aiConversations)
-      .where(and(...conditions))
-      .orderBy(desc(aiConversations.lastMessageAt));
-
-    if (filters?.limit) {
-      query = query.limit(filters.limit) as any;
-    }
-
-    return await query;
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiConversations() - Use OmniBridge repositories instead');
+    return [];
   }
 
   async getAiConversation(conversationId: string): Promise<AiConversation | undefined> {
-    const result = await db.select()
-      .from(aiConversations)
-      .where(eq(aiConversations.id, conversationId));
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiConversation() - Use OmniBridge repositories instead');
+    return undefined;
   }
 
   async createAiConversation(conversation: InsertAiConversation): Promise<AiConversation> {
-    const result = await db.insert(aiConversations).values(conversation as any).returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.createAiConversation() - Use OmniBridge repositories instead');
+    throw new Error('Use OmniBridge repositories instead');
   }
 
   async updateAiConversation(conversationId: string, updates: Partial<InsertAiConversation>): Promise<AiConversation> {
-    const result = await db
-      .update(aiConversations)
-      .set({ ...updates, updatedAt: new Date() } as any)
-      .where(eq(aiConversations.id, conversationId))
-      .returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.updateAiConversation() - Use OmniBridge repositories instead');
+    throw new Error('Use OmniBridge repositories instead');
   }
 
   async getAiConversationMessages(conversationId: string): Promise<AiConversationMessage[]> {
-    const result = await db.select()
-      .from(aiConversationMessages)
-      .where(eq(aiConversationMessages.conversationId, conversationId))
-      .orderBy(aiConversationMessages.timestamp);
-    return result;
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiConversationMessages() - Use OmniBridge repositories instead');
+    return [];
   }
 
   async createAiConversationMessage(message: InsertAiConversationMessage): Promise<AiConversationMessage> {
-    const result = await db.insert(aiConversationMessages).values(message as any).returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.createAiConversationMessage() - Use OmniBridge repositories instead');
+    throw new Error('Use OmniBridge repositories instead');
   }
 
   async getAiConversationLogs(conversationId: string, level?: string): Promise<AiConversationLog[]> {
-    const conditions = [eq(aiConversationLogs.conversationId, conversationId)];
-    
-    if (level) {
-      conditions.push(sql`${aiConversationLogs.level} = ${level}`);
-    }
-
-    const result = await db.select()
-      .from(aiConversationLogs)
-      .where(and(...conditions))
-      .orderBy(aiConversationLogs.timestamp);
-    return result;
+    console.warn('⚠️ [DEPRECATED] storage-master.getAiConversationLogs() - Use OmniBridge repositories instead');
+    return [];
   }
 
   async createAiConversationLog(log: InsertAiConversationLog): Promise<AiConversationLog> {
-    const result = await db.insert(aiConversationLogs).values(log).returning();
-    return result[0];
+    console.warn('⚠️ [DEPRECATED] storage-master.createAiConversationLog() - Use OmniBridge repositories instead');
+    throw new Error('Use OmniBridge repositories instead');
   }
 
   // ========================================
