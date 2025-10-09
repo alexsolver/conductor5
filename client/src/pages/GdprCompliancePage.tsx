@@ -756,6 +756,8 @@ export default function GdprCompliancePage() {
 function PrivacyPolicyManagement() {
   const { toast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingPolicy, setEditingPolicy] = useState<any>(null);
+  const [deletingPolicyId, setDeletingPolicyId] = useState<string | null>(null);
 
   // ✅ Fetch current privacy policies
   const { data: policies, refetch: refetchPolicies } = useQuery({
@@ -875,6 +877,44 @@ function PrivacyPolicyManagement() {
     }
   });
 
+  // ✅ Delete policy mutation
+  const deletePolicyMutation = useMutation({
+    mutationFn: async (policyId: string) => {
+      const token = localStorage.getItem('access_token') || 
+                    localStorage.getItem('accessToken') || 
+                    localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No access token found. Please login again.');
+      }
+      
+      const response = await fetch(`/api/gdpr-compliance/admin/privacy-policies/${policyId}`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to delete policy');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Política deletada com sucesso" });
+      setDeletingPolicyId(null);
+      refetchPolicies();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao deletar política", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    }
+  });
+
   return (
     <div className="space-y-6">
       {/* ✅ Header e Controles */}
@@ -922,8 +962,21 @@ function PrivacyPolicyManagement() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditingPolicy(policy)}
+                    data-testid={`button-edit-policy-${policy.id}`}
+                  >
                     <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setDeletingPolicyId(policy.id)}
+                    data-testid={`button-delete-policy-${policy.id}`}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                   {!policy.isActive && (
                     <Button 
@@ -1086,6 +1139,57 @@ function PrivacyPolicyManagement() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ✅ Dialog de Confirmação de Delete */}
+      <Dialog open={!!deletingPolicyId} onOpenChange={() => setDeletingPolicyId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja deletar esta política? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingPolicyId(null)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => deletingPolicyId && deletePolicyMutation.mutate(deletingPolicyId)}
+              disabled={deletePolicyMutation.isPending}
+            >
+              {deletePolicyMutation.isPending ? "Deletando..." : "Deletar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ✅ Dialog de Edição */}
+      <Dialog open={!!editingPolicy} onOpenChange={() => setEditingPolicy(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Editar Política</DialogTitle>
+            <DialogDescription>
+              Edite os detalhes da política existente
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingPolicy && (
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                Funcionalidade de edição será implementada em breve.
+                Por enquanto, você pode deletar e criar uma nova política.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setEditingPolicy(null)}>
+              Fechar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

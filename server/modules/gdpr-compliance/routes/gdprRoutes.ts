@@ -394,6 +394,68 @@ router.put('/admin/privacy-policies/:policyId/activate', requirePermission('gdpr
   }
 });
 
+// ✅ ADMIN: Delete Privacy Policy
+router.delete('/admin/privacy-policies/:policyId', requirePermission('gdpr', 'delete'), async (req: any, res: any) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { policyId } = req.params;
+    
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tenant ID required' 
+      });
+    }
+
+    // Check if policy exists and belongs to tenant
+    const [existingPolicy] = await db
+      .select()
+      .from(privacyPolicies)
+      .where(and(
+        eq(privacyPolicies.id, policyId),
+        eq(privacyPolicies.tenantId, tenantId)
+      ))
+      .limit(1);
+
+    if (!existingPolicy) {
+      return res.status(404).json({
+        success: false,
+        message: 'Privacy policy not found'
+      });
+    }
+
+    // Cannot delete active policy
+    if (existingPolicy.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete active policy. Please deactivate it first.'
+      });
+    }
+
+    // Delete the policy
+    await db
+      .delete(privacyPolicies)
+      .where(and(
+        eq(privacyPolicies.id, policyId),
+        eq(privacyPolicies.tenantId, tenantId)
+      ));
+
+    console.log('✅ [PRIVACY-POLICIES] Policy deleted successfully:', policyId);
+    
+    res.json({
+      success: true,
+      message: 'Privacy policy deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ [PRIVACY-POLICIES] Error deleting policy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete privacy policy'
+    });
+  }
+});
+
 // ✅ ADMIN: Data Subject Requests Management
 router.get('/admin/data-subject-requests', requirePermission('gdpr', 'read'), async (req: any, res: any) => {
   try {
