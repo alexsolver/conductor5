@@ -1,25 +1,24 @@
-import { AiAgent } from '../entities/AiAgent';
-import { AiConversation } from '../entities/AiConversation';
+import { AIAgent, AIAction, InterviewSession } from '../entities/AiAgent';
 
 export interface IAiAgentRepository {
-  // Agent management
-  create(agent: AiAgent): Promise<AiAgent>;
-  findById(id: string, tenantId: string): Promise<AiAgent | null>;
-  findByTenantId(tenantId: string): Promise<AiAgent[]>;
-  findByChannel(channelType: string, tenantId: string): Promise<AiAgent[]>;
-  update(agent: AiAgent): Promise<AiAgent>;
-  delete(id: string, tenantId: string): Promise<boolean>;
+  // AI Agent CRUD
+  createAgent(agent: Omit<AIAgent, 'id' | 'createdAt' | 'updatedAt'>): Promise<AIAgent>;
+  findAgentById(id: string, tenantId: string): Promise<AIAgent | null>;
+  findAgentsByTenant(tenantId: string): Promise<AIAgent[]>;
+  updateAgent(id: string, tenantId: string, updates: Partial<AIAgent>): Promise<AIAgent>;
+  deleteAgent(id: string, tenantId: string): Promise<boolean>;
   
-  // Conversation management
-  createConversation(conversation: AiConversation): Promise<AiConversation>;
-  findConversationById(id: string, tenantId: string): Promise<AiConversation | null>;
-  findActiveConversation(userId: string, channelId: string, tenantId: string): Promise<AiConversation | null>;
-  findConversationsByAgent(agentId: string, tenantId: string, status?: string): Promise<AiConversation[]>;
-  updateConversation(conversation: AiConversation): Promise<AiConversation>;
-  deleteConversation(id: string, tenantId: string): Promise<boolean>;
-  cleanupExpiredConversations(tenantId: string): Promise<number>;
-
-  // Analytics
-  getAgentStats(agentId: string, tenantId: string): Promise<any>;
-  getConversationMetrics(tenantId: string, timeframe?: string): Promise<any>;
+  // AI Actions CRUD
+  createAction(action: Omit<AIAction, 'id' | 'createdAt' | 'updatedAt'>): Promise<AIAction>;
+  findActionsByAgent(agentId: string, tenantId: string): Promise<AIAction[]>;
+  findActionById(id: string, tenantId: string): Promise<AIAction | null>;
+  updateAction(id: string, tenantId: string, updates: Partial<AIAction>): Promise<AIAction>;
+  deleteAction(id: string, tenantId: string): Promise<boolean>;
+  
+  // Interview Sessions
+  createSession(session: Omit<InterviewSession, 'id' | 'createdAt' | 'updatedAt'>): Promise<InterviewSession>;
+  findSessionById(id: string, tenantId: string): Promise<InterviewSession | null>;
+  findActiveSession(userId: string, channelId: string, tenantId: string): Promise<InterviewSession | null>;
+  updateSession(id: string, tenantId: string, updates: Partial<InterviewSession>): Promise<InterviewSession>;
+  completeSession(id: string, tenantId: string): Promise<InterviewSession>;
 }
