@@ -3643,6 +3643,126 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
+          {/* Datas e Horários */}
+          <div className="mb-6">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+              <h4 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Datas e Horários
+              </h4>
+              <div className="grid grid-cols-1 gap-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Criação:</span>
+                  <div className="text-sm">
+                    {(() => {
+                      const createdDate = ticket?.createdAt || ticket?.created_at;
+                      if (!createdDate) return "N/A";
+
+                      try {
+                        const date = new Date(createdDate);
+                        if (isNaN(date.getTime())) return "N/A";
+                        return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                      } catch {
+                        return "N/A";
+                      }
+                    })()}
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Vencimento:</span>
+                  <div className="text-sm">
+                    {(() => {
+                      const dueDate = ticket?.dueDate || ticket?.due_date;
+                      if (dueDate) {
+                        try {
+                          const date = new Date(dueDate);
+                          if (!isNaN(date.getTime())) {
+                            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                          }
+                        } catch {
+                          // Fall through to calculated date
+                        }
+                      }
+
+                      // Calculate based on creation date and priority
+                      const createdDate = ticket?.createdAt || ticket?.created_at;
+                      if (!createdDate) return "N/A";
+
+                      try {
+                        const created = new Date(createdDate);
+                        if (isNaN(created.getTime())) return "N/A";
+
+                        const priorityMap: Record<string, number> = {
+                          'critical': 1,
+                          'high': 4,
+                          'medium': 24,
+                          'low': 72
+                        };
+                        const hoursToAdd = priorityMap[ticket?.priority as string] || 24;
+
+                        const due = new Date(created.getTime() + (hoursToAdd * 60 * 60 * 1000));
+                        return due.toLocaleDateString('pt-BR') + ' ' + due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                      } catch {
+                        return "N/A";
+                      }
+                    })()}
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Status</span>
+                  <div className="text-sm">
+                    <DynamicBadge
+                      fieldName="status"
+                      value={ticket?.status || 'open'}
+                      colorHex={getFieldColor('status', ticket?.status || 'open')}
+                      isLoading={isFieldColorsLoading}
+                    >
+                      {(() => {
+                        if (!ticket?.status) return 'N/A';
+
+                        const statusLabel = getFieldLabel('status', ticket.status);
+
+                        // Calculate time display from SLA data
+                        let timeDisplay = '0d';
+                        if (slaStatus?.activeSla) {
+                          const remainingMinutes = slaStatus.activeSla.remainingMinutes;
+                          if (remainingMinutes > 0) {
+                            const days = Math.floor(remainingMinutes / (24 * 60));
+                            const hours = Math.floor((remainingMinutes % (24 * 60)) / 60);
+                            if (days > 0) {
+                              timeDisplay = `${days}d`;
+                            } else if (hours > 0) {
+                              timeDisplay = `${hours}h`;
+                            } else {
+                              timeDisplay = `${remainingMinutes}m`;
+                            }
+                          } else {
+                            timeDisplay = 'Overdue';
+                          }
+                        }
+
+                        return `${statusLabel} - ${timeDisplay}`;
+                      })()}
+                    </DynamicBadge>
+                  </div>
+                </div>
+                {/* SLA Information */}
+                <div className="flex justify-between items-center border-t border-blue-200 pt-2 mt-2">
+                  <span className="text-blue-700">SLA Decorrido</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
+                      title="SLA Warning: 85% decorrido"
+                      data-testid="sla-led-indicator"
+                    />
+                    <span className="text-blue-900 font-medium text-xs">SLA Decorrido</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -4014,130 +4134,6 @@ const TicketDetails = React.memo(() => {
           </button>
         </div>
 
-        {/* Quadro Informativo */}
-        <div className="border-t mt-4">
-          <div className="p-3 bg-gray-50 rounded-b-lg">
-            {/* Datas/Tempo - Destacado */}
-            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded">
-              <h4 className="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {t('tickets.fields.datesTimeTitle')}
-              </h4>
-              <div className="grid grid-cols-1 gap-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Criação:</span>
-                  <div className="text-sm">
-                    {(() => {
-                      const createdDate = ticket?.createdAt || ticket?.created_at;
-                      if (!createdDate) return "N/A";
-
-                      try {
-                        const date = new Date(createdDate);
-                        if (isNaN(date.getTime())) return "N/A";
-                        return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                      } catch {
-                        return "N/A";
-                      }
-                    })()}
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Vencimento:</span>
-                  <div className="text-sm">
-                    {(() => {
-                      const dueDate = ticket?.dueDate || ticket?.due_date;
-                      if (dueDate) {
-                        try {
-                          const date = new Date(dueDate);
-                          if (!isNaN(date.getTime())) {
-                            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                          }
-                        } catch {
-                          // Fall through to calculated date
-                        }
-                      }
-
-                      // Calculate based on creation date and priority
-                      const createdDate = ticket?.createdAt || ticket?.created_at;
-                      if (!createdDate) return "N/A";
-
-                      try {
-                        const created = new Date(createdDate);
-                        if (isNaN(created.getTime())) return "N/A";
-
-                        const priorityMap: Record<string, number> = {
-                          'critical': 1,
-                          'high': 4,
-                          'medium': 24,
-                          'low': 72
-                        };
-                        const hoursToAdd = priorityMap[ticket?.priority as string] || 24;
-
-                        const due = new Date(created.getTime() + (hoursToAdd * 60 * 60 * 1000));
-                        return due.toLocaleDateString('pt-BR') + ' ' + due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                      } catch {
-                        return "N/A";
-                      }
-                    })()}
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">{t('tickets.fields.statusField')}</span>
-                  {/* Status field display with proper translation and SLA time */}
-                  <div className="text-sm">
-                    <DynamicBadge
-                      fieldName="status"
-                      value={ticket?.status || 'open'}
-                      colorHex={getFieldColor('status', ticket?.status || 'open')}
-                      isLoading={isFieldColorsLoading}
-                    >
-                      {(() => {
-                        if (!ticket?.status) return 'N/A';
-
-                        const statusLabel = getFieldLabel('status', ticket.status);
-
-                        // Calculate time display from SLA data
-                        let timeDisplay = '0d';
-                        if (slaStatus?.activeSla) {
-                          const remainingMinutes = slaStatus.activeSla.remainingMinutes;
-                          if (remainingMinutes > 0) {
-                            const days = Math.floor(remainingMinutes / (24 * 60));
-                            const hours = Math.floor((remainingMinutes % (24 * 60)) / 60);
-                            if (days > 0) {
-                              timeDisplay = `${days}d`;
-                            } else if (hours > 0) {
-                              timeDisplay = `${hours}h`;
-                            } else {
-                              timeDisplay = `${remainingMinutes}m`;
-                            }
-                          } else {
-                            timeDisplay = 'Overdue';
-                          }
-                        }
-
-                        return `${statusLabel} - ${timeDisplay}`;
-                      })()}
-                    </DynamicBadge>
-                  </div>
-                </div>
-                {/* SLA Information */}
-                <div className="flex justify-between items-center border-t border-blue-200 pt-1 mt-1">
-                  <span className="text-blue-700">{t('tickets.fields.slaElapsed')}</span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg"
-                      title="SLA Warning: 85% decorrido"
-                      data-testid="sla-led-indicator"
-                    />
-                    <span className="text-blue-900 font-medium text-xs">{t('tickets.fields.slaElapsed')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
       </div>
 
       {/* Password Dialog for Sensitive Fields */}
