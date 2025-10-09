@@ -40,6 +40,7 @@ export const FormFieldTypeEnum = z.enum([
   'signature',
   'user_select',
   'group_select',
+  'geolocation',
 ]);
 
 export type FormFieldType = z.infer<typeof FormFieldTypeEnum>;
@@ -136,6 +137,15 @@ const DateTimeFieldSchema = BaseFieldSchema.extend({
   maxDate: z.string().optional(),
 });
 
+const GeolocationFieldSchema = BaseFieldSchema.extend({
+  type: z.literal('geolocation'),
+  allowManualEntry: z.boolean().default(true), // Permitir entrada manual via CEP
+  autoDetect: z.boolean().default(true), // Auto-detectar localização do dispositivo
+  showMap: z.boolean().default(true), // Mostrar mapa interativo
+  mapZoom: z.number().default(15), // Zoom inicial do mapa
+  allowMarkerDrag: z.boolean().default(true), // Permitir mover o marcador no mapa
+});
+
 export const FormFieldSchema = z.discriminatedUnion('type', [
   TextFieldSchema,
   NumberFieldSchema,
@@ -144,6 +154,7 @@ export const FormFieldSchema = z.discriminatedUnion('type', [
   CurrencyFieldSchema,
   RatingFieldSchema,
   DateTimeFieldSchema,
+  GeolocationFieldSchema,
   BaseFieldSchema.extend({ type: z.enum(['textarea', 'email', 'phone', 'url', 'checkbox', 'color', 'signature', 'user_select', 'group_select']) }),
 ]);
 
