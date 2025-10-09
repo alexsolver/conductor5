@@ -3602,8 +3602,8 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     try {
       console.log(`🤖 [AI-AGENT-INTERVIEW] Starting interview action for message: ${context.messageData.content}`);
 
-      const agentId = action.config?.agentId;
-      const allowedFormIds = action.config?.allowedFormIds || [];
+      const agentId = action.params?.agentId || action.config?.agentId;
+      const allowedFormIds = action.params?.allowedFormIds || action.config?.allowedFormIds || [];
       
       if (!agentId) {
         return {

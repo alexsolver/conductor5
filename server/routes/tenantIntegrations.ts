@@ -1242,7 +1242,7 @@ router.get('/telegram/webhook-status', jwtAuth, async (req: AuthenticatedRequest
 /**
  * Process incoming Telegram text message
  */
-async function processTelegramMessage(tenantId: string, message: any) {
+export async function processTelegramMessage(tenantId: string, message: any) {
   try {
     console.log(`📝 [TELEGRAM-MESSAGE] Processing message for tenant: ${tenantId}`);
     console.log(`📝 [TELEGRAM-MESSAGE] From: ${message.from.first_name} (@${message.from.username})`);
