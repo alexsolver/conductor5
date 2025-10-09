@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Eye, X, Info, Send } from "lucide-react";
+import { FileText, Eye, X, Info } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { InternalForm, FormField } from "@shared/schema-internal-forms";
@@ -32,6 +32,7 @@ interface FormTemplateSelectorProps {
   onFormDataChange?: (data: Record<string, any>) => void;
   ticketId?: string;
   userId?: string;
+  isReadOnly?: boolean;
 }
 
 export function FormTemplateSelector({ 
@@ -41,7 +42,8 @@ export function FormTemplateSelector({
   formData = {}, 
   onFormDataChange,
   ticketId,
-  userId 
+  userId,
+  isReadOnly = false
 }: FormTemplateSelectorProps) {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(value || null);
   const [showPreview, setShowPreview] = useState(false);
@@ -196,7 +198,9 @@ export function FormTemplateSelector({
               <Separator className="my-3" />
 
               <div className="space-y-3">
-                <h5 className="text-sm font-medium">Preencha os campos do formulário:</h5>
+                <h5 className="text-sm font-medium">
+                  {isReadOnly ? 'Dados do formulário:' : 'Preencha os campos do formulário:'}
+                </h5>
                 {Array.isArray(fields) && fields
                   .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
                   .map((field: FormField) => (
@@ -205,61 +209,17 @@ export function FormTemplateSelector({
                       field={field}
                       value={formData[field.name]}
                       onChange={(value) => {
-                        if (onFormDataChange) {
+                        if (onFormDataChange && !isReadOnly) {
                           onFormDataChange({
                             ...formData,
                             [field.name]: value
                           });
                         }
                       }}
+                      disabled={isReadOnly}
                     />
                   ))}
               </div>
-
-              {ticketId && userId && (
-                <>
-                  <Separator className="my-3" />
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const response = await apiRequest('POST', '/api/internal-forms/submissions', {
-                            form_id: formTemplate.id,
-                            submitted_by: userId,
-                            form_data: formData,
-                            ticket_id: ticketId
-                          });
-
-                          if (response.ok) {
-                            toast({
-                              title: "Sucesso",
-                              description: "Formulário submetido com sucesso!",
-                            });
-                            queryClient.invalidateQueries({ queryKey: ['internal-form-submissions'] });
-                            if (onFormDataChange) {
-                              onFormDataChange({});
-                            }
-                          } else {
-                            throw new Error('Failed to submit form');
-                          }
-                        } catch (error) {
-                          console.error('Error submitting form:', error);
-                          toast({
-                            title: "Erro",
-                            description: "Falha ao submeter o formulário",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Submeter Formulário
-                    </Button>
-                  </div>
-                </>
-              )}
             </div>
           </CardContent>
         </Card>
