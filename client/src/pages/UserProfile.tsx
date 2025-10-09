@@ -1047,7 +1047,6 @@ export default function UserProfile() {
                   <p className="text-sm text-gray-600">Configure sua assinatura padrão para envio de e-mails</p>
                   <Textarea
                     id="email-signature"
-                    data-testid="input-email-signature"
                     placeholder={`Atenciosamente,\n${(profile as any)?.firstName || user?.firstName} ${(profile as any)?.lastName || user?.lastName}\n${(profile as any)?.position || (profile as any)?.cargo || ''}\n${(profile as any)?.email || user?.email}\n${(profile as any)?.phone || (profile as any)?.cellPhone || ''}`}
                     value={(profile as any)?.emailSignature || ''}
                     onChange={(e) => updateProfileMutation.mutate({ emailSignature: e.target.value })}
