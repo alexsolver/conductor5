@@ -3603,6 +3603,8 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       console.log(`🤖 [AI-AGENT-INTERVIEW] Starting interview action for message: ${context.messageData.content}`);
 
       const agentId = action.params?.agentId;
+      const allowedFormIds = action.params?.allowedFormIds || [];
+      
       if (!agentId) {
         return {
           success: false,
@@ -3613,18 +3615,52 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
 
       const { tenantId } = context;
       const userMessage = context.messageData.content || context.messageData.body || '';
+      const sender = context.messageData.sender || context.messageData.from || 'unknown';
+      const channelType = context.messageData.channelType || context.messageData.channel;
 
-      // TODO: Import and use ConversationalInterviewEngine
-      // For now, return a placeholder response
-      console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId} would process: "${userMessage}"`);
+      console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId}, Forms: ${allowedFormIds.length}, User: ${sender}, Channel: ${channelType}`);
+      
+      // Por enquanto, apenas enviar uma resposta automática de que o agente está processando
+      const responseMessage = `🤖 Olá! Sou um agente inteligente.\n\n` +
+        `Recebi sua mensagem: "${userMessage}"\n\n` +
+        `Em breve, terei a capacidade de conduzir entrevistas completas e preencher formulários automaticamente!`;
+
+      console.log(`💬 [AI-AGENT-INTERVIEW] Sending response: ${responseMessage}`);
+
+      // ✅ Send response back to user via appropriate channel
+      let success = false;
+      
+      if (channelType === 'telegram') {
+        success = await this.sendTelegramMessage(responseMessage, sender, tenantId);
+      } else if (channelType === 'email' || channelType === 'imap') {
+        success = await this.sendEmailMessage(responseMessage, sender, tenantId, context.messageData);
+      } else {
+        console.log(`📝 [AI-AGENT-INTERVIEW] Channel ${channelType} not supported, storing as outbound message`);
+        success = await this.storeOutboundMessage(responseMessage, sender, channelType, tenantId);
+      }
+
+      if (success) {
+        console.log(`✅ [AI-AGENT-INTERVIEW] Response sent successfully via ${channelType}`);
+      } else {
+        console.error(`❌ [AI-AGENT-INTERVIEW] Failed to send response via ${channelType}`);
+      }
+
+      // TODO: Implementar lógica completa com ConversationalInterviewEngine
+      // 1. Buscar agente do banco
+      // 2. Buscar formulário permitido
+      // 3. Gerenciar estado da entrevista
+      // 4. Processar resposta do usuário
+      // 5. Enviar próxima pergunta ou salvar dados
 
       return {
-        success: true,
-        message: 'Interview action executed successfully',
+        success: success,
+        message: success ? 'Interview response sent successfully' : 'Failed to send interview response',
         data: {
           agentId,
           userMessage,
-          status: 'interview_started'
+          responseMessage,
+          channel: channelType,
+          status: success ? 'interview_response_sent' : 'interview_response_failed'
         }
       };
     } catch (error) {
