@@ -3680,14 +3680,23 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
         isComplete = response.isComplete;
         
         if (isComplete && response.collectedData) {
-          // 5. Form completed - log collected data
+          // 5. Salvar submission do formulário
           console.log(`💾 [AI-AGENT-INTERVIEW] Interview complete! Collected data:`, response.collectedData);
-          console.log(`⚠️ [AI-AGENT-INTERVIEW] Form submissions not yet implemented - data logged only`);
           
-          // TODO: Implement form submission repository
-          // const { DrizzleInternalFormSubmissionRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormSubmissionRepository');
-          // const submissionRepo = new DrizzleInternalFormSubmissionRepository();
-          // await submissionRepo.create({ ... });
+          const { DrizzleInternalFormSubmissionRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormSubmissionRepository');
+          const submissionRepo = new DrizzleInternalFormSubmissionRepository();
+          
+          const submission = await submissionRepo.create({
+            formId: form.id,
+            tenantId,
+            ticketId: context.messageData.ticketId || null,
+            actionId: null,
+            submittedBy: sender, // AI Agent user identifier
+            data: response.collectedData,
+            status: 'submitted'
+          });
+          
+          console.log(`✅ [AI-AGENT-INTERVIEW] Form submission saved with ID: ${submission.id}`);
           
           // Limpar estado da entrevista
           await stateManager.clearState(conversationId);
