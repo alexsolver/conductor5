@@ -400,9 +400,14 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     const schemaName = this.getSchemaName(tenantId);
     
     const query = `
-      SELECT * FROM "${schemaName}".internal_form_submissions
-      WHERE form_id = $1 AND tenant_id = $2
-      ORDER BY submitted_at DESC
+      SELECT 
+        s.*,
+        u.name as submitted_by_name,
+        u.email as submitted_by_email
+      FROM "${schemaName}".internal_form_submissions s
+      LEFT JOIN "${schemaName}".users u ON s.submitted_by = u.id
+      WHERE s.form_id = $1 AND s.tenant_id = $2
+      ORDER BY s.submitted_at DESC
     `;
 
     const result = await this.pool.query(query, [formId, tenantId]);
@@ -412,6 +417,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       formId: row.form_id,
       tenantId: row.tenant_id,
       submittedBy: row.submitted_by,
+      submittedByName: row.submitted_by_name || row.submitted_by_email || row.submitted_by,
       submittedAt: new Date(row.submitted_at),
       data: this.safeJSONParse(row.data, {}),
       status: row.status,
@@ -429,9 +435,14 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     const schemaName = this.getSchemaName(tenantId);
     
     const query = `
-      SELECT * FROM "${schemaName}".internal_form_submissions
-      WHERE tenant_id = $1
-      ORDER BY submitted_at DESC
+      SELECT 
+        s.*,
+        u.name as submitted_by_name,
+        u.email as submitted_by_email
+      FROM "${schemaName}".internal_form_submissions s
+      LEFT JOIN "${schemaName}".users u ON s.submitted_by = u.id
+      WHERE s.tenant_id = $1
+      ORDER BY s.submitted_at DESC
     `;
 
     const result = await this.pool.query(query, [tenantId]);
@@ -441,6 +452,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       formId: row.form_id,
       tenantId: row.tenant_id,
       submittedBy: row.submitted_by,
+      submittedByName: row.submitted_by_name || row.submitted_by_email || row.submitted_by,
       submittedAt: new Date(row.submitted_at),
       data: this.safeJSONParse(row.data, {}),
       status: row.status,

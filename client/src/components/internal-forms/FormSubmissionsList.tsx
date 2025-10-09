@@ -195,7 +195,7 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
                       </Badge>
                     </div>
                   </TableCell>
-                  <TableCell>{submission.submittedBy}</TableCell>
+                  <TableCell>{submission.submittedByName || submission.submittedBy}</TableCell>
                   <TableCell>
                     {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
                   </TableCell>
@@ -243,7 +243,7 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Enviado por</p>
-                  <p className="font-medium">{selectedSubmission.submittedBy}</p>
+                  <p className="font-medium">{selectedSubmission.submittedByName || selectedSubmission.submittedBy}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Data de Envio</p>
