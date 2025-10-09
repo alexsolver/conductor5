@@ -8,17 +8,18 @@ import { randomUUID } from 'crypto';
 
 export class DrizzleAiAgentRepository implements IAiAgentRepository {
   
-  private async getDb() {
+  private async getDb(tenantId: string) {
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      options: `-c search_path=public`,
+      options: `-c search_path=${tenantSchema}`,
       ssl: false,
     });
     return drizzle({ client: pool, schema });
   }
 
   async createAgent(agent: Omit<AIAgent, 'id' | 'createdAt' | 'updatedAt'>): Promise<AIAgent> {
-    const db = await this.getDb();
+    const db = await this.getDb(agent.tenantId);
     const id = randomUUID();
     const now = new Date();
     
@@ -39,7 +40,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async findAgentById(id: string, tenantId: string): Promise<AIAgent | null> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.select()
       .from(schema.omnibridgeAiAgents)
       .where(and(
@@ -52,7 +53,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async findAgentsByTenant(tenantId: string): Promise<AIAgent[]> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.select()
       .from(schema.omnibridgeAiAgents)
       .where(eq(schema.omnibridgeAiAgents.tenantId, tenantId))
@@ -62,7 +63,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async updateAgent(id: string, tenantId: string, updates: Partial<AIAgent>): Promise<AIAgent> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.update(schema.omnibridgeAiAgents)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(
@@ -75,7 +76,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async deleteAgent(id: string, tenantId: string): Promise<boolean> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.delete(schema.omnibridgeAiAgents)
       .where(and(
         eq(schema.omnibridgeAiAgents.id, id),
@@ -87,7 +88,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async createAction(action: Omit<AIAction, 'id' | 'createdAt' | 'updatedAt'>): Promise<AIAction> {
-    const db = await this.getDb();
+    const db = await this.getDb(action.tenantId);
     const id = randomUUID();
     const now = new Date();
     
@@ -106,7 +107,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async findActionsByAgent(agentId: string, tenantId: string): Promise<AIAction[]> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.select()
       .from(schema.omnibridgeAiActions)
       .where(and(
@@ -118,7 +119,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async findActionById(id: string, tenantId: string): Promise<AIAction | null> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.select()
       .from(schema.omnibridgeAiActions)
       .where(and(
@@ -131,7 +132,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async updateAction(id: string, tenantId: string, updates: Partial<AIAction>): Promise<AIAction> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.update(schema.omnibridgeAiActions)
       .set({ ...updates, updatedAt: new Date() })
       .where(and(
@@ -144,7 +145,7 @@ export class DrizzleAiAgentRepository implements IAiAgentRepository {
   }
 
   async deleteAction(id: string, tenantId: string): Promise<boolean> {
-    const db = await this.getDb();
+    const db = await this.getDb(tenantId);
     const result = await db.delete(schema.omnibridgeAiActions)
       .where(and(
         eq(schema.omnibridgeAiActions.id, id),

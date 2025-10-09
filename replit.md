@@ -4,21 +4,22 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
+### OmniBridge AI Agent Schema Correction (October 2025)
+- **Critical Fix**: Corrected schema location for OmniBridge AI Agent tables
+- **Root Cause**: Tables were incorrectly duplicated in both `public` and tenant schemas, with repository using wrong schema
+- **Solution**: Removed duplicate tables from `public` schema, updated `DrizzleAiAgentRepository` to use tenant-specific schemas
+- **Implementation**: Modified `getDb()` to dynamically use `tenant_{tenantId}` schema for all operations
+- **Impact**: All OmniBridge AI tables now correctly stored in tenant schemas following multi-tenancy architecture
+- **Architecture Note**: ALL tables must be in tenant schemas, NOT in public schema - true schema separation for multi-tenancy
+
 ### AI Agent Interview System Refactoring (October 2025)
 - **Architecture Pivot**: Redesigned AI Agent from complex personality-based system to simple conversational interviewer
 - **New Focus**: Agents conduct interviews to fill Internal Forms automatically via natural language conversations
 - **Simplified Configuration**: Agents now configured via single natural language prompt + allowed form selection
-- **Database Schema**: New tables `omnibridge_ai_agents` (agent config) and `omnibridge_ai_actions` (interview actions)
+- **Database Schema**: Tables `omnibridge_ai_agents` (agent config) stored in tenant schemas
 - **Interview Engine**: `ConversationalInterviewEngine` reads form fields, validates responses, creates submissions
 - **Integration**: Seamless integration with `/internal-forms` module for form discovery and submission creation
 - **Impact**: Enables automated form filling through conversational AI, reducing manual data entry
-
-### OmniBridge AI Agent Database Schema Fix (October 2025)
-- **Critical Bug Fixed**: Resolved AI Agent repository schema access issue
-- **Root Cause**: Repository was trying to access `omnibridge_ai_agents` table in tenant schemas, but tables are stored in `public` schema
-- **Solution**: Updated `DrizzleAiAgentRepository` to use `public` schema instead of tenant-specific schemas
-- **Impact**: AI Agent creation and retrieval now working correctly
-- **Architecture Note**: OmniBridge tables are global (in `public` schema) with `tenantId` filtering, not tenant-specific
 
 ### OmniBridge Route Fix (October 2025)
 - **Critical Bug Fixed**: Resolved OmniBridge routes registration failure caused by Node.js import path conflict
