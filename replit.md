@@ -4,6 +4,13 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
+### Form Submissions AI Agent Display Fix (October 2025)
+- **Bug Fixed**: Form submissions from AI agents now correctly display "Enviado por" (Submitted by) name
+- **Root Cause**: Repository only joined with `users` table, missing AI agent submissions with IDs from `omnibridge_ai_agents` table
+- **Solution**: Added LEFT JOIN with `omnibridge_ai_agents` table in both `findSubmissions` and `findAllSubmissions` methods
+- **Implementation**: Modified `DrizzleInternalFormRepository` to query both users and AI agents, with priority: AI agent name → user name → email → raw ID
+- **Impact**: Form submission lists now correctly show AI agent names for automated submissions, improving traceability
+
 ### OmniBridge AI Agent Schema Correction (October 2025)
 - **Critical Fix**: Corrected schema location for OmniBridge AI Agent tables
 - **Root Cause**: Tables were incorrectly duplicated in both `public` and tenant schemas, with repository using wrong schema
