@@ -1584,6 +1584,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const finalEstimatedHours = estimated_hours ? parseFloat(estimated_hours) : 0;
     const finalStatus = status;
     const finalPriority = priority;
+    const finalFormId = form_template_id || null;
 
     // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Padrão 1qa.md
     if (!finalActionType || typeof finalActionType !== 'string') {
@@ -1704,9 +1705,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // ✅ INSERÇÃO NA TABELA PRINCIPAL COM TRANSACTION - Padrão 1qa.md
     const internalActionQuery = `
       INSERT INTO "${schemaName}".ticket_internal_actions 
-      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, planned_start_time, planned_end_time, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
-      RETURNING id, action_number, action_type, description, created_at, title, status, priority, estimated_hours
+      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, planned_start_time, planned_end_time, start_time, end_time, estimated_hours, status, priority, form_id, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+      RETURNING id, action_number, action_type, description, created_at, title, status, priority, estimated_hours, form_id
     `;
 
     // Prepare values with proper type conversion and null handling
@@ -1724,7 +1725,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       finalEndTime,                                                        // $11 end_time
       finalEstimatedHoursFinal,                                           // $12 estimated_hours
       finalStatus,                                                         // $13 status
-      finalPriority                                                        // $14 priority
+      finalPriority,                                                       // $14 priority
+      finalFormId                                                          // $15 form_id
     ];
 
     console.log('🔧 [INTERNAL-ACTION-CREATE] Executing query with values:', {
