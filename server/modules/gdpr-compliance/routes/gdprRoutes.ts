@@ -16,7 +16,59 @@ import { privacyPolicies } from '@shared/schema-gdpr-compliance-clean';
 const router = Router();
 const gdprController = new GdprController();
 
-// ✅ Apply authentication middleware to all routes
+// ========================================
+// PUBLIC ROUTES (No authentication required)
+// ========================================
+
+// ✅ PUBLIC: Get active privacy policy (for registration page)
+router.get('/public/active-privacy-policy', async (req: any, res: any) => {
+  try {
+    // Get tenant ID from query param (for multi-tenant support)
+    const tenantId = req.query.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant ID is required'
+      });
+    }
+
+    const [activePolicy] = await db
+      .select()
+      .from(privacyPolicies)
+      .where(and(
+        eq(privacyPolicies.tenantId, tenantId),
+        eq(privacyPolicies.isActive, true),
+        eq(privacyPolicies.isPublished, true),
+        eq(privacyPolicies.policyType, 'privacy_policy')
+      ))
+      .orderBy(desc(privacyPolicies.createdAt))
+      .limit(1);
+
+    if (!activePolicy) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No active privacy policy found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: activePolicy,
+      message: 'Active privacy policy retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ [PUBLIC-PRIVACY-POLICY] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch privacy policy'
+    });
+  }
+});
+
+// ✅ Apply authentication middleware to authenticated routes
 router.use(jwtAuth);
 
 // ✅ 1. Cookie Consent Management Routes
