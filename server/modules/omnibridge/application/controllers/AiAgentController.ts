@@ -26,36 +26,22 @@ export class AiAgentController {
 
   async createAgent(req: Request, res: Response): Promise<void> {
     try {
-      console.log('🎯 [AiAgentController] createAgent called');
-      console.log('📦 [AiAgentController] Request body:', req.body);
-      console.log('🔑 [AiAgentController] Headers:', req.headers);
-      
       const tenantId = req.headers['x-tenant-id'] as string;
       const userId = (req as any).user?.id;
       
-      console.log('🏢 [AiAgentController] TenantId:', tenantId);
-      console.log('👤 [AiAgentController] UserId:', userId);
-      
       if (!tenantId) {
-        console.log('❌ [AiAgentController] Missing tenant ID');
         res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
         return;
       }
 
-      const agentData = {
+      const result = await this.createUseCase.execute({
         tenantId,
         name: req.body.name,
         description: req.body.description,
         configPrompt: req.body.configPrompt,
         allowedFormIds: req.body.allowedFormIds || [],
         createdBy: userId || 'system'
-      };
-      
-      console.log('📝 [AiAgentController] Creating agent with data:', agentData);
-
-      const result = await this.createUseCase.execute(agentData);
-
-      console.log('✅ [AiAgentController] Create result:', result);
+      });
 
       if (result.success) {
         res.status(201).json({ success: true, data: result.agent });

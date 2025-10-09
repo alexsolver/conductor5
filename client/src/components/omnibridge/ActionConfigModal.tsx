@@ -57,7 +57,7 @@ export function ActionConfigModal({
     onSuccess: (data) => {
       if (data.success && data.data) {
         // Invalidate agents query to refresh the list
-        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
         
         toast({
           title: 'Agente criado com sucesso!',
