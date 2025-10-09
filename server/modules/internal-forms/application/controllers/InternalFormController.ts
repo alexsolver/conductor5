@@ -15,6 +15,8 @@ import { InternalForm, FormSubmission } from '../../domain/entities/InternalForm
 import { v4 as uuidv4 } from 'uuid';
 import { validateForm, FormField } from '../../../../utils/validators/form-validator';
 import { ICustomerRepository } from '../../../customers/domain/repositories/ICustomerRepository';
+import { getDb } from '../../../../db';
+import { customFormEntityLinks } from '@shared/schema-internal-forms';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -510,9 +512,45 @@ export class InternalFormController {
 
       console.log(`✅ [InternalFormController] Submission created successfully: ${submission.id}`);
 
+      // ✅ CRIAR LINKS DE ENTIDADES: Registrar entidades criadas durante preenchimento
+      // Para campos com entityId no formato "entity:type:id" (ex: "entity:client:uuid")
+      const entityLinks: any[] = [];
+      const db = getDb(tenantId);
+
+      for (const field of form.fields || []) {
+        const fieldValue = req.body.data[field.name];
+        
+        // Verificar se o valor é um entityId no formato "entity:type:id"
+        if (fieldValue && typeof fieldValue === 'string' && fieldValue.startsWith('entity:')) {
+          const [_, entityType, entityId] = fieldValue.split(':');
+          
+          if (entityType && entityId) {
+            const link = {
+              id: uuidv4(),
+              tenantId,
+              submissionId: submission.id,
+              fieldId: field.id,
+              entityType,
+              entityId,
+              createdAt: new Date(),
+              createdBy: userId
+            };
+
+            await db.insert(customFormEntityLinks).values(link);
+            entityLinks.push(link);
+            console.log(`✅ [InternalFormController] Entity link created: ${entityType}:${entityId} for field ${field.name}`);
+          }
+        }
+      }
+
+      if (entityLinks.length > 0) {
+        console.log(`✅ [InternalFormController] Created ${entityLinks.length} entity links`);
+      }
+
       res.status(201).json({
         success: true,
         data: submission,
+        entityLinks: entityLinks.length,
         message: 'Submissão criada com sucesso'
       });
     } catch (error) {
