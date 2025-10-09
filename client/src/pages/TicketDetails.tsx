@@ -619,10 +619,6 @@ const TicketDetails = React.memo(() => {
       ? ticketRelationships.notes
       : [];
 
-  console.log('[INTERNAL-ACTIONS-DEBUG] ticketActions:', ticketActions);
-  console.log('[INTERNAL-ACTIONS-DEBUG] ticketActions?.data:', ticketActions?.data);
-  console.log('[INTERNAL-ACTIONS-DEBUG] Array.isArray(ticketActions?.data):', Array.isArray(ticketActions?.data));
-
   const internalActionsData =
     ticketActions?.success && Array.isArray(ticketActions.data)
       ? ticketActions.data.map((action: any) => ({
