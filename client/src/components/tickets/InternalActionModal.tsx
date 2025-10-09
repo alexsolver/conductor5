@@ -81,7 +81,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     actual_minutes: "0",
     status: "pending",
     priority: "medium",
-    form_template_id: null as string | null,
+    form_id: null as string | null,
 
     // Campos auxiliares
     attachments: [] as File[]
@@ -94,13 +94,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   // Fetch selected form template
   const { data: selectedFormTemplate } = useQuery<InternalForm>({
-    queryKey: ['internal-form', formData.form_template_id],
+    queryKey: ['internal-form', formData.form_id],
     queryFn: async () => {
-      if (!formData.form_template_id) return null;
-      const response = await apiRequest('GET', `/api/internal-forms/forms/${formData.form_template_id}`);
+      if (!formData.form_id) return null;
+      const response = await apiRequest('GET', `/api/internal-forms/forms/${formData.form_id}`);
       return response.json();
     },
-    enabled: !!formData.form_template_id && isOpen,
+    enabled: !!formData.form_id && isOpen,
   });
 
   // Reset form function
@@ -118,7 +118,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       actual_minutes: "0",
       status: "pending",
       priority: "medium",
-      form_template_id: null,
+      form_id: null,
       attachments: []
     });
     setIsPublic(false);
@@ -146,7 +146,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           actual_minutes: editAction.actual_minutes || editAction.actualMinutes || "0",
           status: editAction.status || "pending",
           priority: editAction.priority || "medium",
-          form_template_id: editAction.form_template_id || null,
+          form_id: editAction.form_id || null,
           attachments: []
         });
         setIsPublic(editAction.is_public || false);
@@ -209,8 +209,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         is_public: isPublic,
 
         // Form template fields
-        form_template_id: data.form_template_id || null,
-        form_data: data.form_template_id ? formTemplateData : null,
+        form_id: data.form_id || null,
+        form_data: data.form_id ? formTemplateData : null,
       };
 
       // Debug log to verify all fields are properly mapped
@@ -219,7 +219,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         cleanedData,
         hasPlannedStartTime: !!cleanedData.planned_start_time,
         hasPlannedEndTime: !!cleanedData.planned_end_time,
-        hasFormTemplate: !!cleanedData.form_template_id,
+        hasFormTemplate: !!cleanedData.form_id,
         formTemplateData: formTemplateData,
         allFields: Object.keys(cleanedData)
       });
@@ -270,8 +270,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         status: data.status || 'pending',
         priority: data.priority || 'medium',
         is_public: isPublic,
-        form_template_id: data.form_template_id || null,
-        form_data: data.form_template_id ? formTemplateData : null,
+        form_id: data.form_id || null,
+        form_data: data.form_id ? formTemplateData : null,
       };
 
       console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData, 'formTemplateData:', formTemplateData);
@@ -658,9 +658,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
                 {/* Form Template Selector */}
                 <FormTemplateSelector
-                  value={formData.form_template_id}
+                  value={formData.form_id}
                   onChange={(formId) => {
-                    setFormData(prev => ({ ...prev, form_template_id: formId }));
+                    setFormData(prev => ({ ...prev, form_id: formId }));
                     if (!formId) {
                       setFormTemplateData({});
                     }
@@ -669,7 +669,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 />
 
                 {/* Custom Form Fields */}
-                {formData.form_template_id && selectedFormTemplate && selectedFormTemplate.fields && (
+                {formData.form_id && selectedFormTemplate && selectedFormTemplate.fields && (
                   <Card className="border-2 border-blue-500">
                     <CardContent className="pt-6 space-y-4">
                       <div className="flex items-center gap-2 mb-4">
