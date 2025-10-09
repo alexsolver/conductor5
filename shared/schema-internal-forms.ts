@@ -81,6 +81,10 @@ const BaseFieldSchema = z.object({
   
   // Metadados para IA (invisível para usuário)
   aiMetadata: AIMetadataSchema,
+  
+  // Campo calculado
+  calculated: z.boolean().default(false).optional(),
+  formula: z.string().optional(), // Fórmula: ex: "{field1} + {field2} * 0.1"
 });
 
 const TextFieldSchema = BaseFieldSchema.extend({
