@@ -115,3 +115,28 @@ export const omnibridgeTemplates = pgTable('omnibridge_templates', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+export const omnibridgeAiAgents = pgTable('omnibridge_ai_agents', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  configPrompt: text('config_prompt').notNull(),
+  allowedFormIds: jsonb('allowed_form_ids').default([]),
+  isActive: boolean('is_active').default(true),
+  createdBy: varchar('created_by', { length: 36 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const omnibridgeAiActions = pgTable('omnibridge_ai_actions', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  agentId: varchar('agent_id', { length: 36 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  config: jsonb('config').default({}),
+  executionCount: integer('execution_count').default(0),
+  lastExecutedAt: timestamp('last_executed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
