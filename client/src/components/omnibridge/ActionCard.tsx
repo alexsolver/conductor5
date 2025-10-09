@@ -35,6 +35,14 @@ export function ActionCard({
 }: ActionCardProps) {
   // Determinar o preview da configuração
   const getConfigPreview = () => {
+    // Para AI Agent, mostrar nome do agente ao invés do ID
+    if ((type === 'ai_agent' || type === 'ai_agent_interview') && config.agentId) {
+      if (config.name) {
+        return `Agente: ${config.name}`;
+      }
+      return `Agente configurado (ID: ${config.agentId.substring(0, 8)}...)`;
+    }
+    
     const configEntries = Object.entries(config).filter(([_, value]) => value);
     if (configEntries.length === 0) return null;
     

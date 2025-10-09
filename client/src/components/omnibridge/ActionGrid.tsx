@@ -381,6 +381,11 @@ export function ActionGrid({
     
     if (configKeys.length === 0) return 'unconfigured';
     
+    // Para AI Agent, verificar se há agentId configurado
+    if (action.type === 'ai_agent' || action.type === 'ai_agent_interview') {
+      return config.agentId ? 'configured' : 'unconfigured';
+    }
+    
     // Verificar se há configurações obrigatórias não preenchidas
     const hasAllRequired = configKeys.some(key => config[key]);
     return hasAllRequired ? 'configured' : 'partial';
