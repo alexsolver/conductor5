@@ -79,6 +79,17 @@ export const PERMISSIONS = {
     VIEW_DETAILED: { resource: 'analytics', action: 'view_detailed' },
     EXPORT: { resource: 'analytics', action: 'export' },
   },
+
+  // GDPR Compliance permissions
+  GDPR: {
+    READ: { resource: 'gdpr', action: 'read' },
+    CREATE: { resource: 'gdpr', action: 'create' },
+    UPDATE: { resource: 'gdpr', action: 'update' },
+    DELETE: { resource: 'gdpr', action: 'delete' },
+    MANAGE_POLICIES: { resource: 'gdpr', action: 'manage_policies' },
+    MANAGE_REQUESTS: { resource: 'gdpr', action: 'manage_requests' },
+    EXPORT_DATA: { resource: 'gdpr', action: 'export_data' },
+  },
 };
 
 // Role definitions with tenant-specific permissions
@@ -105,6 +116,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CUSTOMER.EXPORT,
     PERMISSIONS.ANALYTICS.VIEW_DETAILED,
     PERMISSIONS.ANALYTICS.EXPORT,
+    PERMISSIONS.GDPR.READ,
+    PERMISSIONS.GDPR.CREATE,
+    PERMISSIONS.GDPR.UPDATE,
+    PERMISSIONS.GDPR.DELETE,
+    PERMISSIONS.GDPR.MANAGE_POLICIES,
+    PERMISSIONS.GDPR.MANAGE_REQUESTS,
+    PERMISSIONS.GDPR.EXPORT_DATA,
   ],
   
   tenant_admin: [
@@ -124,6 +142,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.CUSTOMER.EXPORT,
     PERMISSIONS.ANALYTICS.VIEW_DETAILED,
     PERMISSIONS.ANALYTICS.EXPORT,
+    PERMISSIONS.GDPR.READ,
+    PERMISSIONS.GDPR.CREATE,
+    PERMISSIONS.GDPR.UPDATE,
+    PERMISSIONS.GDPR.DELETE,
+    PERMISSIONS.GDPR.MANAGE_POLICIES,
+    PERMISSIONS.GDPR.MANAGE_REQUESTS,
+    PERMISSIONS.GDPR.EXPORT_DATA,
   ],
   
   agent: [
