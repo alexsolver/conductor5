@@ -43,6 +43,7 @@ import {
   Layers,
   Brain,
   Shield,
+  Calculator,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -450,7 +451,7 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
                 <Card className="mb-4 border-2 border-blue-500">
                   <CardContent className="pt-6">
                     <Tabs defaultValue="basic" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
+                      <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="basic">
                           <Settings2 className="h-4 w-4 mr-2" />
                           Básico
@@ -458,6 +459,10 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
                         <TabsTrigger value="validation">
                           <Shield className="h-4 w-4 mr-2" />
                           Validação BR
+                        </TabsTrigger>
+                        <TabsTrigger value="calculation">
+                          <Calculator className="h-4 w-4 mr-2" />
+                          Cálculo
                         </TabsTrigger>
                         <TabsTrigger value="ai">
                           <Brain className="h-4 w-4 mr-2" />
@@ -589,6 +594,74 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
                                 O campo será validado automaticamente com verificação de dígito e formatação em tempo real.
                               </p>
                             </div>
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      {/* ABA CÁLCULO */}
+                      <TabsContent value="calculation" className="space-y-4 mt-4">
+                        <div className="space-y-4">
+                          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              Configure fórmulas para calcular valores automaticamente com base em outros campos. Suporta: +, -, *, /, ()
+                            </p>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={(newFieldData as any).calculated || false}
+                              onCheckedChange={(checked) => setNewFieldData({
+                                ...newFieldData,
+                                calculated: checked,
+                                formula: checked ? (newFieldData as any).formula || '' : undefined
+                              } as any)}
+                              data-testid="switch-calculated"
+                            />
+                            <Label>Campo calculado automaticamente</Label>
+                          </div>
+
+                          {(newFieldData as any).calculated && (
+                            <>
+                              <div>
+                                <Label>Fórmula de Cálculo</Label>
+                                <Textarea
+                                  value={(newFieldData as any).formula || ""}
+                                  onChange={(e) => setNewFieldData({
+                                    ...newFieldData,
+                                    formula: e.target.value
+                                  } as any)}
+                                  placeholder="Ex: {quantidade} * {valor_unitario}"
+                                  rows={3}
+                                  data-testid="textarea-formula"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Use {`{nome_do_campo}`} para referenciar outros campos
+                                </p>
+                              </div>
+
+                              <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                                <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-2">
+                                  💡 Exemplos de fórmulas
+                                </p>
+                                <ul className="text-xs text-amber-600 dark:text-amber-400 space-y-1">
+                                  <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">{`{quantidade} * {preco}`}</code> - Multiplica quantidade por preço</li>
+                                  <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">{`{total} * 0.1`}</code> - Calcula 10% do total</li>
+                                  <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">{`{valor1} + {valor2} - {desconto}`}</code> - Soma e subtração</li>
+                                  <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">{`({base} + {adicional}) * {multiplicador}`}</code> - Usa parênteses</li>
+                                </ul>
+                              </div>
+
+                              {(newFieldData as any).formula && (
+                                <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                                  <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                                    ✓ Fórmula configurada
+                                  </p>
+                                  <p className="text-xs text-green-600 dark:text-green-400">
+                                    O campo será calculado automaticamente quando os valores referenciados mudarem.
+                                  </p>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </TabsContent>
