@@ -135,8 +135,9 @@ export const dataConsents = pgTable('data_consents', {
 export const dataSubjectRequests = pgTable('data_subject_requests', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull(),
+  tenantId: uuid('tenant_id').notNull(),
   requestType: dataRequestTypeEnum('request_type').notNull(),
-  status: dataRequestStatusEnum('status').default('pending').notNull(),
+  status: dataRequestStatusEnum('status'),
   
   // Detalhes do pedido
   requestDetails: text('request_details'), // Descrição detalhada 
@@ -145,12 +146,10 @@ export const dataSubjectRequests = pgTable('data_subject_requests', {
   // Processamento
   processedBy: uuid('processed_by'), // ID do usuário que processou
   processedAt: timestamp('processed_at'),
-  dueDate: timestamp('due_date').notNull(), // GDPR exige resposta em 30 dias
   
   // Controle
-  tenantId: uuid('tenant_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at'),
   
   // Auditoria
   notes: text('notes'), // Notas internas

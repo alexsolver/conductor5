@@ -32,8 +32,6 @@ export class DeleteUserDataUseCase {
       console.log('🗑️ [DELETE-USER-DATA] Starting data erasure process:', { userId, tenantId });
 
       // Step 1: Create Data Subject Request (GDPR compliance)
-      const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
-      
       const [dataSubjectRequest] = await db
         .insert(dataSubjectRequests)
         .values({
@@ -42,7 +40,6 @@ export class DeleteUserDataUseCase {
           requestType: 'erasure',
           status: 'in_progress',
           requestDetails: requestDetails || 'Solicitação de exclusão de dados pessoais (Direito ao Esquecimento)',
-          dueDate,
           createdAt: new Date(),
           updatedAt: new Date()
         })
