@@ -3801,7 +3801,9 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       actual_minutes,
       status = 'pending',
       priority = 'medium',
-      is_public = false
+      is_public = false,
+      form_id,
+      form_data
     } = req.body;
 
     // Validate required fields
@@ -3880,9 +3882,13 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       updateFields.push(`priority = $${paramIndex++}`);
       values.push(priority);
     }
-    if (form_template_id !== undefined) {
+    if (form_id !== undefined) {
       updateFields.push(`form_id = $${paramIndex++}`);
-      values.push(form_template_id || null);
+      values.push(form_id || null);
+    }
+    if (form_data !== undefined) {
+      updateFields.push(`form_data = $${paramIndex++}`);
+      values.push(form_data ? JSON.stringify(form_data) : null);
     }
 
     // Always update updated_at
