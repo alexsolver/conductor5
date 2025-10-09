@@ -578,7 +578,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     createActionMutation.mutate(formDataWithTimer);
   };
 
-  // Função para parar o timer (apenas registra end_time e calcula actual_minutes)
+  // Função para parar o timer (registra end_time, calcula actual_minutes e muda status para pendente)
   const handleStopTimer = async () => {
     const now = getLocalDateTimeString();
 
@@ -593,6 +593,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         ...formData,
         end_time: now,
         actual_minutes: diffMinutes.toString(),
+        status: 'pending', // Alterar status para pendente
         form_data: formTemplateData // Salvar dados do formulário
       };
 
@@ -603,7 +604,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         updateActionMutation.mutate(updatedFormData);
         toast({
           title: "Timer Parado",
-          description: `Tempo decorrido: ${diffMinutes} minutos`,
+          description: `Tempo decorrido: ${diffMinutes} minutos. Status alterado para Pendente.`,
         });
       }
     }
