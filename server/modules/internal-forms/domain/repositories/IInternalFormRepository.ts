@@ -18,6 +18,7 @@ export interface InternalFormFilters {
   isActive?: boolean;
   search?: string;
   createdBy?: string;
+  isTemplate?: boolean;
 }
 
 export interface IInternalFormRepository {

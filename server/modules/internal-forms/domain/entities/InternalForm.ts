@@ -19,6 +19,7 @@ export interface InternalForm {
   fields: FormField[];
   actions: FormAction[];
   isActive: boolean;
+  isTemplate?: boolean;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;

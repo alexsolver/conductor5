@@ -63,14 +63,15 @@ export class InternalFormController {
       const tenantId = req.user.tenantId;
       console.log(`[InternalFormController] Getting forms for tenant: ${tenantId}`);
 
-      const { category, isActive, search } = req.query;
+      const { category, isActive, search, isTemplate } = req.query;
 
       // ✅ 1QA.MD: Only return active forms by default (soft delete compliance)
       const filters = {
         tenantId,
         category: category as string,
         isActive: isActive === 'false' ? false : undefined, // Only include inactive if explicitly requested
-        search: search as string
+        search: search as string,
+        isTemplate: isTemplate === 'true' ? true : isTemplate === 'false' ? false : undefined
       };
 
       console.log(`[InternalFormController] Applied filters (active only by default):`, filters);

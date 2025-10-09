@@ -146,6 +146,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       fields: this.safeJSONParse(row.fields, []),
       actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
+      isTemplate: row.is_template || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       createdBy: row.created_by,
@@ -193,6 +194,12 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       paramIndex++;
     }
 
+    if (filters.isTemplate !== undefined) {
+      whereConditions.push(`is_template = $${paramIndex}`);
+      queryParams.push(String(filters.isTemplate));
+      paramIndex++;
+    }
+
     const query = `
       SELECT * FROM "${schemaName}".internal_forms
       WHERE ${whereConditions.join(' AND ')}
@@ -214,6 +221,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       fields: this.safeJSONParse(row.fields, []),
       actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
+      isTemplate: row.is_template || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       createdBy: row.created_by,
@@ -251,6 +259,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       fields: this.safeJSONParse(row.fields, []),
       actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
+      isTemplate: row.is_template || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       createdBy: row.created_by,
@@ -336,6 +345,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       fields: this.safeJSONParse(row.fields, []),
       actions: this.safeJSONParse(row.actions, []),
       isActive: row.is_active,
+      isTemplate: row.is_template || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       createdBy: row.created_by,

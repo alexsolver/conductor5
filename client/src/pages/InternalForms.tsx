@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2, ClipboardList } from "lucide-react";
+import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2, ClipboardList, Layout } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
@@ -30,6 +30,14 @@ export default function InternalForms() {
     queryKey: ['internal-forms'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/internal-forms/forms');
+      return response.json();
+    }
+  });
+
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ['internal-forms-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/internal-forms/forms?isTemplate=true');
       return response.json();
     }
   });
@@ -177,10 +185,14 @@ export default function InternalForms() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
           <TabsTrigger value="forms" data-testid="tab-forms">
             <FileText className="h-4 w-4 mr-2" />
             Formulários
+          </TabsTrigger>
+          <TabsTrigger value="templates" data-testid="tab-templates">
+            <Layout className="h-4 w-4 mr-2" />
+            Templates
           </TabsTrigger>
           <TabsTrigger value="submissions" data-testid="tab-submissions">
             <ClipboardList className="h-4 w-4 mr-2" />
@@ -360,6 +372,111 @@ export default function InternalForms() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6">
+          {/* Templates Description */}
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Layout className="h-8 w-8 text-purple-600" />
+                <div>
+                  <h3 className="font-semibold text-lg">Templates de Formulários</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Use templates pré-configurados para criar formulários rapidamente com metadados IA inclusos
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Templates Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(Array.isArray(templates) ? templates : []).map((template: any) => (
+              <Card key={template.id} className="hover:shadow-lg transition-shadow border-2 border-purple-200 dark:border-purple-800">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <Badge 
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                    >
+                      Template
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">{template.description}</p>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <span>Categoria: {template.category}</span>
+                    <span>{template.fields.length} campos</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      onClick={() => {
+                        const newForm = {
+                          ...template,
+                          id: undefined,
+                          name: `${template.name} (Cópia)`,
+                          isTemplate: false,
+                          createdAt: undefined,
+                          updatedAt: undefined
+                        };
+                        setEditingForm(newForm);
+                        setIsCreateDialogOpen(true);
+                      }}
+                      data-testid={`button-use-template-${template.id}`}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Usar Template
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleViewForm(template)}
+                        data-testid={`button-view-template-${template.id}`}
+                      >
+                        Visualizar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleEditForm(template)}
+                        data-testid={`button-edit-template-${template.id}`}
+                      >
+                        Editar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {templates.length === 0 && !templatesLoading && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Layout className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                  Nenhum template disponível
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Crie templates de formulários marcando a opção "Template" ao criar um formulário
+                </p>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Template
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="submissions" className="space-y-6">
