@@ -409,7 +409,7 @@ export default function AuthPage() {
               {t('auth.welcomeMessage')}
             </h1>
             <p className="text-slate-600 dark:text-slate-300 mt-2">
-              {t('auth.platformDescription')}
+              Your complete support and service management platform
             </p>
           </div>
 
