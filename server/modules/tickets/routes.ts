@@ -1553,6 +1553,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       status = 'pending',
       priority = 'medium',
       is_public = false,
+      form_template_id,
       // Backwards compatibility with old field names
       actionType, 
       workLog, 
