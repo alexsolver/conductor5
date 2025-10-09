@@ -200,9 +200,10 @@ export class RegisterUseCase {
     // Validate input data
     await this.validateRegistrationData(registerData);
 
-    // Check if user already exists
+    // Check if user already exists AND is active
+    // Allow registration if user was deleted via GDPR (is_active: false)
     const existingUser = await this.userRepository.findByEmail(registerData.email);
-    if (existingUser) {
+    if (existingUser && existingUser.isActive) {
       throw new Error('User with this email already exists');
     }
 

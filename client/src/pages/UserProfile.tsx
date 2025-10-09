@@ -1320,7 +1320,16 @@ function GdprTab() {
   });
 
   const deleteDataMutation = useMutation({
-    mutationFn: () => apiRequest('DELETE', '/api/gdpr-compliance/delete-user-data', { requestDetails: 'Direito ao esquecimento - Solicitação via perfil do usuário' }),
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', '/api/gdpr-compliance/delete-user-data', { requestDetails: 'Direito ao esquecimento - Solicitação via perfil do usuário' });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || `Erro HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    },
     onSuccess: (data) => {
       toast({ 
         title: "Dados excluídos com sucesso", 
