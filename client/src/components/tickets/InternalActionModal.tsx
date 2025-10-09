@@ -10,6 +10,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,6 +99,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   const [isPublic, setIsPublic] = useState(false);
   const [formTemplateData, setFormTemplateData] = useState<Record<string, any>>({});
+  const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -674,7 +685,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 // Modo Edição com status "Em Andamento": Apenas botão "Finalizar"
                 <Button
                   type="button"
-                  onClick={handleFinishTimer}
+                  onClick={() => setShowFinishConfirmation(true)}
                   disabled={updateActionMutation.isPending}
                   className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
                   data-testid="button-finish"
@@ -1199,6 +1210,52 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           </Card>
         </div>
       </DialogContent>
+
+      {/* Confirmation Dialog for Finishing Action */}
+      <AlertDialog open={showFinishConfirmation} onOpenChange={setShowFinishConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              Confirmar Finalização da Ação
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p>
+                Você está prestes a finalizar esta ação interna. Esta operação é <strong className="text-red-600">irreversível</strong>.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-900 font-medium">
+                  ⚠️ Após a finalização:
+                </p>
+                <ul className="text-sm text-amber-800 mt-2 space-y-1 ml-4 list-disc">
+                  <li>Nenhum dado poderá ser alterado</li>
+                  <li>Todos os campos serão bloqueados</li>
+                  <li>O status será permanentemente marcado como "Concluído"</li>
+                  <li>A ação não poderá ser reaberta ou editada</li>
+                </ul>
+              </div>
+              <p className="text-sm">
+                Tem certeza de que deseja continuar?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-finish">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowFinishConfirmation(false);
+                handleFinishTimer();
+              }}
+              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
+              data-testid="button-confirm-finish"
+            >
+              Confirmar Finalização
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
