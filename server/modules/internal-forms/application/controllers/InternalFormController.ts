@@ -791,20 +791,22 @@ export class InternalFormController {
       console.log(`🎫 [SubmitTicketForm] Form data:`, JSON.stringify(formData, null, 2));
 
       // 1. Validar CPF/CNPJ
-      const { validateCPF, validateCNPJ } = await import('../../../../utils/validators/brazilian-validators');
+      const { validateCPF, validateCNPJ } = await import('../../../../utils/validators/brazilian');
       const documento = (formData.cpf_cnpj || '').replace(/\D/g, '');
       
-      let isDocumentoValido = false;
+      let validationResult;
       if (documento.length === 11) {
-        isDocumentoValido = validateCPF(documento);
+        validationResult = validateCPF(documento);
       } else if (documento.length === 14) {
-        isDocumentoValido = validateCNPJ(documento);
+        validationResult = validateCNPJ(documento);
+      } else {
+        validationResult = { isValid: false, message: 'Documento deve ter 11 (CPF) ou 14 (CNPJ) dígitos' };
       }
 
-      if (!isDocumentoValido) {
+      if (!validationResult.isValid) {
         return res.status(400).json({
           success: false,
-          message: 'CPF/CNPJ inválido',
+          message: validationResult.message || 'CPF/CNPJ inválido',
           code: 'INVALID_DOCUMENT'
         });
       }
