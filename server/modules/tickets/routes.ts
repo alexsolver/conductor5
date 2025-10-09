@@ -2138,12 +2138,26 @@ ticketsRouter.post('/:id/send-email', jwtAuth, upload.array('attachments'), asyn
       type: file.mimetype,
     })) || [];
 
+    // 📝 Fetch user's email signature
+    let emailSignature = '';
+    try {
+      const userQuery = `SELECT email_signature FROM "public".users WHERE id = $1 AND tenant_id = $2`;
+      const userResult = await pool.query(userQuery, [req.user.id, tenantId]);
+      emailSignature = userResult.rows[0]?.email_signature || '';
+      console.log(`📝 [EMAIL-SIGNATURE] Retrieved signature for user ${req.user.id}: ${emailSignature ? 'found' : 'not set'}`);
+    } catch (sigError) {
+      console.error('❌ [EMAIL-SIGNATURE] Error fetching signature:', sigError);
+    }
+
+    // 📝 Append signature to message if it exists
+    const finalMessage = emailSignature ? `${message}\n\n${emailSignature}` : message;
+
     // Send email using SendGrid with conversationId header
     const emailSent = await SendGridService.sendEmail({
       to,
       from: 'acesso@lansolver.com',
       subject,
-      text: message,
+      text: finalMessage,
       cc: cleanCc,
       bcc: cleanBcc,
       attachments,
