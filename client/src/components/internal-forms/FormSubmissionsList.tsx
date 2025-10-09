@@ -29,6 +29,24 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
     }
   });
 
+  // Busca o formulário quando uma submissão é selecionada
+  const { data: selectedForm } = useQuery({
+    queryKey: ['form', selectedSubmission?.formId],
+    queryFn: async () => {
+      if (!selectedSubmission?.formId) return null;
+      const response = await apiRequest('GET', `/api/internal-forms/forms/${selectedSubmission.formId}`);
+      return response.json();
+    },
+    enabled: !!selectedSubmission?.formId
+  });
+
+  // Função para obter o nome legível do campo
+  const getFieldLabel = (fieldId: string) => {
+    if (!selectedForm?.fields) return fieldId;
+    const field = selectedForm.fields.find((f: any) => f.id === fieldId);
+    return field?.label || fieldId;
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'submitted':
@@ -238,9 +256,9 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
               <div>
                 <h3 className="font-semibold mb-4">Respostas do Formulário</h3>
                 <div className="space-y-4">
-                  {selectedSubmission.formData && Object.entries(selectedSubmission.formData).map(([key, value]: [string, any]) => (
+                  {selectedSubmission.data && Object.entries(selectedSubmission.data).map(([key, value]: [string, any]) => (
                     <div key={key} className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-1">{key}</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">{getFieldLabel(key)}</p>
                       <p className="text-gray-900">{value || '-'}</p>
                     </div>
                   ))}
