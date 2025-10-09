@@ -1,21 +1,18 @@
-import { AiAgent, AiAgentPersonality, AiAgentConversationConfig, AiAgentConfig } from '../../domain/entities/AiAgent';
 import { IAiAgentRepository } from '../../domain/repositories/IAiAgentRepository';
+import { AIAgent } from '../../domain/entities/AiAgent';
 
 export interface CreateAiAgentRequest {
   tenantId: string;
   name: string;
-  description: string;
-  personality: AiAgentPersonality;
-  channels: string[];
-  enabledActions: string[];
-  conversationConfig: AiAgentConversationConfig;
-  aiConfig: AiAgentConfig;
-  priority?: number;
+  description?: string;
+  configPrompt: string;
+  allowedFormIds?: string[];
+  createdBy: string;
 }
 
 export interface CreateAiAgentResponse {
   success: boolean;
-  agent?: AiAgent;
+  agent?: AIAgent;
   error?: string;
 }
 
@@ -26,7 +23,6 @@ export class CreateAiAgentUseCase {
     try {
       console.log(`🤖 [CreateAiAgent] Creating agent "${request.name}" for tenant: ${request.tenantId}`);
 
-      // Validar dados de entrada
       const validation = this.validateRequest(request);
       if (!validation.isValid) {
         return {
@@ -35,32 +31,21 @@ export class CreateAiAgentUseCase {
         };
       }
 
-      // Gerar ID único para o agente
-      const agentId = `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const agent = await this.agentRepository.createAgent({
+        tenantId: request.tenantId,
+        name: request.name,
+        description: request.description,
+        configPrompt: request.configPrompt,
+        allowedFormIds: request.allowedFormIds || [],
+        isActive: true,
+        createdBy: request.createdBy
+      });
 
-      // Criar entidade do agente
-      const agent = new AiAgent(
-        agentId,
-        request.tenantId,
-        request.name,
-        request.description,
-        request.personality,
-        request.channels,
-        request.enabledActions,
-        request.conversationConfig,
-        request.aiConfig,
-        true, // isActive
-        request.priority || 1
-      );
-
-      // Salvar no repositório
-      const savedAgent = await this.agentRepository.create(agent);
-
-      console.log(`✅ [CreateAiAgent] Agent "${request.name}" created successfully with ID: ${agentId}`);
+      console.log(`✅ [CreateAiAgent] Agent "${request.name}" created successfully with ID: ${agent.id}`);
 
       return {
         success: true,
-        agent: savedAgent
+        agent
       };
 
     } catch (error) {
@@ -74,40 +59,23 @@ export class CreateAiAgentUseCase {
 
   private validateRequest(request: CreateAiAgentRequest): { isValid: boolean; error?: string } {
     if (!request.tenantId) {
-      return { isValid: false, error: 'Tenant ID is required' };
+      return { isValid: false, error: 'Tenant ID é obrigatório' };
     }
 
     if (!request.name || request.name.trim().length === 0) {
-      return { isValid: false, error: 'Agent name is required' };
+      return { isValid: false, error: 'Nome do agente é obrigatório' };
     }
 
     if (request.name.length > 255) {
-      return { isValid: false, error: 'Agent name must be less than 255 characters' };
+      return { isValid: false, error: 'Nome do agente deve ter menos de 255 caracteres' };
     }
 
-    if (!request.channels || request.channels.length === 0) {
-      return { isValid: false, error: 'At least one channel must be specified' };
+    if (!request.configPrompt || request.configPrompt.trim().length === 0) {
+      return { isValid: false, error: 'Prompt de configuração é obrigatório' };
     }
 
-    if (!request.enabledActions || request.enabledActions.length === 0) {
-      return { isValid: false, error: 'At least one action must be enabled' };
-    }
-
-    // Validar canais suportados
-    const supportedChannels = ['email', 'whatsapp', 'telegram', 'slack', 'sms'];
-    const invalidChannels = request.channels.filter(channel => !supportedChannels.includes(channel));
-    if (invalidChannels.length > 0) {
-      return { isValid: false, error: `Unsupported channels: ${invalidChannels.join(', ')}` };
-    }
-
-    // Validar ações suportadas
-    const supportedActions = [
-      'send_notification', 'create_ticket', 'send_auto_reply', 'forward_message',
-      'assign_agent', 'add_tags', 'escalate', 'archive', 'mark_priority', 'webhook_call'
-    ];
-    const invalidActions = request.enabledActions.filter(action => !supportedActions.includes(action));
-    if (invalidActions.length > 0) {
-      return { isValid: false, error: `Unsupported actions: ${invalidActions.join(', ')}` };
+    if (!request.createdBy) {
+      return { isValid: false, error: 'Criador do agente é obrigatório' };
     }
 
     return { isValid: true };

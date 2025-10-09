@@ -1,14 +1,13 @@
-import { AiAgent } from '../../domain/entities/AiAgent';
 import { IAiAgentRepository } from '../../domain/repositories/IAiAgentRepository';
+import { AIAgent } from '../../domain/entities/AiAgent';
 
 export interface GetAiAgentsRequest {
   tenantId: string;
-  channelType?: string;
 }
 
 export interface GetAiAgentsResponse {
   success: boolean;
-  agents?: AiAgent[];
+  agents?: AIAgent[];
   error?: string;
 }
 
@@ -19,15 +18,9 @@ export class GetAiAgentsUseCase {
     try {
       console.log(`🤖 [GetAiAgents] Fetching agents for tenant: ${request.tenantId}`);
 
-      let agents: AiAgent[];
-
-      if (request.channelType) {
-        agents = await this.agentRepository.findByChannel(request.channelType, request.tenantId);
-        console.log(`📋 [GetAiAgents] Found ${agents.length} agents for channel: ${request.channelType}`);
-      } else {
-        agents = await this.agentRepository.findByTenantId(request.tenantId);
-        console.log(`📋 [GetAiAgents] Found ${agents.length} total agents`);
-      }
+      const agents = await this.agentRepository.findAgentsByTenant(request.tenantId);
+      
+      console.log(`📋 [GetAiAgents] Found ${agents.length} total agents`);
 
       return {
         success: true,
