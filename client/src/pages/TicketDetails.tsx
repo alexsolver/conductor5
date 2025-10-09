@@ -3643,27 +3643,6 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
-          {/* Custom Information */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Personalize as informações do seu ticket</h3>
-            <p className="text-xs text-gray-500 mb-3">
-              Use os campos de dados do ticket para calcular facilmente detalhes importantes.
-            </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="text-xs">
-                Ativar
-              </Button>
-              <Button variant="ghost" size="sm" className="text-xs">
-                Descartar
-              </Button>
-            </div>
-          </div>
-
-          {/* Skills Section */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Habilidades</h3>
-            <div className="text-xs text-gray-500">Aplicar macro</div>
-          </div>
         </div>
       </div>
 
