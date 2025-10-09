@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -18,19 +18,35 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Eye, X, Info } from "lucide-react";
+import { FileText, Eye, X, Info, Send } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import type { InternalForm } from "@shared/schema-internal-forms";
+import { useToast } from "@/hooks/use-toast";
+import type { InternalForm, FormField } from "@shared/schema-internal-forms";
+import { DynamicFormField } from "./FormFieldComponents";
 
 interface FormTemplateSelectorProps {
   value?: string | null;
   onChange: (formId: string | null) => void;
   actionType?: string;
+  formData?: Record<string, any>;
+  onFormDataChange?: (data: Record<string, any>) => void;
+  ticketId?: string;
+  userId?: string;
 }
 
-export function FormTemplateSelector({ value, onChange, actionType }: FormTemplateSelectorProps) {
+export function FormTemplateSelector({ 
+  value, 
+  onChange, 
+  actionType, 
+  formData = {}, 
+  onFormDataChange,
+  ticketId,
+  userId 
+}: FormTemplateSelectorProps) {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(value || null);
   const [showPreview, setShowPreview] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch all forms
   const { data: forms = [], isLoading } = useQuery<InternalForm[]>({
@@ -145,11 +161,11 @@ export function FormTemplateSelector({ value, onChange, actionType }: FormTempla
         </p>
       </div>
 
-      {/* Form Preview */}
+      {/* Form Preview/Fill */}
       {showPreview && selectedForm && (
         <Card className="border-blue-500 border-2" data-testid="card-form-preview">
           <CardContent className="p-4">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
@@ -172,29 +188,71 @@ export function FormTemplateSelector({ value, onChange, actionType }: FormTempla
 
               <Separator className="my-3" />
 
-              <div className="space-y-2">
-                <h5 className="text-sm font-medium">Campos do formulário:</h5>
-                <div className="grid gap-2">
-                  {Array.isArray(selectedForm.fields) && selectedForm.fields.map((field: any, index: number) => (
-                    <div
-                      key={field.id || index}
-                      className="flex items-center justify-between p-2 bg-accent rounded text-sm"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{field.label}</span>
-                        {field.required && (
-                          <Badge variant="destructive" className="text-xs">
-                            Obrigatório
-                          </Badge>
-                        )}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {field.type}
-                      </Badge>
-                    </div>
+              <div className="space-y-3">
+                <h5 className="text-sm font-medium">Preencha os campos do formulário:</h5>
+                {Array.isArray(selectedForm.fields) && selectedForm.fields
+                  .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
+                  .map((field: FormField) => (
+                    <DynamicFormField
+                      key={field.id}
+                      field={field}
+                      value={formData[field.name]}
+                      onChange={(value) => {
+                        if (onFormDataChange) {
+                          onFormDataChange({
+                            ...formData,
+                            [field.name]: value
+                          });
+                        }
+                      }}
+                    />
                   ))}
-                </div>
               </div>
+
+              {ticketId && userId && (
+                <>
+                  <Separator className="my-3" />
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const response = await apiRequest('POST', '/api/internal-forms/submissions', {
+                            form_id: selectedFormId,
+                            submitted_by: userId,
+                            form_data: formData,
+                            ticket_id: ticketId
+                          });
+
+                          if (response.ok) {
+                            toast({
+                              title: "Sucesso",
+                              description: "Formulário submetido com sucesso!",
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['internal-form-submissions'] });
+                            if (onFormDataChange) {
+                              onFormDataChange({});
+                            }
+                          } else {
+                            throw new Error('Failed to submit form');
+                          }
+                        } catch (error) {
+                          console.error('Error submitting form:', error);
+                          toast({
+                            title: "Erro",
+                            description: "Falha ao submeter o formulário",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Submeter Formulário
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

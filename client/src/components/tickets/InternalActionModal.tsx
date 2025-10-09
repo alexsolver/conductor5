@@ -89,7 +89,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   const [isPublic, setIsPublic] = useState(false);
   const [formTemplateData, setFormTemplateData] = useState<Record<string, any>>({});
-  const [isFormSubmissionModalOpen, setIsFormSubmissionModalOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -658,32 +657,20 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 </div>
 
                 {/* Form Template Selector */}
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <FormTemplateSelector
-                      value={formData.form_id}
-                      onChange={(formId) => {
-                        setFormData(prev => ({ ...prev, form_id: formId }));
-                        if (!formId) {
-                          setFormTemplateData({});
-                        }
-                      }}
-                      actionType={formData.action_type}
-                    />
-                  </div>
-                  {formData.form_id && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setIsFormSubmissionModalOpen(true)}
-                      className="h-10 w-10"
-                      data-testid="button-open-form-submission"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                <FormTemplateSelector
+                  value={formData.form_id}
+                  onChange={(formId) => {
+                    setFormData(prev => ({ ...prev, form_id: formId }));
+                    if (!formId) {
+                      setFormTemplateData({});
+                    }
+                  }}
+                  actionType={formData.action_type}
+                  formData={formTemplateData}
+                  onFormDataChange={setFormTemplateData}
+                  ticketId={ticketId}
+                  userId={currentUser?.id}
+                />
 
                 {/* Custom Form Fields */}
                 {formData.form_id && selectedFormTemplate && selectedFormTemplate.fields && (
@@ -1023,86 +1010,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           </Card>
         </div>
       </DialogContent>
-
-      {/* Form Submission Modal */}
-      <Dialog open={isFormSubmissionModalOpen} onOpenChange={setIsFormSubmissionModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Preencher Formulário: {selectedFormTemplate?.name}
-            </DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo e submeta o formulário
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {selectedFormTemplate?.fields && Array.isArray(selectedFormTemplate.fields) && 
-              selectedFormTemplate.fields
-                .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
-                .map((field: FormField) => (
-                  <DynamicFormField
-                    key={field.id}
-                    field={field}
-                    value={formTemplateData[field.name]}
-                    onChange={(value) => {
-                      setFormTemplateData(prev => ({
-                        ...prev,
-                        [field.name]: value
-                      }));
-                    }}
-                  />
-                ))}
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsFormSubmissionModalOpen(false)}
-            >
-              Fechar
-            </Button>
-            <Button
-              type="button"
-              onClick={async () => {
-                try {
-                  // Submit the form
-                  const response = await apiRequest('POST', '/api/internal-forms/submissions', {
-                    form_id: formData.form_id,
-                    submitted_by: currentUser?.id || 'system',
-                    form_data: formTemplateData,
-                    ticket_id: ticketId
-                  });
-
-                  if (response.ok) {
-                    toast({
-                      title: "Sucesso",
-                      description: "Formulário submetido com sucesso!",
-                    });
-                    setIsFormSubmissionModalOpen(false);
-                    queryClient.invalidateQueries({ queryKey: ['internal-form-submissions'] });
-                  } else {
-                    throw new Error('Failed to submit form');
-                  }
-                } catch (error) {
-                  console.error('Error submitting form:', error);
-                  toast({
-                    title: "Erro",
-                    description: "Falha ao submeter o formulário",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Submeter Formulário
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Dialog>
   );
 }
