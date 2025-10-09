@@ -174,7 +174,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       // Remove the default is_active = true condition and add the explicit one
       whereConditions = whereConditions.filter(c => !c.includes('is_active'));
       whereConditions.push(`is_active = $${paramIndex}`);
-      queryParams.push(filters.isActive);
+      queryParams.push(String(filters.isActive));
       paramIndex++;
     }
 

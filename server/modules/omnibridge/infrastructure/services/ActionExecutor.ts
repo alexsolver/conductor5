@@ -3700,7 +3700,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
             tenantId,
             ticketId: context.messageData.ticketId || null,
             actionId: null,
-            submittedBy: sender, // AI Agent user identifier
+            submittedBy: agentId, // AI Agent identifier
             data: response.collectedData,
             status: 'submitted'
           });
