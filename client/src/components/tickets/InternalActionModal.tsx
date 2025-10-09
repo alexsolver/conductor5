@@ -245,6 +245,34 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     };
   }, [formTemplateData, formData.form_id, editAction, ticketId, isOpen]);
 
+  // Auto-calculate actual_minutes when start_time and end_time change
+  useEffect(() => {
+    if (formData.start_time && formData.end_time) {
+      // Parse the datetime-local values
+      const [startDatePart, startTimePart] = formData.start_time.split('T');
+      const [startYear, startMonth, startDay] = startDatePart.split('-').map(Number);
+      const [startHour, startMinute] = startTimePart.split(':').map(Number);
+
+      const [endDatePart, endTimePart] = formData.end_time.split('T');
+      const [endYear, endMonth, endDay] = endDatePart.split('-').map(Number);
+      const [endHour, endMinute] = endTimePart.split(':').map(Number);
+
+      // Create dates in local timezone
+      const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute);
+      const endDate = new Date(endYear, endMonth - 1, endDay, endHour, endMinute);
+
+      // Calculate difference in minutes
+      const diffMs = endDate.getTime() - startDate.getTime();
+      const diffMinutes = Math.floor(diffMs / 60000);
+
+      // Only update if positive and different from current value
+      if (diffMinutes > 0 && formData.actual_minutes !== diffMinutes.toString()) {
+        console.log('⏱️ [AUTO-CALC] Calculating actual minutes:', { startDate, endDate, diffMinutes });
+        setFormData(prev => ({ ...prev, actual_minutes: diffMinutes.toString() }));
+      }
+    }
+  }, [formData.start_time, formData.end_time]);
+
   // Fetch team members for assignment dropdown
   // This query is no longer strictly necessary for the agent assignment but can be kept for other potential uses or removed if unused.
   const { data: teamMembersData } = useQuery({
