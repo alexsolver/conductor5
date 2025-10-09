@@ -27,6 +27,9 @@ import {
   ChevronDown,
   ChevronRight,
   GitBranch,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { RelatedTicketsExpansion } from "./RelatedTicketsExpansion";
@@ -79,6 +82,9 @@ interface ResponsiveTicketsTableProps {
   showColumnSearch?: boolean;
   columnSearchValues?: Record<string, string>;
   onColumnSearchChange?: (columnId: string, value: string) => void;
+  sortColumn?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSortChange?: (columnId: string, direction: 'asc' | 'desc') => void;
 }
 
 // Loading Skeleton Component
@@ -109,6 +115,9 @@ export const ResponsiveTicketsTable = ({
   showColumnSearch = false,
   columnSearchValues = {},
   onColumnSearchChange,
+  sortColumn,
+  sortDirection,
+  onSortChange,
 }: ResponsiveTicketsTableProps) => {
   console.log('🎯 [ResponsiveTicketsTable] Received visibleColumns:', visibleColumns.length, 'columns');
   const { t } = useTranslation();
@@ -168,35 +177,75 @@ export const ResponsiveTicketsTable = ({
             </TableHead>
           </TableRow>
           {showColumnSearch && (
-            <TableRow role="row" className="bg-gray-50">
+            <TableRow role="row" className="bg-gray-50 dark:bg-gray-800">
               {columnsToRender.map((column: any) => {
                 const columnId = column.id || column.label?.toLowerCase().replace(/\s+/g, '_');
+                const isActiveSort = sortColumn === columnId;
+                
                 return (
                   <TableHead key={`search-${columnId}`} className="py-2">
-                    <Input
-                      placeholder="Filtrar (pressione Enter)"
-                      value={tempSearchValues[columnId] ?? columnSearchValues[columnId] ?? ''}
-                      onChange={(e) => {
-                        setTempSearchValues(prev => ({
-                          ...prev,
-                          [columnId]: e.target.value
-                        }));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          const value = e.currentTarget.value;
-                          onColumnSearchChange?.(columnId, value);
-                          // Limpa o valor temporário após executar a pesquisa
-                          setTempSearchValues(prev => {
-                            const newValues = { ...prev };
-                            delete newValues[columnId];
-                            return newValues;
-                          });
-                        }
-                      }}
-                      className="h-8 text-sm"
-                      data-testid={`input-column-search-${columnId}`}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        placeholder="Filtrar (pressione Enter)"
+                        value={tempSearchValues[columnId] ?? columnSearchValues[columnId] ?? ''}
+                        onChange={(e) => {
+                          setTempSearchValues(prev => ({
+                            ...prev,
+                            [columnId]: e.target.value
+                          }));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const value = e.currentTarget.value;
+                            onColumnSearchChange?.(columnId, value);
+                            // Limpa o valor temporário após executar a pesquisa
+                            setTempSearchValues(prev => {
+                              const newValues = { ...prev };
+                              delete newValues[columnId];
+                              return newValues;
+                            });
+                          }
+                        }}
+                        className="h-8 text-sm flex-1"
+                        data-testid={`input-column-search-${columnId}`}
+                      />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            data-testid={`button-sort-${columnId}`}
+                          >
+                            {isActiveSort ? (
+                              sortDirection === 'asc' ? (
+                                <ArrowUp className="h-4 w-4 text-blue-600" />
+                              ) : (
+                                <ArrowDown className="h-4 w-4 text-blue-600" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="h-4 w-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => onSortChange?.(columnId, 'asc')}
+                            className="cursor-pointer"
+                          >
+                            <ArrowUp className="h-4 w-4 mr-2" />
+                            Crescente
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onSortChange?.(columnId, 'desc')}
+                            className="cursor-pointer"
+                          >
+                            <ArrowDown className="h-4 w-4 mr-2" />
+                            Decrescente
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableHead>
                 );
               })}

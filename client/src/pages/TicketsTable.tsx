@@ -240,6 +240,10 @@ const TicketsTable = React.memo(() => {
   const [showColumnSearch, setShowColumnSearch] = useState(false);
   const [columnSearchValues, setColumnSearchValues] = useState<Record<string, string>>({});
 
+  // Estados para ordenação de colunas
+  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
@@ -841,75 +845,131 @@ const TicketsTable = React.memo(() => {
     }
 
     // 2. Aplicar pesquisa por coluna (se ativa)
-    if (!showColumnSearch || Object.keys(columnSearchValues).length === 0) {
-      return filtered;
+    if (showColumnSearch && Object.keys(columnSearchValues).length > 0) {
+      filtered = filtered.filter((ticket: any) => {
+        return Object.entries(columnSearchValues).every(([columnId, searchValue]) => {
+          if (!searchValue || searchValue.trim() === '') return true;
+
+          const searchLower = searchValue.toLowerCase();
+
+          switch (columnId) {
+            case 'number':
+              const ticketNumber = ticket.number || `#${ticket.id.slice(-8)}`;
+              return ticketNumber.toLowerCase().includes(searchLower);
+            
+            case 'subject':
+              return ticket.subject?.toLowerCase().includes(searchLower);
+            
+            case 'description':
+              return ticket.description?.toLowerCase().includes(searchLower);
+            
+            case 'customer':
+              const customerName = ticket.caller_name || ticket.customer_name || 
+                `${ticket.caller_first_name || ''} ${ticket.caller_last_name || ''}`.trim() ||
+                `${ticket.customer_first_name || ''} ${ticket.customer_last_name || ''}`.trim() ||
+                ticket.caller?.fullName || ticket.customer?.fullName || '';
+              return customerName.toLowerCase().includes(searchLower);
+            
+            case 'company':
+              const companyName = ticket.company_name || ticket.caller_company_name || '';
+              return companyName.toLowerCase().includes(searchLower);
+            
+            case 'category':
+              return ticket.category?.toLowerCase().includes(searchLower);
+            
+            case 'subcategory':
+              return ticket.subcategory?.toLowerCase().includes(searchLower);
+            
+            case 'status':
+              return ticket.status?.toLowerCase().includes(searchLower);
+            
+            case 'priority':
+              return ticket.priority?.toLowerCase().includes(searchLower);
+            
+            case 'impact':
+              return ticket.impact?.toLowerCase().includes(searchLower);
+            
+            case 'urgency':
+              return ticket.urgency?.toLowerCase().includes(searchLower);
+            
+            case 'assigned_to':
+              const assignedName = ticket.assignedTo?.firstName && ticket.assignedTo?.lastName
+                ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()
+                : '';
+              return assignedName.toLowerCase().includes(searchLower);
+            
+            case 'location':
+              return ticket.location?.toLowerCase().includes(searchLower);
+            
+            case 'tags':
+              const tags = Array.isArray(ticket.tags) ? ticket.tags.join(' ') : '';
+              return tags.toLowerCase().includes(searchLower);
+            
+            default:
+              return true;
+          }
+        });
+      });
     }
 
-    return filtered.filter((ticket: any) => {
-      return Object.entries(columnSearchValues).every(([columnId, searchValue]) => {
-        if (!searchValue || searchValue.trim() === '') return true;
+    // 3. Aplicar ordenação (se ativa)
+    if (sortColumn && sortDirection) {
+      filtered = [...filtered].sort((a: any, b: any) => {
+        let aValue: any;
+        let bValue: any;
 
-        const searchLower = searchValue.toLowerCase();
-
-        switch (columnId) {
+        switch (sortColumn) {
           case 'number':
-            const ticketNumber = ticket.number || `#${ticket.id.slice(-8)}`;
-            return ticketNumber.toLowerCase().includes(searchLower);
+            aValue = a.number || `#${a.id.slice(-8)}`;
+            bValue = b.number || `#${b.id.slice(-8)}`;
+            break;
           
           case 'subject':
-            return ticket.subject?.toLowerCase().includes(searchLower);
-          
-          case 'description':
-            return ticket.description?.toLowerCase().includes(searchLower);
+            aValue = a.subject || '';
+            bValue = b.subject || '';
+            break;
           
           case 'customer':
-            const customerName = ticket.caller_name || ticket.customer_name || 
-              `${ticket.caller_first_name || ''} ${ticket.caller_last_name || ''}`.trim() ||
-              `${ticket.customer_first_name || ''} ${ticket.customer_last_name || ''}`.trim() ||
-              ticket.caller?.fullName || ticket.customer?.fullName || '';
-            return customerName.toLowerCase().includes(searchLower);
+            aValue = a.caller_name || a.customer_name || '';
+            bValue = b.caller_name || b.customer_name || '';
+            break;
           
           case 'company':
-            const companyName = ticket.company_name || ticket.caller_company_name || '';
-            return companyName.toLowerCase().includes(searchLower);
+            aValue = a.company_name || a.caller_company_name || '';
+            bValue = b.company_name || b.caller_company_name || '';
+            break;
           
           case 'category':
-            return ticket.category?.toLowerCase().includes(searchLower);
-          
           case 'subcategory':
-            return ticket.subcategory?.toLowerCase().includes(searchLower);
-          
           case 'status':
-            return ticket.status?.toLowerCase().includes(searchLower);
-          
           case 'priority':
-            return ticket.priority?.toLowerCase().includes(searchLower);
-          
           case 'impact':
-            return ticket.impact?.toLowerCase().includes(searchLower);
-          
           case 'urgency':
-            return ticket.urgency?.toLowerCase().includes(searchLower);
-          
-          case 'assigned_to':
-            const assignedName = ticket.assignedTo?.firstName && ticket.assignedTo?.lastName
-              ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()
-              : '';
-            return assignedName.toLowerCase().includes(searchLower);
-          
           case 'location':
-            return ticket.location?.toLowerCase().includes(searchLower);
+            aValue = a[sortColumn] || '';
+            bValue = b[sortColumn] || '';
+            break;
           
-          case 'tags':
-            const tags = Array.isArray(ticket.tags) ? ticket.tags.join(' ') : '';
-            return tags.toLowerCase().includes(searchLower);
+          case 'created_at':
+          case 'updated_at':
+            aValue = a[sortColumn] ? new Date(a[sortColumn]).getTime() : 0;
+            bValue = b[sortColumn] ? new Date(b[sortColumn]).getTime() : 0;
+            break;
           
           default:
-            return true;
+            aValue = a[sortColumn] || '';
+            bValue = b[sortColumn] || '';
         }
+
+        // Comparação
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
       });
-    });
-  }, [tickets, columnSearchValues, showColumnSearch, activeView]);
+    }
+
+    return filtered;
+  }, [tickets, columnSearchValues, showColumnSearch, activeView, sortColumn, sortDirection]);
 
   // 🔧 [1QA-COMPLIANCE] Paginação seguindo Clean Architecture
   const pagination = useMemo(() => {
@@ -3317,6 +3377,12 @@ const TicketsTable = React.memo(() => {
                 ...prev,
                 [columnId]: value
               }));
+            }}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSortChange={(columnId: string, direction: 'asc' | 'desc') => {
+              setSortColumn(columnId);
+              setSortDirection(direction);
             }}
           />
         </CardContent>
