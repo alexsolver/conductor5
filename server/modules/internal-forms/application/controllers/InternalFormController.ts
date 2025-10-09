@@ -417,7 +417,13 @@ export class InternalFormController {
         submissions = await this.internalFormRepository.findAllSubmissions(tenantId);
       }
 
-      res.status(200).json(submissions);
+      // ✅ 1QA.MD: Filtrar submissões originadas de ações internas (ticket_id preenchido)
+      // Apenas mostrar submissões feitas diretamente em /internal-forms (sem ticket_id)
+      const directSubmissions = submissions.filter((submission: any) => !submission.ticketId);
+
+      console.log(`✅ [InternalFormController] Filtered ${submissions.length} submissions to ${directSubmissions.length} direct submissions (excluded ticket actions)`);
+
+      res.status(200).json(directSubmissions);
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getSubmissions:', error);
 
