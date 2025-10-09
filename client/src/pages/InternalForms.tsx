@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2, ClipboardList, Layout } from "lucide-react";
+import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2, ClipboardList, Layout, Copy } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
@@ -75,6 +75,39 @@ export default function InternalForms() {
     }
   });
 
+  const duplicateFormMutation = useMutation({
+    mutationFn: async (form: any) => {
+      const response = await apiRequest('POST', '/api/internal-forms/forms', {
+        name: `${form.name} (Cópia)`,
+        description: form.description,
+        category: form.category,
+        fields: form.fields,
+        actions: form.actions || [],
+        isActive: true,
+        isTemplate: false, // Duplicata sempre vira formulário normal
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao duplicar formulário');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Formulário duplicado com sucesso!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['internal-forms'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao duplicar formulário",
+        variant: "destructive",
+      });
+    }
+  });
+
   const submitFormMutation = useMutation({
     mutationFn: async ({ formId, data }: { formId: string; data: Record<string, any> }) => {
       const response = await apiRequest('POST', '/api/internal-forms/submissions', {
@@ -122,6 +155,10 @@ export default function InternalForms() {
     if (window.confirm('Tem certeza que deseja excluir este formulário?')) {
       deleteFormMutation.mutate(formId);
     }
+  };
+
+  const handleDuplicateForm = (form: any) => {
+    duplicateFormMutation.mutate(form);
   };
 
   const handleCloseDialog = () => {
@@ -337,6 +374,15 @@ export default function InternalForms() {
                   <Button 
                     variant="outline" 
                     size="sm"
+                    onClick={() => handleDuplicateForm(form)}
+                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    data-testid={`button-duplicate-form-${form.id}`}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => handleDeleteForm(form.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     data-testid={`button-delete-form-${form.id}`}
@@ -417,43 +463,21 @@ export default function InternalForms() {
                       variant="default" 
                       size="sm" 
                       className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                      onClick={() => {
-                        const newForm = {
-                          ...template,
-                          id: undefined,
-                          name: `${template.name} (Cópia)`,
-                          isTemplate: false,
-                          createdAt: undefined,
-                          updatedAt: undefined
-                        };
-                        setEditingForm(newForm);
-                        setIsCreateDialogOpen(true);
-                      }}
+                      onClick={() => handleDuplicateForm(template)}
                       data-testid={`button-use-template-${template.id}`}
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Copy className="h-4 w-4 mr-2" />
                       Usar Template
                     </Button>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => handleViewForm(template)}
-                        data-testid={`button-view-template-${template.id}`}
-                      >
-                        Visualizar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => handleEditForm(template)}
-                        data-testid={`button-edit-template-${template.id}`}
-                      >
-                        Editar
-                      </Button>
-                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handleViewForm(template)}
+                      data-testid={`button-view-template-${template.id}`}
+                    >
+                      Visualizar
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
