@@ -30,20 +30,23 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
   });
 
   // Busca o formulário quando uma submissão é selecionada
-  const { data: selectedForm } = useQuery({
+  const { data: selectedFormResponse } = useQuery({
     queryKey: ['form', selectedSubmission?.formId],
     queryFn: async () => {
       if (!selectedSubmission?.formId) return null;
       const response = await apiRequest('GET', `/api/internal-forms/forms/${selectedSubmission.formId}`);
-      return response.json();
+      const json = await response.json();
+      return json.data || json;
     },
     enabled: !!selectedSubmission?.formId
   });
 
   // Função para obter o nome legível do campo
   const getFieldLabel = (fieldId: string) => {
-    if (!selectedForm?.fields) return fieldId;
-    const field = selectedForm.fields.find((f: any) => f.id === fieldId);
+    if (!selectedFormResponse?.fields) {
+      return fieldId;
+    }
+    const field = selectedFormResponse.fields.find((f: any) => f.id === fieldId);
     return field?.label || fieldId;
   };
 
