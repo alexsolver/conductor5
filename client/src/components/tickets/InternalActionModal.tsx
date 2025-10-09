@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
@@ -162,6 +162,45 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       }
     }
   }, [isOpen, editAction, currentUser?.id]); // Depend on currentUser?.id
+
+  // Auto-save form data when it changes
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstRenderRef = useRef(true);
+
+  useEffect(() => {
+    // Skip auto-save on first render and when modal is closed
+    if (isFirstRenderRef.current || !isOpen || !editAction) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Only auto-save if there's a form selected and data to save
+    if (formData.form_id && Object.keys(formTemplateData).length > 0) {
+      autoSaveTimeoutRef.current = setTimeout(async () => {
+        try {
+          console.log('💾 [AUTO-SAVE] Saving form data...', formTemplateData);
+          await apiRequest('PATCH', `/api/tickets/${ticketId}/actions/${editAction.id}`, {
+            form_data: formTemplateData
+          });
+          console.log('✅ [AUTO-SAVE] Form data saved successfully');
+        } catch (error) {
+          console.error('❌ [AUTO-SAVE] Error saving form data:', error);
+        }
+      }, 1000); // Debounce: wait 1 second after last change
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formTemplateData, formData.form_id, editAction, ticketId, isOpen]);
 
   // Fetch team members for assignment dropdown
   // This query is no longer strictly necessary for the agent assignment but can be kept for other potential uses or removed if unused.
