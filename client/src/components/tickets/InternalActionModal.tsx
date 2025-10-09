@@ -717,12 +717,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 <Button
                   type="button"
                   onClick={handleStopTimer}
-                  disabled={updateActionMutation.isPending}
-                  className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-semibold"
+                  disabled={updateActionMutation.isPending || !!formData.end_time}
+                  className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-semibold disabled:opacity-50"
                   data-testid="button-stop-timer"
                 >
                   <Clock className="w-4 h-4 mr-2" />
-                  Parar Timer
+                  {formData.end_time ? "Timer Parado" : "Parar Timer"}
                 </Button>
               ) : null}
             </div>
