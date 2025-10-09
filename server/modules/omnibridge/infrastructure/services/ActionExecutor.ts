@@ -3602,14 +3602,14 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
     try {
       console.log(`🤖 [AI-AGENT-INTERVIEW] Starting interview action for message: ${context.messageData.content}`);
 
-      const agentId = action.params?.agentId;
-      const allowedFormIds = action.params?.allowedFormIds || [];
+      const agentId = action.config?.agentId;
+      const allowedFormIds = action.config?.allowedFormIds || [];
       
       if (!agentId) {
         return {
           success: false,
           message: 'AI Agent ID not provided',
-          error: 'Missing agentId in action params'
+          error: 'Missing agentId in action config'
         };
       }
 
@@ -3617,15 +3617,91 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const userMessage = context.messageData.content || context.messageData.body || '';
       const sender = context.messageData.sender || context.messageData.from || 'unknown';
       const channelType = context.messageData.channelType || context.messageData.channel;
+      const conversationId = context.messageData.metadata?.conversationId || sender;
 
       console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId}, Forms: ${allowedFormIds.length}, User: ${sender}, Channel: ${channelType}`);
       
-      // Por enquanto, apenas enviar uma resposta automática de que o agente está processando
-      const responseMessage = `🤖 Olá! Sou um agente inteligente.\n\n` +
-        `Recebi sua mensagem: "${userMessage}"\n\n` +
-        `Em breve, terei a capacidade de conduzir entrevistas completas e preencher formulários automaticamente!`;
+      // 1. Buscar agente do banco
+      const { DrizzleAiAgentRepository } = await import('../repositories/DrizzleAiAgentRepository');
+      const aiAgentRepo = new DrizzleAiAgentRepository();
+      const agent = await aiAgentRepo.findById(agentId, tenantId);
+      
+      if (!agent) {
+        console.error(`❌ [AI-AGENT-INTERVIEW] Agent ${agentId} not found`);
+        return { success: false, message: 'AI Agent not found', error: 'Agent not found in database' };
+      }
 
-      console.log(`💬 [AI-AGENT-INTERVIEW] Sending response: ${responseMessage}`);
+      // 2. Buscar formulário permitido (usar o primeiro por enquanto)
+      if (allowedFormIds.length === 0) {
+        return { success: false, message: 'No forms allowed for this agent', error: 'Empty allowedFormIds' };
+      }
+
+      const { DrizzleInternalFormRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormRepository');
+      const formRepo = new DrizzleInternalFormRepository();
+      const form = await formRepo.findById(allowedFormIds[0], tenantId);
+      
+      if (!form) {
+        console.error(`❌ [AI-AGENT-INTERVIEW] Form ${allowedFormIds[0]} not found`);
+        return { success: false, message: 'Form not found', error: 'Form not found in database' };
+      }
+
+      // 3. Gerenciar estado da entrevista
+      const { ConversationalInterviewEngine } = await import('./ConversationalInterviewEngine');
+      const { InterviewStateManager } = await import('./InterviewStateManager');
+      
+      const stateManager = InterviewStateManager.getInstance();
+      const interviewEngine = new ConversationalInterviewEngine();
+      
+      let interviewState = await stateManager.getState(conversationId);
+      let responseMessage: string;
+      let isComplete = false;
+      
+      if (!interviewState) {
+        // Iniciar nova entrevista
+        console.log(`🆕 [AI-AGENT-INTERVIEW] Starting new interview for conversation ${conversationId}`);
+        const response = await interviewEngine.startInterview(agent, form);
+        responseMessage = response.message;
+        
+        // Salvar estado inicial
+        await stateManager.setState(conversationId, {
+          formId: form.id,
+          fields: form.fields,
+          currentFieldIndex: 0,
+          collectedData: {},
+          conversationHistory: [{ role: 'agent', content: responseMessage }]
+        });
+      } else {
+        // Processar resposta do usuário
+        console.log(`📝 [AI-AGENT-INTERVIEW] Processing user response for conversation ${conversationId}`);
+        const response = await interviewEngine.processResponse(agent, form, interviewState, userMessage);
+        responseMessage = response.message;
+        isComplete = response.isComplete;
+        
+        if (isComplete && response.collectedData) {
+          // 5. Salvar dados do formulário
+          console.log(`💾 [AI-AGENT-INTERVIEW] Interview complete, saving form submission`);
+          const { DrizzleInternalFormSubmissionRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormSubmissionRepository');
+          const submissionRepo = new DrizzleInternalFormSubmissionRepository();
+          
+          await submissionRepo.create({
+            formId: form.id,
+            userId: null, // AI Agent submission
+            data: response.collectedData,
+            status: 'completed',
+            submittedAt: new Date(),
+            tenantId
+          });
+          
+          // Limpar estado da entrevista
+          await stateManager.clearState(conversationId);
+          console.log(`✅ [AI-AGENT-INTERVIEW] Form submission saved and interview state cleared`);
+        } else {
+          // Atualizar estado com nova resposta
+          await stateManager.setState(conversationId, interviewState);
+        }
+      }
+
+      console.log(`💬 [AI-AGENT-INTERVIEW] Sending response: ${responseMessage.substring(0, 100)}...`);
 
       // ✅ Send response back to user via appropriate channel
       let success = false;
@@ -3644,13 +3720,6 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       } else {
         console.error(`❌ [AI-AGENT-INTERVIEW] Failed to send response via ${channelType}`);
       }
-
-      // TODO: Implementar lógica completa com ConversationalInterviewEngine
-      // 1. Buscar agente do banco
-      // 2. Buscar formulário permitido
-      // 3. Gerenciar estado da entrevista
-      // 4. Processar resposta do usuário
-      // 5. Enviar próxima pergunta ou salvar dados
 
       return {
         success: success,
