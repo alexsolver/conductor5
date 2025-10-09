@@ -59,6 +59,9 @@ export default function SimpleAiAgentConfig({ config, onChange }: SimpleAiAgentC
   const forms = formsResponse?.data ?? [];
   const selectedAgent = selectedAgentResponse?.data;
 
+  // Track if agent data has been loaded to prevent overwriting user changes
+  const [agentLoaded, setAgentLoaded] = useState(false);
+
   useEffect(() => {
     if (selectedAgentId === 'new') {
       onChange({
@@ -68,7 +71,9 @@ export default function SimpleAiAgentConfig({ config, onChange }: SimpleAiAgentC
         configPrompt: config.configPrompt || 'Você é um assistente prestativo e cordial. Conduza entrevistas de forma natural e amigável.',
         allowedFormIds: config.allowedFormIds || []
       });
-    } else if (selectedAgent) {
+      setAgentLoaded(true);
+    } else if (selectedAgent && !agentLoaded) {
+      // Only load agent data on first load, not on subsequent re-renders
       onChange({
         agentId: selectedAgent.id,
         name: selectedAgent.name,
@@ -76,8 +81,14 @@ export default function SimpleAiAgentConfig({ config, onChange }: SimpleAiAgentC
         configPrompt: selectedAgent.configPrompt,
         allowedFormIds: selectedAgent.allowedFormIds
       });
+      setAgentLoaded(true);
     }
-  }, [selectedAgentId, selectedAgent]);
+  }, [selectedAgentId, selectedAgent, agentLoaded]);
+
+  // Reset agentLoaded flag when agent selection changes
+  useEffect(() => {
+    setAgentLoaded(false);
+  }, [selectedAgentId]);
 
   const handleFormToggle = (formId: string, checked: boolean) => {
     const currentForms = config.allowedFormIds || [];
