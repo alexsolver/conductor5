@@ -849,13 +849,14 @@ export class InternalFormController {
       // 3. Buscar ou criar location (se atendimento local)
       let locationId = null;
       if (formData.tipo_atendimento === 'Local' && formData.cep) {
-        const { validateCEP } = await import('../../../../utils/validators/brazilian-validators');
+        const { validateCEP } = await import('../../../../utils/validators/brazilian');
         const cep = formData.cep.replace(/\D/g, '');
         
-        if (!validateCEP(cep)) {
+        const cepValidation = validateCEP(cep);
+        if (!cepValidation.isValid) {
           return res.status(400).json({
             success: false,
-            message: 'CEP inválido',
+            message: cepValidation.message || 'CEP inválido',
             code: 'INVALID_CEP'
           });
         }
