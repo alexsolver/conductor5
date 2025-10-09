@@ -483,7 +483,7 @@ export default function UserProfile() {
 
       {/* Tabs Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-7">
           <TabsTrigger value="personal" className="text-xs md:text-sm">
             <User className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Pessoal</span>
@@ -513,6 +513,11 @@ export default function UserProfile() {
             <Bell className="h-4 w-4 mr-1 md:mr-2" />
             <span className="hidden sm:inline">Notificações</span>
             <span className="sm:hidden">Not</span>
+          </TabsTrigger>
+          <TabsTrigger value="privacy-gdpr" className="text-xs md:text-sm">
+            <Lock className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">GDPR</span>
+            <span className="sm:hidden">GDPR</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1260,17 +1265,17 @@ export default function UserProfile() {
               ) : null}
             </TabsContent>
 
-        {/* Privacy & GDPR/LGPD Tab - Seguindo 1qa.md */}
+        {/* GDPR Tab - Seguindo 1qa.md */}
         <TabsContent value="privacy-gdpr">
-          <PrivacyGdprTab />
+          <GdprTab />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-// ✅ Componente Privacidade & GDPR/LGPD - Seguindo especificações rigorosas do 1qa.md
-function PrivacyGdprTab() {
+// ✅ Componente GDPR - Seguindo especificações rigorosas do 1qa.md
+function GdprTab() {
   const { toast } = useToast();
   const [showPolicyDialog, setShowPolicyDialog] = useState(false); // ✅ Estado para modal seguindo 1qa.md
 
@@ -1347,7 +1352,7 @@ function PrivacyGdprTab() {
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Lock className="h-5 w-5" />
-          <span>Privacidade & GDPR/LGPD</span>
+          <span>GDPR / LGPD</span>
         </CardTitle>
         <CardDescription>
           Gerencie suas preferências de privacidade e direitos de proteção de dados
