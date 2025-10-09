@@ -151,9 +151,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         });
         setIsPublic(editAction.is_public || false);
         // Load form data if exists
+        console.log('📋 [FORM-DATA-LOAD] editAction.form_data:', editAction.form_data, typeof editAction.form_data);
         if (editAction.form_data && typeof editAction.form_data === 'object') {
+          console.log('✅ [FORM-DATA-LOAD] Loading form data:', editAction.form_data);
           setFormTemplateData(editAction.form_data);
         } else {
+          console.log('⚠️ [FORM-DATA-LOAD] No form data to load');
           setFormTemplateData({});
         }
       } else {
@@ -175,14 +178,24 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   }, [isOpen, editAction]);
 
   useEffect(() => {
+    console.log('🔍 [AUTO-SAVE-CHECK] Triggered', { 
+      initialLoad: initialLoadRef.current, 
+      isOpen, 
+      hasEditAction: !!editAction,
+      formId: formData.form_id,
+      dataKeys: Object.keys(formTemplateData).length 
+    });
+
     // Skip on initial load (when form data is first set from editAction)
     if (initialLoadRef.current) {
+      console.log('⏭️ [AUTO-SAVE] Skipping - initial load');
       initialLoadRef.current = false;
       return;
     }
 
     // Skip when modal is closed or no action to edit
     if (!isOpen || !editAction) {
+      console.log('⏭️ [AUTO-SAVE] Skipping - modal closed or no edit action');
       return;
     }
 
@@ -193,6 +206,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
     // Only auto-save if there's a form selected and data to save
     if (formData.form_id && Object.keys(formTemplateData).length > 0) {
+      console.log('⏰ [AUTO-SAVE] Scheduling save in 1s...', { formId: formData.form_id, dataKeys: Object.keys(formTemplateData) });
       autoSaveTimeoutRef.current = setTimeout(async () => {
         try {
           console.log('💾 [AUTO-SAVE] Saving form data...', formTemplateData);
@@ -204,6 +218,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           console.error('❌ [AUTO-SAVE] Error saving form data:', error);
         }
       }, 1000); // Debounce: wait 1 second after last change
+    } else {
+      console.log('⏭️ [AUTO-SAVE] Skipping - no form selected or no data', { 
+        hasFormId: !!formData.form_id, 
+        dataLength: Object.keys(formTemplateData).length 
+      });
     }
 
     // Cleanup timeout on unmount
@@ -753,33 +772,50 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 />
 
                 {/* Custom Form Fields */}
-                {formData.form_id && selectedFormTemplate && selectedFormTemplate.fields && (
-                  <Card className="border-2 border-blue-500">
-                    <CardContent className="pt-6 space-y-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <h4 className="font-semibold text-blue-900">
-                          Formulário: {selectedFormTemplate.name}
-                        </h4>
-                      </div>
-                      {Array.isArray(selectedFormTemplate.fields) && selectedFormTemplate.fields
-                        .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
-                        .map((field: FormField) => (
-                          <DynamicFormField
-                            key={field.id}
-                            field={field}
-                            value={formTemplateData[field.name]}
-                            onChange={(value) => {
-                              setFormTemplateData(prev => ({
-                                ...prev,
-                                [field.name]: value
-                              }));
-                            }}
-                          />
-                        ))}
-                    </CardContent>
-                  </Card>
-                )}
+                {(() => {
+                  console.log('🔍 [FORM-RENDER-CHECK]', {
+                    hasFormId: !!formData.form_id,
+                    hasTemplate: !!selectedFormTemplate,
+                    hasFields: !!selectedFormTemplate?.fields,
+                    templateData: formTemplateData,
+                    formId: formData.form_id
+                  });
+                  
+                  if (formData.form_id && selectedFormTemplate && selectedFormTemplate.fields) {
+                    return (
+                      <Card className="border-2 border-blue-500">
+                        <CardContent className="pt-6 space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <h4 className="font-semibold text-blue-900">
+                              Formulário: {selectedFormTemplate.name}
+                            </h4>
+                          </div>
+                          {Array.isArray(selectedFormTemplate.fields) && selectedFormTemplate.fields
+                            .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
+                            .map((field: FormField) => {
+                              console.log(`🔍 [FIELD-RENDER] ${field.name}:`, formTemplateData[field.name]);
+                              return (
+                                <DynamicFormField
+                                  key={field.id}
+                                  field={field}
+                                  value={formTemplateData[field.name]}
+                                  onChange={(value) => {
+                                    console.log(`📝 [FIELD-CHANGE] ${field.name}:`, value);
+                                    setFormTemplateData(prev => ({
+                                      ...prev,
+                                      [field.name]: value
+                                    }));
+                                  }}
+                                />
+                              );
+                            })}
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {/* Tempo Estimado e Tempo Realizado */}
                 <div className="grid grid-cols-2 gap-4">
