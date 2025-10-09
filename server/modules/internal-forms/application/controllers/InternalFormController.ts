@@ -767,4 +767,185 @@ export class InternalFormController {
       }
     }
   }
+
+  /**
+   * Submit ticket form and create ticket with automatic client/location creation
+   * POST /api/internal-forms/submit-ticket-form
+   */
+  async submitTicketForm(req: AuthenticatedRequest, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'application/json');
+
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const tenantId = req.user.tenantId;
+      const userId = req.user.id;
+      const formData = req.body.formData;
+
+      console.log(`🎫 [SubmitTicketForm] Processing ticket form for tenant: ${tenantId}`);
+      console.log(`🎫 [SubmitTicketForm] Form data:`, JSON.stringify(formData, null, 2));
+
+      // 1. Validar CPF/CNPJ
+      const { validateCPF, validateCNPJ } = await import('../../../../utils/validators/brazilian-validators');
+      const documento = (formData.cpf_cnpj || '').replace(/\D/g, '');
+      
+      let isDocumentoValido = false;
+      if (documento.length === 11) {
+        isDocumentoValido = validateCPF(documento);
+      } else if (documento.length === 14) {
+        isDocumentoValido = validateCNPJ(documento);
+      }
+
+      if (!isDocumentoValido) {
+        return res.status(400).json({
+          success: false,
+          message: 'CPF/CNPJ inválido',
+          code: 'INVALID_DOCUMENT'
+        });
+      }
+
+      // 2. Buscar ou criar cliente
+      let customer = null;
+      if (this.customerRepository) {
+        const existingCustomers = await this.customerRepository.findAll({ tenantId });
+        customer = existingCustomers.find(c => 
+          (c.cpf && c.cpf.replace(/\D/g, '') === documento) ||
+          (c.cnpj && c.cnpj.replace(/\D/g, '') === documento)
+        );
+
+        if (!customer) {
+          console.log(`🆕 [SubmitTicketForm] Cliente não encontrado, criando novo...`);
+          const newCustomer = {
+            id: uuidv4(),
+            tenantId,
+            name: formData.nome_cliente,
+            type: documento.length === 11 ? 'individual' as const : 'company' as const,
+            cpf: documento.length === 11 ? documento : undefined,
+            cnpj: documento.length === 14 ? documento : undefined,
+            phone: formData.telefone,
+            email: formData.email || undefined,
+            isActive: true,
+            verified: false,
+            tags: [],
+            metadata: {},
+            createdById: userId,
+            updatedById: userId
+          };
+
+          customer = await this.customerRepository.create(newCustomer);
+          console.log(`✅ [SubmitTicketForm] Cliente criado: ${customer.id}`);
+        } else {
+          console.log(`✅ [SubmitTicketForm] Cliente encontrado: ${customer.id}`);
+        }
+      }
+
+      // 3. Buscar ou criar location (se atendimento local)
+      let locationId = null;
+      if (formData.tipo_atendimento === 'Local' && formData.cep) {
+        const { validateCEP } = await import('../../../../utils/validators/brazilian-validators');
+        const cep = formData.cep.replace(/\D/g, '');
+        
+        if (!validateCEP(cep)) {
+          return res.status(400).json({
+            success: false,
+            message: 'CEP inválido',
+            code: 'INVALID_CEP'
+          });
+        }
+
+        // Buscar location existente por CEP
+        const db = await getTenantDb(tenantId);
+        const { locations } = await import('@shared/schema-locations');
+        const { eq } = await import('drizzle-orm');
+        
+        const existingLocations = await db.select()
+          .from(locations)
+          .where(eq(locations.zipCode, cep));
+
+        if (existingLocations.length > 0) {
+          locationId = existingLocations[0].id;
+          console.log(`✅ [SubmitTicketForm] Location encontrada: ${locationId}`);
+        } else {
+          // Criar nova location
+          const newLocation = {
+            id: uuidv4(),
+            tenantId,
+            name: formData.endereco_completo || `Endereço ${cep}`,
+            zipCode: cep,
+            street: '',
+            number: '',
+            city: '',
+            state: '',
+            country: 'Brasil',
+            type: 'service_location' as const,
+            createdById: userId,
+            updatedById: userId,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+
+          const result = await db.insert(locations).values(newLocation).returning();
+          locationId = result[0].id;
+          console.log(`✅ [SubmitTicketForm] Location criada: ${locationId}`);
+        }
+      }
+
+      // 4. Criar ticket
+      const { CreateTicketUseCase } = await import('../../../tickets/application/use-cases/CreateTicketUseCase');
+      const { DrizzleTicketRepository } = await import('../../../tickets/infrastructure/repositories/DrizzleTicketRepository');
+      
+      const ticketRepo = new DrizzleTicketRepository();
+      const createTicketUseCase = new CreateTicketUseCase(ticketRepo);
+
+      const urgencyMap: { [key: string]: 'low' | 'medium' | 'high' | 'critical' } = {
+        'Baixa': 'low',
+        'Média': 'medium',
+        'Alta': 'high',
+        'Crítica': 'critical'
+      };
+
+      const ticketData = {
+        subject: formData.titulo_ticket,
+        description: formData.descricao_problema,
+        status: 'new' as const,
+        priority: 'medium' as const,
+        urgency: urgencyMap[formData.urgencia] || 'medium' as const,
+        impact: 'medium' as const,
+        category: formData.categoria,
+        subcategory: 'Automação',
+        customerId: customer?.id,
+        locationId: locationId || undefined,
+        createdById: userId
+      };
+
+      const ticket = await createTicketUseCase.execute(ticketData, tenantId);
+      console.log(`✅ [SubmitTicketForm] Ticket criado: ${ticket.number}`);
+
+      // 5. Retornar número do ticket
+      return res.status(201).json({
+        success: true,
+        ticketNumber: ticket.number,
+        ticketId: ticket.id,
+        customerId: customer?.id,
+        locationId: locationId,
+        message: `Seu ticket número ${ticket.number} foi criado com sucesso!`
+      });
+
+    } catch (error) {
+      console.error('❌ [SubmitTicketForm] Error:', error);
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Erro ao criar ticket',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  }
 }

@@ -101,4 +101,11 @@ router.post('/submissions', (req, res) => internalFormController.createSubmissio
  */
 router.post('/entity/search-or-create', (req, res) => internalFormController.searchOrCreateEntity(req, res));
 
+/**
+ * POST /api/internal-forms/submit-ticket-form
+ * Submit ticket form with automatic client/location creation and ticket generation
+ * Returns ticket number for AI agent response
+ */
+router.post('/submit-ticket-form', (req, res) => internalFormController.submitTicketForm(req, res));
+
 export default router;
