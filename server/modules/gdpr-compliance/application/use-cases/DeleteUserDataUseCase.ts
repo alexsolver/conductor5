@@ -93,14 +93,14 @@ export class DeleteUserDataUseCase {
         .update(dataSubjectRequests)
         .set({
           status: 'completed',
-          completedAt: new Date(),
+          processedAt: new Date(),
           updatedAt: new Date(),
-          responseData: {
+          responseDetails: JSON.stringify({
             anonymizedAt: new Date().toISOString(),
             originalEmail: userData.email,
             anonymizedEmail,
             dataRetained: ['audit_logs', 'gdpr_requests'] // Required by law
-          }
+          })
         })
         .where(eq(dataSubjectRequests.id, dataSubjectRequest.id));
 
