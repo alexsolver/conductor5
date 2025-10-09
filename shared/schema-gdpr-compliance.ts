@@ -149,11 +149,7 @@ export const dataSubjectRequests = pgTable('data_subject_requests', {
   
   // Controle
   createdAt: timestamp('created_at'),
-  updatedAt: timestamp('updated_at'),
-  
-  // Auditoria
-  notes: text('notes'), // Notas internas
-  attachments: jsonb('attachments') // Documentos relacionados
+  updatedAt: timestamp('updated_at')
 });
 
 // ✅ 8. Auditoria e Log de Ações Sensíveis
