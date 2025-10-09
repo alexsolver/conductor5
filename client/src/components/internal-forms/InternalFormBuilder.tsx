@@ -44,6 +44,7 @@ import {
   Brain,
   Shield,
   Calculator,
+  MapPin,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -80,6 +81,7 @@ const FIELD_TYPES: Array<{ value: FormFieldType; label: string; icon: any }> = [
   { value: 'rating', label: 'Avaliação', icon: Star },
   { value: 'signature', label: 'Assinatura', icon: PenTool },
   { value: 'user_select', label: 'Seleção de Usuário', icon: Users },
+  { value: 'geolocation', label: 'Geolocalização', icon: MapPin },
 ];
 
 // ========================================
@@ -822,6 +824,57 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
                                   onChange={(e) => setNewFieldData({ ...newFieldData, maxDate: e.target.value } as any)}
                                   data-testid="input-date-max"
                                 />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* GEOLOCATION - Configurações de mapa e detecção */}
+                          {newFieldData.type === 'geolocation' && (
+                            <div className="col-span-2 space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={(newFieldData as any).autoDetect !== false}
+                                  onCheckedChange={(checked) => setNewFieldData({ ...newFieldData, autoDetect: checked } as any)}
+                                  data-testid="switch-geo-autodetect"
+                                />
+                                <Label>Auto-detectar localização (GPS)</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={(newFieldData as any).allowManualEntry !== false}
+                                  onCheckedChange={(checked) => setNewFieldData({ ...newFieldData, allowManualEntry: checked } as any)}
+                                  data-testid="switch-geo-manual"
+                                />
+                                <Label>Permitir entrada manual via CEP</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={(newFieldData as any).showMap !== false}
+                                  onCheckedChange={(checked) => setNewFieldData({ ...newFieldData, showMap: checked } as any)}
+                                  data-testid="switch-geo-map"
+                                />
+                                <Label>Mostrar mapa interativo</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={(newFieldData as any).allowMarkerDrag !== false}
+                                  onCheckedChange={(checked) => setNewFieldData({ ...newFieldData, allowMarkerDrag: checked } as any)}
+                                  data-testid="switch-geo-drag"
+                                />
+                                <Label>Permitir mover marcador no mapa</Label>
+                              </div>
+                              <div>
+                                <Label>Zoom inicial do mapa</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).mapZoom || 15}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, mapZoom: Number(e.target.value) } as any)}
+                                  placeholder="15"
+                                  min={1}
+                                  max={20}
+                                  data-testid="input-geo-zoom"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">1 = mundo inteiro, 20 = rua</p>
                               </div>
                             </div>
                           )}

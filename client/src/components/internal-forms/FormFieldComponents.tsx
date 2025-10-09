@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FormField } from "@shared/schema-internal-forms";
+import GeolocationField from "./fields/GeolocationField";
 
 interface FormFieldComponentProps {
   field: FormField;
@@ -699,6 +700,30 @@ export function DynamicFormField(props: FormFieldComponentProps) {
       return <RatingField {...props} />;
     case 'signature':
       return <SignatureField {...props} />;
+    case 'geolocation':
+      const geoField = field.type === 'geolocation' ? field : null;
+      return (
+        <div className="space-y-2">
+          <Label>
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
+          </Label>
+          <GeolocationField
+            value={props.value}
+            onChange={props.onChange}
+            required={field.required}
+            allowManualEntry={geoField?.allowManualEntry}
+            autoDetect={geoField?.autoDetect}
+            showMap={geoField?.showMap}
+            mapZoom={geoField?.mapZoom}
+            allowMarkerDrag={geoField?.allowMarkerDrag}
+          />
+          {field.helpText && (
+            <p className="text-sm text-muted-foreground">{field.helpText}</p>
+          )}
+          {props.error && <p className="text-sm text-red-500">{props.error}</p>}
+        </div>
+      );
     default:
       return <TextField {...props} />;
   }
