@@ -158,7 +158,8 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     
     const schemaName = this.getSchemaName(filters.tenantId);
     
-    let whereConditions = ['tenant_id = $1'];
+    // ✅ 1QA.MD: Always filter by tenant_id AND is_active = true by default
+    let whereConditions = ['tenant_id = $1', 'is_active = true'];
     let queryParams = [filters.tenantId];
     let paramIndex = 2;
 
@@ -168,7 +169,10 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       paramIndex++;
     }
 
-    if (filters.isActive !== undefined) {
+    // Only override is_active filter if explicitly provided
+    if (filters.isActive === false) {
+      // Remove the default is_active = true condition and add the explicit one
+      whereConditions = whereConditions.filter(c => !c.includes('is_active'));
       whereConditions.push(`is_active = $${paramIndex}`);
       queryParams.push(filters.isActive);
       paramIndex++;
@@ -195,7 +199,11 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       ORDER BY created_at DESC
     `;
 
+    console.log(`🔍 [InternalFormRepository] Query: ${query}`, queryParams);
+
     const result = await this.pool.query(query, queryParams);
+
+    console.log(`✅ [InternalFormRepository] Found ${result.rows.length} active forms`);
 
     return result.rows.map(row => ({
       id: row.id,

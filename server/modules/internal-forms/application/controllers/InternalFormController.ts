@@ -59,18 +59,19 @@ export class InternalFormController {
 
       const { category, isActive, search } = req.query;
       
+      // ✅ 1QA.MD: Only return active forms by default (soft delete compliance)
       const filters = {
         tenantId,
         category: category as string,
-        isActive: isActive !== undefined ? isActive === 'true' : undefined,
+        isActive: isActive === 'false' ? false : undefined, // Only include inactive if explicitly requested
         search: search as string
       };
 
-      console.log(`[InternalFormController] Applied filters:`, filters);
+      console.log(`[InternalFormController] Applied filters (active only by default):`, filters);
 
       const forms = await this.internalFormRepository.findAll(filters);
 
-      console.log(`✅ [InternalFormController] Found ${forms.length} forms`);
+      console.log(`✅ [InternalFormController] Found ${forms.length} active forms`);
 
       // ✅ CRITICAL FIX - Ensure proper JSON response format per 1qa.md compliance
       res.status(200).json(forms);
