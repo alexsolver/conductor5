@@ -74,29 +74,82 @@ export function ActionConfigModal({
     }
   });
 
-  const handleSave = async () => {
-    // If AI Agent Interview action and agentId is 'new', create the agent first
-    if ((action?.type === 'ai_agent' || action?.type === 'ai_agent_interview') && config.agentId === 'new') {
-      try {
-        const agentData = {
-          name: config.name || 'Novo Agente Entrevistador',
-          description: config.description || 'Agente para preencher formulários através de entrevistas',
-          configPrompt: config.configPrompt || 'Você é um assistente prestativo e cordial. Conduza entrevistas de forma natural e amigável.',
-          allowedFormIds: config.allowedFormIds || [],
-          isActive: true
-        };
-
-        const result = await createAgentMutation.mutateAsync(agentData);
+  // Mutation to update AI agent
+  const updateAgentMutation = useMutation({
+    mutationFn: async ({ id, agentData }: { id: string; agentData: any }) => {
+      const response = await apiRequest('PUT', `/api/omnibridge/ai-agents/agents/${id}`, agentData);
+      if (!response.ok) {
+        throw new Error('Failed to update AI agent');
+      }
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.data) {
+        // Invalidate agents queries to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/omnibridge/ai-agents/agents', data.data.id] });
         
-        if (result.success && result.data) {
-          // Update config with the new agent ID
-          const updatedConfig = { ...config, agentId: result.data.id };
-          onSave(updatedConfig);
-          onClose();
+        toast({
+          title: 'Agente atualizado com sucesso!',
+          description: `Agente "${data.data.name}" foi atualizado.`
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao atualizar agente',
+        description: error.message || 'Tente novamente',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleSave = async () => {
+    // If AI Agent Interview action
+    if (action?.type === 'ai_agent' || action?.type === 'ai_agent_interview') {
+      if (config.agentId === 'new') {
+        // Create new agent
+        try {
+          const agentData = {
+            name: config.name || 'Novo Agente Entrevistador',
+            description: config.description || 'Agente para preencher formulários através de entrevistas',
+            configPrompt: config.configPrompt || 'Você é um assistente prestativo e cordial. Conduza entrevistas de forma natural e amigável.',
+            allowedFormIds: config.allowedFormIds || [],
+            isActive: true
+          };
+
+          const result = await createAgentMutation.mutateAsync(agentData);
+          
+          if (result.success && result.data) {
+            // Update config with the new agent ID
+            const updatedConfig = { ...config, agentId: result.data.id };
+            onSave(updatedConfig);
+            onClose();
+          }
+        } catch (error) {
+          // Error is handled by mutation onError
+          return;
         }
-      } catch (error) {
-        // Error is handled by mutation onError
-        return;
+      } else if (config.agentId) {
+        // Update existing agent
+        try {
+          const agentData = {
+            name: config.name || 'Agente Entrevistador',
+            description: config.description || 'Agente para preencher formulários através de entrevistas',
+            configPrompt: config.configPrompt || 'Você é um assistente prestativo e cordial. Conduza entrevistas de forma natural e amigável.',
+            allowedFormIds: config.allowedFormIds || [],
+            isActive: true
+          };
+
+          await updateAgentMutation.mutateAsync({ id: config.agentId, agentData });
+          
+          // Save the automation config as well
+          onSave(config);
+          onClose();
+        } catch (error) {
+          // Error is handled by mutation onError
+          return;
+        }
       }
     } else {
       onSave(config);
@@ -501,13 +554,13 @@ export function ActionConfigModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={createAgentMutation.isPending} data-testid="button-cancel">
+          <Button variant="outline" onClick={onClose} disabled={createAgentMutation.isPending || updateAgentMutation.isPending} data-testid="button-cancel">
             <X className="h-4 w-4 mr-2" />
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={createAgentMutation.isPending} data-testid="button-save">
+          <Button onClick={handleSave} disabled={createAgentMutation.isPending || updateAgentMutation.isPending} data-testid="button-save">
             <Save className="h-4 w-4 mr-2" />
-            {createAgentMutation.isPending ? 'Criando agente...' : 'Salvar Configuração'}
+            {createAgentMutation.isPending ? 'Criando agente...' : updateAgentMutation.isPending ? 'Atualizando agente...' : 'Salvar Configuração'}
           </Button>
         </DialogFooter>
       </DialogContent>
