@@ -57,6 +57,17 @@ export type FormSubmissionStatus = z.infer<typeof FormSubmissionStatusEnum>;
 // FIELD DEFINITION SCHEMAS
 // ========================================
 
+// AI Metadata Schema - Instruções invisíveis para IA preencher formulários
+export const AIMetadataSchema = z.object({
+  aiPrompt: z.string().optional(), // Prompt/instruções para a IA sobre este campo
+  extractionHints: z.string().optional(), // Dicas de como extrair/validar o valor
+  autoActions: z.array(z.string()).optional(), // Ações automáticas: search_client, create_if_not_found, etc
+  examples: z.array(z.string()).optional(), // Exemplos de valores válidos para a IA
+  aiValidation: z.string().optional(), // Validação pré-envio pela IA
+}).optional();
+
+export type AIMetadata = z.infer<typeof AIMetadataSchema>;
+
 const BaseFieldSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Nome do campo é obrigatório"),
@@ -67,6 +78,9 @@ const BaseFieldSchema = z.object({
   helpText: z.string().optional(),
   defaultValue: z.any().optional(),
   order: z.number().default(0),
+  
+  // Metadados para IA (invisível para usuário)
+  aiMetadata: AIMetadataSchema,
 });
 
 const TextFieldSchema = BaseFieldSchema.extend({
@@ -164,6 +178,11 @@ export const internalForms = pgTable('internal_forms', {
   color: varchar('color', { length: 7 }).default('#3B82F6'),
   fields: jsonb('fields').notNull().default('[]'),
   conditionalLogic: jsonb('conditional_logic').default('{}'),
+  
+  // Recursos Avançados
+  validationRules: jsonb('validation_rules').default('{}'), // Regras de validação (CPF, CNPJ, cross-field, etc)
+  calculationFormulas: jsonb('calculation_formulas').default('{}'), // Fórmulas matemáticas para campos calculados
+  
   isActive: boolean('is_active').notNull().default(true),
   isTemplate: boolean('is_template').default(false),
   version: integer('version').default(1),
