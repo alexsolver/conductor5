@@ -5,7 +5,7 @@
  * @version 2.0.0
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -178,9 +178,21 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
     enabled: !!formId,
   });
 
-  // Load existing form data
-  useMemo(() => {
-    if (existingForm) {
+  // Load existing form data - useEffect to properly react to data changes
+  useEffect(() => {
+    if (existingForm && existingForm.data) {
+      const formData = existingForm.data;
+      setFormName(formData.name || "");
+      setFormDescription(formData.description || "");
+      setFormCategory(formData.category || "Geral");
+      setFormIcon(formData.icon || "FileText");
+      setFormColor(formData.color || "#3B82F6");
+      setIsActive(formData.isActive ?? true);
+      setFields(Array.isArray(formData.fields) ? formData.fields : []);
+      
+      console.log('✅ [InternalFormBuilder] Loaded existing form fields:', formData.fields);
+    } else if (existingForm) {
+      // Handle case where data is at root level
       setFormName(existingForm.name || "");
       setFormDescription(existingForm.description || "");
       setFormCategory(existingForm.category || "Geral");
@@ -188,6 +200,8 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
       setFormColor(existingForm.color || "#3B82F6");
       setIsActive(existingForm.isActive ?? true);
       setFields(Array.isArray(existingForm.fields) ? existingForm.fields : []);
+      
+      console.log('✅ [InternalFormBuilder] Loaded existing form fields (root):', existingForm.fields);
     }
   }, [existingForm]);
 

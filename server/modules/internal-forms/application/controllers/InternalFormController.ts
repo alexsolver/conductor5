@@ -112,13 +112,19 @@ export class InternalFormController {
       if (!form) {
         return res.status(404).json({
           success: false,
-          message: 'Formulário não encontrado'
+          message: 'Formulário não encontrado',
+          timestamp: new Date().toISOString(),
+          code: 'FORM_NOT_FOUND'
         });
       }
 
+      console.log(`✅ [InternalFormController] Form retrieved with ${form.fields?.length || 0} fields`);
+
+      // ✅ 1QA.MD: Return consistent JSON response
       res.status(200).json({
         success: true,
-        data: form
+        data: form,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getFormById:', error);
