@@ -48,6 +48,14 @@ export interface RegisterDTO {
   phone?: string;
   companySize?: string;
   role?: UserRole;
+  
+  // GDPR Consents
+  acceptPrivacyPolicy?: boolean;
+  acceptCookiesNecessary?: boolean;
+  acceptCookiesAnalytics?: boolean;
+  acceptCookiesMarketing?: boolean;
+  privacyPolicyId?: string;
+  privacyPolicyVersion?: string;
 }
 
 export interface RefreshTokenDTO {

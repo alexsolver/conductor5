@@ -1,12 +1,14 @@
 import { hash } from 'bcryptjs';
-import { RegisterDTO } from '../../dtos/RegisterDTO';
-import { User } from '../../models/User';
-import { Tenant } from '../../models/Tenant';
-import { AuthTokens } from '../../services/AuthService';
-import { IUserRepository } from '../../repositories/IUserRepository';
-import { IPasswordHasher } from '../../services/IPasswordHasher';
-import { ITokenService } from '../../services/ITokenService';
-import { ITenantRepository } from '../../repositories/ITenantRepository';
+import { RegisterDTO } from '../dto/AuthDTO';
+import { User } from '../../domain/models/User';
+import { Tenant } from '../../domain/models/Tenant';
+import { AuthTokens } from '../services/TokenService';
+import { IUserRepository } from '../../infrastructure/repositories/IUserRepository';
+import { IPasswordHasher } from '../services/IPasswordHasher';
+import { ITokenService } from '../services/ITokenService';
+import { ITenantRepository } from '../../infrastructure/repositories/ITenantRepository';
+import { db } from '../../../../db';
+import { cookieConsents, privacyPolicyAcceptances } from '@shared/schema-gdpr-compliance';
 
 interface RegisterUseCaseDependencies {
   userRepository: IUserRepository;
@@ -132,6 +134,66 @@ export class RegisterUseCase {
     }
   }
 
+  private async saveGdprConsents(
+    registerData: RegisterDTO,
+    userId: string,
+    tenantId: string,
+    req?: any
+  ): Promise<void> {
+    try {
+      console.log('🔐 [REGISTER-USE-CASE] Saving GDPR consents for user:', userId);
+
+      const pool = require('../../../../db').pool;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const ipAddress = req?.ip || req?.connection?.remoteAddress;
+      const userAgent = req?.get('user-agent');
+
+      // Save privacy policy acceptance
+      if (registerData.acceptPrivacyPolicy && registerData.privacyPolicyId) {
+        await pool.query(`
+          INSERT INTO "${schemaName}".privacy_policy_acceptances (
+            user_id, policy_id, policy_version, policy_type, accepted, ip_address, user_agent, tenant_id
+          ) VALUES ($1, $2, $3, 'privacy_policy', true, $4, $5, $6)
+        `, [
+          userId,
+          registerData.privacyPolicyId,
+          registerData.privacyPolicyVersion || '1.0',
+          ipAddress,
+          userAgent,
+          tenantId
+        ]);
+        console.log('✅ [REGISTER-USE-CASE] Privacy policy acceptance saved');
+      }
+
+      // Save cookie consents
+      const cookieTypes = [
+        { type: 'cookies_necessary', granted: true }, // Always true
+        { type: 'cookies_statistics', granted: registerData.acceptCookiesAnalytics || false },
+        { type: 'cookies_marketing', granted: registerData.acceptCookiesMarketing || false }
+      ];
+
+      for (const cookie of cookieTypes) {
+        await pool.query(`
+          INSERT INTO "${schemaName}".cookie_consents (
+            user_id, consent_type, granted, consent_version, ip_address, user_agent, tenant_id
+          ) VALUES ($1, $2, $3, '1.0', $4, $5, $6)
+        `, [
+          userId,
+          cookie.type,
+          cookie.granted,
+          ipAddress,
+          userAgent,
+          tenantId
+        ]);
+      }
+
+      console.log('✅ [REGISTER-USE-CASE] Cookie consents saved');
+    } catch (error) {
+      console.error('❌ [REGISTER-USE-CASE] Failed to save GDPR consents:', error);
+      // Don't throw error to avoid breaking registration flow
+    }
+  }
+
   async execute(registerData: RegisterDTO): Promise<{ user: User; tenant: Tenant; tokens: AuthTokens }> {
     console.log('🔐 [REGISTER-USE-CASE] Starting registration process for:', registerData.email);
 
@@ -159,6 +221,11 @@ export class RegisterUseCase {
       // Create/Update company data if tenant_admin and company data provided
       if (user.role === 'tenant_admin' && registerData.companyName) {
         await this.createOrUpdateCompany(registerData, tenant.id, user.id);
+      }
+
+      // Save GDPR consents if provided
+      if (registerData.acceptPrivacyPolicy) {
+        await this.saveGdprConsents(registerData, user.id, tenant.id);
       }
 
       // Generate tokens
