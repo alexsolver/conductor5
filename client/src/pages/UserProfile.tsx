@@ -172,6 +172,16 @@ export default function UserProfile() {
     return () => clearTimeout(timer);
   }, [emailSignature]);
 
+  // Apply dark mode to document
+  useEffect(() => {
+    const darkModeEnabled = (preferences as any)?.data?.darkMode ?? false;
+    if (darkModeEnabled) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [preferences]);
+
   // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
