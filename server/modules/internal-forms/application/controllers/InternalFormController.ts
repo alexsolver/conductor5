@@ -449,15 +449,20 @@ export class InternalFormController {
       console.log(`[InternalFormController] Creating submission for tenant: ${tenantId}`);
       console.log(`[InternalFormController] Request body:`, JSON.stringify(req.body, null, 2));
 
+      // Support both camelCase and snake_case for form_id
+      const formId = req.body.formId || req.body.form_id;
+      const formData = req.body.data || req.body.form_data;
+      const submittedBy = req.body.submittedBy || req.body.submitted_by || userId;
+
       // Validação básica
-      if (!req.body.formId) {
+      if (!formId) {
         return res.status(400).json({
           success: false,
           message: 'Form ID é obrigatório'
         });
       }
 
-      if (!req.body.data || typeof req.body.data !== 'object') {
+      if (!formData || typeof formData !== 'object') {
         return res.status(400).json({
           success: false,
           message: 'Dados do formulário são obrigatórios'
@@ -467,9 +472,9 @@ export class InternalFormController {
       const submissionData: FormSubmission = {
         id: uuidv4(),
         tenantId,
-        formId: req.body.formId,
-        submittedBy: userId,
-        data: req.body.data,
+        formId: formId,
+        submittedBy: submittedBy,
+        data: formData,
         submittedAt: new Date(),
         status: req.body.status || 'submitted'
       };
