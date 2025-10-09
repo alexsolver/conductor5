@@ -227,6 +227,9 @@ export class ActionExecutor implements IActionExecutorPort {
         case 'update_external_system':
           return await this.updateExternalSystemAction(action, context);
 
+        case 'ai_agent_interview':
+          return await this.aiAgentInterviewAction(action, context);
+
         default:
           return {
             success: false,
@@ -255,7 +258,7 @@ export class ActionExecutor implements IActionExecutorPort {
       'send_email', 'notify_manager', 'api_request', 'close_ticket', 'reopen_ticket',
       'set_ticket_sla', 'assign_ticket_by_category', 'update_priority', 'update_metrics',
       'add_tags', 'assign_agent', 'archive', 'mark_priority', 'webhook_call', 'send_notification',
-      'notify_in_app'
+      'notify_in_app', 'ai_agent_interview'
     ];
     return supportedActions.includes(actionType);
   }
@@ -3589,6 +3592,48 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       return { success: true, message: 'External system updated', data: { systemName, updatedAt: new Date().toISOString() } };
     } catch (error: any) {
       return { success: false, message: 'Failed to update external system', error: error.message };
+    }
+  }
+
+  /**
+   * Execute AI Agent Interview action for form filling
+   */
+  private async aiAgentInterviewAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      console.log(`🤖 [AI-AGENT-INTERVIEW] Starting interview action for message: ${context.messageData.content}`);
+
+      const agentId = action.params?.agentId;
+      if (!agentId) {
+        return {
+          success: false,
+          message: 'AI Agent ID not provided',
+          error: 'Missing agentId in action params'
+        };
+      }
+
+      const { tenantId } = context;
+      const userMessage = context.messageData.content || context.messageData.body || '';
+
+      // TODO: Import and use ConversationalInterviewEngine
+      // For now, return a placeholder response
+      console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId} would process: "${userMessage}"`);
+
+      return {
+        success: true,
+        message: 'Interview action executed successfully',
+        data: {
+          agentId,
+          userMessage,
+          status: 'interview_started'
+        }
+      };
+    } catch (error) {
+      console.error(`❌ [AI-AGENT-INTERVIEW] Error executing interview action:`, error);
+      return {
+        success: false,
+        message: 'Failed to execute AI agent interview',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 

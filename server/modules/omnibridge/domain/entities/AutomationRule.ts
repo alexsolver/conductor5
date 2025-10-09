@@ -29,7 +29,7 @@ export interface AutomationAction {
         'merge_tickets' | 'link_tickets' | 'update_customer' | 'search_customer_history' |
         'search_knowledge_base' | 'suggest_kb_article' | 'create_kb_from_ticket' |
         'schedule_appointment' | 'schedule_callback' | 'reschedule_appointment' |
-        'log_interaction' | 'export_data' | 'call_webhook' | 'sync_crm' | 'update_external_system';
+        'log_interaction' | 'export_data' | 'call_webhook' | 'sync_crm' | 'update_external_system' | 'ai_agent_interview';
   target?: string;
   params: Record<string, any>;
   config?: Record<string, any>;
