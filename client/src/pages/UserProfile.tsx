@@ -1039,6 +1039,25 @@ export default function UserProfile() {
                     onCheckedChange={(checked) => handlePreferenceChange('darkMode', checked)}
                   />
                 </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-signature">Assinatura de E-mail</Label>
+                  <p className="text-sm text-gray-600">Configure sua assinatura padrão para envio de e-mails</p>
+                  <Textarea
+                    id="email-signature"
+                    data-testid="input-email-signature"
+                    placeholder={`Atenciosamente,\n${(profile as any)?.firstName || user?.firstName} ${(profile as any)?.lastName || user?.lastName}\n${(profile as any)?.position || (profile as any)?.cargo || ''}\n${(profile as any)?.email || user?.email}\n${(profile as any)?.phone || (profile as any)?.cellPhone || ''}`}
+                    value={(profile as any)?.emailSignature || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ emailSignature: e.target.value })}
+                    className="min-h-[150px] font-mono text-sm"
+                    data-testid="textarea-email-signature"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Esta assinatura será inserida automaticamente ao enviar e-mails a partir dos tickets
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
