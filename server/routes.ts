@@ -2634,7 +2634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `
         SELECT
           id, first_name, last_name, email, phone, role, tenant_id,
-          department_id, position, created_at, updated_at, avatar_url, time_zone
+          department_id, position, created_at, updated_at, avatar_url, time_zone, email_signature
         FROM "public".users
         WHERE id = $1 AND tenant_id = $2
       `,
@@ -2664,6 +2664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: user.updated_at,
           avatar: user.avatar_url || "",
           timezone: user.time_zone || "America/Sao_Paulo",
+          emailSignature: user.email_signature || "",
           bio: "",
           location: "",
           dateOfBirth: "",
@@ -2709,6 +2710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timezone,
           dateOfBirth,
           address,
+          emailSignature,
         } = req.body;
 
         if (!userId || !tenantId) {
@@ -2772,6 +2774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : null, // ✅ Fix UUID error - seguindo 1qa.md
             position: position,
             timeZone: timezone,
+            emailSignature: emailSignature,
             updatedAt: sql`NOW()`,
           })
           .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
@@ -2799,6 +2802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             department: updatedUser.departmentId || "",
             position: updatedUser.position || "",
             timezone: updatedUser.timeZone || "America/Sao_Paulo",
+            emailSignature: updatedUser.emailSignature || "",
             updatedAt: updatedUser.updatedAt,
           };
 
