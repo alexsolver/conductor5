@@ -165,12 +165,24 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
   // Auto-save form data when it changes
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isFirstRenderRef = useRef(true);
+  const initialLoadRef = useRef(true);
+
+  // Reset initialLoadRef when modal opens/closes
+  useEffect(() => {
+    if (isOpen && editAction) {
+      initialLoadRef.current = true;
+    }
+  }, [isOpen, editAction]);
 
   useEffect(() => {
-    // Skip auto-save on first render and when modal is closed
-    if (isFirstRenderRef.current || !isOpen || !editAction) {
-      isFirstRenderRef.current = false;
+    // Skip on initial load (when form data is first set from editAction)
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+
+    // Skip when modal is closed or no action to edit
+    if (!isOpen || !editAction) {
       return;
     }
 
