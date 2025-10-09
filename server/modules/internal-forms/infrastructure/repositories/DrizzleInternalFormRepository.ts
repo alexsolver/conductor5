@@ -318,7 +318,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
     const query = `
       UPDATE "${schemaName}".internal_forms
       SET ${setClause.join(', ')}
-      WHERE id = $${paramIndex - 1} AND tenant_id = $${paramIndex}
+      WHERE id = $${paramIndex} AND tenant_id = $${paramIndex + 1}
       RETURNING *
     `;
 
