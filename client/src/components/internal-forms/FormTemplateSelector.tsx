@@ -165,10 +165,9 @@ export function FormTemplateSelector({
 
       {/* Form Preview/Fill */}
       {showPreview && selectedForm && (() => {
-        console.log('🔍 [FORM-DEBUG] selectedForm:', selectedForm);
-        console.log('🔍 [FORM-DEBUG] fields:', selectedForm.fields);
-        console.log('🔍 [FORM-DEBUG] fields type:', typeof selectedForm.fields);
-        console.log('🔍 [FORM-DEBUG] is array:', Array.isArray(selectedForm.fields));
+        // Extract form template from envelope if present
+        const formTemplate = selectedForm.data || selectedForm;
+        const fields = formTemplate.fields || [];
         
         return (
           <Card className="border-blue-500 border-2" data-testid="card-form-preview">
@@ -178,19 +177,19 @@ export function FormTemplateSelector({
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: selectedForm.color || '#3B82F6' }}
+                      style={{ backgroundColor: formTemplate.color || '#3B82F6' }}
                     />
-                    <h4 className="font-semibold">{selectedForm.name}</h4>
-                    <Badge variant="secondary">{selectedForm.category}</Badge>
+                    <h4 className="font-semibold">{formTemplate.name}</h4>
+                    <Badge variant="secondary">{formTemplate.category}</Badge>
                   </div>
                   <Badge variant="outline">
-                    {Array.isArray(selectedForm.fields) ? selectedForm.fields.length : 0} campos
+                    {Array.isArray(fields) ? fields.length : 0} campos
                   </Badge>
                 </div>
               
-              {selectedForm.description && (
+              {formTemplate.description && (
                 <p className="text-sm text-muted-foreground">
-                  {selectedForm.description}
+                  {formTemplate.description}
                 </p>
               )}
 
@@ -198,7 +197,7 @@ export function FormTemplateSelector({
 
               <div className="space-y-3">
                 <h5 className="text-sm font-medium">Preencha os campos do formulário:</h5>
-                {Array.isArray(selectedForm.fields) && selectedForm.fields
+                {Array.isArray(fields) && fields
                   .sort((a: FormField, b: FormField) => (a.order || 0) - (b.order || 0))
                   .map((field: FormField) => (
                     <DynamicFormField
@@ -226,7 +225,7 @@ export function FormTemplateSelector({
                       onClick={async () => {
                         try {
                           const response = await apiRequest('POST', '/api/internal-forms/submissions', {
-                            form_id: selectedFormId,
+                            form_id: formTemplate.id,
                             submitted_by: userId,
                             form_data: formData,
                             ticket_id: ticketId
