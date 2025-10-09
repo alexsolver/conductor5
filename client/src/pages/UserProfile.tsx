@@ -84,6 +84,7 @@ export default function UserProfile() {
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [emailSignature, setEmailSignature] = useState("");
 
   // Fetch user profile data
   const { data: profile, isLoading } = useQuery({
@@ -150,8 +151,26 @@ export default function UserProfile() {
         dateOfBirth: profileData.dateOfBirth || "",
         address: profileData.address || "",
       });
+      setEmailSignature(profileData.emailSignature || "");
     }
   }, [profile, form]);
+
+  // Debounce email signature save
+  useEffect(() => {
+    if (!profile) return;
+    
+    const profileData = profile as any;
+    const currentSignature = profileData.emailSignature || "";
+    
+    // Only save if signature has changed
+    if (emailSignature === currentSignature) return;
+    
+    const timer = setTimeout(() => {
+      updateProfileMutation.mutate({ emailSignature } as any);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [emailSignature]);
 
   // Update profile mutation following 1qa.md patterns
   const updateProfileMutation = useMutation({
@@ -1048,13 +1067,13 @@ export default function UserProfile() {
                   <Textarea
                     id="email-signature"
                     placeholder={`Atenciosamente,\n${(profile as any)?.firstName || user?.firstName} ${(profile as any)?.lastName || user?.lastName}\n${(profile as any)?.position || (profile as any)?.cargo || ''}\n${(profile as any)?.email || user?.email}\n${(profile as any)?.phone || (profile as any)?.cellPhone || ''}`}
-                    value={(profile as any)?.emailSignature || ''}
-                    onChange={(e) => updateProfileMutation.mutate({ emailSignature: e.target.value })}
+                    value={emailSignature}
+                    onChange={(e) => setEmailSignature(e.target.value)}
                     className="min-h-[150px] font-mono text-sm"
                     data-testid="textarea-email-signature"
                   />
                   <p className="text-xs text-gray-500">
-                    Esta assinatura será inserida automaticamente ao enviar e-mails a partir dos tickets
+                    Esta assinatura será salva automaticamente após você parar de digitar
                   </p>
                 </div>
               </div>
