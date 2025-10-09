@@ -2590,6 +2590,14 @@ const TicketDetails = React.memo(() => {
                                 {t('tickets.fields.assignedTo')} {action.assigned_to_name}
                               </Badge>
                             )}
+                            {action.form_id && action.form_name && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-purple-50 text-purple-700 border-purple-300"
+                              >
+                                📋 {action.form_name}
+                              </Badge>
+                            )}
                             <span className="text-xs text-gray-500">
                               {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : t('tickets.fields.dateNotAvailable')}
                             </span>

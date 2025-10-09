@@ -1414,6 +1414,8 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tia.start_time,
         tia.end_time,
         tia.action_number,
+        tia.form_id,
+        ft.name as form_name,
         '[]' as linked_items,
         false as has_file,
         'internal' as contact_method,
@@ -1429,6 +1431,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tia.description as work_log
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
+      LEFT JOIN "${schemaName}".internal_form_templates ft ON tia.form_id = ft.id
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
       ORDER BY tia.created_at DESC
@@ -1481,10 +1484,13 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         true as is_public,
         tia.description as work_log,
         tia.created_at,
+        tia.form_id,
+        ft.name as form_name,
         u.first_name || ' ' || u.last_name as "createdByName",
         u.first_name || ' ' || u.last_name as "assigned_to_name"
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
+      LEFT JOIN "${schemaName}".internal_form_templates ft ON tia.form_id = ft.id
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
         AND tia.id = $3::uuid
@@ -3874,6 +3880,10 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       updateFields.push(`priority = $${paramIndex++}`);
       values.push(priority);
     }
+    if (form_template_id !== undefined) {
+      updateFields.push(`form_id = $${paramIndex++}`);
+      values.push(form_template_id || null);
+    }
 
     // Always update updated_at
     updateFields.push(`updated_at = $${paramIndex++}`);
@@ -4093,8 +4103,9 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         actual_hours = COALESCE($8::numeric, actual_hours),
         status = COALESCE($9, status),
         priority = COALESCE($10, priority),
+        form_id = COALESCE($11::uuid, form_id),
         updated_at = NOW()
-      WHERE id = $11 AND tenant_id = $12 AND ticket_id = $13
+      WHERE id = $12 AND tenant_id = $13 AND ticket_id = $14
       RETURNING *
     `;
 
@@ -4109,9 +4120,10 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       actual_hours,
       status,
       priority,
-      actionId,
-      tenantId,
-      ticketId
+      form_template_id, // $11 form_id
+      actionId,        // $12
+      tenantId,        // $13
+      ticketId         // $14
     ]);
 
     const updatedAction = updateResult.rows[0];
