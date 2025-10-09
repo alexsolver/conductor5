@@ -698,7 +698,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   onFormDataChange={setFormTemplateData}
                   ticketId={ticketId}
                   userId={currentUser?.id}
-                  isReadOnly={formData.status === 'completed'}
                 />
 
                 {/* Custom Form Fields */}
