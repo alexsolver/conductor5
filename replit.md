@@ -4,6 +4,15 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
+### AI Agent Interview System Refactoring (October 2025)
+- **Architecture Pivot**: Redesigned AI Agent from complex personality-based system to simple conversational interviewer
+- **New Focus**: Agents conduct interviews to fill Internal Forms automatically via natural language conversations
+- **Simplified Configuration**: Agents now configured via single natural language prompt + allowed form selection
+- **Database Schema**: New tables `omnibridge_ai_agents` (agent config) and `omnibridge_ai_actions` (interview actions)
+- **Interview Engine**: `ConversationalInterviewEngine` reads form fields, validates responses, creates submissions
+- **Integration**: Seamless integration with `/internal-forms` module for form discovery and submission creation
+- **Impact**: Enables automated form filling through conversational AI, reducing manual data entry
+
 ### OmniBridge Route Fix (October 2025)
 - **Critical Bug Fixed**: Resolved OmniBridge routes registration failure caused by Node.js import path conflict
 - **Root Cause**: Directory `server/modules/omnibridge/routes/` existed without `index.ts`, causing dynamic import to fail silently
