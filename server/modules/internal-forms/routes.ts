@@ -91,4 +91,12 @@ router.get('/submissions', (req, res) => internalFormController.getSubmissions(r
  */
 router.post('/submissions', (req, res) => internalFormController.createSubmission(req, res));
 
+// ===== ENTITY ROUTES (Search or Create) =====
+
+/**
+ * POST /api/internal-forms/entity/search-or-create
+ * Search for an entity or create it if not found (used by AI during form filling)
+ */
+router.post('/entity/search-or-create', (req, res) => internalFormController.searchOrCreateEntity(req, res));
+
 export default router;

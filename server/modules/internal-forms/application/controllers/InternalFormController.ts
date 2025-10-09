@@ -605,4 +605,91 @@ export class InternalFormController {
       }
     }
   }
+
+  /**
+   * Search or Create Entity - Busca ou cria entidade (cliente, local, etc) durante preenchimento
+   * Endpoint: POST /api/internal-forms/entity/search-or-create
+   * 
+   * Usado pela IA para:
+   * 1. Buscar cliente por CPF
+   * 2. Se não encontrar, criar novo cliente
+   * 3. Registrar link na tabela custom_form_entity_links
+   */
+  async searchOrCreateEntity(req: AuthenticatedRequest, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'application/json');
+
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const tenantId = req.user.tenantId;
+      const userId = req.user.id;
+      const { entityType, searchBy, value, entityData } = req.body;
+
+      console.log(`[InternalFormController] Search or create entity - Type: ${entityType}, SearchBy: ${searchBy}, Value: ${value}`);
+
+      // Validar entityType
+      const validEntityTypes = ['client', 'location', 'ticket', 'beneficiary'];
+      if (!validEntityTypes.includes(entityType)) {
+        return res.status(400).json({
+          success: false,
+          message: `Tipo de entidade inválido. Use: ${validEntityTypes.join(', ')}`,
+          code: 'INVALID_ENTITY_TYPE'
+        });
+      }
+
+      // TODO: Integrar com módulos reais (clientes, locais, etc)
+      // Por enquanto, retornar mock para demonstração
+      
+      // Simular busca (sempre "não encontrado" para demonstração)
+      const entityFound = null;
+
+      if (entityFound) {
+        console.log(`✅ [InternalFormController] Entity found:`, entityFound);
+        return res.status(200).json({
+          success: true,
+          found: true,
+          data: entityFound,
+          message: `${entityType} encontrado`
+        });
+      }
+
+      // Entidade não encontrada - criar nova (mock)
+      console.log(`[InternalFormController] Entity not found, creating new ${entityType}...`);
+
+      const newEntity = {
+        id: uuidv4(),
+        tenantId,
+        ...entityData,
+        createdAt: new Date(),
+        createdBy: userId
+      };
+
+      console.log(`✅ [InternalFormController] New entity created (mock):`, newEntity);
+
+      // TODO: Criar link na tabela custom_form_entity_links quando houver submissionId
+
+      res.status(201).json({
+        success: true,
+        found: false,
+        created: true,
+        data: newEntity,
+        message: `${entityType} criado com sucesso`
+      });
+    } catch (error) {
+      console.error('❌ [InternalFormController] Error in searchOrCreateEntity:', error);
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Erro interno do servidor ao buscar/criar entidade',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  }
 }
