@@ -1,4 +1,3 @@
-
 /**
  * Internal Form Controller - Phase 10 Implementation
  * 
@@ -58,7 +57,7 @@ export class InternalFormController {
       console.log(`[InternalFormController] Getting forms for tenant: ${tenantId}`);
 
       const { category, isActive, search } = req.query;
-      
+
       // ✅ 1QA.MD: Only return active forms by default (soft delete compliance)
       const filters = {
         tenantId,
@@ -129,7 +128,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getFormById:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -166,7 +165,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getFormsByActionType:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -240,7 +239,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in createForm:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -292,7 +291,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in updateForm:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -336,7 +335,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in deleteForm:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -384,7 +383,7 @@ export class InternalFormController {
       res.status(200).json(categories);
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getCategories:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -421,7 +420,7 @@ export class InternalFormController {
       res.status(200).json(submissions);
     } catch (error) {
       console.error('❌ [InternalFormController] Error in getSubmissions:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
@@ -445,38 +444,27 @@ export class InternalFormController {
 
       const tenantId = req.user.tenantId;
       const userId = req.user.id;
+      const userEmail = req.user.email || '';
 
-      console.log(`[InternalFormController] Creating submission for tenant: ${tenantId}`);
-      console.log(`[InternalFormController] Request body:`, JSON.stringify(req.body, null, 2));
+      console.log(`[InternalFormController] Creating submission for form: ${req.body.formId}`);
 
-      // Support both camelCase and snake_case for form_id
-      const formId = req.body.formId || req.body.form_id;
-      const formData = req.body.data || req.body.form_data;
-      const submittedBy = req.body.submittedBy || req.body.submitted_by || userId;
+      // ✅ 1QA.MD: Buscar nome do usuário para exibição
+      let submittedByName = userEmail;
 
-      // Validação básica
-      if (!formId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Form ID é obrigatório'
-        });
-      }
-
-      if (!formData || typeof formData !== 'object') {
-        return res.status(400).json({
-          success: false,
-          message: 'Dados do formulário são obrigatórios'
-        });
+      // Se houver email do usuário, usar como nome inicial
+      if (userEmail) {
+        submittedByName = userEmail;
       }
 
       const submissionData: FormSubmission = {
         id: uuidv4(),
+        formId: req.body.formId,
         tenantId,
-        formId: formId,
-        submittedBy: submittedBy,
-        data: formData,
+        submittedBy: userId,
+        submittedByName, // ✅ Incluir nome do usuário
         submittedAt: new Date(),
-        status: req.body.status || 'submitted'
+        data: req.body.data,
+        status: 'submitted' as const
       };
 
       console.log(`[InternalFormController] Submission data to be created:`, JSON.stringify(submissionData, null, 2));
@@ -492,7 +480,7 @@ export class InternalFormController {
       });
     } catch (error) {
       console.error('❌ [InternalFormController] Error in createSubmission:', error);
-      
+
       if (!res.headersSent) {
         res.status(500).json({
           success: false,

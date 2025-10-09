@@ -59,6 +59,7 @@ export interface FormSubmission {
   formId: string;
   tenantId: string;
   submittedBy: string;
+  submittedByName?: string; // ✅ Nome do usuário que enviou
   submittedAt: Date;
   data: Record<string, any>;
   status: 'submitted' | 'in_approval' | 'approved' | 'rejected';
