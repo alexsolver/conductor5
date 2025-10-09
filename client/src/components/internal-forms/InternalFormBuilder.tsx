@@ -541,6 +541,290 @@ export function InternalFormBuilder({ formId, onClose }: InternalFormBuilderProp
                             />
                             <Label>Campo obrigatório</Label>
                           </div>
+
+                          {/* CONFIGURAÇÕES ESPECÍFICAS POR TIPO */}
+                          <Separator className="col-span-2" />
+
+                          {/* SELECT, MULTISELECT, RADIO - Opções */}
+                          {newFieldData.type && ['select', 'multiselect', 'radio'].includes(newFieldData.type) && (
+                            <div className="col-span-2 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label>Opções de Seleção</Label>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const currentOptions = (newFieldData as any).options || [];
+                                    setNewFieldData({
+                                      ...newFieldData,
+                                      options: [...currentOptions, { value: '', label: '', color: '' }]
+                                    } as any);
+                                  }}
+                                  data-testid="button-add-option"
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Adicionar Opção
+                                </Button>
+                              </div>
+                              {((newFieldData as any).options || []).map((option: any, idx: number) => (
+                                <div key={idx} className="flex gap-2 items-end p-3 border rounded-lg bg-muted/50">
+                                  <div className="flex-1">
+                                    <Label className="text-xs">Valor</Label>
+                                    <Input
+                                      value={option.value}
+                                      onChange={(e) => {
+                                        const newOptions = [...((newFieldData as any).options || [])];
+                                        newOptions[idx].value = e.target.value;
+                                        setNewFieldData({ ...newFieldData, options: newOptions } as any);
+                                      }}
+                                      placeholder="opcao_1"
+                                      data-testid={`input-option-value-${idx}`}
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <Label className="text-xs">Rótulo</Label>
+                                    <Input
+                                      value={option.label}
+                                      onChange={(e) => {
+                                        const newOptions = [...((newFieldData as any).options || [])];
+                                        newOptions[idx].label = e.target.value;
+                                        setNewFieldData({ ...newFieldData, options: newOptions } as any);
+                                      }}
+                                      placeholder="Opção 1"
+                                      data-testid={`input-option-label-${idx}`}
+                                    />
+                                  </div>
+                                  <div className="w-24">
+                                    <Label className="text-xs">Cor</Label>
+                                    <Input
+                                      type="color"
+                                      value={option.color || '#3B82F6'}
+                                      onChange={(e) => {
+                                        const newOptions = [...((newFieldData as any).options || [])];
+                                        newOptions[idx].color = e.target.value;
+                                        setNewFieldData({ ...newFieldData, options: newOptions } as any);
+                                      }}
+                                      data-testid={`input-option-color-${idx}`}
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const newOptions = ((newFieldData as any).options || []).filter((_: any, i: number) => i !== idx);
+                                      setNewFieldData({ ...newFieldData, options: newOptions } as any);
+                                    }}
+                                    data-testid={`button-remove-option-${idx}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* NUMBER - Min, Max, Step */}
+                          {newFieldData.type === 'number' && (
+                            <div className="col-span-2 grid grid-cols-3 gap-4">
+                              <div>
+                                <Label>Valor Mínimo</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).min || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, min: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                  placeholder="0"
+                                  data-testid="input-number-min"
+                                />
+                              </div>
+                              <div>
+                                <Label>Valor Máximo</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).max || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, max: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                  placeholder="100"
+                                  data-testid="input-number-max"
+                                />
+                              </div>
+                              <div>
+                                <Label>Incremento (Step)</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).step || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, step: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                  placeholder="1"
+                                  data-testid="input-number-step"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* TEXT/TEXTAREA - Min/Max Length */}
+                          {newFieldData.type && ['text', 'textarea'].includes(newFieldData.type) && (
+                            <div className="col-span-2 grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Tamanho Mínimo</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).minLength || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, minLength: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                  placeholder="0"
+                                  data-testid="input-text-minlength"
+                                />
+                              </div>
+                              <div>
+                                <Label>Tamanho Máximo</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).maxLength || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, maxLength: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                  placeholder="255"
+                                  data-testid="input-text-maxlength"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* FILE - Tipos aceitos, tamanho */}
+                          {newFieldData.type === 'file' && (
+                            <div className="col-span-2 space-y-3">
+                              <div>
+                                <Label>Tipos de Arquivo Aceitos</Label>
+                                <Input
+                                  value={(newFieldData as any).acceptedFileTypes?.join(', ') || ''}
+                                  onChange={(e) => setNewFieldData({ 
+                                    ...newFieldData, 
+                                    acceptedFileTypes: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
+                                  } as any)}
+                                  placeholder=".pdf, .jpg, .png, .doc"
+                                  data-testid="input-file-types"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Separados por vírgula</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label>Tamanho Máximo (MB)</Label>
+                                  <Input
+                                    type="number"
+                                    value={(newFieldData as any).maxFileSize ? ((newFieldData as any).maxFileSize / 1024 / 1024) : ''}
+                                    onChange={(e) => setNewFieldData({ 
+                                      ...newFieldData, 
+                                      maxFileSize: e.target.value ? Number(e.target.value) * 1024 * 1024 : undefined 
+                                    } as any)}
+                                    placeholder="10"
+                                    data-testid="input-file-maxsize"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Máximo de Arquivos</Label>
+                                  <Input
+                                    type="number"
+                                    value={(newFieldData as any).maxFiles || ''}
+                                    onChange={(e) => setNewFieldData({ 
+                                      ...newFieldData, 
+                                      maxFiles: e.target.value ? Number(e.target.value) : undefined 
+                                    } as any)}
+                                    placeholder="1"
+                                    data-testid="input-file-maxfiles"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* CURRENCY - Moeda, Min, Max */}
+                          {newFieldData.type === 'currency' && (
+                            <div className="col-span-2 space-y-3">
+                              <div>
+                                <Label>Moeda</Label>
+                                <Select
+                                  value={(newFieldData as any).currency || 'BRL'}
+                                  onValueChange={(value) => setNewFieldData({ ...newFieldData, currency: value } as any)}
+                                >
+                                  <SelectTrigger data-testid="select-currency">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="BRL">BRL - Real Brasileiro (R$)</SelectItem>
+                                    <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
+                                    <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label>Valor Mínimo</Label>
+                                  <Input
+                                    type="number"
+                                    value={(newFieldData as any).min || ''}
+                                    onChange={(e) => setNewFieldData({ ...newFieldData, min: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                    placeholder="0"
+                                    data-testid="input-currency-min"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Valor Máximo</Label>
+                                  <Input
+                                    type="number"
+                                    value={(newFieldData as any).max || ''}
+                                    onChange={(e) => setNewFieldData({ ...newFieldData, max: e.target.value ? Number(e.target.value) : undefined } as any)}
+                                    placeholder="10000"
+                                    data-testid="input-currency-max"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* RATING - Max rating, allow half */}
+                          {newFieldData.type === 'rating' && (
+                            <div className="col-span-2 space-y-3">
+                              <div>
+                                <Label>Avaliação Máxima</Label>
+                                <Input
+                                  type="number"
+                                  value={(newFieldData as any).maxRating || 5}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, maxRating: Number(e.target.value) } as any)}
+                                  placeholder="5"
+                                  data-testid="input-rating-max"
+                                />
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  checked={(newFieldData as any).allowHalf || false}
+                                  onCheckedChange={(checked) => setNewFieldData({ ...newFieldData, allowHalf: checked } as any)}
+                                  data-testid="switch-rating-half"
+                                />
+                                <Label>Permitir meias estrelas (4.5, 3.5, etc)</Label>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* DATE/DATETIME/TIME - Min/Max dates */}
+                          {newFieldData.type && ['date', 'datetime', 'time'].includes(newFieldData.type) && (
+                            <div className="col-span-2 grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Data Mínima</Label>
+                                <Input
+                                  type={newFieldData.type === 'time' ? 'time' : 'date'}
+                                  value={(newFieldData as any).minDate || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, minDate: e.target.value } as any)}
+                                  data-testid="input-date-min"
+                                />
+                              </div>
+                              <div>
+                                <Label>Data Máxima</Label>
+                                <Input
+                                  type={newFieldData.type === 'time' ? 'time' : 'date'}
+                                  value={(newFieldData as any).maxDate || ''}
+                                  onChange={(e) => setNewFieldData({ ...newFieldData, maxDate: e.target.value } as any)}
+                                  data-testid="input-date-max"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </TabsContent>
 
