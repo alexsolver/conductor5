@@ -12,6 +12,7 @@ import {
   boolean,
   integer,
   unique,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -155,6 +156,95 @@ export const authSessions = pgTable("auth_sessions", {
 ]);
 
 // ========================================
+// GDPR COMPLIANCE (Cross-tenant for SaaS Admin)
+// ========================================
+
+// GDPR Report Enums
+export const gdprReportStatusEnum = pgEnum('gdpr_report_status', [
+  'draft',
+  'in_progress', 
+  'under_review',
+  'approved',
+  'published',
+  'archived'
+]);
+
+export const gdprReportTypeEnum = pgEnum('gdpr_report_type', [
+  'dpia',
+  'audit_trail',
+  'data_breach',
+  'consent_management',
+  'right_of_access',
+  'right_of_rectification',
+  'right_of_erasure',
+  'data_portability',
+  'processing_activities',
+  'vendor_assessment',
+  'training_compliance',
+  'incident_response'
+]);
+
+export const gdprPriorityEnum = pgEnum('gdpr_priority', [
+  'low',
+  'medium', 
+  'high',
+  'critical',
+  'urgent'
+]);
+
+export const gdprRiskLevelEnum = pgEnum('gdpr_risk_level', [
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'very_high'
+]);
+
+// GDPR Reports Table (public schema for cross-tenant access)
+export const gdprReports = pgTable('gdpr_reports', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  title: varchar('title', { length: 500 }).notNull(),
+  description: text('description'),
+  reportType: gdprReportTypeEnum('report_type').notNull(),
+  status: gdprReportStatusEnum('status').notNull().default('draft'),
+  priority: gdprPriorityEnum('priority').notNull().default('medium'),
+  riskLevel: gdprRiskLevelEnum('risk_level').default('medium'),
+  
+  reportData: jsonb('report_data'),
+  findings: jsonb('findings'),
+  actionItems: jsonb('action_items'),
+  attachments: jsonb('attachments'),
+  
+  complianceScore: integer('compliance_score'),
+  lastAuditDate: timestamp('last_audit_date'),
+  nextReviewDate: timestamp('next_review_date'),
+  dueDate: timestamp('due_date'),
+  
+  tenantId: uuid('tenant_id').notNull(),
+  createdBy: uuid('created_by').notNull(),
+  updatedBy: uuid('updated_by'),
+  assignedUserId: uuid('assigned_user_id'),
+  reviewedBy: uuid('reviewed_by'),
+  approvedBy: uuid('approved_by'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  deletedAt: timestamp('deleted_at'),
+  deletedBy: varchar('deleted_by'),
+  
+  templateId: uuid('template_id'),
+  version: varchar('version', { length: 50 }).default('1.0').notNull(),
+  tags: jsonb('tags'),
+  isActive: boolean('is_active').default(true).notNull()
+}, (table) => [
+  index("gdpr_reports_tenant_idx").on(table.tenantId),
+  index("gdpr_reports_status_idx").on(table.status),
+  index("gdpr_reports_type_idx").on(table.reportType),
+  index("gdpr_reports_assigned_idx").on(table.assignedUserId),
+]);
+
+// ========================================
 // SCHEMA VALIDATION & TYPES
 // ========================================
 
@@ -163,6 +253,12 @@ export const insertTenantSchema = createInsertSchema(tenants);
 export const insertUserSchema = createInsertSchema(users);
 export const insertUserSessionSchema = createInsertSchema(userSessions);
 export const insertAuthSessionSchema = createInsertSchema(authSessions);
+export const insertGdprReportSchema = createInsertSchema(gdprReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  isActive: true,
+});
 
 // Update schema - Only allow updating specific fields, exclude system fields
 export const updateUserSchema = createInsertSchema(users).omit({
@@ -199,3 +295,5 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type GdprReport = typeof gdprReports.$inferSelect;
+export type InsertGdprReport = z.infer<typeof insertGdprReportSchema>;
