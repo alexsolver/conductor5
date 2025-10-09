@@ -993,7 +993,36 @@ export default function UserProfile() {
                     <h4 className="font-medium">Logs de Segurança</h4>
                     <p className="text-sm text-gray-600">Histórico de atividades de segurança</p>
                   </div>
-                  <Button variant="outline">Ver Logs</Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Ver Logs</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[725px]">
+                      <DialogHeader>
+                        <DialogTitle>Logs de Segurança</DialogTitle>
+                        <DialogDescription>
+                          Atividades de segurança recentes da sua conta
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                        {activity && (activity as any)?.data && (activity as any).data.length > 0 ? (
+                          (activity as any).data.map((log: any, index: number) => (
+                            <div key={index} className="p-3 border rounded-lg flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">{log.description || log.type || 'Atividade'}</p>
+                                <p className="text-sm text-gray-600">
+                                  {log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
+                                </p>
+                              </div>
+                              <Badge variant="outline">{log.type || 'activity'}</Badge>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 text-center py-8">Nenhum log de segurança encontrado</p>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardContent>
