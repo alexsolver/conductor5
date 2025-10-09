@@ -36,6 +36,7 @@ import {
   User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CreateEntityDialog } from './CreateEntityDialog';
 
 interface EntitySearchFieldProps {
   label: string;
@@ -68,6 +69,7 @@ export function EntitySearchField({
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const Icon = ENTITY_ICONS[entityType] || Users;
 
@@ -196,8 +198,8 @@ export function EntitySearchField({
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        // TODO: Abrir dialog de criação rápida
                         setOpen(false);
+                        setCreateDialogOpen(true);
                       }}
                       data-testid="button-create-new"
                     >
@@ -262,6 +264,18 @@ export function EntitySearchField({
           </Button>
         </div>
       )}
+
+      <CreateEntityDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        entityType={entityType}
+        onEntityCreated={(entity) => {
+          handleSelect(entity);
+        }}
+        initialData={{
+          name: searchTerm,
+        }}
+      />
     </div>
   );
 }
