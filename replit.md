@@ -13,6 +13,13 @@ Conductor is a modern SaaS customer support platform designed for omnichannel cu
 - **Integration**: Seamless integration with `/internal-forms` module for form discovery and submission creation
 - **Impact**: Enables automated form filling through conversational AI, reducing manual data entry
 
+### OmniBridge AI Agent Database Schema Fix (October 2025)
+- **Critical Bug Fixed**: Resolved AI Agent repository schema access issue
+- **Root Cause**: Repository was trying to access `omnibridge_ai_agents` table in tenant schemas, but tables are stored in `public` schema
+- **Solution**: Updated `DrizzleAiAgentRepository` to use `public` schema instead of tenant-specific schemas
+- **Impact**: AI Agent creation and retrieval now working correctly
+- **Architecture Note**: OmniBridge tables are global (in `public` schema) with `tenantId` filtering, not tenant-specific
+
 ### OmniBridge Route Fix (October 2025)
 - **Critical Bug Fixed**: Resolved OmniBridge routes registration failure caused by Node.js import path conflict
 - **Root Cause**: Directory `server/modules/omnibridge/routes/` existed without `index.ts`, causing dynamic import to fail silently
