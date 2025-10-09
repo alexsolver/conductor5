@@ -13,13 +13,15 @@
 import { Router } from 'express';
 import { InternalFormController } from './application/controllers/InternalFormController';
 import { DrizzleInternalFormRepository } from './infrastructure/repositories/DrizzleInternalFormRepository';
+import { DrizzleCustomerRepository } from '../customers/infrastructure/repositories/DrizzleCustomerRepository';
 import { enhancedTenantValidator } from '../../middleware/tenantValidator';
 
 const router = Router();
 
 // ✅ 1QA.MD COMPLIANCE: Repository and Controller instantiation
 const internalFormRepository = new DrizzleInternalFormRepository();
-const internalFormController = new InternalFormController(internalFormRepository);
+const customerRepository = new DrizzleCustomerRepository();
+const internalFormController = new InternalFormController(internalFormRepository, customerRepository);
 
 // ✅ Apply tenant validation middleware (authentication is already handled globally)
 router.use(enhancedTenantValidator());

@@ -14,6 +14,7 @@ import { IInternalFormRepository } from '../../domain/repositories/IInternalForm
 import { InternalForm, FormSubmission } from '../../domain/entities/InternalForm';
 import { v4 as uuidv4 } from 'uuid';
 import { validateForm, FormField } from '../../../../utils/validators/form-validator';
+import { ICustomerRepository } from '../../../customers/domain/repositories/ICustomerRepository';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -24,7 +25,10 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class InternalFormController {
-  constructor(private internalFormRepository: IInternalFormRepository) {}
+  constructor(
+    private internalFormRepository: IInternalFormRepository,
+    private customerRepository?: ICustomerRepository
+  ) {}
 
   async getForms(req: AuthenticatedRequest, res: Response): Promise<void> {
     // ✅ CRITICAL FIX - Ensure JSON response headers per 1qa.md compliance
@@ -611,7 +615,7 @@ export class InternalFormController {
    * Endpoint: POST /api/internal-forms/entity/search-or-create
    * 
    * Usado pela IA para:
-   * 1. Buscar cliente por CPF
+   * 1. Buscar cliente por CPF/CNPJ/Email
    * 2. Se não encontrar, criar novo cliente
    * 3. Registrar link na tabela custom_form_entity_links
    */
@@ -642,44 +646,76 @@ export class InternalFormController {
         });
       }
 
-      // TODO: Integrar com módulos reais (clientes, locais, etc)
-      // Por enquanto, retornar mock para demonstração
-      
-      // Simular busca (sempre "não encontrado" para demonstração)
-      const entityFound = null;
+      // ✅ INTEGRAÇÃO REAL COM MÓDULO DE CLIENTES
+      if (entityType === 'client' && this.customerRepository) {
+        let entityFound = null;
 
-      if (entityFound) {
-        console.log(`✅ [InternalFormController] Entity found:`, entityFound);
-        return res.status(200).json({
+        // Buscar por CPF, CNPJ ou Email
+        if (searchBy === 'cpf' && value) {
+          entityFound = await this.customerRepository.findByCPFAndTenant(value, tenantId);
+        } else if (searchBy === 'cnpj' && value) {
+          entityFound = await this.customerRepository.findByCNPJAndTenant(value, tenantId);
+        } else if (searchBy === 'email' && value) {
+          entityFound = await this.customerRepository.findByEmailAndTenant(value, tenantId);
+        }
+
+        if (entityFound) {
+          console.log(`✅ [InternalFormController] Cliente encontrado:`, entityFound.id);
+          return res.status(200).json({
+            success: true,
+            found: true,
+            data: entityFound,
+            message: 'Cliente encontrado'
+          });
+        }
+
+        // Cliente não encontrado - criar novo
+        console.log(`[InternalFormController] Cliente não encontrado, criando novo...`);
+
+        const newCustomer = await this.customerRepository.create({
+          tenantId,
+          firstName: entityData.firstName || '',
+          lastName: entityData.lastName || '',
+          email: entityData.email || '',
+          phone: entityData.phone,
+          mobilePhone: entityData.mobilePhone,
+          cpf: entityData.cpf,
+          addressStreet: entityData.addressStreet,
+          addressNumber: entityData.addressNumber,
+          addressComplement: entityData.addressComplement,
+          addressNeighborhood: entityData.addressNeighborhood,
+          addressCity: entityData.addressCity,
+          addressState: entityData.addressState,
+          addressZipCode: entityData.addressZipCode,
+          addressCountry: entityData.addressCountry || 'Brasil',
+          isActive: true,
+          verified: false,
+          tags: [],
+          metadata: {},
+          createdById: userId,
+          updatedById: userId
+        });
+
+        console.log(`✅ [InternalFormController] Novo cliente criado:`, newCustomer.id);
+
+        // TODO: Criar link na tabela custom_form_entity_links quando houver submissionId
+
+        return res.status(201).json({
           success: true,
-          found: true,
-          data: entityFound,
-          message: `${entityType} encontrado`
+          found: false,
+          created: true,
+          data: newCustomer,
+          message: 'Cliente criado com sucesso'
         });
       }
 
-      // Entidade não encontrada - criar nova (mock)
-      console.log(`[InternalFormController] Entity not found, creating new ${entityType}...`);
-
-      const newEntity = {
-        id: uuidv4(),
-        tenantId,
-        ...entityData,
-        createdAt: new Date(),
-        createdBy: userId
-      };
-
-      console.log(`✅ [InternalFormController] New entity created (mock):`, newEntity);
-
-      // TODO: Criar link na tabela custom_form_entity_links quando houver submissionId
-
-      res.status(201).json({
-        success: true,
-        found: false,
-        created: true,
-        data: newEntity,
-        message: `${entityType} criado com sucesso`
+      // ❌ Outros tipos de entidade ainda não implementados
+      return res.status(501).json({
+        success: false,
+        message: `Tipo de entidade '${entityType}' ainda não implementado. Apenas 'client' está disponível.`,
+        code: 'NOT_IMPLEMENTED'
       });
+
     } catch (error) {
       console.error('❌ [InternalFormController] Error in searchOrCreateEntity:', error);
 
