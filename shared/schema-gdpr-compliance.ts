@@ -513,15 +513,7 @@ export const gdprAuditLog = pgTable('gdpr_audit_log', {
   tenantId: uuid('tenant_id').notNull()
 });
 
-// ✅ Insert Schemas using drizzle-zod
-export const insertGdprReportSchema = createInsertSchema(gdprReports).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true,
-  deletedBy: true
-});
-
+// ✅ Additional Insert Schemas for extended tables
 export const insertGdprReportTemplateSchema = createInsertSchema(gdprReportTemplates).omit({
   id: true,
   createdAt: true,
@@ -538,46 +530,17 @@ export const insertGdprComplianceTaskSchema = createInsertSchema(gdprComplianceT
   deletedBy: true
 });
 
-export const insertGdprAuditLogSchema = createInsertSchema(gdprAuditLog).omit({
-  id: true,
-  createdAt: true
-});
-
-export const insertCookieConsentSchema = createInsertSchema(cookieConsents).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-
 export const insertPrivacyPolicyAcceptanceSchema = createInsertSchema(privacyPolicyAcceptances).omit({
   id: true,
   createdAt: true
 });
 
-export const insertPrivacyPolicySchema = createInsertSchema(privacyPolicies).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-
-// ✅ Select Types
-export type GdprReport = typeof gdprReports.$inferSelect;
-export type InsertGdprReport = z.infer<typeof insertGdprReportSchema>;
-
+// ✅ Additional Select Types for extended tables
 export type GdprReportTemplate = typeof gdprReportTemplates.$inferSelect;
 export type InsertGdprReportTemplate = z.infer<typeof insertGdprReportTemplateSchema>;
 
 export type GdprComplianceTask = typeof gdprComplianceTasks.$inferSelect;
 export type InsertGdprComplianceTask = z.infer<typeof insertGdprComplianceTaskSchema>;
 
-export type GdprAuditLog = typeof gdprAuditLog.$inferSelect;
-export type InsertGdprAuditLog = z.infer<typeof insertGdprAuditLogSchema>;
-
-export type CookieConsent = typeof cookieConsents.$inferSelect;
-export type InsertCookieConsent = z.infer<typeof insertCookieConsentSchema>;
-
 export type PrivacyPolicyAcceptance = typeof privacyPolicyAcceptances.$inferSelect;
 export type InsertPrivacyPolicyAcceptance = z.infer<typeof insertPrivacyPolicyAcceptanceSchema>;
-
-export type PrivacyPolicy = typeof privacyPolicies.$inferSelect;
-export type InsertPrivacyPolicy = z.infer<typeof insertPrivacyPolicySchema>;
