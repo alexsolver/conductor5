@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 // Temporarily removed date-fns imports to fix bundler issue
@@ -17,6 +18,8 @@ interface FormSubmissionsListProps {
 export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const { data: submissions = [], isLoading } = useQuery({
     queryKey: ['form-submissions', formId],
@@ -179,7 +182,15 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
                     {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSubmission(submission);
+                        setIsViewDialogOpen(true);
+                      }}
+                      data-testid={`button-view-${submission.id}`}
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       Visualizar
                     </Button>
@@ -190,6 +201,55 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
           </Table>
         )}
       </CardContent>
+
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Submissão</DialogTitle>
+          </DialogHeader>
+          {selectedSubmission && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4 pb-4 border-b">
+                <div>
+                  <p className="text-sm text-gray-500">ID da Submissão</p>
+                  <p className="font-mono text-sm">{selectedSubmission.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    {getStatusIcon(selectedSubmission.status)}
+                    <Badge className={getStatusColor(selectedSubmission.status)}>
+                      {getStatusLabel(selectedSubmission.status)}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Enviado por</p>
+                  <p className="font-medium">{selectedSubmission.submittedBy}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Data de Envio</p>
+                  <p className="font-medium">
+                    {new Date(selectedSubmission.submittedAt).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-4">Respostas do Formulário</h3>
+                <div className="space-y-4">
+                  {selectedSubmission.formData && Object.entries(selectedSubmission.formData).map(([key, value]: [string, any]) => (
+                    <div key={key} className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-1">{key}</p>
+                      <p className="text-gray-900">{value || '-'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
