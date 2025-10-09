@@ -445,7 +445,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
       FROM "${schemaName}".internal_form_submissions s
       LEFT JOIN "${schemaName}".users u ON s.submitted_by = u.id
       LEFT JOIN "${schemaName}".omnibridge_ai_agents ai ON s.submitted_by = ai.id
-      WHERE s.tenant_id = $1
+      WHERE s.tenant_id = $1 AND s.action_id IS NULL
       ORDER BY s.submitted_at DESC
     `;
 
