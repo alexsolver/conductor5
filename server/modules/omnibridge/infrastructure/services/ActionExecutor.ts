@@ -3695,7 +3695,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
           
           const isTicketForm = form.name.toLowerCase().includes('ticket') || 
                                form.name.toLowerCase().includes('abertura') ||
-                               form.metadata?.formType === 'ticket_creation';
+                               (form as any).metadata?.formType === 'ticket_creation';
           
           if (isTicketForm) {
             // Formulário de ticket - usar endpoint especial que cria ticket automaticamente
