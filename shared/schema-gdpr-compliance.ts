@@ -140,14 +140,12 @@ export const dataSubjectRequests = pgTable('data_subject_requests', {
   
   // Detalhes do pedido
   requestDetails: text('request_details'), // Descrição detalhada 
-  requestedData: jsonb('requested_data'), // Dados específicos solicitados
-  responseData: jsonb('response_data'), // Resposta/dados fornecidos
+  responseDetails: text('response_details'), // Resposta/dados fornecidos
   
   // Processamento
   processedBy: uuid('processed_by'), // ID do usuário que processou
   processedAt: timestamp('processed_at'),
   dueDate: timestamp('due_date').notNull(), // GDPR exige resposta em 30 dias
-  completedAt: timestamp('completed_at'),
   
   // Controle
   tenantId: uuid('tenant_id').notNull(),
@@ -163,7 +161,6 @@ export const dataSubjectRequests = pgTable('data_subject_requests', {
 export const gdprAuditLogs = pgTable('gdpr_audit_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id'), // Quem realizou a ação
-  subjectUserId: uuid('subject_user_id'), // Sobre quem foi a ação
   action: varchar('action', { length: 255 }).notNull(), // "data_access", "data_export", etc
   entityType: varchar('entity_type', { length: 100 }), // "user", "ticket", "customer"
   entityId: uuid('entity_id'), // ID da entidade afetada
@@ -171,16 +168,11 @@ export const gdprAuditLogs = pgTable('gdpr_audit_logs', {
   // Detalhes técnicos
   ipAddress: varchar('ip_address', { length: 45 }).notNull(),
   userAgent: text('user_agent'),
-  requestData: jsonb('request_data'), // Dados da requisição
-  responseData: jsonb('response_data'), // Dados da resposta
+  details: text('details'), // Detalhes em texto/JSON
   
   // Controle
   tenantId: uuid('tenant_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  
-  // Metadados
-  severity: gdprRiskLevelEnum('severity').default('low').notNull(),
-  tags: jsonb('tags') // Tags para categorização
+  createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
 // ✅ 9. Política de Privacidade & Termos de Uso
