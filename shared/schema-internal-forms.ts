@@ -183,7 +183,7 @@ export const internalFormSubmissions = pgTable('internal_form_submissions', {
   tenantId: uuid('tenant_id').notNull(),
   ticketId: uuid('ticket_id'),
   actionId: uuid('action_id'),
-  submittedBy: uuid('submitted_by').notNull(),
+  submittedBy: varchar('submitted_by', { length: 255 }).notNull(),
   submittedAt: timestamp('submitted_at').defaultNow(),
   data: jsonb('data').notNull(),
   status: varchar('status', { length: 50 }).notNull().default('submitted'),

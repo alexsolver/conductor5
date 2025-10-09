@@ -405,7 +405,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
         CONCAT(u.first_name, ' ', u.last_name) as submitted_by_name,
         u.email as submitted_by_email
       FROM "${schemaName}".internal_form_submissions s
-      LEFT JOIN "${schemaName}".users u ON s.submitted_by::varchar = u.id
+      LEFT JOIN "${schemaName}".users u ON s.submitted_by = u.id
       WHERE s.form_id = $1 AND s.tenant_id = $2
       ORDER BY s.submitted_at DESC
     `;
@@ -440,7 +440,7 @@ export class DrizzleInternalFormRepository implements IInternalFormRepository {
         CONCAT(u.first_name, ' ', u.last_name) as submitted_by_name,
         u.email as submitted_by_email
       FROM "${schemaName}".internal_form_submissions s
-      LEFT JOIN "${schemaName}".users u ON s.submitted_by::varchar = u.id
+      LEFT JOIN "${schemaName}".users u ON s.submitted_by = u.id
       WHERE s.tenant_id = $1
       ORDER BY s.submitted_at DESC
     `;

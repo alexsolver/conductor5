@@ -54,7 +54,7 @@ export class ConversationalInterviewEngine {
       };
     }
     
-    state.collectedData[currentField.name] = extractedValue;
+    state.collectedData[currentField.id] = extractedValue;
     
     state.currentFieldIndex++;
     
