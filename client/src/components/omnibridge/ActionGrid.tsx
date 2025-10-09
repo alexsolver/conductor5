@@ -273,6 +273,15 @@ export const ACTION_DEFINITIONS: ActionDefinition[] = [
     color: 'bg-pink-500',
     category: 'ai'
   },
+  {
+    id: 'ai_agent_interview',
+    type: 'ai_agent_interview',
+    name: 'Entrevista com IA',
+    description: 'Conduz entrevista para preencher formulários',
+    icon: MessageCircle,
+    color: 'bg-purple-500',
+    category: 'ai'
+  },
 
   // EXTRAS
   {

@@ -18,7 +18,7 @@ import { Save, X, Plus, Trash2, Upload } from 'lucide-react';
 import { UserMultiSelect } from '@/components/ui/UserMultiSelect';
 import { UserGroupSelect } from '@/components/ui/UserGroupSelect';
 import type { ActionDefinition } from './ActionGrid';
-import AiAgentActionConfig from './AiAgentActionConfig';
+import SimpleAiAgentConfig from './SimpleAiAgentConfig';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -75,38 +75,15 @@ export function ActionConfigModal({
   });
 
   const handleSave = async () => {
-    // If AI Agent action and agentId is 'new', create the agent first
-    if (action?.type === 'ai_agent' && config.agentId === 'new') {
+    // If AI Agent Interview action and agentId is 'new', create the agent first
+    if ((action?.type === 'ai_agent' || action?.type === 'ai_agent_interview') && config.agentId === 'new') {
       try {
         const agentData = {
-          name: config.name || 'Novo Agente IA',
-          description: config.description || 'Agente conversacional criado automaticamente',
-          configPrompt: config.configPrompt || '',
-          personality: config.personality || {
-            tone: 'professional',
-            language: 'pt-BR',
-            greeting: 'Olá! Como posso ajudar?',
-            fallbackMessage: 'Desculpe, não entendi. Pode reformular?',
-            confirmationStyle: 'polite'
-          },
-          channels: config.channels || ['email', 'whatsapp', 'telegram', 'slack'],
-          enabledActions: config.enabledActions && config.enabledActions.length > 0 
-            ? config.enabledActions 
-            : ['create_ticket'],
-          behaviorRules: config.behaviorRules || {
-            requireConfirmation: [],
-            autoEscalateKeywords: [],
-            maxConversationTurns: 10,
-            collectionStrategy: 'conversational',
-            errorHandling: 'retry'
-          },
-          aiConfig: config.aiConfig || {
-            model: 'gpt-4o',
-            temperature: 0.7,
-            maxTokens: 500,
-            systemPrompt: ''
-          },
-          status: 'active'
+          name: config.name || 'Novo Agente Entrevistador',
+          description: config.description || 'Agente para preencher formulários através de entrevistas',
+          configPrompt: config.configPrompt || 'Você é um assistente prestativo e cordial. Conduza entrevistas de forma natural e amigável.',
+          allowedFormIds: config.allowedFormIds || [],
+          isActive: true
         };
 
         const result = await createAgentMutation.mutateAsync(agentData);
@@ -454,7 +431,7 @@ export function ActionConfigModal({
   );
 
   const renderAIAgentConfig = () => (
-    <AiAgentActionConfig 
+    <SimpleAiAgentConfig 
       config={config} 
       onChange={(newConfig) => setConfig(newConfig)}
     />
@@ -489,6 +466,7 @@ export function ActionConfigModal({
         return renderAPIConfig();
 
       case 'ai_agent':
+      case 'ai_agent_interview':
         return renderAIAgentConfig();
 
       default:
