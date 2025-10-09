@@ -3690,23 +3690,73 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
         isComplete = response.isComplete;
         
         if (isComplete && response.collectedData) {
-          // 5. Salvar submission do formulário
+          // 5. Verificar se é formulário de ticket e processar adequadamente
           console.log(`💾 [AI-AGENT-INTERVIEW] Interview complete! Collected data:`, response.collectedData);
           
-          const { DrizzleInternalFormSubmissionRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormSubmissionRepository');
-          const submissionRepo = new DrizzleInternalFormSubmissionRepository();
+          const isTicketForm = form.name.toLowerCase().includes('ticket') || 
+                               form.name.toLowerCase().includes('abertura') ||
+                               form.metadata?.formType === 'ticket_creation';
           
-          const submission = await submissionRepo.create({
-            formId: form.id,
-            tenantId,
-            ticketId: context.messageData.ticketId || null,
-            actionId: null,
-            submittedBy: agentId, // AI Agent identifier
-            data: response.collectedData,
-            status: 'submitted'
-          });
-          
-          console.log(`✅ [AI-AGENT-INTERVIEW] Form submission saved with ID: ${submission.id}`);
+          if (isTicketForm) {
+            // Formulário de ticket - usar endpoint especial que cria ticket automaticamente
+            console.log(`🎫 [AI-AGENT-INTERVIEW] Detected ticket form, creating ticket...`);
+            
+            const { InternalFormController } = await import('../../../internal-forms/application/controllers/InternalFormController');
+            const { DrizzleInternalFormRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormRepository');
+            const { DrizzleCustomerRepository } = await import('../../../customers/infrastructure/repositories/DrizzleCustomerRepository');
+            
+            const formRepo = new DrizzleInternalFormRepository();
+            const customerRepo = new DrizzleCustomerRepository();
+            const formController = new InternalFormController(formRepo, customerRepo);
+            
+            // Criar objeto de requisição mock
+            const mockReq: any = {
+              user: {
+                id: context.messageData.userId || agentId,
+                tenantId: tenantId
+              },
+              body: {
+                formData: response.collectedData
+              }
+            };
+            
+            // Criar objeto de resposta mock
+            let ticketResult: any = null;
+            const mockRes: any = {
+              setHeader: () => {},
+              status: (code: number) => ({
+                json: (data: any) => {
+                  ticketResult = data;
+                }
+              })
+            };
+            
+            await formController.submitTicketForm(mockReq, mockRes);
+            
+            if (ticketResult && ticketResult.success && ticketResult.ticketNumber) {
+              console.log(`✅ [AI-AGENT-INTERVIEW] Ticket created: ${ticketResult.ticketNumber}`);
+              responseMessage = `${response.message}\n\n🎫 ${ticketResult.message}`;
+            } else {
+              console.error(`❌ [AI-AGENT-INTERVIEW] Failed to create ticket:`, ticketResult);
+              responseMessage = `${response.message}\n\n❌ Erro ao criar ticket. Por favor, tente novamente.`;
+            }
+          } else {
+            // Formulário normal - salvar submission tradicional
+            const { DrizzleInternalFormSubmissionRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormSubmissionRepository');
+            const submissionRepo = new DrizzleInternalFormSubmissionRepository();
+            
+            const submission = await submissionRepo.create({
+              formId: form.id,
+              tenantId,
+              ticketId: context.messageData.ticketId || null,
+              actionId: null,
+              submittedBy: agentId, // AI Agent identifier
+              data: response.collectedData,
+              status: 'submitted'
+            });
+            
+            console.log(`✅ [AI-AGENT-INTERVIEW] Form submission saved with ID: ${submission.id}`);
+          }
           
           // Limpar estado da entrevista
           await stateManager.clearState(conversationId);
