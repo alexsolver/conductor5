@@ -26,8 +26,7 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/internal-forms/submissions${formId ? `?formId=${formId}` : ''}`);
       const data = await response.json();
-      console.log('📋 [SUBMISSIONS-DEBUG] API Response (direct submissions only):', data);
-      console.log('📋 [SUBMISSIONS-DEBUG] Total direct submissions:', data.length);
+      console.log('📋 [SUBMISSIONS-DEBUG] API Response:', data);
       console.log('📋 [SUBMISSIONS-DEBUG] First submission:', data[0]);
       return data;
     }
