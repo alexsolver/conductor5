@@ -110,6 +110,7 @@ import ConversationLogsPage from "./pages/ConversationLogsPage";
 // Knowledge Base Module
 import KnowledgeBase from "./pages/KnowledgeBase";
 import BrazilianFieldsDemo from "./pages/BrazilianFieldsDemo";
+import DocumentOCRDemo from "./pages/DocumentOCRDemo";
 
 
 // Components
@@ -226,6 +227,7 @@ function AppRouter() {
         <Route path="/layouts" component={TemplateSelector} />
         <Route path="/internal-forms" component={InternalForms} />
         <Route path="/brazilian-fields-demo" component={BrazilianFieldsDemo} />
+        <Route path="/document-ocr-demo" component={DocumentOCRDemo} />
         {/* Removed: Projects and ProjectActions routes - module completely eliminated */}
         {/* Employment-specific timecard routes with route guards */}
         <Route path="/timecard">
