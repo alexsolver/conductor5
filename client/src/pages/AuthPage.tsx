@@ -9,11 +9,12 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import conductorLogo from "@/../../attached_assets/logoconductormini.png";
-import { Ticket, Users, BarChart3 } from "lucide-react";
+import { Ticket, Users, BarChart3, FileText, Shield } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 export default function AuthPage() {
@@ -92,9 +93,35 @@ export default function AuthPage() {
     const [website, setWebsite] = useState("");
     const [phone, setPhone] = useState("");
     const [companySize, setCompanySize] = useState("");
+    
+    // GDPR Consents
+    const [acceptPrivacyPolicy, setAcceptPrivacyPolicy] = useState(false);
+    const [acceptCookiesAnalytics, setAcceptCookiesAnalytics] = useState(false);
+    const [acceptCookiesMarketing, setAcceptCookiesMarketing] = useState(false);
+    const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+    
+    // Fetch active privacy policy (if available) - for now disabled as we don't have tenant ID yet
+    // In production, you might want to have a global privacy policy or fetch it another way
+    const privacyPolicy = {
+      id: 'default',
+      version: '1.0',
+      title: 'Política de Privacidade',
+      content: 'Ao se registrar, você concorda com nossa política de privacidade...'
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
+      
+      // Validate privacy policy acceptance
+      if (!acceptPrivacyPolicy) {
+        toast({
+          variant: "destructive",
+          title: "Política de Privacidade Obrigatória",
+          description: "Você deve aceitar a Política de Privacidade para se registrar."
+        });
+        return;
+      }
+      
       const registerData = {
         email,
         password,
@@ -105,7 +132,15 @@ export default function AuthPage() {
         website: website || undefined,
         phone: phone || undefined,
         companySize: companySize || undefined,
-        role: 'tenant_admin' as const // First user becomes tenant admin
+        role: 'tenant_admin' as const,
+        
+        // GDPR Consents
+        acceptPrivacyPolicy,
+        acceptCookiesNecessary: true, // Always true
+        acceptCookiesAnalytics,
+        acceptCookiesMarketing,
+        privacyPolicyId: privacyPolicy.id,
+        privacyPolicyVersion: privacyPolicy.version
       };
 
       registerMutation.mutate(registerData);
@@ -232,10 +267,108 @@ export default function AuthPage() {
             disabled={registerMutation.isPending}
           />
         </div>
+
+        {/* GDPR Consents Section */}
+        <div className="space-y-3 pt-4 border-t border-gray-200">
+          <div className="flex items-start space-x-2 text-sm">
+            <Shield className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+            <p className="text-gray-600">
+              Privacidade e Consentimentos
+            </p>
+          </div>
+
+          {/* Privacy Policy - Required */}
+          <div className="flex items-start space-x-3 p-3 bg-purple-50 rounded-md">
+            <Checkbox
+              id="accept-privacy"
+              checked={acceptPrivacyPolicy}
+              onCheckedChange={(checked) => setAcceptPrivacyPolicy(checked as boolean)}
+              disabled={registerMutation.isPending}
+              data-testid="checkbox-accept-privacy"
+            />
+            <div className="space-y-1">
+              <Label
+                htmlFor="accept-privacy"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Li e aceito a Política de Privacidade <span className="text-red-500">*</span>
+              </Label>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyPolicy(!showPrivacyPolicy)}
+                className="text-xs text-purple-600 hover:text-purple-700 underline"
+              >
+                {showPrivacyPolicy ? 'Ocultar' : 'Ver política'}
+              </button>
+              {showPrivacyPolicy && (
+                <div className="mt-2 p-3 bg-white rounded border border-purple-200 text-xs text-gray-600 max-h-32 overflow-y-auto">
+                  {privacyPolicy.content}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Cookies Section */}
+          <div className="space-y-2 pl-2">
+            <p className="text-xs text-gray-500">Consentimento de Cookies:</p>
+            
+            {/* Necessary Cookies - Always checked, informative */}
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="cookies-necessary"
+                checked={true}
+                disabled={true}
+                data-testid="checkbox-cookies-necessary"
+              />
+              <Label
+                htmlFor="cookies-necessary"
+                className="text-sm text-gray-600 cursor-not-allowed"
+              >
+                Cookies Necessários (sempre ativados)
+              </Label>
+            </div>
+
+            {/* Analytics Cookies - Optional */}
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="cookies-analytics"
+                checked={acceptCookiesAnalytics}
+                onCheckedChange={(checked) => setAcceptCookiesAnalytics(checked as boolean)}
+                disabled={registerMutation.isPending}
+                data-testid="checkbox-cookies-analytics"
+              />
+              <Label
+                htmlFor="cookies-analytics"
+                className="text-sm text-gray-600 cursor-pointer"
+              >
+                Cookies de Analytics (opcional)
+              </Label>
+            </div>
+
+            {/* Marketing Cookies - Optional */}
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="cookies-marketing"
+                checked={acceptCookiesMarketing}
+                onCheckedChange={(checked) => setAcceptCookiesMarketing(checked as boolean)}
+                disabled={registerMutation.isPending}
+                data-testid="checkbox-cookies-marketing"
+              />
+              <Label
+                htmlFor="cookies-marketing"
+                className="text-sm text-gray-600 cursor-pointer"
+              >
+                Cookies de Marketing (opcional)
+              </Label>
+            </div>
+          </div>
+        </div>
+
         <Button
           type="submit"
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-          disabled={registerMutation.isPending}
+          disabled={registerMutation.isPending || !acceptPrivacyPolicy}
+          data-testid="button-register"
         >
           {registerMutation.isPending ? (
             <>
