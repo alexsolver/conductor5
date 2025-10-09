@@ -1415,6 +1415,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tia.end_time,
         tia.action_number,
         tia.form_id,
+        tia.form_data,
         ft.name as form_name,
         '[]' as linked_items,
         false as has_file,
@@ -1485,6 +1486,7 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         tia.description as work_log,
         tia.created_at,
         tia.form_id,
+        tia.form_data,
         ft.name as form_name,
         u.first_name || ' ' || u.last_name as "createdByName",
         u.first_name || ' ' || u.last_name as "assigned_to_name"
