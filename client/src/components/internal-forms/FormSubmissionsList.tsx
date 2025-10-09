@@ -25,7 +25,10 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
     queryKey: ['form-submissions', formId],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/internal-forms/submissions${formId ? `?formId=${formId}` : ''}`);
-      return response.json();
+      const data = await response.json();
+      console.log('📋 [SUBMISSIONS-DEBUG] API Response:', data);
+      console.log('📋 [SUBMISSIONS-DEBUG] First submission:', data[0]);
+      return data;
     }
   });
 
