@@ -7,16 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2 } from "lucide-react";
+import { Plus, FileText, Settings, BarChart3, Users, Search, Trash2, ClipboardList } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
 import { FormSubmissionsList } from "@/components/internal-forms/FormSubmissionsList";
 import { FormFiller } from "@/components/internal-forms/FormFiller";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function InternalForms() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("forms");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -173,8 +175,22 @@ export default function InternalForms() {
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="forms" data-testid="tab-forms">
+            <FileText className="h-4 w-4 mr-2" />
+            Formulários
+          </TabsTrigger>
+          <TabsTrigger value="submissions" data-testid="tab-submissions">
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Submissões
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="forms" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -344,6 +360,12 @@ export default function InternalForms() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="submissions" className="space-y-6">
+          <FormSubmissionsList />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de Visualização */}
       <Dialog open={!!viewingForm} onOpenChange={() => setViewingForm(null)}>
