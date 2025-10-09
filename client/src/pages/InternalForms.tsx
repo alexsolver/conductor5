@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { InternalFormBuilder } from "@/components/internal-forms/InternalFormBuilder";
 import { FormSubmissionsList } from "@/components/internal-forms/FormSubmissionsList";
+import { FormFiller } from "@/components/internal-forms/FormFiller";
 
 export default function InternalForms() {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ export default function InternalForms() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<any>(null);
   const [viewingForm, setViewingForm] = useState<any>(null);
+  const [fillingForm, setFillingForm] = useState<any>(null);
 
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['internal-forms'],
@@ -63,6 +65,36 @@ export default function InternalForms() {
     }
   });
 
+  const submitFormMutation = useMutation({
+    mutationFn: async ({ formId, data }: { formId: string; data: Record<string, any> }) => {
+      const response = await apiRequest('POST', '/api/internal-forms/submissions', {
+        formId,
+        data
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao submeter formulário');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Formulário enviado com sucesso!",
+      });
+      setFillingForm(null);
+      queryClient.invalidateQueries({ queryKey: ['internal-forms'] });
+      queryClient.invalidateQueries({ queryKey: ['form-submissions'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao enviar formulário",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleEditForm = (form: any) => {
     setEditingForm(form);
     setIsCreateDialogOpen(true);
@@ -70,6 +102,10 @@ export default function InternalForms() {
 
   const handleViewForm = (form: any) => {
     setViewingForm(form);
+  };
+
+  const handleFillForm = (form: any) => {
+    setFillingForm(form);
   };
 
   const handleDeleteForm = async (formId: string) => {
@@ -81,6 +117,12 @@ export default function InternalForms() {
   const handleCloseDialog = () => {
     setIsCreateDialogOpen(false);
     setEditingForm(null);
+  };
+
+  const handleFormSubmit = (data: Record<string, any>) => {
+    if (fillingForm) {
+      submitFormMutation.mutate({ formId: fillingForm.id, data });
+    }
   };
 
   const filteredForms = (Array.isArray(forms) ? forms : []).filter((form: any) => {
@@ -234,34 +276,46 @@ export default function InternalForms() {
                 <span>{form.fields.length} campos</span>
               </div>
 
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="sm" 
-                  className="flex-1"
-                  onClick={() => handleEditForm(form)}
-                  data-testid={`button-edit-form-${form.id}`}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  onClick={() => handleFillForm(form)}
+                  disabled={!form.isActive}
+                  data-testid={`button-fill-form-${form.id}`}
                 >
-                  Editar
+                  Preencher Formulário
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1"
-                  onClick={() => handleViewForm(form)}
-                  data-testid={`button-view-form-${form.id}`}
-                >
-                  Visualizar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDeleteForm(form.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  data-testid={`button-delete-form-${form.id}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleEditForm(form)}
+                    data-testid={`button-edit-form-${form.id}`}
+                  >
+                    Editar
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewForm(form)}
+                    data-testid={`button-view-form-${form.id}`}
+                  >
+                    Visualizar
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteForm(form.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    data-testid={`button-delete-form-${form.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -335,6 +389,23 @@ export default function InternalForms() {
                 </div>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Preenchimento */}
+      <Dialog open={!!fillingForm} onOpenChange={() => setFillingForm(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Preencher Formulário</DialogTitle>
+          </DialogHeader>
+          {fillingForm && (
+            <FormFiller
+              form={fillingForm}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setFillingForm(null)}
+              isSubmitting={submitFormMutation.isPending}
+            />
           )}
         </DialogContent>
       </Dialog>
