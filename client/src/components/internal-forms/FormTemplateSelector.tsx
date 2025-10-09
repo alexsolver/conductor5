@@ -105,7 +105,7 @@ export function FormTemplateSelector({
           <Select
             value={selectedFormId || 'none'}
             onValueChange={handleSelectForm}
-            disabled={isLoading}
+            disabled={isLoading || isReadOnly}
           >
             <SelectTrigger id="form-template" className="flex-1" data-testid="select-form-template">
               <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione um formulário"} />
@@ -143,26 +143,37 @@ export function FormTemplateSelector({
               >
                 <Eye className="h-4 w-4" />
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleClearForm}
-                title="Remover formulário"
-                data-testid="button-clear-form"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {!isReadOnly && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleClearForm}
+                  title="Remover formulário"
+                  data-testid="button-clear-form"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </>
           )}
         </div>
-        <p className="text-sm text-muted-foreground flex items-start gap-2">
-          <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>
-            Ao selecionar um formulário, o agente deverá preenchê-lo ao executar esta ação interna.
-            Isso permite criar processos operacionais estruturados.
-          </span>
-        </p>
+        {isReadOnly ? (
+          <p className="text-sm text-amber-600 dark:text-amber-500 flex items-start gap-2 font-medium">
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <span>
+              Formulário já preenchido. Não é possível trocar para outro formulário após o preenchimento.
+            </span>
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground flex items-start gap-2">
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <span>
+              Ao selecionar um formulário, o agente deverá preenchê-lo ao executar esta ação interna.
+              Isso permite criar processos operacionais estruturados.
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Form Preview/Fill */}
