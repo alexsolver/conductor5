@@ -59,6 +59,53 @@ const validateGetCustomers = (req: Request, res: Response, next: NextFunction) =
   }
 };
 
+// GET /api/customers/search - Quick search for autocomplete
+customersRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { q = '' } = req.query;
+    
+    if (!q || typeof q !== 'string' || q.length < 2) {
+      return res.json([]);
+    }
+
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    const searchTerm = `%${q}%`;
+    
+    const result = await pool.query(`
+      SELECT 
+        id, 
+        first_name as "firstName", 
+        last_name as "lastName", 
+        email, 
+        cpf,
+        phone,
+        mobile_phone as "mobilePhone"
+      FROM ${schemaName}.customers
+      WHERE 
+        (
+          LOWER(first_name || ' ' || last_name) LIKE LOWER($1)
+          OR LOWER(email) LIKE LOWER($1)
+          OR cpf LIKE $1
+        )
+        AND is_active = true
+      ORDER BY first_name, last_name
+      LIMIT 10
+    `, [searchTerm]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[CUSTOMER-SEARCH] Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao buscar clientes',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // GET /api/customers - Get all customers with proper validation
 customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: AuthenticatedRequest, res) => {
   try {

@@ -15,7 +15,7 @@ import { InternalForm, FormSubmission } from '../../domain/entities/InternalForm
 import { v4 as uuidv4 } from 'uuid';
 import { validateForm, FormField } from '../../../../utils/validators/form-validator';
 import { ICustomerRepository } from '../../../customers/domain/repositories/ICustomerRepository';
-import { getDb } from '../../../../db';
+import { getTenantDb } from '../../../../db-tenant';
 import { customFormEntityLinks } from '@shared/schema-internal-forms';
 
 interface AuthenticatedRequest extends Request {
@@ -515,7 +515,7 @@ export class InternalFormController {
       // ✅ CRIAR LINKS DE ENTIDADES: Registrar entidades criadas durante preenchimento
       // Para campos com entityId no formato "entity:type:id" (ex: "entity:client:uuid")
       const entityLinks: any[] = [];
-      const db = getDb(tenantId);
+      const db = getTenantDb(tenantId);
 
       for (const field of form.fields || []) {
         const fieldValue = req.body.data[field.name];
