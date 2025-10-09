@@ -683,6 +683,7 @@ export const ticketActions = pgTable("ticket_actions", {
   ticketId: uuid("ticket_id").notNull(),
   action: varchar("action", { length: 100 }).notNull(),
   performedBy: uuid("performed_by").notNull(),
+  formId: uuid("form_id"), // Link to internal forms
   createdAt: timestamp("created_at").defaultNow(),
 });
 
