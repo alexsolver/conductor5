@@ -98,7 +98,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     queryFn: async () => {
       if (!formData.form_id) return null;
       const response = await apiRequest('GET', `/api/internal-forms/forms/${formData.form_id}`);
-      return response.json();
+      const result = await response.json();
+      console.log('📥 [FORM-TEMPLATE-LOADED]', { formId: formData.form_id, result, hasFields: !!result?.data?.fields, fieldsCount: result?.data?.fields?.length });
+      return result.data; // Extract form from data property
     },
     enabled: !!formData.form_id && isOpen,
   });
