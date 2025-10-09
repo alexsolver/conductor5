@@ -59,7 +59,7 @@ export class ConversationalInterviewEngine {
     state.currentFieldIndex++;
     
     if (state.currentFieldIndex >= state.fields.length) {
-      const confirmationMessage = await this.generateConfirmation(agent, state.collectedData);
+      const confirmationMessage = await this.generateConfirmation(agent, state.collectedData, state.fields);
       return {
         message: confirmationMessage,
         isComplete: true,
@@ -108,9 +108,13 @@ export class ConversationalInterviewEngine {
     return `Desculpe, mas ${error}\n\nPor favor, tente novamente:\n${field.label}`;
   }
 
-  private async generateConfirmation(agent: AIAgent, collectedData: Record<string, any>): Promise<string> {
+  private async generateConfirmation(agent: AIAgent, collectedData: Record<string, any>, fields: FormField[]): Promise<string> {
     const summary = Object.entries(collectedData)
-      .map(([key, value]) => `• ${key}: ${value}`)
+      .map(([fieldId, value]) => {
+        const field = fields.find(f => f.id === fieldId);
+        const label = field?.label || fieldId;
+        return `• ${label}: ${value}`;
+      })
       .join('\n');
     
     return `Perfeito! Aqui está o resumo dos dados coletados:\n\n${summary}\n\n` +
