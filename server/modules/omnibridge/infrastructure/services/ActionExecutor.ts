@@ -3657,6 +3657,15 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       let isComplete = false;
       
       console.log(`🔍 [AI-AGENT-INTERVIEW] Retrieved state for ${conversationId}:`, interviewState ? 'EXISTS' : 'NULL');
+      if (interviewState) {
+        console.log(`🔍 [AI-AGENT-INTERVIEW] State details:`, {
+          formId: interviewState.formId,
+          currentFieldIndex: interviewState.currentFieldIndex,
+          fieldsCount: interviewState.fields?.length || 0,
+          collectedDataKeys: Object.keys(interviewState.collectedData || {}),
+          currentField: interviewState.fields?.[interviewState.currentFieldIndex]
+        });
+      }
       
       if (!interviewState) {
         // Iniciar nova entrevista
