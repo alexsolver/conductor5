@@ -52,6 +52,7 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 50 }).default("agent").notNull(),
   tenantId: uuid("tenant_id").references(() => tenants.id).notNull(),
   profileImageUrl: varchar("profile_image_url"),
+  emailSignature: text("email_signature"),
 
   // Dados Básicos - Basic Information
   integrationCode: varchar("integration_code", { length: 100 }),
