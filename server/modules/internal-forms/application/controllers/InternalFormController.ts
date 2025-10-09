@@ -13,6 +13,7 @@ import { Request, Response } from 'express';
 import { IInternalFormRepository } from '../../domain/repositories/IInternalFormRepository';
 import { InternalForm, FormSubmission } from '../../domain/entities/InternalForm';
 import { v4 as uuidv4 } from 'uuid';
+import { validateForm, FormField } from '../../../../utils/validators/form-validator';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -447,6 +448,38 @@ export class InternalFormController {
       const userEmail = req.user.email || '';
 
       console.log(`[InternalFormController] Creating submission for form: ${req.body.formId}`);
+
+      // ✅ VALIDATION: Buscar formulário para aplicar validações
+      const form = await this.internalFormRepository.findById(req.body.formId, tenantId);
+
+      if (!form) {
+        return res.status(404).json({
+          success: false,
+          message: 'Formulário não encontrado',
+          code: 'FORM_NOT_FOUND'
+        });
+      }
+
+      // ✅ VALIDATION: Aplicar validações nos campos
+      const formFields: FormField[] = (form.fields || []).map((field: any) => ({
+        id: field.id,
+        label: field.label,
+        type: field.type,
+        required: field.required || false,
+        validationRules: field.validationRules || []
+      }));
+
+      const validationErrors = validateForm(formFields, req.body.data || {});
+
+      if (validationErrors.length > 0) {
+        console.log(`❌ [InternalFormController] Validation errors:`, validationErrors);
+        return res.status(400).json({
+          success: false,
+          message: 'Erro de validação',
+          errors: validationErrors,
+          code: 'VALIDATION_ERROR'
+        });
+      }
 
       // ✅ 1QA.MD: Buscar nome do usuário para exibição
       let submittedByName = userEmail;
