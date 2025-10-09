@@ -232,6 +232,21 @@ export const internalFormCategories = pgTable('internal_form_categories', {
   )
 ]);
 
+export const customFormEntityLinks = pgTable('custom_form_entity_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  submissionId: uuid('submission_id').notNull(),
+  fieldId: varchar('field_id', { length: 255 }).notNull(),
+  entityType: varchar('entity_type', { length: 50 }).notNull(),
+  entityId: uuid('entity_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  createdBy: uuid('created_by').notNull(),
+}, (table) => [
+  check('tenant_id_uuid_format', 
+    sql`LENGTH(tenant_id::text) = 36 AND tenant_id::text ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'`
+  )
+]);
+
 // ========================================
 // ZOD SCHEMAS FOR VALIDATION
 // ========================================
