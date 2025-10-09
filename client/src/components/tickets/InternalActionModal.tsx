@@ -578,6 +578,37 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     createActionMutation.mutate(formDataWithTimer);
   };
 
+  // Função para parar o timer (apenas registra end_time e calcula actual_minutes)
+  const handleStopTimer = async () => {
+    const now = getLocalDateTimeString();
+
+    // Calcular minutos decorridos
+    if (formData.start_time) {
+      const startTime = new Date(formData.start_time);
+      const endTime = new Date(now);
+      const diffMs = endTime.getTime() - startTime.getTime();
+      const diffMinutes = Math.round(diffMs / (1000 * 60));
+
+      const updatedFormData = {
+        ...formData,
+        end_time: now,
+        actual_minutes: diffMinutes.toString(),
+        form_data: formTemplateData // Salvar dados do formulário
+      };
+
+      setFormData(updatedFormData);
+
+      // Salvar automaticamente se estiver em modo de edição
+      if (editAction) {
+        updateActionMutation.mutate(updatedFormData);
+        toast({
+          title: "Timer Parado",
+          description: `Tempo decorrido: ${diffMinutes} minutos`,
+        });
+      }
+    }
+  };
+
   const handleFinishTimer = async () => {
     const now = getLocalDateTimeString();
 
@@ -682,16 +713,16 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   Criar e Iniciar
                 </Button>
               ) : editAction.status === 'in_progress' ? (
-                // Modo Edição com status "Em Andamento": Apenas botão "Finalizar"
+                // Modo Edição com status "Em Andamento": Apenas botão "Parar Timer"
                 <Button
                   type="button"
-                  onClick={() => setShowFinishConfirmation(true)}
+                  onClick={handleStopTimer}
                   disabled={updateActionMutation.isPending}
-                  className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
-                  data-testid="button-finish"
+                  className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-semibold"
+                  data-testid="button-stop-timer"
                 >
                   <Clock className="w-4 h-4 mr-2" />
-                  Finalizar
+                  Parar Timer
                 </Button>
               ) : null}
             </div>
