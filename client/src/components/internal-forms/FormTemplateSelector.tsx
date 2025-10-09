@@ -64,7 +64,9 @@ export function FormTemplateSelector({
     queryFn: async () => {
       if (!selectedFormId) return null;
       const response = await apiRequest('GET', `/api/internal-forms/forms/${selectedFormId}`);
-      return response.json();
+      const result = await response.json();
+      // Unwrap envelope if present
+      return result.data || result;
     },
     enabled: !!selectedFormId && showPreview,
   });
