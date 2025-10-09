@@ -1025,30 +1025,6 @@ export default function UserProfile() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="notifications">Notificações por Email</Label>
-                    <p className="text-sm text-gray-600">Receber notificações por email</p>
-                  </div>
-                  <Switch 
-                    id="notifications" 
-                    checked={(preferences as any)?.data?.emailNotifications ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="push-notifications">Notificações Push</Label>
-                    <p className="text-sm text-gray-600">Receber notificações no navegador</p>
-                  </div>
-                  <Switch 
-                    id="push-notifications" 
-                    checked={(preferences as any)?.data?.pushNotifications ?? true}
-                    onCheckedChange={(checked) => handlePreferenceChange('pushNotifications', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
                     <Label htmlFor="dark-mode">Modo Escuro</Label>
                     <p className="text-sm text-gray-600">Usar tema escuro na interface</p>
                   </div>
