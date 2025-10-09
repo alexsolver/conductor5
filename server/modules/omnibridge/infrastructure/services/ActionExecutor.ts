@@ -3618,8 +3618,6 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       const sender = context.messageData.sender || context.messageData.from || 'unknown';
       const channelType = context.messageData.channelType || context.messageData.channel;
       const conversationId = context.messageData.metadata?.conversationId || sender;
-
-      console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId}, Forms: ${allowedFormIds.length}, User: ${sender}, Channel: ${channelType}`);
       
       // 1. Buscar agente do banco
       const { DrizzleAiAgentRepository } = await import('../repositories/DrizzleAiAgentRepository');
@@ -3631,17 +3629,20 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
         return { success: false, message: 'AI Agent not found', error: 'Agent not found in database' };
       }
 
-      // 2. Buscar formulário permitido (usar o primeiro por enquanto)
-      if (allowedFormIds.length === 0) {
-        return { success: false, message: 'No forms allowed for this agent', error: 'Empty allowedFormIds' };
+      console.log(`🤖 [AI-AGENT-INTERVIEW] Agent ${agentId} (${agent.name}), Forms: ${agent.allowedFormIds?.length || 0}, User: ${sender}, Channel: ${channelType}`);
+
+      // 2. Buscar formulário permitido do AGENTE (não da automação)
+      const agentFormIds = agent.allowedFormIds || [];
+      if (agentFormIds.length === 0) {
+        return { success: false, message: 'No forms allowed for this agent', error: 'Agent has no forms configured' };
       }
 
       const { DrizzleInternalFormRepository } = await import('../../../internal-forms/infrastructure/repositories/DrizzleInternalFormRepository');
       const formRepo = new DrizzleInternalFormRepository();
-      const form = await formRepo.findById(allowedFormIds[0], tenantId);
+      const form = await formRepo.findById(agentFormIds[0], tenantId);
       
       if (!form) {
-        console.error(`❌ [AI-AGENT-INTERVIEW] Form ${allowedFormIds[0]} not found`);
+        console.error(`❌ [AI-AGENT-INTERVIEW] Form ${agentFormIds[0]} not found`);
         return { success: false, message: 'Form not found', error: 'Form not found in database' };
       }
 
