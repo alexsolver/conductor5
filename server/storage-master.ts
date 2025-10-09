@@ -6,13 +6,11 @@ import { db } from "./db";
 import { 
   users, tenants, customers, tickets, ticketMessages,
   aiAgents, aiConversations, aiConversationMessages, aiConversationLogs,
-  aiActionExecutions, aiConversationFeedback, aiLearningPatterns, aiActions,
   type User, type Tenant, type Customer, type Ticket, type TicketMessage,
   type InsertUser, type InsertTenant, type InsertCustomer, type InsertTicket, type InsertTicketMessage,
   type AiAgent, type AiConversation, type AiConversationMessage, type AiConversationLog,
-  type AiActionExecution, type AiConversationFeedback, type AiLearningPattern, type AiAction,
   type InsertAiAgent, type InsertAiConversation, type InsertAiConversationMessage,
-  type InsertAiConversationLog, type InsertAiActionExecution, type InsertAiConversationFeedback
+  type InsertAiConversationLog
 } from "@shared/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 
@@ -66,10 +64,6 @@ export interface IUnifiedStorage {
   updateAiAgent(tenantId: string, id: string, updates: Partial<InsertAiAgent>): Promise<AiAgent>;
   deleteAiAgent(tenantId: string, id: string): Promise<void>;
   
-  // Action definitions
-  getAiActions(): Promise<AiAction[]>;
-  getAiAction(actionType: string): Promise<AiAction | undefined>;
-  
   // Conversation management
   getAiConversations(tenantId: string, filters?: {
     agentId?: string;
@@ -88,22 +82,6 @@ export interface IUnifiedStorage {
   // Conversation logs
   getAiConversationLogs(conversationId: string, level?: string): Promise<AiConversationLog[]>;
   createAiConversationLog(log: InsertAiConversationLog): Promise<AiConversationLog>;
-  
-  // Action executions
-  getAiActionExecutions(conversationId: string): Promise<AiActionExecution[]>;
-  createAiActionExecution(execution: InsertAiActionExecution): Promise<AiActionExecution>;
-  updateAiActionExecution(id: string, updates: Partial<InsertAiActionExecution>): Promise<AiActionExecution>;
-  
-  // Feedback and learning
-  getAiConversationFeedback(conversationId: string): Promise<AiConversationFeedback | undefined>;
-  createAiConversationFeedback(feedback: InsertAiConversationFeedback): Promise<AiConversationFeedback>;
-  getUnprocessedFeedback(agentId: string, limit?: number): Promise<AiConversationFeedback[]>;
-  markFeedbackAsProcessed(feedbackId: string): Promise<void>;
-  
-  // Learning patterns
-  getAiLearningPatterns(agentId: string, applied?: boolean): Promise<AiLearningPattern[]>;
-  createAiLearningPattern(pattern: Omit<AiLearningPattern, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiLearningPattern>;
-  applyLearningPattern(patternId: string): Promise<void>;
 }
 
 // ========================================
@@ -485,21 +463,6 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
       ));
   }
 
-  async getAiActions(): Promise<AiAction[]> {
-    const result = await db.select()
-      .from(aiActions)
-      .where(eq(aiActions.isActive, true))
-      .orderBy(aiActions.category, aiActions.name);
-    return result;
-  }
-
-  async getAiAction(actionType: string): Promise<AiAction | undefined> {
-    const result = await db.select()
-      .from(aiActions)
-      .where(eq(aiActions.actionType, actionType));
-    return result[0];
-  }
-
   async getAiConversations(tenantId: string, filters?: {
     agentId?: string;
     userId?: string;
@@ -581,93 +544,6 @@ class UnifiedDatabaseStorage implements IUnifiedStorage {
   async createAiConversationLog(log: InsertAiConversationLog): Promise<AiConversationLog> {
     const result = await db.insert(aiConversationLogs).values(log).returning();
     return result[0];
-  }
-
-  async getAiActionExecutions(conversationId: string): Promise<AiActionExecution[]> {
-    const result = await db.select()
-      .from(aiActionExecutions)
-      .where(eq(aiActionExecutions.conversationId, conversationId))
-      .orderBy(aiActionExecutions.startedAt);
-    return result;
-  }
-
-  async createAiActionExecution(execution: InsertAiActionExecution): Promise<AiActionExecution> {
-    const result = await db.insert(aiActionExecutions).values(execution).returning();
-    return result[0];
-  }
-
-  async updateAiActionExecution(id: string, updates: Partial<InsertAiActionExecution>): Promise<AiActionExecution> {
-    const result = await db
-      .update(aiActionExecutions)
-      .set(updates)
-      .where(eq(aiActionExecutions.id, id))
-      .returning();
-    return result[0];
-  }
-
-  async getAiConversationFeedback(conversationId: string): Promise<AiConversationFeedback | undefined> {
-    const result = await db.select()
-      .from(aiConversationFeedback)
-      .where(eq(aiConversationFeedback.conversationId, conversationId));
-    return result[0];
-  }
-
-  async createAiConversationFeedback(feedback: InsertAiConversationFeedback): Promise<AiConversationFeedback> {
-    const result = await db.insert(aiConversationFeedback).values(feedback as any).returning();
-    return result[0];
-  }
-
-  async getUnprocessedFeedback(agentId: string, limit: number = 50): Promise<AiConversationFeedback[]> {
-    const result = await db.select()
-      .from(aiConversationFeedback)
-      .where(and(
-        eq(aiConversationFeedback.agentId, agentId),
-        eq(aiConversationFeedback.appliedToLearning, false)
-      ))
-      .orderBy(desc(aiConversationFeedback.createdAt))
-      .limit(limit);
-    return result;
-  }
-
-  async markFeedbackAsProcessed(feedbackId: string): Promise<void> {
-    await db
-      .update(aiConversationFeedback)
-      .set({ 
-        appliedToLearning: true,
-        learningAppliedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(aiConversationFeedback.id, feedbackId));
-  }
-
-  async getAiLearningPatterns(agentId: string, applied?: boolean): Promise<AiLearningPattern[]> {
-    const conditions = [eq(aiLearningPatterns.agentId, agentId)];
-    
-    if (applied !== undefined) {
-      conditions.push(eq(aiLearningPatterns.applied, applied));
-    }
-
-    const result = await db.select()
-      .from(aiLearningPatterns)
-      .where(and(...conditions))
-      .orderBy(desc(aiLearningPatterns.createdAt));
-    return result;
-  }
-
-  async createAiLearningPattern(pattern: Omit<AiLearningPattern, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiLearningPattern> {
-    const result = await db.insert(aiLearningPatterns).values(pattern as any).returning();
-    return result[0];
-  }
-
-  async applyLearningPattern(patternId: string): Promise<void> {
-    await db
-      .update(aiLearningPatterns)
-      .set({ 
-        applied: true,
-        appliedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(aiLearningPatterns.id, patternId));
   }
 
   // ========================================

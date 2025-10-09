@@ -3624,7 +3624,7 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       // 1. Buscar agente do banco
       const { DrizzleAiAgentRepository } = await import('../repositories/DrizzleAiAgentRepository');
       const aiAgentRepo = new DrizzleAiAgentRepository();
-      const agent = await aiAgentRepo.findById(agentId, tenantId);
+      const agent = await aiAgentRepo.findAgentById(agentId, tenantId);
       
       if (!agent) {
         console.error(`❌ [AI-AGENT-INTERVIEW] Agent ${agentId} not found`);
