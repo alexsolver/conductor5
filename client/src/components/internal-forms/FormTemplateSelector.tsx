@@ -164,23 +164,29 @@ export function FormTemplateSelector({
       </div>
 
       {/* Form Preview/Fill */}
-      {showPreview && selectedForm && (
-        <Card className="border-blue-500 border-2" data-testid="card-form-preview">
-          <CardContent className="p-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: selectedForm.color || '#3B82F6' }}
-                  />
-                  <h4 className="font-semibold">{selectedForm.name}</h4>
-                  <Badge variant="secondary">{selectedForm.category}</Badge>
+      {showPreview && selectedForm && (() => {
+        console.log('🔍 [FORM-DEBUG] selectedForm:', selectedForm);
+        console.log('🔍 [FORM-DEBUG] fields:', selectedForm.fields);
+        console.log('🔍 [FORM-DEBUG] fields type:', typeof selectedForm.fields);
+        console.log('🔍 [FORM-DEBUG] is array:', Array.isArray(selectedForm.fields));
+        
+        return (
+          <Card className="border-blue-500 border-2" data-testid="card-form-preview">
+            <CardContent className="p-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: selectedForm.color || '#3B82F6' }}
+                    />
+                    <h4 className="font-semibold">{selectedForm.name}</h4>
+                    <Badge variant="secondary">{selectedForm.category}</Badge>
+                  </div>
+                  <Badge variant="outline">
+                    {Array.isArray(selectedForm.fields) ? selectedForm.fields.length : 0} campos
+                  </Badge>
                 </div>
-                <Badge variant="outline">
-                  {Array.isArray(selectedForm.fields) ? selectedForm.fields.length : 0} campos
-                </Badge>
-              </div>
               
               {selectedForm.description && (
                 <p className="text-sm text-muted-foreground">
@@ -258,7 +264,8 @@ export function FormTemplateSelector({
             </div>
           </CardContent>
         </Card>
-      )}
+      );
+    })()}
     </div>
   );
 }
