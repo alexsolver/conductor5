@@ -111,23 +111,19 @@ export class DeleteUserDataUseCase {
         .insert(gdprAuditLogs)
         .values({
           userId,
-          subjectUserId: userId,
           action: 'data_erasure_completed',
           entityType: 'user',
           entityId: userId,
           ipAddress: ipAddress || '0.0.0.0',
           userAgent: userAgent || 'unknown',
-          requestData: {
+          details: JSON.stringify({
             requestId: dataSubjectRequest.id,
             requestType: 'erasure',
-            requestDetails
-          },
-          responseData: {
+            requestDetails,
             anonymizedEmail,
             completedAt: new Date().toISOString()
-          },
+          }),
           tenantId,
-          severity: 'high',
           createdAt: new Date()
         });
 
@@ -152,18 +148,16 @@ export class DeleteUserDataUseCase {
           .insert(gdprAuditLogs)
           .values({
             userId,
-            subjectUserId: userId,
             action: 'data_erasure_failed',
             entityType: 'user',
             entityId: userId,
             ipAddress: ipAddress || '0.0.0.0',
             userAgent: userAgent || 'unknown',
-            requestData: {
+            details: JSON.stringify({
               requestDetails,
               error: error instanceof Error ? error.message : 'Unknown error'
-            },
+            }),
             tenantId,
-            severity: 'high',
             createdAt: new Date()
           });
       } catch (auditError) {
