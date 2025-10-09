@@ -1248,36 +1248,7 @@ export async function processTelegramMessage(tenantId: string, message: any) {
     console.log(`📝 [TELEGRAM-MESSAGE] From: ${message.from.first_name} (@${message.from.username})`);
     console.log(`📝 [TELEGRAM-MESSAGE] Text: ${message.text}`);
 
-    // ✅ AUTOMATION: Process with automation engine
-    const { GlobalAutomationManager } = await import('../modules/omnibridge/infrastructure/services/AutomationEngine');
-    const automationManager = GlobalAutomationManager.getInstance();
-    
-    // Processar com engine de automação
-    await automationManager.processGlobalEvent(tenantId, 'telegram_message_received', {
-      message: message.text,
-      sender: message.from.first_name,
-      username: message.from.username,
-      chatId: message.chat.id,
-      timestamp: new Date(message.date * 1000),
-      platform: 'telegram',
-      priority: 'medium',
-      hour: new Date().getHours()
-    });
-
-    // ✅ STORE MESSAGE: Save to inbox
-    const messageData = {
-      messageId: message.message_id,
-      chatId: message.chat.id,
-      fromUserId: message.from.id,
-      fromUsername: message.from.username,
-      fromFirstName: message.from.first_name,
-      text: message.text,
-      timestamp: new Date(message.date * 1000).toISOString(),
-      tenantId: tenantId,
-      processed: true
-    };
-
-    // ✅ SAVE TO OMNIBRIDGE INBOX: Using MessageIngestionService
+    // ✅ PROCESS WITH AUTOMATION: Using MessageIngestionService with ProcessMessageUseCase
     const { MessageIngestionService } = await import('../modules/omnibridge/infrastructure/services/MessageIngestionService');
     const { DrizzleMessageRepository } = await import('../modules/omnibridge/infrastructure/repositories/DrizzleMessageRepository');
     const { ProcessMessageUseCase } = await import('../modules/omnibridge/application/use-cases/ProcessMessageUseCase');
@@ -1286,28 +1257,31 @@ export async function processTelegramMessage(tenantId: string, message: any) {
     const processMessageUseCase = new ProcessMessageUseCase(messageRepository);
     const ingestionService = new MessageIngestionService(messageRepository, processMessageUseCase);
     
-    const incomingMessage = {
-      channelId: 'telegram',
-      channelType: 'telegram' as const,
-      from: `telegram:${message.from.id}`,
-      to: `bot:telegram`,
-      subject: `Telegram - ${message.from.first_name}`,
-      content: message.text,
-      metadata: {
-        telegramMessageId: message.message_id,
-        chatId: message.chat.id,
-        fromUser: message.from,
-        chatType: message.chat.type,
-        timestamp: message.date
-      },
-      priority: 'medium' as const,
-      tenantId
+    // Construct Telegram webhook data format
+    const webhookData = {
+      message: message
     };
 
-    await ingestionService.ingestMessage(incomingMessage);
+    // Process through MessageIngestionService - this saves the message AND processes automation
+    const result = await ingestionService.processTelegramWebhook(webhookData, tenantId);
     
-    console.log(`✅ [TELEGRAM-MESSAGE] Message saved to inbox successfully`);
-    return messageData;
+    if (result.success) {
+      console.log(`✅ [TELEGRAM-MESSAGE] Message processed successfully with automation`);
+    } else {
+      console.warn(`⚠️ [TELEGRAM-MESSAGE] Message processing completed with issues`);
+    }
+    
+    return {
+      messageId: message.message_id,
+      chatId: message.chat.id,
+      fromUserId: message.from.id,
+      fromUsername: message.from.username,
+      fromFirstName: message.from.first_name,
+      text: message.text,
+      timestamp: new Date(message.date * 1000).toISOString(),
+      tenantId: tenantId,
+      processed: result.success
+    };
 
   } catch (error: any) {
     console.error(`❌ [TELEGRAM-MESSAGE] Error processing message:`, error);
