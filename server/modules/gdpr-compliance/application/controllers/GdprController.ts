@@ -482,7 +482,7 @@ export class GdprController {
   // ✅ GDPR Data Deletion (Right to be Forgotten)
   async deleteUserData(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.headers['x-tenant-id'] as string || req.user?.tenantId;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -493,18 +493,33 @@ export class GdprController {
         return;
       }
 
-      await this.gdprRepository.deleteUserData(userId, tenantId);
+      console.log('🗑️ [GDPR-CONTROLLER] Processing data deletion request:', { userId, tenantId });
+
+      // Import and execute DeleteUserDataUseCase
+      const { DeleteUserDataUseCase } = await import('../use-cases/DeleteUserDataUseCase');
+      const deleteUserDataUseCase = new DeleteUserDataUseCase();
+
+      const result = await deleteUserDataUseCase.execute({
+        userId,
+        tenantId,
+        requestDetails: req.body?.requestDetails || 'Solicitação de exclusão via interface do usuário',
+        ipAddress: req.ip || req.headers['x-forwarded-for'] as string || '0.0.0.0',
+        userAgent: req.headers['user-agent'] || 'unknown'
+      });
+
+      console.log('✅ [GDPR-CONTROLLER] Data deletion completed:', result.requestId);
 
       res.json({
         success: true,
-        message: 'User data deleted successfully (Right to be Forgotten)'
+        message: result.message,
+        data: result.data
       });
 
     } catch (error) {
-      console.error('[GdprController] deleteUserData error:', error);
+      console.error('❌ [GDPR-CONTROLLER] deleteUserData error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error'
+        error: error instanceof Error ? error.message : 'Internal server error'
       });
     }
   }

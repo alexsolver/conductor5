@@ -4,6 +4,27 @@
 Conductor is a modern SaaS customer support platform designed for omnichannel customer support management with enterprise multitenancy. Its purpose is to streamline customer support operations through comprehensive tools for managing tickets, customer interactions, and internal workflows. Engineered for scalability and internationalization, Conductor aims to deliver a comprehensive, compliant, and efficient solution for customer support, enhancing business vision with advanced AI capabilities and robust system integrations.
 
 ## Recent Changes
+### GDPR Right to Erasure Implementation (October 2025)
+- **Feature Implemented**: Complete GDPR Article 17 "Right to Erasure" (Right to be Forgotten) functionality
+- **Backend**: Created `DeleteUserDataUseCase` with GDPR-compliant data anonymization
+- **Process**: 
+  1. Creates Data Subject Request of type 'erasure' (30-day compliance tracking)
+  2. Anonymizes user data (email, name, phone) instead of hard delete (maintains referential integrity)
+  3. Updates request status to 'completed' with anonymization details
+  4. Creates GDPR audit log with high severity for compliance tracking
+- **Frontend**: Updated UserProfile.tsx with DELETE endpoint and automatic logout after 3 seconds
+- **Endpoint**: `DELETE /api/gdpr-compliance/delete-user-data`
+- **Security**: Maintains audit trail and legal compliance data for required retention period
+- **Impact**: Full GDPR compliance for user data deletion requests with automated workflow
+
+### Privacy Policy Management - Edit & Delete (October 2025)
+- **Feature Added**: Edit and delete functionality for privacy policies in GDPR admin interface
+- **Delete Protection**: Active policies cannot be deleted (must be deactivated first)
+- **Confirmation Dialogs**: User-friendly confirmation dialogs for destructive actions
+- **Backend Route**: `DELETE /api/gdpr-compliance/admin/privacy-policies/:policyId` with tenant validation
+- **Security**: Requires `gdpr:delete` permission (saas_admin only)
+- **Impact**: Complete CRUD operations for privacy policy management
+
 ### Form Submissions AI Agent Display Fix (October 2025)
 - **Bug Fixed**: Form submissions from AI agents now correctly display "Enviado por" (Submitted by) name
 - **Root Cause**: Repository only joined with `users` table, missing AI agent submissions with IDs from `omnibridge_ai_agents` table

@@ -1320,9 +1320,30 @@ function GdprTab() {
   });
 
   const deleteDataMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/gdpr-compliance/request-data-deletion', { requestType: 'erasure', requestDetails: 'Direito ao esquecimento' }),
-    onSuccess: () => {
-      toast({ title: "Solicitação de exclusão criada", description: "Processaremos sua solicitação em até 30 dias" });
+    mutationFn: () => apiRequest('DELETE', '/api/gdpr-compliance/delete-user-data', { requestDetails: 'Direito ao esquecimento - Solicitação via perfil do usuário' }),
+    onSuccess: (data) => {
+      toast({ 
+        title: "Dados excluídos com sucesso", 
+        description: "Você será desconectado em 3 segundos..."
+      });
+      
+      // Logout automático após 3 segundos
+      setTimeout(() => {
+        // Limpar localStorage
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('token');
+        
+        // Redirecionar para login
+        window.location.href = '/login';
+      }, 3000);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Erro ao excluir dados", 
+        description: error.message || "Não foi possível processar sua solicitação",
+        variant: "destructive" 
+      });
     }
   });
 
