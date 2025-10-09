@@ -490,4 +490,86 @@ export class InternalFormController {
       }
     }
   }
+
+  /**
+   * Get AI Context - Retorna metadados IA para preenchimento automatizado
+   * Endpoint: GET /api/internal-forms/:formId/ai-context
+   * 
+   * Retorna instruções invisíveis para IA sobre como preencher cada campo:
+   * - aiPrompt: Como perguntar ao usuário
+   * - extractionHints: Como validar/extrair valor
+   * - autoActions: Ações automáticas (search_client, create_if_not_found)
+   * - examples: Exemplos de valores válidos
+   */
+  async getAIContext(req: AuthenticatedRequest, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'application/json');
+
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const { formId } = req.params;
+      const tenantId = req.user.tenantId;
+
+      console.log(`[InternalFormController] Getting AI context for form: ${formId}`);
+
+      const form = await this.internalFormRepository.findById(formId, tenantId);
+
+      if (!form) {
+        return res.status(404).json({
+          success: false,
+          message: 'Formulário não encontrado',
+          code: 'FORM_NOT_FOUND'
+        });
+      }
+
+      // Extrair metadados IA de cada campo
+      const aiContext = {
+        formId: form.id,
+        formName: form.name,
+        formDescription: form.description,
+        fields: (form.fields || []).map((field: any) => ({
+          id: field.id,
+          name: field.name,
+          label: field.label,
+          type: field.type,
+          required: field.required || false,
+          
+          // Metadados IA (invisíveis para usuário)
+          aiMetadata: field.aiMetadata || null
+        })),
+        
+        // Validações globais do formulário
+        validationRules: form.validationRules || {},
+        
+        // Fórmulas de cálculo
+        calculationFormulas: form.calculationFormulas || {},
+        
+        // Lógica condicional
+        conditionalLogic: form.conditionalLogic || {}
+      };
+
+      console.log(`✅ [InternalFormController] AI context retrieved with ${aiContext.fields.length} fields`);
+
+      res.status(200).json({
+        success: true,
+        data: aiContext,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ [InternalFormController] Error in getAIContext:', error);
+
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Erro interno do servidor ao buscar contexto IA',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  }
 }

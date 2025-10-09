@@ -39,6 +39,13 @@ router.get('/forms', (req, res) => internalFormController.getForms(req, res));
 router.get('/forms/by-action-type/:actionType', (req, res) => internalFormController.getFormsByActionType(req, res));
 
 /**
+ * GET /api/internal-forms/forms/:formId/ai-context
+ * Get AI metadata for automated form filling
+ * Returns field instructions, validation hints, and auto-actions for AI agents
+ */
+router.get('/forms/:formId/ai-context', (req, res) => internalFormController.getAIContext(req, res));
+
+/**
  * GET /api/internal-forms/forms/:id
  * Get a specific form by ID
  */
