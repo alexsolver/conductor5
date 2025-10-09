@@ -6,7 +6,7 @@
 
 import { eq, and, desc, sql, gte, lte, ilike, or, inArray, count } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { gdprReports } from '../../../../shared/schema-gdpr-compliance';
+import { gdprReports } from '../../../../../shared/schema-public';
 import { IGdprReportRepository, GdprReportFilters, CreateGdprReportData, UpdateGdprReportData, GdprComplianceMetrics, StatusDistribution, TrendDataPoint } from '../../domain/repositories/IGdprReportRepository';
 import { GdprReportEntity } from '../../domain/entities/GdprReport';
 
