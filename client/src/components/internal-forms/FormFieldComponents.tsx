@@ -40,12 +40,13 @@ interface FormFieldComponentProps {
   value: any;
   onChange: (value: any) => void;
   error?: string;
+  readOnly?: boolean;
 }
 
 // ========================================
 // TEXT FIELD
 // ========================================
-export function TextField({ field, value, onChange, error }: FormFieldComponentProps) {
+export function TextField({ field, value, onChange, error, readOnly }: FormFieldComponentProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor={field.id}>
@@ -59,6 +60,7 @@ export function TextField({ field, value, onChange, error }: FormFieldComponentP
         onChange={(e) => onChange(e.target.value)}
         placeholder={field.placeholder}
         required={field.required}
+        disabled={readOnly}
         data-testid={`input-${field.name}`}
       />
       {field.helpText && (

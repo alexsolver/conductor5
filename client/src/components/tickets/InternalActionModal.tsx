@@ -129,6 +129,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
 
 
+  // Check if action is completed (locked for editing)
+  const isCompleted = editAction?.status === 'completed';
+
   // Reset form when modal opens or load edit data
   useEffect(() => {
     if (isOpen) {
@@ -185,7 +188,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       isOpen, 
       hasEditAction: !!editAction,
       formId: formData.form_id,
-      dataKeys: Object.keys(formTemplateData).length 
+      dataKeys: Object.keys(formTemplateData).length,
+      isCompleted 
     });
 
     // Skip on initial load (when form data is first set from editAction)
@@ -198,6 +202,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     // Skip when modal is closed or no action to edit
     if (!isOpen || !editAction) {
       console.log('⏭️ [AUTO-SAVE] Skipping - modal closed or no edit action');
+      return;
+    }
+
+    // Skip if action is completed (locked)
+    if (isCompleted) {
+      console.log('🔒 [AUTO-SAVE] Skipping - action is completed and locked');
       return;
     }
 
@@ -604,34 +614,49 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Alerta de Ação Concluída */}
+          {isCompleted && (
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-green-900">Ação Concluída</p>
+                <p className="text-sm text-green-700">
+                  Esta ação está concluída e não pode mais ser editada. Todos os campos estão bloqueados.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Timer Control Buttons - Different buttons for create vs edit modes */}
-          <div className="flex gap-2 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 mb-6">
-            {!editAction ? (
-              // Modo Criação: Apenas botão "Criar e Iniciar"
-              <Button
-                type="button"
-                onClick={handleCreateAndStart}
-                disabled={createActionMutation.isPending}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
-                data-testid="button-create-and-start"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Criar e Iniciar
-              </Button>
-            ) : editAction.status === 'in_progress' ? (
-              // Modo Edição com status "Em Andamento": Apenas botão "Finalizar"
-              <Button
-                type="button"
-                onClick={handleFinishTimer}
-                disabled={updateActionMutation.isPending}
-                className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
-                data-testid="button-finish"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                Finalizar
-              </Button>
-            ) : null}
-          </div>
+          {!isCompleted && (
+            <div className="flex gap-2 p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 mb-6">
+              {!editAction ? (
+                // Modo Criação: Apenas botão "Criar e Iniciar"
+                <Button
+                  type="button"
+                  onClick={handleCreateAndStart}
+                  disabled={createActionMutation.isPending}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+                  data-testid="button-create-and-start"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Criar e Iniciar
+                </Button>
+              ) : editAction.status === 'in_progress' ? (
+                // Modo Edição com status "Em Andamento": Apenas botão "Finalizar"
+                <Button
+                  type="button"
+                  onClick={handleFinishTimer}
+                  disabled={updateActionMutation.isPending}
+                  className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
+                  data-testid="button-finish"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Finalizar
+                </Button>
+              ) : null}
+            </div>
+          )}
 
           <Card>
             <CardContent className="p-6">
@@ -642,7 +667,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   {/* Tipo de Ação */}
                   <div>
                     <Label htmlFor="action-type">Tipo de Ação *</Label>
-                    <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
+                    <Select 
+                      value={formData.action_type} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}
+                      disabled={isCompleted}
+                    >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione o tipo de ação..." />
                       </SelectTrigger>
@@ -685,7 +714,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                      disabled={isCompleted}
+                    >
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -699,7 +732,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   </div>
                   <div>
                     <Label htmlFor="priority">{t('tickets.priority')}</Label>
-                    <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                    <Select 
+                      value={formData.priority} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                      disabled={isCompleted}
+                    >
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -728,6 +765,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     placeholder="Título resumido da ação..."
                     className={`mt-1 ${formData.title.length > 255 ? 'border-red-500' : ''}`}
                     maxLength={255}
+                    disabled={isCompleted}
                   />
                   {formData.title.length > 255 && (
                     <p className="text-sm text-red-600 mt-1">Título muito longo</p>
@@ -750,6 +788,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     rows={4}
                     className={`mt-1 ${formData.description.length > 1000 ? 'border-red-500' : ''}`}
                     maxLength={1000}
+                    disabled={isCompleted}
                   />
                   {formData.description.length > 1000 && (
                     <p className="text-sm text-red-600 mt-1">{t('tickets.internal_actions.description_too_long')}</p>
@@ -770,7 +809,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                   onFormDataChange={setFormTemplateData}
                   ticketId={ticketId}
                   userId={currentUser?.id}
-                  isReadOnly={formData.form_id !== null && Object.keys(formTemplateData).length > 0}
+                  isReadOnly={isCompleted || (formData.form_id !== null && Object.keys(formTemplateData).length > 0)}
                 />
 
                 {/* Custom Form Fields */}
@@ -809,6 +848,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                                       [field.name]: value
                                     }));
                                   }}
+                                  readOnly={isCompleted}
                                 />
                               );
                             })}
@@ -1058,6 +1098,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       id="public-action"
                       checked={isPublic}
                       onCheckedChange={setIsPublic}
+                      disabled={isCompleted}
                     />
                     <Label htmlFor="public-action" className="flex items-center gap-2 text-sm">
                       {isPublic ? (
@@ -1087,6 +1128,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       <Button
                         onClick={handleCreateAndStart}
                         disabled={
+                          isCompleted ||
                           createActionMutation.isPending || 
                           !formData.action_type || 
                           formData.title.length > 255 ||
@@ -1103,6 +1145,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     <Button
                       onClick={handleSubmit}
                       disabled={
+                        isCompleted ||
                         (editAction ? updateActionMutation.isPending : createActionMutation.isPending) || 
                         !formData.action_type || 
                         formData.title.length > 255 ||
