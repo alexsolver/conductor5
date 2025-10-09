@@ -48,7 +48,7 @@ export function ActionConfigModal({
   // Mutation to create AI agent
   const createAgentMutation = useMutation({
     mutationFn: async (agentData: any) => {
-      const response = await apiRequest('POST', '/api/omnibridge/ai-agents', agentData);
+      const response = await apiRequest('POST', '/api/omnibridge/ai-agents/agents', agentData);
       if (!response.ok) {
         throw new Error('Failed to create AI agent');
       }
