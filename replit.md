@@ -56,6 +56,29 @@ Conductor is a modern SaaS customer support platform designed for omnichannel cu
 - **Impact**: All OmniBridge API endpoints now functioning correctly (`/api/omnibridge/*`)
 - **Database Import Fix**: Corrected Drizzle import path from `'../../../../database/drizzle'` to `'../../../../db'` following codebase patterns
 
+### Custom Forms Enhancement - AI Metadata & Brazilian Validation (October 2025)
+- **Feature Implemented**: Advanced custom forms with AI-guided filling, Brazilian document validation, and dynamic entity creation
+- **Backend Infrastructure**:
+  - Added `aiMetadata` (JSON) field to form fields for invisible AI instructions
+  - Created comprehensive Brazilian validators: CPF, CNPJ, CEP, Telefone, PIS, CNH, Placa, Inscrição Estadual
+  - Implemented validation engine with digit verification integrated into submission endpoint
+  - Created `custom_form_entity_links` table in 142 tenant schemas for tracking dynamic entity creation
+  - Endpoints: `GET /api/internal-forms/forms/:formId/ai-context`, `POST /api/internal-forms/entity/search-or-create`
+- **Frontend Components**:
+  - Created `useBrazilianValidation` hook for real-time formatting and validation
+  - Built reusable field components: `CPFField`, `CNPJField`, `CEPField`, `PhoneField`
+  - Real-time validation with visual feedback (check/error icons)
+  - Automatic formatting while typing (masks applied dynamically)
+  - Demo page at `/brazilian-fields-demo` showcasing all validation components
+- **AI Integration Flow**:
+  1. AI calls `/api/internal-forms/forms/:formId/ai-context` to read field metadata
+  2. Receives invisible instructions: `aiPrompt`, `extractionHints`, `autoActions`, `examples`
+  3. AI conducts natural language interview with user to collect data
+  4. AI calls `/api/internal-forms/entity/search-or-create` to find/create entities (clients, locations)
+  5. AI submits form with validated Brazilian documents
+  6. Backend validates CPF/CNPJ/CEP and returns 400 error if invalid
+- **Impact**: Enables AI agents to automatically fill forms via conversation with full Brazilian document validation and entity creation capabilities
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Interface preference: Text-based hierarchical menus with dropdowns over visual card-based interfaces.
