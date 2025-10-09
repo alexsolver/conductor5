@@ -186,7 +186,7 @@ export class ProcessMessageUseCase {
       // 🎯 TICKET CONTEXT TRACKING: Verificar se mensagem possui ticket_id em metadata
       const ticketId = messageData.metadata?.ticketId;
       if (ticketId) {
-        console.log(`🎫 [ProcessMessageUseCase] Direct message has ticket context: ${ticketId} - BYPASSING AUTOMATION`);
+        console.log(`🎫 [ProcessMessageUseCase] Direct message has ticket context: ${ticketId} - WILL RUN AUTOMATION AND LINK TO TICKET`);
         
         // Adicionar mensagem diretamente ao ticket existente
         try {
@@ -206,16 +206,7 @@ export class ProcessMessageUseCase {
           console.error(`❌ [ProcessMessageUseCase] Failed to add direct message to ticket:`, ticketError);
         }
         
-        return {
-          success: true,
-          message: `Message linked to existing ticket ${ticketId} - automation bypassed`,
-          automationResults: {
-            rulesExecuted: 0,
-            actionsTriggered: 0,
-            bypassed: true,
-            linkedTicketId: ticketId
-          }
-        };
+        // CONTINUAR e executar automação também (não fazer return aqui)
       }
 
       // Initialize automation engine for tenant using GlobalAutomationManager
