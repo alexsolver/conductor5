@@ -416,18 +416,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("❌ [ACTIVITY-PLANNER] Failed to load routes:", error);
   }
 
-  // ✅ GDPR COMPLIANCE MODULE - Following Clean Architecture per 1qa.md
-  try {
-    const { gdprComplianceCleanRoutes } = await import(
-      "./modules/gdpr-compliance/routes-orm-clean"
-    );
-    app.use("/api/gdpr-compliance", gdprComplianceCleanRoutes);
-    console.log(
-      "✅ [GDPR-COMPLIANCE-ORM] Clean ORM routes registered successfully at /api/gdpr-compliance",
-    );
-  } catch (error) {
-    console.error("❌ [GDPR-COMPLIANCE] Failed to load routes:", error);
-  }
   // Beneficiaries routes imported at top of file
 
   // Module Integrity Control System
