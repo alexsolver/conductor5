@@ -788,7 +788,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     <Select 
                       value={formData.status} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                      disabled={isCompleted}
+                      disabled={true}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -800,6 +800,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                         <SelectItem value="cancelled">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      O status é controlado automaticamente pelo sistema
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="priority">{t('tickets.priority')}</Label>
