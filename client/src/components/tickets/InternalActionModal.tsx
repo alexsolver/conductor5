@@ -1203,6 +1203,19 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                         : (editAction ? "Atualizar Ação" : "Criar Ação")
                       }
                     </Button>
+
+                    {editAction && editAction.status === 'in_progress' && !isCompleted && (
+                      <Button
+                        type="button"
+                        onClick={() => setShowFinishConfirmation(true)}
+                        disabled={updateActionMutation.isPending}
+                        className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold"
+                        data-testid="button-finish-bottom"
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        Finalizar
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
