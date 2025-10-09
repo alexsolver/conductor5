@@ -285,6 +285,28 @@ export const gdprUserPreferences = pgTable('gdpr_user_preferences', {
   lastReviewedAt: timestamp('last_reviewed_at')
 });
 
+// ✅ 13. Privacy Policy Acceptances (Aceitação de Políticas)
+export const privacyPolicyAcceptances = pgTable('privacy_policy_acceptances', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
+  policyId: uuid('policy_id').notNull(), // Referência à privacy_policies
+  policyVersion: varchar('policy_version', { length: 50 }).notNull(),
+  policyType: policyTypeEnum('policy_type').notNull(),
+  
+  // Detalhes da aceitação
+  accepted: boolean('accepted').notNull().default(true),
+  acceptedAt: timestamp('accepted_at').notNull().defaultNow(),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  
+  // Controle
+  tenantId: uuid('tenant_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  
+  // Revogação (se necessário)
+  revokedAt: timestamp('revoked_at')
+});
+
 // ✅ GDPR Reports Main Table (mantendo existente e expandindo)
 export const gdprReports = pgTable('gdpr_reports', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -542,6 +564,23 @@ export const insertGdprAuditLogSchema = createInsertSchema(gdprAuditLog).omit({
   createdAt: true
 });
 
+export const insertCookieConsentSchema = createInsertSchema(cookieConsents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertPrivacyPolicyAcceptanceSchema = createInsertSchema(privacyPolicyAcceptances).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertPrivacyPolicySchema = createInsertSchema(privacyPolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // ✅ Select Types
 export type GdprReport = typeof gdprReports.$inferSelect;
 export type InsertGdprReport = z.infer<typeof insertGdprReportSchema>;
@@ -554,3 +593,12 @@ export type InsertGdprComplianceTask = z.infer<typeof insertGdprComplianceTaskSc
 
 export type GdprAuditLog = typeof gdprAuditLog.$inferSelect;
 export type InsertGdprAuditLog = z.infer<typeof insertGdprAuditLogSchema>;
+
+export type CookieConsent = typeof cookieConsents.$inferSelect;
+export type InsertCookieConsent = z.infer<typeof insertCookieConsentSchema>;
+
+export type PrivacyPolicyAcceptance = typeof privacyPolicyAcceptances.$inferSelect;
+export type InsertPrivacyPolicyAcceptance = z.infer<typeof insertPrivacyPolicyAcceptanceSchema>;
+
+export type PrivacyPolicy = typeof privacyPolicies.$inferSelect;
+export type InsertPrivacyPolicy = z.infer<typeof insertPrivacyPolicySchema>;
