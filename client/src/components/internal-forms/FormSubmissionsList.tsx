@@ -20,7 +20,10 @@ export function FormSubmissionsList({ formId }: FormSubmissionsListProps) {
 
   const { data: submissions = [], isLoading } = useQuery({
     queryKey: ['form-submissions', formId],
-    queryFn: () => apiRequest(`/api/internal-forms/submissions${formId ? `?formId=${formId}` : ''}`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/internal-forms/submissions${formId ? `?formId=${formId}` : ''}`);
+      return response.json();
+    }
   });
 
   const getStatusIcon = (status: string) => {
