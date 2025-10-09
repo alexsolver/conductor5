@@ -1431,7 +1431,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tia.description as work_log
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
-      LEFT JOIN "${schemaName}".internal_form_templates ft ON tia.form_id = ft.id
+      LEFT JOIN "${schemaName}".internal_forms ft ON tia.form_id = ft.id
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
       ORDER BY tia.created_at DESC
@@ -1490,7 +1490,7 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         u.first_name || ' ' || u.last_name as "assigned_to_name"
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
-      LEFT JOIN "${schemaName}".internal_form_templates ft ON tia.form_id = ft.id
+      LEFT JOIN "${schemaName}".internal_forms ft ON tia.form_id = ft.id
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
         AND tia.id = $3::uuid
