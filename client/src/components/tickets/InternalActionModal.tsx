@@ -276,10 +276,15 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       const diffMs = endDate.getTime() - startDate.getTime();
       const diffMinutes = Math.floor(diffMs / 60000);
 
-      // Only update if positive and different from current value
-      if (diffMinutes > 0 && formData.actual_minutes !== diffMinutes.toString()) {
+      // Update if different from current value (allow 0 or negative for validation)
+      if (formData.actual_minutes !== diffMinutes.toString()) {
         console.log('⏱️ [AUTO-CALC] Calculating actual minutes:', { startDate, endDate, diffMinutes });
         setFormData(prev => ({ ...prev, actual_minutes: diffMinutes.toString() }));
+      }
+    } else if (!formData.start_time || !formData.end_time) {
+      // Clear actual_minutes if either date is missing
+      if (formData.actual_minutes !== "0") {
+        setFormData(prev => ({ ...prev, actual_minutes: "0" }));
       }
     }
   }, [formData.start_time, formData.end_time]);
