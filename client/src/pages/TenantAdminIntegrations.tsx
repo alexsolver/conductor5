@@ -1173,8 +1173,17 @@ export default function TenantAdminIntegrations() {
                 errors.push('Chat ID ou @username é obrigatório para ativar o Telegram');
               }
               // Optional: Validate webhook URL if it's intended to be used
-              if (formData.telegramWebhookUrl && !formData.telegramWebhookUrl.startsWith('https://')) {
-                errors.push('URL do Webhook deve começar com "https://"');
+            }
+            break;
+
+          case 'discord':
+            if (formData.enabled) {
+              if (!formData.botToken || formData.botToken === '••••••••') {
+                errors.push('Bot Token é obrigatório para ativar o Discord');
+              }
+              // Optional: Validate client ID if needed for OAuth flows
+              if (formData.clientId && formData.clientId.length < 10) {
+                errors.push('Application ID inválido');
               }
             }
             break;
@@ -2295,6 +2304,76 @@ export default function TenantAdminIntegrations() {
                             onChange={(e) => configForm.setValue('telegramSummaryTemplate', e.target.value)}
                           />
                         </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Campos para Discord */}
+                {selectedIntegration.id === 'discord' && (
+                  <>
+                    <div className="space-y-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <h4 className="font-medium text-sm text-indigo-800">🎮 Configuração do Bot Discord</h4>
+
+                      <FormField
+                        control={configForm.control}
+                        name="botToken"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Bot Token *</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Token do Bot Discord" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Obtenha no Discord Developer Portal → Sua Aplicação → Bot → Token
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={configForm.control}
+                        name="clientId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Application ID (Client ID)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ID da Aplicação Discord" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Encontre em: Discord Developer Portal → Sua Aplicação → General Information → Application ID
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={configForm.control}
+                        name="webhookUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Webhook URL (Opcional - Para enviar)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://discord.com/api/webhooks/..." {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              URL do webhook do canal Discord para enviar mensagens diretas. Clique direito no canal → Integrações → Webhooks
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                        <p className="text-sm font-medium text-blue-800">📋 Configuração Necessária:</p>
+                        <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                          <li>Crie um bot em: discord.com/developers/applications</li>
+                          <li>Copie o Bot Token e cole acima</li>
+                          <li>Ative "MESSAGE CONTENT INTENT" nas configurações do bot</li>
+                          <li>Adicione o bot ao seu servidor com permissões de ler/enviar mensagens</li>
+                        </ol>
                       </div>
                     </div>
                   </>
