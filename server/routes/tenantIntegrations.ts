@@ -670,7 +670,7 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
           console.log(`✅ [TELEGRAM-TEST] Mensagem enviada com sucesso:`, telegramResult);
 
           // Update integration status to 'connected' after successful test
-          await storage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
+          // await storage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected'); // ❌ Column 'status' does not exist
 
           return res.status(200).json({ 
             success: true, 
@@ -2264,7 +2264,7 @@ async function testOpenAI(config: any, res: any, tenantId: string) {
       
       // Update integration status to 'connected' after successful test
       const { storage } = await import('../storage-simple');
-      await storage.updateTenantIntegrationStatus(tenantId, 'openai', 'connected');
+      // await storage.updateTenantIntegrationStatus(tenantId, 'openai', 'connected'); // ❌ Column 'status' does not exist
       
       return res.json({
         success: true,
@@ -2351,7 +2351,7 @@ async function testDeepSeek(config: any, res: any, tenantId: string) {
       
       // Update integration status to 'connected' after successful test
       const { storage } = await import('../storage-simple');
-      await storage.updateTenantIntegrationStatus(tenantId, 'deepseek', 'connected');
+      // await storage.updateTenantIntegrationStatus(tenantId, 'deepseek', 'connected'); // ❌ Column 'status' does not exist
       
       return res.json({
         success: true,
@@ -2439,7 +2439,7 @@ async function testGoogleAI(config: any, res: any, tenantId: string) {
       
       // Update integration status to 'connected' after successful test
       const { storage } = await import('../storage-simple');
-      await storage.updateTenantIntegrationStatus(tenantId, 'googleai', 'connected');
+      // await storage.updateTenantIntegrationStatus(tenantId, 'googleai', 'connected'); // ❌ Column 'status' does not exist
       
       return res.json({
         success: true,
