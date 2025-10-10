@@ -2423,9 +2423,8 @@ export class DatabaseStorage implements IStorage {
       console.log('🔍 [GET-INTEGRATIONS] Schema:', schemaName);
 
       const result = await tenantDb.execute(sql`
-        SELECT id, name, description, category, config, status, configured, created_at, updated_at
-        FROM ${sql.identifier(schemaName)}.integrations
-        WHERE tenant_id = ${validatedTenantId}
+        SELECT integration_id as id, name, description, category, config, status, configured, created_at, updated_at
+        FROM ${sql.identifier(schemaName)}.tenant_integrations
         ORDER BY name
       `);
 
@@ -2449,8 +2448,8 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         SELECT config
-        FROM ${sql.identifier(schemaName)}.integrations
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        FROM ${sql.identifier(schemaName)}.tenant_integrations
+        WHERE integration_id = ${integrationId}
       `);
 
       return result.rows?.[0]?.config || undefined;
@@ -2476,9 +2475,9 @@ export class DatabaseStorage implements IStorage {
       const configJson = JSON.stringify(config);
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.integrations
+        UPDATE ${sql.identifier(schemaName)}.tenant_integrations
         SET config = ${configJson}::jsonb, configured = true, updated_at = NOW()
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        WHERE integration_id = ${integrationId}
         RETURNING *
       `);
 
@@ -2508,9 +2507,9 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
 
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.integrations
+        UPDATE ${sql.identifier(schemaName)}.tenant_integrations
         SET status = ${status}, updated_at = NOW()
-        WHERE tenant_id = ${validatedTenantId} AND id = ${integrationId}
+        WHERE integration_id = ${integrationId}
       `);
 
       logInfo("Tenant integration status updated", {
