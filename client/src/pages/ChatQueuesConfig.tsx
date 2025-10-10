@@ -89,7 +89,7 @@ export default function ChatQueuesConfig() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: QueueFormData) => apiRequest('/api/chat/queues', 'POST', data),
+    mutationFn: (data: QueueFormData) => apiRequest('POST', '/api/chat/queues', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/chat/queues'] });
       toast({ title: 'Fila criada com sucesso!' });
@@ -103,7 +103,7 @@ export default function ChatQueuesConfig() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: QueueFormData }) => 
-      apiRequest(`/api/chat/queues/${id}`, 'PUT', data),
+      apiRequest('PUT', `/api/chat/queues/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/chat/queues'] });
       toast({ title: 'Fila atualizada com sucesso!' });
@@ -116,7 +116,7 @@ export default function ChatQueuesConfig() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/chat/queues/${id}`, 'DELETE'),
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/chat/queues/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/chat/queues'] });
       toast({ title: 'Fila excluída com sucesso!' });
