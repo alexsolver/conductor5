@@ -1673,19 +1673,30 @@ const TicketDetails = React.memo(() => {
                     <FormItem>
                       <FormLabel>{t('tickets.fields.category')}</FormLabel>
                       <FormControl>
-                        <DynamicSelect
-                          fieldName="category"
-                          value={field.value}
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Reset subcategoria e ação quando categoria muda
-                            form.setValue('subcategory', '');
-                            form.setValue('action', '');
-                          }}
-                          placeholder="Selecione a categoria"
-                          disabled={!isEditMode}
-                          customerId={ticket?.companyId || ticket?.company_id}
-                        />
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="category"
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Reset subcategoria e ação quando categoria muda
+                              form.setValue('subcategory', '');
+                              form.setValue('action', '');
+                            }}
+                            placeholder="Selecione a categoria"
+                            disabled={!isEditMode}
+                            customerId={ticket?.companyId || ticket?.company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge
+                              fieldName="category"
+                              value={field.value}
+                            >
+                              {getFieldLabel('category', field.value) || field.value || 'Não especificado'}
+                            </DynamicBadge>
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1699,19 +1710,30 @@ const TicketDetails = React.memo(() => {
                     <FormItem>
                       <FormLabel>Subcategoria</FormLabel>
                       <FormControl>
-                        <DynamicSelect
-                          fieldName="subcategory"
-                          value={field.value}
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Reset ação quando subcategoria muda
-                            form.setValue('action', '');
-                          }}
-                          placeholder="Selecione a subcategoria"
-                          disabled={!isEditMode || !form.watch('category')}
-                          dependsOn={form.watch('category') || ticket?.category}
-                          customerId={ticket?.companyId || ticket?.company_id}
-                        />
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="subcategory"
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Reset ação quando subcategoria muda
+                              form.setValue('action', '');
+                            }}
+                            placeholder="Selecione a subcategoria"
+                            disabled={!isEditMode || !form.watch('category')}
+                            dependsOn={form.watch('category') || ticket?.category}
+                            customerId={ticket?.companyId || ticket?.company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge
+                              fieldName="subcategory"
+                              value={field.value}
+                            >
+                              {getFieldLabel('subcategory', field.value) || field.value || 'Não especificado'}
+                            </DynamicBadge>
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1725,15 +1747,26 @@ const TicketDetails = React.memo(() => {
                     <FormItem>
                       <FormLabel>Ação</FormLabel>
                       <FormControl>
-                        <DynamicSelect
-                          fieldName="action"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder={t('tickets.placeholders.selectAction')}
-                          disabled={!isEditMode || !form.watch('subcategory')}
-                          dependsOn={form.watch('subcategory') || ticket?.subcategory}
-                          customerId={ticket?.companyId || ticket?.company_id}
-                        />
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="action"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder={t('tickets.placeholders.selectAction')}
+                            disabled={!isEditMode || !form.watch('subcategory')}
+                            dependsOn={form.watch('subcategory') || ticket?.subcategory}
+                            customerId={ticket?.companyId || ticket?.company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge
+                              fieldName="action"
+                              value={field.value}
+                            >
+                              {getFieldLabel('action', field.value) || field.value || 'Não especificado'}
+                            </DynamicBadge>
+                          </div>
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
