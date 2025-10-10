@@ -215,11 +215,19 @@ export default function OmniBridge() {
     description: '',
     triggerType: 'new_message',
     actionType: 'auto_reply',
-    priority: 0
+    priority: 0,
+    queueId: '',
+    confirmationMessage: '',
+    transferPriority: 1
   });
   const [replyContent, setReplyContent] = useState('');
   const [forwardContent, setForwardContent] = useState('');
   const [forwardRecipients, setForwardRecipients] = useState('');
+
+  // Buscar filas disponíveis para transfer_to_human
+  const { data: queuesData } = useQuery({
+    queryKey: ['/api/chat/queues'],
+  });
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -375,6 +383,17 @@ export default function OmniBridge() {
 
   const handleCreateAutomationRule = async () => {
     try {
+      // Montar parâmetros da ação baseado no tipo
+      let actionParameters: any = {};
+      
+      if (newRuleData.actionType === 'transfer_to_human' || newRuleData.actionType === 'escalate_to_agent') {
+        actionParameters = {
+          queueId: newRuleData.queueId,
+          priority: newRuleData.transferPriority,
+          confirmationMessage: newRuleData.confirmationMessage || 'Um momento, você será atendido por um de nossos agentes em breve.'
+        };
+      }
+
       const response = await fetch('/api/omnibridge/automation-rules', {
         method: 'POST',
         credentials: 'include',
@@ -386,7 +405,7 @@ export default function OmniBridge() {
           description: newRuleData.description || 'Regra criada pelo usuário',
           isEnabled: true,
           triggers: [{ type: newRuleData.triggerType, conditions: [] }],
-          actions: [{ type: newRuleData.actionType, parameters: {} }],
+          actions: [{ type: newRuleData.actionType, parameters: actionParameters }],
           priority: newRuleData.priority || 0
         })
       });
@@ -1303,6 +1322,52 @@ export default function OmniBridge() {
                 onChange={(e) => setNewRuleData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
               />
             </div>
+
+            {/* Campos condicionais para transfer_to_human */}
+            {(newRuleData.actionType === 'transfer_to_human' || newRuleData.actionType === 'escalate_to_agent') && (
+              <>
+                <div>
+                  <Label htmlFor="queue-select">Fila de Atendimento</Label>
+                  <Select
+                    value={newRuleData.queueId}
+                    onValueChange={(value) => setNewRuleData(prev => ({ ...prev, queueId: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a fila" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {queuesData?.map((queue: any) => (
+                        <SelectItem key={queue.id} value={queue.id}>
+                          {queue.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="confirmation-message">Mensagem de Confirmação</Label>
+                  <Textarea
+                    id="confirmation-message"
+                    placeholder="Ex: Um momento, você será atendido por um de nossos agentes em breve."
+                    value={newRuleData.confirmationMessage}
+                    onChange={(e) => setNewRuleData(prev => ({ ...prev, confirmationMessage: e.target.value }))}
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="transfer-priority">Prioridade na Fila (1-5)</Label>
+                  <Input
+                    id="transfer-priority"
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={newRuleData.transferPriority}
+                    onChange={(e) => setNewRuleData(prev => ({ ...prev, transferPriority: parseInt(e.target.value) || 1 }))}
+                  />
+                </div>
+              </>
+            )}
+
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowCreateRuleModal(false)}>
                 Cancelar
