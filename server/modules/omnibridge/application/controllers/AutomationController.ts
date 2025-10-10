@@ -43,7 +43,11 @@ export class AutomationController {
         description: rule.description,
         enabled: rule.enabled,
         conditions: rule.conditions || { rules: [], logicalOperator: 'AND' },
-        actions: rule.actions || [],
+        // ✅ FIX: Map params to config for frontend compatibility
+        actions: (rule.actions || []).map((action: any) => ({
+          ...action,
+          config: action.params || action.config || {}
+        })),
         priority: rule.priority || 1,
         createdAt: rule.createdAt,
         updatedAt: rule.updatedAt,
@@ -223,7 +227,8 @@ export class AutomationController {
           description: action.description,
           icon: action.icon,
           color: action.color,
-          config: action.config || {},
+          // ✅ FIX: Map params to config for frontend compatibility
+          config: action.params || action.config || {},
           priority: action.priority || 1
         })),
         priority: rule.priority || 1,
