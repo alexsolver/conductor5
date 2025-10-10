@@ -94,6 +94,17 @@ export class ChatController {
     this.router.get('/agents/status', jwtAuth, this.listAgentsStatus);
 
     // ===========================================================================================
+    // AGENT INTERFACE ENDPOINTS (6) - For Chat Agent & Agent Control Pages
+    // ===========================================================================================
+    
+    this.router.get('/agents/pending', jwtAuth, this.getAgentPendingChats);
+    this.router.get('/agents/chats', jwtAuth, this.getAgentActiveChats);
+    this.router.get('/agents/my-status', jwtAuth, this.getMyAgentStatus);
+    this.router.get('/agents/my-metrics', jwtAuth, this.getMyAgentMetrics);
+    this.router.post('/agents/accept', jwtAuth, this.acceptChat);
+    this.router.post('/agents/decline', jwtAuth, this.declineChat);
+
+    // ===========================================================================================
     // ASSIGNMENT ENDPOINTS (2)
     // ===========================================================================================
     
@@ -984,6 +995,116 @@ export class ChatController {
       const stats = chatWebSocketService.getStats();
       
       res.json(stats);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  // ===========================================================================================
+  // AGENT INTERFACE IMPLEMENTATIONS
+  // ===========================================================================================
+
+  private getAgentPendingChats = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      
+      const queueRepository = new DrizzleQueueRepository();
+      
+      // Get all queue entries assigned to this agent or waiting
+      const entries = await queueRepository.findPendingEntriesForAgent(tenantId, userId);
+      
+      res.json(entries);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private getAgentActiveChats = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      
+      const chatRepository = new DrizzleChatRepository();
+      
+      // Get all active chats for this agent
+      const chats = await chatRepository.findChatsByAgent(tenantId, userId);
+      
+      res.json(chats);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private getMyAgentStatus = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      
+      const agentStatusRepository = new DrizzleAgentStatusRepository();
+      
+      const status = await agentStatusRepository.findAgentStatus(userId, tenantId);
+      
+      res.json(status || { userId, tenantId, status: 'offline', activeChats: 0 });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private getMyAgentMetrics = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      
+      const chatRepository = new DrizzleChatRepository();
+      
+      // Get agent metrics
+      const metrics = await chatRepository.getAgentMetrics(tenantId, userId);
+      
+      res.json(metrics);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private acceptChat = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      const { chatId } = req.body;
+      
+      if (!chatId) {
+        return res.status(400).json({ error: 'Chat ID is required' });
+      }
+      
+      const queueRepository = new DrizzleQueueRepository();
+      const useCase = new AssignAgentToChatUseCase(queueRepository);
+      
+      // Assign the agent to this chat
+      await useCase.execute({
+        tenantId,
+        agentId: userId,
+        entryId: chatId
+      });
+      
+      res.json({ success: true, message: 'Chat accepted successfully' });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private declineChat = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const userId = req.user!.id;
+      const { chatId } = req.body;
+      
+      if (!chatId) {
+        return res.status(400).json({ error: 'Chat ID is required' });
+      }
+      
+      // Simply return success - the chat stays in queue for other agents
+      res.json({ success: true, message: 'Chat declined successfully' });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

@@ -180,4 +180,30 @@ export class DrizzleQueueRepository implements IQueueRepository {
       .delete(queueEntries)
       .where(and(eq(queueEntries.id, id), eq(queueEntries.tenantId, tenantId)));
   }
+
+  async findPendingEntriesForAgent(tenantId: string, userId: string): Promise<QueueEntry[]> {
+    const db = await getTenantDb(tenantId);
+    
+    // First, get all queues where the user is a member
+    const userQueues = await this.findMembersByUserId(userId, tenantId);
+    const queueIds = userQueues.map(m => m.queueId);
+    
+    if (queueIds.length === 0) {
+      return [];
+    }
+    
+    // Get all waiting entries from those queues
+    const entries = await db
+      .select()
+      .from(queueEntries)
+      .where(
+        and(
+          eq(queueEntries.tenantId, tenantId),
+          eq(queueEntries.status, 'waiting' as any)
+        )
+      )
+      .orderBy(queueEntries.priority, queueEntries.waitStartedAt);
+    
+    return entries as QueueEntry[];
+  }
 }

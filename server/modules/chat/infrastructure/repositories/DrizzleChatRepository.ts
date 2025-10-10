@@ -172,4 +172,49 @@ export class DrizzleChatRepository implements IChatRepository {
       .orderBy(chatParticipants.joinedAt);
     return participants as ChatParticipant[];
   }
+
+  async getAgentMetrics(tenantId: string, agentId: string): Promise<any> {
+    const db = await getTenantDb(tenantId);
+    
+    // Get counts for different statuses
+    const activeChats = await db
+      .select()
+      .from(chats)
+      .where(
+        and(
+          eq(chats.tenantId, tenantId),
+          eq(chats.assignedAgentId, agentId),
+          eq(chats.status, 'active')
+        )
+      );
+    
+    const totalChats = await db
+      .select()
+      .from(chats)
+      .where(
+        and(
+          eq(chats.tenantId, tenantId),
+          eq(chats.assignedAgentId, agentId)
+        )
+      );
+    
+    const completedChats = await db
+      .select()
+      .from(chats)
+      .where(
+        and(
+          eq(chats.tenantId, tenantId),
+          eq(chats.assignedAgentId, agentId),
+          eq(chats.status, 'closed')
+        )
+      );
+    
+    return {
+      activeChats: activeChats.length,
+      totalChats: totalChats.length,
+      completedChats: completedChats.length,
+      avgResponseTime: 0, // TODO: Calculate from messages
+      satisfactionScore: 0 // TODO: Calculate from ratings
+    };
+  }
 }
