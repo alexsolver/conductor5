@@ -65,7 +65,7 @@ router.get(
           FROM ${sql.raw(`"${tenantSchema}".user_group_memberships`)} ugm
           INNER JOIN ${sql.raw(`"${tenantSchema}".user_groups`)} ug
             ON ug.id = ugm.group_id
-          WHERE ugm.tenant_id = ${tenantId}::uuid
+          WHERE ugm.tenant_id = ${sql.raw(`'${tenantId}'::uuid`)}
             AND ug.is_active = true
         `;
 

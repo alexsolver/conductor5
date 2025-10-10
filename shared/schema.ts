@@ -154,7 +154,6 @@ export {
 // Validation: Ensure all critical exports are available
 import type {
   users, customers, tickets, tenants, companies,
-  ticketPlannedItems, ticketConsumedItems,
   items, customerItemMappings, insertCustomerItemMappingSchema
 } from "./schema-master";
 
@@ -162,13 +161,24 @@ import type {
   PriceList, PricingRule
 } from "./schema-materials-services";
 
+// Import ticket materials tables as VALUES from schema-tenant
+import {
+  ticketPlannedItems,
+  ticketConsumedItems
+} from "./schema-tenant";
+
 // User Notification Preferences - Already exported from schema-master
 
 // Re-export all types for consistency
 export type {
   users, customers, tickets, tenants, companies,
-  ticketPlannedItems, ticketConsumedItems,
   items, customerItemMappings, insertCustomerItemMappingSchema
+};
+
+// Re-export ticket materials tables as VALUES
+export {
+  ticketPlannedItems,
+  ticketConsumedItems
 };
 
 // Re-export materials-services types

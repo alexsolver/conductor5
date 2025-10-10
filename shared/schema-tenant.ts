@@ -768,8 +768,26 @@ export const ticketFieldOptions = pgTable("ticket_field_options", { id: uuid("id
 export const ticketStyleConfigurations = pgTable("ticket_style_configurations", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const ticketDefaultConfigurations = pgTable("ticket_default_configurations", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const assets = pgTable("assets", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), name: varchar("name", { length: 255 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const ticketConsumedItems = pgTable("ticket_consumed_items", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), ticketId: uuid("ticket_id").notNull(), itemId: uuid("item_id").notNull(), quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
-export const ticketPlannedItems = pgTable("ticket_planned_items", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), ticketId: uuid("ticket_id").notNull(), itemId: uuid("item_id").notNull(), quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(), createdAt: timestamp("created_at").defaultNow() });
+export const ticketConsumedItems = pgTable("ticket_consumed_items", { 
+  id: uuid("id").primaryKey().defaultRandom(), 
+  tenantId: uuid("tenant_id").notNull(), 
+  ticketId: uuid("ticket_id").notNull(), 
+  itemId: uuid("item_id").notNull(), 
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow() 
+});
+export const ticketPlannedItems = pgTable("ticket_planned_items", { 
+  id: uuid("id").primaryKey().defaultRandom(), 
+  tenantId: uuid("tenant_id").notNull(), 
+  ticketId: uuid("ticket_id").notNull(), 
+  itemId: uuid("item_id").notNull(), 
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow() 
+});
 export const itemAttachments = pgTable("item_attachments", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const itemLinks = pgTable("item_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), createdAt: timestamp("created_at").defaultNow() });
 export const itemCustomerLinks = pgTable("item_customer_links", { id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull(), itemId: uuid("item_id").notNull(), customerId: uuid("customer_id").notNull(), createdAt: timestamp("created_at").defaultNow() });

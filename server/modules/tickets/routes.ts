@@ -1850,7 +1850,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // ✅ ATUALIZAÇÃO DO TIMESTAMP DO TICKET - Padrão 1qa.md
     try {
       await pool.query(
-        `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1::uuid AND tenant_id = $2::uuid`,
+        `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1 AND tenant_id = $2`,
         [id, tenantId]
       );
     } catch (updateError) {
@@ -1874,8 +1874,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         status: newAction.status || 'active',
         priority: newAction.priority || 'medium',
         time_spent: newAction.estimated_hours,
-        start_time: finalStartTime?.toISOString() || null,
-        end_time: finalEndTime?.toISOString() || null,
+        start_time: finalStartTime || null,
+        end_time: finalEndTime || null,
         customer_id: null,
         linked_items: '[]',
         has_file: false,
