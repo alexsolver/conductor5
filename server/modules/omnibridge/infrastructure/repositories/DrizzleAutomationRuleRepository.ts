@@ -51,9 +51,9 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         aiPromptId: rule.aiPromptId,
         executionCount: rule.executionCount || 0,
         successCount: rule.successCount || 0,
-        lastExecuted: rule.lastExecuted,
-        createdAt: rule.createdAt,
-        updatedAt: rule.updatedAt
+        lastExecuted: rule.lastExecuted ? new Date(rule.lastExecuted) : null,
+        createdAt: rule.createdAt ? new Date(rule.createdAt) : new Date(),
+        updatedAt: rule.updatedAt ? new Date(rule.updatedAt) : new Date()
       }).returning();
 
       if (result && result.length > 0) {
