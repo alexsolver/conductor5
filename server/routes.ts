@@ -94,6 +94,8 @@ import customFieldRoutes from "./modules/custom-fields/routes";
 import companiesCleanRoutes from "./modules/companies/routes-clean";
 // ✅ 1QA.MD COMPLIANCE: Import Technical Skills Clean Architecture routes
 import technicalSkillsRoutes from "./modules/technical-skills/routes";
+// ✅ 1QA.MD COMPLIANCE: Import Chat Clean Architecture routes
+import { chatRoutes } from "./modules/chat/application/controllers/ChatController";
 
 // TenantTemplateService - required for copy hierarchy functionality
 import { TenantTemplateService } from "./services/TenantTemplateService";
@@ -861,6 +863,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ LEGACY PEOPLEROUTER REMOVED - Clean Architecture only per 1qa.md
   app.use("/api/integrity", integrityRoutes);
   app.use("/api/system", systemScanRoutes);
+  
+  // ✅ Chat Module - Clean Architecture
+  app.use("/api/chat", chatRoutes);
 
   // === CUSTOMERSROUTES - Standardized to use /api/customers ===
 
