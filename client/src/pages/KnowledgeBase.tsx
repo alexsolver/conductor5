@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   BookOpen, 
   Search, 
@@ -16,7 +16,9 @@ import {
   Upload,
   FileText,
   Layers,
-  Settings
+  Settings,
+  Edit, // Import Edit icon
+  Trash2, // Import Trash2 icon
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,8 +73,11 @@ export default function KnowledgeBase() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedAccess, setSelectedAccess] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingArticleId, setEditingArticleId] = useState<string | null>(null); // State to track editing article ID
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
   const [semanticSearch, setSemanticSearch] = useState(false);
+
+  const queryClient = useQueryClient();
 
   // Fetch articles
   const { data: articlesData, isLoading, error } = useQuery({
@@ -82,14 +87,48 @@ export default function KnowledgeBase() {
       if (searchQuery.trim()) params.append('q', searchQuery.trim());
       if (selectedCategory && selectedCategory !== 'all') params.append('category', selectedCategory);
       if (selectedAccess && selectedAccess !== 'all') params.append('access_level', selectedAccess);
-      
+
       const url = `/api/knowledge-base/articles${params.toString() ? '?' + params.toString() : ''}`;
       console.log('🔍 [KB-PAGE] Fetching articles:', url);
-      
+
       const response = await apiRequest('GET', url);
       return response.json();
     },
   });
+
+  // Delete article mutation
+  const deleteArticleMutation = useMutation({
+    mutationFn: async (articleId: string) => {
+      await apiRequest('DELETE', `/api/knowledge-base/articles/${articleId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/knowledge-base/articles'] });
+      toast({
+        title: "Sucesso!",
+        description: "Artigo excluído com sucesso.",
+        variant: "success",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro!",
+        description: error.message || "Falha ao excluir artigo.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteArticle = (articleId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este artigo? Esta ação não pode ser desfeita.")) {
+      deleteArticleMutation.mutate(articleId);
+    }
+  };
+
+  // Handle Edit Article
+  const handleEditArticle = (articleId: string) => {
+    setEditingArticleId(articleId);
+    setIsCreateDialogOpen(true);
+  };
 
   // Extract articles safely from response - API returns { success, data: { articles: [...] } }
   const articles = Array.isArray(articlesData?.data?.articles) 
@@ -119,7 +158,10 @@ export default function KnowledgeBase() {
       {activeTab === "articles" && (
         <Button 
           className="bg-blue-600 hover:bg-blue-700 gap-2"
-          onClick={() => setIsCreateDialogOpen(true)}
+          onClick={() => {
+            setEditingArticleId(null);
+            setIsCreateDialogOpen(true);
+          }}
           data-testid="button-create-first-article"
         >
           <Plus className="w-4 h-4" />
@@ -144,8 +186,11 @@ export default function KnowledgeBase() {
             </p>
           </div>
           <Button 
-            className="bg-blue-600 hover:bg-blue-700" 
-            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => {
+              setEditingArticleId(null);
+              setIsCreateDialogOpen(true);
+            }}
             data-testid="button-create-article"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -172,7 +217,7 @@ export default function KnowledgeBase() {
                   />
                 </div>
               </div>
-              
+
               <Button 
                 variant={semanticSearch ? "default" : "outline"}
                 onClick={() => setSemanticSearch(!semanticSearch)}
@@ -344,10 +389,33 @@ export default function KnowledgeBase() {
                         <Button size="sm" variant="outline">
                           <MessageSquare className="h-3 w-3" />
                         </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent card click
+                            handleEditArticle(article.id);
+                          }}
+                          data-testid={`edit-article-${article.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent card click
+                            handleDeleteArticle(article.id);
+                          }}
+                          data-testid={`delete-article-${article.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                ))
+                }
               </div>
             )}
           </div>
@@ -363,7 +431,7 @@ export default function KnowledgeBase() {
               </div>
               <TemplateCreateDialog />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -404,7 +472,7 @@ export default function KnowledgeBase() {
                 Configurar Workflow
               </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardHeader className="pb-2">
@@ -415,7 +483,7 @@ export default function KnowledgeBase() {
                   <p className="text-xs text-muted-foreground">Aguardando revisão</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
@@ -425,7 +493,7 @@ export default function KnowledgeBase() {
                   <p className="text-xs text-muted-foreground">Prontos para publicação</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
@@ -501,7 +569,7 @@ export default function KnowledgeBase() {
                   <p className="text-xs text-muted-foreground">JPG, PNG, GIF</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Vídeos</CardTitle>
@@ -511,7 +579,7 @@ export default function KnowledgeBase() {
                   <p className="text-xs text-muted-foreground">MP4, WebM</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Documentos</CardTitle>
@@ -532,9 +600,13 @@ export default function KnowledgeBase() {
       </Tabs>
 
       {/* Create Article Dialog */}
-      <CreateArticleDialog
-        isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
+      <CreateArticleDialog 
+        isOpen={isCreateDialogOpen} 
+        onClose={() => {
+          setIsCreateDialogOpen(false);
+          setEditingArticleId(null);
+        }}
+        articleId={editingArticleId}
       />
 
       {/* Workflow Configuration Dialog */}

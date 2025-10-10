@@ -26,6 +26,39 @@ export class KnowledgeBaseController {
     private logger: typeof logger
   ) {}
 
+  async getArticle(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).tenantId;
+      const { id } = req.params;
+      
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID obrigatório' });
+        return;
+      }
+
+      console.log('📖 [KB-CONTROLLER] Getting article:', { id, tenantId });
+
+      const article = await this.repository.findById(id, tenantId);
+      
+      if (article) {
+        console.log('✅ [KB-CONTROLLER] Article retrieved:', article.title);
+        res.json({
+          success: true,
+          message: 'Artigo recuperado com sucesso',
+          data: article
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Artigo não encontrado'
+        });
+      }
+    } catch (error) {
+      this.logger.error('Error getting article:', error);
+      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+    }
+  }
+
   async createArticle(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = (req as any).tenantId;
@@ -103,6 +136,39 @@ export class KnowledgeBaseController {
       res.json(result);
     } catch (error) {
       this.logger.error('Error updating article:', error);
+      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+    }
+  }
+
+  async deleteArticle(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = (req as any).tenantId;
+      const userId = (req as any).user?.id;
+      const { id } = req.params;
+      
+      if (!tenantId || !userId) {
+        res.status(400).json({ success: false, message: 'Autenticação obrigatória' });
+        return;
+      }
+
+      console.log('🗑️ [KB-CONTROLLER] Deleting article:', { id, tenantId });
+
+      const success = await this.repository.delete(id, tenantId);
+      
+      if (success) {
+        console.log('✅ [KB-CONTROLLER] Article deleted successfully:', id);
+        res.json({
+          success: true,
+          message: 'Artigo excluído com sucesso'
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Artigo não encontrado'
+        });
+      }
+    } catch (error) {
+      this.logger.error('Error deleting article:', error);
       res.status(500).json({ success: false, message: 'Erro interno do servidor' });
     }
   }

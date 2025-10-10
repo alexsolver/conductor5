@@ -15,6 +15,8 @@ import { ModernRichTextEditor } from "./ModernRichTextEditor";
 interface CreateArticleDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  articleId?: string; // Prop to identify if we are editing an existing article
+  initialData?: any; // Prop to hold initial data for editing
 }
 
 const categories = [
@@ -34,31 +36,33 @@ const accessLevels = [
   { value: 'restricted', label: 'Restrito' }
 ];
 
-export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('');
-  const [access_level, setAccessLevel] = useState('public');
-  const [published, setPublished] = useState(false);
-  const [tags, setTags] = useState('');
-  const [newTag, setNewTag] = useState(''); // This state might be redundant if tags are comma-separated input
+export function CreateArticleDialog({ isOpen, onClose, articleId, initialData }: CreateArticleDialogProps) {
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [content, setContent] = useState(initialData?.content || '');
+  const [category, setCategory] = useState(initialData?.category || '');
+  const [access_level, setAccessLevel] = useState(initialData?.access_level || 'public');
+  const [published, setPublished] = useState(initialData?.published || false);
+  const [tags, setTags] = useState(initialData?.tags?.join(', ') || '');
+  const [newTag, setNewTag] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const createMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: { title: string; content: string; category: string; access_level: string; published: boolean; tags: string[]; status: string }) => {
-      const response = await apiRequest('POST', '/api/knowledge-base/articles', data);
+      const method = articleId ? 'PUT' : 'POST';
+      const url = articleId ? `/api/knowledge-base/articles/${articleId}` : '/api/knowledge-base/articles';
+      const response = await apiRequest(method, url, data);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Falha ao criar artigo');
+        throw new Error(errorData.message || 'Falha ao salvar artigo');
       }
       return response.json();
     },
     onSuccess: (result) => {
       if (result.success) {
         toast({
-          title: "✅ Artigo criado com sucesso!",
+          title: `✅ Artigo ${articleId ? 'atualizado' : 'criado'} com sucesso!`,
           description: "O artigo foi salvo na base de conhecimento.",
         });
 
@@ -71,23 +75,27 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         setAccessLevel('public');
         setPublished(false);
         setTags('');
+        setNewTag('');
         onClose();
       } else {
         toast({
-          title: "❌ Erro ao criar artigo",
+          title: `❌ Erro ao ${articleId ? 'atualizar' : 'criar'} artigo`,
           description: result.message || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
       }
     },
     onError: (error) => {
-      console.error('❌ [CREATE-ARTICLE] Error:', error);
+      console.error(`❌ [${articleId ? 'UPDATE' : 'CREATE'}-ARTICLE] Error:`, error);
       toast({
-        title: "❌ Erro ao criar artigo",
-        description: error instanceof Error ? error.message : "Não foi possível criar o artigo. Tente novamente.",
+        title: `❌ Erro ao ${articleId ? 'atualizar' : 'criar'} artigo`,
+        description: error instanceof Error ? error.message : "Não foi possível salvar o artigo. Tente novamente.",
         variant: "destructive",
       });
     },
+    onSettled: () => {
+      setIsSubmitting(false);
+    }
   });
 
   const addTag = () => {
@@ -132,14 +140,13 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         status: published ? 'published' : 'draft'
       };
 
-      console.log('📝 [CREATE-ARTICLE] Submitting:', articleData);
+      console.log(`📝 [${articleId ? 'UPDATE' : 'CREATE'}-ARTICLE] Submitting:`, articleData);
 
-      createMutation.mutate(articleData);
+      mutation.mutate(articleData);
 
     } catch (error) {
-      console.error('❌ [CREATE-ARTICLE] Error:', error);
+      console.error(`❌ [${articleId ? 'UPDATE' : 'CREATE'}-ARTICLE] Error:`, error);
 
-      // Tratamento mais específico de erros
       if (error instanceof Error) {
         if (error.message.includes('column') && error.message.includes('does not exist')) {
           toast({
@@ -149,7 +156,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           });
         } else {
           toast({
-            title: "❌ Erro ao criar artigo",
+            title: `❌ Erro ao ${articleId ? 'atualizar' : 'criar'} artigo`,
             description: error.message || 'Erro interno do servidor',
             variant: "destructive",
           });
@@ -161,9 +168,7 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
           variant: "destructive",
         });
       }
-    } finally {
-      // The actual setIsSubmitting(false) is handled within createMutation's onError/onSuccess
-      // No explicit setIsSubmitting(false) here as it's managed by tanstack query's mutation state.
+      setIsSubmitting(false); // Ensure submitting state is reset on error
     }
   };
 
@@ -173,10 +178,10 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-600" />
-            Criar Novo Artigo
+            {articleId ? 'Editar Artigo' : 'Criar Novo Artigo'}
           </DialogTitle>
           <DialogDescription>
-            Adicione um novo artigo à base de conhecimento para ajudar sua equipe.
+            {articleId ? 'Edite o artigo existente na base de conhecimento.' : 'Adicione um novo artigo à base de conhecimento para ajudar sua equipe.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -302,21 +307,12 @@ export function CreateArticleDialog({ isOpen, onClose }: CreateArticleDialogProp
             </Button>
             <Button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={mutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
-              data-testid="button-save-article"
+              data-testid="submit-article"
             >
-              {createMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Salvar Artigo
-                </>
-              )}
+              <Save className="h-4 w-4 mr-2" />
+              {mutation.isPending ? 'Salvando...' : (articleId ? 'Atualizar Artigo' : 'Salvar Artigo')}
             </Button>
           </div>
         </form>

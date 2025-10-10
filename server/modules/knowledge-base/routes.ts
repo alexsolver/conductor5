@@ -44,8 +44,10 @@ const advancedController = new KnowledgeBaseAdvancedController(
 
 // Article management routes
 router.get('/articles', (req, res) => controller.searchArticles(req, res));
+router.get('/articles/:id', (req, res) => controller.getArticle(req, res));
 router.post('/articles', (req, res) => controller.createArticle(req, res));
 router.put('/articles/:id', (req, res) => controller.updateArticle(req, res));
+router.delete('/articles/:id', (req, res) => controller.deleteArticle(req, res));
 router.post('/articles/:id/approve', (req, res) => controller.approveArticle(req, res));
 
 // Dashboard and analytics routes
