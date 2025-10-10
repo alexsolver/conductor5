@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Filter } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useQueryBuilderOptions } from '@/hooks/useQueryBuilderOptions';
 
 // SLA Schema imports - following 1qa.md
 import type {
@@ -112,12 +111,7 @@ const fieldValueOptions: Record<string, Array<{ value: string; label: string }>>
     { value: 'whatsapp', label: 'WhatsApp' }
   ],
   // Campos do OmniBridge
-  channelType: [
-    { value: 'email', label: 'E-mail' },
-    { value: 'whatsapp', label: 'WhatsApp' },
-    { value: 'telegram', label: 'Telegram' },
-    { value: 'slack', label: 'Slack' }
-  ],
+  // ✅ channelType agora é dinâmico - busca do banco de dados via hook
   messageType: [
     { value: 'inbound', label: 'Entrada' },
     { value: 'outbound', label: 'Saída' }
@@ -187,23 +181,8 @@ export function QueryBuilderComponent({
   const fields = customFieldOptions || fieldOptions;
   const operators = customOperatorOptions || operatorOptions;
 
-  // Buscar empresas para o campo companyId
-  const { data: companiesData } = useQuery({
-    queryKey: ['/api/companies'],
-    queryFn: () => apiRequest('GET', '/api/companies').then(res => res.json()),
-  });
-
-  // Buscar categorias para o campo category
-  const { data: categoriesData } = useQuery({
-    queryKey: ['/api/ticket-configuration/categories'],
-    queryFn: () => apiRequest('GET', '/api/ticket-configuration/categories').then(res => res.json()),
-  });
-
-  // Buscar usuários para campos de solicitante/responsável
-  const { data: usersData } = useQuery({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest('GET', '/api/users').then(res => res.json()),
-  });
+  // ✅ Hook centralizado para buscar todas as opções dinâmicas
+  const { data: options, isLoading: optionsLoading } = useQueryBuilderOptions();
 
   // Função para obter opções de valor baseado no campo
   const getValueOptions = (fieldName: string): Array<{ value: string; label: string }> | null => {
@@ -212,25 +191,54 @@ export function QueryBuilderComponent({
       return fieldValueOptions[fieldName];
     }
 
-    // Opções dinâmicas
-    if (fieldName === 'companyId' && companiesData?.data) {
-      return companiesData.data.map((company: any) => ({
+    // ✅ Opções dinâmicas do hook centralizado
+    if (!options) return null;
+
+    // Empresas
+    if (fieldName === 'companyId' && options.companies) {
+      return options.companies.map(company => ({
         value: company.id,
         label: company.name
       }));
     }
 
-    if (fieldName === 'category' && categoriesData?.data) {
-      return categoriesData.data.map((category: any) => ({
+    // Categorias
+    if (fieldName === 'category' && options.categories) {
+      return options.categories.map(category => ({
         value: category.id,
         label: category.name
       }));
     }
 
-    if ((fieldName === 'callerId' || fieldName === 'responsibleId') && usersData?.data) {
-      return usersData.data.map((user: any) => ({
+    // Usuários (solicitante/responsável)
+    if ((fieldName === 'callerId' || fieldName === 'responsibleId') && options.users) {
+      return options.users.map(user => ({
         value: user.id,
         label: user.name || user.email
+      }));
+    }
+
+    // ✅ NOVO: Canais dinâmicos (inclui Discord e novos canais)
+    if (fieldName === 'channelType' && options.channels) {
+      return options.channels.map(channel => ({
+        value: channel.type,
+        label: channel.name
+      }));
+    }
+
+    // Grupos de atendimento
+    if (fieldName === 'assignmentGroupId' && options.groups) {
+      return options.groups.map(group => ({
+        value: group.id,
+        label: group.name
+      }));
+    }
+
+    // Localizações
+    if (fieldName === 'locationId' && options.locations) {
+      return options.locations.map(location => ({
+        value: location.id,
+        label: location.name
       }));
     }
 
