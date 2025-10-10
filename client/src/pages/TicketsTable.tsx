@@ -854,6 +854,9 @@ const TicketsTable = React.memo(() => {
 
           switch (columnId) {
             case 'number':
+            case 'número':
+            case 'ticketnumber':
+            case 'ticketNumber':
               const ticketNumber = ticket.number || `#${ticket.id.slice(-8)}`;
               return ticketNumber.toLowerCase().includes(searchLower);
             
@@ -920,6 +923,9 @@ const TicketsTable = React.memo(() => {
 
         switch (sortColumn) {
           case 'number':
+          case 'número':
+          case 'ticketnumber':
+          case 'ticketNumber':
             aValue = a.number || `#${a.id.slice(-8)}`;
             bValue = b.number || `#${b.id.slice(-8)}`;
             break;
