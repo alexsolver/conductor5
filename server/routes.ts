@@ -2460,6 +2460,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================
+  // MESSAGE AI ROUTES
+  // ========================================
+
+  // Spell Check
+  app.post('/api/message-ai/spell-check', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { MessageAIService } = await import('./services/message-ai-service');
+      const messageAIService = new MessageAIService(unifiedStorage);
+      const { text } = req.body;
+      
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const result = await messageAIService.spellCheck(req.user.tenantId, text);
+      res.json(result);
+    } catch (error) {
+      console.error('❌ [SPELL-CHECK-ROUTE] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to check spelling',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Rewrite with Tone
+  app.post('/api/message-ai/rewrite', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { MessageAIService } = await import('./services/message-ai-service');
+      const messageAIService = new MessageAIService(unifiedStorage);
+      const { text, tone } = req.body;
+      
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+      if (!tone) {
+        return res.status(400).json({ error: 'Tone is required' });
+      }
+
+      const result = await messageAIService.rewriteWithTone(req.user.tenantId, text, tone);
+      res.json(result);
+    } catch (error) {
+      console.error('❌ [REWRITE-ROUTE] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to rewrite text',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Translate
+  app.post('/api/message-ai/translate', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { MessageAIService } = await import('./services/message-ai-service');
+      const messageAIService = new MessageAIService(unifiedStorage);
+      const { text, targetLanguage } = req.body;
+      
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+      if (!targetLanguage) {
+        return res.status(400).json({ error: 'Target language is required' });
+      }
+
+      const result = await messageAIService.translate(req.user.tenantId, text, targetLanguage);
+      res.json(result);
+    } catch (error) {
+      console.error('❌ [TRANSLATE-ROUTE] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to translate text',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Summarize
+  app.post('/api/message-ai/summarize', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { MessageAIService } = await import('./services/message-ai-service');
+      const messageAIService = new MessageAIService(unifiedStorage);
+      const { text, length } = req.body;
+      
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+      if (!length || !['short', 'long'].includes(length)) {
+        return res.status(400).json({ error: 'Length must be "short" or "long"' });
+      }
+
+      const result = await messageAIService.summarize(req.user.tenantId, text, length);
+      res.json(result);
+    } catch (error) {
+      console.error('❌ [SUMMARIZE-ROUTE] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to summarize text',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Generate Quick Replies
+  app.post('/api/message-ai/quick-replies', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { MessageAIService } = await import('./services/message-ai-service');
+      const messageAIService = new MessageAIService(unifiedStorage);
+      const { text } = req.body;
+      
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const result = await messageAIService.generateQuickReplies(req.user.tenantId, text);
+      res.json(result);
+    } catch (error) {
+      console.error('❌ [QUICK-REPLIES-ROUTE] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate quick replies',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  console.log('✅ Message AI routes registered');
+
+  // ========================================
   // TENANT DEPLOYMENT TEMPLATEROUTES
   // ========================================
 
