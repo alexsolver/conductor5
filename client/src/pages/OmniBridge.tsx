@@ -421,7 +421,10 @@ export default function OmniBridge() {
             description: '',
             triggerType: 'new_message',
             actionType: 'auto_reply',
-            priority: 0
+            priority: 0,
+            queueId: '',
+            confirmationMessage: '',
+            transferPriority: 1
           });
           console.log('✅ [OmniBridge] Automation rule created successfully');
 
@@ -1324,11 +1327,11 @@ export default function OmniBridge() {
                       <SelectValue placeholder="Selecione a fila" />
                     </SelectTrigger>
                     <SelectContent>
-                      {queuesData?.map((queue: any) => (
+                      {Array.isArray(queuesData) ? queuesData.map((queue: any) => (
                         <SelectItem key={queue.id} value={queue.id}>
                           {queue.name}
                         </SelectItem>
-                      ))}
+                      )) : null}
                     </SelectContent>
                   </Select>
                 </div>
