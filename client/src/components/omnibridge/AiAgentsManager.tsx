@@ -127,18 +127,29 @@ const AiAgentsManager: React.FC = () => {
   // Queries
   const { data: agentsResponse, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/ai-agents/agents'],
-    queryFn: () => apiRequest('GET', '/api/ai-agents/agents'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ai-agents/agents');
+      return response.json();
+    },
     enabled: !!user?.tenantId,
     refetchOnWindowFocus: false
   });
 
   const { data: metricsResponse, isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/ai-agents/agents/metrics'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ai-agents/agents/metrics');
+      return response.json();
+    },
     enabled: !!user?.tenantId
   });
 
   const { data: conversationsResponse, isLoading: conversationsLoading } = useQuery({
     queryKey: ['/api/ai-agents/conversations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ai-agents/conversations');
+      return response.json();
+    },
     enabled: !!user?.tenantId
   });
 
@@ -149,7 +160,10 @@ const AiAgentsManager: React.FC = () => {
 
   // Mutations
   const createAgentMutation = useMutation({
-    mutationFn: (data: AgentFormData) => apiRequest('POST', '/api/ai-agents/agents', data),
+    mutationFn: async (data: AgentFormData) => {
+      const response = await apiRequest('POST', '/api/ai-agents/agents', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       setShowCreateDialog(false);
@@ -168,8 +182,10 @@ const AiAgentsManager: React.FC = () => {
   });
 
   const updateAgentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<AgentFormData> }) => 
-      apiRequest('PUT', `/api/ai-agents/agents/${id}`, data),
+    mutationFn: async ({ id, data }: { id: string; data: Partial<AgentFormData> }) => {
+      const response = await apiRequest('PUT', `/api/ai-agents/agents/${id}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       toast({
@@ -180,15 +196,20 @@ const AiAgentsManager: React.FC = () => {
   });
 
   const toggleAgentMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
-      apiRequest('PUT', `/api/ai-agents/agents/${id}`, { isActive }),
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await apiRequest('PUT', `/api/ai-agents/agents/${id}`, { isActive });
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
     }
   });
 
   const deleteAgentMutation = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `/api/ai-agents/agents/${id}`),
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/ai-agents/agents/${id}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ai-agents/agents'] });
       toast({
