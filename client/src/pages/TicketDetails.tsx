@@ -3512,30 +3512,45 @@ const TicketDetails = React.memo(() => {
                 </Button>
               </div>
               <div className="space-y-2">
-                <Select
-                  onValueChange={(value) => form.setValue('location', value)}
-                  value={form.getValues('location') || ticket.location || ''}
-                  disabled={!isEditMode}
-                >
-                  <SelectTrigger className="h-8 text-xs" data-testid="select-location">
-                    <SelectValue placeholder="Selecione o local">
-                      {(() => {
-                        const currentValue = form.getValues('location') || ticket.location;
-                        const locations = locationsData?.data || [];
-                        const location = locations.find((l: any) => l.id === currentValue);
-                        return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Selecione o local');
-                      })()}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unspecified">Não especificado</SelectItem>
-                    {(locationsData?.data || []).map((location: any) => (
-                      <SelectItem key={location.id} value={location.id}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isEditMode ? (
+                  <Select
+                    onValueChange={(value) => form.setValue('location', value)}
+                    value={form.getValues('location') || ticket.location || ''}
+                    disabled={!isEditMode}
+                  >
+                    <SelectTrigger className="h-8 text-xs" data-testid="select-location">
+                      <SelectValue placeholder="Selecione o local">
+                        {(() => {
+                          const currentValue = form.getValues('location') || ticket.location;
+                          const locations = locationsData?.data || [];
+                          const location = locations.find((l: any) => l.id === currentValue);
+                          return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Selecione o local');
+                        })()}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unspecified">Não especificado</SelectItem>
+                      {(locationsData?.data || []).map((location: any) => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-2 text-sm font-semibold bg-gray-50 border-gray-300 text-gray-700 w-full justify-start"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {(() => {
+                      const currentValue = form.getValues('location') || ticket.location;
+                      const locations = locationsData?.data || [];
+                      const location = locations.find((l: any) => l.id === currentValue);
+                      return location?.name || (currentValue && currentValue !== 'unspecified' ? currentValue : 'Não especificado');
+                    })()}
+                  </Badge>
+                )}
                 {(() => {
                   const locations = locationsData?.data || [];
                   const selectedLocation = locations.find((l: any) => l.id === ticket.location);
