@@ -31,6 +31,9 @@ export class MessageProcessor {
         case 'telegram':
           return await this.sendTelegramReply(message);
         
+        case 'discord':
+          return await this.sendDiscordReply(message);
+        
         case 'whatsapp':
           return await this.sendWhatsAppReply(message);
         
@@ -107,6 +110,61 @@ export class MessageProcessor {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Telegram send failed'
+      };
+    }
+  }
+
+  /**
+   * Send Discord reply
+   */
+  private async sendDiscordReply(message: ReplyMessage): Promise<SendResult> {
+    try {
+      console.log(`🎮 [MessageProcessor] Sending Discord reply to ${message.recipient}`);
+
+      // Get Discord bot configuration for tenant
+      const botToken = await this.getDiscordBotToken(message.tenantId);
+      if (!botToken) {
+        return {
+          success: false,
+          error: 'Discord bot not configured for tenant'
+        };
+      }
+
+      // Discord channel/user ID format: discord:channel:123456 or discord:123456
+      const channelId = message.recipient.replace('discord:channel:', '').replace('discord:', '');
+      const discordApiUrl = `https://discord.com/api/v10/channels/${channelId}/messages`;
+
+      const response = await fetch(discordApiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bot ${botToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: message.content
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log(`✅ [MessageProcessor] Discord message sent successfully: ${result.id}`);
+        return {
+          success: true,
+          messageId: String(result.id)
+        };
+      } else {
+        console.error(`❌ [MessageProcessor] Discord API error:`, result);
+        return {
+          success: false,
+          error: result.message || 'Discord API error'
+        };
+      }
+    } catch (error) {
+      console.error(`❌ [MessageProcessor] Discord send error:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Discord send failed'
       };
     }
   }
@@ -197,6 +255,47 @@ export class MessageProcessor {
       return null;
     } catch (error) {
       console.error(`❌ [MessageProcessor] Error getting bot token:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get Discord bot token for tenant
+   */
+  private async getDiscordBotToken(tenantId: string): Promise<string | null> {
+    try {
+      console.log(`🔑 [MessageProcessor] Getting Discord bot token for tenant: ${tenantId}`);
+      
+      // Import pool for database access
+      const { pool } = await import('../../../db');
+      const schema = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get Discord bot token from integrations table
+      const result = await pool.query(
+        `SELECT config FROM ${schema}.integrations WHERE id = 'discord' LIMIT 1`
+      );
+
+      if (result.rows.length > 0 && result.rows[0].config) {
+        const config = result.rows[0].config;
+        const botToken = config.botToken || config.apiKey;
+        
+        if (botToken) {
+          console.log(`✅ [MessageProcessor] Found Discord bot token in database`);
+          return botToken;
+        }
+      }
+
+      // Fallback to environment variable for development
+      const envToken = process.env.DISCORD_BOT_TOKEN;
+      if (envToken) {
+        console.log(`✅ [MessageProcessor] Using environment Discord bot token`);
+        return envToken;
+      }
+
+      console.warn(`⚠️ [MessageProcessor] No Discord bot token configured for tenant: ${tenantId}`);
+      return null;
+    } catch (error) {
+      console.error(`❌ [MessageProcessor] Error getting Discord bot token:`, error);
       return null;
     }
   }
