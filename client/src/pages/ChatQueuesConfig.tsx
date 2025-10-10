@@ -74,9 +74,11 @@ export default function ChatQueuesConfig() {
     refetchInterval: 5000, // Refresh every 5 seconds
   });
 
-  const { data: users } = useQuery<Array<{ id: string; firstName: string; lastName: string; email: string }>>({
+  const { data: usersResponse } = useQuery<{ success: boolean; users: Array<{ id: string; firstName: string; lastName: string; email: string }> }>({
     queryKey: ['/api/users'],
   });
+
+  const users = usersResponse?.users || [];
 
   // Buscar membros da fila quando editando
   const { data: queueMembers } = useQuery<Array<{ userId: string }>>({
