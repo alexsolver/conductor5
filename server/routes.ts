@@ -246,6 +246,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN ENDPOINT: Sync existing users to tenant schemas
+  app.post('/api/admin/sync-users-to-tenants', async (req, res) => {
+    try {
+      // Simple admin token validation
+      const adminToken = req.headers['x-admin-token'] || req.query.adminToken;
+      if (adminToken !== 'sync-tenants-2025') {
+        return res.status(403).json({
+          success: false,
+          message: 'Invalid admin token'
+        });
+      }
+
+      console.log('🚀 [ADMIN] Starting user synchronization to tenant schemas...');
+      
+      const { syncExistingUsersToTenants } = await import('./scripts/sync-existing-users-to-tenants');
+      const results = await syncExistingUsersToTenants();
+
+      res.json({
+        success: results.success,
+        message: 'User synchronization completed',
+        data: results
+      });
+
+    } catch (error: any) {
+      console.error('❌ [ADMIN] User sync failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'User synchronization failed',
+        error: error.message
+      });
+    }
+  });
+
   // 🎯 INITIALIZE HISTORY SYSTEM per 1qa.md
   const historyRepository = new DrizzleTicketHistoryRepository();
   const historyDomainService = new TicketHistoryDomainService();
