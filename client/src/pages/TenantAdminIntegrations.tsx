@@ -1267,12 +1267,12 @@ export default function TenantAdminIntegrations() {
 
           case 'discord':
             if (formData.enabled) {
-              // Check if botToken exists (either new or existing in apiKey field)
-              if (!hasSensitiveField('botToken', 'apiKey')) {
+              // Check if discordBotToken exists (either new or existing in apiKey field)
+              if (!hasSensitiveField('discordBotToken', 'apiKey')) {
                 errors.push('Bot Token é obrigatório para ativar o Discord');
               }
               // Optional: Validate client ID if needed for OAuth flows
-              if (formData.clientId && formData.clientId.length < 10) {
+              if (formData.discordClientId && formData.discordClientId.length < 10) {
                 errors.push('Application ID inválido');
               }
             }
