@@ -57,31 +57,37 @@ export class MessageAIService {
       throw new Error('No AI provider configured in SaaS Admin');
     }
 
-    const prompt = `You are a spelling and grammar correction assistant. Analyze the text below and fix ALL spelling and grammar errors.
+    const prompt = `You are a professional spelling and grammar correction assistant. Your task is to fix ALL spelling and grammar mistakes in the text below.
 
-IMPORTANT RULES:
-- Correct ALL spelling mistakes (e.g., "Caza marela" → "Casa amarela")
-- Fix grammar errors
-- Preserve the original language
-- Preserve the intended meaning
-- Return the corrected version even if the text is very short
+CRITICAL RULES - YOU MUST FOLLOW THESE:
+1. ALWAYS correct obvious spelling errors (e.g., "Caza" → "Casa", "marela" → "amarela", "progreso" if in Portuguese → "progresso")
+2. Fix ALL grammar mistakes
+3. Preserve the original language (Portuguese, Spanish, English, etc.)
+4. If the text is very short, still correct any errors found
+5. NEVER return text unchanged if there are errors
 
-Text to correct:
+EXAMPLES OF WHAT TO CORRECT:
+- "Caza marela" → "Casa amarela" (Portuguese spelling errors)
+- "Caza progreso" → "Casa progreso" (Spanish - Caza is wrong, should be Casa)
+- "teh cat" → "the cat" (English spelling error)
+
+Text to analyze and correct:
 "${text}"
 
-Return a JSON object with this EXACT structure:
+YOU MUST return a JSON object with this structure:
 {
-  "correctedText": "the fully corrected text here",
+  "correctedText": "the CORRECTED text (fix all errors!)",
   "suggestions": [
     {
-      "original": "word with error",
-      "suggestion": "corrected word",
-      "reason": "explanation"
+      "original": "incorrect word",
+      "suggestion": "correct word", 
+      "reason": "spelling error/grammar issue"
     }
   ]
 }
 
-Return ONLY the JSON object, no additional text.`;
+IMPORTANT: If you find ANY errors, the "correctedText" MUST be different from the original text.
+Return ONLY the JSON, no other text.`;
 
     const result = await this.callAI(providerConfig, prompt);
     console.log('🤖 [SPELL-CHECK] AI raw response:', result);
