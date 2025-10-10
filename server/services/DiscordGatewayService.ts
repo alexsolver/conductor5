@@ -32,8 +32,20 @@ interface DiscordConnection {
   sequenceNumber: number | null;
 }
 
+interface DiscordReceptionLog {
+  type: 'success' | 'error' | 'info';
+  message: string;
+  timestamp: string;
+  author?: string;
+  content?: string;
+  channelId?: string;
+  metadata?: any;
+}
+
 class DiscordGatewayService {
   private connections: Map<string, DiscordConnection> = new Map();
+  private receptionLogs: Map<string, DiscordReceptionLog[]> = new Map();
+  private readonly MAX_LOGS_PER_TENANT = 50;
   private readonly GATEWAY_URL = 'wss://gateway.discord.gg/?v=10&encoding=json';
   
   private readonly OPCODES = {
@@ -289,10 +301,36 @@ class DiscordGatewayService {
 
       console.log(`✅ [DISCORD-GATEWAY] Message saved to OmniBridge: ${messageId}`);
 
+      // Adicionar log de recepção
+      this.addReceptionLog(connection.tenantId, {
+        type: 'success',
+        message: 'Mensagem recebida do Discord',
+        timestamp: new Date().toISOString(),
+        author: `${message.author.username}`,
+        content: message.content,
+        channelId: message.channel_id,
+        metadata: {
+          messageId: messageId,
+          guildId: message.guild_id,
+          authorId: message.author.id,
+          externalId: message.id
+        }
+      });
+
       await this.processAutomation(connection.tenantId, schema, messageId, message);
 
     } catch (error) {
       console.error(`❌ [DISCORD-GATEWAY] Error processing message:`, error);
+      
+      // Adicionar log de erro
+      this.addReceptionLog(connection.tenantId, {
+        type: 'error',
+        message: `Erro ao processar mensagem do Discord: ${(error as Error).message}`,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          error: (error as Error).message
+        }
+      });
     }
   }
 
@@ -417,6 +455,30 @@ class DiscordGatewayService {
     connection.ws.send(JSON.stringify(resumePayload));
   }
 
+  private addReceptionLog(tenantId: string, log: DiscordReceptionLog): void {
+    if (!this.receptionLogs.has(tenantId)) {
+      this.receptionLogs.set(tenantId, []);
+    }
+
+    const logs = this.receptionLogs.get(tenantId)!;
+    logs.unshift(log);
+
+    if (logs.length > this.MAX_LOGS_PER_TENANT) {
+      logs.pop();
+    }
+
+    console.log(`📝 [DISCORD-GATEWAY] Log added for tenant ${tenantId}: ${log.message}`);
+  }
+
+  getReceptionLogs(tenantId: string): DiscordReceptionLog[] {
+    return this.receptionLogs.get(tenantId) || [];
+  }
+
+  clearReceptionLogs(tenantId: string): void {
+    this.receptionLogs.delete(tenantId);
+    console.log(`🧹 [DISCORD-GATEWAY] Reception logs cleared for tenant: ${tenantId}`);
+  }
+
   private cleanup(connectionKey: string): void {
     const connection = this.connections.get(connectionKey);
     
@@ -460,7 +522,10 @@ class DiscordGatewayService {
   }
 }
 
-export const discordGatewayService = new DiscordGatewayService();
+const discordGatewayServiceInstance = new DiscordGatewayService();
+
+export { discordGatewayServiceInstance as DiscordGatewayService };
+export const discordGatewayService = discordGatewayServiceInstance;
 
 process.on('SIGINT', () => {
   discordGatewayService.disconnectAll();

@@ -846,6 +846,61 @@ router.post('/:integrationId/test', jwtAuth, async (req: any, res) => {
 });
 
 /**
+ * Obter logs de recepção de mensagens da integração
+ */
+router.get('/:integrationId/logs', jwtAuth, async (req: any, res) => {
+  try {
+    const { integrationId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    console.log(`📊 [INTEGRATION-LOGS] Fetching logs for integration: ${integrationId}, tenant: ${tenantId}`);
+
+    if (!tenantId) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'User not associated with a tenant' 
+      });
+    }
+
+    // Importar DiscordGatewayService para buscar logs
+    const { DiscordGatewayService } = await import('../services/DiscordGatewayService');
+    
+    // Para Discord, buscar logs do Discord Gateway Service
+    if (integrationId === 'discord') {
+      const discordLogs = DiscordGatewayService.getReceptionLogs(tenantId);
+      
+      console.log(`📊 [INTEGRATION-LOGS] Found ${discordLogs.length} Discord logs for tenant ${tenantId}`);
+      
+      return res.json({
+        success: true,
+        logs: discordLogs,
+        integration: integrationId,
+        count: discordLogs.length
+      });
+    }
+
+    // Para outras integrações, buscar do banco de dados (implementação futura)
+    // TODO: Implementar busca de logs do banco para outras integrações
+    
+    return res.json({
+      success: true,
+      logs: [],
+      integration: integrationId,
+      count: 0,
+      message: 'Logs ainda não implementados para esta integração'
+    });
+
+  } catch (error: any) {
+    console.error('❌ [INTEGRATION-LOGS] Error fetching logs:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro ao buscar logs da integração',
+      error: error.message
+    });
+  }
+});
+
+/**
  * Iniciar fluxo OAuth2 para Gmail ou Outlook
  */
 router.post('/:integrationId/oauth/start', jwtAuth, async (req: any, res) => {

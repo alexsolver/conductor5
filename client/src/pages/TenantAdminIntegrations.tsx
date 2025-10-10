@@ -62,7 +62,8 @@ import {
   Inbox,
   Cloud,
   HardDrive,
-  Send
+  Send,
+  FileText
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -135,8 +136,10 @@ export default function TenantAdminIntegrations() {
   const queryClient = useQueryClient();
   const [selectedIntegration, setSelectedIntegration] = useState<TenantIntegration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isLogsDialogOpen, setIsLogsDialogOpen] = useState(false);
   const [testingIntegrations, setTestingIntegrations] = useState<Record<string, boolean>>({}); // State for testing specific integrations
   const [testResults, setTestResults] = useState<Record<string, any>>({}); // State for test results per integration
+  const [integrationLogs, setIntegrationLogs] = useState<any[]>([]);
 
   const configForm = useForm<z.infer<typeof integrationConfigSchema>>({
     resolver: zodResolver(integrationConfigSchema),
@@ -206,6 +209,29 @@ export default function TenantAdminIntegrations() {
   const { data: integrationsData, isLoading, refetch } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
     queryFn: loadIntegrations,
+  });
+
+  // Query para buscar logs de integração
+  const { data: logsData, isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
+    queryKey: ['/api/tenant-admin/integrations', selectedIntegration?.id, 'logs'],
+    queryFn: async () => {
+      if (!selectedIntegration) return [];
+      
+      const response = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/logs`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: false, // Só busca quando solicitado
   });
 
   // Mutation para salvar configuração
@@ -527,6 +553,16 @@ export default function TenantAdminIntegrations() {
     } finally {
       setTestingIntegrations(prev => ({ ...prev, [selectedIntegration.id]: false }));
     }
+  };
+
+  // ✅ NEW: Function to view integration logs
+  const handleViewLogs = async (integration: TenantIntegration) => {
+    console.log('📊 [VIEW-LOGS] Opening logs for integration:', integration.id);
+    setSelectedIntegration(integration);
+    setIsLogsDialogOpen(true);
+    
+    // Buscar logs
+    await refetchLogs();
   };
 
   // ✅ NEW: Function to auto-fill webhook URL
@@ -1545,9 +1581,25 @@ export default function TenantAdminIntegrations() {
                             <IconComponent className="h-6 w-6 text-purple-600" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
-                              {integration.name}
-                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base md:text-lg truncate" title={integration.name}>
+                                {integration.name}
+                              </CardTitle>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 hover:bg-purple-100"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleViewLogs(integration);
+                                }}
+                                title="Ver logs de recepção"
+                                data-testid={`button-logs-${integration.id}`}
+                              >
+                                <FileText className="h-4 w-4 text-purple-600" />
+                              </Button>
+                            </div>
                             <Badge className={`${getCategoryColor(integration.category)} text-xs mt-1`}>
                               {integration.category}
                             </Badge>
@@ -2613,6 +2665,119 @@ Acompanhe pelo sistema Conductor."
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Logs */}
+      <Dialog open={isLogsDialogOpen} onOpenChange={setIsLogsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" aria-describedby="integration-logs-description">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Logs de Recepção - {selectedIntegration?.name}
+            </DialogTitle>
+            <DialogDescription id="integration-logs-description">
+              Visualize os logs em tempo real de mensagens recebidas por esta integração
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {isLoadingLogs ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="h-8 w-8 animate-spin border-4 border-purple-600 border-t-transparent rounded-full" />
+              </div>
+            ) : logsData && logsData.logs && logsData.logs.length > 0 ? (
+              logsData.logs.map((log: any, index: number) => (
+                <Card key={index} className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${
+                      log.type === 'success' ? 'bg-green-100' : 
+                      log.type === 'error' ? 'bg-red-100' : 
+                      'bg-blue-100'
+                    }`}>
+                      {log.type === 'success' ? (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      ) : log.type === 'error' ? (
+                        <XCircle className="h-5 w-5 text-red-600" />
+                      ) : (
+                        <Inbox className="h-5 w-5 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-sm font-semibold">
+                          {log.message || 'Mensagem recebida'}
+                        </h4>
+                        <span className="text-xs text-gray-500">
+                          {log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : 'Agora'}
+                        </span>
+                      </div>
+                      {log.author && (
+                        <p className="text-xs text-gray-600 mb-2">
+                          De: <span className="font-medium">{log.author}</span>
+                        </p>
+                      )}
+                      {log.content && (
+                        <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                          {log.content}
+                        </p>
+                      )}
+                      {log.channelId && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Canal: {log.channelId}
+                        </p>
+                      )}
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <details className="mt-2">
+                          <summary className="text-xs text-purple-600 cursor-pointer hover:underline">
+                            Ver detalhes técnicos
+                          </summary>
+                          <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
+                            {JSON.stringify(log.metadata, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center p-8">
+                <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">Nenhum log de recepção disponível ainda.</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Os logs aparecerão aqui quando mensagens forem recebidas.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => refetchLogs()}
+              disabled={isLoadingLogs}
+            >
+              {isLoadingLogs ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin border-2 border-current border-t-transparent rounded-full" />
+                  Atualizando...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Atualizar
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsLogsDialogOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
