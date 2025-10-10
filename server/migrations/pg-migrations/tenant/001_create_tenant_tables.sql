@@ -3477,6 +3477,21 @@ CREATE TABLE IF NOT EXISTS "ticket_numbering_config" (
 );
 -- Exportação de dados foi desmarcado.
 
+-- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_sequences
+CREATE TABLE IF NOT EXISTS "ticket_sequences" (
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "company_id" UUID NOT NULL,
+  "sequence_key" VARCHAR(50) NOT NULL,
+  "current_value" INTEGER NOT NULL DEFAULT 0,
+  "year" INTEGER NOT NULL,
+  "created_at" TIMESTAMP NULL DEFAULT now(),
+  "updated_at" TIMESTAMP NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  UNIQUE ("tenant_id", "company_id", "sequence_key", "year")
+);
+-- Exportação de dados foi desmarcado.
+
 -- Copiando estrutura para tabela tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_planned_items
 CREATE TABLE IF NOT EXISTS "ticket_planned_items" (
   "id" UUID NOT NULL DEFAULT gen_random_uuid(),

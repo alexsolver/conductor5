@@ -111,15 +111,36 @@ class TicketNumberGenerator {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      let whereClause = sql`tenant_id = ${tenantId}`;
+      // 🔒 ATOMIC SOLUTION: Use ticket_sequences table with SELECT FOR UPDATE
+      const sequenceKey = config.reset_yearly ? 
+        `${config.prefix}-${currentYear}` : 
+        config.prefix;
+
+      // Try to get and increment sequence atomically
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.ticket_sequences 
+          (tenant_id, company_id, sequence_key, current_value, year)
+        VALUES 
+          (${tenantId}, ${config.company_id}, ${sequenceKey}, 1, ${currentYear})
+        ON CONFLICT (tenant_id, company_id, sequence_key, year) 
+        DO UPDATE SET 
+          current_value = ${sql.identifier(schemaName)}.ticket_sequences.current_value + 1
+        RETURNING current_value
+      `);
+
+      if (result.rows && result.rows.length > 0) {
+        return Number(result.rows[0].current_value);
+      }
+
+      // Fallback: if table doesn't exist, use old method (will be slow but safe)
+      console.warn('[TICKET-NUMBER] ticket_sequences table not found, using fallback method');
       
+      let whereClause = sql`tenant_id = ${tenantId}`;
       if (config.reset_yearly) {
-        // If reset yearly, only count tickets from current year
         whereClause = sql`${whereClause} AND EXTRACT(YEAR FROM created_at) = ${currentYear}`;
       }
 
-      // Get the highest sequential number for this configuration
-      const result = await tenantDb.execute(sql`
+      const fallbackResult = await tenantDb.execute(sql`
         SELECT number FROM ${sql.identifier(schemaName)}.tickets
         WHERE ${whereClause}
         AND number LIKE ${config.prefix + '%'}
@@ -127,10 +148,8 @@ class TicketNumberGenerator {
         LIMIT 1
       `);
 
-      if (result.rows && result.rows.length > 0) {
-        const lastNumber = String(result.rows[0].number);
-        
-        // Extract the sequential part from the last ticket number
+      if (fallbackResult.rows && fallbackResult.rows.length > 0) {
+        const lastNumber = String(fallbackResult.rows[0].number);
         const sequentialMatch = lastNumber.match(/(\d+)$/);
         if (sequentialMatch) {
           return parseInt(sequentialMatch[1]) + 1;
