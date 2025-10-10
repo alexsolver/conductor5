@@ -27,6 +27,7 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
     - **Timecard/Journey Management**: CLT-compliant electronic timecard system with integrity hashing.
     - **Omnichannel Communication**: Unified communication center supporting email, WhatsApp, Slack, Telegram, with real-time inbox processing and automation. Features a unique `conversationId` system for accurate message routing across channels.
     - **OmniBridge AI Agent System**: Comprehensive AI conversational agent with natural language configuration, intelligent message-to-ticket linking, and automatic sentiment detection. Includes a visual AI Action Builder System for custom actions and an Entity Extraction System leveraging OpenAI Function Calling. AI agents can conduct interviews to fill internal forms automatically.
+    - **Chat + Queue Management Module**: Complete real-time chat system with intelligent queue management. Features 5 distribution strategies (FIFO, Priority, Skill-based, Round-Robin, Least Busy), WebSocket-based real-time messaging, SLA monitoring with automatic escalation, agent status management, seamless OmniBridge integration for AI-to-human handoff, and ticket creation from chat history.
     - **Agenda/Schedule Management**: Integrated scheduling system.
     - **Internationalization (i18n)**: Comprehensive system with multiple languages and translation management interface.
     - **Template System**: Dynamic UI customization via CSS variables and hierarchical template management.
