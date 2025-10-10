@@ -2413,24 +2413,24 @@ export class DatabaseStorage implements IStorage {
   // TENANT INTEGRATIONS MANAGEMENT
   // ===========================
 
-  // Lista estática de TODAS as integrações disponíveis no sistema
-  private static AVAILABLE_INTEGRATIONS = [
-    { id: 'telegram', name: 'Telegram', category: 'communication' },
-    { id: 'discord', name: 'Discord', category: 'communication' },
-    { id: 'slack', name: 'Slack', category: 'communication' },
-    { id: 'whatsapp-business', name: 'WhatsApp Business', category: 'communication' },
-    { id: 'twilio-sms', name: 'Twilio SMS', category: 'communication' },
-    { id: 'imap-email', name: 'IMAP Email', category: 'communication' },
-    { id: 'email-smtp', name: 'Email SMTP', category: 'communication' },
-    { id: 'gmail-oauth2', name: 'Gmail OAuth2', category: 'communication' },
-    { id: 'outlook-oauth2', name: 'Outlook OAuth2', category: 'communication' },
-    { id: 'microsoft-365', name: 'Microsoft 365 OAuth', category: 'communication' },
-  ];
-
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
+    // Lista de TODAS as integrações disponíveis no sistema
+    const AVAILABLE_INTEGRATIONS = [
+      { id: 'telegram', name: 'Telegram', category: 'communication' },
+      { id: 'discord', name: 'Discord', category: 'communication' },
+      { id: 'slack', name: 'Slack', category: 'communication' },
+      { id: 'whatsapp-business', name: 'WhatsApp Business', category: 'communication' },
+      { id: 'twilio-sms', name: 'Twilio SMS', category: 'communication' },
+      { id: 'imap-email', name: 'IMAP Email', category: 'communication' },
+      { id: 'email-smtp', name: 'Email SMTP', category: 'communication' },
+      { id: 'gmail-oauth2', name: 'Gmail OAuth2', category: 'communication' },
+      { id: 'outlook-oauth2', name: 'Outlook OAuth2', category: 'communication' },
+      { id: 'microsoft-365', name: 'Microsoft 365 OAuth', category: 'communication' },
+    ];
+
     try {
       console.log('🔍 [GET-INTEGRATIONS] Starting fetch for tenant:', tenantId);
-      console.log('🔍 [GET-INTEGRATIONS] Available integrations count:', MemStorage.AVAILABLE_INTEGRATIONS.length);
+      console.log('🔍 [GET-INTEGRATIONS] Available integrations count:', AVAILABLE_INTEGRATIONS.length);
       
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2451,7 +2451,7 @@ export class DatabaseStorage implements IStorage {
       );
 
       // Combinar todas as integrações disponíveis com as configurações salvas
-      const allIntegrations = MemStorage.AVAILABLE_INTEGRATIONS.map(integration => {
+      const allIntegrations = AVAILABLE_INTEGRATIONS.map(integration => {
         const saved = savedConfigs.get(integration.id);
         
         return {
@@ -2473,7 +2473,7 @@ export class DatabaseStorage implements IStorage {
       console.error('❌ [GET-INTEGRATIONS] Error fetching tenant integrations:', error);
       logError("Error fetching tenant integrations", error, { tenantId });
       // Em caso de erro, retornar pelo menos as integrações disponíveis sem configuração
-      const fallback = MemStorage.AVAILABLE_INTEGRATIONS.map(integration => ({
+      const fallback = AVAILABLE_INTEGRATIONS.map(integration => ({
         ...integration,
         config: {},
         enabled: false,
