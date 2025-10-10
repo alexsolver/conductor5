@@ -613,21 +613,19 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
       return;
     }
 
-    // Sanitizar payload removendo campos UI-only
+    // Sanitizar payload removendo campos UI-only e converter para formato backend
     const sanitizedRule = {
       name: rule.name,
       description: rule.description,
-      enabled: rule.enabled,
-      conditions: rule.conditions,
+      isEnabled: rule.enabled, // ✅ Backend espera "isEnabled"
+      triggers: rule.conditions ? [{ 
+        type: 'condition_met', 
+        conditions: rule.conditions 
+      }] : [{ type: 'message_received', conditions: {} }], // ✅ Backend espera "triggers"
       priority: rule.priority,
       actions: rule.actions.map(action => ({
-        id: action.id,
         type: action.type,
-        name: action.name,
-        description: action.description,
-        icon: action.icon,
-        color: action.color,
-        config: action.config || {}
+        parameters: action.config || {}
       }))
     };
 
