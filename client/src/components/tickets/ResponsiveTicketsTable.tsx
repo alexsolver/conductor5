@@ -418,7 +418,7 @@ export const ResponsiveTicketsTable = ({
                     case 'customerName':
                       return (
                         <TableCell key={columnId} className="text-sm">
-                          {(ticket as any).customer_name || ticket.caller_name || (ticket as any).customerName || 'N/A'}
+                          {ticket.caller_name || (ticket as any).customer_name || (ticket as any).customerName || 'N/A'}
                         </TableCell>
                       );
 
