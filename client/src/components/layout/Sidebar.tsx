@@ -55,7 +55,11 @@ import {
   Bell,
   CheckCircle,
   MessageSquare, // Import MessageSquare for OmniBridge
-  UserX // Import UserX for Absence Management
+  UserX, // Import UserX for Absence Management
+  MessageCircle,
+  LayoutDashboard,
+  Headphones,
+  UserCircle2
 } from "lucide-react";
 
 interface SidebarProps {
@@ -79,6 +83,16 @@ const baseNavigation: Array<{
   { name: "customers", href: "/customers", icon: Users },
   { name: "tickets", href: "/tickets", icon: Ticket },
   { name: "knowledgeBase", href: "/knowledge-base", icon: BookOpen },
+  {
+    name: "chatQueueManagement",
+    icon: MessageCircle,
+    children: [
+      { name: "queueConfiguration", href: "/chat/queues", icon: Settings },
+      { name: "chatDashboard", href: "/chat/dashboard", icon: LayoutDashboard },
+      { name: "agentInterface", href: "/chat/agent", icon: Headphones },
+      { name: "agentControl", href: "/chat/control", icon: UserCircle2 },
+    ]
+  },
   {
     name: "timecardControl",
     icon: Clock,
