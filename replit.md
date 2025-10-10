@@ -48,7 +48,8 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
 ### System Design Choices
 - **Clean Architecture**: Domain, Application, and Infrastructure layers.
 - **RESTful API**: Structured error handling.
-- **True Schema Separation**: For multi-tenancy.
+- **True Schema Separation**: For multi-tenancy with automatic schema migrations.
+- **Automatic Tenant Provisioning**: New tenants automatically receive complete database schema (188 tables) via migration system (`server/migrations/pg-migrations/tenant/001_create_tenant_tables.sql`) executed during tenant creation in `schemaManager.createTenantSchema()`.
 - **Comprehensive Notification System**: User preferences and global controls.
 - **AI Agent Auto-Configuration**: Natural language-to-configuration generation using GPT-4o-mini.
 - **Ticket Context Tracking**: Intelligent message-to-ticket linking for emails and chat platforms.

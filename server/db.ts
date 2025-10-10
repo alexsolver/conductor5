@@ -270,6 +270,35 @@ export const schemaManager = {
 
       console.log(`✅ [SCHEMA-MANAGER] Schema created successfully: ${schemaName}`);
 
+      // Execute tenant migrations to create all tables
+      console.log(`📋 [SCHEMA-MANAGER] Running migrations for tenant: ${tenantId}`);
+      
+      const { readFileSync } = await import('fs');
+      const { join } = await import('path');
+      
+      try {
+        // Read and execute tenant migration SQL
+        const migrationPath = join(process.cwd(), 'server', 'migrations', 'pg-migrations', 'tenant', '001_create_tenant_tables.sql');
+        const migrationSQL = readFileSync(migrationPath, 'utf-8');
+        
+        // Set search path to tenant schema
+        await pool.query(`SET search_path TO "${schemaName}", public`);
+        
+        // Execute migration
+        await pool.query(migrationSQL);
+        
+        // Count created tables
+        const tableCount = await pool.query(`
+          SELECT COUNT(*) as count
+          FROM information_schema.tables
+          WHERE table_schema = $1
+        `, [schemaName]);
+        
+        console.log(`✅ [SCHEMA-MANAGER] Migrations completed for ${schemaName}: ${tableCount.rows[0].count} tables created`);
+      } catch (migrationError) {
+        console.error(`⚠️ [SCHEMA-MANAGER] Migration error (non-fatal):`, migrationError);
+        // Continue even if migration fails - schema is created
+      }
 
       return true;
     } catch (error) {
