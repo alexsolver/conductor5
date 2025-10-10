@@ -19,20 +19,25 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = (companyId?: string) => {
-  // 🚨 CORREÇÃO CRÍTICA: Query otimizada com loading garantido
+  // 🚨 CORREÇÃO CRÍTICA: Query otimizada com loading garantido + companyId parameter
   const { data: fieldOptions, isLoading, error, isFetched } = useQuery({
-    queryKey: ["/api/ticket-config/field-options", "all"], 
+    queryKey: ["/api/ticket-config/field-options", companyId || "default", "v4"], // v4 + companyId in key 
     queryFn: async () => {
-      console.log('🎨 [useFieldColors] Starting field options fetch...');
-      const response = await apiRequest("GET", "/api/ticket-config/field-options");
+      const urlParams = new URLSearchParams();
+      if (companyId) urlParams.append('companyId', companyId);
+      
+      const url = `/api/ticket-config/field-options${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
+      console.log('🎨 [useFieldColors] Starting fetch from:', url);
+      
+      const response = await apiRequest("GET", url);
       const result = await response.json();
       console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
       return result;
     },
-    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente  
+    staleTime: 0, // ⚡ Sempre refetch para garantir dados frescos  
     gcTime: 30 * 1000, // Garbage collection em 30 segundos
     refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
-    refetchOnMount: true,
+    refetchOnMount: "always", // 🚨 SEMPRE refetch ao montar
     refetchInterval: false,
     retry: 3, // Mais tentativas
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff

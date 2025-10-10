@@ -136,6 +136,99 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
 
     console.log(`🎯 Using company ${effectiveCompanyId} for field options`);
 
+    // 🎯 Special handling for categories - they are in ticket_categories table
+    if (fieldName === 'category') {
+      try {
+        const categoryQuery = `
+          SELECT 
+            id,
+            id as value,
+            name as label,
+            name as display_value,
+            color,
+            'category' as field_name
+          FROM "${schemaName}".ticket_categories
+          WHERE tenant_id = $1
+            AND active = true
+          ORDER BY sort_order, name
+        `;
+        
+        const categoryResult = await db.execute(sql.raw(categoryQuery), [tenantId]);
+        
+        if (categoryResult.rows.length > 0) {
+          console.log(`✅ Found ${categoryResult.rows.length} categories from ticket_categories table`);
+          return res.json({
+            success: true,
+            data: categoryResult.rows,
+            fieldName: 'category',
+            companyId: effectiveCompanyId,
+            tenantId,
+            source: 'ticket_categories'
+          });
+        }
+      } catch (categoryError) {
+        console.log('⚠️ Error fetching from ticket_categories, will try fallback', categoryError);
+      }
+    }
+
+    // 🎯 When fieldName is undefined, fetch ALL fields including categories
+    if (!fieldName || fieldName === 'undefined' || fieldName === 'all') {
+      try {
+        const allFieldsData: any[] = [];
+        
+        // Get categories from ticket_categories
+        const categoryQuery = `
+          SELECT 
+            id,
+            id as value,
+            name as label,
+            name as display_value,
+            color,
+            'category' as field_name
+          FROM "${schemaName}".ticket_categories
+          WHERE tenant_id = $1
+            AND active = true
+          ORDER BY sort_order, name
+        `;
+        
+        const categoryResult = await db.execute(sql.raw(categoryQuery), [tenantId]);
+        allFieldsData.push(...categoryResult.rows);
+        console.log(`✅ Loaded ${categoryResult.rows.length} categories for 'all' query`);
+        
+        // Get other field options from ticket_field_options
+        const otherFieldsQuery = `
+          SELECT DISTINCT ON (field_name, value)
+            id,
+            field_name,
+            value,
+            label,
+            display_value,
+            color_hex as color
+          FROM "${schemaName}".ticket_field_options
+          WHERE tenant_id = $1
+            AND is_active = true
+          ORDER BY field_name, value, sort_order
+        `;
+        
+        const otherFieldsResult = await db.execute(sql.raw(otherFieldsQuery), [tenantId]);
+        allFieldsData.push(...otherFieldsResult.rows);
+        console.log(`✅ Loaded ${otherFieldsResult.rows.length} other field options for 'all' query`);
+        
+        console.log(`✅ Total field options for 'all': ${allFieldsData.length}`);
+        
+        return res.json({
+          success: true,
+          data: allFieldsData,
+          fieldName: 'all',
+          companyId: effectiveCompanyId,
+          tenantId,
+          source: 'combined'
+        });
+      } catch (allFieldsError) {
+        console.log('⚠️ Error fetching all fields, will try fallback', allFieldsError);
+      }
+    }
+
     // Try to get from ticket_field_options table first
     try {
       // 🎯 [1QA-COMPLIANCE] Buscar field options do banco
@@ -181,7 +274,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res: Res
         // const uniqueDbOptions = removeDuplicateOptions(result.rows.map((row: any) => ({ value: row.value })));
         // return res.json({ success: true, data: uniqueDbOptions, fieldName, companyId: effectiveCompanyId, tenantId });
 
-        res.json({
+        return res.json({
           success: true,
           data: result.rows, // Assuming DB query with DISTINCT handles uniqueness appropriately for the `fieldName` column
           fieldName,

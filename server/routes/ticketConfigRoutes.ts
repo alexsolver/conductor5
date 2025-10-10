@@ -738,6 +738,7 @@ function getFallbackFieldOptions(fieldName: string | undefined): Array<{ id: str
 
 // GET /api/ticket-config/field-options
 router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  console.log('🎯🎯🎯 ENDPOINT 740 CALLED - This is the FIRST field-options endpoint');
   try {
     const tenantId = req.user?.tenantId;
     const customerId = req.query.companyId as string; // ⚡ ainda vem como companyId, mas é tratado como customerId
@@ -757,37 +758,73 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       fieldName=${fieldName}
     `);
 
-    // monta condições dinamicamente
-    const where: string[] = [];
-    const params: any[] = [];
-    let i = 1;
-
-    where.push(`tenant_id = $${i++}`);
-    params.push(tenantId);
-
-    where.push(`is_active = true`);
-
-    if (fieldName) {
-      where.push(`field_name = $${i++}`);
-      params.push(fieldName);
+    // 🎯 Special handling: when fetching all fields or categories, include data from ticket_categories table
+    const isRequestingAll = !fieldName || fieldName === 'undefined' || fieldName === 'all';
+    const isRequestingCategory = fieldName === 'category' || isRequestingAll;
+    
+    let allData: any[] = [];
+    
+    if (isRequestingCategory) {
+      try {
+        const categoryResult = await db.execute(sql`
+          SELECT 
+            id,
+            id as value,
+            name as label,
+            name as display_value,
+            color,
+            'category' as field_name
+          FROM ${sql.raw(`"${schemaName}".ticket_categories`)}
+          WHERE tenant_id = ${tenantId}
+            AND active = true
+          ORDER BY sort_order, name
+        `);
+        
+        if (categoryResult.rows.length > 0) {
+          allData.push(...categoryResult.rows);
+          console.log(`✅ Loaded ${categoryResult.rows.length} categories from ticket_categories`);
+        }
+      } catch (categoryError) {
+        console.log('⚠️ Error fetching categories, continuing with other fields', categoryError);
+      }
+    }
+    
+    // Fetch other field options from ticket_field_options (only if requesting specific field, not 'all' or 'undefined')
+    if (!isRequestingAll && fieldName !== 'category') {
+      const customerCondition = (effectiveCustomerId && effectiveCustomerId !== '00000000-0000-0000-0000-000000000001')
+        ? sql`AND (customer_id = ${effectiveCustomerId} OR customer_id IS NULL)`
+        : sql`AND (customer_id IS NULL OR customer_id = '00000000-0000-0000-0000-000000000001')`;
+      
+      const result = await db.execute(sql`
+        SELECT * 
+        FROM ${sql.raw(`"${schemaName}".ticket_field_options`)}
+        WHERE tenant_id = ${tenantId}
+          AND is_active = true
+          AND field_name = ${fieldName}
+          ${customerCondition}
+      `);
+      
+      allData.push(...result.rows);
+      console.log(`✅ Loaded ${result.rows.length} field options from ticket_field_options for field=${fieldName}`);
+    } else if (isRequestingAll) {
+      // When requesting all, fetch ALL field options (not just categories)
+      const customerCondition = (effectiveCustomerId && effectiveCustomerId !== '00000000-0000-0000-0000-000000000001')
+        ? sql`AND (customer_id = ${effectiveCustomerId} OR customer_id IS NULL)`
+        : sql`AND (customer_id IS NULL OR customer_id = '00000000-0000-0000-0000-000000000001')`;
+      
+      const result = await db.execute(sql`
+        SELECT * 
+        FROM ${sql.raw(`"${schemaName}".ticket_field_options`)}
+        WHERE tenant_id = ${tenantId}
+          AND is_active = true
+          ${customerCondition}
+      `);
+      
+      allData.push(...result.rows);
+      console.log(`✅ Loaded ${result.rows.length} field options from ticket_field_options (all fields)`);
     }
 
-    if (effectiveCustomerId && effectiveCustomerId !== '00000000-0000-0000-0000-000000000001') {
-      where.push(`(customer_id = $${i++} OR customer_id IS NULL)`);
-      params.push(effectiveCustomerId);
-    } else {
-      where.push(`(customer_id IS NULL OR customer_id = '00000000-0000-0000-0000-000000000001')`);
-    }
-
-    const result = await db.execute(sql`
-      SELECT * 
-      FROM ${sql.raw(schemaName)}.ticket_field_options
-      WHERE tenant_id = ${tenantId}
-        AND is_active = true
-        AND (customer_id = ${effectiveCustomerId} OR customer_id IS NULL)
-    `);
-
-    console.log(`✅ Found ${result.rows.length} records for field=${fieldName || 'all'} / customer=${effectiveCustomerId}`);
+    console.log(`✅ Found ${allData.length} total records for field=${fieldName || 'all'} / customer=${effectiveCustomerId}`);
 
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -797,7 +834,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
 
     return res.json({
       success: true,
-      data: result.rows,
+      data: allData,
       fieldName: fieldName || 'all',
       customerId: effectiveCustomerId,
       tenantId
@@ -1357,58 +1394,6 @@ router.post('/copy-structure', jwtAuth, async (req: AuthenticatedRequest, res) =
     res.status(500).json({
       success: false,
       error: 'Failed to copy structure',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// ============================================================================
-// FIELD OPTIONS - Metadados dos campos
-// ============================================================================
-
-// GET /api/ticket-config/field-options
-router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    const companyId = req.query.companyId as string;
-
-    if (!tenantId) {
-      return res.status(401).json({ message: 'Tenant required' });
-    }
-
-    if (!companyId) {
-      return res.status(400).json({ message: 'Company ID required' });
-    }
-
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    const result = await db.execute(sql`
-      SELECT 
-        id,
-        field_name as "fieldName",
-        value,
-        display_label as "displayLabel", 
-        color,
-        icon,
-        is_default as "isDefault",
-        active,
-        sort_order as "sortOrder",
-        status_type as "statusType"
-      FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-      WHERE tenant_id = ${tenantId} 
-      AND company_id = ${companyId}
-      AND active = true
-      ORDER BY field_name, sort_order, display_label
-    `);
-
-    res.json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching field options:', error);
-    res.status(500).json({
-      error: 'Failed to fetch field options',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
