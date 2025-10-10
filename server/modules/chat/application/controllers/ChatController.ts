@@ -134,6 +134,7 @@ export class ChatController {
     try {
       const tenantId = req.user!.tenantId;
       const userId = req.user!.id;
+      const { agents, ...queueData } = req.body;
       
       const repository = new DrizzleQueueRepository();
       const useCase = new CreateQueueUseCase(repository);
@@ -141,8 +142,25 @@ export class ChatController {
       const result = await useCase.execute({
         tenantId,
         createdById: userId,
-        ...req.body
+        ...queueData
       });
+      
+      // Adicionar agentes à fila
+      if (agents && Array.isArray(agents) && agents.length > 0) {
+        for (const agentId of agents) {
+          await repository.addMember({
+            id: crypto.randomUUID(),
+            tenantId,
+            queueId: result.id,
+            userId: agentId,
+            skills: [],
+            priority: 1,
+            maxConcurrentChats: queueData.maxConcurrentChats || 5,
+            isActive: true,
+            createdAt: new Date()
+          });
+        }
+      }
       
       res.json(result);
     } catch (error: any) {
@@ -186,6 +204,7 @@ export class ChatController {
       const tenantId = req.user!.tenantId;
       const userId = req.user!.id;
       const { id } = req.params;
+      const { agents, ...queueData } = req.body;
       
       const repository = new DrizzleQueueRepository();
       const useCase = new UpdateQueueUseCase(repository);
@@ -194,8 +213,39 @@ export class ChatController {
         id,
         tenantId,
         updatedById: userId,
-        ...req.body
+        ...queueData
       });
+      
+      // Atualizar agentes da fila (se fornecido)
+      if (agents && Array.isArray(agents)) {
+        // Buscar membros atuais
+        const currentMembers = await repository.findQueueMembers(id, tenantId);
+        
+        // Remover membros que não estão mais na lista
+        for (const member of currentMembers) {
+          if (!agents.includes(member.userId)) {
+            await repository.removeMember(member.id, tenantId);
+          }
+        }
+        
+        // Adicionar novos membros
+        const currentMemberIds = currentMembers.map(m => m.userId);
+        for (const agentId of agents) {
+          if (!currentMemberIds.includes(agentId)) {
+            await repository.addMember({
+              id: crypto.randomUUID(),
+              tenantId,
+              queueId: id,
+              userId: agentId,
+              skills: [],
+              priority: 1,
+              maxConcurrentChats: queueData.maxConcurrentChats || 5,
+              isActive: true,
+              createdAt: new Date()
+            });
+          }
+        }
+      }
       
       res.json(result);
     } catch (error: any) {

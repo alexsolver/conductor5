@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Users, Settings, Clock, TrendingUp } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const queueSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -28,7 +29,8 @@ const queueSchema = z.object({
   escalationTime: z.number().min(1).optional(),
   autoAssign: z.boolean().default(true),
   maxConcurrentChats: z.number().min(1).default(5),
-  isActive: z.boolean().default(true)
+  isActive: z.boolean().default(true),
+  agents: z.array(z.string()).default([])
 });
 
 type QueueFormData = z.infer<typeof queueSchema>;
@@ -72,6 +74,16 @@ export default function ChatQueuesConfig() {
     refetchInterval: 5000, // Refresh every 5 seconds
   });
 
+  const { data: users } = useQuery<Array<{ id: string; firstName: string; lastName: string; email: string }>>({
+    queryKey: ['/api/users'],
+  });
+
+  // Buscar membros da fila quando editando
+  const { data: queueMembers } = useQuery<Array<{ userId: string }>>({
+    queryKey: editingQueue ? ['/api/chat/queues', editingQueue.id, 'members'] : [],
+    enabled: !!editingQueue,
+  });
+
   const form = useForm<QueueFormData>({
     resolver: zodResolver(queueSchema),
     defaultValues: {
@@ -85,6 +97,7 @@ export default function ChatQueuesConfig() {
       autoAssign: true,
       maxConcurrentChats: 5,
       isActive: true,
+      agents: [],
     },
   });
 
@@ -134,6 +147,13 @@ export default function ChatQueuesConfig() {
     }
   };
 
+  // Popular agentes quando queueMembers for carregado
+  useEffect(() => {
+    if (queueMembers && editingQueue) {
+      form.setValue('agents', queueMembers.map(m => m.userId));
+    }
+  }, [queueMembers, editingQueue]);
+
   const handleEdit = (queue: Queue) => {
     setEditingQueue(queue);
     form.reset({
@@ -147,6 +167,7 @@ export default function ChatQueuesConfig() {
       autoAssign: queue.autoAssign,
       maxConcurrentChats: queue.maxConcurrentChats,
       isActive: queue.isActive,
+      agents: [],
     });
   };
 
@@ -409,6 +430,58 @@ export default function ChatQueuesConfig() {
                           data-testid="switch-is-active"
                         />
                       </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="agents"
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel className="text-base">Agentes da Fila</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Selecione os agentes que farão parte desta fila
+                        </div>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
+                        {users?.map((user) => (
+                          <FormField
+                            key={user.id}
+                            control={form.control}
+                            name="agents"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={user.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(user.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, user.id])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== user.id
+                                              )
+                                            )
+                                      }}
+                                      data-testid={`checkbox-agent-${user.id}`}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal cursor-pointer">
+                                    {user.firstName} {user.lastName} ({user.email})
+                                  </FormLabel>
+                                </FormItem>
+                              )
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
