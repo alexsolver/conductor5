@@ -316,7 +316,8 @@ export class DrizzleAutomationRuleRepository implements IAutomationRuleRepositor
         id: action.id,
         type: action.type,
         hasName: !!action.name,
-        hasConfig: !!action.config
+        hasConfig: !!action.config,
+        fullAction: action  // 🔍 DEBUG: See full action from database
       });
 
       // ✅ 1QA.MD: Action templates map for UI hydration

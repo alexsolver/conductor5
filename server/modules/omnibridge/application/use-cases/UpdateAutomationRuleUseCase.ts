@@ -76,8 +76,18 @@ export class UpdateAutomationRuleUseCase {
     
     // ✅ 1QA.MD: Properly handle actions with UI metadata preservation
     if (data.actions !== undefined) {
+      console.log(`🔍 [UpdateAutomationRuleUseCase] RAW actions data:`, JSON.stringify(data.actions, null, 2));
       updateData.actions = data.actions.map(action => {
+        console.log(`🔍 [UpdateAutomationRuleUseCase] Processing action:`, {
+          type: action.type,
+          hasParameters: !!action.parameters,
+          hasConfig: !!action.config,
+          parameters: action.parameters,
+          config: action.config
+        });
+        
         // Preserve action structure from frontend
+        // Frontend sends 'parameters', we save as 'config'
         const mappedAction = {
           id: action.id || `action-${Date.now()}`,
           type: action.type,
@@ -85,10 +95,10 @@ export class UpdateAutomationRuleUseCase {
           description: action.description,
           icon: action.icon,
           color: action.color,
-          config: action.config || {},
+          config: action.parameters || action.config || {},  // ✅ Frontend sends 'parameters'
           priority: action.priority || 1
         };
-        console.log(`🔧 [UpdateAutomationRuleUseCase] Mapped action:`, mappedAction);
+        console.log(`✅ [UpdateAutomationRuleUseCase] Mapped action:`, mappedAction);
         return mappedAction;
       });
     }
