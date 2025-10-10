@@ -706,16 +706,17 @@ app.use((req, res, next) => {
             const { pool } = await import('./db');
             const { discordGatewayService } = await import('./services/DiscordGatewayService');
 
-            // Get all tenants with Discord configured
+            // Get all active tenants
             const tenantsResult = await pool.query(`
-              SELECT DISTINCT t.id as tenant_id, t.schema_name
+              SELECT DISTINCT t.id as tenant_id
               FROM public.tenants t
               WHERE t.is_active = true
             `);
 
             for (const tenant of tenantsResult.rows) {
               try {
-                const schema = tenant.schema_name;
+                // Build schema name from tenant ID
+                const schema = `tenant_${tenant.tenant_id.replace(/-/g, '_')}`;
                 
                 // Check if Discord is configured for this tenant
                 const discordConfigResult = await pool.query(`
