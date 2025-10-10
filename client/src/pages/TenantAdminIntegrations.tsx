@@ -1353,11 +1353,20 @@ export default function TenantAdminIntegrations() {
 
         case 'discord':
           // Discord uses apiKey field in DB for botToken
-          configData = {
+          const discordConfig: any = {
             ...configData,
-            apiKey: data.botToken || '', // Map botToken to apiKey for storage
             webhookUrl: data.webhookUrl || '',
           };
+          
+          // Only update botToken if it's a real value (not masked)
+          if (data.botToken && data.botToken !== '••••••••') {
+            discordConfig.apiKey = data.botToken; // Map botToken to apiKey for storage
+          } else if (currentConfig && currentConfig.apiKey) {
+            // Keep existing value if input is masked
+            discordConfig.apiKey = currentConfig.apiKey;
+          }
+          
+          configData = discordConfig;
           break;
 
         case 'dropbox-personal':
