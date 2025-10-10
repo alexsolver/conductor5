@@ -111,7 +111,13 @@ export class DrizzleQueueRepository implements IQueueRepository {
   }
 
   async updateEntry(id: string, data: Partial<QueueEntry>): Promise<QueueEntry> {
-    const tenantId = data.tenantId!;
+    const tenantId = data.tenantId;
+    
+    if (!tenantId) {
+      console.error('❌ [QUEUE-REPO] updateEntry called without tenantId', { id, data });
+      throw new Error('tenantId is required for updateEntry operation');
+    }
+    
     const db = await getTenantDb(tenantId);
     const [updated] = await db
       .update(queueEntries)

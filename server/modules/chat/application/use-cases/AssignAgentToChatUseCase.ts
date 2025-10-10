@@ -67,7 +67,10 @@ export class AssignAgentToChatUseCase {
       return { 
         success: false, 
         message: 'No available agents',
-        entry: await this.queueRepository.updateEntry(entry.id, { status: 'timeout' })
+        entry: await this.queueRepository.updateEntry(entry.id, { 
+          tenantId: request.tenantId, // ✅ FIX: Include tenantId
+          status: 'timeout' 
+        })
       };
     }
 
@@ -94,6 +97,7 @@ export class AssignAgentToChatUseCase {
 
     // 6. Update queue entry
     const updatedEntry = await this.queueRepository.updateEntry(entry.id, {
+      tenantId: request.tenantId, // ✅ FIX: Include tenantId
       status: 'assigned',
       assignedAgentId: distributionResult.agentId,
       assignedAt: new Date(),

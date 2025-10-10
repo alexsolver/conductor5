@@ -38,6 +38,7 @@ export class CloseChatUseCase {
     // 3. Update queue entry if exists
     if (chat.queueEntryId) {
       await this.queueRepository.updateEntry(chat.queueEntryId, {
+        tenantId: request.tenantId, // ✅ FIX: Include tenantId
         status: 'completed',
         completedAt: new Date(),
       });

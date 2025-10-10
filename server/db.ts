@@ -87,6 +87,10 @@ export const schemaManager = {
   },
 
   async getTenantDb(tenantId: string) {
+    if (!tenantId) {
+      throw new Error('[getTenantDb] tenantId is required but was undefined');
+    }
+    
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     // Create a new database connection with the tenant schema as search path
     const tenantPool = new Pool({

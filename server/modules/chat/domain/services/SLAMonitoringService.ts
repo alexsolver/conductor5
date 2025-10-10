@@ -228,6 +228,7 @@ export class SLAMonitoringService {
       // Auto-escalate if exceeded max wait time
       if (waitTime > maxWaitTime) {
         const updated = await this.queueRepository.updateEntry(entry.id, {
+          tenantId, // ✅ FIX: Include tenantId for proper DB connection
           slaExceeded: true,
           escalated: true,
           escalatedAt: new Date(),
