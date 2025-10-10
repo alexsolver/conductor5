@@ -1028,7 +1028,7 @@ export class ChatController {
       const chatRepository = new DrizzleChatRepository();
       
       // Get all active chats for this agent
-      const chats = await chatRepository.findChatsByAgent(tenantId, userId);
+      const chats = await chatRepository.findChatsByAgent(userId, tenantId);
       
       res.json(chats);
     } catch (error: any) {
@@ -1043,7 +1043,7 @@ export class ChatController {
       
       const agentStatusRepository = new DrizzleAgentStatusRepository();
       
-      const status = await agentStatusRepository.findAgentStatus(userId, tenantId);
+      const status = await agentStatusRepository.findByUserId(userId, tenantId);
       
       res.json(status || { userId, tenantId, status: 'offline', activeChats: 0 });
     } catch (error: any) {
@@ -1059,7 +1059,7 @@ export class ChatController {
       const chatRepository = new DrizzleChatRepository();
       
       // Get agent metrics
-      const metrics = await chatRepository.getAgentMetrics(tenantId, userId);
+      const metrics = await chatRepository.getAgentMetrics(userId, tenantId);
       
       res.json(metrics);
     } catch (error: any) {
