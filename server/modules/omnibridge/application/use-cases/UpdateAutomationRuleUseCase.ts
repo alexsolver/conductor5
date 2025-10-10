@@ -44,19 +44,30 @@ export class UpdateAutomationRuleUseCase {
       updateData.trigger = data.conditions; // Maintain compatibility
       console.log(`🔧 [UpdateAutomationRuleUseCase] Using conditions format:`, JSON.stringify(data.conditions, null, 2));
     } else if (data.triggers !== undefined) {
-      // Convert legacy triggers format to conditions format
-      const convertedConditions = {
-        rules: data.triggers.map(trigger => ({
-          field: trigger.config?.field || 'content',
-          operator: trigger.config?.operator || 'contains',
-          value: trigger.config?.value || trigger.config?.keywords || '',
+      // Convert triggers format to conditions format
+      // Frontend sends: triggers: [{ type: 'condition_met', conditions: {...} }]
+      const firstTrigger = data.triggers[0];
+      
+      if (firstTrigger?.conditions) {
+        // Use conditions from inside the trigger
+        updateData.conditions = firstTrigger.conditions;
+        updateData.trigger = firstTrigger.conditions;
+        console.log(`🔧 [UpdateAutomationRuleUseCase] Extracted conditions from triggers:`, JSON.stringify(firstTrigger.conditions, null, 2));
+      } else {
+        // Legacy format with config
+        const convertedConditions = {
+          rules: data.triggers.map(trigger => ({
+            field: trigger.config?.field || 'content',
+            operator: trigger.config?.operator || 'contains',
+            value: trigger.config?.value || trigger.config?.keywords || '',
+            logicalOperator: 'AND'
+          })),
           logicalOperator: 'AND'
-        })),
-        logicalOperator: 'AND'
-      };
-      updateData.conditions = convertedConditions;
-      updateData.trigger = convertedConditions;
-      console.log(`🔧 [UpdateAutomationRuleUseCase] Converted triggers to conditions:`, JSON.stringify(convertedConditions, null, 2));
+        };
+        updateData.conditions = convertedConditions;
+        updateData.trigger = convertedConditions;
+        console.log(`🔧 [UpdateAutomationRuleUseCase] Converted legacy triggers to conditions:`, JSON.stringify(convertedConditions, null, 2));
+      }
     }
     
     // ✅ 1QA.MD: Properly handle actions with UI metadata preservation
