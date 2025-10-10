@@ -725,6 +725,20 @@ app.use((req, res, next) => {
               // Build schema name from tenant ID
               const schema = `tenant_${tenant.tenant_id.replace(/-/g, '_')}`;
               
+              // First check if tenant_integrations table exists
+              const tableCheckResult = await pool.query(`
+                SELECT EXISTS (
+                  SELECT FROM information_schema.tables 
+                  WHERE table_schema = $1 
+                  AND table_name = 'tenant_integrations'
+                )
+              `, [schema]);
+
+              if (!tableCheckResult.rows[0].exists) {
+                // Table doesn't exist, skip this tenant silently
+                continue;
+              }
+              
               // Check if Discord is configured for this tenant
               const discordConfigResult = await pool.query(`
                 SELECT config->>'apiKey' as bot_token
@@ -732,7 +746,7 @@ app.use((req, res, next) => {
                 WHERE integration_id = 'discord'
                 AND (config->>'apiKey') IS NOT NULL
                 AND (config->>'apiKey') != ''
-                AND (config->>'enabled')::boolean = true
+                AND enabled = true
                 LIMIT 1
               `);
 
@@ -746,6 +760,7 @@ app.use((req, res, next) => {
                 }
               }
             } catch (tenantError) {
+              // Log error but don't crash - just skip this tenant
               console.error(`❌ [DISCORD-GATEWAY] Failed to initialize for tenant ${tenant.tenant_id}:`, tenantError);
             }
           }
