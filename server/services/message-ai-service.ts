@@ -57,12 +57,29 @@ export class MessageAIService {
       throw new Error('No AI provider configured in SaaS Admin');
     }
 
-    const prompt = `Analyze the following text for spelling and grammar errors. Return a JSON object with:
-1. "correctedText": The fully corrected text
-2. "suggestions": Array of objects with "original", "suggestion", and "reason" fields
+    const prompt = `You are a spelling and grammar correction assistant. Analyze the text below and fix ALL spelling and grammar errors.
 
-Text to analyze:
+IMPORTANT RULES:
+- Correct ALL spelling mistakes (e.g., "Caza marela" → "Casa amarela")
+- Fix grammar errors
+- Preserve the original language
+- Preserve the intended meaning
+- Return the corrected version even if the text is very short
+
+Text to correct:
 "${text}"
+
+Return a JSON object with this EXACT structure:
+{
+  "correctedText": "the fully corrected text here",
+  "suggestions": [
+    {
+      "original": "word with error",
+      "suggestion": "corrected word",
+      "reason": "explanation"
+    }
+  ]
+}
 
 Return ONLY the JSON object, no additional text.`;
 
