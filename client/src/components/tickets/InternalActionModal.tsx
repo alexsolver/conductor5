@@ -382,6 +382,9 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
   // Update internal action mutation (for edit mode)
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Guardar a flag keepModalOpen antes de criar cleanedData
+      const shouldKeepModalOpen = data.keepModalOpen || false;
+      
       const cleanedData = {
         action_type: data.action_type,
         agent_id: currentUser?.id || "", // Keep assigning to the logged-in user
@@ -409,9 +412,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         throw new Error(`Failed to update action: ${response.status} ${errorData}`);
       }
 
-      return response.json();
+      const result = await response.json();
+      // Adiciona a flag ao resultado para uso no onSuccess
+      return { ...result, keepModalOpen: shouldKeepModalOpen };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       console.log('✅ Internal Action Updated Successfully:', data);
 
       toast({
@@ -419,14 +424,15 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         description: "Ação interna atualizada com sucesso",
       });
 
-      // Reset form data
-      resetForm();
-
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
 
-      onClose();
+      // Só fecha o modal se keepModalOpen não estiver definido
+      if (!data.keepModalOpen) {
+        resetForm();
+        onClose();
+      }
     },
     onError: (error: any) => {
       toast({
@@ -599,7 +605,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         end_time: now,
         actual_minutes: diffMinutes.toString(),
         status: 'pending', // Alterar status para pendente
-        form_data: formTemplateData // Salvar dados do formulário
+        form_data: formTemplateData, // Salvar dados do formulário
+        keepModalOpen: true // Manter o modal aberto após parar o timer
       };
 
       setFormData(updatedFormData);
