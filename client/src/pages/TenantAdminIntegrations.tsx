@@ -1157,8 +1157,28 @@ export default function TenantAdminIntegrations() {
     }
 
     try {
+      // Fetch current config first to check if sensitive fields already exist
+      let currentConfig = null;
+      try {
+        const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+        if (configResponse.ok) {
+          const configResult = await configResponse.json();
+          if (configResult.config) {
+            currentConfig = configResult.config;
+          }
+        }
+      } catch (fetchError) {
+        console.warn("Could not fetch current config for validation:", fetchError);
+      }
+
       // ✅ VALIDATION: Validação específica por tipo de integração
-      const validateIntegrationData = (integrationId: string, formData: any) => {
+      const validateIntegrationData = (integrationId: string, formData: any, existingConfig: any) => {
         const errors: string[] = [];
 
         // Helper to check if a sensitive field needs to be provided (not masked)
@@ -1167,22 +1187,29 @@ export default function TenantAdminIntegrations() {
           return value && value !== '••••••••';
         };
 
+        // Helper to check if a sensitive field exists (either new value or existing in DB)
+        const hasSensitiveField = (fieldName: string, dbFieldName?: string): boolean => {
+          const formValue = formData[fieldName];
+          const actualDbField = dbFieldName || fieldName;
+          return (formValue && formValue !== '••••••••') || (existingConfig && existingConfig[actualDbField]);
+        };
+
         switch (integrationId) {
           case 'telegram':
             if (formData.enabled) {
-              if (!formData.telegramBotToken || formData.telegramBotToken === '••••••••') {
+              if (!hasSensitiveField('telegramBotToken')) {
                 errors.push('Bot Token é obrigatório para ativar o Telegram');
               }
               if (!formData.telegramChatId) {
                 errors.push('Chat ID ou @username é obrigatório para ativar o Telegram');
               }
-              // Optional: Validate webhook URL if it's intended to be used
             }
             break;
 
           case 'discord':
             if (formData.enabled) {
-              if (!formData.botToken || formData.botToken === '••••••••') {
+              // Check if botToken exists (either new or existing in apiKey field)
+              if (!hasSensitiveField('botToken', 'apiKey')) {
                 errors.push('Bot Token é obrigatório para ativar o Discord');
               }
               // Optional: Validate client ID if needed for OAuth flows
@@ -1251,7 +1278,7 @@ export default function TenantAdminIntegrations() {
         return errors;
       };
 
-      const validationErrors = validateIntegrationData(selectedIntegration.id, data);
+      const validationErrors = validateIntegrationData(selectedIntegration.id, data, currentConfig);
 
       if (validationErrors.length > 0) {
         toast({
@@ -1293,26 +1320,7 @@ export default function TenantAdminIntegrations() {
         return newData;
       };
 
-      // Fetch current config to handle sensitive data correctly
-      let currentConfig = null;
-      try {
-        const configResponse = await fetch(`/api/tenant-admin/integrations/${selectedIntegration.id}/config`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include' // Use HttpOnly cookies for authentication
-        });
-        if (configResponse.ok) {
-          const configResult = await configResponse.json();
-          if (configResult.config) {
-            currentConfig = configResult.config;
-          }
-        }
-      } catch (fetchError) {
-        console.warn("Could not fetch current config for sensitive data processing:", fetchError);
-      }
-
+      // Use the currentConfig already fetched above for validation
       configData = processSensitiveData(currentConfig, configData);
 
       switch (selectedIntegration.id) {
