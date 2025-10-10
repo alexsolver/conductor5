@@ -230,6 +230,14 @@ export class ActionExecutor implements IActionExecutorPort {
         case 'ai_agent_interview':
           return await this.aiAgentInterviewAction(action, context);
 
+        // 🆕 AÇÕES DE CHAT/HUMAN HANDOFF
+        case 'transfer_to_human':
+        case 'escalate_to_agent':
+          return await this.transferToHumanAction(action, context);
+
+        case 'send_agent_response':
+          return await this.sendAgentResponseAction(action, context);
+
         default:
           return {
             success: false,
@@ -258,7 +266,7 @@ export class ActionExecutor implements IActionExecutorPort {
       'send_email', 'notify_manager', 'api_request', 'close_ticket', 'reopen_ticket',
       'set_ticket_sla', 'assign_ticket_by_category', 'update_priority', 'update_metrics',
       'add_tags', 'assign_agent', 'archive', 'mark_priority', 'webhook_call', 'send_notification',
-      'notify_in_app', 'ai_agent_interview'
+      'notify_in_app', 'ai_agent_interview', 'transfer_to_human', 'escalate_to_agent', 'send_agent_response'
     ];
     return supportedActions.includes(actionType);
   }
@@ -3803,6 +3811,138 @@ Você deve coletar as seguintes informações: ${fieldsToCollect?.map(f => f.nam
       return {
         success: false,
         message: 'Failed to execute AI agent interview',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * 🆕 Transfer to Human - Add customer to chat queue for human agent
+   */
+  private async transferToHumanAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { DrizzleQueueRepository } = await import('../../../chat/infrastructure/repositories/DrizzleQueueRepository');
+      const { AddToQueueUseCase } = await import('../../../chat/application/use-cases/AddToQueueUseCase');
+      
+      const queueRepository = new DrizzleQueueRepository();
+      const addToQueueUseCase = new AddToQueueUseCase(queueRepository);
+
+      const tenantId = context.messageData.tenantId || '';
+      const conversationId = context.messageData.conversationId || crypto.randomUUID();
+      const queueId = action.parameters?.queueId || 'default'; // Default queue if not specified
+      const priority = action.parameters?.priority || 1;
+      const customerName = context.messageData.senderName || context.messageData.sender || 'Unknown';
+      const customerChannel = context.messageData.channelType || 'unknown';
+      const customerIdentifier = context.messageData.sender || '';
+
+      // Add to queue
+      const queueEntry = await addToQueueUseCase.execute({
+        tenantId,
+        queueId,
+        conversationId,
+        customerName,
+        customerChannel,
+        customerIdentifier,
+        priority,
+        metadata: {
+          transferredFrom: 'ai_agent',
+          originalMessage: context.messageData.content?.substring(0, 200),
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      console.log(`✅ [TRANSFER-TO-HUMAN] Added customer to queue ${queueId}, entry ID: ${queueEntry.id}`);
+
+      // Send confirmation message to customer
+      const confirmationMessage = action.parameters?.confirmationMessage || 
+        'Um momento, você será atendido por um de nossos agentes em breve.';
+      
+      const channelType = context.messageData.channelType;
+      const sender = context.messageData.sender;
+
+      let messageSent = false;
+      if (channelType === 'telegram') {
+        messageSent = await this.sendTelegramMessage(confirmationMessage, sender, tenantId);
+      } else if (channelType === 'email' || channelType === 'imap') {
+        messageSent = await this.sendEmailMessage(confirmationMessage, sender, tenantId, context.messageData);
+      } else {
+        messageSent = await this.storeOutboundMessage(confirmationMessage, sender, channelType, tenantId);
+      }
+
+      return {
+        success: true,
+        message: 'Customer added to queue for human agent',
+        data: {
+          queueEntryId: queueEntry.id,
+          queueId,
+          conversationId,
+          position: 1, // TODO: Calculate actual position
+          estimatedWaitTime: 300, // TODO: Calculate from queue stats
+          confirmationSent: messageSent
+        }
+      };
+    } catch (error) {
+      console.error(`❌ [TRANSFER-TO-HUMAN] Error:`, error);
+      return {
+        success: false,
+        message: 'Failed to transfer to human agent',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * 🆕 Send Agent Response - Send human agent response via original channel
+   */
+  private async sendAgentResponseAction(action: AutomationAction, context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const message = action.parameters?.message || action.parameters?.content || '';
+      const channelType = context.messageData.channelType || action.parameters?.channel;
+      const recipient = context.messageData.sender || action.parameters?.recipient;
+      const tenantId = context.messageData.tenantId || '';
+
+      if (!message || !channelType || !recipient) {
+        throw new Error('Missing required parameters: message, channel, or recipient');
+      }
+
+      console.log(`📤 [SEND-AGENT-RESPONSE] Sending agent response via ${channelType} to ${recipient}`);
+
+      let success = false;
+
+      // Send via appropriate channel
+      if (channelType === 'telegram') {
+        success = await this.sendTelegramMessage(message, recipient, tenantId);
+      } else if (channelType === 'email' || channelType === 'imap') {
+        success = await this.sendEmailMessage(message, recipient, tenantId, context.messageData);
+      } else if (channelType === 'whatsapp') {
+        success = await this.storeOutboundMessage(message, recipient, channelType, tenantId);
+        // TODO: Integrate with actual WhatsApp API when available
+      } else if (channelType === 'slack') {
+        success = await this.storeOutboundMessage(message, recipient, channelType, tenantId);
+        // TODO: Integrate with Slack API
+      } else {
+        success = await this.storeOutboundMessage(message, recipient, channelType, tenantId);
+      }
+
+      if (success) {
+        console.log(`✅ [SEND-AGENT-RESPONSE] Response sent successfully via ${channelType}`);
+      }
+
+      return {
+        success,
+        message: success ? 'Agent response sent successfully' : 'Failed to send agent response',
+        data: {
+          channel: channelType,
+          recipient,
+          messageSent: success,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error(`❌ [SEND-AGENT-RESPONSE] Error:`, error);
+      return {
+        success: false,
+        message: 'Failed to send agent response',
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
