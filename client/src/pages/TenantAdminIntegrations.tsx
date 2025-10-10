@@ -1537,7 +1537,10 @@ export default function TenantAdminIntegrations() {
 
       {/* Integrações por Categoria */}
       <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
+        <TabsList 
+          className="grid w-full" 
+          style={{ gridTemplateColumns: `repeat(${Object.keys(groupedIntegrations).length + 1}, minmax(0, 1fr))` }}
+        >
           <TabsTrigger value="certificados">
             Certificados
           </TabsTrigger>
