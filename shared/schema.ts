@@ -287,6 +287,7 @@ export const omnibridgeMessages = pgTable('omnibridge_messages', {
   tenantId: varchar('tenant_id', { length: 36 }).notNull(),
   channelId: varchar('channel_id', { length: 36 }).notNull(),
   channelType: varchar('channel_type', { length: 50 }).notNull(),
+  conversationId: varchar('conversation_id', { length: 255 }),
   fromAddress: text('from_address'),
   toAddress: text('to_address'),
   subject: text('subject'),
