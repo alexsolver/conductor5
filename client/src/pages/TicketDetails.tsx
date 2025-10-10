@@ -524,22 +524,34 @@ const TicketDetails = React.memo(() => {
   const getSubcategoryName = (subcategoryId: string | undefined) => {
     if (!subcategoryId) return 'Não especificado';
     const categories = fullHierarchyData?.data || [];
+    console.log('🔍 [getSubcategoryName] Looking for ID:', subcategoryId);
+    console.log('🔍 [getSubcategoryName] Categories data:', categories);
     for (const category of categories) {
       const subcategory = category.subcategories?.find((s: any) => s.id === subcategoryId);
-      if (subcategory) return subcategory.name;
+      if (subcategory) {
+        console.log('✅ [getSubcategoryName] Found subcategory:', subcategory.name);
+        return subcategory.name;
+      }
     }
+    console.log('⚠️ [getSubcategoryName] NOT FOUND, returning ID');
     return subcategoryId;
   };
 
   const getActionName = (actionId: string | undefined) => {
     if (!actionId) return 'Não especificado';
     const categories = fullHierarchyData?.data || [];
+    console.log('🔍 [getActionName] Looking for ID:', actionId);
+    console.log('🔍 [getActionName] Categories data:', categories);
     for (const category of categories) {
       for (const subcategory of (category.subcategories || [])) {
         const action = subcategory.actions?.find((a: any) => a.id === actionId);
-        if (action) return action.name;
+        if (action) {
+          console.log('✅ [getActionName] Found action:', action.name);
+          return action.name;
+        }
       }
     }
+    console.log('⚠️ [getActionName] NOT FOUND, returning ID');
     return actionId;
   };
 

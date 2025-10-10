@@ -73,8 +73,8 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
 
   if (fieldName && value) {
     colorResult = getFieldColor(fieldName, value);
-    // 🏷️ CORREÇÃO: Usar label do banco em vez do valor interno
-    displayText = getFieldLabel(fieldName, value) || value;
+    // 🏷️ PRIORIDADE: children fornecido > label do banco > valor
+    displayText = children || getFieldLabel(fieldName, value) || value;
     console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, label=${displayText}, color=${colorResult.color}`);
   } else if (colorHex) {
     colorResult = { color: colorHex, textColor: '#ffffff', className: convertHexToTailwindClass(colorHex) };
