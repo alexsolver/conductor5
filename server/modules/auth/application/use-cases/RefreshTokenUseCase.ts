@@ -88,15 +88,24 @@ export class RefreshTokenUseCase {
 
       const user = await this.userRepository.findByIdAndTenant(session.userId, tenantId);
       if (!user) {
-        // Invalidate session for non-existent user
+        // Invalidate session for non-existent user (deleted user scenario)
+        console.warn('⚠️ [REFRESH-USE-CASE] User not found - likely deleted. Invalidating session.', {
+          userId: session.userId,
+          tenantId,
+          sessionId: session.id
+        });
         await this.authRepository.invalidateSession(session.id);
-        throw new Error('User not found');
+        throw new Error('INVALID_SESSION'); // Special error code for deleted users
       }
 
       // Check if user is still active
       if (!user.isActive) {
+        console.warn('⚠️ [REFRESH-USE-CASE] User account is deactivated. Invalidating session.', {
+          userId: user.id,
+          tenantId
+        });
         await this.authRepository.invalidateSession(session.id);
-        throw new Error('Account is deactivated');
+        throw new Error('ACCOUNT_DEACTIVATED');
       }
 
       // Create new token expiry dates

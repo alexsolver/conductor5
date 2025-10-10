@@ -121,9 +121,19 @@ export class AuthController {
       res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
       
+      // Map internal error codes to user-friendly messages
+      let userMessage = 'Token refresh failed';
+      if (error.message === 'INVALID_SESSION') {
+        userMessage = 'Your session has expired. Please log in again.';
+      } else if (error.message === 'ACCOUNT_DEACTIVATED') {
+        userMessage = 'Your account has been deactivated. Please contact support.';
+      } else if (error.message.includes('expired')) {
+        userMessage = 'Your session has expired. Please log in again.';
+      }
+      
       res.status(401).json({
         success: false,
-        message: error.message || 'Token refresh failed',
+        message: userMessage,
         error: error.message
       });
     }
