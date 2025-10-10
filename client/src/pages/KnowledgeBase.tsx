@@ -36,6 +36,8 @@ import { CreateArticleDialog } from "@/components/knowledge-base/CreateArticleDi
 import { TemplateCreateDialog } from "@/components/knowledge-base/TemplateCreateDialog";
 import { MediaUploadDialog } from "@/components/knowledge-base/MediaUploadDialog";
 import { WorkflowConfigurationDialog } from "@/components/knowledge-base/WorkflowConfigurationDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Import Dialog components
+import { CommentsSection } from "@/components/knowledge-base/CommentsSection"; // Assuming CommentsSection component exists
 
 interface Article {
   id: string;
@@ -76,6 +78,8 @@ export default function KnowledgeBase() {
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null); // State to track editing article ID
   const [isWorkflowDialogOpen, setIsWorkflowDialogOpen] = useState(false);
   const [semanticSearch, setSemanticSearch] = useState(false);
+  const [viewingArticleId, setViewingArticleId] = useState<string | null>(null); // State for viewing article dialog
+  const [commentsArticleId, setCommentsArticleId] = useState<string | null>(null); // State for comments dialog
 
   const queryClient = useQueryClient();
 
@@ -128,6 +132,16 @@ export default function KnowledgeBase() {
   const handleEditArticle = (articleId: string) => {
     setEditingArticleId(articleId);
     setIsCreateDialogOpen(true);
+  };
+
+  // Handle View Article
+  const handleViewArticle = (articleId: string) => {
+    setViewingArticleId(articleId);
+  };
+
+  // Handle Open Comments
+  const handleOpenComments = (articleId: string) => {
+    setCommentsArticleId(articleId);
   };
 
   // Extract articles safely from response - API returns { success, data: { articles: [...] } }
@@ -374,7 +388,8 @@ export default function KnowledgeBase() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MessageSquare className="h-3 w-3" />
-                            0
+                            {/* Assuming comment count can be fetched or is available */}
+                            0 
                           </span>
                         </div>
                       </div>
@@ -382,11 +397,28 @@ export default function KnowledgeBase() {
                       <Separator />
 
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewArticle(article.id);
+                          }}
+                          data-testid={`view-article-${article.id}`}
+                        >
                           <Eye className="h-3 w-3 mr-1" />
                           Ver
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenComments(article.id);
+                          }}
+                          data-testid={`comments-article-${article.id}`}
+                        >
                           <MessageSquare className="h-3 w-3" />
                         </Button>
                         <Button 
@@ -409,7 +441,7 @@ export default function KnowledgeBase() {
                           }}
                           data-testid={`delete-article-${article.id}`}
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>
@@ -614,6 +646,81 @@ export default function KnowledgeBase() {
         isOpen={isWorkflowDialogOpen}
         onClose={() => setIsWorkflowDialogOpen(false)}
       />
+
+      {/* View Article Dialog */}
+      {viewingArticleId && (
+        <Dialog open={!!viewingArticleId} onOpenChange={() => setViewingArticleId(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Visualizar Artigo</DialogTitle>
+            </DialogHeader>
+            {(() => {
+              const article = articles.find((a: Article) => a.id === viewingArticleId);
+              if (!article) return <p>Artigo não encontrado</p>;
+
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">{article.title}</h2>
+                    <div className="flex gap-2 mb-4">
+                      <Badge variant={article.published ? "default" : "secondary"}>
+                        {article.published ? 'Publicado' : 'Rascunho'}
+                      </Badge>
+                      <Badge variant="outline">{article.category}</Badge>
+                      {article.version && (
+                        <Badge variant="outline">v{article.version}</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {article.summary && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700">{article.summary}</p>
+                    </div>
+                  )}
+
+                  <div 
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: article.content }}
+                  />
+
+                  {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-4 border-t">
+                      <span className="text-sm font-medium">Tags:</span>
+                      {article.tags.map((tag) => (
+                        <Badge key={tag} variant="outline">{tag}</Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 text-sm text-gray-500 pt-4 border-t">
+                    <span className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      {article.view_count || 0} visualizações
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ThumbsUp className="h-4 w-4" />
+                      {article.helpful_count || 0} úteis
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Comments Dialog */}
+      {commentsArticleId && (
+        <Dialog open={!!commentsArticleId} onOpenChange={() => setCommentsArticleId(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Comentários do Artigo</DialogTitle>
+            </DialogHeader>
+            <CommentsSection articleId={commentsArticleId} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
