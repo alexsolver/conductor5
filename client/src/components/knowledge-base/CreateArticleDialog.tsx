@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,16 +37,59 @@ const accessLevels = [
 ];
 
 export function CreateArticleDialog({ isOpen, onClose, articleId, initialData }: CreateArticleDialogProps) {
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [content, setContent] = useState(initialData?.content || '');
-  const [category, setCategory] = useState(initialData?.category || '');
-  const [access_level, setAccessLevel] = useState(initialData?.access_level || 'public');
-  const [published, setPublished] = useState(initialData?.published || false);
-  const [tags, setTags] = useState(initialData?.tags?.join(', ') || '');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [access_level, setAccessLevel] = useState('public');
+  const [published, setPublished] = useState(false);
+  const [tags, setTags] = useState('');
   const [newTag, setNewTag] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch article data when editing
+  const { data: articleData, isLoading: isLoadingArticle } = useQuery({
+    queryKey: ['/api/knowledge-base/articles', articleId],
+    queryFn: async () => {
+      if (!articleId) return null;
+      const response = await apiRequest('GET', `/api/knowledge-base/articles/${articleId}`);
+      return response.json();
+    },
+    enabled: !!articleId && isOpen,
+  });
+
+  // Update form when article data is loaded
+  useEffect(() => {
+    if (articleData?.success && articleData?.data) {
+      const article = articleData.data;
+      setTitle(article.title || '');
+      setContent(article.content || '');
+      setCategory(article.category || '');
+      setAccessLevel(article.visibility || article.access_level || 'public');
+      setPublished(article.published || false);
+      
+      // Handle tags - they might be a string or an array
+      let tagsValue = '';
+      if (typeof article.tags === 'string') {
+        tagsValue = article.tags;
+      } else if (Array.isArray(article.tags)) {
+        tagsValue = article.tags.join(', ');
+      } else if (article.tags && typeof article.tags === 'object') {
+        // Handle case where tags might be stored as JSON
+        tagsValue = Object.values(article.tags).join(', ');
+      }
+      setTags(tagsValue);
+    } else if (!articleId) {
+      // Reset form when creating new article
+      setTitle('');
+      setContent('');
+      setCategory('');
+      setAccessLevel('public');
+      setPublished(false);
+      setTags('');
+    }
+  }, [articleData, articleId]);
 
   const mutation = useMutation({
     mutationFn: async (data: { title: string; content: string; category: string; access_level: string; published: boolean; tags: string[]; status: string }) => {
@@ -185,7 +228,15 @@ export function CreateArticleDialog({ isOpen, onClose, articleId, initialData }:
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {isLoadingArticle ? (
+          <div className="space-y-4 py-6">
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-40 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-medium">
@@ -315,7 +366,8 @@ export function CreateArticleDialog({ isOpen, onClose, articleId, initialData }:
               {mutation.isPending ? 'Salvando...' : (articleId ? 'Atualizar Artigo' : 'Salvar Artigo')}
             </Button>
           </div>
-        </form>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
