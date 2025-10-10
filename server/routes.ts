@@ -105,6 +105,7 @@ import internalFormsRoutes from './modules/internal-forms/routes';
 
 // Import user groups routes
 import telegramWebhookRoutes from "./routes/telegramWebhook";
+import discordWebhookRoutes from "./routes/discordWebhook";
 import userGroupsRoutes from './routes/userGroups';
 
 // Import user notification preferences routes
@@ -471,6 +472,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Telegram Webhook (unauthenticated - must be before auth middleware)
   app.use("/api/telegram", telegramWebhookRoutes);
   console.log('🤖 [ROUTES] Telegram webhook routes registered BEFORE authentication middleware');
+
+  // ✅ Discord Webhook (unauthenticated - must be before auth middleware)
+  app.use("/api/discord", discordWebhookRoutes);
+  console.log('🎮 [ROUTES] Discord webhook routes registered BEFORE authentication middleware');
 
   // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
   app.use("/api", (req, res, next) => {
