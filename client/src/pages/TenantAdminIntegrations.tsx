@@ -990,6 +990,8 @@ export default function TenantAdminIntegrations() {
           telegramAlertTemplate: config.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
           telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
 
+          // Discord specific fields
+          botToken: maskSensitiveData(config.botToken),
 
           // WhatsApp Business specific fields
           whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
@@ -1080,6 +1082,8 @@ export default function TenantAdminIntegrations() {
       telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
       telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
       telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+      // Discord default values
+      botToken: '',
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
