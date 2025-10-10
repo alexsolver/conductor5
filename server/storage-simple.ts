@@ -2416,16 +2416,31 @@ export class DatabaseStorage implements IStorage {
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     // Lista de TODAS as integrações disponíveis no sistema
     const AVAILABLE_INTEGRATIONS = [
-      { id: 'telegram', name: 'Telegram', category: 'communication' },
-      { id: 'discord', name: 'Discord', category: 'communication' },
-      { id: 'slack', name: 'Slack', category: 'communication' },
-      { id: 'whatsapp-business', name: 'WhatsApp Business', category: 'communication' },
-      { id: 'twilio-sms', name: 'Twilio SMS', category: 'communication' },
-      { id: 'imap-email', name: 'IMAP Email', category: 'communication' },
-      { id: 'email-smtp', name: 'Email SMTP', category: 'communication' },
-      { id: 'gmail-oauth2', name: 'Gmail OAuth2', category: 'communication' },
-      { id: 'outlook-oauth2', name: 'Outlook OAuth2', category: 'communication' },
-      { id: 'microsoft-365', name: 'Microsoft 365 OAuth', category: 'communication' },
+      // Comunicação
+      { id: 'telegram', name: 'Telegram', category: 'Comunicação' },
+      { id: 'discord', name: 'Discord', category: 'Comunicação' },
+      { id: 'slack', name: 'Slack', category: 'Comunicação' },
+      { id: 'whatsapp-business', name: 'WhatsApp Business', category: 'Comunicação' },
+      { id: 'twilio-sms', name: 'Twilio SMS', category: 'Comunicação' },
+      { id: 'imap-email', name: 'IMAP Email', category: 'Comunicação' },
+      { id: 'email-smtp', name: 'Email SMTP', category: 'Comunicação' },
+      { id: 'gmail-oauth2', name: 'Gmail OAuth2', category: 'Comunicação' },
+      { id: 'outlook-oauth2', name: 'Outlook OAuth2', category: 'Comunicação' },
+      // Automação
+      { id: 'zapier', name: 'Zapier', category: 'Automação' },
+      { id: 'webhooks', name: 'Webhooks', category: 'Automação' },
+      // Dados
+      { id: 'google-analytics', name: 'Google Analytics', category: 'Dados' },
+      { id: 'crm-integration', name: 'CRM Integration', category: 'Dados' },
+      { id: 'dropbox-personal', name: 'Dropbox Pessoal', category: 'Dados' },
+      // Segurança
+      { id: 'sso-saml', name: 'SSO/SAML', category: 'Segurança' },
+      // Produtividade
+      { id: 'google-workspace', name: 'Google Workspace', category: 'Produtividade' },
+      // IA
+      { id: 'openai', name: 'OpenAI', category: 'IA' },
+      { id: 'deepseek', name: 'DeepSeek', category: 'IA' },
+      { id: 'googleai', name: 'Google AI', category: 'IA' },
     ];
 
     try {
