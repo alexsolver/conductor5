@@ -2430,6 +2430,8 @@ export class DatabaseStorage implements IStorage {
   async getTenantIntegrations(tenantId: string): Promise<any[]> {
     try {
       console.log('🔍 [GET-INTEGRATIONS] Starting fetch for tenant:', tenantId);
+      console.log('🔍 [GET-INTEGRATIONS] Available integrations count:', MemStorage.AVAILABLE_INTEGRATIONS.length);
+      
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, "_")}`;
@@ -2441,6 +2443,8 @@ export class DatabaseStorage implements IStorage {
         SELECT integration_id, config, enabled, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.tenant_integrations
       `);
+
+      console.log('✅ [GET-INTEGRATIONS] Query succeeded, rows:', result.rows?.length || 0);
 
       const savedConfigs = new Map(
         (result.rows || []).map((row: any) => [row.integration_id, row])
@@ -2463,17 +2467,20 @@ export class DatabaseStorage implements IStorage {
       });
 
       console.log(`✅ [GET-INTEGRATIONS] Returning ${allIntegrations.length} integrations (${savedConfigs.size} configured)`);
+      console.log(`🔍 [GET-INTEGRATIONS] Integration IDs:`, allIntegrations.map(i => i.id).join(', '));
       return allIntegrations;
     } catch (error) {
       console.error('❌ [GET-INTEGRATIONS] Error fetching tenant integrations:', error);
       logError("Error fetching tenant integrations", error, { tenantId });
       // Em caso de erro, retornar pelo menos as integrações disponíveis sem configuração
-      return MemStorage.AVAILABLE_INTEGRATIONS.map(integration => ({
+      const fallback = MemStorage.AVAILABLE_INTEGRATIONS.map(integration => ({
         ...integration,
         config: {},
         enabled: false,
         configured: false,
       }));
+      console.log('🔧 [GET-INTEGRATIONS] Returning fallback with', fallback.length, 'integrations');
+      return fallback;
     }
   }
 
