@@ -490,6 +490,86 @@ export function ActionConfigModal({
     />
   );
 
+  const renderTransferToHumanConfig = () => (
+    <div className="space-y-4">
+      <div>
+        <Label>Transferir para Agente/Equipe</Label>
+        <UserMultiSelect
+          value={config.transferToUsers || []}
+          onChange={(users) => updateConfig('transferToUsers', users)}
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Selecione os agentes que podem receber a transferência
+        </p>
+      </div>
+
+      <div>
+        <Label>Transferir para Grupo</Label>
+        <UserGroupSelect
+          value={config.transferToGroups || []}
+          onChange={(groups) => updateConfig('transferToGroups', groups)}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="transferPriority">Prioridade da Transferência</Label>
+        <Select value={config.transferPriority || 'normal'} onValueChange={(val) => updateConfig('transferPriority', val)}>
+          <SelectTrigger data-testid="select-transfer-priority">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Baixa</SelectItem>
+            <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="high">Alta</SelectItem>
+            <SelectItem value="urgent">Urgente</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="contextMessage">Mensagem de Contexto para o Agente</Label>
+        <Textarea
+          id="contextMessage"
+          placeholder="Explique o contexto da conversa para o agente humano..."
+          rows={4}
+          value={config.contextMessage || ''}
+          onChange={(e) => updateConfig('contextMessage', e.target.value)}
+          data-testid="textarea-context-message"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Esta mensagem será exibida para o agente que receber a transferência
+        </p>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="notifyCustomer"
+          checked={config.notifyCustomer || false}
+          onChange={(e) => updateConfig('notifyCustomer', e.target.checked)}
+          className="rounded border-gray-300"
+        />
+        <Label htmlFor="notifyCustomer" className="text-sm font-normal cursor-pointer">
+          Notificar cliente sobre a transferência
+        </Label>
+      </div>
+
+      {config.notifyCustomer && (
+        <div>
+          <Label htmlFor="customerMessage">Mensagem para o Cliente (opcional)</Label>
+          <Textarea
+            id="customerMessage"
+            placeholder="Ex: Um de nossos especialistas irá atendê-lo em breve..."
+            rows={3}
+            value={config.customerMessage || ''}
+            onChange={(e) => updateConfig('customerMessage', e.target.value)}
+            data-testid="textarea-customer-message"
+          />
+        </div>
+      )}
+    </div>
+  );
+
   const renderConfigForm = () => {
     if (!action) return null;
 
@@ -521,6 +601,9 @@ export function ActionConfigModal({
       case 'ai_agent':
       case 'ai_agent_interview':
         return renderAIAgentConfig();
+
+      case 'transfer_to_human':
+        return renderTransferToHumanConfig();
 
       default:
         return (

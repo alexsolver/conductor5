@@ -282,6 +282,15 @@ export const ACTION_DEFINITIONS: ActionDefinition[] = [
     color: 'bg-purple-500',
     category: 'ai'
   },
+  {
+    id: 'transfer_to_human',
+    type: 'transfer_to_human',
+    name: 'Transferir para Humano',
+    description: 'Transfere conversa de IA para atendente humano',
+    icon: Users,
+    color: 'bg-emerald-500',
+    category: 'ai'
+  },
 
   // EXTRAS
   {
