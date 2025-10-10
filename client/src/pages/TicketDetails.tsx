@@ -3591,17 +3591,31 @@ const TicketDetails = React.memo(() => {
             <div className="mb-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">{t('tickets.fields.assignmentGroup')}</label>
-                <GroupSelect
-                  value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
-                  onChange={(value) => {
-                    setSelectedAssignmentGroup(value);
-                    form.setValue('assignmentGroup', value);
-                    // Limpar responsável quando grupo muda
-                    form.setValue('responsibleId', '');
-                  }}
-                  placeholder="Selecione o grupo"
-                  disabled={!isEditMode}
-                />
+                {isEditMode ? (
+                  <GroupSelect
+                    value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
+                    onChange={(value) => {
+                      setSelectedAssignmentGroup(value);
+                      form.setValue('assignmentGroup', value);
+                      // Limpar responsável quando grupo muda
+                      form.setValue('responsibleId', '');
+                    }}
+                    placeholder="Selecione o grupo"
+                    disabled={!isEditMode}
+                  />
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-2 text-sm font-semibold bg-gray-50 border-gray-300 text-gray-700 w-full justify-start"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    {(() => {
+                      const groupId = selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id;
+                      const group = userGroupsData?.find((g: any) => g.id === groupId);
+                      return group?.name || (groupId && groupId !== 'unspecified' ? 'Grupo não encontrado' : 'Não especificado');
+                    })()}
+                  </Badge>
+                )}
               </div>
             </div>
 
