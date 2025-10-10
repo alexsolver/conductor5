@@ -3611,7 +3611,8 @@ const TicketDetails = React.memo(() => {
                     <Users className="h-4 w-4 mr-2" />
                     {(() => {
                       const groupId = selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id;
-                      const group = userGroupsData?.find((g: any) => g.id === groupId);
+                      const groups = Array.isArray(userGroupsData) ? userGroupsData : (userGroupsData?.data || userGroupsData?.groups || []);
+                      const group = groups.find((g: any) => g.id === groupId);
                       return group?.name || (groupId && groupId !== 'unspecified' ? 'Grupo não encontrado' : 'Não especificado');
                     })()}
                   </Badge>
