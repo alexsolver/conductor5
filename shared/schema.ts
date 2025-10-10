@@ -15,7 +15,9 @@ export {
   userGroups,
   userGroupMemberships,
   insertUserGroupSchema,
-  insertUserGroupMembershipSchema
+  insertUserGroupMembershipSchema,
+  tenantIntegrations,
+  insertTenantIntegrationSchema
 } from "./schema-tenant";
 
 // Reports & Dashboards Module Schema - using selective exports to avoid conflicts

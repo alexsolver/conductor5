@@ -872,6 +872,25 @@ export const insertPermissionSchema = createInsertSchema(permissions);
 export const insertNsrSequenceSchema = createInsertSchema(nsrSequences);
 export const insertUserRoleAssignmentSchema = createInsertSchema(userRoleAssignments);
 export const insertAssignmentGroupSchema = createInsertSchema(assignmentGroups);
+// ========================================
+// TENANT INTEGRATIONS TABLE
+// Stores integration configurations (Discord, Telegram, WhatsApp, etc.)
+// ========================================
+export const tenantIntegrations = pgTable("tenant_integrations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  integrationId: varchar("integration_id", { length: 50 }).notNull(), // 'discord', 'telegram', 'whatsapp', etc.
+  config: jsonb("config").notNull().default({}), // Integration-specific config (apiKey, botToken, etc.)
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueTenantIntegration: unique("tenant_integrations_tenant_integration_unique").on(table.tenantId, table.integrationId),
+  tenantIdx: index("tenant_integrations_tenant_idx").on(table.tenantId),
+  integrationIdx: index("tenant_integrations_integration_idx").on(table.integrationId),
+}));
+
+export const insertTenantIntegrationSchema = createInsertSchema(tenantIntegrations);
 export const insertCustomFieldSchema = createInsertSchema(customFields);
 export const insertTimecardAuditLogSchema = createInsertSchema(timecardAuditLog);
 export const insertApprovalGroupMemberSchema = createInsertSchema(approvalGroupMembers);
