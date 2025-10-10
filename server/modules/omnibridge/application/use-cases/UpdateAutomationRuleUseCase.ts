@@ -7,6 +7,7 @@ export interface UpdateAutomationRuleDTO {
   description?: string;
   isEnabled?: boolean;
   priority?: number;
+  conditions?: any;
   triggers?: any[];
   actions?: any[];
   tags?: string[];
