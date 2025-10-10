@@ -2475,9 +2475,13 @@ export class DatabaseStorage implements IStorage {
       const configJson = JSON.stringify(config);
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.tenant_integrations
-        SET config = ${configJson}::jsonb, configured = true, updated_at = NOW()
-        WHERE integration_id = ${integrationId}
+        INSERT INTO ${sql.identifier(schemaName)}.tenant_integrations (integration_id, config, configured, updated_at)
+        VALUES (${integrationId}, ${configJson}::jsonb, true, NOW())
+        ON CONFLICT (integration_id) 
+        DO UPDATE SET 
+          config = ${configJson}::jsonb, 
+          configured = true, 
+          updated_at = NOW()
         RETURNING *
       `);
 
