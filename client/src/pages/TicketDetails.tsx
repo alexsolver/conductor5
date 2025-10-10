@@ -502,63 +502,45 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch categories for label mapping
-  const { data: categoriesData } = useQuery({
-    queryKey: ['/api/ticket-hierarchy/categories'],
+  // Fetch full hierarchy for label mapping
+  const { data: fullHierarchyData } = useQuery({
+    queryKey: ['/api/ticket-hierarchy/full'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/ticket-hierarchy/categories');
+      const response = await apiRequest('GET', '/api/ticket-hierarchy/full');
       return response.json();
     },
     staleTime: 10 * 60 * 1000, // 10 minutes cache
     refetchOnWindowFocus: false,
   });
 
-  // Fetch subcategories for current category
-  const { data: subcategoriesData } = useQuery({
-    queryKey: ['/api/ticket-hierarchy/categories', ticket?.category, 'subcategories'],
-    queryFn: async () => {
-      if (!ticket?.category) return { success: true, data: [] };
-      const response = await apiRequest('GET', `/api/ticket-hierarchy/categories/${ticket.category}/subcategories`);
-      return response.json();
-    },
-    enabled: !!ticket?.category,
-    staleTime: 10 * 60 * 1000, // 10 minutes cache
-    refetchOnWindowFocus: false,
-  });
-
-  // Fetch actions for current subcategory
-  const { data: actionsHierarchyData } = useQuery({
-    queryKey: ['/api/ticket-hierarchy/subcategories', ticket?.subcategory, 'actions'],
-    queryFn: async () => {
-      if (!ticket?.subcategory) return { success: true, data: [] };
-      const response = await apiRequest('GET', `/api/ticket-hierarchy/subcategories/${ticket.subcategory}/actions`);
-      return response.json();
-    },
-    enabled: !!ticket?.subcategory,
-    staleTime: 10 * 60 * 1000, // 10 minutes cache
-    refetchOnWindowFocus: false,
-  });
-
-  // Helper functions to get hierarchy labels
+  // Helper functions to get hierarchy labels from full hierarchy
   const getCategoryName = (categoryId: string | undefined) => {
     if (!categoryId) return 'Não especificado';
-    const categories = categoriesData?.data || [];
+    const categories = fullHierarchyData?.data || [];
     const category = categories.find((c: any) => c.id === categoryId);
     return category?.name || categoryId;
   };
 
   const getSubcategoryName = (subcategoryId: string | undefined) => {
     if (!subcategoryId) return 'Não especificado';
-    const subcategories = subcategoriesData?.data || [];
-    const subcategory = subcategories.find((s: any) => s.id === subcategoryId);
-    return subcategory?.name || subcategoryId;
+    const categories = fullHierarchyData?.data || [];
+    for (const category of categories) {
+      const subcategory = category.subcategories?.find((s: any) => s.id === subcategoryId);
+      if (subcategory) return subcategory.name;
+    }
+    return subcategoryId;
   };
 
   const getActionName = (actionId: string | undefined) => {
     if (!actionId) return 'Não especificado';
-    const actions = actionsHierarchyData?.data || [];
-    const action = actions.find((a: any) => a.id === actionId);
-    return action?.name || actionId;
+    const categories = fullHierarchyData?.data || [];
+    for (const category of categories) {
+      for (const subcategory of (category.subcategories || [])) {
+        const action = subcategory.actions?.find((a: any) => a.id === actionId);
+        if (action) return action.name;
+      }
+    }
+    return actionId;
   };
 
   // ✅ Buscar template do ticket se ele tiver template_id
