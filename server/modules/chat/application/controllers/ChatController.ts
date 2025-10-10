@@ -51,6 +51,7 @@ export class ChatController {
     
     this.router.post('/queues', jwtAuth, this.createQueue);
     this.router.get('/queues', jwtAuth, this.listQueues);
+    this.router.get('/queues/stats', jwtAuth, this.getAllQueuesStats);
     this.router.get('/queues/:id', jwtAuth, this.getQueue);
     this.router.put('/queues/:id', jwtAuth, this.updateQueue);
     this.router.delete('/queues/:id', jwtAuth, this.deleteQueue);
@@ -289,6 +290,27 @@ export class ChatController {
       const entries = await repository.findEntriesByQueue(id, tenantId);
       
       res.json(entries);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  private getAllQueuesStats = async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      
+      const queueRepository = new DrizzleQueueRepository();
+      const slaService = new SLAMonitoringService(queueRepository);
+      
+      // Get all queues for this tenant
+      const queues = await queueRepository.findQueuesByTenant(tenantId);
+      
+      // Get stats for each queue
+      const allStats = await Promise.all(
+        queues.map(queue => slaService.monitorQueue(tenantId, queue.id))
+      );
+      
+      res.json(allStats);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
