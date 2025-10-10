@@ -53,6 +53,7 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
 - **AI Agent Auto-Configuration**: Natural language-to-configuration generation using GPT-4o-mini.
 - **Ticket Context Tracking**: Intelligent message-to-ticket linking for emails and chat platforms.
 - **Extended Action Library**: Comprehensive automation action library.
+- **Dynamic QueryBuilder System**: Fully dynamic query builder that automatically fetches all available options (channels, status, priorities, users, companies, categories, groups) from the database. Features centralized API endpoint (`/api/querybuilder/options`) with React Query caching (5-minute TTL), eliminating hardcoded values and automatically supporting new integrations (e.g., Discord). Used in main QueryBuilder, AutomationRuleBuilder, and future components for user-friendly, non-technical query building.
 
 ### AI Provider Configuration
 The platform supports per-tenant AI provider configuration for OpenAI (GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-3.5 Turbo), DeepSeek (DeepSeek Chat, DeepSeek Reasoner), and Google AI (Gemini 2.0 Flash, Gemini 1.5 Flash/Pro, Gemini 1.0 Pro). Configuration is managed through the Tenant Admin → Integrations page, allowing tenants to provide their own API keys.
