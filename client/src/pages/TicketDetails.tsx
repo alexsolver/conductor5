@@ -502,6 +502,43 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch categories for label mapping
+  const { data: categoriesData } = useQuery({
+    queryKey: ['/api/ticket-hierarchy/categories'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/ticket-hierarchy/categories');
+      return response.json();
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch subcategories for current category
+  const { data: subcategoriesData } = useQuery({
+    queryKey: ['/api/ticket-hierarchy/categories', ticket?.category, 'subcategories'],
+    queryFn: async () => {
+      if (!ticket?.category) return { success: true, data: [] };
+      const response = await apiRequest('GET', `/api/ticket-hierarchy/categories/${ticket.category}/subcategories`);
+      return response.json();
+    },
+    enabled: !!ticket?.category,
+    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch actions for current subcategory
+  const { data: actionsHierarchyData } = useQuery({
+    queryKey: ['/api/ticket-hierarchy/subcategories', ticket?.subcategory, 'actions'],
+    queryFn: async () => {
+      if (!ticket?.subcategory) return { success: true, data: [] };
+      const response = await apiRequest('GET', `/api/ticket-hierarchy/subcategories/${ticket.subcategory}/actions`);
+      return response.json();
+    },
+    enabled: !!ticket?.subcategory,
+    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchOnWindowFocus: false,
+  });
+
   // ✅ Buscar template do ticket se ele tiver template_id
   const { data: ticketTemplate, isLoading: isTemplateLoading } = useQuery({
     queryKey: ['/api/ticket-templates', ticket?.templateId],
@@ -1693,7 +1730,11 @@ const TicketDetails = React.memo(() => {
                               fieldName="category"
                               value={field.value}
                             >
-                              {getFieldLabel('category', field.value) || field.value || 'Não especificado'}
+                              {(() => {
+                                const categories = categoriesData?.data || [];
+                                const category = categories.find((c: any) => c.id === field.value);
+                                return category?.name || field.value || 'Não especificado';
+                              })()}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1730,7 +1771,11 @@ const TicketDetails = React.memo(() => {
                               fieldName="subcategory"
                               value={field.value}
                             >
-                              {getFieldLabel('subcategory', field.value) || field.value || 'Não especificado'}
+                              {(() => {
+                                const subcategories = subcategoriesData?.data || [];
+                                const subcategory = subcategories.find((s: any) => s.id === field.value);
+                                return subcategory?.name || field.value || 'Não especificado';
+                              })()}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1763,7 +1808,11 @@ const TicketDetails = React.memo(() => {
                               fieldName="action"
                               value={field.value}
                             >
-                              {getFieldLabel('action', field.value) || field.value || 'Não especificado'}
+                              {(() => {
+                                const actions = actionsHierarchyData?.data || [];
+                                const action = actions.find((a: any) => a.id === field.value);
+                                return action?.name || field.value || 'Não especificado';
+                              })()}
                             </DynamicBadge>
                           </div>
                         )}
