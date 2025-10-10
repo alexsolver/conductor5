@@ -15,6 +15,9 @@ export class UserCreatedEvent implements IDomainEvent {
     public readonly email: string,
     public readonly role: string,
     public readonly tenantId: string | null,
+    public readonly passwordHash: string,
+    public readonly firstName: string | null = null,
+    public readonly lastName: string | null = null,
     occurredOn?: Date
   ) {
     this.aggregateId = userId;
@@ -27,6 +30,9 @@ export class UserCreatedEvent implements IDomainEvent {
       email: this.email,
       role: this.role,
       tenantId: this.tenantId,
+      passwordHash: this.passwordHash,
+      firstName: this.firstName,
+      lastName: this.lastName,
       occurredOn: this.occurredOn
     };
   }
