@@ -2423,9 +2423,9 @@ export class DatabaseStorage implements IStorage {
       console.log('🔍 [GET-INTEGRATIONS] Schema:', schemaName);
 
       const result = await tenantDb.execute(sql`
-        SELECT integration_id as id, name, description, category, config, status, configured, created_at, updated_at
+        SELECT integration_id as id, config, enabled, created_at, updated_at
         FROM ${sql.identifier(schemaName)}.tenant_integrations
-        ORDER BY name
+        ORDER BY integration_id
       `);
 
       console.log('✅ [GET-INTEGRATIONS] Query succeeded, rows:', result.rows?.length || 0);
