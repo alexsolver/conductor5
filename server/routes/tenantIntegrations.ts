@@ -862,11 +862,9 @@ router.get('/:integrationId/logs', jwtAuth, async (req: any, res) => {
       });
     }
 
-    // Importar DiscordGatewayService para buscar logs
-    const { DiscordGatewayService } = await import('../services/DiscordGatewayService');
-    
-    // Para Discord, buscar logs do Discord Gateway Service
+    // Buscar logs baseado no tipo de integração
     if (integrationId === 'discord') {
+      const { DiscordGatewayService } = await import('../services/DiscordGatewayService');
       const discordLogs = DiscordGatewayService.getReceptionLogs(tenantId);
       
       console.log(`📊 [INTEGRATION-LOGS] Found ${discordLogs.length} Discord logs for tenant ${tenantId}`);
@@ -876,6 +874,20 @@ router.get('/:integrationId/logs', jwtAuth, async (req: any, res) => {
         logs: discordLogs,
         integration: integrationId,
         count: discordLogs.length
+      });
+    }
+    
+    if (integrationId === 'telegram') {
+      const { telegramWebhookService } = await import('../services/TelegramWebhookService');
+      const telegramLogs = telegramWebhookService.getReceptionLogs(tenantId);
+      
+      console.log(`📊 [INTEGRATION-LOGS] Found ${telegramLogs.length} Telegram logs for tenant ${tenantId}`);
+      
+      return res.json({
+        success: true,
+        logs: telegramLogs,
+        integration: integrationId,
+        count: telegramLogs.length
       });
     }
 

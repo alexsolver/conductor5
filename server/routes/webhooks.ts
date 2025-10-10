@@ -13,13 +13,18 @@ router.post('/telegram/:tenantId', async (req, res) => {
   try {
     const { tenantId } = req.params;
     const webhookData = req.body;
+    const { telegramWebhookService } = await import('../services/TelegramWebhookService');
 
     console.log(`📨 [TELEGRAM-WEBHOOK] Received webhook for tenant: ${tenantId}`);
     console.log(`📨 [TELEGRAM-WEBHOOK] Webhook data:`, JSON.stringify(webhookData, null, 2));
 
+    // Log webhook reception
+    telegramWebhookService.logInfo(tenantId, 'Webhook received', { update_id: webhookData.update_id });
+
     // ✅ VALIDATION: Check if it's a valid Telegram webhook
     if (!webhookData.update_id) {
       console.log(`❌ [TELEGRAM-WEBHOOK] Invalid webhook data - missing update_id`);
+      telegramWebhookService.logError(tenantId, 'Invalid webhook data - missing update_id');
       return res.status(200).json({
         success: false,
         message: 'Invalid Telegram webhook data'
@@ -29,11 +34,15 @@ router.post('/telegram/:tenantId', async (req, res) => {
     // ✅ CHECK MESSAGE: Verify if message exists
     if (!webhookData.message) {
       console.log(`❌ [TELEGRAM-WEBHOOK] No message in webhook data`);
+      telegramWebhookService.logError(tenantId, 'No message in webhook data', { update_id: webhookData.update_id });
       return res.status(200).json({
         success: false,
         message: 'No message found in webhook'
       });
     }
+
+    // Log message reception
+    telegramWebhookService.logMessageReceived(tenantId, webhookData.message);
 
     // 🎯 SOLUTION: Use processTelegramMessage from tenantIntegrations
     // This function handles BOTH saving to inbox AND processing automation
@@ -43,8 +52,10 @@ router.post('/telegram/:tenantId', async (req, res) => {
       console.log(`🤖 [TELEGRAM-WEBHOOK] Processing message through integrated pipeline`);
       await processTelegramMessage(tenantId, webhookData.message);
       console.log(`✅ [TELEGRAM-WEBHOOK] Message processed successfully with automation`);
+      telegramWebhookService.logInfo(tenantId, 'Message processed successfully');
     } catch (processingError) {
       console.error(`❌ [TELEGRAM-WEBHOOK] Processing failed:`, processingError);
+      telegramWebhookService.logError(tenantId, 'Message processing failed', { error: processingError instanceof Error ? processingError.message : 'Unknown error' });
       // Continue to return 200 to Telegram
     }
 
@@ -57,6 +68,8 @@ router.post('/telegram/:tenantId', async (req, res) => {
 
   } catch (error: any) {
     console.error(`❌ [TELEGRAM-WEBHOOK] Error processing webhook:`, error);
+    const { telegramWebhookService } = await import('../services/TelegramWebhookService');
+    telegramWebhookService.logError(req.params.tenantId || 'unknown', `Webhook processing error: ${error.message}`);
 
     // ✅ CRITICAL: Always return 200 to Telegram to avoid retries
     return res.status(200).json({
