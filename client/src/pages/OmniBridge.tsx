@@ -1286,6 +1286,8 @@ export default function OmniBridge() {
                     <SelectItem value="send_notification">Enviar notificação</SelectItem>
                     <SelectItem value="add_tags">Adicionar tags</SelectItem>
                     <SelectItem value="assign_agent">Atribuir agente</SelectItem>
+                    <SelectItem value="transfer_to_human">Transferir para Fila de Atendimento</SelectItem>
+                    <SelectItem value="escalate_to_agent">Escalar para Agente Humano</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
