@@ -246,6 +246,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN ENDPOINT: Initialize ticket sequences from existing tickets
+  app.post('/api/admin/init-ticket-sequences', async (req, res) => {
+    try {
+      const adminToken = req.headers['x-admin-token'] || req.query.adminToken;
+      if (adminToken !== 'sync-tenants-2025') {
+        return res.status(403).json({
+          success: false,
+          message: 'Invalid admin token'
+        });
+      }
+
+      console.log('🚀 [ADMIN] Starting ticket sequences initialization...');
+      
+      const { initializeTicketSequences } = await import('./scripts/initialize-ticket-sequences');
+      const results = await initializeTicketSequences();
+
+      res.json({
+        success: results.success,
+        message: 'Ticket sequences initialization completed',
+        data: results
+      });
+
+    } catch (error: any) {
+      console.error('❌ [ADMIN] Sequence initialization failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Sequence initialization failed',
+        error: error.message
+      });
+    }
+  });
+
   // ADMIN ENDPOINT: Sync existing users to tenant schemas
   app.post('/api/admin/sync-users-to-tenants', async (req, res) => {
     try {
@@ -619,8 +651,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Apply JWT authentication and comprehensive tenant schema validation to all routes EXCEPT auth routes
   app.use("/api", (req, res, next) => {
-    // Skip ALL authentication and validation for auth routes
-    if (req.path.startsWith("/auth/")) {
+    // Skip ALL authentication and validation for auth routes and admin endpoints
+    if (req.path.startsWith("/auth/") || req.path.startsWith("/admin/")) {
       return next();
     }
     // Apply JWT auth and all validators for other routes
