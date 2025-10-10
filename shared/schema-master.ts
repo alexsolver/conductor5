@@ -25,6 +25,9 @@ export type {
 } from "./schema-notifications";
 export * from "./schema-expense-approval";
 
+// Import Chat & Queue Management Schema
+export * from "./schema-chat";
+
 // Import temporary missing tables - COMPLETED: All tables consolidated into schema-tenant.ts
 // export * from "./schema-temp"; // Removed: All 29 tables successfully migrated to schema-tenant.ts
 
