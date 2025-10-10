@@ -9,6 +9,8 @@ import { ITokenService } from '../services/ITokenService';
 import { ITenantRepository } from '../../infrastructure/repositories/ITenantRepository';
 import { db } from '../../../../db';
 import { cookieConsents, privacyPolicyAcceptances } from '@shared/schema-gdpr-compliance';
+import { UserCreatedEvent } from '../../domain/events/UserCreatedEvent';
+import { SyncUserToTenantHandler } from '../handlers/SyncUserToTenantHandler';
 
 interface RegisterUseCaseDependencies {
   userRepository: IUserRepository;
@@ -218,6 +220,26 @@ export class RegisterUseCase {
       // Create user with tenant context
       const user = await this.createUser(registerData, hashedPassword, tenant.id);
       console.log('✅ [REGISTER-USE-CASE] User created:', user.id);
+
+      // 🔄 SYNC USER TO TENANT SCHEMA - Clean Architecture Domain Event Pattern
+      try {
+        const userCreatedEvent = new UserCreatedEvent(
+          user.id,
+          user.email,
+          user.role,
+          tenant.id,
+          hashedPassword,
+          registerData.firstName || null,
+          registerData.lastName || null
+        );
+        
+        const syncHandler = new SyncUserToTenantHandler();
+        await syncHandler.handle(userCreatedEvent);
+        console.log('✅ [REGISTER-USE-CASE] User synced to tenant schema');
+      } catch (syncError) {
+        console.error('❌ [REGISTER-USE-CASE] Failed to sync user to tenant schema:', syncError);
+        // Continue execution - user can be synced later if needed
+      }
 
       // Create/Update company data if tenant_admin and company data provided
       if (user.role === 'tenant_admin' && registerData.companyName) {
