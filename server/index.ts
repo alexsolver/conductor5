@@ -700,57 +700,59 @@ app.use((req, res, next) => {
             console.error('❌ [SERVER-INIT] Failed to start OmniBridge email monitoring:', error);
           }
 
-          // 🎮 DISCORD GATEWAY: Initialize Discord Gateway connections for all configured tenants
-          try {
-            console.log('🎮 [DISCORD-GATEWAY] Initializing Discord Gateway connections...');
-            const { pool } = await import('./db');
-            const { discordGatewayService } = await import('./services/DiscordGatewayService');
-
-            // Get all active tenants
-            const tenantsResult = await pool.query(`
-              SELECT DISTINCT t.id as tenant_id
-              FROM public.tenants t
-              WHERE t.is_active = true
-            `);
-
-            for (const tenant of tenantsResult.rows) {
-              try {
-                // Build schema name from tenant ID
-                const schema = `tenant_${tenant.tenant_id.replace(/-/g, '_')}`;
-                
-                // Check if Discord is configured for this tenant
-                const discordConfigResult = await pool.query(`
-                  SELECT config->>'apiKey' as bot_token
-                  FROM ${schema}.tenant_integrations
-                  WHERE integration_id = 'discord'
-                  AND (config->>'apiKey') IS NOT NULL
-                  AND (config->>'apiKey') != ''
-                  AND (config->>'enabled')::boolean = true
-                  LIMIT 1
-                `);
-
-                if (discordConfigResult.rows.length > 0) {
-                  const botToken = discordConfigResult.rows[0].bot_token;
-                  
-                  if (botToken && botToken !== '••••••••') {
-                    console.log(`🎮 [DISCORD-GATEWAY] Connecting Gateway for tenant: ${tenant.tenant_id}`);
-                    await discordGatewayService.connect(tenant.tenant_id, botToken);
-                    console.log(`✅ [DISCORD-GATEWAY] Gateway connected for tenant: ${tenant.tenant_id}`);
-                  }
-                }
-              } catch (tenantError) {
-                console.error(`❌ [DISCORD-GATEWAY] Failed to initialize for tenant ${tenant.tenant_id}:`, tenantError);
-              }
-            }
-
-            console.log('✅ [DISCORD-GATEWAY] Discord Gateway initialization completed');
-          } catch (error) {
-            console.error('❌ [DISCORD-GATEWAY] Failed to initialize Discord Gateway:', error);
-          }
-
         } catch (error) {
           console.error('❌ [BACKGROUND-INIT] Background initialization failed:', error);
           // Don't crash the server - just log the error
+        }
+      });
+
+      // 🎮 DISCORD GATEWAY: Initialize Discord Gateway connections independently
+      setImmediate(async () => {
+        try {
+          console.log('🎮 [DISCORD-GATEWAY] Initializing Discord Gateway connections...');
+          const { pool } = await import('./db');
+          const { discordGatewayService } = await import('./services/DiscordGatewayService');
+
+          // Get all active tenants
+          const tenantsResult = await pool.query(`
+            SELECT DISTINCT t.id as tenant_id
+            FROM public.tenants t
+            WHERE t.is_active = true
+          `);
+
+          for (const tenant of tenantsResult.rows) {
+            try {
+              // Build schema name from tenant ID
+              const schema = `tenant_${tenant.tenant_id.replace(/-/g, '_')}`;
+              
+              // Check if Discord is configured for this tenant
+              const discordConfigResult = await pool.query(`
+                SELECT config->>'apiKey' as bot_token
+                FROM ${schema}.tenant_integrations
+                WHERE integration_id = 'discord'
+                AND (config->>'apiKey') IS NOT NULL
+                AND (config->>'apiKey') != ''
+                AND (config->>'enabled')::boolean = true
+                LIMIT 1
+              `);
+
+              if (discordConfigResult.rows.length > 0) {
+                const botToken = discordConfigResult.rows[0].bot_token;
+                
+                if (botToken && botToken !== '••••••••') {
+                  console.log(`🎮 [DISCORD-GATEWAY] Connecting Gateway for tenant: ${tenant.tenant_id}`);
+                  await discordGatewayService.connect(tenant.tenant_id, botToken);
+                  console.log(`✅ [DISCORD-GATEWAY] Gateway connected for tenant: ${tenant.tenant_id}`);
+                }
+              }
+            } catch (tenantError) {
+              console.error(`❌ [DISCORD-GATEWAY] Failed to initialize for tenant ${tenant.tenant_id}:`, tenantError);
+            }
+          }
+
+          console.log('✅ [DISCORD-GATEWAY] Discord Gateway initialization completed');
+        } catch (error) {
+          console.error('❌ [DISCORD-GATEWAY] Failed to initialize Discord Gateway:', error);
         }
       });
 
