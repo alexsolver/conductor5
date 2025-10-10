@@ -377,6 +377,7 @@ export const ResponsiveTicketsTable = ({
 
                     case 'created':
                     case 'created_at':
+                    case 'createdAt':
                       return (
                         <TableCell key={columnId} className="text-sm">
                           {(ticket.created_at || (ticket as any).createdAt)
@@ -387,6 +388,7 @@ export const ResponsiveTicketsTable = ({
 
                     case 'updated':
                     case 'updated_at':
+                    case 'updatedAt':
                       return (
                         <TableCell key={columnId} className="text-sm">
                           {(ticket.updated_at || (ticket as any).updatedAt)
@@ -405,9 +407,18 @@ export const ResponsiveTicketsTable = ({
                       );
 
                     case 'assigned_to':
+                    case 'assignedTo':
+                    case 'assignedToName':
                       return (
                         <TableCell key={columnId} className="text-sm">
-                          {(ticket as any).assigned_to_name || 'Não atribuído'}
+                          {(ticket as any).assigned_to_name || (ticket as any).assignedToName || 'Não atribuído'}
+                        </TableCell>
+                      );
+
+                    case 'customerName':
+                      return (
+                        <TableCell key={columnId} className="text-sm">
+                          {(ticket as any).customer_name || ticket.caller_name || (ticket as any).customerName || 'N/A'}
                         </TableCell>
                       );
 
