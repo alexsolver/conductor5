@@ -281,6 +281,8 @@ export const ResponsiveTicketsTable = ({
                   // Render cell based on column type
                   switch (columnId) {
                     case 'number':
+                    case 'ticketNumber':
+                    case 'ticketnumber':
                       return (
                         <TableCell key={columnId} className="font-mono text-sm">
                           <div className="flex items-center gap-2">
