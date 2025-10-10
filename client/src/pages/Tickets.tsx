@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
@@ -68,6 +68,10 @@ export default function Tickets() {
     category: "",
     caller: ""
   });
+  
+  // Sort states
+  const [sortColumn, setSortColumn] = useState<string>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
