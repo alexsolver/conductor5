@@ -4,6 +4,7 @@ import { GetAiAgentsUseCase } from '../use-cases/GetAiAgentsUseCase';
 import { GetAiAgentByIdUseCase } from '../use-cases/GetAiAgentByIdUseCase';
 import { UpdateAiAgentUseCase } from '../use-cases/UpdateAiAgentUseCase';
 import { DeleteAiAgentUseCase } from '../use-cases/DeleteAiAgentUseCase';
+import { GetAvailableActionsUseCase } from '../use-cases/GetAvailableActionsUseCase';
 import { IAiAgentRepository } from '../../domain/repositories/IAiAgentRepository';
 import { InternalFormsIntegrationService } from '../../infrastructure/services/InternalFormsIntegrationService';
 
@@ -13,6 +14,7 @@ export class AiAgentController {
   private getByIdUseCase: GetAiAgentByIdUseCase;
   private updateUseCase: UpdateAiAgentUseCase;
   private deleteUseCase: DeleteAiAgentUseCase;
+  private availableActionsUseCase: GetAvailableActionsUseCase;
   private formsService: InternalFormsIntegrationService;
 
   constructor(agentRepository: IAiAgentRepository) {
@@ -21,6 +23,7 @@ export class AiAgentController {
     this.getByIdUseCase = new GetAiAgentByIdUseCase(agentRepository);
     this.updateUseCase = new UpdateAiAgentUseCase(agentRepository);
     this.deleteUseCase = new DeleteAiAgentUseCase(agentRepository);
+    this.availableActionsUseCase = new GetAvailableActionsUseCase();
     this.formsService = new InternalFormsIntegrationService();
   }
 
@@ -171,6 +174,21 @@ export class AiAgentController {
       });
     } catch (error) {
       console.error('❌ [AiAgentController] Error fetching forms:', error);
+      res.status(500).json({ success: false, error: 'Erro interno do servidor' });
+    }
+  }
+
+  async getAvailableActions(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.availableActionsUseCase.execute();
+      
+      if (result.success) {
+        res.json({ success: true, data: result.data });
+      } else {
+        res.status(500).json({ success: false, error: 'Erro ao buscar ações disponíveis' });
+      }
+    } catch (error) {
+      console.error('❌ [AiAgentController] Error fetching available actions:', error);
       res.status(500).json({ success: false, error: 'Erro interno do servidor' });
     }
   }

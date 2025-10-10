@@ -14,6 +14,7 @@ export function createAiAgentRoutes(): Router {
   router.delete('/agents/:id', (req, res) => controller.deleteAgent(req, res));
   
   router.get('/forms/available', (req, res) => controller.getAvailableForms(req, res));
+  router.get('/actions/available', (req, res) => controller.getAvailableActions(req, res));
 
   console.log('🤖 [AiAgentRoutes] AI Agent routes configured (simplified)');
 
