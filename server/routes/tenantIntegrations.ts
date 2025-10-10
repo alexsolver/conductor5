@@ -351,18 +351,27 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
 
     const { storage } = await import('../storage-simple');
 
+    // 🔑 UNMASK: Get existing config to preserve masked values
+    const existingConfig = await storage.getTenantIntegrationConfig(tenantId, integrationId);
+
+    // If apiKey is masked, use the existing real value
+    if (apiKeyValue === '••••••••' && existingConfig?.apiKey) {
+      apiKeyValue = existingConfig.apiKey;
+      console.log(`🔓 [UNMASK] Using existing apiKey for ${integrationId}`);
+    }
+
     // Prepare configuration for storage (store actual values, not masked)
     const configData = {
       // OAuth2 fields
       clientId: req.body.clientId || '',
-      clientSecret: req.body.clientSecret || '',
+      clientSecret: req.body.clientSecret === '••••••••' && existingConfig?.clientSecret ? existingConfig.clientSecret : (req.body.clientSecret || ''),
       redirectUri: req.body.redirectUri || '',
       // Traditional fields
       apiKey: apiKeyValue,
-      apiSecret: req.body.apiSecret || '',
+      apiSecret: req.body.apiSecret === '••••••••' && existingConfig?.apiSecret ? existingConfig.apiSecret : (req.body.apiSecret || ''),
       webhookUrl: req.body.webhookUrl || '',
-      accessToken: req.body.accessToken || '',
-      refreshToken: req.body.refreshToken || '',
+      accessToken: req.body.accessToken === '••••••••' && existingConfig?.accessToken ? existingConfig.accessToken : (req.body.accessToken || ''),
+      refreshToken: req.body.refreshToken === '••••••••' && existingConfig?.refreshToken ? existingConfig.refreshToken : (req.body.refreshToken || ''),
       // AI Provider specific fields (OpenAI, DeepSeek, Google AI)
       baseUrl: req.body.baseUrl || '',
       model: modelValue,
