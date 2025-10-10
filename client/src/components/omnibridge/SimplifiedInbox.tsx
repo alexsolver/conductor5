@@ -268,6 +268,45 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
     return matchesSearch && matchesFilter && matchesChannel;
   });
 
+  const handleProcessMessage = async (messageId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/omnibridge/messages/${messageId}/process`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          'x-tenant-id': user?.tenantId || ''
+        },
+        credentials: 'include',
+        body: JSON.stringify({ action: 'analyze_and_automate' })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: '✅ Mensagem Processada',
+          description: data.message || 'Automação executada com sucesso!',
+        });
+        refetch();
+      } else {
+        toast({
+          title: 'Erro ao processar',
+          description: data.message || 'Não foi possível processar a mensagem',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error processing message:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível processar a mensagem',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleQuickAction = async (message: any, action: string) => {
     switch (action) {
       case 'create_rule':
@@ -559,6 +598,18 @@ export default function SimplifiedInbox({ onCreateRule }: SimplifiedInboxProps) 
 
                         {/* Quick actions */}
                         <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProcessMessage(message.id);
+                            }}
+                            title="Processar Mensagem (disparar automações)"
+                            data-testid={`button-process-${message.id}`}
+                          >
+                            <Bot className="h-3 w-3 text-purple-500" />
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
