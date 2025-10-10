@@ -304,15 +304,24 @@ export class ChatController {
       
       // Get all queues for this tenant
       const queues = await queueRepository.findQueuesByTenant(tenantId);
+      console.log('📊 [QUEUE-STATS] Found queues:', queues.length, queues.map(q => ({ id: q?.id, name: q?.name })));
       
       // Get stats for each queue
       const allStats = await Promise.all(
-        queues.map(queue => slaService.monitorQueue(tenantId, queue.id))
+        queues.map(queue => {
+          console.log('📊 [QUEUE-STATS] Processing queue:', { id: queue?.id, name: queue?.name });
+          return slaService.monitorQueue(tenantId, queue.id);
+        })
       );
       
+      console.log('📊 [QUEUE-STATS] Stats generated successfully:', allStats.length);
       res.json(allStats);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      console.error('❌ [QUEUE-STATS-ERROR] Message:', error?.message || 'No message');
+      console.error('❌ [QUEUE-STATS-ERROR] Name:', error?.name || 'No name');  
+      console.error('❌ [QUEUE-STATS-ERROR] Stack trace:', error?.stack || 'No stack');
+      console.error('❌ [QUEUE-STATS-ERROR] Full error object:', JSON.stringify(error, null, 2));
+      res.status(400).json({ error: error.message || 'Unknown error' });
     }
   };
 

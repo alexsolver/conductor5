@@ -101,9 +101,12 @@ export class SLAMonitoringService {
     const violations = entries.filter(e => e.slaExceeded);
 
     // Calculate wait times for waiting entries
-    const waitTimes = waiting.map(e => 
-      Math.floor((now - e.waitStartedAt.getTime()) / 1000)
-    );
+    const waitTimes = waiting.map(e => {
+      const startTime = e.waitStartedAt instanceof Date 
+        ? e.waitStartedAt.getTime() 
+        : new Date(e.waitStartedAt).getTime();
+      return Math.floor((now - startTime) / 1000);
+    });
 
     const avgWaitTime = waitTimes.length > 0
       ? Math.round(waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length)
@@ -143,7 +146,10 @@ export class SLAMonitoringService {
     for (const entry of entries) {
       if (entry.status !== 'waiting') continue;
 
-      const waitTime = Math.floor((now - entry.waitStartedAt.getTime()) / 1000);
+      const startTime = entry.waitStartedAt instanceof Date 
+        ? entry.waitStartedAt.getTime() 
+        : new Date(entry.waitStartedAt).getTime();
+      const waitTime = Math.floor((now - startTime) / 1000);
       const warningThreshold = maxWaitTime * 0.7; // 70% of max
       const criticalThreshold = maxWaitTime * 0.9; // 90% of max
 
@@ -214,7 +220,10 @@ export class SLAMonitoringService {
       if (entry.status !== 'waiting') continue;
       if (entry.escalated) continue; // Already escalated
 
-      const waitTime = Math.floor((now - entry.waitStartedAt.getTime()) / 1000);
+      const startTime = entry.waitStartedAt instanceof Date 
+        ? entry.waitStartedAt.getTime() 
+        : new Date(entry.waitStartedAt).getTime();
+      const waitTime = Math.floor((now - startTime) / 1000);
 
       // Auto-escalate if exceeded max wait time
       if (waitTime > maxWaitTime) {
