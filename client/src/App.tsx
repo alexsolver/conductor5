@@ -112,6 +112,12 @@ import KnowledgeBase from "./pages/KnowledgeBase";
 import BrazilianFieldsDemo from "./pages/BrazilianFieldsDemo";
 import DocumentOCRDemo from "./pages/DocumentOCRDemo";
 
+// Chat + Queue Management Module
+import ChatQueuesConfig from "./pages/ChatQueuesConfig";
+import ChatDashboard from "./pages/ChatDashboard";
+import ChatAgent from "./pages/ChatAgent";
+import AgentControl from "./pages/AgentControl";
+
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -296,6 +302,11 @@ function AppRouter() {
         {/* Knowledge Base Route */}
         <Route path="/knowledge-base" component={KnowledgeBase} />
         
+        {/* Chat + Queue Management Module */}
+        <Route path="/chat/queues" component={ChatQueuesConfig} />
+        <Route path="/chat/dashboard" component={ChatDashboard} />
+        <Route path="/chat/agent" component={ChatAgent} />
+        <Route path="/chat/control" component={AgentControl} />
 
         <Route component={NotFound} />
       </Switch>
