@@ -991,7 +991,7 @@ export default function TenantAdminIntegrations() {
           telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
 
           // Discord specific fields
-          botToken: maskSensitiveData(config.botToken),
+          botToken: maskSensitiveData(config.botToken || config.apiKey), // Discord uses apiKey field for botToken
 
           // WhatsApp Business specific fields
           whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
@@ -1278,7 +1278,7 @@ export default function TenantAdminIntegrations() {
       const processSensitiveData = (currentConfig: any, newData: any) => {
         const sensitiveFields = [
           'clientSecret', 'apiSecret', 'password', 'dropboxAppSecret', 
-          'dropboxAccessToken', 'telegramBotToken', 'whatsappApiKey', 'whatsappVerifyToken'
+          'dropboxAccessToken', 'telegramBotToken', 'whatsappApiKey', 'whatsappVerifyToken', 'botToken'
         ];
         sensitiveFields.forEach(field => {
           if (newData[field] === '••••••••' && currentConfig && currentConfig[field]) {
@@ -1348,6 +1348,15 @@ export default function TenantAdminIntegrations() {
             telegramNotificationTemplate: data.telegramNotificationTemplate || `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
             telegramAlertTemplate: data.telegramAlertTemplate || `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
             telegramSummaryTemplate: data.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+          };
+          break;
+
+        case 'discord':
+          // Discord uses apiKey field in DB for botToken
+          configData = {
+            ...configData,
+            apiKey: data.botToken || '', // Map botToken to apiKey for storage
+            webhookUrl: data.webhookUrl || '',
           };
           break;
 
