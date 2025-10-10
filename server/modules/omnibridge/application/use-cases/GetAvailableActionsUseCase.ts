@@ -1,9 +1,7 @@
-import { logger } from "@/lib/logger";
-
 export class GetAvailableActionsUseCase {
   async execute() {
     try {
-      logger.info('📋 [GetAvailableActionsUseCase] Fetching available actions');
+      console.log('📋 [GetAvailableActionsUseCase] Fetching available actions');
 
       const availableActions = [
         {
@@ -133,14 +131,14 @@ export class GetAvailableActionsUseCase {
         }
       ];
 
-      logger.info(`✅ [GetAvailableActionsUseCase] Found ${availableActions.length} available actions`);
+      console.log(`✅ [GetAvailableActionsUseCase] Found ${availableActions.length} available actions`);
 
       return {
         success: true,
         data: availableActions
       };
     } catch (error) {
-      logger.error('❌ [GetAvailableActionsUseCase] Error fetching available actions:', error);
+      console.error('❌ [GetAvailableActionsUseCase] Error fetching available actions:', error);
       throw error;
     }
   }

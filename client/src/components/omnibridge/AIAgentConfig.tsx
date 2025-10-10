@@ -59,53 +59,12 @@ export default function AIAgentConfig() {
     }
   }, [configData]);
 
-  // Buscar ações disponíveis
+  // Buscar ações disponíveis do backend
   const { data: actionsData, isLoading: actionsLoading } = useQuery({
-    queryKey: ['/api/ai-agent/available-actions'],
+    queryKey: ['/api/omnibridge/actions/available'],
   });
 
-  const availableActions = actionsData?.data || [
-    {
-      id: '1',
-      name: 'Criar Ticket',
-      description: 'Criar chamados automaticamente',
-      icon: '🎫',
-      createdBy: 'Admin',
-      usage: 245,
-      enabled: true,
-      category: 'tickets'
-    },
-    {
-      id: '2',
-      name: 'Consultar Status',
-      description: 'Verificar andamento de tickets',
-      icon: '📋',
-      createdBy: 'Admin',
-      usage: 892,
-      enabled: true,
-      category: 'tickets'
-    },
-    {
-      id: '3',
-      name: 'Agendar Atendimento',
-      description: 'Marcar horário com técnico',
-      icon: '📅',
-      createdBy: 'Admin',
-      usage: 0,
-      enabled: false,
-      category: 'scheduling'
-    },
-    {
-      id: '4',
-      name: 'Consultar Fatura',
-      description: 'Ver valores e pagamentos',
-      icon: '💰',
-      createdBy: 'Tenant',
-      usage: 0,
-      enabled: false,
-      category: 'billing'
-    }
-  ];
+  const availableActions = actionsData?.data || [];
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
@@ -308,41 +267,57 @@ export default function AIAgentConfig() {
             <CardContent>
               <ScrollArea className="h-[500px] pr-4">
                 <div className="space-y-4">
-                  {availableActions.map((action) => (
-                    <Card key={action.id} className="border-2 hover:border-primary/50 transition-colors">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start gap-4">
-                          <div className="text-4xl">{action.icon}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold text-lg">{action.name}</h3>
-                              <Switch
-                                checked={action.enabled}
-                                onCheckedChange={() => toggleAction(action.id, action.enabled)}
-                                disabled={toggleActionMutation.isPending}
-                              />
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{action.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                Por: {action.createdBy}
-                              </div>
-                              {action.usage > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <BarChart3 className="h-3 w-3" />
-                                  Usada {action.usage}x
+                  {actionsLoading ? (
+                    <div className="text-center text-muted-foreground">Carregando ações...</div>
+                  ) : availableActions.length === 0 ? (
+                    <div className="text-center text-muted-foreground">Nenhuma ação disponível</div>
+                  ) : (
+                    availableActions.map((action: any) => {
+                      const categoryIcons: Record<string, string> = {
+                        messaging: '💬',
+                        ticketing: '🎫',
+                        notifications: '🔔',
+                        organization: '🏷️',
+                        assignment: '👤',
+                        escalation: '🚀'
+                      };
+                      
+                      return (
+                        <Card key={action.type} className="border-2 hover:border-primary/50 transition-colors">
+                          <CardContent className="pt-6">
+                            <div className="flex items-start gap-4">
+                              <div className="text-4xl">{categoryIcons[action.category] || '⚙️'}</div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div>
+                                    <h3 className="font-semibold text-lg">{action.name}</h3>
+                                    <Badge variant="outline" className="text-xs mt-1">
+                                      {action.type}
+                                    </Badge>
+                                  </div>
                                 </div>
-                              )}
-                              {action.usage === 0 && (
-                                <Badge variant="secondary" className="text-xs">Nova</Badge>
-                              )}
+                                <p className="text-sm text-muted-foreground mb-3">{action.description}</p>
+                                {action.parameters && Object.keys(action.parameters).length > 0 && (
+                                  <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                                    <p className="text-xs font-medium mb-2">Parâmetros:</p>
+                                    <div className="space-y-1">
+                                      {Object.entries(action.parameters).map(([key, param]: [string, any]) => (
+                                        <div key={key} className="text-xs text-muted-foreground">
+                                          <span className="font-mono bg-muted px-1 rounded">{key}</span>
+                                          {param.required && <span className="text-red-500 ml-1">*</span>}
+                                          {param.description && `: ${param.description}`}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })
+                  )}
                 </div>
               </ScrollArea>
 
