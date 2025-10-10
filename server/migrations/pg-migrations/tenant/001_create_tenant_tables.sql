@@ -4120,3 +4120,50 @@ CREATE TABLE IF NOT EXISTS "work_schedules" (
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
+-- Copiando estrutura para tabela tenant_integrations
+CREATE TABLE IF NOT EXISTS "tenant_integrations" (
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "integration_id" VARCHAR(50) NOT NULL,
+  "config" JSONB NOT NULL DEFAULT '{}'::jsonb,
+  "enabled" BOOLEAN NOT NULL DEFAULT true,
+  "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+  "updated_at" TIMESTAMP NOT NULL DEFAULT now()
+);
+
+-- Exportação de dados foi desmarcado.
+
+-- Copiando estrutura para tabela custom_form_entity_links
+CREATE TABLE IF NOT EXISTS "custom_form_entity_links" (
+  "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "tenant_id" UUID NOT NULL,
+  "submission_id" UUID NOT NULL,
+  "field_id" VARCHAR(255) NOT NULL,
+  "entity_type" VARCHAR(50) NOT NULL,
+  "entity_id" UUID NOT NULL,
+  "created_at" TIMESTAMP DEFAULT now(),
+  "created_by" UUID NOT NULL
+);
+
+-- Exportação de dados foi desmarcado.
+
+-- Copiando estrutura para tabela notifications
+CREATE TABLE IF NOT EXISTS "notifications" (
+  "id" UUID NOT NULL,
+  "tenant_id" UUID NOT NULL,
+  "user_id" UUID NOT NULL,
+  "title" VARCHAR(255) NOT NULL,
+  "message" TEXT NOT NULL,
+  "type" notification_type_enum,
+  "priority" notification_priority_enum,
+  "channel" notification_channel_enum,
+  "status" notification_status_enum DEFAULT 'pending',
+  "scheduled_for" TIMESTAMP,
+  "sent_at" TIMESTAMP,
+  "read_at" TIMESTAMP,
+  "metadata" JSONB DEFAULT '{}'::jsonb,
+  "created_at" TIMESTAMP DEFAULT now()
+);
+
+-- Exportação de dados foi desmarcado.
