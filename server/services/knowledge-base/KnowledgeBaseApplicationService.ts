@@ -274,22 +274,61 @@ export class KnowledgeBaseApplicationService {
   }> {
     try {
       this.logger.log(`[KB-SERVICE] Updating article: ${id}`);
+      this.logger.log(`[KB-SERVICE] Update data:`, JSON.stringify(updates, null, 2));
 
-      // Validate updates
-      const validatedUpdates = updateKnowledgeBaseArticleSchema.parse({ ...updates, id });
+      // Build update fields dynamically
+      const updateFields: string[] = [];
+      const updateValues: any[] = [];
 
-      // Update article
-      const [updatedArticle] = await db
-        .update(knowledgeBaseArticles)
-        .set({
-          ...validatedUpdates,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(knowledgeBaseArticles.id, id),
-          eq(knowledgeBaseArticles.tenantId, this.tenantId)
-        ))
-        .returning();
+      if (updates.title !== undefined) {
+        updateFields.push(`title = $${updateFields.length + 1}`);
+        updateValues.push(updates.title);
+      }
+      if (updates.content !== undefined) {
+        updateFields.push(`content = $${updateFields.length + 1}`);
+        updateValues.push(updates.content);
+      }
+      if (updates.category !== undefined) {
+        updateFields.push(`category = $${updateFields.length + 1}`);
+        updateValues.push(updates.category);
+      }
+      if (updates.tags !== undefined) {
+        updateFields.push(`tags = $${updateFields.length + 1}`);
+        updateValues.push(updates.tags);
+      }
+      if (updates.status !== undefined) {
+        updateFields.push(`status = $${updateFields.length + 1}`);
+        updateValues.push(updates.status);
+      }
+      if (updates.summary !== undefined) {
+        updateFields.push(`summary = $${updateFields.length + 1}`);
+        updateValues.push(updates.summary);
+      }
+
+      // Always update updated_at
+      updateFields.push(`updated_at = $${updateFields.length + 1}`);
+      updateValues.push(new Date());
+
+      if (updateFields.length === 0) {
+        throw new Error('No fields to update');
+      }
+
+      // Add WHERE clause parameters
+      updateValues.push(id);
+      updateValues.push(this.tenantId);
+
+      const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
+      const updateQuery = `
+        UPDATE ${schemaName}.knowledge_base_articles
+        SET ${updateFields.join(', ')}
+        WHERE id = $${updateValues.length - 1} AND tenant_id = $${updateValues.length}
+        RETURNING *
+      `;
+
+      this.logger.log(`[KB-SERVICE] Update query:`, updateQuery);
+      
+      const updateResult = await db.execute(sql.raw(updateQuery, updateValues));
+      const updatedArticle = updateResult.rows?.[0];
 
       if (!updatedArticle) {
         throw new Error('Article not found or not authorized');
@@ -304,6 +343,7 @@ export class KnowledgeBaseApplicationService {
       };
     } catch (error) {
       this.logger.error(`[KB-SERVICE] Error updating article:`, error);
+      this.logger.error(`[KB-SERVICE] Error details:`, error.message);
       throw new Error('Failed to update article');
     }
   }
