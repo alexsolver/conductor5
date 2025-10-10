@@ -416,6 +416,18 @@ router.post('/:integrationId/config', jwtAuth, async (req: any, res) => {
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
 
+    // 🎮 DISCORD GATEWAY: Auto-connect when Discord Bot Token is configured
+    if (integrationId === 'discord' && apiKeyValue && apiKeyValue !== '••••••••') {
+      try {
+        const { discordGatewayService } = await import('../services/DiscordGatewayService');
+        console.log(`🎮 [DISCORD-GATEWAY] Initializing Gateway connection for tenant: ${tenantId}`);
+        await discordGatewayService.connect(tenantId, apiKeyValue);
+        console.log(`✅ [DISCORD-GATEWAY] Gateway connection initiated successfully`);
+      } catch (error) {
+        console.error(`❌ [DISCORD-GATEWAY] Failed to connect Gateway:`, error);
+      }
+    }
+
     // Return masked configuration for security
     const maskedConfig = {
       integrationId,
