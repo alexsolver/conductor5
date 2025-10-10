@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 const queueSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
-  distributionStrategy: z.enum(['fifo', 'priority', 'skill_based', 'round_robin', 'least_busy']),
+  strategy: z.enum(['fifo', 'priority', 'skill_based', 'round_robin', 'least_busy']),
   maxWaitTime: z.number().min(1, 'Tempo máximo deve ser maior que 0'),
   alertThreshold: z.number().min(1, 'Limite de alerta deve ser maior que 0'),
   escalationEnabled: z.boolean().default(false),
@@ -37,7 +37,7 @@ interface Queue {
   id: string;
   name: string;
   description?: string;
-  distributionStrategy: string;
+  strategy: string;
   maxWaitTime: number;
   alertThreshold: number;
   escalationEnabled: boolean;
@@ -77,7 +77,7 @@ export default function ChatQueuesConfig() {
     defaultValues: {
       name: '',
       description: '',
-      distributionStrategy: 'fifo',
+      strategy: 'fifo',
       maxWaitTime: 300,
       alertThreshold: 180,
       escalationEnabled: false,
@@ -139,7 +139,7 @@ export default function ChatQueuesConfig() {
     form.reset({
       name: queue.name,
       description: queue.description || '',
-      distributionStrategy: queue.distributionStrategy as any,
+      strategy: queue.strategy as any,
       maxWaitTime: queue.maxWaitTime,
       alertThreshold: queue.alertThreshold,
       escalationEnabled: queue.escalationEnabled,
@@ -242,7 +242,7 @@ export default function ChatQueuesConfig() {
 
                 <FormField
                   control={form.control}
-                  name="distributionStrategy"
+                  name="strategy"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Estratégia de Distribuição</FormLabel>
@@ -530,7 +530,7 @@ export default function ChatQueuesConfig() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{getStrategyLabel(queue.distributionStrategy)}</Badge>
+                      <Badge variant="outline">{getStrategyLabel(queue.strategy)}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
