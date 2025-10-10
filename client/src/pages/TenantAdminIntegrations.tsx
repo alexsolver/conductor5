@@ -122,6 +122,10 @@ const integrationConfigSchema = z.object({
   telegramNotificationTemplate: z.string().optional(),
   telegramAlertTemplate: z.string().optional(),
   telegramSummaryTemplate: z.string().optional(),
+  // Discord specific fields
+  discordBotToken: z.string().optional(),
+  discordClientId: z.string().optional(),
+  discordWebhookUrl: z.string().optional(),
   // WhatsApp Business specific fields
   whatsappApiKey: z.string().optional(),
   whatsappPhoneNumberId: z.string().optional(),
@@ -179,6 +183,10 @@ export default function TenantAdminIntegrations() {
       telegramNotificationTemplate: `🔔 Nova notificação: {title}\nDescrição: {description}\nData: {date}\nTicket: #{ticketId}`,
       telegramAlertTemplate: `🚨 ALERTA: {alertType}\nPrioridade: {priority}\nDescrição: {description}\nAção necessária: {action}`,
       telegramSummaryTemplate: `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
+      // Discord default values
+      discordBotToken: '',
+      discordClientId: '',
+      discordWebhookUrl: '',
       // WhatsApp Business default values
       whatsappApiKey: '',
       whatsappPhoneNumberId: '',
@@ -1040,7 +1048,9 @@ export default function TenantAdminIntegrations() {
           telegramSummaryTemplate: config.telegramSummaryTemplate || `📊 Resumo diário:\nTickets criados: {todayTickets}\nTickets resolvidos: {resolvedTickets}\nPendentes: {pendingTickets}\nTempo médio: {avgTime}`,
 
           // Discord specific fields
-          botToken: maskSensitiveData(config.botToken || config.apiKey), // Discord uses apiKey field for botToken
+          discordBotToken: maskSensitiveData(config.discordBotToken || config.apiKey), // Discord uses apiKey field for botToken
+          discordClientId: config.discordClientId || config.clientId || '',
+          discordWebhookUrl: config.discordWebhookUrl || config.webhookUrl || '',
 
           // WhatsApp Business specific fields
           whatsappApiKey: maskSensitiveData(config.whatsappApiKey),
@@ -1412,12 +1422,13 @@ export default function TenantAdminIntegrations() {
           // Discord uses apiKey field in DB for botToken
           const discordConfig: any = {
             ...configData,
-            webhookUrl: data.webhookUrl || '',
+            webhookUrl: data.discordWebhookUrl || data.webhookUrl || '',
+            clientId: data.discordClientId || data.clientId || '',
           };
           
           // Only update botToken if it's a real value (not masked)
-          if (data.botToken && data.botToken !== '••••••••') {
-            discordConfig.apiKey = data.botToken; // Map botToken to apiKey for storage
+          if (data.discordBotToken && data.discordBotToken !== '••••••••') {
+            discordConfig.apiKey = data.discordBotToken; // Map discordBotToken to apiKey for storage
           } else if (currentConfig && currentConfig.apiKey) {
             // Keep existing value if input is masked
             discordConfig.apiKey = currentConfig.apiKey;
@@ -2415,7 +2426,7 @@ export default function TenantAdminIntegrations() {
 
                       <FormField
                         control={configForm.control}
-                        name="botToken"
+                        name="discordBotToken"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Bot Token *</FormLabel>
@@ -2432,7 +2443,7 @@ export default function TenantAdminIntegrations() {
 
                       <FormField
                         control={configForm.control}
-                        name="clientId"
+                        name="discordClientId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Application ID (Client ID)</FormLabel>
@@ -2449,7 +2460,7 @@ export default function TenantAdminIntegrations() {
 
                       <FormField
                         control={configForm.control}
-                        name="webhookUrl"
+                        name="discordWebhookUrl"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Webhook URL (Opcional - Para enviar)</FormLabel>
