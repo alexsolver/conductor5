@@ -107,6 +107,7 @@ import internalFormsRoutes from './modules/internal-forms/routes';
 import telegramWebhookRoutes from "./routes/telegramWebhook";
 import discordWebhookRoutes from "./routes/discordWebhook";
 import userGroupsRoutes from './routes/userGroups';
+import queryBuilderOptionsRoutes from './routes/queryBuilderOptions';
 
 // Import user notification preferences routes
 import { userNotificationPreferencesRoutes } from './modules/user-notifications/routes';
@@ -576,6 +577,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.error('❌ [ROUTES] Failed to register SaaS Admin routes:', error);
   }
+
+  // ✅ QueryBuilder Options - Dynamic options for querybuilders
+  console.log('🔧 [QUERYBUILDER] Registering QueryBuilder Options routes...');
+  app.use('/api/querybuilder', queryBuilderOptionsRoutes);
+  console.log('✅ [QUERYBUILDER] QueryBuilder Options routes registered successfully');
 
   // ✅ SaaS Groups routes - Global groups management for SaaS Admin
   console.log("🏗️ [SAAS-GROUPS] Initializing SaaS Groups routes...");
