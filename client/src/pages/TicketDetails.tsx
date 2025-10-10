@@ -3622,13 +3622,23 @@ const TicketDetails = React.memo(() => {
             {/* Responsável */}
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">{t('tickets.fields.responsible')}</label>
-              <FilteredUserSelect
-                value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
-                onChange={(value) => form.setValue('responsibleId', value)}
-                selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
-                placeholder="Selecionar responsável"
-                disabled={!isEditMode}
-              />
+              {isEditMode ? (
+                <FilteredUserSelect
+                  value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
+                  onChange={(value) => form.setValue('responsibleId', value)}
+                  selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
+                  placeholder="Selecionar responsável"
+                  disabled={!isEditMode}
+                />
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="px-3 py-2 text-sm font-semibold bg-gray-50 border-gray-300 text-gray-700 w-full justify-start"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  {ticket.assigned_to_name || ticket.assignedToName || ticket.responsible?.name || 'Não especificado'}
+                </Badge>
+              )}
             </div>
           </div>
 
