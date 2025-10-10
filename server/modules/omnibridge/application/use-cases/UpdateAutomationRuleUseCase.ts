@@ -46,13 +46,16 @@ export class UpdateAutomationRuleUseCase {
     } else if (data.triggers !== undefined) {
       // Convert triggers format to conditions format
       // Frontend sends: triggers: [{ type: 'condition_met', conditions: {...} }]
+      console.log(`🔍 [UpdateAutomationRuleUseCase] RAW triggers data:`, JSON.stringify(data.triggers, null, 2));
       const firstTrigger = data.triggers[0];
+      console.log(`🔍 [UpdateAutomationRuleUseCase] First trigger:`, JSON.stringify(firstTrigger, null, 2));
+      console.log(`🔍 [UpdateAutomationRuleUseCase] Has conditions?:`, !!firstTrigger?.conditions);
       
       if (firstTrigger?.conditions) {
         // Use conditions from inside the trigger
         updateData.conditions = firstTrigger.conditions;
         updateData.trigger = firstTrigger.conditions;
-        console.log(`🔧 [UpdateAutomationRuleUseCase] Extracted conditions from triggers:`, JSON.stringify(firstTrigger.conditions, null, 2));
+        console.log(`✅ [UpdateAutomationRuleUseCase] Extracted conditions from triggers:`, JSON.stringify(firstTrigger.conditions, null, 2));
       } else {
         // Legacy format with config
         const convertedConditions = {
@@ -66,7 +69,7 @@ export class UpdateAutomationRuleUseCase {
         };
         updateData.conditions = convertedConditions;
         updateData.trigger = convertedConditions;
-        console.log(`🔧 [UpdateAutomationRuleUseCase] Converted legacy triggers to conditions:`, JSON.stringify(convertedConditions, null, 2));
+        console.log(`⚠️ [UpdateAutomationRuleUseCase] Converted legacy triggers to conditions:`, JSON.stringify(convertedConditions, null, 2));
       }
     }
     
