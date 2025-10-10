@@ -279,4 +279,10 @@ export const schemaManager = {
   },
 };
 
+// Helper function for easier tenant db access
+export async function getTenantDb(tenantId: string) {
+  const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+  return tenantDb;
+}
+
 export default { pool, db, sql, schema, schemaManager };
