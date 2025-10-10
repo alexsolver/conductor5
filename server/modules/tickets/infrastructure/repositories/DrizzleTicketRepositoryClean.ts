@@ -195,20 +195,20 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       let mainQuery = `
         SELECT 
           t.id,
-          t.ticket_number    AS "number",
-          t.title            AS "subject",
+          t.number           AS "number",
+          t.subject          AS "subject",
           t.description,
           t.status,
           t.priority,
           t.category,
           t.subcategory,
           t.caller_id        AS "callerId",
-          t.assigned_to      AS "assignedTo",
+          t.assigned_to_id   AS "assignedTo",
           t.tenant_id        AS "tenantId",
           t.created_at       AS "createdAt",
           t.updated_at       AS "updatedAt",
           t.company_id       AS "companyId",
-          t.customer_id      AS "customerId",
+          t.beneficiary_id   AS "customerId",
 
           -- Dados da empresa
           c.name             AS "company_name",
