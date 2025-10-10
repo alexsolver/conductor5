@@ -132,11 +132,31 @@ export class KnowledgeBaseController {
         return;
       }
 
+      console.log('📝 [KB-CONTROLLER] Updating article:', { id, tenantId });
+
       const result = await this.updateUseCase.execute(id, req.body, tenantId);
-      res.json(result);
+      
+      if (!result) {
+        res.status(404).json({
+          success: false,
+          message: 'Artigo não encontrado'
+        });
+        return;
+      }
+
+      console.log('✅ [KB-CONTROLLER] Article updated successfully:', result.id);
+      
+      res.json({
+        success: true,
+        message: 'Artigo atualizado com sucesso',
+        data: result
+      });
     } catch (error) {
-      this.logger.error('Error updating article:', error);
-      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+      this.logger.error('❌ [KB-CONTROLLER] Error updating article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Erro interno do servidor' 
+      });
     }
   }
 

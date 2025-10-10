@@ -23,50 +23,47 @@ export class UpdateKnowledgeBaseArticleUseCase {
     private logger: Logger
   ) {}
 
-  async execute(command: UpdateKnowledgeBaseArticleCommand, tenantId: string): Promise<KnowledgeBaseArticle> {
+  async execute(id: string, updates: Partial<UpdateKnowledgeBaseArticleCommand>, tenantId: string): Promise<KnowledgeBaseArticle | null> {
     try {
-      this.logger.info(`Updating knowledge base article: ${command.id} for tenant: ${tenantId}`);
+      this.logger.info(`[KB-UPDATE-USE-CASE] Updating knowledge base article: ${id} for tenant: ${tenantId}`);
 
       // Check if article exists
-      const existingArticle = await this.repository.findById(command.id, tenantId);
+      const existingArticle = await this.repository.findById(id, tenantId);
       if (!existingArticle) {
+        this.logger.error(`[KB-UPDATE-USE-CASE] Article not found: ${id}`);
         throw new Error('Article not found');
       }
 
       // Validate required fields if provided
-      if (command.title !== undefined && !command.title?.trim()) {
+      if (updates.title !== undefined && !updates.title?.trim()) {
         throw new Error('Article title cannot be empty');
       }
       
-      if (command.content !== undefined && !command.content?.trim()) {
+      if (updates.content !== undefined && !updates.content?.trim()) {
         throw new Error('Article content cannot be empty');
       }
 
-      // Prepare updates
-      const updates: Partial<KnowledgeBaseArticle> = {};
+      // Prepare updates object
+      const updateData: any = {};
       
-      if (command.title !== undefined) updates.title = command.title.trim();
-      if (command.content !== undefined) updates.content = command.content;
-      if (command.summary !== undefined) updates.summary = command.summary?.trim();
-      if (command.category !== undefined) updates.category = command.category;
-      if (command.tags !== undefined) updates.tags = command.tags;
-      if (command.status !== undefined) updates.status = command.status;
-      if (command.visibility !== undefined) updates.visibility = command.visibility;
-      if (command.contentType !== undefined) updates.contentType = command.contentType;
-
-      // Increment version for significant changes
-      if (command.content !== undefined || command.title !== undefined) {
-        updates.version = existingArticle.version + 1;
-      }
+      if (updates.title !== undefined) updateData.title = updates.title.trim();
+      if (updates.content !== undefined) updateData.content = updates.content;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.tags !== undefined) updateData.tags = updates.tags;
+      if (updates.status !== undefined) updateData.status = updates.status;
 
       // Update article
-      const updatedArticle = await this.repository.update(command.id, updates, tenantId);
+      const updatedArticle = await this.repository.update(id, updateData, tenantId);
 
-      this.logger.info(`Knowledge base article updated successfully: ${updatedArticle.id}`);
+      if (!updatedArticle) {
+        throw new Error('Failed to update article');
+      }
+
+      this.logger.info(`[KB-UPDATE-USE-CASE] Knowledge base article updated successfully: ${updatedArticle.id}`);
       return updatedArticle;
 
     } catch (error) {
-      this.logger.error(`Failed to update knowledge base article: ${error}`);
+      this.logger.error(`[KB-UPDATE-USE-CASE] Failed to update knowledge base article:`, error);
       throw error;
     }
   }
