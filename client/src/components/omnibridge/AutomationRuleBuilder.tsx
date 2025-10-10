@@ -586,19 +586,16 @@ Recebida em: ${new Date(initialMessage.receivedAt).toLocaleString('pt-BR')}`;
 
   // Salvar regra
   const handleSave = () => {
+    console.log('🔍 [SAVE-DEBUG] Attempting to save rule:', {
+      name: rule.name,
+      hasConditions: !!rule.conditions?.rules?.length,
+      actionsCount: rule.actions.length
+    });
+
     if (!rule.name.trim()) {
       toast({
         title: "Erro",
         description: "Nome da regra é obrigatório",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!rule.conditions || !rule.conditions.rules || rule.conditions.rules.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Pelo menos uma condição deve ser configurada",
         variant: "destructive",
       });
       return;
