@@ -88,29 +88,12 @@ interface AgentMetrics {
   actionsExecuted: number;
 }
 
-// Form schemas
+// Form schemas - Simplified to match backend
 const agentFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
-  supportedChannels: z.array(z.string()).min(1, 'Pelo menos um canal deve ser selecionado'),
-  availableActions: z.array(z.string()).min(1, 'Pelo menos uma ação deve ser selecionada'),
-  personality: z.object({
-    tone: z.string(),
-    language: z.string(),
-    greeting: z.string().min(1, 'Mensagem de saudação é obrigatória'),
-    fallbackMessage: z.string().min(1, 'Mensagem de fallback é obrigatória')
-  }),
-  escalationConfig: z.object({
-    escalateAfterSteps: z.number().min(1).max(20),
-    escalateToUsers: z.array(z.string()),
-    escalateKeywords: z.array(z.string())
-  }),
-  menuConfig: z.object({
-    enabled: z.boolean(),
-    maxOptions: z.number().min(2).max(10),
-    timeoutMinutes: z.number().min(1).max(60),
-    showNumbers: z.boolean()
-  })
+  configPrompt: z.string().min(10, 'Instruções do agente são obrigatórias (mínimo 10 caracteres)'),
+  allowedFormIds: z.array(z.string()).optional().default([])
 });
 
 type AgentFormData = z.infer<typeof agentFormSchema>;
@@ -225,25 +208,8 @@ const AiAgentsManager: React.FC = () => {
     defaultValues: {
       name: '',
       description: '',
-      supportedChannels: [],
-      availableActions: [],
-      personality: {
-        tone: 'professional',
-        language: 'pt-BR',
-        greeting: 'Olá! Como posso ajudar você hoje?',
-        fallbackMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?'
-      },
-      escalationConfig: {
-        escalateAfterSteps: 5,
-        escalateToUsers: [],
-        escalateKeywords: ['falar com humano', 'atendente', 'reclamação']
-      },
-      menuConfig: {
-        enabled: true,
-        maxOptions: 5,
-        timeoutMinutes: 10,
-        showNumbers: true
-      }
+      configPrompt: 'Você é um assistente virtual prestativo que ajuda usuários com suas dúvidas e solicitações. Responda de forma clara, educada e profissional.',
+      allowedFormIds: []
     }
   });
 
@@ -260,11 +226,8 @@ const AiAgentsManager: React.FC = () => {
     form.reset({
       name: agent.name,
       description: agent.description || '',
-      supportedChannels: agent.supportedChannels,
-      availableActions: agent.availableActions,
-      personality: agent.personality,
-      escalationConfig: agent.escalationConfig,
-      menuConfig: agent.menuConfig
+      configPrompt: (agent as any).configPrompt || 'Você é um assistente virtual prestativo.',
+      allowedFormIds: (agent as any).allowedFormIds || []
     });
     setShowCreateDialog(true);
   };
@@ -493,7 +456,6 @@ const AiAgentsManager: React.FC = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Basic Info */}
               <div className="space-y-4">
-                <h4 className="font-medium">Informações Básicas</h4>
                 
                 <FormField
                   control={form.control}
@@ -514,9 +476,28 @@ const AiAgentsManager: React.FC = () => {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição</FormLabel>
+                      <FormLabel>Descrição (opcional)</FormLabel>
                       <FormControl>
                         <Textarea {...field} placeholder="Descreva a função e especialidade do agente" data-testid="textarea-agent-description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="configPrompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Instruções do Agente</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          rows={6}
+                          placeholder="Descreva como o agente deve se comportar, que tipo de linguagem usar, quais ações pode realizar, etc." 
+                          data-testid="textarea-agent-config" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
