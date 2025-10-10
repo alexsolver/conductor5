@@ -106,16 +106,3 @@ export async function syncExistingUsersToTenants(): Promise<{
     throw error;
   }
 }
-
-// Allow direct execution
-if (require.main === module) {
-  syncExistingUsersToTenants()
-    .then(results => {
-      console.log('Sync completed:', results);
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Sync failed:', error);
-      process.exit(1);
-    });
-}
