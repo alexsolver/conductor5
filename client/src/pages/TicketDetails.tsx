@@ -539,6 +539,28 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
   });
 
+  // Helper functions to get hierarchy labels
+  const getCategoryName = (categoryId: string | undefined) => {
+    if (!categoryId) return 'Não especificado';
+    const categories = categoriesData?.data || [];
+    const category = categories.find((c: any) => c.id === categoryId);
+    return category?.name || categoryId;
+  };
+
+  const getSubcategoryName = (subcategoryId: string | undefined) => {
+    if (!subcategoryId) return 'Não especificado';
+    const subcategories = subcategoriesData?.data || [];
+    const subcategory = subcategories.find((s: any) => s.id === subcategoryId);
+    return subcategory?.name || subcategoryId;
+  };
+
+  const getActionName = (actionId: string | undefined) => {
+    if (!actionId) return 'Não especificado';
+    const actions = actionsHierarchyData?.data || [];
+    const action = actions.find((a: any) => a.id === actionId);
+    return action?.name || actionId;
+  };
+
   // ✅ Buscar template do ticket se ele tiver template_id
   const { data: ticketTemplate, isLoading: isTemplateLoading } = useQuery({
     queryKey: ['/api/ticket-templates', ticket?.templateId],
@@ -1730,11 +1752,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="category"
                               value={field.value}
                             >
-                              {(() => {
-                                const categories = categoriesData?.data || [];
-                                const category = categories.find((c: any) => c.id === field.value);
-                                return category?.name || field.value || 'Não especificado';
-                              })()}
+                              {getCategoryName(field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1771,11 +1789,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="subcategory"
                               value={field.value}
                             >
-                              {(() => {
-                                const subcategories = subcategoriesData?.data || [];
-                                const subcategory = subcategories.find((s: any) => s.id === field.value);
-                                return subcategory?.name || field.value || 'Não especificado';
-                              })()}
+                              {getSubcategoryName(field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1808,11 +1822,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="action"
                               value={field.value}
                             >
-                              {(() => {
-                                const actions = actionsHierarchyData?.data || [];
-                                const action = actions.find((a: any) => a.id === field.value);
-                                return action?.name || field.value || 'Não especificado';
-                              })()}
+                              {getActionName(field.value)}
                             </DynamicBadge>
                           </div>
                         )}
