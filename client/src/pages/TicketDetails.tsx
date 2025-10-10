@@ -3449,7 +3449,7 @@ const TicketDetails = React.memo(() => {
                     form.trigger('callerId'); // Force form re-render
                     handleCustomerChange(value, 'caller');
                   }}
-                  selectedCompanyId={form.getValues('companyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
+                  selectedCompanyId={form.getValues('companyId') || ticket?.companyId || ticket?.company_id || '00000000-0000-0000-0000-000000000001'}
                   placeholder={t('tickets.fields.selectCustomer')}
                   disabled={false}
                   className="h-8 text-xs text-left"
