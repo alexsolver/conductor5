@@ -279,34 +279,35 @@ export class KnowledgeBaseApplicationService {
       // Build update fields dynamically
       const updateFields: string[] = [];
       const updateValues: any[] = [];
+      let paramCount = 1;
 
       if (updates.title !== undefined) {
-        updateFields.push(`title = $${updateFields.length + 1}`);
+        updateFields.push(`title = $${paramCount++}`);
         updateValues.push(updates.title);
       }
       if (updates.content !== undefined) {
-        updateFields.push(`content = $${updateFields.length + 1}`);
+        updateFields.push(`content = $${paramCount++}`);
         updateValues.push(updates.content);
       }
       if (updates.category !== undefined) {
-        updateFields.push(`category = $${updateFields.length + 1}`);
+        updateFields.push(`category = $${paramCount++}`);
         updateValues.push(updates.category);
       }
       if (updates.tags !== undefined) {
-        updateFields.push(`tags = $${updateFields.length + 1}`);
+        updateFields.push(`tags = $${paramCount++}`);
         updateValues.push(updates.tags);
       }
       if (updates.status !== undefined) {
-        updateFields.push(`status = $${updateFields.length + 1}`);
+        updateFields.push(`status = $${paramCount++}`);
         updateValues.push(updates.status);
       }
       if (updates.summary !== undefined) {
-        updateFields.push(`summary = $${updateFields.length + 1}`);
+        updateFields.push(`summary = $${paramCount++}`);
         updateValues.push(updates.summary);
       }
 
       // Always update updated_at
-      updateFields.push(`updated_at = $${updateFields.length + 1}`);
+      updateFields.push(`updated_at = $${paramCount++}`);
       updateValues.push(new Date());
 
       if (updateFields.length === 0) {
@@ -314,6 +315,8 @@ export class KnowledgeBaseApplicationService {
       }
 
       // Add WHERE clause parameters
+      const idParam = paramCount++;
+      const tenantParam = paramCount++;
       updateValues.push(id);
       updateValues.push(this.tenantId);
 
@@ -321,7 +324,7 @@ export class KnowledgeBaseApplicationService {
       const updateQuery = `
         UPDATE ${schemaName}.knowledge_base_articles
         SET ${updateFields.join(', ')}
-        WHERE id = $${updateValues.length - 1} AND tenant_id = $${updateValues.length}
+        WHERE id = $${idParam} AND tenant_id = $${tenantParam}
         RETURNING *
       `;
 
