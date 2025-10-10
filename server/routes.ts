@@ -2466,15 +2466,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Spell Check
   app.post('/api/message-ai/spell-check', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      console.log('🔍 [SPELL-CHECK-ROUTE] Starting spell check...');
       const { MessageAIService } = await import('./services/message-ai-service');
       const messageAIService = new MessageAIService(unifiedStorage);
       const { text } = req.body;
+      
+      console.log('🔍 [SPELL-CHECK-ROUTE] Text received:', text?.substring(0, 100));
+      console.log('🔍 [SPELL-CHECK-ROUTE] Tenant ID:', req.user.tenantId);
       
       if (!text || !text.trim()) {
         return res.status(400).json({ error: 'Text is required' });
       }
 
+      console.log('🔍 [SPELL-CHECK-ROUTE] Calling spellCheck service...');
       const result = await messageAIService.spellCheck(req.user.tenantId, text);
+      console.log('✅ [SPELL-CHECK-ROUTE] Result received:', result);
       res.json(result);
     } catch (error) {
       console.error('❌ [SPELL-CHECK-ROUTE] Error:', error);
