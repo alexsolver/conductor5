@@ -79,7 +79,6 @@ import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
-import AiAgentsManager from '@/components/omnibridge/AiAgentsManager';
 
 
 
@@ -964,7 +963,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
@@ -984,10 +983,6 @@ export default function OmniBridge() {
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
-          </TabsTrigger>
-          <TabsTrigger value="ai-agents" className="flex items-center gap-2" data-testid="tab-ai-agents">
-            <Bot className="h-4 w-4" />
-            AI Agents
           </TabsTrigger>
         </TabsList>
 
@@ -1126,10 +1121,6 @@ export default function OmniBridge() {
           <AutomationRules />
         </TabsContent>
 
-        {/* AI Agents Tab */}
-        <TabsContent value="ai-agents" className="space-y-4">
-          <AiAgentsManager />
-        </TabsContent>
       </Tabs>
 
       {/* Modal de Resposta */}
