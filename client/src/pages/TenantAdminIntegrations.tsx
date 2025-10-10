@@ -724,6 +724,16 @@ export default function TenantAdminIntegrations() {
       configured: false,
       features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
     },
+    {
+      id: 'discord',
+      name: 'Discord',
+      category: 'Comunicação',
+      description: 'Integração com Discord para recebimento de mensagens via Gateway/WebSocket e envio via webhooks',
+      icon: MessageSquare,
+      status: 'disconnected',
+      configured: false,
+      features: ['Gateway/WebSocket', 'Mensagens em tempo real', 'Bot integrado', 'Webhooks']
+    },
     // Automação
     {
       id: 'zapier',
@@ -847,6 +857,8 @@ export default function TenantAdminIntegrations() {
         return Phone;
       case 'telegram':
         return Send;
+      case 'discord':
+        return MessageSquare;
       case 'zapier':
         return Zap;
       case 'webhooks':
@@ -905,6 +917,7 @@ export default function TenantAdminIntegrations() {
       case 'Dados': return 'bg-green-100 text-green-800';
       case 'Segurança': return 'bg-red-100 text-red-800';
       case 'Produtividade': return 'bg-yellow-100 text-yellow-800';
+      case 'IA': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
