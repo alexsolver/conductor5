@@ -140,6 +140,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
 
+  // TEMPORARY: Admin endpoint to sync all tenant schemas (BEFORE any auth middleware)
+  app.post('/api/admin/sync-all-tenants', async (req, res) => {
+    try {
+      // Simple admin token validation
+      const adminToken = req.headers['x-admin-token'] || req.query.adminToken;
+      if (adminToken !== 'sync-tenants-2025') {
+        return res.status(403).json({
+          success: false,
+          message: 'Invalid admin token'
+        });
+      }
+
+      console.log('🚀 [ADMIN] Starting tenant schema synchronization...');
+      
+      const { Pool } = await import('pg');
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: false
+      });
+
+      // Get all tenants
+      const tenantsResult = await pool.query('SELECT id, name FROM public.tenants ORDER BY name');
+      const tenants = tenantsResult.rows;
+      
+      console.log(`📊 [ADMIN] Found ${tenants.length} tenants to synchronize`);
+
+      // Read the main tenant migration SQL
+      const { readFileSync } = await import('fs');
+      const migrationPath = path.join(process.cwd(), 'server', 'migrations', 'pg-migrations', 'tenant', '001_create_tenant_tables.sql');
+      const migrationSQL = readFileSync(migrationPath, 'utf-8');
+      
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: { tenant: string; error: string }[] = [];
+
+      // Process each tenant
+      for (const tenant of tenants) {
+        const schemaName = `tenant_${tenant.id.replace(/-/g, '_')}`;
+        
+        try {
+          console.log(`📦 [ADMIN] Processing: ${tenant.name} (${schemaName})`);
+          
+          // Create schema if not exists
+          await pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
+          
+          // Set search path
+          await pool.query(`SET search_path TO "${schemaName}", public`);
+          
+          // Count tables before
+          const beforeCount = await pool.query(`
+            SELECT COUNT(*) as count
+            FROM information_schema.tables
+            WHERE table_schema = $1
+          `, [schemaName]);
+          
+          console.log(`  Tables before: ${beforeCount.rows[0].count}`);
+          
+          // Execute migration SQL
+          await pool.query(migrationSQL);
+          
+          // Count tables after
+          const afterCount = await pool.query(`
+            SELECT COUNT(*) as count
+            FROM information_schema.tables
+            WHERE table_schema = $1
+          `, [schemaName]);
+          
+          console.log(`  Tables after: ${afterCount.rows[0].count}`);
+          console.log(`  ✅ Synchronized successfully`);
+          
+          successCount++;
+        } catch (error: any) {
+          errorCount++;
+          errors.push({ tenant: tenant.name, error: error.message });
+          console.error(`  ❌ Error: ${error.message}`);
+        }
+      }
+
+      await pool.end();
+
+      // Summary
+      const summary = {
+        totalTenants: tenants.length,
+        successful: successCount,
+        failed: errorCount,
+        errors: errors
+      };
+
+      console.log('📊 [ADMIN] Synchronization completed:', summary);
+
+      res.json({
+        success: true,
+        message: 'Tenant schema synchronization completed',
+        data: summary
+      });
+
+    } catch (error: any) {
+      console.error('❌ [ADMIN] Fatal error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Synchronization failed',
+        error: error.message
+      });
+    }
+  });
+
   // 🎯 INITIALIZE HISTORY SYSTEM per 1qa.md
   const historyRepository = new DrizzleTicketHistoryRepository();
   const historyDomainService = new TicketHistoryDomainService();
