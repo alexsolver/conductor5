@@ -79,6 +79,7 @@ import { useAuth } from '@/hooks/useAuth';
 import AutomationRules from './AutomationRules';
 import SimplifiedInbox from '@/components/omnibridge/SimplifiedInbox';
 import OmniBridgeSettings from '@/components/omnibridge/OmniBridgeSettings';
+import AiAgentsManager from '@/components/omnibridge/AiAgentsManager';
 
 
 
@@ -960,7 +961,7 @@ export default function OmniBridge() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="inbox" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Inbox
@@ -980,6 +981,10 @@ export default function OmniBridge() {
           <TabsTrigger value="automation" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Automação
+          </TabsTrigger>
+          <TabsTrigger value="ai-agents" className="flex items-center gap-2" data-testid="tab-ai-agents">
+            <Bot className="h-4 w-4" />
+            AI Agents
           </TabsTrigger>
         </TabsList>
 
@@ -1120,24 +1125,7 @@ export default function OmniBridge() {
 
         {/* AI Agents Tab */}
         <TabsContent value="ai-agents" className="space-y-4">
-          {/* Placeholder for AI Agents Component */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Agentes IA Conversacionais</CardTitle>
-              <CardDescription>
-                Gerencie e configure seus Agentes IA Conversacionais aqui.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-16">
-                <Bot className="h-24 w-24 text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-xl font-semibold mb-2">Agentes IA em breve!</h3>
-                <p className="text-muted-foreground max-w-md text-center">
-                  A funcionalidade de Agentes IA Conversacionais está em desenvolvimento e será lançada em breve. Fique atento às atualizações!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AiAgentsManager />
         </TabsContent>
       </Tabs>
 
