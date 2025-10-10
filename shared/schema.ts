@@ -270,6 +270,7 @@ export const omnibridgeChannels = pgTable('omnibridge_channels', {
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   status: varchar('status', { length: 20 }).notNull().default('inactive'),
+  isEnabled: boolean('is_enabled').notNull().default(true),
   config: jsonb('config').default({}),
   features: jsonb('features').default([]),
   description: text('description'),
