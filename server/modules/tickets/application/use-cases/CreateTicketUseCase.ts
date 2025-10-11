@@ -33,7 +33,7 @@ export class CreateTicketUseCase {
     }
 
     // Gerar número do ticket conforme configuração de numeração
-    const companyId = dto.companyId || '';
+    const companyId = dto.companyId || null;
     const ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, companyId);
 
     // Preparar dados do ticket

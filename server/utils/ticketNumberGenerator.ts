@@ -20,7 +20,7 @@ interface NumberingConfig {
 class TicketNumberGenerator {
   private counters = new Map<string, number>();
 
-  async generateTicketNumber(tenantId: string, companyId: string): Promise<string> {
+  async generateTicketNumber(tenantId: string, companyId: string | null): Promise<string> {
     try {
       // Get numbering configuration from database
       const config = await this.getNumberingConfig(tenantId, companyId);
@@ -75,7 +75,7 @@ class TicketNumberGenerator {
     }
   }
 
-  private async getNumberingConfig(tenantId: string, companyId: string): Promise<NumberingConfig | null> {
+  private async getNumberingConfig(tenantId: string, companyId: string | null): Promise<NumberingConfig | null> {
     try {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
