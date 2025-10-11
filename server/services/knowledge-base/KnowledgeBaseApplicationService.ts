@@ -1,7 +1,7 @@
 // ✅ 1QA.MD COMPLIANCE: KNOWLEDGE BASE APPLICATION SERVICE - CLEAN ARCHITECTURE
 // Application Layer - Orquestra use cases e coordena operações de domínio
 
-import { db } from '../../db';
+import { db, pool } from '../../db';
 import {
   knowledgeBaseArticles,
   insertKnowledgeBaseArticleSchema,
@@ -227,13 +227,21 @@ export class KnowledgeBaseApplicationService {
     try {
       this.logger.log(`[KB-SERVICE] Getting article: ${id}`);
 
-      const [article] = await db
-        .select()
-        .from(knowledgeBaseArticles)
-        .where(and(
-          eq(knowledgeBaseArticles.id, id),
-          eq(knowledgeBaseArticles.tenantId, this.tenantId)
-        ));
+      // Use raw SQL to query the tenant's schema directly
+      const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
+      const articleResult = await db.execute(sql.raw(`
+        SELECT 
+          id, tenant_id as "tenantId", title, content, excerpt, summary,
+          category, tags, access_level as visibility, author_id as "authorId",
+          created_at as "createdAt", updated_at as "updatedAt",
+          published, published_at as "published_at", view_count, helpful_count,
+          status, version, approval_status
+        FROM ${schemaName}.knowledge_base_articles
+        WHERE id = '${id}' AND tenant_id = '${this.tenantId}'
+        LIMIT 1
+      `));
+
+      const article = articleResult.rows?.[0];
 
       if (!article) {
         return {
@@ -244,19 +252,18 @@ export class KnowledgeBaseApplicationService {
       }
 
       // Increment view count
-      await db
-        .update(knowledgeBaseArticles)
-        .set({
-          viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`
-        })
-        .where(eq(knowledgeBaseArticles.id, id));
+      await db.execute(sql.raw(`
+        UPDATE ${schemaName}.knowledge_base_articles
+        SET view_count = view_count + 1
+        WHERE id = '${id}'
+      `));
 
       this.logger.log(`[KB-SERVICE] Article retrieved: ${article.id}`);
 
       return {
         success: true,
         message: 'Article retrieved successfully',
-        data: { ...article, viewCount: (article.viewCount || 0) + 1 }
+        data: { ...article, viewCount: (article.view_count || 0) + 1 }
       };
     } catch (error) {
       this.logger.error(`[KB-SERVICE] Error getting article:`, error);
@@ -329,8 +336,9 @@ export class KnowledgeBaseApplicationService {
       `;
 
       this.logger.log(`[KB-SERVICE] Update query:`, updateQuery);
+      this.logger.log(`[KB-SERVICE] Update values:`, updateValues);
       
-      const updateResult = await db.execute(sql.raw(updateQuery, updateValues));
+      const updateResult = await pool.query(updateQuery, updateValues);
       const updatedArticle = updateResult.rows?.[0];
 
       if (!updatedArticle) {
