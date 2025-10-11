@@ -11,7 +11,7 @@
 import { eq, and, desc, like, sql } from 'drizzle-orm';
 import { ITicketTemplateRepository } from '../../domain/repositories/ITicketTemplateRepository';
 import { TicketTemplate, UserFeedback } from '../../domain/entities/TicketTemplate';
-import { db } from '../../../../db';
+import { db, pool } from '../../../../db';
 import { ticketTemplates } from '../../../../../shared/schema-tenant';
 
 export class DrizzleTicketTemplateRepository implements ITicketTemplateRepository {
@@ -185,16 +185,13 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async findById(id: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
-      const result = await db
-        .select()
-        .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
-        ))
-        .limit(1);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await pool.query(
+        `SELECT * FROM ${schemaName}.ticket_templates WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+        [id, tenantId]
+      );
 
-      return result.length > 0 ? this.mapFromDatabase(result[0]) : null;
+      return result.rows.length > 0 ? this.mapFromDatabase(result.rows[0]) : null;
     } catch (error) {
       console.error('Error finding template by id:', error);
       return null;
@@ -203,16 +200,13 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async findByName(name: string, tenantId: string): Promise<TicketTemplate | null> {
     try {
-      const result = await db
-        .select()
-        .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.name, name),
-          eq(ticketTemplates.tenantId, tenantId)
-        ))
-        .limit(1);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await pool.query(
+        `SELECT * FROM ${schemaName}.ticket_templates WHERE name = $1 AND tenant_id = $2 LIMIT 1`,
+        [name, tenantId]
+      );
 
-      return result.length > 0 ? this.mapFromDatabase(result[0]) : null;
+      return result.rows.length > 0 ? this.mapFromDatabase(result.rows[0]) : null;
     } catch (error) {
       console.error('Error finding template by name:', error);
       return null;
@@ -221,37 +215,78 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async update(id: string, tenantId: string, updates: Partial<TicketTemplate>): Promise<TicketTemplate | null> {
     try {
-      const updateData = {
-        ...updates,
-        updatedAt: new Date()
-      };
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const updateFields: string[] = [];
+      const values: any[] = [];
+      let paramCount = 1;
 
-      if (updates.fields) {
-        updateData.fields = JSON.stringify(updates.fields);
+      // Build dynamic update fields
+      if (updates.name !== undefined) {
+        updateFields.push(`name = $${paramCount++}`);
+        values.push(updates.name);
       }
-      if (updates.automation) {
-        updateData.automation = JSON.stringify(updates.automation);
+      if (updates.description !== undefined) {
+        updateFields.push(`description = $${paramCount++}`);
+        values.push(updates.description);
       }
-      if (updates.workflow) {
-        updateData.workflow = JSON.stringify(updates.workflow);
+      if (updates.category !== undefined) {
+        updateFields.push(`category = $${paramCount++}`);
+        values.push(updates.category);
       }
-      if (updates.permissions) {
-        updateData.permissions = JSON.stringify(updates.permissions);
+      if (updates.subcategory !== undefined) {
+        updateFields.push(`subcategory = $${paramCount++}`);
+        values.push(updates.subcategory);
       }
-      if (updates.metadata) {
-        updateData.metadata = JSON.stringify(updates.metadata);
+      if (updates.fields !== undefined) {
+        updateFields.push(`fields = $${paramCount++}`);
+        values.push(JSON.stringify(updates.fields));
+      }
+      if (updates.automation !== undefined) {
+        updateFields.push(`automation = $${paramCount++}`);
+        values.push(JSON.stringify(updates.automation));
+      }
+      if (updates.workflow !== undefined) {
+        updateFields.push(`workflow = $${paramCount++}`);
+        values.push(JSON.stringify(updates.workflow));
+      }
+      if (updates.permissions !== undefined) {
+        updateFields.push(`permissions = $${paramCount++}`);
+        values.push(JSON.stringify(updates.permissions));
+      }
+      if (updates.metadata !== undefined) {
+        updateFields.push(`metadata = $${paramCount++}`);
+        values.push(JSON.stringify(updates.metadata));
+      }
+      if (updates.isActive !== undefined) {
+        updateFields.push(`is_active = $${paramCount++}`);
+        values.push(updates.isActive);
+      }
+      if (updates.status !== undefined) {
+        updateFields.push(`status = $${paramCount++}`);
+        values.push(updates.status);
       }
 
-      const result = await db
-        .update(ticketTemplates)
-        .set(updateData)
-        .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
-        ))
-        .returning();
+      // Always update updated_at
+      updateFields.push(`updated_at = $${paramCount++}`);
+      values.push(new Date());
 
-      return result.length > 0 ? this.mapFromDatabase(result[0]) : null;
+      if (updateFields.length === 1) { // Only updated_at
+        throw new Error('No fields to update');
+      }
+
+      // Add WHERE clause parameters
+      values.push(id);
+      values.push(tenantId);
+
+      const result = await pool.query(
+        `UPDATE ${schemaName}.ticket_templates 
+         SET ${updateFields.join(', ')} 
+         WHERE id = $${paramCount++} AND tenant_id = $${paramCount++}
+         RETURNING *`,
+        values
+      );
+
+      return result.rows.length > 0 ? this.mapFromDatabase(result.rows[0]) : null;
     } catch (error) {
       console.error('Error updating template:', error);
       return null;
@@ -260,12 +295,11 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async delete(id: string, tenantId: string): Promise<boolean> {
     try {
-      const result = await db
-        .delete(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.id, id),
-          eq(ticketTemplates.tenantId, tenantId)
-        ));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await pool.query(
+        `DELETE FROM ${schemaName}.ticket_templates WHERE id = $1 AND tenant_id = $2`,
+        [id, tenantId]
+      );
 
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
@@ -278,40 +312,44 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
   async findAll(tenantId: string, filters?: any): Promise<TicketTemplate[]> {
     try {
       console.log('🔍 [TICKET-TEMPLATE-REPO] Finding all templates for tenant:', tenantId);
-
-      let query = db.select().from(ticketTemplates).where(eq(ticketTemplates.tenantId, tenantId));
+      
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const conditions: string[] = ['tenant_id = $1'];
+      const values: any[] = [tenantId];
+      let paramCount = 2;
 
       if (filters) {
         if (filters.category) {
-          query = query.where(and(
-            eq(ticketTemplates.tenantId, tenantId),
-            eq(ticketTemplates.category, filters.category)
-          ));
+          conditions.push(`category = $${paramCount++}`);
+          values.push(filters.category);
         }
         if (filters.status) {
-          query = query.where(and(
-            eq(ticketTemplates.tenantId, tenantId),
-            eq(ticketTemplates.status, filters.status)
-          ));
+          conditions.push(`status = $${paramCount++}`);
+          values.push(filters.status);
         }
         if (filters.companyId) {
-          query = query.where(and(
-            eq(ticketTemplates.tenantId, tenantId),
-            eq(ticketTemplates.customerCompanyId, filters.companyId)
-          ));
+          conditions.push(`customer_company_id = $${paramCount++}`);
+          values.push(filters.companyId);
         }
         if (filters.isActive !== undefined) {
-          query = query.where(and(
-            eq(ticketTemplates.tenantId, tenantId),
-            eq(ticketTemplates.isActive, filters.isActive)
-          ));
+          conditions.push(`is_active = $${paramCount++}`);
+          values.push(filters.isActive);
+        }
+        if (filters.isDefault !== undefined) {
+          conditions.push(`is_default = $${paramCount++}`);
+          values.push(filters.isDefault);
         }
       }
 
-      const result = await query.orderBy(desc(ticketTemplates.createdAt));
+      const result = await pool.query(
+        `SELECT * FROM ${schemaName}.ticket_templates 
+         WHERE ${conditions.join(' AND ')} 
+         ORDER BY created_at DESC`,
+        values
+      );
 
-      console.log('✅ [TICKET-TEMPLATE-REPO] Found templates:', result.length);
-      return result.map(row => this.mapFromDatabase(row));
+      console.log('✅ [TICKET-TEMPLATE-REPO] Found templates:', result.rows.length);
+      return result.rows.map(row => this.mapFromDatabase(row));
     } catch (error) {
       console.error('❌ [TICKET-TEMPLATE-REPO] Error finding all templates:', error);
       return [];
@@ -320,26 +358,20 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async findByCategory(tenantId: string, category: string, subcategory?: string): Promise<TicketTemplate[]> {
     try {
-      let query = db
-        .select()
-        .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.category, category),
-          eq(ticketTemplates.isActive, true)
-        ));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      let query = `SELECT * FROM ${schemaName}.ticket_templates 
+                   WHERE tenant_id = $1 AND category = $2 AND is_active = true`;
+      const values: any[] = [tenantId, category];
 
       if (subcategory) {
-        query = query.where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.category, category),
-          eq(ticketTemplates.subcategory, subcategory),
-          eq(ticketTemplates.isActive, true)
-        ));
+        query += ' AND subcategory = $3';
+        values.push(subcategory);
       }
 
-      const result = await query.orderBy(desc(ticketTemplates.usageCount));
-      return result.map(row => this.mapFromDatabase(row));
+      query += ' ORDER BY usage_count DESC';
+
+      const result = await pool.query(query, values);
+      return result.rows.map(row => this.mapFromDatabase(row));
     } catch (error) {
       console.error('Error finding templates by category:', error);
       return [];
@@ -348,17 +380,15 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async findByType(tenantId: string, templateType: string): Promise<TicketTemplate[]> {
     try {
-      const result = await db
-        .select()
-        .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.templateType, templateType),
-          eq(ticketTemplates.isActive, true)
-        ))
-        .orderBy(desc(ticketTemplates.usageCount));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await pool.query(
+        `SELECT * FROM ${schemaName}.ticket_templates 
+         WHERE tenant_id = $1 AND template_type = $2 AND is_active = true
+         ORDER BY usage_count DESC`,
+        [tenantId, templateType]
+      );
 
-      return result.map(row => this.mapFromDatabase(row));
+      return result.rows.map(row => this.mapFromDatabase(row));
     } catch (error) {
       console.error('Error finding templates by type:', error);
       return [];
@@ -367,17 +397,15 @@ export class DrizzleTicketTemplateRepository implements ITicketTemplateRepositor
 
   async findByCompany(tenantId: string, companyId: string): Promise<TicketTemplate[]> {
     try {
-      const result = await db
-        .select()
-        .from(ticketTemplates)
-        .where(and(
-          eq(ticketTemplates.tenantId, tenantId),
-          eq(ticketTemplates.companyId, companyId),
-          eq(ticketTemplates.isActive, true)
-        ))
-        .orderBy(desc(ticketTemplates.usageCount));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await pool.query(
+        `SELECT * FROM ${schemaName}.ticket_templates 
+         WHERE tenant_id = $1 AND company_id = $2 AND is_active = true
+         ORDER BY usage_count DESC`,
+        [tenantId, companyId]
+      );
 
-      return result.map(row => this.mapFromDatabase(row));
+      return result.rows.map(row => this.mapFromDatabase(row));
     } catch (error) {
       console.error('Error finding templates by company:', error);
       return [];
