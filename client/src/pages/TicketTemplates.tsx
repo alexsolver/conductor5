@@ -483,7 +483,19 @@ export default function TicketTemplates() {
   };
 
   const handleUpdateTemplate = async (data: TemplateFormData) => {
-    if (!editingTemplate) return;
+    console.log('🎯 [HANDLE-UPDATE] Button clicked, form data:', {
+      name: data.name,
+      templateType: data.templateType,
+      category: data.category,
+      formErrors: form.formState.errors,
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty
+    });
+
+    if (!editingTemplate) {
+      console.error('❌ [HANDLE-UPDATE] No template being edited');
+      return;
+    }
 
     const updateData = {
       ...data,
@@ -1605,6 +1617,25 @@ export default function TicketTemplates() {
                 </div>
               )}
 
+              {/* Validation Errors Display */}
+              {Object.keys(form.formState.errors).length > 0 && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-red-900">Erros de Validação</h4>
+                      <ul className="mt-2 text-sm text-red-700 space-y-1">
+                        {Object.entries(form.formState.errors).map(([field, error]) => (
+                          <li key={field}>
+                            <strong>{field}:</strong> {error?.message?.toString() || 'Campo inválido'}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => {
@@ -1614,7 +1645,11 @@ export default function TicketTemplates() {
                 }}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={updateTemplateMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={updateTemplateMutation.isPending}
+                  data-testid="button-save-template"
+                >
                   {updateTemplateMutation.isPending ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
