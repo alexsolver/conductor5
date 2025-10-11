@@ -63,6 +63,7 @@ import {
 } from 'lucide-react';
 import DynamicCustomFields from '@/components/DynamicCustomFields';
 import CustomFieldsEditor from '@/components/templates/CustomFieldsEditor';
+import { DynamicSelect } from '@/components/DynamicSelect';
 
 
 // ✅ 1QA.MD: Campos disponíveis do ticket para seleção em templates
@@ -1174,11 +1175,19 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="category"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Suporte Técnico"
+                                    <DynamicSelect
+                                      fieldName="category"
+                                      value={field.value || ''}
+                                      onChange={(value) => {
+                                        field.onChange(value);
+                                        // Limpar subcategoria e ação quando categoria mudar
+                                        form.setValue('subcategory', '');
+                                        form.setValue('action', '');
+                                      }}
+                                      placeholder="Selecione a categoria..."
                                       className="mt-1"
                                       disabled={!form.watch('companyId')}
+                                      data-testid="select-category"
                                     />
                                   )}
                                 />
@@ -1192,11 +1201,19 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="subcategory"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Hardware"
+                                    <DynamicSelect
+                                      fieldName="subcategory"
+                                      dependsOn={form.watch('category')}
+                                      value={field.value || ''}
+                                      onChange={(value) => {
+                                        field.onChange(value);
+                                        // Limpar ação quando subcategoria mudar
+                                        form.setValue('action', '');
+                                      }}
+                                      placeholder="Selecione a subcategoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!form.watch('companyId') || !form.watch('category')}
+                                      data-testid="select-subcategory"
                                     />
                                   )}
                                 />
@@ -1208,11 +1225,15 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="action"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Treinamento Técnico"
+                                    <DynamicSelect
+                                      fieldName="action"
+                                      dependsOn={form.watch('subcategory')}
+                                      value={field.value || ''}
+                                      onChange={field.onChange}
+                                      placeholder="Selecione a ação..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!form.watch('companyId') || !form.watch('subcategory')}
+                                      data-testid="select-action"
                                     />
                                   )}
                                 />
@@ -1666,11 +1687,19 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="category"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Suporte Técnico"
+                                    <DynamicSelect
+                                      fieldName="category"
+                                      value={field.value || ''}
+                                      onChange={(value) => {
+                                        field.onChange(value);
+                                        // Limpar subcategoria e ação quando categoria mudar
+                                        form.setValue('subcategory', '');
+                                        form.setValue('action', '');
+                                      }}
+                                      placeholder="Selecione a categoria..."
                                       className="mt-1"
                                       disabled={!form.watch('companyId')}
+                                      data-testid="select-category"
                                     />
                                   )}
                                 />
@@ -1684,11 +1713,19 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="subcategory"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Hardware"
+                                    <DynamicSelect
+                                      fieldName="subcategory"
+                                      dependsOn={form.watch('category')}
+                                      value={field.value || ''}
+                                      onChange={(value) => {
+                                        field.onChange(value);
+                                        // Limpar ação quando subcategoria mudar
+                                        form.setValue('action', '');
+                                      }}
+                                      placeholder="Selecione a subcategoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!form.watch('companyId') || !form.watch('category')}
+                                      data-testid="select-subcategory"
                                     />
                                   )}
                                 />
@@ -1700,11 +1737,15 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="action"
                                   render={({ field }) => (
-                                    <Input 
-                                      {...field}
-                                      placeholder="Ex: Treinamento Técnico"
+                                    <DynamicSelect
+                                      fieldName="action"
+                                      dependsOn={form.watch('subcategory')}
+                                      value={field.value || ''}
+                                      onChange={field.onChange}
+                                      placeholder="Selecione a ação..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!form.watch('companyId') || !form.watch('subcategory')}
+                                      data-testid="select-action"
                                     />
                                   )}
                                 />
