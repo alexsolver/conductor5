@@ -63,7 +63,6 @@ import {
 } from 'lucide-react';
 import DynamicCustomFields from '@/components/DynamicCustomFields';
 import CustomFieldsEditor from '@/components/templates/CustomFieldsEditor';
-import { DynamicSelect } from '@/components/DynamicSelect';
 
 
 // ✅ 1QA.MD: Campos disponíveis do ticket para seleção em templates
@@ -88,13 +87,6 @@ const templateFormSchema = z.object({
   subcategory: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   status: z.enum(['active', 'inactive', 'draft']).default('draft'),
-  // ✅ Campos de detalhes do ticket para pré-preenchimento
-  urgency: z.enum(['low', 'medium', 'high', 'critical']).or(z.literal('')).optional(),
-  impact: z.enum(['low', 'medium', 'high', 'critical']).or(z.literal('')).optional(),
-  ticketStatus: z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed']).or(z.literal('')).optional(),
-  action: z.string().optional(),
-  subject: z.string().optional(),
-  ticketDescription: z.string().optional(),
   // ✅ Campos obrigatórios
   requiredFields: z.array(z.object({
     fieldName: z.string(),
@@ -132,7 +124,7 @@ interface TicketTemplate {
   category: string | null;
   subcategory: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'draft';
   requiredFields: any[];
   customFields: any[];
   automation: any;
@@ -214,7 +206,6 @@ export default function TicketTemplates() {
   const [templateCustomFields, setTemplateCustomFields] = useState<any[]>([]);
   const [availableCustomFields, setAvailableCustomFields] = useState<any[]>([]);
   const [selectedCustomFieldIds, setSelectedCustomFieldIds] = useState<string[]>([]);
-  const [enableTicketConfig, setEnableTicketConfig] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -228,7 +219,7 @@ export default function TicketTemplates() {
       category: 'Geral',
       subcategory: '',
       priority: 'medium',
-      status: 'inactive',
+      status: 'draft',
       requiredFields: getDefaultRequiredFields(),
       customFields: [],
       tags: [],
@@ -290,17 +281,10 @@ export default function TicketTemplates() {
         companyId: data.companyId || null,
         priority: data.priority,
         templateType: 'creation', // ✅ Sempre 'creation' - tipo único
-        status: data.status || 'inactive',
+        status: data.status || 'draft',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
-        // ✅ Campos de detalhes do ticket para pré-preenchimento
-        urgency: data.urgency || null,
-        impact: data.impact || null,
-        ticketStatus: data.ticketStatus || null,
-        action: data.action || null,
-        subject: data.subject || null,
-        ticketDescription: data.ticketDescription || null,
         // ✅ enviado separado (sem "fields")
         requiredFields: requiredFieldsPayload,
         customFields: customFieldsPayload,
@@ -369,17 +353,10 @@ export default function TicketTemplates() {
         companyId: data.companyId || null,
         priority: data.priority,
         templateType: 'creation', // ✅ Sempre 'creation' - tipo único
-        status: data.status || 'inactive',
+        status: data.status || 'draft',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
-        // ✅ Campos de detalhes do ticket para pré-preenchimento
-        urgency: data.urgency || null,
-        impact: data.impact || null,
-        ticketStatus: data.ticketStatus || null,
-        action: data.action || null,
-        subject: data.subject || null,
-        ticketDescription: data.ticketDescription || null,
         requiredFields: requiredFieldsPayload,
         customFields: customFieldsPayload,
         automation: (data as any)?.automation ?? {},
@@ -394,7 +371,6 @@ export default function TicketTemplates() {
       toast({ title: 'Sucesso', description: 'Template atualizado com sucesso!' });
       setIsEditOpen(false);
       setSelectedCustomFieldIds([]);
-      setEnableTicketConfig(false);
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
@@ -459,13 +435,6 @@ export default function TicketTemplates() {
       subcategory: template.subcategory || '',
       priority: template.priority,
       status: template.status,
-      // ✅ Campos de configuração do ticket
-      urgency: (template as any).urgency || '',
-      impact: (template as any).impact || '',
-      ticketStatus: (template as any).ticket_status || (template as any).ticketStatus || '',
-      action: (template as any).action || '',
-      subject: (template as any).subject || '',
-      ticketDescription: (template as any).ticket_description || (template as any).ticketDescription || '',
       requiredFields: (template as any).required_fields || template.requiredFields || [],
       customFields: (template as any).custom_fields || template.customFields || [],
       tags: tagsArray,
@@ -482,19 +451,6 @@ export default function TicketTemplates() {
       const flag = Boolean(c.showOnOpen ?? c.show_on_open);
       form.setValue(`customFieldsConfig.${c.id}.showOnOpen`, flag, { shouldDirty: false });
     });
-
-    // ✅ Ativar toggle de configuração se houver qualquer valor configurado
-    const hasTicketConfig = 
-      (template as any).urgency || 
-      (template as any).impact || 
-      (template as any).ticket_status || 
-      (template as any).ticketStatus || 
-      (template as any).action || 
-      (template as any).subject || 
-      (template as any).ticket_description || 
-      (template as any).ticketDescription;
-    
-    setEnableTicketConfig(!!hasTicketConfig);
 
     setIsEditOpen(true);
   };
@@ -791,7 +747,7 @@ export default function TicketTemplates() {
                           className={template.status === 'active' ? 'bg-green-100 text-green-800' : ''}
                         >
                           {template.status === 'active' ? 'Ativo' : 
-                           'Inativo'}
+                           template.status === 'draft' ? 'Rascunho' : 'Inativo'}
                         </Badge>
                       </div>
 
@@ -993,19 +949,7 @@ export default function TicketTemplates() {
                   <FormItem>
                     <FormLabel>Empresa</FormLabel>
                     <Select
-                      onValueChange={(value) => {
-                        field.onChange(value === 'global' ? null : value);
-                        // Se for global, desabilitar e limpar configurações de campos
-                        if (value === 'global') {
-                          setEnableTicketConfig(false);
-                          form.setValue('urgency', '');
-                          form.setValue('impact', '');
-                          form.setValue('ticketStatus', '');
-                          form.setValue('action', '');
-                          form.setValue('subject', '');
-                          form.setValue('ticketDescription', '');
-                        }
-                      }}
+                      onValueChange={(value) => field.onChange(value === 'global' ? null : value)}
                       value={field.value || 'global'}
                     >
                       <FormControl>
@@ -1106,231 +1050,43 @@ export default function TicketTemplates() {
                       <div className="flex items-start space-x-3">
                         <Settings className="w-5 h-5 text-purple-600 mt-0.5" />
                         <div className="flex-1">
-                          <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
+                          <p className="text-sm text-purple-700 mt-1">
+                            Configure valores padrão que serão aplicados ao criar tickets com este template:
+                          </p>
+
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
-                              <p className="text-sm text-purple-700 mt-1">
-                                {!form.watch('companyId')
-                                  ? 'Templates globais não podem ter configurações de campos do ticket'
-                                  : !enableTicketConfig 
-                                    ? 'Ative para configurar valores padrão dos campos do ticket'
-                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={enableTicketConfig}
-                              onCheckedChange={(checked) => {
-                                setEnableTicketConfig(checked);
-                                if (!checked) {
-                                  // Limpar todos os campos de configuração quando desabilitado
-                                  form.setValue('urgency', '');
-                                  form.setValue('impact', '');
-                                  form.setValue('ticketStatus', '');
-                                  form.setValue('action', '');
-                                  form.setValue('subject', '');
-                                  form.setValue('ticketDescription', '');
-                                }
-                              }}
-                              disabled={!form.watch('companyId')}
-                              data-testid="switch-ticket-config"
-                            />
-                          </div>
-
-                          {enableTicketConfig && (
-                            <div className="mt-4 space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <label className="text-sm font-medium text-purple-800">Urgência</label>
-                                <FormField
-                                  control={form.control}
-                                  name="urgency"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                        <SelectItem value="critical">Crítica</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Impacto</label>
-                                <FormField
-                                  control={form.control}
-                                  name="impact"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixo</SelectItem>
-                                        <SelectItem value="medium">Médio</SelectItem>
-                                        <SelectItem value="high">Alto</SelectItem>
-                                        <SelectItem value="critical">Crítico</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Prioridade</label>
-                                <FormField
-                                  control={form.control}
-                                  name="priority"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                        <SelectItem value="urgent">Urgente</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Status do Ticket</label>
-                                <FormField
-                                  control={form.control}
-                                  name="ticketStatus"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="new">Novo</SelectItem>
-                                        <SelectItem value="open">Aberto</SelectItem>
-                                        <SelectItem value="in_progress">Em Progresso</SelectItem>
-                                        <SelectItem value="pending">Pendente</SelectItem>
-                                        <SelectItem value="resolved">Resolvido</SelectItem>
-                                        <SelectItem value="closed">Fechado</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Categoria</label>
-                                <FormField
-                                  control={form.control}
-                                  name="category"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="category"
-                                      value={field.value || ''}
-                                      onChange={(value) => {
-                                        field.onChange(value);
-                                        // Limpar subcategoria e ação quando categoria mudar
-                                        form.setValue('subcategory', '');
-                                        form.setValue('action', '');
-                                      }}
-                                      placeholder="Selecione a categoria..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId')}
-                                      data-testid="select-category"
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Subcategoria</label>
-                                <FormField
-                                  control={form.control}
-                                  name="subcategory"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="subcategory"
-                                      dependsOn={form.watch('category')}
-                                      value={field.value || ''}
-                                      onChange={(value) => {
-                                        field.onChange(value);
-                                        // Limpar ação quando subcategoria mudar
-                                        form.setValue('action', '');
-                                      }}
-                                      placeholder="Selecione a subcategoria..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('category')}
-                                      data-testid="select-subcategory"
-                                    />
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Ação</label>
-                                <FormField
-                                  control={form.control}
-                                  name="action"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="action"
-                                      dependsOn={form.watch('subcategory')}
-                                      value={field.value || ''}
-                                      onChange={field.onChange}
-                                      placeholder="Selecione a ação..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('subcategory')}
-                                      data-testid="select-action"
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-purple-800">Assunto Padrão</label>
+                              <label className="text-sm font-medium text-purple-800">Prioridade Padrão</label>
                               <FormField
                                 control={form.control}
-                                name="subject"
+                                name="priority"
                                 render={({ field }) => (
-                                  <Input 
-                                    {...field}
-                                    placeholder="Ex: Solicitação de Suporte"
-                                    className="mt-1"
-                                    disabled={!enableTicketConfig || !form.watch('companyId')}
-                                  />
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="low">Baixa</SelectItem>
+                                      <SelectItem value="medium">Média</SelectItem>
+                                      <SelectItem value="high">Alta</SelectItem>
+                                      <SelectItem value="urgent">Urgente</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 )}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Descrição Padrão</label>
-                              <FormField
-                                control={form.control}
-                                name="ticketDescription"
-                                render={({ field }) => (
-                                  <Textarea 
-                                    {...field}
-                                    placeholder="Digite a descrição padrão do ticket..."
-                                    className="mt-1 min-h-[100px]"
-                                    disabled={!enableTicketConfig || !form.watch('companyId')}
-                                  />
-                                )}
+                              <label className="text-sm font-medium text-purple-800">Categoria Padrão</label>
+                              <Input 
+                                placeholder="Ex: Suporte Técnico"
+                                className="mt-1"
+                                value={form.watch('subcategory') || ''}
+                                onChange={(e) => form.setValue('subcategory', e.target.value)}
                               />
                             </div>
                           </div>
-                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -1388,11 +1144,9 @@ export default function TicketTemplates() {
                                     {availableCustomFieldsResponse.data.map((field: any) => {
                                       const isSelected = selectedCustomFieldIds.includes(field.id);
                                       const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
-                                      const requiredOnCreate = form.watch(`customFieldsConfig.${field.id}.requiredOnCreate`) || false;
-                                      const requiredOnDetails = form.watch(`customFieldsConfig.${field.id}.requiredOnDetails`) || false;
 
                                       return (
-                                        <div key={field.id} className="flex flex-col space-y-2 border rounded-md p-3 bg-white">
+                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
                                           <div className="flex items-center space-x-2">
                                             <Checkbox
                                               id={`custom-field-${field.id}`}
@@ -1402,18 +1156,14 @@ export default function TicketTemplates() {
                                                   setSelectedCustomFieldIds(prev => [...prev, field.id]);
                                                 } else {
                                                   setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                                  // se desmarcar, reseta todas as configs
-                                                  form.setValue(`customFieldsConfig.${field.id}`, { 
-                                                    showOnOpen: false,
-                                                    requiredOnCreate: false,
-                                                    requiredOnDetails: false
-                                                  });
+                                                  // se desmarcar, reseta config
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
                                                 }
                                               }}
                                             />
                                             <Label
                                               htmlFor={`custom-field-${field.id}`}
-                                              className="text-sm font-medium cursor-pointer flex-1"
+                                              className="text-sm font-medium cursor-pointer"
                                             >
                                               {field.fieldLabel}
                                             </Label>
@@ -1423,78 +1173,20 @@ export default function TicketTemplates() {
                                           </div>
 
                                           {isSelected && (
-                                            <div className="ml-6 space-y-2 text-sm">
-                                              {/* Modal de Criação */}
-                                              <div className="flex flex-col space-y-1.5 p-2 bg-blue-50 rounded border border-blue-200">
-                                                <div className="flex items-center space-x-1 text-blue-700 font-medium text-xs">
-                                                  <span>📝</span>
-                                                  <span>Modal de Criação</span>
-                                                </div>
-                                                <div className="flex items-center space-x-4">
-                                                  <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                      id={`custom-field-showonopen-${field.id}`}
-                                                      checked={showOnOpen}
-                                                      onCheckedChange={(checked) => {
-                                                        form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true);
-                                                        // Se desmarcar "Mostrar", também desmarca "Obrigatório"
-                                                        if (!checked) {
-                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, false);
-                                                        }
-                                                      }}
-                                                    />
-                                                    <Label
-                                                      htmlFor={`custom-field-showonopen-${field.id}`}
-                                                      className="cursor-pointer text-gray-700"
-                                                    >
-                                                      Mostrar ao abrir
-                                                    </Label>
-                                                  </div>
-                                                  <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                      id={`custom-field-required-create-${field.id}`}
-                                                      checked={requiredOnCreate}
-                                                      disabled={!showOnOpen}
-                                                      onCheckedChange={(checked) => {
-                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true);
-                                                        // Se marcar obrigatório no modal, também marca na aba de detalhes
-                                                        if (checked) {
-                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, true);
-                                                        }
-                                                      }}
-                                                    />
-                                                    <Label
-                                                      htmlFor={`custom-field-required-create-${field.id}`}
-                                                      className={`cursor-pointer ${!showOnOpen ? 'text-gray-400' : 'text-gray-700'}`}
-                                                    >
-                                                      Obrigatório
-                                                    </Label>
-                                                  </div>
-                                                </div>
-                                              </div>
-
-                                              {/* Aba de Detalhes */}
-                                              <div className="flex flex-col space-y-1.5 p-2 bg-purple-50 rounded border border-purple-200">
-                                                <div className="flex items-center space-x-1 text-purple-700 font-medium text-xs">
-                                                  <span>📋</span>
-                                                  <span>Aba de Detalhes</span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                  <Checkbox
-                                                    id={`custom-field-required-details-${field.id}`}
-                                                    checked={requiredOnDetails}
-                                                    onCheckedChange={(checked) =>
-                                                      form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, checked === true)
-                                                    }
-                                                  />
-                                                  <Label
-                                                    htmlFor={`custom-field-required-details-${field.id}`}
-                                                    className="cursor-pointer text-gray-700"
-                                                  >
-                                                    Obrigatório
-                                                  </Label>
-                                                </div>
-                                              </div>
+                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
+                                              <Checkbox
+                                                id={`custom-field-showonopen-${field.id}`}
+                                                checked={showOnOpen}
+                                                onCheckedChange={(checked) =>
+                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
+                                                }
+                                              />
+                                              <Label
+                                                htmlFor={`custom-field-showonopen-${field.id}`}
+                                                className="cursor-pointer"
+                                              >
+                                                Mostrar ao abrir a OS
+                                              </Label>
                                             </div>
                                           )}
                                         </div>
@@ -1527,7 +1219,6 @@ export default function TicketTemplates() {
                   setIsCreateOpen(false);
                   setTemplateCustomFields([]);
                   setSelectedCustomFieldIds([]);
-                  setEnableTicketConfig(false);
                 }}>
                   Cancelar
                 </Button>
@@ -1607,19 +1298,7 @@ export default function TicketTemplates() {
                   <FormItem>
                     <FormLabel>Empresa</FormLabel>
                     <Select
-                      onValueChange={(value) => {
-                        field.onChange(value === 'global' ? null : value);
-                        // Se for global, desabilitar e limpar configurações de campos
-                        if (value === 'global') {
-                          setEnableTicketConfig(false);
-                          form.setValue('urgency', '');
-                          form.setValue('impact', '');
-                          form.setValue('ticketStatus', '');
-                          form.setValue('action', '');
-                          form.setValue('subject', '');
-                          form.setValue('ticketDescription', '');
-                        }
-                      }}
+                      onValueChange={(value) => field.onChange(value === 'global' ? null : value)}
                       value={field.value || 'global'}
                     >
                       <FormControl>
@@ -1720,231 +1399,43 @@ export default function TicketTemplates() {
                       <div className="flex items-start space-x-3">
                         <Settings className="w-5 h-5 text-purple-600 mt-0.5" />
                         <div className="flex-1">
-                          <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
+                          <p className="text-sm text-purple-700 mt-1">
+                            Configure valores padrão que serão aplicados ao criar tickets com este template:
+                          </p>
+
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
-                              <p className="text-sm text-purple-700 mt-1">
-                                {!form.watch('companyId')
-                                  ? 'Templates globais não podem ter configurações de campos do ticket'
-                                  : !enableTicketConfig 
-                                    ? 'Ative para configurar valores padrão dos campos do ticket'
-                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={enableTicketConfig}
-                              onCheckedChange={(checked) => {
-                                setEnableTicketConfig(checked);
-                                if (!checked) {
-                                  // Limpar todos os campos de configuração quando desabilitado
-                                  form.setValue('urgency', '');
-                                  form.setValue('impact', '');
-                                  form.setValue('ticketStatus', '');
-                                  form.setValue('action', '');
-                                  form.setValue('subject', '');
-                                  form.setValue('ticketDescription', '');
-                                }
-                              }}
-                              disabled={!form.watch('companyId')}
-                              data-testid="switch-ticket-config"
-                            />
-                          </div>
-
-                          {enableTicketConfig && (
-                            <div className="mt-4 space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <label className="text-sm font-medium text-purple-800">Urgência</label>
-                                <FormField
-                                  control={form.control}
-                                  name="urgency"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                        <SelectItem value="critical">Crítica</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Impacto</label>
-                                <FormField
-                                  control={form.control}
-                                  name="impact"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixo</SelectItem>
-                                        <SelectItem value="medium">Médio</SelectItem>
-                                        <SelectItem value="high">Alto</SelectItem>
-                                        <SelectItem value="critical">Crítico</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Prioridade</label>
-                                <FormField
-                                  control={form.control}
-                                  name="priority"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="low">Baixa</SelectItem>
-                                        <SelectItem value="medium">Média</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
-                                        <SelectItem value="urgent">Urgente</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Status do Ticket</label>
-                                <FormField
-                                  control={form.control}
-                                  name="ticketStatus"
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Selecione..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="new">Novo</SelectItem>
-                                        <SelectItem value="open">Aberto</SelectItem>
-                                        <SelectItem value="in_progress">Em Progresso</SelectItem>
-                                        <SelectItem value="pending">Pendente</SelectItem>
-                                        <SelectItem value="resolved">Resolvido</SelectItem>
-                                        <SelectItem value="closed">Fechado</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Categoria</label>
-                                <FormField
-                                  control={form.control}
-                                  name="category"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="category"
-                                      value={field.value || ''}
-                                      onChange={(value) => {
-                                        field.onChange(value);
-                                        // Limpar subcategoria e ação quando categoria mudar
-                                        form.setValue('subcategory', '');
-                                        form.setValue('action', '');
-                                      }}
-                                      placeholder="Selecione a categoria..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId')}
-                                      data-testid="select-category"
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Subcategoria</label>
-                                <FormField
-                                  control={form.control}
-                                  name="subcategory"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="subcategory"
-                                      dependsOn={form.watch('category')}
-                                      value={field.value || ''}
-                                      onChange={(value) => {
-                                        field.onChange(value);
-                                        // Limpar ação quando subcategoria mudar
-                                        form.setValue('action', '');
-                                      }}
-                                      placeholder="Selecione a subcategoria..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('category')}
-                                      data-testid="select-subcategory"
-                                    />
-                                  )}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium text-purple-800">Ação</label>
-                                <FormField
-                                  control={form.control}
-                                  name="action"
-                                  render={({ field }) => (
-                                    <DynamicSelect
-                                      fieldName="action"
-                                      dependsOn={form.watch('subcategory')}
-                                      value={field.value || ''}
-                                      onChange={field.onChange}
-                                      placeholder="Selecione a ação..."
-                                      className="mt-1"
-                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('subcategory')}
-                                      data-testid="select-action"
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-purple-800">Assunto Padrão</label>
+                              <label className="text-sm font-medium text-purple-800">Prioridade Padrão</label>
                               <FormField
                                 control={form.control}
-                                name="subject"
+                                name="priority"
                                 render={({ field }) => (
-                                  <Input 
-                                    {...field}
-                                    placeholder="Ex: Solicitação de Suporte"
-                                    className="mt-1"
-                                    disabled={!enableTicketConfig || !form.watch('companyId')}
-                                  />
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="low">Baixa</SelectItem>
+                                      <SelectItem value="medium">Média</SelectItem>
+                                      <SelectItem value="high">Alta</SelectItem>
+                                      <SelectItem value="urgent">Urgente</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 )}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Descrição Padrão</label>
-                              <FormField
-                                control={form.control}
-                                name="ticketDescription"
-                                render={({ field }) => (
-                                  <Textarea 
-                                    {...field}
-                                    placeholder="Digite a descrição padrão do ticket..."
-                                    className="mt-1 min-h-[100px]"
-                                    disabled={!enableTicketConfig || !form.watch('companyId')}
-                                  />
-                                )}
+                              <label className="text-sm font-medium text-purple-800">Categoria Padrão</label>
+                              <Input 
+                                placeholder="Ex: Suporte Técnico"
+                                className="mt-1"
+                                value={form.watch('subcategory') || ''}
+                                onChange={(e) => form.setValue('subcategory', e.target.value)}
                               />
                             </div>
                           </div>
-                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -2002,11 +1493,9 @@ export default function TicketTemplates() {
                                     {availableCustomFieldsResponse.data.map((field: any) => {
                                       const isSelected = selectedCustomFieldIds.includes(field.id);
                                       const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
-                                      const requiredOnCreate = form.watch(`customFieldsConfig.${field.id}.requiredOnCreate`) || false;
-                                      const requiredOnDetails = form.watch(`customFieldsConfig.${field.id}.requiredOnDetails`) || false;
 
                                       return (
-                                        <div key={field.id} className="flex flex-col space-y-2 border rounded-md p-3 bg-white">
+                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
                                           <div className="flex items-center space-x-2">
                                             <Checkbox
                                               id={`custom-field-${field.id}`}
@@ -2016,18 +1505,14 @@ export default function TicketTemplates() {
                                                   setSelectedCustomFieldIds(prev => [...prev, field.id]);
                                                 } else {
                                                   setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                                  // se desmarcar, reseta todas as configs
-                                                  form.setValue(`customFieldsConfig.${field.id}`, { 
-                                                    showOnOpen: false,
-                                                    requiredOnCreate: false,
-                                                    requiredOnDetails: false
-                                                  });
+                                                  // se desmarcar, reseta config
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
                                                 }
                                               }}
                                             />
                                             <Label
                                               htmlFor={`custom-field-${field.id}`}
-                                              className="text-sm font-medium cursor-pointer flex-1"
+                                              className="text-sm font-medium cursor-pointer"
                                             >
                                               {field.fieldLabel}
                                             </Label>
@@ -2037,78 +1522,20 @@ export default function TicketTemplates() {
                                           </div>
 
                                           {isSelected && (
-                                            <div className="ml-6 space-y-2 text-sm">
-                                              {/* Modal de Criação */}
-                                              <div className="flex flex-col space-y-1.5 p-2 bg-blue-50 rounded border border-blue-200">
-                                                <div className="flex items-center space-x-1 text-blue-700 font-medium text-xs">
-                                                  <span>📝</span>
-                                                  <span>Modal de Criação</span>
-                                                </div>
-                                                <div className="flex items-center space-x-4">
-                                                  <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                      id={`custom-field-showonopen-${field.id}`}
-                                                      checked={showOnOpen}
-                                                      onCheckedChange={(checked) => {
-                                                        form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true);
-                                                        // Se desmarcar "Mostrar", também desmarca "Obrigatório"
-                                                        if (!checked) {
-                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, false);
-                                                        }
-                                                      }}
-                                                    />
-                                                    <Label
-                                                      htmlFor={`custom-field-showonopen-${field.id}`}
-                                                      className="cursor-pointer text-gray-700"
-                                                    >
-                                                      Mostrar ao abrir
-                                                    </Label>
-                                                  </div>
-                                                  <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                      id={`custom-field-required-create-${field.id}`}
-                                                      checked={requiredOnCreate}
-                                                      disabled={!showOnOpen}
-                                                      onCheckedChange={(checked) => {
-                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true);
-                                                        // Se marcar obrigatório no modal, também marca na aba de detalhes
-                                                        if (checked) {
-                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, true);
-                                                        }
-                                                      }}
-                                                    />
-                                                    <Label
-                                                      htmlFor={`custom-field-required-create-${field.id}`}
-                                                      className={`cursor-pointer ${!showOnOpen ? 'text-gray-400' : 'text-gray-700'}`}
-                                                    >
-                                                      Obrigatório
-                                                    </Label>
-                                                  </div>
-                                                </div>
-                                              </div>
-
-                                              {/* Aba de Detalhes */}
-                                              <div className="flex flex-col space-y-1.5 p-2 bg-purple-50 rounded border border-purple-200">
-                                                <div className="flex items-center space-x-1 text-purple-700 font-medium text-xs">
-                                                  <span>📋</span>
-                                                  <span>Aba de Detalhes</span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                  <Checkbox
-                                                    id={`custom-field-required-details-${field.id}`}
-                                                    checked={requiredOnDetails}
-                                                    onCheckedChange={(checked) =>
-                                                      form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, checked === true)
-                                                    }
-                                                  />
-                                                  <Label
-                                                    htmlFor={`custom-field-required-details-${field.id}`}
-                                                    className="cursor-pointer text-gray-700"
-                                                  >
-                                                    Obrigatório
-                                                  </Label>
-                                                </div>
-                                              </div>
+                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
+                                              <Checkbox
+                                                id={`custom-field-showonopen-${field.id}`}
+                                                checked={showOnOpen}
+                                                onCheckedChange={(checked) =>
+                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
+                                                }
+                                              />
+                                              <Label
+                                                htmlFor={`custom-field-showonopen-${field.id}`}
+                                                className="cursor-pointer"
+                                              >
+                                                Mostrar ao abrir a OS
+                                              </Label>
                                             </div>
                                           )}
                                         </div>
@@ -2160,7 +1587,6 @@ export default function TicketTemplates() {
                   setIsEditOpen(false);
                   setTemplateCustomFields([]);
                   setSelectedCustomFieldIds([]);
-                  setEnableTicketConfig(false);
                 }}>
                   Cancelar
                 </Button>

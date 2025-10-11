@@ -4,6 +4,7 @@
  */
 
 import { Ticket } from '../../domain/entities/Ticket';
+import { TicketDomainService } from '../../domain/entities/Ticket';
 import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { CreateTicketDTO } from '../dto/CreateTicketDTO';
 import { ticketNumberGenerator } from '../../../../utils/ticketNumberGenerator';
@@ -15,7 +16,7 @@ export class CreateTicketUseCase {
 
   constructor(
     private ticketRepository: ITicketRepository,
-    private logger?: any
+    private ticketDomainService: TicketDomainService
   ) {
     // Initialize SLA service for automatic SLA application
     const slaRepository = new DrizzleSlaRepository();
@@ -33,8 +34,7 @@ export class CreateTicketUseCase {
     }
 
     // Gerar número do ticket conforme configuração de numeração
-    const companyId = dto.companyId || null;
-    console.log('🎫 [CREATE-TICKET] DTO companyId:', dto.companyId, 'Converted companyId:', companyId);
+    const companyId = dto.companyId || '';
     const ticketNumber = await ticketNumberGenerator.generateTicketNumber(tenantId, companyId);
 
     // Preparar dados do ticket
@@ -69,10 +69,8 @@ export class CreateTicketUseCase {
       isActive: true
     };
 
-    // Validação básica de regras de negócio
-    if (!ticketData.subject || ticketData.subject.trim() === '') {
-      throw new Error('Subject is required');
-    }
+    // Validação de regras de negócio
+    this.ticketDomainService.validate(ticketData);
 
     // Aplicar regras de negócio específicas
     if (ticketData.status === 'new' && ticketData.assignedToId) {

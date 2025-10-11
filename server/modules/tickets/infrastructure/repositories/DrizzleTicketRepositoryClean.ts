@@ -55,7 +55,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         SELECT 
           t.id,
           t.tenant_id      as "tenantId",
-          t.number         as "ticketNumber",
+          t.ticket_number  as "ticketNumber",
           t.title,
           t.description,
           t.status,
@@ -281,7 +281,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, title as "subject", description, status, priority,
+          id, ticket_number as "number", title as "subject", description, status, priority,
           category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", customer_id as "customerId"
@@ -304,7 +304,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, title as "subject", description, status, priority,
+          id, ticket_number as "number", title as "subject", description, status, priority,
           category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", customer_id as "customerId"
@@ -322,44 +322,10 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async create(data: CreateTicketDTO, tenantId: string): Promise<Ticket> {
     try {
-      const tenantDb = await this.getTenantDb(tenantId);
-      const schemaName = this.getSchemaName(tenantId);
-      
-      // ✅ CRITICAL FIX: Map camelCase DTO → snake_case DB columns
-      const insertData = {
-        tenant_id: tenantId,
-        number: data.number,
-        subject: data.subject,
-        description: data.description,
-        status: data.status || 'new',
-        priority: data.priority,
-        urgency: data.urgency,
-        impact: data.impact,
-        category: data.category,
-        subcategory: data.subcategory,
-        action: data.action,
-        
-        // ✅ RELATIONSHIP FIELDS - Map camelCase → snake_case
-        customer_id: data.customerId || null,
-        beneficiary_id: data.beneficiaryId || null,
-        assigned_to_id: data.assignedToId || null,
-        company_id: data.companyId || null,
-        
-        // Metadata
-        tags: data.tags ? JSON.stringify(data.tags) : null,
-        custom_fields: data.customFields ? JSON.stringify(data.customFields) : null,
-        
-        // Audit fields
-        created_by_id: data.createdById,
-        updated_by_id: data.createdById,
-        is_active: true,
-      };
-
-      console.log('🎫 [REPOSITORY-CREATE] InsertData with snake_case mapping:', JSON.stringify(insertData, null, 2));
-
-      const [newTicket] = await tenantDb
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const [newTicket] = await db
         .insert(tickets)
-        .values(insertData as any)
+        .values({...data, tenantId: tenantId } as any) // Assuming tenantId is part of the schema or needs to be added
         .returning();
 
       return newTicket as Ticket;

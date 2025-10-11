@@ -20,7 +20,7 @@ interface NumberingConfig {
 class TicketNumberGenerator {
   private counters = new Map<string, number>();
 
-  async generateTicketNumber(tenantId: string, companyId: string | null): Promise<string> {
+  async generateTicketNumber(tenantId: string, companyId: string): Promise<string> {
     try {
       // Get numbering configuration from database
       const config = await this.getNumberingConfig(tenantId, companyId);
@@ -75,18 +75,15 @@ class TicketNumberGenerator {
     }
   }
 
-  private async getNumberingConfig(tenantId: string, companyId: string | null): Promise<NumberingConfig | null> {
+  private async getNumberingConfig(tenantId: string, companyId: string): Promise<NumberingConfig | null> {
     try {
       const tenantDb = await poolManager.getTenantConnection(tenantId);
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Handle empty companyId - use NULL for global config or actual UUID
-      const companyIdValue = companyId && companyId.trim() !== '' ? companyId : null;
-
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.ticket_numbering_config 
         WHERE tenant_id = ${tenantId} 
-        AND (company_id = ${companyIdValue} OR (company_id IS NULL AND ${companyIdValue} IS NULL))
+        AND company_id = ${companyId}
         LIMIT 1
       `);
 
@@ -119,15 +116,12 @@ class TicketNumberGenerator {
         `${config.prefix}-${currentYear}` : 
         config.prefix;
 
-      // Handle empty company_id
-      const companyIdValue = config.company_id && config.company_id.trim() !== '' ? config.company_id : null;
-
       // Try to get and increment sequence atomically
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.ticket_sequences 
           (tenant_id, company_id, sequence_key, current_value, year)
         VALUES 
-          (${tenantId}, ${companyIdValue}, ${sequenceKey}, 1, ${currentYear})
+          (${tenantId}, ${config.company_id}, ${sequenceKey}, 1, ${currentYear})
         ON CONFLICT (tenant_id, company_id, sequence_key, year) 
         DO UPDATE SET 
           current_value = ${sql.identifier(schemaName)}.ticket_sequences.current_value + 1

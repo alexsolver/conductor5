@@ -7,7 +7,6 @@ import {
   varchar,
   timestamp,
   jsonb,
-  json,
   index,
   uuid,
   boolean,
@@ -144,33 +143,29 @@ export const items = pgTable("items", {
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  number: varchar("number", { length: 50 }),
-  subject: varchar("subject", { length: 255 }).notNull(),
+  ticketNumber: varchar("ticket_number", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   status: ticketStatusEnum("status").default("open"),
   priority: ticketPriorityEnum("priority").default("medium"),
-  urgency: varchar("urgency", { length: 20 }),
-  impact: varchar("impact", { length: 20 }),
   category: varchar("category", { length: 100 }),
   subcategory: varchar("subcategory", { length: 100 }),
-  action: varchar("action", { length: 100 }),
   customerId: uuid("customer_id"),
-  beneficiaryId: uuid("beneficiary_id"),
-  assignedToId: uuid("assigned_to_id"),
+  assignedTo: uuid("assigned_to"),
   companyId: uuid("company_id"),
   locationId: uuid("location_id"),
-  estimatedHours: text("estimated_hours"),
-  actualHours: text("actual_hours"),
+  estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
+  actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
   dueDate: timestamp("due_date"),
   resolutionDate: timestamp("resolution_date"),
-  satisfactionRating: text("satisfaction_rating"),
+  satisfactionRating: integer("satisfaction_rating"),
   satisfactionComment: text("satisfaction_comment"),
   symptoms: text("symptoms"),
   workaround: text("workaround"),
-  followers: text("followers"),
-  tags: text("tags"),
-  customFields: json("custom_fields"),
-  metadata: text("metadata"),
+  followers: jsonb("followers").default([]),
+  tags: jsonb("tags").default([]),
+  customFields: jsonb("custom_fields").default({}),
+  metadata: jsonb("metadata").default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdById: uuid("created_by_id"),
@@ -183,7 +178,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_idx").on(table.tenantId, table.status),
   index("tickets_tenant_priority_idx").on(table.tenantId, table.priority),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
-  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
+  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedTo),
   index("tickets_tenant_active_idx").on(table.tenantId, table.isActive),
   unique("tickets_tenant_number_unique").on(table.tenantId, table.ticketNumber),
 ]);
@@ -944,17 +939,6 @@ export const insertItemLinkSchema = createInsertSchema(itemLinks);
 export const insertItemCustomerLinkSchema = createInsertSchema(itemCustomerLinks);
 export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks);
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings);
-
-// ✅ TICKET INSERT SCHEMA - COMPANY_ID REQUIRED
-export const insertTicketSchema = createInsertSchema(tickets).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  // Override to make companyId required (company_id in DB)
-  companyId: z.string().uuid({ message: "Empresa é obrigatória" }),
-});
-
 // ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE ZOD SCHEMA - VALIDATION
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   // Validações específicas para os campos obrigatórios
