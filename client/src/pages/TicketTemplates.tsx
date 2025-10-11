@@ -77,19 +77,16 @@ const AVAILABLE_TICKET_FIELDS = [
   { name: 'materials_services', label: 'Materiais e Serviços' },
 ];
 
-// ✅ 1QA.MD: Schema de validação para novos tipos de template
+// ✅ 1QA.MD: Schema de validação - tipo único de template
 const templateFormSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100, 'Nome muito longo'),
   description: z.string().optional(),
-  templateType: z.enum(['creation', 'edit'], {
-    errorMap: () => ({ message: 'Tipo deve ser "creation" ou "edit"' })
-  }),
   companyId: z.string().uuid().optional().nullable(),
   category: z.string().min(1, 'Categoria é obrigatória').max(100, 'Categoria muito longa'),
   subcategory: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   status: z.enum(['active', 'inactive', 'draft']).default('draft'),
-  // ✅ Campos obrigatórios para templates de criação
+  // ✅ Campos obrigatórios
   requiredFields: z.array(z.object({
     fieldName: z.string(),
     fieldType: z.string(),
@@ -111,17 +108,6 @@ const templateFormSchema = z.object({
   tags: z.array(z.string()).default([]),
   isDefault: z.boolean().default(false),
   isSystem: z.boolean().default(false),
-}).refine((data) => {
-  // ✅ Validação condicional para templates de criação
-  if (data.templateType === 'creation') {
-    const requiredFieldNames = ['company', 'client', 'beneficiary', 'status', 'summary'];
-    const providedFieldNames = data.requiredFields.map(f => f.fieldName.toLowerCase());
-    return requiredFieldNames.every(req => providedFieldNames.includes(req));
-  }
-  return true;
-}, {
-  message: 'Templates de criação devem incluir os campos obrigatórios: Company, Client, Beneficiary, Status e Summary',
-  path: ['requiredFields']
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
@@ -213,7 +199,6 @@ export default function TicketTemplates() {
   const [activeTab, setActiveTab] = useState('templates');
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTemplateType, setSelectedTemplateType] = useState<string>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TicketTemplate | null>(null);
@@ -229,7 +214,6 @@ export default function TicketTemplates() {
     defaultValues: {
       name: '',
       description: '',
-      templateType: 'creation',
       companyId: null,
       category: 'Geral',
       subcategory: '',
@@ -259,11 +243,10 @@ export default function TicketTemplates() {
 
   // ✅ 1QA.MD: Query para buscar templates
   const { data: templatesResponse, isLoading: templatesLoading } = useQuery({
-    queryKey: ['ticket-templates', selectedCompany, selectedTemplateType],
+    queryKey: ['ticket-templates', selectedCompany],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCompany !== 'all') params.append('companyId', selectedCompany);
-      if (selectedTemplateType !== 'all') params.append('templateType', selectedTemplateType);
 
       const url = `/api/ticket-templates${params.toString() ? '?' + params.toString() : ''}`;
       return await apiRequest('GET', url);
@@ -280,15 +263,12 @@ export default function TicketTemplates() {
   // ✅ Mutation para criar template — payload alinhado ao controller
   const createTemplateMutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      // requiredFields: garante os fixos quando for 'creation'
-      const requiredFieldsPayload =
-        data.templateType === 'creation'
-          ? (Array.isArray(data.requiredFields) && data.requiredFields.length > 0
-              ? data.requiredFields
-              : getDefaultRequiredFields())
-          : [];
+      // requiredFields: sempre inclui os campos padrão
+      const requiredFieldsPayload = Array.isArray(data.requiredFields) && data.requiredFields.length > 0
+        ? data.requiredFields
+        : getDefaultRequiredFields();
 
-      // customFields: usa os selecionados da listagem (ou editor, se quiser manter)
+      // customFields: usa os selecionados da listagem
       const customFieldsPayload = mapSelectedCustomFields();
 
       const payload = {
@@ -299,7 +279,7 @@ export default function TicketTemplates() {
         subcategory: data.subcategory || null,
         companyId: data.companyId || null,
         priority: data.priority,
-        templateType: data.templateType,
+        templateType: 'creation', // ✅ Sempre 'creation' - tipo único
         status: data.status || 'draft',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
@@ -357,16 +337,12 @@ export default function TicketTemplates() {
   // ✅ Mutation para atualizar template — mesmo formato do create
   const updateTemplateMutation = useMutation({
     mutationFn: async ({ templateId, data }: { templateId: string; data: TemplateFormData }) => {
-      const requiredFieldsPayload =
-        data.templateType === 'creation'
-          ? (Array.isArray(data.requiredFields) && data.requiredFields.length > 0
-              ? data.requiredFields
-              : getDefaultRequiredFields())
-          : [];
+      const requiredFieldsPayload = Array.isArray(data.requiredFields) && data.requiredFields.length > 0
+        ? data.requiredFields
+        : getDefaultRequiredFields();
 
-      // Se você edita no CustomFieldsEditor, priorize o estado dele; senão use os selecionados
-      const customFieldsPayload = mapSelectedCustomFields(); // 👈 força pegar showOnOpen
-
+      // Usa os campos customizados selecionados
+      const customFieldsPayload = mapSelectedCustomFields();
 
       const payload = {
         name: data.name,
@@ -375,7 +351,7 @@ export default function TicketTemplates() {
         subcategory: data.subcategory || null,
         companyId: data.companyId || null,
         priority: data.priority,
-        templateType: data.templateType,
+        templateType: 'creation', // ✅ Sempre 'creation' - tipo único
         status: data.status || 'draft',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
@@ -453,7 +429,6 @@ export default function TicketTemplates() {
     form.reset({
       name: template.name,
       description: template.description || '',
-      templateType: (template as any).template_type || template.templateType,
       companyId: (template as any).company_id ?? template.companyId ?? null,
       category: template.category || '',
       subcategory: template.subcategory || '',
@@ -489,7 +464,6 @@ export default function TicketTemplates() {
   const handleUpdateTemplate = async (data: TemplateFormData) => {
     console.log('🎯 [HANDLE-UPDATE] Button clicked, form data:', {
       name: data.name,
-      templateType: data.templateType,
       category: data.category,
       formErrors: form.formState.errors,
       isValid: form.formState.isValid,
@@ -503,10 +477,8 @@ export default function TicketTemplates() {
 
     const updateData = {
       ...data,
-      requiredFields: data.templateType === 'creation' 
-        ? (data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields())
-        : [],
-      customFields: mapSelectedCustomFields(), // Usa os campos customizados do estado para atualização
+      requiredFields: data.requiredFields.length > 0 ? data.requiredFields : getDefaultRequiredFields(),
+      customFields: mapSelectedCustomFields(),
     };
 
     console.log('🔄 [UPDATE-TEMPLATE] Including custom fields:', {
@@ -1051,8 +1023,7 @@ export default function TicketTemplates() {
               </div>
 
               {/* ✅ 1QA.MD: Campos Obrigatórios e Customizáveis */}
-              {form.watch('templateType') === 'creation' && (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   <Card className="border-green-200 bg-green-50">
                     <CardContent className="pt-4">
                       <div className="flex items-start space-x-3">
@@ -1241,9 +1212,6 @@ export default function TicketTemplates() {
                     </CardContent>
                   </Card>
                 </div>
-              )}
-
-              {/* ✅ 1QA.MD: Seção de Campos Customizados */}
 
               {/* Actions */}
               <div className="flex justify-end gap-2">
@@ -1285,47 +1253,23 @@ export default function TicketTemplates() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleUpdateTemplate)} className="space-y-6">
               {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Template *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Ex: Template Suporte Técnico" 
-                          {...field}
-                          data-testid="input-template-name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="templateType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Template *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-template-type-form">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="creation">Template de Criação</SelectItem>
-                          <SelectItem value="edit">Template de Edição</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Template *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Ex: Template Suporte Técnico" 
+                        {...field}
+                        data-testid="input-template-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -1429,8 +1373,7 @@ export default function TicketTemplates() {
               </div>
 
               {/* ✅ 1QA.MD: Campos Obrigatórios e Customizáveis */}
-              {form.watch('templateType') === 'creation' && (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   <Card className="border-green-200 bg-green-50">
                     <CardContent className="pt-4">
                       <div className="flex items-start space-x-3">
@@ -1619,7 +1562,6 @@ export default function TicketTemplates() {
                     </CardContent>
                   </Card>
                 </div>
-              )}
 
               {/* Validation Errors Display */}
               {Object.keys(form.formState.errors).length > 0 && (
