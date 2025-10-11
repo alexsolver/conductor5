@@ -1062,35 +1062,171 @@ export default function TicketTemplates() {
                             Configure valores padrão que serão aplicados ao criar tickets com este template:
                           </p>
 
-                          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="mt-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Urgência</label>
+                                <FormField
+                                  control={form.control}
+                                  name="urgency"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixa</SelectItem>
+                                        <SelectItem value="medium">Média</SelectItem>
+                                        <SelectItem value="high">Alta</SelectItem>
+                                        <SelectItem value="critical">Crítica</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Impacto</label>
+                                <FormField
+                                  control={form.control}
+                                  name="impact"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixo</SelectItem>
+                                        <SelectItem value="medium">Médio</SelectItem>
+                                        <SelectItem value="high">Alto</SelectItem>
+                                        <SelectItem value="critical">Crítico</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Prioridade</label>
+                                <FormField
+                                  control={form.control}
+                                  name="priority"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixa</SelectItem>
+                                        <SelectItem value="medium">Média</SelectItem>
+                                        <SelectItem value="high">Alta</SelectItem>
+                                        <SelectItem value="urgent">Urgente</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Status do Ticket</label>
+                                <FormField
+                                  control={form.control}
+                                  name="ticketStatus"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="new">Novo</SelectItem>
+                                        <SelectItem value="open">Aberto</SelectItem>
+                                        <SelectItem value="in_progress">Em Progresso</SelectItem>
+                                        <SelectItem value="pending">Pendente</SelectItem>
+                                        <SelectItem value="resolved">Resolvido</SelectItem>
+                                        <SelectItem value="closed">Fechado</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Categoria</label>
+                                <FormField
+                                  control={form.control}
+                                  name="category"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Suporte Técnico"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Subcategoria</label>
+                                <FormField
+                                  control={form.control}
+                                  name="subcategory"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Hardware"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Ação</label>
+                                <FormField
+                                  control={form.control}
+                                  name="action"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Treinamento Técnico"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Prioridade Padrão</label>
+                              <label className="text-sm font-medium text-purple-800">Assunto Padrão</label>
                               <FormField
                                 control={form.control}
-                                name="priority"
+                                name="subject"
                                 render={({ field }) => (
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="mt-1">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="low">Baixa</SelectItem>
-                                      <SelectItem value="medium">Média</SelectItem>
-                                      <SelectItem value="high">Alta</SelectItem>
-                                      <SelectItem value="urgent">Urgente</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <Input 
+                                    {...field}
+                                    placeholder="Ex: Solicitação de Suporte"
+                                    className="mt-1"
+                                  />
                                 )}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Categoria Padrão</label>
-                              <Input 
-                                placeholder="Ex: Suporte Técnico"
-                                className="mt-1"
-                                value={form.watch('subcategory') || ''}
-                                onChange={(e) => form.setValue('subcategory', e.target.value)}
+                              <label className="text-sm font-medium text-purple-800">Descrição Padrão</label>
+                              <FormField
+                                control={form.control}
+                                name="ticketDescription"
+                                render={({ field }) => (
+                                  <Textarea 
+                                    {...field}
+                                    placeholder="Digite a descrição padrão do ticket..."
+                                    className="mt-1 min-h-[100px]"
+                                  />
+                                )}
                               />
                             </div>
                           </div>
@@ -1411,35 +1547,171 @@ export default function TicketTemplates() {
                             Configure valores padrão que serão aplicados ao criar tickets com este template:
                           </p>
 
-                          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="mt-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Urgência</label>
+                                <FormField
+                                  control={form.control}
+                                  name="urgency"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixa</SelectItem>
+                                        <SelectItem value="medium">Média</SelectItem>
+                                        <SelectItem value="high">Alta</SelectItem>
+                                        <SelectItem value="critical">Crítica</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Impacto</label>
+                                <FormField
+                                  control={form.control}
+                                  name="impact"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixo</SelectItem>
+                                        <SelectItem value="medium">Médio</SelectItem>
+                                        <SelectItem value="high">Alto</SelectItem>
+                                        <SelectItem value="critical">Crítico</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Prioridade</label>
+                                <FormField
+                                  control={form.control}
+                                  name="priority"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="low">Baixa</SelectItem>
+                                        <SelectItem value="medium">Média</SelectItem>
+                                        <SelectItem value="high">Alta</SelectItem>
+                                        <SelectItem value="urgent">Urgente</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Status do Ticket</label>
+                                <FormField
+                                  control={form.control}
+                                  name="ticketStatus"
+                                  render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <SelectTrigger className="mt-1">
+                                        <SelectValue placeholder="Selecione..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="new">Novo</SelectItem>
+                                        <SelectItem value="open">Aberto</SelectItem>
+                                        <SelectItem value="in_progress">Em Progresso</SelectItem>
+                                        <SelectItem value="pending">Pendente</SelectItem>
+                                        <SelectItem value="resolved">Resolvido</SelectItem>
+                                        <SelectItem value="closed">Fechado</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Categoria</label>
+                                <FormField
+                                  control={form.control}
+                                  name="category"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Suporte Técnico"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Subcategoria</label>
+                                <FormField
+                                  control={form.control}
+                                  name="subcategory"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Hardware"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium text-purple-800">Ação</label>
+                                <FormField
+                                  control={form.control}
+                                  name="action"
+                                  render={({ field }) => (
+                                    <Input 
+                                      {...field}
+                                      placeholder="Ex: Treinamento Técnico"
+                                      className="mt-1"
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Prioridade Padrão</label>
+                              <label className="text-sm font-medium text-purple-800">Assunto Padrão</label>
                               <FormField
                                 control={form.control}
-                                name="priority"
+                                name="subject"
                                 render={({ field }) => (
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="mt-1">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="low">Baixa</SelectItem>
-                                      <SelectItem value="medium">Média</SelectItem>
-                                      <SelectItem value="high">Alta</SelectItem>
-                                      <SelectItem value="urgent">Urgente</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <Input 
+                                    {...field}
+                                    placeholder="Ex: Solicitação de Suporte"
+                                    className="mt-1"
+                                  />
                                 )}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium text-purple-800">Categoria Padrão</label>
-                              <Input 
-                                placeholder="Ex: Suporte Técnico"
-                                className="mt-1"
-                                value={form.watch('subcategory') || ''}
-                                onChange={(e) => form.setValue('subcategory', e.target.value)}
+                              <label className="text-sm font-medium text-purple-800">Descrição Padrão</label>
+                              <FormField
+                                control={form.control}
+                                name="ticketDescription"
+                                render={({ field }) => (
+                                  <Textarea 
+                                    {...field}
+                                    placeholder="Digite a descrição padrão do ticket..."
+                                    className="mt-1 min-h-[100px]"
+                                  />
+                                )}
                               />
                             </div>
                           </div>
