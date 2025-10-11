@@ -8,6 +8,7 @@ import { db, sql, pool } from '../../../../db';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from '@shared/schema';
 import { Pool } from 'pg';
+import { v4 as uuidv4 } from 'uuid';
 import { CustomFieldMetadata } from '../../domain/entities/CustomField';
 
 // Simplified interface for basic operations
@@ -86,8 +87,8 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       const result = await tenantDb.execute(selectQuery);
       console.log('🔥 [CUSTOM-FIELDS-REPO] Query result:', result.rows?.length || 0, 'fields found');
       
-      return result.rows as CustomFieldMetadata[];
-    } catch (error) {
+      return result.rows as unknown as CustomFieldMetadata[];
+    } catch (error: any) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Error in getFieldsByModule:', error);
       // ✅ 1QA.MD: Return empty array instead of throwing to prevent frontend blocking
       return [];
@@ -104,7 +105,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       // ✅ 1QA.MD: Then create custom_field_metadata table if it doesn't exist
       const createTableQuery = `
         CREATE TABLE IF NOT EXISTS "${tenantSchema}".custom_field_metadata (
-          id VARCHAR(255) PRIMARY KEY,
+          id UUID PRIMARY KEY,
           module_type VARCHAR(100) NOT NULL,
           field_name VARCHAR(255) NOT NULL,
           field_type VARCHAR(100) NOT NULL,
@@ -127,7 +128,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       const tenantDb = await this.getTenantDb();
       await tenantDb.execute(sql.raw(createTableQuery));
       console.log('🔥 [CUSTOM-FIELDS-REPO] Custom fields table ensured in schema:', tenantSchema);
-    } catch (error) {
+    } catch (error: any) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Table creation error:', error);
       throw new Error(`Failed to ensure custom fields table: ${error.message}`);
     }
@@ -153,7 +154,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       } else {
         console.log('🔥 [CUSTOM-FIELDS-REPO] Tenant schema already exists:', schemaName);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Schema creation error:', error);
       throw new Error(`Failed to ensure tenant schema: ${error.message}`);
     }
@@ -181,7 +182,7 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
       } = fieldData;
 
       // ✅ 1QA.MD: Generate UUID for new field
-      const fieldId = `cf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const fieldId = uuidv4();
 
       const tenantSchema = this.getTenantSchema();
       
@@ -246,21 +247,21 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
 
       const tenantSchema = this.getTenantSchema();
       
-      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding
-      const updateQuery = sql.raw(
+      // ✅ 1QA.MD: Use pool.query for proper parameter binding
+      await pool.query(
         `UPDATE "${tenantSchema}".custom_field_metadata 
         SET 
-          field_label = COALESCE(?, field_label),
-          is_required = COALESCE(?, is_required),
-          validation_rules = COALESCE(?, validation_rules),
-          field_options = COALESCE(?, field_options),
-          placeholder = COALESCE(?, placeholder),
-          default_value = COALESCE(?, default_value),
-          display_order = COALESCE(?, display_order),
-          help_text = COALESCE(?, help_text),
-          is_active = COALESCE(?, is_active),
+          field_label = COALESCE($1, field_label),
+          is_required = COALESCE($2, is_required),
+          validation_rules = COALESCE($3, validation_rules),
+          field_options = COALESCE($4, field_options),
+          placeholder = COALESCE($5, placeholder),
+          default_value = COALESCE($6, default_value),
+          display_order = COALESCE($7, display_order),
+          help_text = COALESCE($8, help_text),
+          is_active = COALESCE($9, is_active),
           updated_at = NOW()
-        WHERE id = ?`,
+        WHERE id = $10`,
         [
           fieldLabel, isRequired, 
           validationRules ? JSON.stringify(validationRules) : null,
@@ -269,9 +270,6 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
           fieldId
         ]
       );
-      
-      const tenantDb = await this.getTenantDb();
-      await tenantDb.execute(updateQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field updated successfully');
       return {
@@ -301,19 +299,16 @@ export class SimplifiedCustomFieldRepository implements ISimplifiedCustomFieldRe
 
       const tenantSchema = this.getTenantSchema();
       
-      // ✅ 1QA.MD: Use SQL template literal for proper parameter binding - Soft delete by setting is_active = false
-      const deleteQuery = sql.raw(
+      // ✅ 1QA.MD: Use pool.query for proper parameter binding - Soft delete by setting is_active = false
+      await pool.query(
         `UPDATE "${tenantSchema}".custom_field_metadata 
         SET is_active = false, updated_at = NOW()
-        WHERE id = ?`,
+        WHERE id = $1`,
         [fieldId]
       );
-      
-      const tenantDb = await this.getTenantDb();
-      await tenantDb.execute(deleteQuery);
 
       console.log('🔥 [CUSTOM-FIELDS-REPO] Field deleted successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('🔥 [CUSTOM-FIELDS-REPO] Error in deleteField:', error);
       throw error;
     }
