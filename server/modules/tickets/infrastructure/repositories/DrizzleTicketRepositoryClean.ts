@@ -281,7 +281,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, title as "subject", description, status, priority,
+          id, ticket_number as "number", title as "subject", description, status, priority,
           category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", customer_id as "customerId"
@@ -304,7 +304,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const schemaName = this.getSchemaName(tenantId);
       const result = await tenantDb.execute(sql`
         SELECT 
-          id, number, title as "subject", description, status, priority,
+          id, ticket_number as "number", title as "subject", description, status, priority,
           category, subcategory, caller_id as "callerId", assigned_to as "assignedToId",
           tenant_id as "tenantId", created_at as "createdAt", updated_at as "updatedAt",
           company_id as "companyId", customer_id as "customerId"
