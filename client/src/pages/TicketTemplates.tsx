@@ -214,6 +214,7 @@ export default function TicketTemplates() {
   const [templateCustomFields, setTemplateCustomFields] = useState<any[]>([]);
   const [availableCustomFields, setAvailableCustomFields] = useState<any[]>([]);
   const [selectedCustomFieldIds, setSelectedCustomFieldIds] = useState<string[]>([]);
+  const [enableTicketConfig, setEnableTicketConfig] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -393,6 +394,7 @@ export default function TicketTemplates() {
       toast({ title: 'Sucesso', description: 'Template atualizado com sucesso!' });
       setIsEditOpen(false);
       setSelectedCustomFieldIds([]);
+      setEnableTicketConfig(false);
       queryClient.invalidateQueries({ queryKey: ['ticket-templates'] });
     },
     onError: (error: any) => {
@@ -480,6 +482,19 @@ export default function TicketTemplates() {
       const flag = Boolean(c.showOnOpen ?? c.show_on_open);
       form.setValue(`customFieldsConfig.${c.id}.showOnOpen`, flag, { shouldDirty: false });
     });
+
+    // ✅ Ativar toggle de configuração se houver qualquer valor configurado
+    const hasTicketConfig = 
+      (template as any).urgency || 
+      (template as any).impact || 
+      (template as any).ticket_status || 
+      (template as any).ticketStatus || 
+      (template as any).action || 
+      (template as any).subject || 
+      (template as any).ticket_description || 
+      (template as any).ticketDescription;
+    
+    setEnableTicketConfig(!!hasTicketConfig);
 
     setIsEditOpen(true);
   };
@@ -1079,12 +1094,34 @@ export default function TicketTemplates() {
                       <div className="flex items-start space-x-3">
                         <Settings className="w-5 h-5 text-purple-600 mt-0.5" />
                         <div className="flex-1">
-                          <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
-                          <p className="text-sm text-purple-700 mt-1">
-                            {!form.watch('companyId') 
-                              ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                              : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
+                              <p className="text-sm text-purple-700 mt-1">
+                                {!enableTicketConfig 
+                                  ? 'Ative para configurar valores padrão dos campos do ticket'
+                                  : !form.watch('companyId') 
+                                    ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                              </p>
+                            </div>
+                            <Switch
+                              checked={enableTicketConfig}
+                              onCheckedChange={(checked) => {
+                                setEnableTicketConfig(checked);
+                                if (!checked) {
+                                  // Limpar todos os campos de configuração quando desabilitado
+                                  form.setValue('urgency', '');
+                                  form.setValue('impact', '');
+                                  form.setValue('ticketStatus', '');
+                                  form.setValue('action', '');
+                                  form.setValue('subject', '');
+                                  form.setValue('ticketDescription', '');
+                                }
+                              }}
+                              data-testid="switch-ticket-config"
+                            />
+                          </div>
 
                           <div className="mt-4 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1094,7 +1131,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="urgency"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1115,7 +1152,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="impact"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1136,7 +1173,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="priority"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -1159,7 +1196,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="ticketStatus"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1193,7 +1230,7 @@ export default function TicketTemplates() {
                                       }}
                                       placeholder="Selecione a categoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId')}
                                       data-testid="select-category"
                                     />
                                   )}
@@ -1219,7 +1256,7 @@ export default function TicketTemplates() {
                                       }}
                                       placeholder="Selecione a subcategoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId') || !form.watch('category')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('category')}
                                       data-testid="select-subcategory"
                                     />
                                   )}
@@ -1239,7 +1276,7 @@ export default function TicketTemplates() {
                                       onChange={field.onChange}
                                       placeholder="Selecione a ação..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId') || !form.watch('subcategory')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('subcategory')}
                                       data-testid="select-action"
                                     />
                                   )}
@@ -1257,7 +1294,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Ex: Solicitação de Suporte"
                                     className="mt-1"
-                                    disabled={!form.watch('companyId')}
+                                    disabled={!enableTicketConfig || !form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1273,7 +1310,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Digite a descrição padrão do ticket..."
                                     className="mt-1 min-h-[100px]"
-                                    disabled={!form.watch('companyId')}
+                                    disabled={!enableTicketConfig || !form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1411,6 +1448,7 @@ export default function TicketTemplates() {
                   setIsCreateOpen(false);
                   setTemplateCustomFields([]);
                   setSelectedCustomFieldIds([]);
+                  setEnableTicketConfig(false);
                 }}>
                   Cancelar
                 </Button>
@@ -1591,12 +1629,34 @@ export default function TicketTemplates() {
                       <div className="flex items-start space-x-3">
                         <Settings className="w-5 h-5 text-purple-600 mt-0.5" />
                         <div className="flex-1">
-                          <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
-                          <p className="text-sm text-purple-700 mt-1">
-                            {!form.watch('companyId') 
-                              ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                              : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
+                              <p className="text-sm text-purple-700 mt-1">
+                                {!enableTicketConfig 
+                                  ? 'Ative para configurar valores padrão dos campos do ticket'
+                                  : !form.watch('companyId') 
+                                    ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                              </p>
+                            </div>
+                            <Switch
+                              checked={enableTicketConfig}
+                              onCheckedChange={(checked) => {
+                                setEnableTicketConfig(checked);
+                                if (!checked) {
+                                  // Limpar todos os campos de configuração quando desabilitado
+                                  form.setValue('urgency', '');
+                                  form.setValue('impact', '');
+                                  form.setValue('ticketStatus', '');
+                                  form.setValue('action', '');
+                                  form.setValue('subject', '');
+                                  form.setValue('ticketDescription', '');
+                                }
+                              }}
+                              data-testid="switch-ticket-config"
+                            />
+                          </div>
 
                           <div className="mt-4 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1606,7 +1666,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="urgency"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1627,7 +1687,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="impact"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1648,7 +1708,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="priority"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -1671,7 +1731,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="ticketStatus"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!enableTicketConfig || !form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1705,7 +1765,7 @@ export default function TicketTemplates() {
                                       }}
                                       placeholder="Selecione a categoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId')}
                                       data-testid="select-category"
                                     />
                                   )}
@@ -1731,7 +1791,7 @@ export default function TicketTemplates() {
                                       }}
                                       placeholder="Selecione a subcategoria..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId') || !form.watch('category')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('category')}
                                       data-testid="select-subcategory"
                                     />
                                   )}
@@ -1751,7 +1811,7 @@ export default function TicketTemplates() {
                                       onChange={field.onChange}
                                       placeholder="Selecione a ação..."
                                       className="mt-1"
-                                      disabled={!form.watch('companyId') || !form.watch('subcategory')}
+                                      disabled={!enableTicketConfig || !form.watch('companyId') || !form.watch('subcategory')}
                                       data-testid="select-action"
                                     />
                                   )}
@@ -1769,7 +1829,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Ex: Solicitação de Suporte"
                                     className="mt-1"
-                                    disabled={!form.watch('companyId')}
+                                    disabled={!enableTicketConfig || !form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1785,7 +1845,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Digite a descrição padrão do ticket..."
                                     className="mt-1 min-h-[100px]"
-                                    disabled={!form.watch('companyId')}
+                                    disabled={!enableTicketConfig || !form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1942,6 +2002,7 @@ export default function TicketTemplates() {
                   setIsEditOpen(false);
                   setTemplateCustomFields([]);
                   setSelectedCustomFieldIds([]);
+                  setEnableTicketConfig(false);
                 }}>
                   Cancelar
                 </Button>

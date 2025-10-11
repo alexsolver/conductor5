@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    const { pool, schemaManager } = await import('../../../db-tenant');
+    const { pool, schemaManager } = await import('../../../db-tenant.ts');
     const schemaName = schemaManager.getSchemaName(user.tenantId);
 
     const query = `
