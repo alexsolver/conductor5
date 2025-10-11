@@ -55,7 +55,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
         SELECT 
           t.id,
           t.tenant_id      as "tenantId",
-          t.ticket_number  as "ticketNumber",
+          t.number         as "ticketNumber",
           t.title,
           t.description,
           t.status,
