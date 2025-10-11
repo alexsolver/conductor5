@@ -993,7 +993,19 @@ export default function TicketTemplates() {
                   <FormItem>
                     <FormLabel>Empresa</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === 'global' ? null : value)}
+                      onValueChange={(value) => {
+                        field.onChange(value === 'global' ? null : value);
+                        // Se for global, desabilitar e limpar configurações de campos
+                        if (value === 'global') {
+                          setEnableTicketConfig(false);
+                          form.setValue('urgency', '');
+                          form.setValue('impact', '');
+                          form.setValue('ticketStatus', '');
+                          form.setValue('action', '');
+                          form.setValue('subject', '');
+                          form.setValue('ticketDescription', '');
+                        }
+                      }}
                       value={field.value || 'global'}
                     >
                       <FormControl>
@@ -1098,11 +1110,13 @@ export default function TicketTemplates() {
                             <div>
                               <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                               <p className="text-sm text-purple-700 mt-1">
-                                {!enableTicketConfig 
-                                  ? 'Ative para configurar valores padrão dos campos do ticket'
-                                  : !form.watch('companyId') 
-                                    ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                                {form.watch('global')
+                                  ? 'Templates globais não podem ter configurações de campos do ticket'
+                                  : !enableTicketConfig 
+                                    ? 'Ative para configurar valores padrão dos campos do ticket'
+                                    : !form.watch('companyId') 
+                                      ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                                      : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                               </p>
                             </div>
                             <Switch
@@ -1119,6 +1133,7 @@ export default function TicketTemplates() {
                                   form.setValue('ticketDescription', '');
                                 }
                               }}
+                              disabled={form.watch('global') === true}
                               data-testid="switch-ticket-config"
                             />
                           </div>
@@ -1590,7 +1605,19 @@ export default function TicketTemplates() {
                   <FormItem>
                     <FormLabel>Empresa</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === 'global' ? null : value)}
+                      onValueChange={(value) => {
+                        field.onChange(value === 'global' ? null : value);
+                        // Se for global, desabilitar e limpar configurações de campos
+                        if (value === 'global') {
+                          setEnableTicketConfig(false);
+                          form.setValue('urgency', '');
+                          form.setValue('impact', '');
+                          form.setValue('ticketStatus', '');
+                          form.setValue('action', '');
+                          form.setValue('subject', '');
+                          form.setValue('ticketDescription', '');
+                        }
+                      }}
                       value={field.value || 'global'}
                     >
                       <FormControl>
@@ -1695,11 +1722,13 @@ export default function TicketTemplates() {
                             <div>
                               <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                               <p className="text-sm text-purple-700 mt-1">
-                                {!enableTicketConfig 
-                                  ? 'Ative para configurar valores padrão dos campos do ticket'
-                                  : !form.watch('companyId') 
-                                    ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                                {form.watch('global')
+                                  ? 'Templates globais não podem ter configurações de campos do ticket'
+                                  : !enableTicketConfig 
+                                    ? 'Ative para configurar valores padrão dos campos do ticket'
+                                    : !form.watch('companyId') 
+                                      ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                                      : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                               </p>
                             </div>
                             <Switch
@@ -1716,6 +1745,7 @@ export default function TicketTemplates() {
                                   form.setValue('ticketDescription', '');
                                 }
                               }}
+                              disabled={form.watch('global') === true}
                               data-testid="switch-ticket-config"
                             />
                           </div>
