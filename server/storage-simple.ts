@@ -562,6 +562,7 @@ export class DatabaseStorage implements IStorage {
       let baseQuery = sql`
         SELECT
           tickets.*,
+          tickets.ticket_number as number,
           beneficiary.first_name as customer_first_name,
           beneficiary.last_name as customer_last_name,
           beneficiary.email as customer_email,
@@ -606,6 +607,7 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         SELECT
           tickets.*,
+          tickets.ticket_number as number,
           beneficiary.first_name as customer_first_name,
           beneficiary.last_name as customer_last_name,
           beneficiary.email as customer_email,
