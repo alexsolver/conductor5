@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import {
   Plus,
@@ -1002,21 +1003,20 @@ export default function TicketTemplates() {
                   control={form.control}
                   name="status"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status do Template</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-status">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="draft">Rascunho</SelectItem>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Status do Template</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          {field.value === 'active' ? 'Template ativo e disponível para uso' : 'Template inativo'}
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value === 'active'}
+                          onCheckedChange={(checked) => field.onChange(checked ? 'active' : 'inactive')}
+                          data-testid="switch-status"
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -1352,21 +1352,20 @@ export default function TicketTemplates() {
                   control={form.control}
                   name="status"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status do Template</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-status">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="draft">Rascunho</SelectItem>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Status do Template</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          {field.value === 'active' ? 'Template ativo e disponível para uso' : 'Template inativo'}
+                        </div>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value === 'active'}
+                          onCheckedChange={(checked) => field.onChange(checked ? 'active' : 'inactive')}
+                          data-testid="switch-status"
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
