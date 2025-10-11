@@ -381,7 +381,13 @@ export const ResponsiveTicketsTable = ({
                       return (
                         <TableCell key={columnId} className="text-sm">
                           {(ticket.created_at || (ticket as any).createdAt)
-                            ? new Date(ticket.created_at || (ticket as any).createdAt).toLocaleDateString('pt-BR')
+                            ? new Date(ticket.created_at || (ticket as any).createdAt).toLocaleString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
                             : 'N/A'}
                         </TableCell>
                       );
