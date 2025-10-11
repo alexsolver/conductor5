@@ -1073,7 +1073,9 @@ export default function TicketTemplates() {
                         <div className="flex-1">
                           <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                           <p className="text-sm text-purple-700 mt-1">
-                            Configure valores padrão que serão aplicados ao criar tickets com este template:
+                            {!form.watch('companyId') 
+                              ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                              : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                           </p>
 
                           <div className="mt-4 space-y-4">
@@ -1084,7 +1086,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="urgency"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1105,7 +1107,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="impact"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1126,7 +1128,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="priority"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -1149,7 +1151,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="ticketStatus"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1176,6 +1178,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Suporte Técnico"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1193,6 +1196,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Hardware"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1208,6 +1212,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Treinamento Técnico"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1224,6 +1229,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Ex: Solicitação de Suporte"
                                     className="mt-1"
+                                    disabled={!form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1239,6 +1245,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Digite a descrição padrão do ticket..."
                                     className="mt-1 min-h-[100px]"
+                                    disabled={!form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1558,7 +1565,9 @@ export default function TicketTemplates() {
                         <div className="flex-1">
                           <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                           <p className="text-sm text-purple-700 mt-1">
-                            Configure valores padrão que serão aplicados ao criar tickets com este template:
+                            {!form.watch('companyId') 
+                              ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
+                              : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                           </p>
 
                           <div className="mt-4 space-y-4">
@@ -1569,7 +1578,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="urgency"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1590,7 +1599,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="impact"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1611,7 +1620,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="priority"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -1634,7 +1643,7 @@ export default function TicketTemplates() {
                                   control={form.control}
                                   name="ticketStatus"
                                   render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!form.watch('companyId')}>
                                       <SelectTrigger className="mt-1">
                                         <SelectValue placeholder="Selecione..." />
                                       </SelectTrigger>
@@ -1661,6 +1670,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Suporte Técnico"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1678,6 +1688,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Hardware"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1693,6 +1704,7 @@ export default function TicketTemplates() {
                                       {...field}
                                       placeholder="Ex: Treinamento Técnico"
                                       className="mt-1"
+                                      disabled={!form.watch('companyId')}
                                     />
                                   )}
                                 />
@@ -1709,6 +1721,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Ex: Solicitação de Suporte"
                                     className="mt-1"
+                                    disabled={!form.watch('companyId')}
                                   />
                                 )}
                               />
@@ -1724,6 +1737,7 @@ export default function TicketTemplates() {
                                     {...field}
                                     placeholder="Digite a descrição padrão do ticket..."
                                     className="mt-1 min-h-[100px]"
+                                    disabled={!form.watch('companyId')}
                                   />
                                 )}
                               />
