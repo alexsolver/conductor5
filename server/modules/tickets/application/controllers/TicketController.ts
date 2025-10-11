@@ -114,6 +114,9 @@ export class TicketController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('🎫 [TICKET-CONTROLLER] Creating ticket with DTO:', JSON.stringify(dto, null, 2));
+      console.log('🎫 [TICKET-CONTROLLER] TenantId:', tenantId, 'UserId:', userId);
+
       if (!tenantId) {
         res.status(401).json({
           success: false,
@@ -129,7 +132,9 @@ export class TicketController {
         throw new Error('User ID is required');
       }
 
+      console.log('🎫 [TICKET-CONTROLLER] Final DTO before use case:', JSON.stringify(dto, null, 2));
       const ticket = await this.createTicketUseCase.execute(dto, tenantId);
+      console.log('🎫 [TICKET-CONTROLLER] Ticket created:', JSON.stringify(ticket, null, 2));
 
       res.status(201).json({
         success: true,
@@ -137,6 +142,7 @@ export class TicketController {
         data: ticket
       });
     } catch (error: any) {
+      console.error('❌ [TICKET-CONTROLLER] Error creating ticket:', error);
       res.status(400).json({
         success: false,
         message: error.message || 'Failed to create ticket',
