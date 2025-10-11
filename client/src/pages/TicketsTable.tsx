@@ -492,7 +492,9 @@ const TicketsTable = React.memo(() => {
     req.forEach((f: any) => {
       const raw = f.fieldName?.trim();
       const mapped = fieldMapping[raw] || raw;
-      if (f.defaultValue != null) {
+      
+      // BUGFIX: NÃO sobrescrever companyId/callerId mesmo que template tenha defaultValue
+      if (f.defaultValue != null && !['companyId', 'callerId'].includes(mapped)) {
         // tags pode precisar array
         form.setValue(mapped as any, mapped === 'tags' && typeof f.defaultValue === 'string'
           ? f.defaultValue.split(',').map((s: string) => s.trim()).filter(Boolean)
