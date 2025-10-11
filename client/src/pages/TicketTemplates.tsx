@@ -86,7 +86,14 @@ const templateFormSchema = z.object({
   category: z.string().min(1, 'Categoria é obrigatória').max(100, 'Categoria muito longa'),
   subcategory: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-  status: z.enum(['active', 'inactive', 'draft']).default('draft'),
+  status: z.enum(['active', 'inactive']).default('inactive'),
+  // ✅ Campos de detalhes do ticket para pré-preenchimento
+  urgency: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  impact: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  ticketStatus: z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed']).optional(),
+  action: z.string().optional(),
+  subject: z.string().optional(),
+  ticketDescription: z.string().optional(),
   // ✅ Campos obrigatórios
   requiredFields: z.array(z.object({
     fieldName: z.string(),
