@@ -292,6 +292,13 @@ export default function TicketTemplates() {
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
+        // ✅ Campos de detalhes do ticket para pré-preenchimento
+        urgency: data.urgency || null,
+        impact: data.impact || null,
+        ticketStatus: data.ticketStatus || null,
+        action: data.action || null,
+        subject: data.subject || null,
+        ticketDescription: data.ticketDescription || null,
         // ✅ enviado separado (sem "fields")
         requiredFields: requiredFieldsPayload,
         customFields: customFieldsPayload,
@@ -364,6 +371,13 @@ export default function TicketTemplates() {
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
+        // ✅ Campos de detalhes do ticket para pré-preenchimento
+        urgency: data.urgency || null,
+        impact: data.impact || null,
+        ticketStatus: data.ticketStatus || null,
+        action: data.action || null,
+        subject: data.subject || null,
+        ticketDescription: data.ticketDescription || null,
         requiredFields: requiredFieldsPayload,
         customFields: customFieldsPayload,
         automation: (data as any)?.automation ?? {},
