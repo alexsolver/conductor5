@@ -10,7 +10,7 @@
  */
 
 const express = require('express');
-const { db } = require('../../../db');
+const { db, pool } = require('../../../db');
 const { skills, userSkills } = require('../../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 const { jwtAuth } = require('../../middleware/jwtAuth');
@@ -98,24 +98,31 @@ router.post('/working/skills', async (req, res) => {
     // Validate input
     const skillData = createSkillSchema.parse(req.body);
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills } = await import('../../../shared/schema');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const skillId = uuidv4();
+    const now = new Date();
 
-    // Create skill in database
-    const newSkillData = {
-      tenantId,
-      name: skillData.name,
-      description: skillData.description || null,
-      category: skillData.category,
-      level: skillData.level,
-      tags: skillData.tags || [],
-      isActive: skillData.isActive !== false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    // Create skill in database using raw SQL
+    const result = await pool.query(
+      `INSERT INTO ${schemaName}.skills 
+       (id, tenant_id, name, description, category, level, tags, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        skillId,
+        tenantId,
+        skillData.name,
+        skillData.description || null,
+        skillData.category,
+        skillData.level,
+        JSON.stringify(skillData.tags || []),
+        skillData.isActive !== false,
+        now,
+        now
+      ]
+    );
 
-    const [newSkill] = await db.insert(skills).values(newSkillData).returning();
+    const newSkill = result.rows[0];
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Created skill: ${newSkill.id} for tenant: ${tenantId}`);
 
@@ -158,32 +165,37 @@ router.get('/working/skills', async (req, res) => {
       });
     }
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Filter parameters
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const { category, level, isActive } = req.query;
 
-    // Query database for skills
-    let whereConditions = [eq(skills.tenantId, tenantId)];
+    // Build dynamic WHERE clause
+    const conditions: string[] = ['tenant_id = $1'];
+    const values: any[] = [tenantId];
+    let paramCount = 2;
 
     if (category) {
-      whereConditions.push(eq(skills.category, category as string));
+      conditions.push(`category = $${paramCount++}`);
+      values.push(category);
     }
 
     if (level) {
-      whereConditions.push(eq(skills.level, level as string));
+      conditions.push(`level = $${paramCount++}`);
+      values.push(level);
     }
 
     if (isActive !== undefined) {
-      whereConditions.push(eq(skills.isActive, isActive === 'true'));
+      conditions.push(`is_active = $${paramCount++}`);
+      values.push(isActive === 'true');
     }
 
-    const skillsData = await db.select().from(skills).where(and(...whereConditions));
+    const result = await pool.query(
+      `SELECT * FROM ${schemaName}.skills 
+       WHERE ${conditions.join(' AND ')}`,
+      values
+    );
 
-    // If no skills exist, return empty array (don't create sample data)
+    const skillsData = result.rows;
+
     console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${skillsData.length} skills for tenant: ${tenantId}`);
 
     res.json({
@@ -224,18 +236,15 @@ router.get('/working/skills/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills, userSkills } = await import('../../../shared/schema');
-    const { eq, and, count } = await import('drizzle-orm');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Query database for skill
-    const [skill] = await db.select().from(skills).where(
-      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    const skillResult = await pool.query(
+      `SELECT * FROM ${schemaName}.skills WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+      [id, tenantId]
     );
 
-    if (!skill) {
+    if (skillResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Not found',
@@ -243,17 +252,19 @@ router.get('/working/skills/:id', async (req, res) => {
       });
     }
 
+    const skill = skillResult.rows[0];
+
     // Get user count for this skill
-    const [userCountResult] = await db.select({ 
-      count: count(userSkills.id) 
-    }).from(userSkills).where(
-      and(eq(userSkills.skillId, id), eq(userSkills.isActive, true))
+    const userCountResult = await pool.query(
+      `SELECT COUNT(*) as count FROM ${schemaName}.user_skills 
+       WHERE skill_id = $1 AND is_active = true`,
+      [id]
     );
 
     const skillWithStats = {
       ...skill,
-      userCount: userCountResult?.count || 0,
-      averageProficiency: 'intermediate' // This could be calculated from userSkills
+      userCount: parseInt(userCountResult.rows[0]?.count || '0'),
+      averageProficiency: 'intermediate'
     };
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved skill: ${id} for tenant: ${tenantId}`);
@@ -289,21 +300,16 @@ router.get('/working/skills/categories', async (req, res) => {
       });
     }
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Get distinct categories from database
-    const categoriesResult = await db.selectDistinct({
-      category: skills.category
-    }).from(skills).where(
-      and(eq(skills.tenantId, tenantId), eq(skills.isActive, true))
+    const result = await pool.query(
+      `SELECT DISTINCT category FROM ${schemaName}.skills 
+       WHERE tenant_id = $1 AND is_active = true AND category IS NOT NULL AND category != ''`,
+      [tenantId]
     );
 
-    const categories = categoriesResult
-      .map(row => row.category)
-      .filter(category => category !== null && category !== '');
+    const categories = result.rows.map(row => row.category);
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Retrieved ${categories.length} categories for tenant: ${tenantId}`);
 
@@ -339,21 +345,16 @@ router.put('/working/skills/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-
-    // Validate partial update data
     const updateData = createSkillSchema.partial().parse(req.body);
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Check if skill exists and belongs to the tenant
-    const [existingSkill] = await db.select().from(skills).where(
-      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    // Check if skill exists
+    const checkResult = await pool.query(
+      `SELECT * FROM ${schemaName}.skills WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+      [id, tenantId]
     );
 
-    if (!existingSkill) {
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Not found',
@@ -361,15 +362,51 @@ router.put('/working/skills/:id', async (req, res) => {
       });
     }
 
-    // Update skill in database
-    const updatedSkillData = {
-      ...updateData,
-      updatedAt: new Date()
-    };
+    // Build dynamic UPDATE
+    const updateFields: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
 
-    const [updatedSkill] = await db.update(skills).set(updatedSkillData).where(
-      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
-    ).returning();
+    if (updateData.name !== undefined) {
+      updateFields.push(`name = $${paramCount++}`);
+      values.push(updateData.name);
+    }
+    if (updateData.description !== undefined) {
+      updateFields.push(`description = $${paramCount++}`);
+      values.push(updateData.description);
+    }
+    if (updateData.category !== undefined) {
+      updateFields.push(`category = $${paramCount++}`);
+      values.push(updateData.category);
+    }
+    if (updateData.level !== undefined) {
+      updateFields.push(`level = $${paramCount++}`);
+      values.push(updateData.level);
+    }
+    if (updateData.tags !== undefined) {
+      updateFields.push(`tags = $${paramCount++}`);
+      values.push(JSON.stringify(updateData.tags));
+    }
+    if (updateData.isActive !== undefined) {
+      updateFields.push(`is_active = $${paramCount++}`);
+      values.push(updateData.isActive);
+    }
+
+    updateFields.push(`updated_at = $${paramCount++}`);
+    values.push(new Date());
+
+    values.push(id);
+    values.push(tenantId);
+
+    const result = await pool.query(
+      `UPDATE ${schemaName}.skills 
+       SET ${updateFields.join(', ')} 
+       WHERE id = $${paramCount++} AND tenant_id = $${paramCount++}
+       RETURNING *`,
+      values
+    );
+
+    const updatedSkill = result.rows[0];
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Updated skill: ${id} for tenant: ${tenantId}`);
 
@@ -413,18 +450,15 @@ router.delete('/working/skills/:id', async (req, res) => {
     }
 
     const { id } = req.params;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { skills, userSkills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Check if skill exists and belongs to the tenant
-    const [existingSkill] = await db.select().from(skills).where(
-      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    // Check if skill exists
+    const checkResult = await pool.query(
+      `SELECT * FROM ${schemaName}.skills WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+      [id, tenantId]
     );
 
-    if (!existingSkill) {
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Not found',
@@ -433,13 +467,15 @@ router.delete('/working/skills/:id', async (req, res) => {
     }
 
     // Delete associated user skills first
-    await db.delete(userSkills).where(
-      and(eq(userSkills.skillId, id), eq(userSkills.tenantId, tenantId))
+    await pool.query(
+      `DELETE FROM ${schemaName}.user_skills WHERE skill_id = $1 AND tenant_id = $2`,
+      [id, tenantId]
     );
 
     // Delete the skill
-    await db.delete(skills).where(
-      and(eq(skills.id, id), eq(skills.tenantId, tenantId))
+    await pool.query(
+      `DELETE FROM ${schemaName}.skills WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
     );
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted skill: ${id} for tenant: ${tenantId}`);
@@ -474,20 +510,16 @@ router.post('/working/user-skills', async (req, res) => {
       });
     }
 
-    // Validate input
     const userSkillData = createUserSkillSchema.parse(req.body);
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { userSkills, skills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Check if skill exists and belongs to the tenant
-    const [skill] = await db.select().from(skills).where(
-      and(eq(skills.id, userSkillData.skillId), eq(skills.tenantId, tenantId))
+    // Check if skill exists
+    const skillResult = await pool.query(
+      `SELECT * FROM ${schemaName}.skills WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+      [userSkillData.skillId, tenantId]
     );
 
-    if (!skill) {
+    if (skillResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Not found',
@@ -495,12 +527,14 @@ router.post('/working/user-skills', async (req, res) => {
       });
     }
 
-    // Check if user already has this skill assigned
-    const [existingUserSkill] = await db.select().from(userSkills).where(
-      and(eq(userSkills.userId, userSkillData.userId), eq(userSkills.skillId, userSkillData.skillId), eq(userSkills.tenantId, tenantId))
+    // Check if user already has this skill
+    const existingResult = await pool.query(
+      `SELECT * FROM ${schemaName}.user_skills 
+       WHERE user_id = $1 AND skill_id = $2 AND tenant_id = $3 LIMIT 1`,
+      [userSkillData.userId, userSkillData.skillId, tenantId]
     );
 
-    if (existingUserSkill) {
+    if (existingResult.rows.length > 0) {
       return res.status(409).json({
         success: false,
         error: 'Conflict',
@@ -508,22 +542,30 @@ router.post('/working/user-skills', async (req, res) => {
       });
     }
 
-    // Create a working user skill response
-    const newUserSkill = {
-      id: `user_skill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      tenantId,
-      userId: userSkillData.userId,
-      skillId: userSkillData.skillId,
-      proficiencyLevel: userSkillData.proficiencyLevel,
-      yearsOfExperience: userSkillData.yearsOfExperience || 0,
-      certifications: userSkillData.certifications || [],
-      notes: userSkillData.notes || null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const userSkillId = uuidv4();
+    const now = new Date();
 
-    // Insert into database
-    await db.insert(userSkills).values(newUserSkill);
+    // Insert user skill
+    const result = await pool.query(
+      `INSERT INTO ${schemaName}.user_skills 
+       (id, tenant_id, user_id, skill_id, proficiency_level, years_of_experience, certifications, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        userSkillId,
+        tenantId,
+        userSkillData.userId,
+        userSkillData.skillId,
+        userSkillData.proficiencyLevel,
+        userSkillData.yearsOfExperience || 0,
+        JSON.stringify(userSkillData.certifications || []),
+        userSkillData.notes || null,
+        now,
+        now
+      ]
+    );
+
+    const newUserSkill = result.rows[0];
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Created user skill: ${newUserSkill.id} for tenant: ${tenantId}`);
 
@@ -566,133 +608,71 @@ router.get('/working/user-skills', async (req, res) => {
       });
     }
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { userSkills, skills, users } = await import('../../../shared/schema');
-    const { eq, and, asc, ilike, placeholder, sql } = await import('drizzle-orm');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const { skillId, userId, proficiency, page = 1, limit = 20 } = req.query;
 
-    // Query parameters for filtering and pagination
-    const { 
-      search, 
-      skillId, 
-      userId, 
-      proficiency, 
-      sortBy = 'createdAt', 
-      sortOrder = 'desc', 
-      page = 1, 
-      limit = 20 
-    } = req.query;
+    const conditions: string[] = ['us.tenant_id = $1', 'us.is_active = true'];
+    const values: any[] = [tenantId];
+    let paramCount = 2;
+
+    if (skillId) {
+      conditions.push(`us.skill_id = $${paramCount++}`);
+      values.push(skillId);
+    }
+    if (userId) {
+      conditions.push(`us.user_id = $${paramCount++}`);
+      values.push(userId);
+    }
+    if (proficiency) {
+      conditions.push(`us.proficiency_level = $${paramCount++}`);
+      values.push(proficiency);
+    }
 
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
-    let query = db.select({
-      id: userSkills.id,
-      userId: userSkills.userId,
-      skillId: userSkills.skillId,
-      proficiencyLevel: userSkills.proficiencyLevel,
-      yearsOfExperience: userSkills.yearsOfExperience,
-      certifications: userSkills.certifications,
-      notes: userSkills.notes,
-      createdAt: userSkills.createdAt,
-      updatedAt: userSkills.updatedAt,
-      skillName: skills.name,
-      skillCategory: skills.category,
-      skillLevel: skills.level,
-      userName: users.firstName,
-      userLastName: users.lastName
-    })
-    .from(userSkills)
-    .innerJoin(skills, eq(userSkills.skillId, skills.id))
-    .innerJoin(users, eq(userSkills.userId, users.id))
-    .where(
-      and(
-        eq(userSkills.tenantId, tenantId),
-        eq(userSkills.isActive, true), // Assuming active skills are relevant
-        skillId ? eq(userSkills.skillId, skillId as string) : undefined,
-        userId ? eq(userSkills.userId, userId as string) : undefined,
-        proficiency ? eq(userSkills.proficiencyLevel, proficiency as string) : undefined,
-        search ? 
-          or(
-            ilike(skills.name, `%${search}%`),
-            ilike(skills.category, `%${search}%`),
-            ilike(users.firstName, `%${search}%`),
-            ilike(users.lastName, `%${search}%`)
-          ) : undefined
-      )
+    // Simplified query without complex JOINs - just get user_skills with basic info
+    const result = await pool.query(
+      `SELECT 
+        us.*,
+        s.name as skill_name,
+        s.category as skill_category,
+        s.level as skill_level
+       FROM ${schemaName}.user_skills us
+       LEFT JOIN ${schemaName}.skills s ON us.skill_id = s.id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY us.created_at DESC
+       LIMIT $${paramCount++} OFFSET $${paramCount++}`,
+      [...values, parseInt(limit as string), offset]
     );
 
-    // Count total matching records
-    const countQuery = db.select({ count: fn.count(userSkills.id) })
-      .from(userSkills)
-      .innerJoin(skills, eq(userSkills.skillId, skills.id))
-      .innerJoin(users, eq(userSkills.userId, users.id))
-      .where(
-        and(
-          eq(userSkills.tenantId, tenantId),
-          eq(userSkills.isActive, true),
-          skillId ? eq(userSkills.skillId, skillId as string) : undefined,
-          userId ? eq(userSkills.userId, userId as string) : undefined,
-          proficiency ? eq(userSkills.proficiencyLevel, proficiency as string) : undefined,
-          search ? 
-            or(
-              ilike(skills.name, `%${search}%`),
-              ilike(skills.category, `%${search}%`),
-              ilike(users.firstName, `%${search}%`),
-              ilike(users.lastName, `%${search}%`)
-            ) : undefined
-        )
-      );
+    // Count total
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as count FROM ${schemaName}.user_skills us
+       WHERE ${conditions.join(' AND ')}`,
+      values
+    );
 
-    // Apply sorting
-    const orderBy = [];
-    if (sortBy === 'createdAt') {
-      orderBy.push(sortOrder === 'asc' ? asc(userSkills.createdAt) : desc(userSkills.createdAt));
-    } else if (sortBy === 'userName') {
-      orderBy.push(sortOrder === 'asc' ? asc(users.firstName) : desc(users.firstName));
-    } else if (sortBy === 'skillName') {
-      orderBy.push(sortOrder === 'asc' ? asc(skills.name) : desc(skills.name));
-    } else if (sortBy === 'proficiency') {
-      orderBy.push(sortOrder === 'asc' ? asc(userSkills.proficiencyLevel) : desc(userSkills.proficiencyLevel));
-    } else {
-      orderBy.push(sortOrder === 'asc' ? asc(userSkills.createdAt) : desc(userSkills.createdAt));
-    }
+    const totalCount = parseInt(countResult.rows[0]?.count || '0');
 
-    query = query.orderBy(...orderBy);
-
-    // Apply pagination
-    query = query.limit(parseInt(limit as string)).offset(offset);
-
-    const [userSkillsData, totalCountResult] = await Promise.all([
-      query,
-      countQuery
-    ]);
-
-    const totalCount = totalCountResult[0]?.count || 0;
-
-    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${userSkillsData.length} user skills for tenant: ${tenantId}`);
+    console.log(`[TECHNICAL-SKILLS-WORKING] Listed ${result.rows.length} user skills for tenant: ${tenantId}`);
 
     res.json({
       success: true,
-      data: userSkillsData.map(us => ({
+      data: result.rows.map(us => ({
         id: us.id,
-        userId: us.userId,
-        skillId: us.skillId,
-        proficiencyLevel: us.proficiencyLevel,
-        yearsOfExperience: us.yearsOfExperience,
+        userId: us.user_id,
+        skillId: us.skill_id,
+        proficiencyLevel: us.proficiency_level,
+        yearsOfExperience: us.years_of_experience,
         certifications: us.certifications,
         notes: us.notes,
-        createdAt: us.createdAt,
-        updatedAt: us.updatedAt,
+        createdAt: us.created_at,
+        updatedAt: us.updated_at,
         skill: {
-          id: us.skillId,
-          name: us.skillName,
-          category: us.skillCategory,
-          level: us.skillLevel
-        },
-        user: {
-          id: us.userId,
-          firstName: us.userName,
-          lastName: us.userLastName
+          id: us.skill_id,
+          name: us.skill_name,
+          category: us.skill_category,
+          level: us.skill_level
         }
       })),
       pagination: {
@@ -730,40 +710,23 @@ router.get('/working/user-skills/user/:userId', async (req, res) => {
     }
 
     const { userId } = req.params;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { userSkills, skills, users } = await import('../../../shared/schema');
-    const { eq, and, asc, desc, fn, or, ilike, placeholder, sql } = await import('drizzle-orm');
+    // Query with JOIN
+    const result = await pool.query(
+      `SELECT 
+        us.*,
+        s.name as skill_name,
+        s.category as skill_category,
+        s.level as skill_level
+       FROM ${schemaName}.user_skills us
+       INNER JOIN ${schemaName}.skills s ON us.skill_id = s.id
+       WHERE us.tenant_id = $1 AND us.user_id = $2 AND us.is_active = true
+       ORDER BY s.name ASC`,
+      [tenantId, userId]
+    );
 
-    // Query to get user skills along with skill and user details
-    const userSkillsData = await db.select({
-      id: userSkills.id,
-      userId: userSkills.userId,
-      skillId: userSkills.skillId,
-      proficiencyLevel: userSkills.proficiencyLevel,
-      yearsOfExperience: userSkills.yearsOfExperience,
-      certifications: userSkills.certifications,
-      notes: userSkills.notes,
-      createdAt: userSkills.createdAt,
-      updatedAt: userSkills.updatedAt,
-      skillName: skills.name,
-      skillCategory: skills.category,
-      skillLevel: skills.level,
-      userName: users.firstName,
-      userLastName: users.lastName
-    })
-    .from(userSkills)
-    .innerJoin(skills, eq(userSkills.skillId, skills.id))
-    .innerJoin(users, eq(userSkills.userId, users.id))
-    .where(
-      and(
-        eq(userSkills.tenantId, tenantId),
-        eq(userSkills.userId, userId),
-        eq(userSkills.isActive, true) // Assuming we only want active skill assignments
-      )
-    )
-    .orderBy(asc(skills.name)); // Order by skill name alphabetically
+    const userSkillsData = result.rows;
 
     // Calculate summary statistics
     const totalSkills = userSkillsData.length;
@@ -778,15 +741,15 @@ router.get('/working/user-skills/user/:userId', async (req, res) => {
     let totalExperience = 0;
 
     userSkillsData.forEach(us => {
-      if (us.proficiencyLevel in proficiencyDistribution) {
-        proficiencyDistribution[us.proficiencyLevel]++;
+      if (us.proficiency_level in proficiencyDistribution) {
+        proficiencyDistribution[us.proficiency_level]++;
       }
-      categoryCounts[us.skillCategory] = (categoryCounts[us.skillCategory] || 0) + 1;
-      totalExperience += us.yearsOfExperience || 0;
+      categoryCounts[us.skill_category] = (categoryCounts[us.skill_category] || 0) + 1;
+      totalExperience += us.years_of_experience || 0;
     });
 
     const topCategories = Object.entries(categoryCounts)
-      .sort(([, a], [, b]) => b - a)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
       .slice(0, 3)
       .map(([category]) => category);
 
@@ -796,19 +759,19 @@ router.get('/working/user-skills/user/:userId', async (req, res) => {
       success: true,
       data: userSkillsData.map(us => ({
         id: us.id,
-        userId: us.userId,
-        skillId: us.skillId,
-        proficiencyLevel: us.proficiencyLevel,
-        yearsOfExperience: us.yearsOfExperience,
+        userId: us.user_id,
+        skillId: us.skill_id,
+        proficiencyLevel: us.proficiency_level,
+        yearsOfExperience: us.years_of_experience,
         certifications: us.certifications,
         notes: us.notes,
-        createdAt: us.createdAt,
-        updatedAt: us.updatedAt,
+        createdAt: us.created_at,
+        updatedAt: us.updated_at,
         skill: {
-          id: us.skillId,
-          name: us.skillName,
-          category: us.skillCategory,
-          level: us.skillLevel
+          id: us.skill_id,
+          name: us.skill_name,
+          category: us.skill_category,
+          level: us.skill_level
         }
       })),
       summary: {
@@ -846,18 +809,15 @@ router.delete('/working/user-skills/:id', async (req, res) => {
     }
 
     const { id } = req.params;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Import database and schema
-    const { db } = await import('../../../db');
-    const { userSkills } = await import('../../../shared/schema');
-    const { eq, and } = await import('drizzle-orm');
-
-    // Check if the user skill assignment exists and belongs to the tenant
-    const [existingUserSkill] = await db.select().from(userSkills).where(
-      and(eq(userSkills.id, id), eq(userSkills.tenantId, tenantId))
+    // Check if exists
+    const checkResult = await pool.query(
+      `SELECT * FROM ${schemaName}.user_skills WHERE id = $1 AND tenant_id = $2 LIMIT 1`,
+      [id, tenantId]
     );
 
-    if (!existingUserSkill) {
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Not found',
@@ -865,9 +825,10 @@ router.delete('/working/user-skills/:id', async (req, res) => {
       });
     }
 
-    // Delete the user skill assignment
-    await db.delete(userSkills).where(
-      and(eq(userSkills.id, id), eq(userSkills.tenantId, tenantId))
+    // Delete
+    await pool.query(
+      `DELETE FROM ${schemaName}.user_skills WHERE id = $1 AND tenant_id = $2`,
+      [id, tenantId]
     );
 
     console.log(`[TECHNICAL-SKILLS-WORKING] Deleted user skill: ${id} for tenant: ${tenantId}`);
