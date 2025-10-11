@@ -1375,9 +1375,11 @@ export default function TicketTemplates() {
                                     {availableCustomFieldsResponse.data.map((field: any) => {
                                       const isSelected = selectedCustomFieldIds.includes(field.id);
                                       const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
+                                      const requiredOnCreate = form.watch(`customFieldsConfig.${field.id}.requiredOnCreate`) || false;
+                                      const requiredOnDetails = form.watch(`customFieldsConfig.${field.id}.requiredOnDetails`) || false;
 
                                       return (
-                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
+                                        <div key={field.id} className="flex flex-col space-y-2 border rounded-md p-3 bg-white">
                                           <div className="flex items-center space-x-2">
                                             <Checkbox
                                               id={`custom-field-${field.id}`}
@@ -1387,14 +1389,18 @@ export default function TicketTemplates() {
                                                   setSelectedCustomFieldIds(prev => [...prev, field.id]);
                                                 } else {
                                                   setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                                  // se desmarcar, reseta config
-                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
+                                                  // se desmarcar, reseta todas as configs
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { 
+                                                    showOnOpen: false,
+                                                    requiredOnCreate: false,
+                                                    requiredOnDetails: false
+                                                  });
                                                 }
                                               }}
                                             />
                                             <Label
                                               htmlFor={`custom-field-${field.id}`}
-                                              className="text-sm font-medium cursor-pointer"
+                                              className="text-sm font-medium cursor-pointer flex-1"
                                             >
                                               {field.fieldLabel}
                                             </Label>
@@ -1404,20 +1410,74 @@ export default function TicketTemplates() {
                                           </div>
 
                                           {isSelected && (
-                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
-                                              <Checkbox
-                                                id={`custom-field-showonopen-${field.id}`}
-                                                checked={showOnOpen}
-                                                onCheckedChange={(checked) =>
-                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
-                                                }
-                                              />
-                                              <Label
-                                                htmlFor={`custom-field-showonopen-${field.id}`}
-                                                className="cursor-pointer"
-                                              >
-                                                Mostrar ao abrir a OS
-                                              </Label>
+                                            <div className="ml-6 space-y-2 text-sm">
+                                              {/* Modal de Criação */}
+                                              <div className="flex flex-col space-y-1.5 p-2 bg-blue-50 rounded border border-blue-200">
+                                                <div className="flex items-center space-x-1 text-blue-700 font-medium text-xs">
+                                                  <span>📝</span>
+                                                  <span>Modal de Criação</span>
+                                                </div>
+                                                <div className="flex items-center space-x-4">
+                                                  <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`custom-field-showonopen-${field.id}`}
+                                                      checked={showOnOpen}
+                                                      onCheckedChange={(checked) => {
+                                                        form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true);
+                                                        // Se desmarcar "Mostrar", também desmarca "Obrigatório"
+                                                        if (!checked) {
+                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, false);
+                                                        }
+                                                      }}
+                                                    />
+                                                    <Label
+                                                      htmlFor={`custom-field-showonopen-${field.id}`}
+                                                      className="cursor-pointer text-gray-700"
+                                                    >
+                                                      Mostrar ao abrir
+                                                    </Label>
+                                                  </div>
+                                                  <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`custom-field-required-create-${field.id}`}
+                                                      checked={requiredOnCreate}
+                                                      disabled={!showOnOpen}
+                                                      onCheckedChange={(checked) =>
+                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true)
+                                                      }
+                                                    />
+                                                    <Label
+                                                      htmlFor={`custom-field-required-create-${field.id}`}
+                                                      className={`cursor-pointer ${!showOnOpen ? 'text-gray-400' : 'text-gray-700'}`}
+                                                    >
+                                                      Obrigatório
+                                                    </Label>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              {/* Aba de Detalhes */}
+                                              <div className="flex flex-col space-y-1.5 p-2 bg-purple-50 rounded border border-purple-200">
+                                                <div className="flex items-center space-x-1 text-purple-700 font-medium text-xs">
+                                                  <span>📋</span>
+                                                  <span>Aba de Detalhes</span>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <Checkbox
+                                                    id={`custom-field-required-details-${field.id}`}
+                                                    checked={requiredOnDetails}
+                                                    onCheckedChange={(checked) =>
+                                                      form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, checked === true)
+                                                    }
+                                                  />
+                                                  <Label
+                                                    htmlFor={`custom-field-required-details-${field.id}`}
+                                                    className="cursor-pointer text-gray-700"
+                                                  >
+                                                    Obrigatório
+                                                  </Label>
+                                                </div>
+                                              </div>
                                             </div>
                                           )}
                                         </div>
@@ -1912,9 +1972,11 @@ export default function TicketTemplates() {
                                     {availableCustomFieldsResponse.data.map((field: any) => {
                                       const isSelected = selectedCustomFieldIds.includes(field.id);
                                       const showOnOpen = form.watch(`customFieldsConfig.${field.id}.showOnOpen`) || false;
+                                      const requiredOnCreate = form.watch(`customFieldsConfig.${field.id}.requiredOnCreate`) || false;
+                                      const requiredOnDetails = form.watch(`customFieldsConfig.${field.id}.requiredOnDetails`) || false;
 
                                       return (
-                                        <div key={field.id} className="flex flex-col space-y-1 border rounded-md p-2 bg-white">
+                                        <div key={field.id} className="flex flex-col space-y-2 border rounded-md p-3 bg-white">
                                           <div className="flex items-center space-x-2">
                                             <Checkbox
                                               id={`custom-field-${field.id}`}
@@ -1924,14 +1986,18 @@ export default function TicketTemplates() {
                                                   setSelectedCustomFieldIds(prev => [...prev, field.id]);
                                                 } else {
                                                   setSelectedCustomFieldIds(prev => prev.filter(id => id !== field.id));
-                                                  // se desmarcar, reseta config
-                                                  form.setValue(`customFieldsConfig.${field.id}`, { showOnOpen: false });
+                                                  // se desmarcar, reseta todas as configs
+                                                  form.setValue(`customFieldsConfig.${field.id}`, { 
+                                                    showOnOpen: false,
+                                                    requiredOnCreate: false,
+                                                    requiredOnDetails: false
+                                                  });
                                                 }
                                               }}
                                             />
                                             <Label
                                               htmlFor={`custom-field-${field.id}`}
-                                              className="text-sm font-medium cursor-pointer"
+                                              className="text-sm font-medium cursor-pointer flex-1"
                                             >
                                               {field.fieldLabel}
                                             </Label>
@@ -1941,20 +2007,74 @@ export default function TicketTemplates() {
                                           </div>
 
                                           {isSelected && (
-                                            <div className="ml-6 flex items-center space-x-2 text-sm text-gray-600">
-                                              <Checkbox
-                                                id={`custom-field-showonopen-${field.id}`}
-                                                checked={showOnOpen}
-                                                onCheckedChange={(checked) =>
-                                                  form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true)
-                                                }
-                                              />
-                                              <Label
-                                                htmlFor={`custom-field-showonopen-${field.id}`}
-                                                className="cursor-pointer"
-                                              >
-                                                Mostrar ao abrir a OS
-                                              </Label>
+                                            <div className="ml-6 space-y-2 text-sm">
+                                              {/* Modal de Criação */}
+                                              <div className="flex flex-col space-y-1.5 p-2 bg-blue-50 rounded border border-blue-200">
+                                                <div className="flex items-center space-x-1 text-blue-700 font-medium text-xs">
+                                                  <span>📝</span>
+                                                  <span>Modal de Criação</span>
+                                                </div>
+                                                <div className="flex items-center space-x-4">
+                                                  <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`custom-field-showonopen-${field.id}`}
+                                                      checked={showOnOpen}
+                                                      onCheckedChange={(checked) => {
+                                                        form.setValue(`customFieldsConfig.${field.id}.showOnOpen`, checked === true);
+                                                        // Se desmarcar "Mostrar", também desmarca "Obrigatório"
+                                                        if (!checked) {
+                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, false);
+                                                        }
+                                                      }}
+                                                    />
+                                                    <Label
+                                                      htmlFor={`custom-field-showonopen-${field.id}`}
+                                                      className="cursor-pointer text-gray-700"
+                                                    >
+                                                      Mostrar ao abrir
+                                                    </Label>
+                                                  </div>
+                                                  <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`custom-field-required-create-${field.id}`}
+                                                      checked={requiredOnCreate}
+                                                      disabled={!showOnOpen}
+                                                      onCheckedChange={(checked) =>
+                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true)
+                                                      }
+                                                    />
+                                                    <Label
+                                                      htmlFor={`custom-field-required-create-${field.id}`}
+                                                      className={`cursor-pointer ${!showOnOpen ? 'text-gray-400' : 'text-gray-700'}`}
+                                                    >
+                                                      Obrigatório
+                                                    </Label>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              {/* Aba de Detalhes */}
+                                              <div className="flex flex-col space-y-1.5 p-2 bg-purple-50 rounded border border-purple-200">
+                                                <div className="flex items-center space-x-1 text-purple-700 font-medium text-xs">
+                                                  <span>📋</span>
+                                                  <span>Aba de Detalhes</span>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <Checkbox
+                                                    id={`custom-field-required-details-${field.id}`}
+                                                    checked={requiredOnDetails}
+                                                    onCheckedChange={(checked) =>
+                                                      form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, checked === true)
+                                                    }
+                                                  />
+                                                  <Label
+                                                    htmlFor={`custom-field-required-details-${field.id}`}
+                                                    className="cursor-pointer text-gray-700"
+                                                  >
+                                                    Obrigatório
+                                                  </Label>
+                                                </div>
+                                              </div>
                                             </div>
                                           )}
                                         </div>
