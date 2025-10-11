@@ -2020,9 +2020,37 @@ const TicketsTable = React.memo(() => {
         description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      
+      // BUGFIX: Fechar modal e resetar form após sucesso
       setIsNewTicketModalOpen(false);
       form.reset();
+      setSelectedCompanyId('');
+      setSelectedCustomerId('');
+      setSelectedTemplateId(undefined);
+      setTemplateSelected(false);
+      setTemplateRequiredKeys([]);
+      setTemplateOptionalKeys([]);
+      setTemplateFieldOrder([]);
+      setActiveCustomFields([]);
+      setActiveTemplateType('creation');
+      setVisibleFields({
+        company: false,
+        client: false,
+        beneficiary: false,
+        summary: false,
+        description: false,
+        status: false,
+        urgency: false,
+        location: false,
+        tags: false,
+        comments: false,
+        estimated_hours: false,
+        materials_services: false,
+        due_date: false,
+        attachment: false,
+      });
+      console.log('🔄 [TICKET-CREATED] Modal fechado e form resetado');
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
     },
     onError: (error: Error) => {
       console.error("❌ Erro ao criar ticket:", error);
