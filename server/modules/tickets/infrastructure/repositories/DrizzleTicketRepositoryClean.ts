@@ -195,7 +195,7 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       let mainQuery = `
         SELECT 
           t.id,
-          t.number           AS "number",
+          t.ticket_number    AS "number",
           t.subject          AS "subject",
           t.description,
           t.status,
