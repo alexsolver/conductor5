@@ -1110,13 +1110,11 @@ export default function TicketTemplates() {
                             <div>
                               <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                               <p className="text-sm text-purple-700 mt-1">
-                                {form.watch('global')
+                                {!form.watch('companyId')
                                   ? 'Templates globais não podem ter configurações de campos do ticket'
                                   : !enableTicketConfig 
                                     ? 'Ative para configurar valores padrão dos campos do ticket'
-                                    : !form.watch('companyId') 
-                                      ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                                      : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                               </p>
                             </div>
                             <Switch
@@ -1133,7 +1131,7 @@ export default function TicketTemplates() {
                                   form.setValue('ticketDescription', '');
                                 }
                               }}
-                              disabled={form.watch('global') === true}
+                              disabled={!form.watch('companyId')}
                               data-testid="switch-ticket-config"
                             />
                           </div>
@@ -1457,9 +1455,13 @@ export default function TicketTemplates() {
                                                       id={`custom-field-required-create-${field.id}`}
                                                       checked={requiredOnCreate}
                                                       disabled={!showOnOpen}
-                                                      onCheckedChange={(checked) =>
-                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true)
-                                                      }
+                                                      onCheckedChange={(checked) => {
+                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true);
+                                                        // Se marcar obrigatório no modal, também marca na aba de detalhes
+                                                        if (checked) {
+                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, true);
+                                                        }
+                                                      }}
                                                     />
                                                     <Label
                                                       htmlFor={`custom-field-required-create-${field.id}`}
@@ -1722,13 +1724,11 @@ export default function TicketTemplates() {
                             <div>
                               <h4 className="font-medium text-purple-900">Configurações de Campos do Ticket</h4>
                               <p className="text-sm text-purple-700 mt-1">
-                                {form.watch('global')
+                                {!form.watch('companyId')
                                   ? 'Templates globais não podem ter configurações de campos do ticket'
                                   : !enableTicketConfig 
                                     ? 'Ative para configurar valores padrão dos campos do ticket'
-                                    : !form.watch('companyId') 
-                                      ? 'Templates globais não podem ter valores pré-configurados. Selecione uma empresa para habilitar.'
-                                      : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
+                                    : 'Configure valores padrão que serão aplicados ao criar tickets com este template:'}
                               </p>
                             </div>
                             <Switch
@@ -1745,7 +1745,7 @@ export default function TicketTemplates() {
                                   form.setValue('ticketDescription', '');
                                 }
                               }}
-                              disabled={form.watch('global') === true}
+                              disabled={!form.watch('companyId')}
                               data-testid="switch-ticket-config"
                             />
                           </div>
@@ -2069,9 +2069,13 @@ export default function TicketTemplates() {
                                                       id={`custom-field-required-create-${field.id}`}
                                                       checked={requiredOnCreate}
                                                       disabled={!showOnOpen}
-                                                      onCheckedChange={(checked) =>
-                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true)
-                                                      }
+                                                      onCheckedChange={(checked) => {
+                                                        form.setValue(`customFieldsConfig.${field.id}.requiredOnCreate`, checked === true);
+                                                        // Se marcar obrigatório no modal, também marca na aba de detalhes
+                                                        if (checked) {
+                                                          form.setValue(`customFieldsConfig.${field.id}.requiredOnDetails`, true);
+                                                        }
+                                                      }}
                                                     />
                                                     <Label
                                                       htmlFor={`custom-field-required-create-${field.id}`}
