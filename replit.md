@@ -50,6 +50,11 @@ The UI features a gradient-focused design system (purple/blue primary, pink/red 
 - **RESTful API**: Structured error handling.
 - **True Schema Separation**: For multi-tenancy with automatic schema migrations.
 - **Automatic Tenant Provisioning**: New tenants automatically receive complete database schema (188 tables) via migration system (`server/migrations/pg-migrations/tenant/001_create_tenant_tables.sql`) executed during tenant creation in `schemaManager.createTenantSchema()`.
+- **Multi-Tenant Schema Targeting**: All database operations correctly target tenant-specific schemas using one of three approved patterns:
+  1. **getTenantDb()** helper (Chat Module) - Sets search_path for entire connection
+  2. **pool.query() with explicit schema** (Ticket Templates, Technical Skills, Knowledge Base) - Uses `tenant_${tenantId.replace(/-/g, '_')}.table_name` in raw SQL
+  3. **sql.identifier() with Drizzle** (Tickets Module) - Dynamically sets schema in queries
+  - **Critical Fix (2025-10-11)**: Corrected Ticket Templates Repository and Technical Skills Routes from using global `db` instance (which defaults to public schema) to raw SQL with explicit tenant schema targeting. Eliminated 229 LSP errors across 6 files.
 - **Comprehensive Notification System**: User preferences and global controls.
 - **AI Agent Auto-Configuration**: Natural language-to-configuration generation using GPT-4o-mini.
 - **Ticket Context Tracking**: Intelligent message-to-ticket linking for emails and chat platforms.
