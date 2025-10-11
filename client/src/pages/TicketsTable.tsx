@@ -2307,14 +2307,20 @@ const TicketsTable = React.memo(() => {
                   description: `Template "${tpl.name}" configurado.`,
                 });
               } else {
-                // Reset
+                // Reset (Sem template)
+                console.log('🔄 [TEMPLATE-RESET] Voltando para sem template, preservando empresa:', selectedCompanyId);
                 setTemplateSelected(false);
                 setTemplateRequiredKeys([]);
                 setTemplateOptionalKeys([]);
                 setTemplateFieldOrder([]);
                 setVisibleFields(Object.fromEntries(Object.keys(visibleFields).map(k => [k, false])) as any);
-                // mantenha priority default
+                // Mantenha campos essenciais
                 form.setValue('priority', 'medium');
+                // BUGFIX: Preservar empresa quando voltar para "sem template"
+                if (selectedCompanyId) {
+                  form.setValue('companyId', selectedCompanyId);
+                  console.log('✅ [TEMPLATE-RESET] Empresa preservada no form:', selectedCompanyId);
+                }
               }
             }}
             value={selectedTemplateId || '__none__'}
