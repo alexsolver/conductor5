@@ -145,7 +145,7 @@ export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   ticketNumber: varchar("number", { length: 50 }),
-  title: varchar("subject", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
   description: text("description"),
   status: ticketStatusEnum("status").default("open"),
   priority: ticketPriorityEnum("priority").default("medium"),
