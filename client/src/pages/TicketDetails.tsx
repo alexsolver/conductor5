@@ -589,16 +589,17 @@ const TicketDetails = React.memo(() => {
 
   // Fetch custom fields from ticket template
   const { data: ticketTemplateCustomFields, isLoading: customFieldsLoading } = useQuery({
-    queryKey: ["/api/tickets", id, "template-custom-fields"],
+    queryKey: ["/api/tickets", id, "template-custom-fields", ticket?.templateId || ticket?.template_id],
     queryFn: async () => {
       if (!ticket?.templateId && !ticket?.template_id) {
-        return { success: true, data: [] };
+        return { success: true, data: { customFields: [] } };
       }
 
       const templateId = ticket.templateId || ticket.template_id;
       const response = await apiRequest("GET", `/api/ticket-templates/${templateId}/custom-fields`);
       return response.json();
     },
+    enabled: !!(ticket?.templateId || ticket?.template_id),
     gcTime: 0,      // não guarda cache em memória
     staleTime: 0,      // nunca considera "fresco"
     refetchOnMount: true,
