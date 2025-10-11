@@ -2043,16 +2043,6 @@ const TicketsTable = React.memo(() => {
       return;
     }
 
-    if (!data.companyId) {
-      console.error('❌ Company is required');
-      toast({
-        title: "Erro de Validação",
-        description: "Empresa é obrigatória",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!data.callerId) {
       console.error('❌ Customer is required');
       toast({

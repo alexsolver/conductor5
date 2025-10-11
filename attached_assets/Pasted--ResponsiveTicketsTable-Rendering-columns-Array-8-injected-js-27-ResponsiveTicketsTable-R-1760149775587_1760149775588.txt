@@ -1,0 +1,66 @@
+📊 [ResponsiveTicketsTable] Rendering columns: Array(8)
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: Array(8)
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: Array(8)
+injected.js:27 ❌ Company is required
+(anonymous) @ injected.js:27
+console.error @ main.tsx:18
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+onSubmit @ TicketsTable.tsx:2047
+onClick @ TicketsTable.tsx:3245
+callCallback2 @ chunk-H343HIDT.js?v=07505986:3680
+invokeGuardedCallbackDev @ chunk-H343HIDT.js?v=07505986:3705
+invokeGuardedCallback @ chunk-H343HIDT.js?v=07505986:3739
+invokeGuardedCallbackAndCatchFirstError @ chunk-H343HIDT.js?v=07505986:3742
+executeDispatch @ chunk-H343HIDT.js?v=07505986:7046
+processDispatchQueueItemsInOrder @ chunk-H343HIDT.js?v=07505986:7066
+processDispatchQueue @ chunk-H343HIDT.js?v=07505986:7075
+dispatchEventsForPlugins @ chunk-H343HIDT.js?v=07505986:7083
+(anonymous) @ chunk-H343HIDT.js?v=07505986:7206
+batchedUpdates$1 @ chunk-H343HIDT.js?v=07505986:18966
+batchedUpdates @ chunk-H343HIDT.js?v=07505986:3585
+dispatchEventForPluginEventSystem @ chunk-H343HIDT.js?v=07505986:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-H343HIDT.js?v=07505986:5484
+dispatchEvent @ chunk-H343HIDT.js?v=07505986:5478
+dispatchDiscreteEvent @ chunk-H343HIDT.js?v=07505986:5455Understand this error
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
