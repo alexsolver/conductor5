@@ -1172,10 +1172,17 @@ const TicketsTable = React.memo(() => {
     const memoizedCellContent = useMemo(() => {
       switch (column.id) {
         case 'number':
+          const ticketNumber = (ticket as any).number || (ticket as any).ticket_number || `#${ticket.id.slice(-8)}`;
+          console.log('🎫 [TICKET-NUMBER-DEBUG]', { 
+            ticketId: ticket.id.slice(-8), 
+            numberField: (ticket as any).number,
+            ticket_numberField: (ticket as any).ticket_number,
+            finalDisplay: ticketNumber 
+          });
           return (
             <TableCell className="font-mono text-sm overflow-hidden" style={cellStyle}>
               <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
-                {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+                {ticketNumber}
               </Link>
             </TableCell>
           );
