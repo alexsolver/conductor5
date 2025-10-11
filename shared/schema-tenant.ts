@@ -144,7 +144,7 @@ export const items = pgTable("items", {
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  ticketNumber: varchar("number", { length: 50 }),
+  number: varchar("number", { length: 50 }),
   subject: varchar("subject", { length: 255 }).notNull(),
   description: text("description"),
   status: ticketStatusEnum("status").default("open"),
