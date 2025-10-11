@@ -944,6 +944,17 @@ export const insertItemLinkSchema = createInsertSchema(itemLinks);
 export const insertItemCustomerLinkSchema = createInsertSchema(itemCustomerLinks);
 export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks);
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings);
+
+// ✅ TICKET INSERT SCHEMA - COMPANY_ID REQUIRED
+export const insertTicketSchema = createInsertSchema(tickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  // Override to make companyId required (company_id in DB)
+  companyId: z.string().uuid({ message: "Empresa é obrigatória" }),
+});
+
 // ✅ 1QA.MD COMPLIANCE: TICKET TEMPLATE ZOD SCHEMA - VALIDATION
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   // Validações específicas para os campos obrigatórios

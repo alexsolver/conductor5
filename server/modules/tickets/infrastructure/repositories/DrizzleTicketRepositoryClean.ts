@@ -325,14 +325,37 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
       const tenantDb = await this.getTenantDb(tenantId);
       const schemaName = this.getSchemaName(tenantId);
       
-      // Preparar valores com tipos corretos
+      // ✅ CRITICAL FIX: Map camelCase DTO → snake_case DB columns
       const insertData = {
-        ...data,
-        tenantId,
+        tenant_id: tenantId,
+        number: data.number,
+        subject: data.subject,
+        description: data.description,
+        status: data.status || 'new',
+        priority: data.priority,
+        urgency: data.urgency,
+        impact: data.impact,
+        category: data.category,
+        subcategory: data.subcategory,
+        action: data.action,
+        
+        // ✅ RELATIONSHIP FIELDS - Map camelCase → snake_case
+        customer_id: data.customerId || null,
+        beneficiary_id: data.beneficiaryId || null,
+        assigned_to_id: data.assignedToId || null,
+        company_id: data.companyId || null,
+        
+        // Metadata
         tags: data.tags ? JSON.stringify(data.tags) : null,
-        customFields: data.customFields ? JSON.stringify(data.customFields) : null,
-        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+        custom_fields: data.customFields ? JSON.stringify(data.customFields) : null,
+        
+        // Audit fields
+        created_by_id: data.createdById,
+        updated_by_id: data.createdById,
+        is_active: true,
       };
+
+      console.log('🎫 [REPOSITORY-CREATE] InsertData with snake_case mapping:', JSON.stringify(insertData, null, 2));
 
       const [newTicket] = await tenantDb
         .insert(tickets)
