@@ -41,14 +41,14 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Get ticket number
-    const ticketQuery = `SELECT number FROM "${schemaName}".tickets WHERE id = $1`;
+    const ticketQuery = `SELECT ticket_number FROM "${schemaName}".tickets WHERE id = $1`;
     const ticketResult = await pool.query(ticketQuery, [ticketId]);
 
     if (!ticketResult.rows.length) {
       throw new Error(`Ticket not found: ${ticketId}`);
     }
 
-    const ticketNumber = ticketResult.rows[0].number;
+    const ticketNumber = ticketResult.rows[0].ticket_number;
 
     // Get next sequence number
     const sequenceQuery = `
@@ -141,7 +141,7 @@ async function createCompleteAuditEntry(
     try {
       const ticketQuery = `
         SELECT 
-          number, subject, status, priority, category, subcategory, 
+          ticket_number, subject, status, priority, category, subcategory, 
           company_id, assigned_to_id, created_at as ticket_created_at
         FROM "${schemaName}".tickets 
         WHERE id = $1 AND tenant_id = $2
@@ -149,7 +149,7 @@ async function createCompleteAuditEntry(
       const ticketResult = await pool.query(ticketQuery, [ticketId, tenantId]);
       if (ticketResult.rows[0]) {
         ticketContext = {
-          ticket_number: ticketResult.rows[0].number,
+          ticket_number: ticketResult.rows[0].ticket_number,
           ticket_subject: ticketResult.rows[0].subject,
           current_status: ticketResult.rows[0].status,
           current_priority: ticketResult.rows[0].priority,
@@ -3388,8 +3388,8 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
           WHEN tr.target_ticket_id = $1 THEN t_source.priority
         END as "targetTicket.priority",
         CASE 
-          WHEN tr.source_ticket_id = $1 THEN COALESCE(t_target.number, CONCAT('T-', SUBSTRING(t_target.id::text, 1, 8)))
-          WHEN tr.target_ticket_id = $1 THEN COALESCE(t_source.number, CONCAT('T-', SUBSTRING(t_source.id::text, 1, 8)))
+          WHEN tr.source_ticket_id = $1 THEN COALESCE(t_target.ticket_number, CONCAT('T-', SUBSTRING(t_target.id::text, 1, 8)))
+          WHEN tr.target_ticket_id = $1 THEN COALESCE(t_source.ticket_number, CONCAT('T-', SUBSTRING(t_source.id::text, 1, 8)))
         END as "targetTicket.number",
         CASE 
           WHEN tr.source_ticket_id = $1 THEN t_target.created_at
@@ -3451,7 +3451,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
 
     // Check if both tickets exist
     const ticketCheck = await pool.query(
-      `SELECT id, number FROM "${schemaName}".tickets WHERE id IN ($1, $2) AND tenant_id = $3`,
+      `SELECT id, ticket_number as number FROM "${schemaName}".tickets WHERE id IN ($1, $2) AND tenant_id = $3`,
       [id, targetTicketId, tenantId]
     );
 
@@ -3486,7 +3486,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     let targetTicketNumber = targetTicketId;
     try {
       const targetTicketQuery = `
-        SELECT COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number 
+        SELECT COALESCE(ticket_number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number 
         FROM "${schemaName}".tickets 
         WHERE id = $1 AND tenant_id = $2
       `;
@@ -3550,8 +3550,8 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     // Get relationship info before deletion for audit trail
     const relationshipQuery = `
       SELECT source_ticket_id, target_ticket_id, relationship_type, description,
-             source_ticket.number as source_number,
-             target_ticket.number as target_number
+             source_ticket.ticket_number as source_number,
+             target_ticket.ticket_number as target_number
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN "${schemaName}".tickets source_ticket ON tr.source_ticket_id = source_ticket.id
       LEFT JOIN "${schemaName}".tickets target_ticket ON tr.target_ticket_id = target_ticket.id
@@ -3643,7 +3643,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         tia.agent_id as "agentId",
         tia.ticket_id as "ticketId",
         tia.estimated_hours,
-        t.number as "ticketNumber",
+        t.ticket_number as "ticketNumber",
         t.subject as "ticketSubject",
         u.first_name || ' ' || u.last_name as "agentName",
         u.email as "agentEmail"
@@ -4254,7 +4254,7 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
         tr.description as relationship_description,
         tr.created_at as relationship_created_at,
         t.id as target_id,
-        t.number as target_number,
+        t.ticket_number as target_number,
         t.subject as target_subject,
         t.status as target_status,
         t.priority as target_priority,
@@ -4314,7 +4314,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
 
     // Verify both tickets exist
     const ticketCheckQuery = `
-      SELECT id, number FROM "${schemaName}".tickets 
+      SELECT id, ticket_number as number FROM "${schemaName}".tickets 
       WHERE id IN ($1::uuid, $2::uuid) AND tenant_id = $3::uuid
     `;
 
@@ -4423,8 +4423,8 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     // Get relationship details before deletion for audit
     const getRelationshipQuery = `
       SELECT tr.source_ticket_id, tr.target_ticket_id, tr.relationship_type, tr.description,
-             source_ticket.number as source_number,
-             target_ticket.number as target_number
+             source_ticket.ticket_number as source_number,
+             target_ticket.ticket_number as target_number
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN "${schemaName}".tickets source_ticket ON tr.source_ticket_id = source_ticket.id
       LEFT JOIN "${schemaName}".tickets target_ticket ON tr.target_ticket_id = target_ticket.id
@@ -4516,7 +4516,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         tia.agent_id as "agentId",
         tia.ticket_id as "ticketId",
         tia.estimated_hours,
-        t.number as "ticketNumber",
+        t.ticket_number as "ticketNumber",
         t.subject as "ticketSubject",
         u.first_name || ' ' || u.last_name as "agentName",
         u.email as "agentEmail"
