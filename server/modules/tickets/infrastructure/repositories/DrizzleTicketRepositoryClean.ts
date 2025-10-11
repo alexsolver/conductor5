@@ -322,10 +322,21 @@ export class DrizzleTicketRepositoryClean implements ITicketRepository {
 
   async create(data: CreateTicketDTO, tenantId: string): Promise<Ticket> {
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      const [newTicket] = await db
+      const tenantDb = await this.getTenantDb(tenantId);
+      const schemaName = this.getSchemaName(tenantId);
+      
+      // Preparar valores com tipos corretos
+      const insertData = {
+        ...data,
+        tenantId,
+        tags: data.tags ? JSON.stringify(data.tags) : null,
+        customFields: data.customFields ? JSON.stringify(data.customFields) : null,
+        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+      };
+
+      const [newTicket] = await tenantDb
         .insert(tickets)
-        .values({...data, tenantId: tenantId } as any) // Assuming tenantId is part of the schema or needs to be added
+        .values(insertData as any)
         .returning();
 
       return newTicket as Ticket;

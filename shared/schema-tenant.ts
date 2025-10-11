@@ -7,6 +7,7 @@ import {
   varchar,
   timestamp,
   jsonb,
+  json,
   index,
   uuid,
   boolean,
@@ -182,7 +183,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_idx").on(table.tenantId, table.status),
   index("tickets_tenant_priority_idx").on(table.tenantId, table.priority),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId),
-  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedTo),
+  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
   index("tickets_tenant_active_idx").on(table.tenantId, table.isActive),
   unique("tickets_tenant_number_unique").on(table.tenantId, table.ticketNumber),
 ]);
