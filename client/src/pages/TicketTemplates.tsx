@@ -457,6 +457,13 @@ export default function TicketTemplates() {
       subcategory: template.subcategory || '',
       priority: template.priority,
       status: template.status,
+      // ✅ Campos de configuração do ticket
+      urgency: (template as any).urgency || '',
+      impact: (template as any).impact || '',
+      ticketStatus: (template as any).ticket_status || (template as any).ticketStatus || '',
+      action: (template as any).action || '',
+      subject: (template as any).subject || '',
+      ticketDescription: (template as any).ticket_description || (template as any).ticketDescription || '',
       requiredFields: (template as any).required_fields || template.requiredFields || [],
       customFields: (template as any).custom_fields || template.customFields || [],
       tags: tagsArray,
