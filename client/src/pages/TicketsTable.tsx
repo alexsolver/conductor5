@@ -1405,21 +1405,14 @@ const TicketsTable = React.memo(() => {
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div className="text-sm">
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
-                  ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
+                  ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleString('pt-BR', {
                       day: '2-digit',
                       month: '2-digit',
-                      year: 'numeric'
-                    })
-                  : 'N/A'
-                }
-              </div>
-              <div className="text-xs text-gray-500">
-                {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
-                  ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
+                      year: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit'
                     })
-                  : ''
+                  : 'N/A'
                 }
               </div>
             </TableCell>
