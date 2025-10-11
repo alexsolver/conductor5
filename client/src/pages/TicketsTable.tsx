@@ -2271,10 +2271,11 @@ const TicketsTable = React.memo(() => {
                   return { ...base, ...flagsByTemplate };
                 });
 
-                // limpar valores antigos dos campos controlados pelo template
+                // SALVAR valores atuais ANTES de qualquer operação
                 const currentCompanyId = form.getValues('companyId');
                 const currentCallerId = form.getValues('callerId');
                 
+                // limpar valores antigos dos campos controlados pelo template
                 [...requiredKeys, ...optionalKeys].forEach((raw) => {
                   const mapped = fieldMapping[raw] || raw;
                   // não zere companyId/callerId se já estiverem setados e o template exigir
@@ -2282,19 +2283,20 @@ const TicketsTable = React.memo(() => {
                     form.setValue(mapped as any, '' as any);
                   }
                 });
-                
-                // BUGFIX: Garantir que empresa e cliente sejam preservados após limpar campos
-                if (currentCompanyId) {
-                  form.setValue('companyId', currentCompanyId);
-                  console.log('✅ [TEMPLATE-APPLY] Empresa preservada:', currentCompanyId);
-                }
-                if (currentCallerId) {
-                  form.setValue('callerId', currentCallerId);
-                  console.log('✅ [TEMPLATE-APPLY] Cliente preservado:', currentCallerId);
-                }
 
                 // defaults se existirem
                 applyDefaultsFromTemplate(tpl);
+                
+                // BUGFIX CRÍTICO: Restaurar empresa e cliente APÓS aplicar defaults
+                // Isso garante que não sejam sobrescritos pelos defaults do template
+                if (currentCompanyId) {
+                  form.setValue('companyId', currentCompanyId);
+                  console.log('✅ [TEMPLATE-APPLY] Empresa preservada APÓS defaults:', currentCompanyId);
+                }
+                if (currentCallerId) {
+                  form.setValue('callerId', currentCallerId);
+                  console.log('✅ [TEMPLATE-APPLY] Cliente preservado APÓS defaults:', currentCallerId);
+                }
 
                 if (templateRequiredKeys.includes('status') && !form.getValues('status')) {
                   form.setValue('status', 'open');

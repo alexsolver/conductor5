@@ -1,0 +1,63 @@
+injected.js:27 ❌ Company is required
+(anonymous) @ injected.js:27
+console.error @ main.tsx:18
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+(anonymous) @ injected.js:27
+onSubmit @ TicketsTable.tsx:2054
+onClick @ TicketsTable.tsx:3271
+callCallback2 @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:3680
+invokeGuardedCallbackDev @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:3705
+invokeGuardedCallback @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:3739
+invokeGuardedCallbackAndCatchFirstError @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:3742
+executeDispatch @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7046
+processDispatchQueueItemsInOrder @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7066
+processDispatchQueue @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7075
+dispatchEventsForPlugins @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7083
+(anonymous) @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7206
+batchedUpdates$1 @ 8fec1d5e-57dc-42c5-9…js?v=5691876d:18966
+batchedUpdates @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:3585
+dispatchEventForPluginEventSystem @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:7205
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:5484
+dispatchEvent @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:5478
+dispatchDiscreteEvent @ 8fec1d5e-57dc-42c5-9….js?v=5691876d:5455Understand this error
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
+injected.js:27 🎯 [ResponsiveTicketsTable] Received visibleColumns: 8 columns
+injected.js:27 📊 [ResponsiveTicketsTable] Rendering columns: (8) ['ticketNumber', 'subject', 'status', 'priority', 'assignedToName', 'customerName', 'createdAt', 'category']
