@@ -446,6 +446,10 @@ export default function TicketTemplates() {
   const handleEditTemplate = (template: TicketTemplate) => {
     setEditingTemplate(template);
 
+    // Converte tags para array se vier como string
+    const tagsValue = (template as any).tags || template.tags;
+    const tagsArray = Array.isArray(tagsValue) ? tagsValue : (tagsValue ? [tagsValue] : []);
+
     form.reset({
       name: template.name,
       description: template.description || '',
@@ -457,7 +461,7 @@ export default function TicketTemplates() {
       status: template.status,
       requiredFields: (template as any).required_fields || template.requiredFields || [],
       customFields: (template as any).custom_fields || template.customFields || [],
-      tags: (template as any).tags || template.tags || [],
+      tags: tagsArray,
       isDefault: (template as any).is_default ?? template.isDefault ?? false,
       isSystem: (template as any).is_system ?? template.isSystem ?? false,
     });
