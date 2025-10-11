@@ -131,7 +131,7 @@ interface TicketTemplate {
   category: string | null;
   subcategory: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'active' | 'inactive' | 'draft';
+  status: 'active' | 'inactive';
   requiredFields: any[];
   customFields: any[];
   automation: any;
@@ -226,7 +226,7 @@ export default function TicketTemplates() {
       category: 'Geral',
       subcategory: '',
       priority: 'medium',
-      status: 'draft',
+      status: 'inactive',
       requiredFields: getDefaultRequiredFields(),
       customFields: [],
       tags: [],
@@ -288,7 +288,7 @@ export default function TicketTemplates() {
         companyId: data.companyId || null,
         priority: data.priority,
         templateType: 'creation', // ✅ Sempre 'creation' - tipo único
-        status: data.status || 'draft',
+        status: data.status || 'inactive',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
@@ -360,7 +360,7 @@ export default function TicketTemplates() {
         companyId: data.companyId || null,
         priority: data.priority,
         templateType: 'creation', // ✅ Sempre 'creation' - tipo único
-        status: data.status || 'draft',
+        status: data.status || 'inactive',
         isDefault: !!data.isDefault,
         isSystem: !!data.isSystem,
         tags: Array.isArray(data.tags) ? data.tags : [],
@@ -754,7 +754,7 @@ export default function TicketTemplates() {
                           className={template.status === 'active' ? 'bg-green-100 text-green-800' : ''}
                         >
                           {template.status === 'active' ? 'Ativo' : 
-                           template.status === 'draft' ? 'Rascunho' : 'Inativo'}
+                           'Inativo'}
                         </Badge>
                       </div>
 
