@@ -706,12 +706,6 @@ export default function CustomFieldsAdministrator() {
             Configure campos personalizados para diferentes módulos do sistema
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Settings className="w-5 h-5 text-gray-400" />
-          <Badge variant="outline" className="text-xs">
-            Beta
-          </Badge>
-        </div>
       </div>
 
       <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-purple-50">
