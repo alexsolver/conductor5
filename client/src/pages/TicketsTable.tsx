@@ -2111,7 +2111,7 @@ const TicketsTable = React.memo(() => {
       // Additional fields
       tags: data.tags || [],
       custom_fields_values: customFieldsValues,
-      template_id: selectedTemplateId || null,
+      template_id: (selectedTemplateId && selectedTemplateId !== '__none__') ? selectedTemplateId : null,
     };
 
     console.log('Submitting ticket data:', submitData);
@@ -3428,7 +3428,23 @@ const TicketsTable = React.memo(() => {
       </div>
 
       {/* Modals */}
-      <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
+      <Dialog open={isNewTicketModalOpen} onOpenChange={(open) => {
+        setIsNewTicketModalOpen(open);
+        if (!open) {
+          // Reset form and all states when modal closes
+          console.log('🔄 [MODAL-CLOSE] Resetting form and states');
+          form.reset();
+          setSelectedCompanyId('');
+          setSelectedCustomerId('');
+          setSelectedTemplateId(undefined);
+          setTemplateSelected(false);
+          setTemplateRequiredKeys([]);
+          setTemplateOptionalKeys([]);
+          setTemplateFieldOrder([]);
+          setActiveCustomFields([]);
+          setVisibleFields(Object.fromEntries(Object.keys(visibleFields).map(k => [k, false])) as any);
+        }
+      }}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0 pb-4 border-b">
             <DialogTitle>{t('tickets.new_ticket')}</DialogTitle>
